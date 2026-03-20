@@ -46,6 +46,13 @@ public static class CompilationHelper
             syntaxDiagnostics.Add(DiagnosticDescriptors.IncludeDirectiveInStrictMode(0));
         }
 
+        // Report preprocessor errors as diagnostics
+        foreach (var err in preprocessor.Errors)
+        {
+            syntaxDiagnostics.Add(new Diagnostics.Diagnostic(
+                Diagnostics.DiagnosticSeverity.Error, "MIDL1074", err, 0, 1));
+        }
+
         // Lazily index external types from referenced .winmd files
         List<LazyWinMdProvider>? lazyProviders = null;
         if (referencePaths is { Count: > 0 })

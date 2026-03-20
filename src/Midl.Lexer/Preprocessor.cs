@@ -19,6 +19,9 @@ public class Preprocessor
     /// <summary>True if any #include directive was encountered during processing.</summary>
     public bool HasIncludeDirectives { get; private set; }
 
+    /// <summary>Errors and warnings from preprocessing (include not found, unknown directives, etc.).</summary>
+    public List<string> Errors { get; } = new();
+
     public Preprocessor(IReadOnlyList<string>? defines = null,
                         IReadOnlyList<string>? includePaths = null,
                         string? currentFilePath = null)
@@ -220,7 +223,9 @@ public class Preprocessor
                         break;
 
                     default:
-                        // Unknown directive — drop silently (preserve line count)
+                        // Unknown directive — report error and drop
+                        if (IsActive(ifStack))
+                            Errors.Add($"Unknown preprocessor directive: '#{directive.Name}'");
                         output.AppendLine();
                         break;
                 }
@@ -354,7 +359,10 @@ public class Preprocessor
 
         var resolved = ResolveIncludePath(path, parentFilePath);
         if (resolved == null)
+        {
+            Errors.Add($"#include file not found: '{path}'");
             return "\n";
+        }
 
         var fullPath = Path.GetFullPath(resolved);
 
