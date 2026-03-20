@@ -196,10 +196,25 @@ Write-Host "Iterations:        $Iterations" -ForegroundColor Gray
 
 # Resolve IDL files
 if (-not $IdlFiles) {
-    $fixtureDir = Join-Path $repoRoot 'tests\fixtures\valid'
-    if (Test-Path $fixtureDir) {
-        $IdlFiles = Get-ChildItem -Path $fixtureDir -Filter '*.idl' | Select-Object -ExpandProperty FullName
+    $fixtureDir = Join-Path $repoRoot 'tests\fixtures'
+    $validDir = Join-Path $fixtureDir 'valid'
+    $errorDir = Join-Path $fixtureDir 'errors'
+    $externalDir = Join-Path $fixtureDir 'external'
+
+    $validFiles = @()
+    $errorFiles = @()
+
+    if (Test-Path $validDir) {
+        $validFiles = Get-ChildItem -Path $validDir -Filter '*.idl' | Select-Object -ExpandProperty FullName
     }
+    if (Test-Path $errorDir) {
+        $errorFiles = Get-ChildItem -Path $errorDir -Filter '*.idl' | Select-Object -ExpandProperty FullName
+    }
+    if (Test-Path $externalDir) {
+        $validFiles += Get-ChildItem -Path $externalDir -Filter '*.idl' | Select-Object -ExpandProperty FullName
+    }
+
+    $IdlFiles = $validFiles + $errorFiles
 }
 
 if (-not $IdlFiles -or $IdlFiles.Count -eq 0) {
@@ -207,7 +222,11 @@ if (-not $IdlFiles -or $IdlFiles.Count -eq 0) {
     exit 1
 }
 
-Write-Host "Files:             $($IdlFiles.Count)" -ForegroundColor Gray
+# Separate valid vs error files for reporting
+if (-not $validFiles) { $validFiles = $IdlFiles }
+if (-not $errorFiles) { $errorFiles = @() }
+
+Write-Host "Files:             $($IdlFiles.Count) total ($($validFiles.Count) valid, $($errorFiles.Count) error)" -ForegroundColor Gray
 
 # ── Cold start test ─────────────────────────────────────────────────────────
 
@@ -234,7 +253,8 @@ $results = @()
 
 foreach ($file in $IdlFiles) {
     $name = [IO.Path]::GetFileName($file)
-    Write-Host "  Benchmarking: $name" -ForegroundColor Gray -NoNewline
+    $category = if ($file -in $errorFiles) { 'ERR' } else { 'OK ' }
+    Write-Host "  [$category] $name" -ForegroundColor Gray -NoNewline
 
     $winTimes = Measure-Compilation $winmidlExe $file @('/no_strict') $Iterations
     $winStats = Get-Stats $winTimes
@@ -344,6 +364,27 @@ if ($hasOriginal) {
 
     $batchRatio = if ($batchWinStats.Median -gt 0) { $batchOrigStats.Median / $batchWinStats.Median } else { 0 }
     Write-Host ("  Batch ratio: {0:N1}x" -f $batchRatio) -ForegroundColor $(if ($batchRatio -ge 1) { 'Green' } else { 'Red' })
+}
+
+# ── Valid vs Error Performance ───────────────────────────────────────────────
+
+if ($validFiles.Count -gt 0 -and $errorFiles.Count -gt 0) {
+    Write-Header 'Valid vs Error File Performance'
+
+    $validResults = $results | Where-Object { $_.File -in ($validFiles | ForEach-Object { [IO.Path]::GetFileName($_) }) }
+    $errorResults = $results | Where-Object { $_.File -in ($errorFiles | ForEach-Object { [IO.Path]::GetFileName($_) }) }
+
+    $avgValid = if ($validResults.Count -gt 0) { ($validResults | Measure-Object -Property WinMedian -Average).Average } else { 0 }
+    $avgError = if ($errorResults.Count -gt 0) { ($errorResults | Measure-Object -Property WinMedian -Average).Average } else { 0 }
+
+    Write-Host ("  Valid files ({0}):   avg {1:N1}ms" -f $validResults.Count, $avgValid) -ForegroundColor Green
+    Write-Host ("  Error files ({0}):   avg {1:N1}ms" -f $errorResults.Count, $avgError) -ForegroundColor Yellow
+
+    if ($avgValid -gt 0) {
+        $errorOverhead = (($avgError - $avgValid) / $avgValid) * 100
+        $sign = if ($errorOverhead -ge 0) { '+' } else { '' }
+        Write-Host ("  Error overhead:     {0}{1:N0}%" -f $sign, $errorOverhead) -ForegroundColor $(if ($errorOverhead -gt 20) { 'Red' } else { 'Gray' })
+    }
 }
 
 # ── Summary ─────────────────────────────────────────────────────────────────
