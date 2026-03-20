@@ -1443,14 +1443,26 @@ public class Binder
             }
             else
             {
-                // Check pointer types
+                // Check pointer types — report once for the whole pointer chain, don't recurse
                 if (slot.Kind == SyntaxKind.PointerType)
                 {
-                    var innerType = slot.GetSlot(0);
-                    // Walk to the first token to get the type name
-                    var typeName = CollectNodeText(innerType);
-                    int ptrPos = _posMap.GetPositionOf(typeName.Length > 0 ? typeName : "*");
+                    // Walk through nested PointerType nodes to get base type and count stars
+                    var current = slot;
+                    int starCount = 0;
+                    while (current != null && current.Kind == SyntaxKind.PointerType)
+                    {
+                        starCount++;
+                        current = current.GetSlot(0);
+                    }
+                    var typeName = CollectNodeText(current);
+                    // Use green tree offset for accurate position (not text-based lookup)
+                    int ptrPos = AttributeExtractor.FindNodeOffset(_root, slot) ?? 0;
+                    var firstToken = FindFirstToken(slot);
+                    if (firstToken != null)
+                        ptrPos += firstToken.LeadingTrivia.Sum(t => t.FullWidth);
                     _diagnostics.Add(DiagnosticDescriptors.PointerType(typeName, ptrPos));
+                    // Don't recurse into pointer children — already reported
+                    continue;
                 }
 
                 // Check for classic [in]/[out] attributes on parameters
