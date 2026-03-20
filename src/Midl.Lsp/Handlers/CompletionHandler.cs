@@ -6,6 +6,7 @@ namespace Midl.Lsp.Handlers;
 
 /// <summary>
 /// Provides keyword and type completions for MIDL3 documents.
+/// Context-aware: when inside [...], shows only applicable attributes.
 /// </summary>
 public static class CompletionHandler
 {
@@ -18,55 +19,334 @@ public static class CompletionHandler
     private const int KindTypeParameter = 25;
     private const int KindModule = 9;  // for namespace
     private const int KindEvent = 23;
+    private const int KindProperty = 10; // for attributes
 
     private static readonly object[] s_staticCompletionItems = BuildCompletionItems();
 
     public static object Handle(JsonElement? @params, DocumentManager docManager)
     {
-        var items = new List<object>(s_staticCompletionItems);
+        if (@params == null)
+            return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = s_staticCompletionItems };
 
-        // Add external types from compilation if available
-        if (@params != null)
+        try
         {
-            try
+            var textDocument = @params.Value.GetProperty("textDocument");
+            var uri = textDocument.GetProperty("uri").GetString()!;
+            var position = @params.Value.GetProperty("position");
+            int line = position.GetProperty("line").GetInt32();
+            int character = position.GetProperty("character").GetInt32();
+
+            var text = docManager.GetDocumentText(uri);
+            if (text == null)
+                return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = s_staticCompletionItems };
+
+            // Check if cursor is inside an attribute context [...]
+            int offset = GetOffset(text, line, character);
+            var attrContext = DetectAttributeContext(text, offset);
+
+            if (attrContext != null)
             {
-                var textDocument = @params.Value.GetProperty("textDocument");
-                var uri = textDocument.GetProperty("uri").GetString()!;
-                var text = docManager.GetDocumentText(uri);
-                if (text != null)
+                // Inside [...] — return only applicable attributes
+                var items = BuildAttributeCompletions(text, attrContext);
+                return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
+            }
+
+            // Normal completion: static items + external types
+            var allItems = new List<object>(s_staticCompletionItems);
+            var compilation = CompilationHelper.Compile(text);
+            foreach (var type in compilation.GetAllTypes())
+            {
+                if (type.IsExternal)
                 {
-                    var compilation = CompilationHelper.Compile(text);
-                    foreach (var type in compilation.GetAllTypes())
+                    var kind = type.Kind switch
                     {
-                        if (type.IsExternal)
-                        {
-                            var kind = type.Kind switch
-                            {
-                                SymbolKind.Interface => KindInterface,
-                                SymbolKind.RuntimeClass => KindClass,
-                                SymbolKind.Enum => KindEnum,
-                                SymbolKind.Struct => KindStruct,
-                                SymbolKind.Delegate => KindClass,
-                                _ => KindClass,
-                            };
-                            items.Add(new Dictionary<string, object?>
-                            {
-                                ["label"] = type.Name,
-                                ["kind"] = kind,
-                                ["detail"] = $"(external) {type.FullName}",
-                                ["insertText"] = type.FullName,
-                            });
-                        }
-                    }
+                        SymbolKind.Interface => KindInterface,
+                        SymbolKind.RuntimeClass => KindClass,
+                        SymbolKind.Enum => KindEnum,
+                        SymbolKind.Struct => KindStruct,
+                        SymbolKind.Delegate => KindClass,
+                        _ => KindClass,
+                    };
+                    allItems.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = type.Name,
+                        ["kind"] = kind,
+                        ["detail"] = $"(external) {type.FullName}",
+                        ["insertText"] = type.FullName,
+                    });
                 }
             }
-            catch
+
+            return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = allItems.ToArray() };
+        }
+        catch
+        {
+            return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = s_staticCompletionItems };
+        }
+    }
+
+    /// <summary>
+    /// Detects if the cursor is inside an attribute bracket [...].
+    /// Returns the target kind string (e.g. "target_runtimeclass") or null if not in attribute context.
+    /// </summary>
+    private static string? DetectAttributeContext(string text, int offset)
+    {
+        // Walk backward from cursor to find an unmatched '[' (not inside strings/comments)
+        int depth = 0;
+        for (int i = offset - 1; i >= 0; i--)
+        {
+            char c = text[i];
+            if (c == ']') depth++;
+            else if (c == '[')
             {
-                // Ignore errors; return static items only
+                if (depth > 0) depth--;
+                else
+                {
+                    // Found unmatched '[' — we're inside an attribute list.
+                    // Now determine the target by scanning forward from ']' to find what follows.
+                    return DetermineAttributeTarget(text, offset);
+                }
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// From the cursor position (inside [...]), look forward past the ']' to find
+    /// what declaration keyword follows, determining the attribute target.
+    /// </summary>
+    private static string DetermineAttributeTarget(string text, int cursorOffset)
+    {
+        // Find the closing ']' after the cursor (or use end of text)
+        int closeBracket = text.IndexOf(']', cursorOffset);
+        int searchFrom = closeBracket >= 0 ? closeBracket + 1 : cursorOffset;
+
+        // Skip whitespace and find the next keyword
+        var remaining = text.AsSpan(searchFrom).TrimStart();
+        // Also try scanning forward through possible nested attribute lists [attr][attr2]
+        while (remaining.Length > 0 && remaining[0] == '[')
+        {
+            int nextClose = remaining.IndexOf(']');
+            if (nextClose < 0) break;
+            remaining = remaining[(nextClose + 1)..].TrimStart();
+        }
+
+        if (StartsWithWord(remaining, "runtimeclass")) return "target_runtimeclass";
+        if (StartsWithWord(remaining, "interface")) return "target_interface";
+        if (StartsWithWord(remaining, "enum")) return "target_enum";
+        if (StartsWithWord(remaining, "struct")) return "target_struct";
+        if (StartsWithWord(remaining, "delegate")) return "target_delegate";
+        if (StartsWithWord(remaining, "attribute")) return "target_attribute";
+        if (StartsWithWord(remaining, "apicontract")) return "target_apicontract";
+
+        // Inside a type body: check if we're inside a class/interface body for member-level attrs
+        // Also handle modifiers before the keyword
+        if (StartsWithWord(remaining, "static") || StartsWithWord(remaining, "partial") ||
+            StartsWithWord(remaining, "unsealed"))
+            return "target_runtimeclass";
+
+        // Check if cursor is inside a type body (between { and })
+        // by looking backward for the enclosing declaration keyword
+        return DetermineEnclosingTarget(text, cursorOffset);
+    }
+
+    /// <summary>
+    /// Look backward from cursor to find the enclosing declaration (runtimeclass, interface, etc.)
+    /// to determine what member-level attributes would be valid.
+    /// </summary>
+    private static string DetermineEnclosingTarget(string text, int offset)
+    {
+        int braceDepth = 0;
+        for (int i = offset - 1; i >= 0; i--)
+        {
+            char c = text[i];
+            if (c == '}') braceDepth++;
+            else if (c == '{')
+            {
+                if (braceDepth > 0) { braceDepth--; continue; }
+                // Found the opening brace of our enclosing scope — scan backward for keyword
+                var before = text.AsSpan(0, i).TrimEnd();
+                // Skip past the type name/base list to find the keyword
+                if (ContainsWordBefore(before, "runtimeclass")) return "target_method"; // members
+                if (ContainsWordBefore(before, "interface")) return "target_method";
+                if (ContainsWordBefore(before, "namespace")) return "target_all"; // any type attribute
+                break;
+            }
+        }
+        return "target_all"; // default: show everything
+    }
+
+    private static bool StartsWithWord(ReadOnlySpan<char> text, string word)
+    {
+        if (text.Length < word.Length) return false;
+        if (!text.StartsWith(word.AsSpan(), StringComparison.Ordinal)) return false;
+        return text.Length == word.Length || !char.IsLetterOrDigit(text[word.Length]);
+    }
+
+    private static bool ContainsWordBefore(ReadOnlySpan<char> text, string word)
+    {
+        // Simple backward scan for keyword in the last ~200 chars
+        int searchLen = Math.Min(text.Length, 200);
+        var search = text.Slice(text.Length - searchLen, searchLen);
+        int idx = search.LastIndexOf(word.AsSpan());
+        return idx >= 0;
+    }
+
+    /// <summary>Build context-appropriate attribute completions.</summary>
+    private static List<object> BuildAttributeCompletions(string text, string targetKind)
+    {
+        var items = new List<object>();
+
+        // Add well-known built-in attributes with their descriptions and target applicability
+        foreach (var (name, detail, targets, snippet) in WellKnownAttributeCompletions)
+        {
+            if (targetKind == "target_all" || targets.Length == 0 ||
+                targets.Contains(targetKind) ||
+                (targetKind == "target_method" && targets.Contains("target_member")))
+            {
+                var item = new Dictionary<string, object?>
+                {
+                    ["label"] = name,
+                    ["kind"] = KindProperty,
+                    ["detail"] = detail,
+                };
+                if (snippet != null)
+                {
+                    item["insertText"] = snippet;
+                    item["insertTextFormat"] = 2; // Snippet format
+                }
+                else
+                {
+                    item["insertText"] = name;
+                }
+                items.Add(item);
             }
         }
 
-        return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
+        // Add user-defined custom attributes from the compilation
+        try
+        {
+            var compilation = CompilationHelper.Compile(text);
+            foreach (var type in compilation.GetAllTypes())
+            {
+                if (type is AttributeTypeSymbol attr)
+                {
+                    // Check attributeusage targets
+                    bool applicable = attr.ValidTargets.Count == 0 || // no restriction
+                        targetKind == "target_all" ||
+                        attr.ValidTargets.Any(t => t.Equals(targetKind, StringComparison.OrdinalIgnoreCase));
+
+                    if (applicable)
+                    {
+                        var argSnippet = BuildAttributeArgSnippet(attr);
+                        var displayName = attr.AttributeNameOverride ?? attr.Name;
+                        items.Add(new Dictionary<string, object?>
+                        {
+                            ["label"] = displayName,
+                            ["kind"] = KindProperty,
+                            ["detail"] = $"(custom) {attr.FullName}",
+                            ["insertText"] = argSnippet,
+                            ["insertTextFormat"] = 2, // Snippet
+                        });
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Partial file — just return well-known attributes
+        }
+
+        return items;
+    }
+
+    /// <summary>Build a snippet like "MyAttr(${1:Level}, ${2:Description})" for a custom attribute.</summary>
+    private static string BuildAttributeArgSnippet(AttributeTypeSymbol attr)
+    {
+        var displayName = attr.AttributeNameOverride ?? attr.Name;
+        if (attr.Fields.Count == 0)
+            return displayName;
+
+        var args = new List<string>();
+        for (int i = 0; i < attr.Fields.Count; i++)
+        {
+            var field = attr.Fields[i];
+            args.Add($"${{{i + 1}:{field.Name}}}");
+        }
+        return $"{displayName}({string.Join(", ", args)})";
+    }
+
+    /// <summary>
+    /// Well-known attributes with their descriptions, applicable targets, and optional snippets.
+    /// Targets: empty array = applicable everywhere.
+    /// </summary>
+    private static readonly (string Name, string Detail, string[] Targets, string? Snippet)[] WellKnownAttributeCompletions =
+    [
+        // Type-level attributes
+        ("uuid", "Assigns a GUID to an interface", ["target_interface", "target_runtimeclass"],
+            "uuid(\"${1:00000000-0000-0000-0000-000000000000}\")"),
+        ("contract", "Associates type with an API contract version", [],
+            "contract(${1:ContractName}, ${2:version})"),
+        ("version", "Specifies the version number", [],
+            "version(${1:1})"),
+        ("contractversion", "Sets the version of an API contract", ["target_apicontract"],
+            "contractversion(${1:1})"),
+        ("deprecated", "Marks as deprecated", [],
+            "deprecated(\"${1:Use alternative}\", deprecate, ${2:ContractName}, ${3:version})"),
+        ("experimental", "Marks as experimental", [], null),
+
+        // Runtimeclass activation/composition
+        ("activatable", "Makes class default-activatable or with factory", ["target_runtimeclass"],
+            "activatable(${1:ContractName}, ${2:version})"),
+        ("composable", "Makes class composable (base for derivation)", ["target_runtimeclass"],
+            "composable(${1:IFactory}, ${2:public}, ${3:ContractName}, ${4:version})"),
+        ("static", "Declares a static interface on the class", ["target_runtimeclass"],
+            "static(${1:IStatics}, ${2:ContractName}, ${3:version})"),
+        ("threading", "Threading model: both, sta, mta", ["target_runtimeclass"],
+            "threading(${1|both,sta,mta|})"),
+        ("marshaling_behavior", "Marshaling: agile, standard, none", ["target_runtimeclass"],
+            "marshaling_behavior(${1|agile,standard,none|})"),
+        ("webhosthidden", "Hides type from JavaScript projection", ["target_runtimeclass", "target_interface"], null),
+        ("default_interface", "Marks interface as the default", ["target_runtimeclass"], null),
+
+        // Interface attributes
+        ("exclusiveto", "Restricts interface to a specific class", ["target_interface"],
+            "exclusiveto(${1:ClassName})"),
+        ("default", "Marks as default interface implementation", ["target_interface"], null),
+        ("overridable", "Interface can be overridden in derived classes", ["target_interface"], null),
+        ("protected", "Interface is accessible only from derived classes", ["target_interface"], null),
+
+        // Enum attributes
+        ("flags", "Marks enum as a flags/bitmask enum", ["target_enum"], null),
+
+        // Attribute meta-attributes
+        ("attributeusage", "Specifies where a custom attribute can be applied", ["target_attribute"],
+            "attributeusage(${1|target_runtimeclass,target_interface,target_enum,target_struct,target_delegate,target_method,target_property,target_event,target_parameter|})"),
+        ("attributename", "Overrides the short name of a custom attribute", ["target_attribute"],
+            "attributename(\"${1:ShortName}\")"),
+        ("allowmultiple", "Allows attribute to be applied multiple times", ["target_attribute"], null),
+
+        // Member-level attributes
+        ("method_name", "Overrides the projected method name", ["target_member"],
+            "method_name(\"${1:Name}\")"),
+        ("overload", "Groups overloaded methods", ["target_member"],
+            "overload(\"${1:GroupName}\")"),
+        ("default_overload", "Marks as the default overload in a group", ["target_member"], null),
+        ("return_name", "Overrides the return value parameter name", ["target_member"],
+            "return_name(\"${1:name}\")"),
+        ("remote_async", "Marks method for remote async projection", ["target_member"], null),
+    ];
+
+    private static int GetOffset(string text, int line, int character)
+    {
+        int offset = 0;
+        int currentLine = 0;
+        while (currentLine < line && offset < text.Length)
+        {
+            if (text[offset] == '\n') currentLine++;
+            offset++;
+        }
+        return Math.Min(offset + character, text.Length);
     }
 
     private static object[] BuildCompletionItems()

@@ -40,8 +40,9 @@ public class LspHandlerTests
     public void CompletionIncludesKeywords()
     {
         var uri = "file:///test.midl";
-        var dm = CreateDocManager(uri, "");
-        var result = CompletionHandler.Handle(MakeTextDocParams(uri), dm);
+        var dm = CreateDocManager(uri, "namespace Foo { }");
+        // Position NOT inside brackets — should return keywords
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 16), dm);
 
         var json = JsonSerializer.Serialize(result);
 
@@ -50,6 +51,88 @@ public class LspHandlerTests
         Assert.Contains("\"interface\"", json);
         Assert.Contains("\"String\"", json);
         Assert.Contains("\"Int32\"", json);
+    }
+
+    [Fact]
+    public void CompletionInAttributeBracket_ShowsOnlyAttributes()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace TestApp {\n    [\n    runtimeclass Foo { }\n}";
+        //                                            ^ cursor at line 1, char 5 (inside '[')
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 1, 5), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include attributes applicable to runtimeclass
+        Assert.Contains("activatable", json);
+        Assert.Contains("composable", json);
+        Assert.Contains("threading", json);
+        Assert.Contains("contract", json);
+        Assert.Contains("uuid", json);
+
+        // Should NOT include keywords/types (those are for non-attribute context)
+        Assert.DoesNotContain("\"namespace\"", json);
+        Assert.DoesNotContain("\"Int32\"", json);
+        Assert.DoesNotContain("\"IVector\"", json);
+    }
+
+    [Fact]
+    public void CompletionInAttributeBracket_Interface_ShowsInterfaceAttrs()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    [\n    interface IFoo { }\n}";
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 1, 5), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Interface-specific attributes
+        Assert.Contains("exclusiveto", json);
+        Assert.Contains("uuid", json);
+        Assert.Contains("contract", json);
+
+        // Runtimeclass-only attributes should NOT appear
+        Assert.DoesNotContain("activatable", json);
+        Assert.DoesNotContain("composable", json);
+    }
+
+    [Fact]
+    public void CompletionInAttributeBracket_Enum_ShowsFlagsAttr()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    [\n    enum Color { Red, Green }\n}";
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 1, 5), dm);
+
+        var json = JsonSerializer.Serialize(result);
+        Assert.Contains("flags", json);
+        Assert.DoesNotContain("activatable", json);
+    }
+
+    [Fact]
+    public void CompletionInAttributeBracket_IncludesUserDefinedAttrs()
+    {
+        var uri = "file:///test.midl";
+        var source = """
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyTag
+                {
+                    Int32 Level;
+                };
+
+                []
+                runtimeclass Foo { }
+            }
+            """;
+        // Cursor at line 8, char 5 — inside '[]' before runtimeclass Foo
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 8, 5), dm);
+
+        var json = JsonSerializer.Serialize(result);
+        Assert.Contains("MyTag", json);
     }
 
     [Fact]
