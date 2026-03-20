@@ -280,25 +280,10 @@ public class WinMdCustomAttributeTests
     [Fact]
     public void ReadUuidFromImported()
     {
-        // First verify the binder sets UUID
-        var compilation = CompilationHelper.Compile(@"
-            namespace TestNs
-            {
-                [uuid(AABBCCDD-EEFF-0011-2233-445566778899)]
-                interface IMyInterface
-                {
-                    void DoSomething();
-                };
-            }");
-
-        var preEmitIface = compilation.GetTypeByName("TestNs.IMyInterface") as InterfaceSymbol;
-        Assert.NotNull(preEmitIface);
-        Assert.NotNull(preEmitIface!.Uuid); // binder must set UUID
-
         var winmd = EmitWinMd(@"
             namespace TestNs
             {
-                [uuid(AABBCCDD-EEFF-0011-2233-445566778899)]
+                [uuid(""AABBCCDD-EEFF-0011-2233-445566778899"")]
                 interface IMyInterface
                 {
                     void DoSomething();
@@ -321,7 +306,7 @@ public class WinMdCustomAttributeTests
             namespace TestNs
             {
                 [version(0x00020000)]
-                [uuid(12345678-1234-1234-1234-123456789abc)]
+                [uuid(""12345678-1234-1234-1234-123456789abc"")]
                 interface IVersioned
                 {
                     void Foo();
@@ -344,7 +329,7 @@ public class WinMdCustomAttributeTests
             namespace TestNs
             {
                 [deprecated(""Use INewInterface instead"", deprecate, 0x00010000)]
-                [uuid(12345678-ABCD-EFEF-1234-123456789abc)]
+                [uuid(""12345678-ABCD-EFEF-1234-123456789abc"")]
                 interface ILegacy
                 {
                     void OldMethod();

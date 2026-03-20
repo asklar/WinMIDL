@@ -1454,6 +1454,8 @@ public class Binder
                     break;
                 case "deprecated":
                     if (symbol is RuntimeClassSymbol rc5) rc5.DeprecatedMessage = attr.GetString(0);
+                    if (symbol is InterfaceSymbol intf3) intf3.DeprecatedMessage = attr.GetString(0);
+                    if (symbol is DelegateSymbol del2) del2.DeprecatedMessage = attr.GetString(0);
                     break;
                 case "method_name":
                     if (symbol is MethodSymbol m) m.MethodNameOverride = attr.GetString(0);
