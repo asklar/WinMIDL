@@ -18,22 +18,31 @@ function findServerBinary(context: vscode.ExtensionContext): string | undefined 
         return configured;
     }
 
-    // 2. Look relative to the extension install path (dev inner loop)
-    //    Extension is at <repo>/editors/vscode, so repo root is ../..
     const extensionDir = context.extensionPath;
+
+    // 2. Bundled server binary (shipped inside the VSIX, per-platform)
+    const arch = process.arch === 'arm64' ? 'win-arm64' : 'win-x64';
+    const bundledExe = path.join(extensionDir, 'server', arch, 'Midl.Cli.exe');
+    if (fs.existsSync(bundledExe)) {
+        console.log(`MIDL: Found bundled server binary at ${bundledExe}`);
+        return bundledExe;
+    }
+    // Fallback: non-RID bundled path
+    const bundledFlat = path.join(extensionDir, 'server', 'Midl.Cli.exe');
+    if (fs.existsSync(bundledFlat)) {
+        console.log(`MIDL: Found bundled server binary at ${bundledFlat}`);
+        return bundledFlat;
+    }
+
+    // 3. Dev inner loop: look relative to repo root
     const repoRoot = path.resolve(extensionDir, '..', '..');
 
     const candidates = [
-        // Dev build (dotnet build)
         path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', 'Midl.Cli.exe'),
-        // Dev build with RID subfolder (self-contained or SDK-style)
         path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', 'win-x64', 'Midl.Cli.exe'),
-        // Release build
         path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Release', 'net10.0', 'Midl.Cli.exe'),
         path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Release', 'net10.0', 'win-x64', 'Midl.Cli.exe'),
-        // Published output
         path.join(repoRoot, 'publish', 'Midl.Cli.exe'),
-        // Linux/macOS (no .exe)
         path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', 'Midl.Cli'),
     ];
 

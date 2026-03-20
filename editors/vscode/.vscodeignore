@@ -8,5 +8,6 @@ node_modules/**/test/**
 node_modules/**/tests/**
 node_modules/**/.github/**
 **/*.ts
+!server/**
 **/*.map
 .gitignore

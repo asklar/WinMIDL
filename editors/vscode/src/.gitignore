@@ -142,3 +142,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Bundled LSP server (populated by release pipeline)
+server/

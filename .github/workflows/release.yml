@@ -95,7 +95,7 @@ jobs:
 
   vscode-extension:
     runs-on: windows-latest
-    needs: build-and-test
+    needs: [build-and-test, publish]
     steps:
       - uses: actions/checkout@v4
 
@@ -119,6 +119,26 @@ jobs:
           $pkg = Get-Content package.json | ConvertFrom-Json
           $pkg.version = "${{ steps.version.outputs.VERSION }}" -replace '-.*$', ''
           $pkg | ConvertTo-Json -Depth 10 | Set-Content package.json
+
+      - name: Download win-x64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: winmidl-win-x64
+          path: artifacts/win-x64
+
+      - name: Download win-arm64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: winmidl-win-arm64
+          path: artifacts/win-arm64
+
+      - name: Bundle server binaries into extension
+        shell: pwsh
+        run: |
+          # Unzip and copy into extension server/ directory per RID
+          Expand-Archive artifacts/win-x64/winmidl-win-x64.zip -DestinationPath editors/vscode/server/win-x64
+          Expand-Archive artifacts/win-arm64/winmidl-win-arm64.zip -DestinationPath editors/vscode/server/win-arm64
+          Get-ChildItem editors/vscode/server -Recurse -Filter "Midl.Cli.exe" | ForEach-Object { Write-Host "Bundled: $($_.FullName)" }
 
       - name: Build and package VS Code Extension
         working-directory: editors/vscode
