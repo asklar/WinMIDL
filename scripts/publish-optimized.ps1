@@ -68,6 +68,10 @@ $aotArgs = @(
     "/p:OptimizationPreference=Speed"
     "/p:IlcInstructionSet=native"
     "/p:IlcOptimizationPreference=Speed"
+    "/p:IlcFoldIdenticalMethodBodies=true"
+    "/p:InvariantGlobalization=true"
+    "/p:StackTraceSupport=false"
+    "/p:UseSystemResourceKeys=true"
     "/p:DebugType=none"
     "/p:DebugSymbols=false"
 )
