@@ -142,7 +142,8 @@ public class LspHandlerTests
         Directory.CreateDirectory(tempDir);
         try
         {
-            // Create sibling IDL files
+            // Create sibling IDL files + the current file on disk
+            File.WriteAllText(Path.Combine(tempDir, "Widget.idl"), "namespace W { }");
             File.WriteAllText(Path.Combine(tempDir, "Helper.idl"), "namespace H { }");
             File.WriteAllText(Path.Combine(tempDir, "Types.idl"), "namespace T { }");
             File.WriteAllText(Path.Combine(tempDir, "NotIdl.txt"), "hello");
@@ -157,9 +158,12 @@ public class LspHandlerTests
 
             var json = JsonSerializer.Serialize(result);
 
-            // Should include .idl files
+            // Should include sibling .idl files
             Assert.Contains("Helper.idl", json);
             Assert.Contains("Types.idl", json);
+
+            // Should NOT include the current file itself
+            Assert.DoesNotContain("Widget.idl", json);
 
             // Should NOT include non-.idl files
             Assert.DoesNotContain("NotIdl.txt", json);

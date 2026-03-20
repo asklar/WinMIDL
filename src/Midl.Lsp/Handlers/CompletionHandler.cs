@@ -52,7 +52,10 @@ public static class CompletionHandler
             var importContext = DetectImportContext(text, line);
             if (importContext != null)
             {
-                var items = BuildImportCompletions(importContext, fileDir, includePaths, projectFile);
+                string? currentFileName = null;
+                if (uri.StartsWith("file:///"))
+                    currentFileName = Path.GetFileName(Uri.UnescapeDataString(uri[8..]));
+                var items = BuildImportCompletions(importContext, fileDir, includePaths, projectFile, currentFileName);
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
             }
 
@@ -379,10 +382,15 @@ public static class CompletionHandler
 
     /// <summary>Build completions for import "..." — lists .idl files from include paths and project.</summary>
     private static List<object> BuildImportCompletions(string partialPath,
-        string? fileDir, IReadOnlyList<string>? includePaths, ProjectFile? projectFile)
+        string? fileDir, IReadOnlyList<string>? includePaths, ProjectFile? projectFile,
+        string? currentFileName = null)
     {
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var items = new List<object>();
+
+        // Exclude the current file
+        if (currentFileName != null)
+            seen.Add(currentFileName);
 
         // Collect all search directories
         var searchDirs = new List<string>();
