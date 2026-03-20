@@ -109,14 +109,29 @@ public class Binder
             CheckStrictModeViolation(node);
         }
 
-        // WinRT types must be in a namespace (not at global scope)
+        // WinRT namespace requirements (varies by type and mode)
         if (ns.Name == "" && IsTypeDeclaration(node.Kind))
         {
             var typeName = ExtractTypeName(node);
             if (typeName != null)
             {
-                int pos = _posMap.GetPositionOf(typeName);
-                _diagnostics.Add(DiagnosticDescriptors.NamespaceRequired(typeName, pos));
+                // In compat mode: interfaces, coclasses, libraries, modules, dispinterfaces
+                // are allowed at global scope (matches original MIDL behavior).
+                // Only runtimeclass, delegate, attribute, apicontract, declare require namespaces.
+                bool requiresNamespace = node.Kind is SyntaxKind.RuntimeClassDeclaration
+                    or SyntaxKind.DelegateDeclaration
+                    or SyntaxKind.AttributeDeclaration
+                    or SyntaxKind.ApiContractDeclaration;
+
+                // In strict mode, everything requires a namespace
+                if (_mode == CompilationMode.Strict)
+                    requiresNamespace = true;
+
+                if (requiresNamespace)
+                {
+                    int pos = _posMap.GetPositionOf(typeName);
+                    _diagnostics.Add(DiagnosticDescriptors.NamespaceRequired(typeName, pos));
+                }
             }
         }
 
@@ -1210,9 +1225,14 @@ public class Binder
         }
 
         // MIDL1043: 'void' is not valid as a parameter type
+        // In compat mode, standalone 'void' (no name) means "no parameters" — classic MIDL style
         if (param.Type.Name is "void" or "Void")
         {
-            _diagnostics.Add(DiagnosticDescriptors.VoidParameterType(_posMap.GetPositionOf("void")));
+            bool isStandaloneVoid = name.Length == 0;
+            if (!isStandaloneVoid || _mode == CompilationMode.Strict)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.VoidParameterType(_posMap.GetPositionOf("void")));
+            }
         }
 
         // MIDL1013: Reserved parameter names
@@ -1688,6 +1708,12 @@ public class Binder
         var fullName = ns.FullName.Length > 0 ? $"{ns.FullName}.{name}" : name;
         if (!_definedTypes.Add(fullName))
         {
+            // Allow redefinition if the existing type is external/built-in
+            // (imported files may redefine types we already have as built-ins)
+            var existingSymbol = _symbolTable.LookupQualified(fullName);
+            if (existingSymbol is { IsExternal: true })
+                return true; // Silently allow — import overrides built-in
+
             _diagnostics.Add(DiagnosticDescriptors.DuplicateDefinition(name, pos));
             return false;
         }

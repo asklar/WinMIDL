@@ -68,6 +68,16 @@ public class PreprocessorTests
     }
 
     [Fact]
+    public void UndefStopsSubstitution()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO 1\n#undef FOO\nFOO");
+        // FOO must NOT be substituted after #undef — it should remain as literal "FOO"
+        Assert.Contains("FOO", result);
+        Assert.DoesNotContain("1", result);
+    }
+
+    [Fact]
     public void PragmaOnce()
     {
         var dir = Path.Combine(Path.GetTempPath(), "midl_test_" + Guid.NewGuid().ToString("N"));
