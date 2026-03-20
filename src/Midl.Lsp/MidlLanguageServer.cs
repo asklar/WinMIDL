@@ -17,10 +17,12 @@ public sealed class MidlLanguageServer
     private readonly DiagnosticsPublisher _diagnostics;
     private bool _shutdownRequested;
     private List<string>? _referencePaths = null;
+    private List<string>? _sdkIncludePaths = null;
     private CompilationMode _compilationMode = CompilationMode.Strict;
 
     // Suppress CS0649 — _referencePaths can be set via SetReferencePaths for testing/config
     public void SetReferencePaths(List<string> paths) => _referencePaths = paths;
+    public void SetSdkIncludePaths(List<string> paths) => _sdkIncludePaths = paths;
 
     public MidlLanguageServer(Stream input, Stream output)
     {
@@ -273,7 +275,7 @@ public sealed class MidlLanguageServer
             var preprocessor = new Midl.Lexer.Preprocessor();
             var preprocessed = preprocessor.Process(text);
             var references = GetReferencePaths(uri);
-            var compilation = CompilationHelper.Compile(preprocessed, references, _compilationMode);
+            var compilation = CompilationHelper.Compile(preprocessed, references, _compilationMode, _sdkIncludePaths, null);
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
             MidlTrace.Lsp($"Diagnostics published");

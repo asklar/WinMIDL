@@ -40,6 +40,31 @@ public class CompilationDriver
         MidlTrace.Cli($"Input: {options.InputFile}");
         MidlTrace.Cli($"Mode: {options.Mode}, WinRT: {options.WinRtMode}");
 
+        // Auto-discover Windows SDK (unless /no_def_idir)
+        if (!options.NoDefIdir && OperatingSystem.IsWindows())
+        {
+            var sdk = WindowsSdkLocator.Discover();
+            if (sdk != null)
+            {
+                MidlTrace.Cli($"Found Windows SDK {sdk.Version} at {sdk.Root}");
+
+                // Add SDK include paths (append so user /I paths take priority)
+                foreach (var path in sdk.IncludePaths)
+                {
+                    if (!options.IncludePaths.Contains(path))
+                        options.IncludePaths.Add(path);
+                }
+
+                // Add Windows.winmd reference
+                if (sdk.WindowsWinMdPath != null && !options.References.Any(r =>
+                    Path.GetFileName(r).Equals("Windows.winmd", StringComparison.OrdinalIgnoreCase)))
+                {
+                    options.References.Add(sdk.WindowsWinMdPath);
+                    MidlTrace.Cli($"Auto-referenced {sdk.WindowsWinMdPath}");
+                }
+            }
+        }
+
         // Banner
         if (!options.NoLogo)
             _out.WriteLine(Banner);
@@ -460,6 +485,7 @@ public class CompilationDriver
         _out.WriteLine("  --analyze              Rich analysis output with source context");
         _out.WriteLine("  --decompile            Decompile WinMD to IDL");
         _out.WriteLine("  /debug                 Enable debug trace output (or set MIDL_DEBUG=1)");
+        _out.WriteLine("  /no_def_idir           Don't add default SDK include directories");
         _out.WriteLine("  @<file>                Read options from response file");
     }
 }

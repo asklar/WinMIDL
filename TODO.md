@@ -150,11 +150,24 @@
 
 ## 🔄 In Progress
 
-- [ ] **Comprehensive diagnostic sweep** — add validation for: constructor in interface, static in interface, property/event in struct, event with non-delegate type, void parameter, duplicate method without [overload], circular struct references, duplicate enum values, import not found
+- [ ] **Windows SDK auto-discovery** — read registry for SDK root, auto-add include paths + Windows.winmd reference
+- [ ] **Performance benchmarking** — compare NativeAOT WinMIDL vs original midl.exe
 
 ---
 
 ## ❌ Not Yet Implemented
+
+### WinRT Type System Validation
+- [ ] **WinRT type compatibility** (MIDL1048) — method return/param types must be WinRT-valid (no raw pointers, no C structs outside namespace)
+- [ ] **Struct field restrictions** (MIDL1005 enforcement) — only primitives, enums, structs, String, IReference<T>
+- [ ] **No nested types** (MIDL1049) — types cannot be declared inside other types
+- [ ] **No bidirectional parameters** (MIDL1050) — WinRT only allows `in` or `out`, not `[in,out]`
+- [ ] **No arrays of arrays** (MIDL1051) — nested arrays not valid in WinRT
+- [ ] **Property type consistency** (MIDL1052) — getter and setter must agree on type
+- [ ] **Delegate return type** (MIDL1053) — must be void (or HRESULT in classic)
+- [ ] **Interface member name uniqueness** (MIDL1054) — per interface
+- [ ] **Arity-only overloading** (MIDL1055) — WinRT doesn't support overloading by type, only by param count
+- [ ] **Deprecated base class** (MIDL1056) — derived must have redundant deprecation
 
 ### Important
 - [ ] **`importlib` dispatch in parser** — recognized but not dispatched in classic mode
@@ -163,7 +176,7 @@
 - [ ] **C proxy/stub code generation** (_c.c, _s.c) — skeleton only
 - [ ] **Type library (.tlb) generation** — requires COM `ICreateTypeLib2`
 - [ ] **ACF grammar** — placeholder only
-- [ ] **~110 more CLI switches** — 30 of ~140 implemented
+- [ ] **~84 more CLI switches** — accept-and-ignore for drop-in compatibility
 - [ ] **Velocity/Feature API staging** — `[feature(Name)]` → `[experimental]` transform
 - [ ] **Incremental parsing for LSP** — currently full reparse on every edit
 - [ ] **Cross-file analysis in LSP** — currently single-file only
