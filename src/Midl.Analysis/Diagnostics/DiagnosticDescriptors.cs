@@ -118,6 +118,12 @@ public static class DiagnosticDescriptors
             $"'{typeName}': {advice}", position, typeName.Length,
             HelpUri: StrictModeHelpUri);
 
+    public static Diagnostic IncludeDirectiveInStrictMode(int position) =>
+        new(DiagnosticSeverity.Warning, "MIDL2006",
+            "#include is a C preprocessor directive. In MIDL3, use 'import \"file.idl\";' instead.",
+            position, 8, // length of "#include"
+            HelpUri: StrictModeHelpUri);
+
     // Version/contract propagation diagnostics
     public static Diagnostic InterfaceVersionTooEarly(string ifaceName, int ifaceVersion, int classVersion, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1014",

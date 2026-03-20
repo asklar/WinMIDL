@@ -16,6 +16,9 @@ public class Preprocessor
     private readonly HashSet<string> _pragmaOnceFiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _includeStack = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>True if any #include directive was encountered during processing.</summary>
+    public bool HasIncludeDirectives { get; private set; }
+
     public Preprocessor(IReadOnlyList<string>? defines = null,
                         IReadOnlyList<string>? includePaths = null,
                         string? currentFilePath = null)
@@ -273,6 +276,8 @@ public class Preprocessor
 
     private string? HandleInclude(string rest, string? parentFilePath)
     {
+        HasIncludeDirectives = true;
+
         var path = ExtractIncludePath(rest.Trim());
         if (path == null) return null;
 

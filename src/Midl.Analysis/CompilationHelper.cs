@@ -38,6 +38,13 @@ public static class CompilationHelper
         var preprocessor = new Midl.Lexer.Preprocessor(defines, includePaths, currentFilePath);
         source = preprocessor.Process(source);
 
+        // Collect preprocessor-level diagnostics
+        var syntaxDiagnostics = new List<Midl.Analysis.Diagnostics.Diagnostic>();
+        if (mode == CompilationMode.Strict && preprocessor.HasIncludeDirectives)
+        {
+            syntaxDiagnostics.Add(DiagnosticDescriptors.IncludeDirectiveInStrictMode(0));
+        }
+
         // Lazily index external types from referenced .winmd files
         List<LazyWinMdProvider>? lazyProviders = null;
         if (referencePaths is { Count: > 0 })
@@ -60,7 +67,6 @@ public static class CompilationHelper
         var tree = parser.Parse();
 
         // Collect syntax errors from the error-recovering parser's tree
-        var syntaxDiagnostics = new List<Midl.Analysis.Diagnostics.Diagnostic>();
         SyntaxErrorCollector.CollectErrors(tree, tokens, syntaxDiagnostics);
 
         // Process import directives before binding
