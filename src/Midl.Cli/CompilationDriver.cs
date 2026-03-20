@@ -253,11 +253,47 @@ public class CompilationDriver
         if (options.WinRtMode)
         {
             var winmdEmitter = new WinMdEmitter();
-            var winmdPath = options.WinMdFile ?? $"{baseName}.winmd";
-            var path = Path.Combine(outDir, winmdPath);
-            Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
-            winmdEmitter.Emit(compilation, path);
-            filesWritten.Add(path);
+
+            if (options.WinMdFile != null)
+            {
+                // Explicit filename: emit single file, warn on namespace mismatch
+                var winmdPath = options.WinMdFile;
+                var path = Path.Combine(outDir, winmdPath);
+                var winmdBaseName = Path.GetFileNameWithoutExtension(winmdPath);
+
+                // Check for namespace mismatch
+                var allTypes = compilation.GetAllTypes().ToList();
+                var typeNamespaces = allTypes
+                    .Select(t => { var fn = t.FullName; var d = fn.LastIndexOf('.'); return d >= 0 ? fn[..d] : ""; })
+                    .Where(ns => !string.IsNullOrEmpty(ns))
+                    .Distinct()
+                    .ToList();
+                var commonNs = WinMdEmitter.GetCommonNamespacePrefix(typeNamespaces);
+
+                if (!string.IsNullOrEmpty(commonNs) &&
+                    !string.Equals(winmdBaseName, commonNs, StringComparison.OrdinalIgnoreCase))
+                {
+                    _err.WriteLine($"warning MIDL1071: WinMD file is named '{winmdBaseName}' but root namespace is '{commonNs}'. WinMD file name should match the root namespace.");
+                    warningCount++;
+                }
+
+                Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
+                winmdEmitter.Emit(compilation, path);
+                filesWritten.Add(path);
+            }
+            else
+            {
+                // Auto-derive filename(s) from root namespace(s)
+                var perNs = winmdEmitter.EmitPerNamespace(compilation);
+                foreach (var (ns, bytes) in perNs)
+                {
+                    var winmdFileName = $"{ns}.winmd";
+                    var path = Path.Combine(outDir, winmdFileName);
+                    Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
+                    File.WriteAllBytes(path, bytes);
+                    filesWritten.Add(path);
+                }
+            }
         }
 
         if (!options.NoDllData)

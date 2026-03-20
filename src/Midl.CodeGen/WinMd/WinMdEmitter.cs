@@ -219,6 +219,189 @@ public class WinMdEmitter
             _metadata.GetOrAddString(name));
     }
 
+    /// <summary>
+    /// Emit one WinMD file per root namespace.
+    /// Returns a dictionary of namespace → WinMD bytes.
+    /// </summary>
+    public Dictionary<string, byte[]> EmitPerNamespace(Compilation compilation)
+    {
+        var allTypes = compilation.GetAllTypes().ToList();
+
+        // Collect all distinct namespaces from types
+        var namespaces = allTypes
+            .Select(t => GetTypeNamespace(t))
+            .Where(ns => !string.IsNullOrEmpty(ns))
+            .Distinct()
+            .ToList();
+
+        if (namespaces.Count == 0)
+        {
+            // No namespaced types — fall back to single emission
+            return new Dictionary<string, byte[]>
+            {
+                ["WinRT"] = EmitToBytes(compilation)
+            };
+        }
+
+        var commonPrefix = GetCommonNamespacePrefix(namespaces);
+
+        if (!string.IsNullOrEmpty(commonPrefix))
+        {
+            // All types share a common root — single WinMD
+            return new Dictionary<string, byte[]>
+            {
+                [commonPrefix] = EmitForTypes(compilation, allTypes)
+            };
+        }
+
+        // Multiple disjoint root namespaces — group by first segment
+        var groups = namespaces.GroupBy(ns => ns.Split('.')[0]).ToList();
+        var result = new Dictionary<string, byte[]>();
+
+        foreach (var group in groups)
+        {
+            var rootNs = group.Key;
+            var groupNamespaces = group.ToList();
+            var groupPrefix = GetCommonNamespacePrefix(groupNamespaces);
+            var key = !string.IsNullOrEmpty(groupPrefix) ? groupPrefix : rootNs;
+
+            // Filter types belonging to this root namespace
+            var filteredTypes = allTypes
+                .Where(t => GetTypeNamespace(t).Split('.')[0] == rootNs)
+                .ToList();
+
+            result[key] = EmitForTypes(compilation, filteredTypes);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Compute the longest common dotted namespace prefix.
+    /// </summary>
+    public static string GetCommonNamespacePrefix(IEnumerable<string> namespaces)
+    {
+        var list = namespaces.ToList();
+        if (list.Count == 0) return "";
+        if (list.Count == 1) return list[0];
+
+        var segmentArrays = list.Select(ns => ns.Split('.')).ToList();
+        var minLen = segmentArrays.Min(s => s.Length);
+        var commonSegments = new List<string>();
+
+        for (int i = 0; i < minLen; i++)
+        {
+            var segment = segmentArrays[0][i];
+            if (segmentArrays.All(s => s[i] == segment))
+                commonSegments.Add(segment);
+            else
+                break;
+        }
+
+        return string.Join(".", commonSegments);
+    }
+
+    private static string GetTypeNamespace(ISymbol type)
+    {
+        var fullName = type.FullName;
+        var lastDot = fullName.LastIndexOf('.');
+        return lastDot >= 0 ? fullName[..lastDot] : "";
+    }
+
+    /// <summary>Emit WinMD bytes for a specific subset of types.</summary>
+    private byte[] EmitForTypes(Compilation compilation, List<ISymbol> types)
+    {
+        _metadata = new MetadataBuilder();
+        _ilStream = new BlobBuilder();
+        _typeDefHandles.Clear();
+        _synthInterfaceHandles.Clear();
+        _localTypeRefs.Clear();
+        _fieldRow = 1;
+        _methodRow = 1;
+        _paramRow = 1;
+
+        // 1. Module
+        _metadata.AddModule(
+            0,
+            _metadata.GetOrAddString("<Module>"),
+            _metadata.GetOrAddGuid(Guid.NewGuid()),
+            default, default);
+
+        // 2. Assembly — name derived from the types' common namespace
+        var typeNamespaces = types
+            .Select(t => GetTypeNamespace(t))
+            .Where(ns => !string.IsNullOrEmpty(ns))
+            .Distinct()
+            .ToList();
+        var rootNs = typeNamespaces.Count > 0
+            ? GetCommonNamespacePrefix(typeNamespaces)
+            : "WinRT";
+        if (string.IsNullOrEmpty(rootNs) && typeNamespaces.Count > 0)
+            rootNs = typeNamespaces[0].Split('.')[0];
+
+        _metadata.AddAssembly(
+            _metadata.GetOrAddString(rootNs),
+            new Version(1, 0, 0, 0),
+            default, default,
+            (AssemblyFlags)0x0200, // WindowsRuntime
+            default);
+
+        // 3. Assembly references
+        MscorlibRef = _metadata.AddAssemblyReference(
+            _metadata.GetOrAddString(MetadataConstants.MscorlibAssembly),
+            new Version(255, 255, 255, 255),
+            default, default, default, default);
+
+        WfmRef = _metadata.AddAssemblyReference(
+            _metadata.GetOrAddString(MetadataConstants.WindowsFoundationAssembly),
+            new Version(255, 255, 255, 255),
+            default, default, default, default);
+
+        // 4. TypeRefs for base types
+        SystemObjectRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemObject);
+        SystemEnumRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemEnum);
+        SystemValueTypeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemValueType);
+        SystemMulticastDelegateRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemMulticastDelegate);
+        SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
+        SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
+
+        // 5. <Module> type (required first row)
+        _metadata.AddTypeDefinition(
+            default,
+            default,
+            _metadata.GetOrAddString("<Module>"),
+            default,
+            MetadataTokens.FieldDefinitionHandle(1),
+            MetadataTokens.MethodDefinitionHandle(1));
+
+        // 6. Pre-compute TypeDef handles
+        int typeRow = 2;
+        foreach (var type in types)
+        {
+            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
+            {
+                _synthInterfaceHandles[rc.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+            }
+            _typeDefHandles[type.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+        }
+
+        // 7. Emit types
+        var customAttrEmitter = new CustomAttributeEmitter(this);
+        var typeDefEmitter = new TypeDefEmitter(this, customAttrEmitter);
+
+        foreach (var type in types)
+        {
+            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
+            {
+                typeDefEmitter.EmitSynthesizedInterface(rc);
+            }
+            typeDefEmitter.Emit(type);
+        }
+
+        // 8. Serialize PE
+        return SerializePE();
+    }
+
     private static string GetRootNamespace(Compilation compilation)
     {
         var ns = compilation.GlobalNamespace;

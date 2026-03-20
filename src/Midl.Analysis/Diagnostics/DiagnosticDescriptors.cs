@@ -341,6 +341,12 @@ public static class DiagnosticDescriptors
             $"Runtimeclass '{className}' implements {interfaceCount} interfaces but none is marked [default]. The first interface will be used as default.",
             position, Math.Max(className.Length, 1));
 
+    // WinMD namespace mismatch (MIDL1071)
+    public static Diagnostic WinMdNamespaceMismatch(string typeName, string typeNamespace, string winmdName, int position) =>
+        new(DiagnosticSeverity.Warning, "MIDL1071",
+            $"Type '{typeName}' is in namespace '{typeNamespace}' but WinMD file is named '{winmdName}'. WinMD file name should match the root namespace.",
+            position, Math.Max(typeName.Length, 1));
+
     // ─── Code Quality Hints (MIDL3001+) ─────────────────────────────
 
     public static Diagnostic InterfaceNamingConvention(string name, string suggestion, int position) =>

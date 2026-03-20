@@ -418,4 +418,81 @@ public class WinMdEmitterTests
                 File.Delete(tempPath);
         }
     }
+
+    [Fact]
+    public void EmitPerNamespace_SingleNamespace()
+    {
+        var compilation = CompilationHelper.Compile("namespace MyApp { runtimeclass Foo { Foo(); } }");
+        var emitter = new WinMdEmitter();
+        var result = emitter.EmitPerNamespace(compilation);
+        Assert.Single(result);
+        Assert.True(result.ContainsKey("MyApp"));
+    }
+
+    [Fact]
+    public void EmitPerNamespace_NestedNamespaces_CommonPrefix()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace MyApp.Widgets { runtimeclass Button { Button(); } }
+            namespace MyApp.Helpers { struct Point { Int32 X; Int32 Y; }; }
+            """);
+        var emitter = new WinMdEmitter();
+        var result = emitter.EmitPerNamespace(compilation);
+        Assert.Single(result); // Both share MyApp prefix
+        Assert.True(result.ContainsKey("MyApp"));
+    }
+
+    [Fact]
+    public void EmitPerNamespace_DisjointNamespaces_MultipleFiles()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace Foo { enum Color { Red, Green } }
+            namespace Bar { struct Size { Int32 W; Int32 H; }; }
+            """);
+        var emitter = new WinMdEmitter();
+        var result = emitter.EmitPerNamespace(compilation);
+        Assert.Equal(2, result.Count);
+        Assert.True(result.ContainsKey("Foo"));
+        Assert.True(result.ContainsKey("Bar"));
+
+        // Each file should contain valid WinMD bytes
+        foreach (var bytes in result.Values)
+        {
+            using var pe = new PEReader(new MemoryStream(bytes));
+            var reader = pe.GetMetadataReader();
+            Assert.True(reader.TypeDefinitions.Count > 0);
+        }
+    }
+
+    [Fact]
+    public void GetCommonNamespacePrefix_Tests()
+    {
+        Assert.Equal("MyApp", WinMdEmitter.GetCommonNamespacePrefix(new[] { "MyApp.Widgets", "MyApp.Helpers" }));
+        Assert.Equal("MyApp.Widgets", WinMdEmitter.GetCommonNamespacePrefix(new[] { "MyApp.Widgets.Button", "MyApp.Widgets.Slider" }));
+        Assert.Equal("", WinMdEmitter.GetCommonNamespacePrefix(new[] { "Foo", "Bar" }));
+        Assert.Equal("Single", WinMdEmitter.GetCommonNamespacePrefix(new[] { "Single" }));
+        Assert.Equal("", WinMdEmitter.GetCommonNamespacePrefix(Array.Empty<string>()));
+    }
+
+    [Fact]
+    public void EmitPerNamespace_ValidWinMDContent()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace MyApp.Widgets { runtimeclass Button { Button(); } }
+            """);
+        var emitter = new WinMdEmitter();
+        var result = emitter.EmitPerNamespace(compilation);
+
+        Assert.Single(result);
+        Assert.True(result.ContainsKey("MyApp.Widgets"));
+        var bytes = result["MyApp.Widgets"];
+
+        using var pe = new PEReader(new MemoryStream(bytes));
+        var reader = pe.GetMetadataReader();
+
+        // Assembly name should reflect the root namespace
+        var assembly = reader.GetAssemblyDefinition();
+        var assemblyName = reader.GetString(assembly.Name);
+        Assert.Equal("MyApp.Widgets", assemblyName);
+    }
 }
