@@ -15,14 +15,16 @@ public class Binder
     private readonly HashSet<string> _definedTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _definedTypesCaseInsensitive = new(StringComparer.OrdinalIgnoreCase);
     private readonly CompilationMode _mode;
+    private readonly bool _emitQualityHints;
     private TokenPositionMap _posMap = null!;
     private GreenNode _root = null!;
 
     private SymbolTable _symbolTable = null!;
 
-    public Binder(CompilationMode mode = CompilationMode.Strict)
+    public Binder(CompilationMode mode = CompilationMode.Strict, bool emitQualityHints = false)
     {
         _mode = mode;
+        _emitQualityHints = emitQualityHints;
     }
 
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
@@ -1782,6 +1784,9 @@ public class Binder
 
     private void ValidateSemantics(NamespaceSymbol ns)
     {
+        // Code quality: namespace casing
+        if (_emitQualityHints) ValidateNamespaceCasing(ns);
+
         foreach (var member in ns.Members)
         {
             switch (member)
@@ -1795,6 +1800,8 @@ public class Binder
                     ValidateDeprecatedInheritance(rc);
                     ValidateConstructorArityPerVersion(rc);
                     ValidateMethodParameters(rc.Members);
+                    // Code quality hints
+                    if (_emitQualityHints) ValidateRuntimeClassQuality(rc);
                     break;
                 case InterfaceSymbol iface when !iface.IsExternal && !iface.IsSynthesized:
                     ValidateRequiredInterfaces(iface);
@@ -1803,6 +1810,8 @@ public class Binder
                     ValidateMethodNameOverrideUniqueness(iface);
                     ValidateDefaultOverloadExactlyOne(iface.Members, iface.Name);
                     ValidateMethodParameters(iface.Members);
+                    // Code quality hints
+                    if (_emitQualityHints) ValidateInterfaceQuality(iface);
                     break;
                 case StructSymbol s when !s.IsExternal:
                     ValidateStructFieldTypes(s);
@@ -2039,6 +2048,88 @@ public class Binder
             }
         }
         return null;
+    }
+
+    #endregion
+
+    #region Code Quality Hints
+
+    private void ValidateNamespaceCasing(NamespaceSymbol ns)
+    {
+        if (string.IsNullOrEmpty(ns.Name) || ns.IsExternal) return;
+        foreach (var segment in ns.Name.Split('.'))
+        {
+            if (segment.Length > 0 && char.IsLower(segment[0]))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.NamespaceCasingConvention(
+                    segment, _posMap.GetPositionOf(segment)));
+            }
+        }
+    }
+
+    private void ValidateInterfaceQuality(InterfaceSymbol iface)
+    {
+        // MIDL3001: Interface should start with 'I'
+        if (iface.Name.Length > 0 && iface.Name[0] != 'I')
+        {
+            _diagnostics.Add(DiagnosticDescriptors.InterfaceNamingConvention(
+                iface.Name, _posMap.GetPositionOf(iface.Name)));
+        }
+        else if (iface.Name.Length > 1 && iface.Name[0] == 'I' && char.IsLower(iface.Name[1]))
+        {
+            // "Ifoo" — the 'I' prefix should be followed by uppercase
+            _diagnostics.Add(DiagnosticDescriptors.InterfaceNamingConvention(
+                iface.Name, _posMap.GetPositionOf(iface.Name)));
+        }
+
+        // MIDL3003: Empty interface
+        if (iface.Members.Count == 0)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.EmptyInterface(
+                iface.Name, _posMap.GetPositionOf(iface.Name)));
+        }
+    }
+
+    private void ValidateRuntimeClassQuality(RuntimeClassSymbol rc)
+    {
+        bool hasMembers = rc.Members.Count > 0;
+        bool hasConstructors = rc.Members.OfType<ConstructorSymbol>().Any();
+        bool hasActivatable = rc.Attributes.Any(a =>
+            a.Name.Equals("activatable", StringComparison.OrdinalIgnoreCase));
+
+        // MIDL3002: Empty runtimeclass
+        if (!hasMembers && !rc.IsStatic)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.EmptyRuntimeClass(
+                rc.Name, _posMap.GetPositionOf(rc.Name)));
+        }
+
+        // MIDL3005: No constructor and not activatable
+        if (!hasConstructors && !hasActivatable && !rc.IsStatic && hasMembers)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.RuntimeClassNoConstructor(
+                rc.Name, _posMap.GetPositionOf(rc.Name)));
+        }
+
+        // MIDL3007: Setter-only property
+        foreach (var prop in rc.Members.OfType<PropertySymbol>())
+        {
+            if (prop.HasSetter && !prop.HasGetter)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.PropertySetterOnly(
+                    prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));
+            }
+        }
+
+        // MIDL3008: Method name clashes with type name
+        foreach (var method in rc.Members.OfType<MethodSymbol>())
+        {
+            if (string.Equals(method.Name, rc.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.MethodNameClash(
+                    method.Name, rc.Name, _posMap.GetPositionOf(method.Name)));
+            }
+        }
     }
 
     #endregion

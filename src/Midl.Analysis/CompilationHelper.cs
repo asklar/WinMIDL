@@ -29,7 +29,8 @@ public static class CompilationHelper
                                        CompilationMode mode,
                                        IReadOnlyList<string>? includePaths,
                                        string? currentFilePath,
-                                       IReadOnlyList<string>? defines = null)
+                                       IReadOnlyList<string>? defines = null,
+                                        bool emitQualityHints = false)
     {
         MidlTrace.Write("COMPILE", $"Compiling {source.Length} chars, mode={mode}, {referencePaths?.Count ?? 0} references");
 
@@ -69,7 +70,7 @@ public static class CompilationHelper
         var importedTrees = new List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)>();
         CollectImportedTrees(tree, importResolver, importedTrees, syntaxDiagnostics);
 
-        var binder = new Binder(mode);
+        var binder = new Binder(mode, emitQualityHints);
         var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders);
 
         // Synthesize exclusive interfaces for runtime classes

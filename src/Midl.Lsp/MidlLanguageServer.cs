@@ -275,7 +275,8 @@ public sealed class MidlLanguageServer
             var preprocessor = new Midl.Lexer.Preprocessor();
             var preprocessed = preprocessor.Process(text);
             var references = GetReferencePaths(uri);
-            var compilation = CompilationHelper.Compile(preprocessed, references, _compilationMode, _sdkIncludePaths, null);
+            var compilation = CompilationHelper.Compile(preprocessed, references, _compilationMode, _sdkIncludePaths, null,
+                defines: null, emitQualityHints: true);
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
             MidlTrace.Lsp($"Diagnostics published");

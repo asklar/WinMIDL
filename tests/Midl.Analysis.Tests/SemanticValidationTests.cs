@@ -268,4 +268,140 @@ public class SemanticValidationTests
         Assert.Contains("NonExistent", diag.Message);
         Assert.Equal(DiagnosticSeverity.Error, diag.Severity);
     }
+
+    #region Code Quality Hints (MIDL3xxx)
+
+    private static Compilation CompileWithQualityHints(string source)
+    {
+        return CompilationHelper.Compile(source, referencePaths: null,
+            mode: CompilationMode.Strict, includePaths: null, currentFilePath: null,
+            defines: null, emitQualityHints: true);
+    }
+
+    [Fact]
+    public void QualityHint_InterfaceNamingConvention()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N { interface Foo { void DoWork(); }; }
+            """);
+
+        var hint = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3001");
+        Assert.NotNull(hint);
+        Assert.Equal(DiagnosticSeverity.Info, hint.Severity);
+        Assert.Contains("Foo", hint.Message);
+        Assert.Contains("IFoo", hint.Message);
+    }
+
+    [Fact]
+    public void QualityHint_InterfaceWithI_NoWarning()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N { interface IFoo { void DoWork(); }; }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3001");
+    }
+
+    [Fact]
+    public void QualityHint_EmptyRuntimeClass()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N { runtimeclass Empty { } }
+            """);
+
+        var hint = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3002");
+        Assert.NotNull(hint);
+        Assert.Contains("Empty", hint.Message);
+    }
+
+    [Fact]
+    public void QualityHint_RuntimeClassNoConstructor()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass Widget {
+                    String Name { get; };
+                }
+            }
+            """);
+
+        var hint = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3005");
+        Assert.NotNull(hint);
+        Assert.Contains("Widget", hint.Message);
+        Assert.Contains("constructor", hint.Message);
+    }
+
+    [Fact]
+    public void QualityHint_RuntimeClassWithConstructor_NoWarning()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass Widget {
+                    Widget();
+                    String Name { get; };
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3005");
+    }
+
+    [Fact]
+    public void QualityHint_SetterOnlyProperty()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass Widget {
+                    Widget();
+                    String Token { set; };
+                }
+            }
+            """);
+
+        var hint = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3007");
+        Assert.NotNull(hint);
+        Assert.Contains("Token", hint.Message);
+    }
+
+    [Fact]
+    public void QualityHint_MethodNameClash()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass Widget {
+                    Widget();
+                    void Widget();
+                }
+            }
+            """);
+
+        var hint = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3008");
+        Assert.NotNull(hint);
+    }
+
+    [Fact]
+    public void QualityHint_LowercaseNamespace()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace myApp { runtimeclass Foo { Foo(); } }
+            """);
+
+        var hint = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3009");
+        Assert.NotNull(hint);
+        Assert.Contains("myApp", hint.Message);
+        Assert.Contains("MyApp", hint.Message);
+    }
+
+    [Fact]
+    public void QualityHints_Disabled_ByDefault()
+    {
+        // Default compilation should NOT produce any MIDL3xxx hints
+        var compilation = CompilationHelper.Compile("""
+            namespace myApp { interface Foo { }; }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code.StartsWith("MIDL3"));
+    }
+
+    #endregion
 }

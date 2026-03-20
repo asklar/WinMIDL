@@ -310,4 +310,46 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Warning, "MIDL1065",
             $"Unknown attribute '{attrName}'. If this is a custom attribute, declare it with 'attribute {attrName} {{ ... }};'.",
             position, Math.Max(attrName.Length, 1));
+
+    // ─── Code Quality Hints (MIDL3001+) ─────────────────────────────
+
+    public static Diagnostic InterfaceNamingConvention(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3001",
+            $"Interface '{name}' should start with 'I' by convention (e.g. 'I{name}').",
+            position, Math.Max(name.Length, 1));
+
+    public static Diagnostic EmptyRuntimeClass(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3002",
+            $"Runtimeclass '{name}' has no members. Consider adding constructors, methods, properties, or events.",
+            position, Math.Max(name.Length, 1));
+
+    public static Diagnostic EmptyInterface(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3003",
+            $"Interface '{name}' has no members.",
+            position, Math.Max(name.Length, 1));
+
+    public static Diagnostic RuntimeClassNoConstructor(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3005",
+            $"Runtimeclass '{name}' has no constructor. It won't be default-activatable unless marked [activatable].",
+            position, Math.Max(name.Length, 1));
+
+    public static Diagnostic EventHandlerNamingConvention(string name, string typeName, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3006",
+            $"Event '{name}' on '{typeName}': consider using TypedEventHandler<TSender, TArgs> for new APIs.",
+            position, Math.Max(name.Length, 1));
+
+    public static Diagnostic PropertySetterOnly(string name, string typeName, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3007",
+            $"Property '{name}' on '{typeName}' has a setter but no getter. This is unusual in WinRT.",
+            position, Math.Max(name.Length, 1));
+
+    public static Diagnostic MethodNameClash(string methodName, string typeName, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3008",
+            $"Method '{methodName}' on '{typeName}' shares a name with the type. Consider renaming to avoid confusion.",
+            position, Math.Max(methodName.Length, 1));
+
+    public static Diagnostic NamespaceCasingConvention(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3009",
+            $"Namespace segment '{name}' should use PascalCase (e.g. '{char.ToUpperInvariant(name[0])}{name[1..]}').",
+            position, Math.Max(name.Length, 1));
 }
