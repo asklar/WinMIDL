@@ -51,6 +51,20 @@
         "path": "./snippets/midl.json"
       }
     ],
+    "commands": [
+      {
+        "command": "midl.toggleStrictMode",
+        "title": "MIDL: Toggle Strict MIDL3 Mode"
+      },
+      {
+        "command": "midl.restartServer",
+        "title": "MIDL: Restart Language Server"
+      },
+      {
+        "command": "midl.showServerLog",
+        "title": "MIDL: Show Language Server Output"
+      }
+    ],
     "configuration": {
       "title": "MIDL",
       "properties": {

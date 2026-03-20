@@ -59,12 +59,41 @@ function findServerBinary(context: vscode.ExtensionContext): string | undefined 
 export function activate(context: vscode.ExtensionContext) {
     console.log('MIDL Language Support activated');
 
+    // Create output channel for server logs
+    const outputChannel = vscode.window.createOutputChannel('MIDL Language Server');
+
+    // Register commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('midl.toggleStrictMode', async () => {
+            const config = vscode.workspace.getConfiguration('midl');
+            const current = config.get<boolean>('strictMode', true);
+            await config.update('strictMode', !current, vscode.ConfigurationTarget.Workspace);
+            const mode = !current ? 'Strict MIDL3' : 'Compatibility (MIDL2+3)';
+            vscode.window.showInformationMessage(`MIDL: Switched to ${mode} mode`);
+        }),
+
+        vscode.commands.registerCommand('midl.restartServer', async () => {
+            if (client) {
+                vscode.window.showInformationMessage('MIDL: Restarting language server...');
+                await client.stop();
+                await client.start();
+                vscode.window.showInformationMessage('MIDL: Language server restarted');
+            } else {
+                vscode.window.showWarningMessage('MIDL: No language server running');
+            }
+        }),
+
+        vscode.commands.registerCommand('midl.showServerLog', () => {
+            outputChannel.show();
+        })
+    );
+
     try {
         const serverPath = findServerBinary(context);
 
         if (serverPath) {
             console.log(`MIDL: Starting language server: ${serverPath}`);
-            startLanguageServer(serverPath, context);
+            startLanguageServer(serverPath, context, outputChannel);
         } else {
             console.log('MIDL: Language server binary not found.');
             console.log('MIDL: Syntax highlighting, snippets, and bracket matching are still active.');
@@ -82,7 +111,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 }
 
-function startLanguageServer(serverPath: string, context: vscode.ExtensionContext) {
+function startLanguageServer(serverPath: string, context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel) {
     const serverOptions: ServerOptions = {
         command: serverPath,
         args: ['--lsp'],
@@ -90,10 +119,14 @@ function startLanguageServer(serverPath: string, context: vscode.ExtensionContex
     };
 
     const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'midl' }],
+        documentSelector: [
+            { scheme: 'file', language: 'midl' },
+            { scheme: 'untitled', language: 'midl' }
+        ],
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher('**/*.idl')
-        }
+        },
+        outputChannel: outputChannel
     };
 
     client = new LanguageClient(
