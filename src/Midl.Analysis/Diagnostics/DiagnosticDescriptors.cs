@@ -120,8 +120,8 @@ public static class DiagnosticDescriptors
 
     public static Diagnostic IncludeDirectiveInStrictMode(int position) =>
         new(DiagnosticSeverity.Warning, "MIDL2006",
-            "#include is a C preprocessor directive. In MIDL3, use 'import \"file.idl\";' instead.",
-            position, 8, // length of "#include"
+            "#include pastes file contents into the compilation unit. Consider using 'import \"file.idl\";' to reference types without inlining.",
+            position, 8,
             HelpUri: StrictModeHelpUri);
 
     // Version/contract propagation diagnostics
