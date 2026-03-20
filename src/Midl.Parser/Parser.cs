@@ -177,7 +177,6 @@ public sealed partial class Parser
         return kind is SyntaxKind.StaticKeyword
             or SyntaxKind.PartialKeyword
             or SyntaxKind.UnsealedKeyword
-            or SyntaxKind.InternalKeyword
             or SyntaxKind.ProtectedKeyword
             or SyntaxKind.OverridableKeyword;
     }

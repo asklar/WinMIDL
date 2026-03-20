@@ -212,7 +212,6 @@ public class Binder
         bool isPartial = false;
         bool isStatic = false;
         bool isUnsealed = false;
-        bool isInternal = false;
         var modList = FindChild(node, SyntaxKind.ModifierList);
         if (modList != null)
         {
@@ -225,7 +224,6 @@ public class Binder
                         case SyntaxKind.StaticKeyword: isStatic = true; break;
                         case SyntaxKind.PartialKeyword: isPartial = true; break;
                         case SyntaxKind.UnsealedKeyword: isUnsealed = true; break;
-                        case SyntaxKind.InternalKeyword: isInternal = true; break;
                     }
                 }
             }
@@ -328,7 +326,6 @@ public class Binder
         symbol.IsStatic = isStatic;
         symbol.IsPartial = isPartial;
         symbol.IsUnsealed = isUnsealed;
-        symbol.IsInternal = isInternal;
 
         // Base list
         var mainBaseList = FindChild(node, SyntaxKind.BaseList);
@@ -1643,6 +1640,10 @@ public class Binder
                     break;
                 case "default_interface":
                     if (symbol is RuntimeClassSymbol rc6) rc6.IsDefaultInterface = true;
+                    break;
+                case "internal":
+                    if (symbol is RuntimeClassSymbol rc7) rc7.IsInternal = true;
+                    if (symbol is InterfaceSymbol intf4) intf4.IsExclusive = true; // internal interfaces are private
                     break;
             }
         }

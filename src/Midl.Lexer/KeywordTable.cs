@@ -49,7 +49,6 @@ public static class KeywordTable
         ["static"] = SyntaxKind.StaticKeyword,
         ["partial"] = SyntaxKind.PartialKeyword,
         ["unsealed"] = SyntaxKind.UnsealedKeyword,
-        ["internal"] = SyntaxKind.InternalKeyword,
         ["protected"] = SyntaxKind.ProtectedKeyword,
         ["overridable"] = SyntaxKind.OverridableKeyword,
         ["out"] = SyntaxKind.OutKeyword,
