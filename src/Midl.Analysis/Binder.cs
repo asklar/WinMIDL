@@ -2333,7 +2333,7 @@ public class Binder
                 _diagnostics.Add(DiagnosticDescriptors.PropertySetterOnly(
                     prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));
             }
-            else if (prop.HasGetter && prop.HasSetter)
+            else if (prop.HasGetter && prop.HasSetter && !prop.IsProtected && !prop.IsOverridable)
             {
                 _diagnostics.Add(DiagnosticDescriptors.PropertyCanUseShorthand(
                     prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));
