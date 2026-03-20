@@ -126,6 +126,10 @@ public static class CompilationHelper
             var importedTree = importedParser.Parse();
 
             importedTrees.Add((importedTree, importedTokens));
+
+            // Recursively collect transitive imports from the imported file
+            var childResolver = importResolver.CreateChildResolver(resolved);
+            CollectImportedTrees(importedTree, childResolver, importedTrees, diagnostics);
         }
     }
 

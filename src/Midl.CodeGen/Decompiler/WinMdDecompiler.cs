@@ -98,7 +98,12 @@ public class WinMdDecompiler
                 break;
             default:
                 if ((td.Attributes & TypeAttributes.Interface) != 0)
+                {
+                    // Skip non-public (exclusive/synthesized) interfaces — they'll be re-synthesized
+                    if ((td.Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.NotPublic)
+                        break;
                     DecompileInterface(reader, td, handle, name, sb, indent);
+                }
                 else
                     DecompileRuntimeClass(reader, td, handle, name, sb, indent);
                 break;
@@ -285,24 +290,77 @@ public class WinMdDecompiler
             sb.AppendLine($"{indent}    {name}({parameters});");
         }
 
-        // Collect accessor method names to skip
+        // Detect properties and events by naming convention (runtimeclass TypeDefs may not have PropertyMap)
         var accessorNames = new HashSet<string>();
+        var properties = new Dictionary<string, (string Type, bool HasGet, bool HasSet)>();
+        var events = new Dictionary<string, string>();
+
+        // First: check PropertyMap/EventMap (may be populated)
         foreach (var propHandle in td.GetProperties())
         {
             var prop = reader.GetPropertyDefinition(propHandle);
             var propName = reader.GetString(prop.Name);
+            var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
             accessorNames.Add($"get_{propName}");
             accessorNames.Add($"put_{propName}");
+            properties[propName] = (MapToMidlType(propSig.ReturnType), true, false);
         }
         foreach (var eventHandle in td.GetEvents())
         {
             var evt = reader.GetEventDefinition(eventHandle);
             var evtName = reader.GetString(evt.Name);
+            var delegateType = GetEntityName(reader, evt.Type);
             accessorNames.Add($"add_{evtName}");
             accessorNames.Add($"remove_{evtName}");
+            events[evtName] = GetShortName(delegateType);
         }
 
-        // Methods (skip constructors and accessors)
+        // Second: detect by naming convention (for methods not covered by PropertyMap)
+        foreach (var methodHandle in td.GetMethods())
+        {
+            var method = reader.GetMethodDefinition(methodHandle);
+            var methodName = reader.GetString(method.Name);
+            if (methodName == ".ctor") continue;
+
+            if (methodName.StartsWith("get_") && !accessorNames.Contains(methodName))
+            {
+                var propName = methodName[4..];
+                accessorNames.Add(methodName);
+                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+                var propType = MapToMidlType(sig.ReturnType);
+                if (properties.ContainsKey(propName))
+                    properties[propName] = (propType, true, properties[propName].HasSet);
+                else
+                    properties[propName] = (propType, true, false);
+            }
+            else if (methodName.StartsWith("put_") && !accessorNames.Contains(methodName))
+            {
+                var propName = methodName[4..];
+                accessorNames.Add(methodName);
+                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+                var propType = sig.ParameterTypes.Length > 0 ? MapToMidlType(sig.ParameterTypes[0]) : "Object";
+                if (properties.ContainsKey(propName))
+                    properties[propName] = (properties[propName].Type, properties[propName].HasGet, true);
+                else
+                    properties[propName] = (propType, false, true);
+            }
+            else if (methodName.StartsWith("add_") && !accessorNames.Contains(methodName))
+            {
+                var evtName = methodName[4..];
+                accessorNames.Add(methodName);
+                accessorNames.Add($"remove_{evtName}");
+                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+                var delegateType = sig.ParameterTypes.Length > 0 ? MapToMidlType(sig.ParameterTypes[0]) : "Object";
+                events.TryAdd(evtName, delegateType);
+            }
+            else if (methodName.StartsWith("remove_") && !accessorNames.Contains(methodName))
+            {
+                accessorNames.Add(methodName);
+                accessorNames.Add($"add_{methodName[7..]}");
+            }
+        }
+
+        // Emit methods (skip constructors and accessors)
         foreach (var methodHandle in td.GetMethods())
         {
             var method = reader.GetMethodDefinition(methodHandle);
@@ -316,23 +374,21 @@ public class WinMdDecompiler
             sb.AppendLine($"{indent}    {returnType} {methodName}({parameters});");
         }
 
-        // Properties
-        foreach (var propHandle in td.GetProperties())
+        // Emit properties (idiomatic MIDL3 syntax)
+        foreach (var (propName, (propType, hasGet, hasSet)) in properties)
         {
-            var prop = reader.GetPropertyDefinition(propHandle);
-            var propName = reader.GetString(prop.Name);
-            var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
-            var propType = MapToMidlType(propSig.ReturnType);
-            sb.AppendLine($"{indent}    {propType} {propName};");
+            if (hasGet && hasSet)
+                sb.AppendLine($"{indent}    {propType} {propName};");
+            else if (hasGet)
+                sb.AppendLine($"{indent}    {propType} {propName} {{ get; }};");
+            else
+                sb.AppendLine($"{indent}    {propType} {propName} {{ set; }};");
         }
 
-        // Events
-        foreach (var eventHandle in td.GetEvents())
+        // Emit events (idiomatic MIDL3 syntax)
+        foreach (var (evtName, delegateType) in events)
         {
-            var evt = reader.GetEventDefinition(eventHandle);
-            var evtName = reader.GetString(evt.Name);
-            var delegateType = GetEntityName(reader, evt.Type);
-            sb.AppendLine($"{indent}    event {GetShortName(delegateType)} {evtName};");
+            sb.AppendLine($"{indent}    event {delegateType} {evtName};");
         }
 
         sb.AppendLine($"{indent}}};");
@@ -684,4 +740,53 @@ public class WinMdDecompiler
             return spec.DecodeSignature(this, genericContext);
         }
     }
+
+    #region Synthesis detection helpers
+
+    /// <summary>
+    /// Check if an interface name matches the auto-synthesis pattern for a given runtimeclass.
+    /// </summary>
+    private static bool IsSynthesizedInterfaceName(string interfaceName, string className)
+    {
+        return interfaceName == $"I{className}"
+            || interfaceName == $"I{className}Factory"
+            || interfaceName == $"I{className}Statics"
+            || interfaceName == $"I{className}Protected"
+            || interfaceName == $"I{className}Overrides"
+            || (interfaceName.StartsWith($"I{className}") && interfaceName.Length > className.Length + 1
+                && char.IsDigit(interfaceName[$"I{className}".Length]));
+    }
+
+    /// <summary>
+    /// Get the runtimeclass name from an ExclusiveToAttribute on an interface.
+    /// </summary>
+    private static string? GetExclusiveToClassName(MetadataReader reader, TypeDefinitionHandle handle)
+    {
+        var td = reader.GetTypeDefinition(handle);
+        foreach (var attrHandle in td.GetCustomAttributes())
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            var attrTypeName = GetAttributeTypeName(reader, attr.Constructor);
+            if (attrTypeName is "ExclusiveToAttribute")
+            {
+                // Decode the blob to get the type name
+                try
+                {
+                    var blobReader = reader.GetBlobReader(attr.Value);
+                    blobReader.ReadUInt16(); // prolog
+                    var typeName = blobReader.ReadSerializedString();
+                    if (typeName != null)
+                    {
+                        // Extract short name from fully qualified
+                        var lastDot = typeName.LastIndexOf('.');
+                        return lastDot >= 0 ? typeName[(lastDot + 1)..] : typeName;
+                    }
+                }
+                catch { }
+            }
+        }
+        return null;
+    }
+
+    #endregion
 }

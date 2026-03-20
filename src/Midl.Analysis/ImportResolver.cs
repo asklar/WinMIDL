@@ -8,14 +8,30 @@ public class ImportResolver
 {
     private readonly IReadOnlyList<string>? _includePaths;
     private readonly string? _currentFileDirectory;
-    private readonly HashSet<string> _importedFiles = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _importedFiles;
 
     public ImportResolver(IReadOnlyList<string>? includePaths, string? currentFilePath)
+        : this(includePaths, currentFilePath, new HashSet<string>(StringComparer.OrdinalIgnoreCase))
+    {
+    }
+
+    private ImportResolver(IReadOnlyList<string>? includePaths, string? currentFilePath,
+                           HashSet<string> sharedImportedFiles)
     {
         _includePaths = includePaths;
         _currentFileDirectory = currentFilePath != null
             ? Path.GetDirectoryName(Path.GetFullPath(currentFilePath))
             : null;
+        _importedFiles = sharedImportedFiles;
+    }
+
+    /// <summary>
+    /// Creates a child resolver that resolves paths relative to the given file
+    /// but shares the same already-imported tracking set to prevent circular imports.
+    /// </summary>
+    internal ImportResolver CreateChildResolver(string childFilePath)
+    {
+        return new ImportResolver(_includePaths, childFilePath, _importedFiles);
     }
 
     /// <summary>
