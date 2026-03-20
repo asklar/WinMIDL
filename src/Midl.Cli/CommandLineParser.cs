@@ -93,6 +93,24 @@ public static class CommandLineParser
                 if (switchName.StartsWith('-'))
                     switchName = switchName[1..];
 
+                // Handle concatenated single-char switches: /IC:\path → "I" + "C:\path"
+                // /DFOO=1 → "D" + "FOO=1", /Ufoo → "U" + "foo"
+                if (switchName.Length > 1)
+                {
+                    var firstChar = char.ToUpperInvariant(switchName[0]);
+                    if (firstChar is 'I' or 'D' or 'U')
+                    {
+                        var rest = switchName[1..];
+                        var asSwitch = switchName.ToLowerInvariant();
+                        // Only split if it doesn't match a known multi-char switch
+                        if (asSwitch is not ("iid" or "dlldata"))
+                        {
+                            expanded.Insert(i + 1, rest);
+                            switchName = switchName[..1];
+                        }
+                    }
+                }
+
                 if (!TryParseSwitch(switchName, expanded, ref i, options))
                 {
                     options.UnknownSwitches.Add(arg);

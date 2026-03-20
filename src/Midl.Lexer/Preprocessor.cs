@@ -49,7 +49,8 @@ public class Preprocessor
         _defines["_MSC_VER"] = "1900";
         _defines["_WIN32_WINNT"] = "0x0A00";
         _defines["WINVER"] = "0x0A00";
-        _defines["WINAPI_FAMILY"] = "0x03"; // WINAPI_FAMILY_DESKTOP_APP
+        // Don't predefine WINAPI_FAMILY — let winapifamily.h define it
+        // with the correct WINAPI_FAMILY_DESKTOP_APP constant (100)
 
         // Apply CLI /D defines (override pre-defined if needed)
         if (defines != null)
@@ -147,6 +148,10 @@ public class Preprocessor
     private string ProcessInternal(string source, string? filePath)
     {
         var lines = SplitLines(source);
+
+        // Join backslash-continuation lines: lines ending with \ are joined with the next line
+        lines = JoinContinuationLines(lines);
+
         var output = new StringBuilder();
         var ifStack = new Stack<IfState>();
 
@@ -301,6 +306,13 @@ public class Preprocessor
         {
             var name = rest[..spaceIdx].Trim();
             var value = rest[(spaceIdx + 1)..].Trim();
+            // Strip inline comments: 100 /* comment */ → 100
+            var commentIdx = value.IndexOf("/*");
+            if (commentIdx >= 0)
+                value = value[..commentIdx].Trim();
+            var lineCommentIdx = value.IndexOf("//");
+            if (lineCommentIdx >= 0)
+                value = value[..lineCommentIdx].Trim();
             _defines[name] = value;
         }
     }
@@ -522,13 +534,19 @@ public class Preprocessor
             }
         }
 
-        // Simple object-like macros
-        foreach (var (name, value) in _defines)
+        // Simple object-like macros — loop until fixpoint for recursive expansion
+        // (e.g. WINAPI_FAMILY → WINAPI_FAMILY_DESKTOP_APP → 100)
+        for (int pass = 0; pass < 10; pass++)
         {
-            if (line.Contains(name))
+            var prev = line;
+            foreach (var (name, value) in _defines)
             {
-                line = Regex.Replace(line, @"(?<!\w)" + Regex.Escape(name) + @"(?!\w)", value);
+                if (line.Contains(name))
+                {
+                    line = Regex.Replace(line, @"(?<!\w)" + Regex.Escape(name) + @"(?!\w)", value);
+                }
             }
+            if (line == prev) break; // No more substitutions
         }
         return line;
     }
@@ -862,9 +880,35 @@ public class Preprocessor
                 start = i + 1;
             }
         }
-        // Add remaining text (last line without trailing newline)
         lines.Add(text[start..]);
         return lines;
+    }
+
+    /// <summary>Join lines ending with backslash (C line continuation).</summary>
+    private static List<string> JoinContinuationLines(List<string> lines)
+    {
+        var result = new List<string>(lines.Count);
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            var trimmedEnd = line.TrimEnd();
+            if (trimmedEnd.EndsWith('\\'))
+            {
+                // Strip the backslash and join with next line
+                sb.Append(trimmedEnd[..^1]);
+                sb.Append(' ');
+            }
+            else
+            {
+                sb.Append(line);
+                result.Add(sb.ToString());
+                sb.Clear();
+            }
+        }
+        if (sb.Length > 0)
+            result.Add(sb.ToString());
+        return result;
     }
 
     private static (string Name, string Body) ParseDirective(string trimmedLine)
