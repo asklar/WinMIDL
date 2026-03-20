@@ -65,6 +65,16 @@ public class Binder
             CheckStrictModeViolation(node);
         }
 
+        // WinRT types must be in a namespace (not at global scope)
+        if (ns.Name == "" && IsTypeDeclaration(node.Kind))
+        {
+            var typeName = ExtractTypeName(node);
+            if (typeName != null)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.NamespaceRequired(typeName, 0));
+            }
+        }
+
         switch (node.Kind)
         {
             case SyntaxKind.NamespaceDeclaration:
@@ -1172,6 +1182,34 @@ public class Binder
             or SyntaxKind.VoidKeyword or SyntaxKind.HResultKeyword
             or SyntaxKind.EventKeyword or SyntaxKind.GetKeyword or SyntaxKind.SetKeyword
             or SyntaxKind.RequiresKeyword or SyntaxKind.ContractKeyword;
+
+    #endregion
+
+    #region Namespace validation helpers
+
+    private static bool IsTypeDeclaration(SyntaxKind kind) => kind is
+        SyntaxKind.RuntimeClassDeclaration or SyntaxKind.InterfaceDeclaration
+        or SyntaxKind.DelegateDeclaration or SyntaxKind.StructDeclaration
+        or SyntaxKind.EnumDeclaration or SyntaxKind.ApiContractDeclaration;
+
+    private static string? ExtractTypeName(GreenNode node)
+    {
+        // Type declarations typically have: [attrs] keyword Name { ... }
+        // Find the identifier after the keyword
+        for (int i = 0; i < node.SlotCount - 1; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot is SyntaxToken { Kind: SyntaxKind.RuntimeclassKeyword or SyntaxKind.InterfaceKeyword
+                or SyntaxKind.DelegateKeyword or SyntaxKind.StructKeyword
+                or SyntaxKind.EnumKeyword or SyntaxKind.ApicontractKeyword })
+            {
+                var next = node.GetSlot(i + 1) as SyntaxToken;
+                if (next is { Kind: SyntaxKind.IdentifierToken })
+                    return next.Text;
+            }
+        }
+        return null;
+    }
 
     #endregion
 }

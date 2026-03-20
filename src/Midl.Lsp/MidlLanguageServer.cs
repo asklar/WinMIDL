@@ -30,6 +30,7 @@ public sealed class MidlLanguageServer
 
     public async Task RunAsync(CancellationToken ct = default)
     {
+        Console.Error.WriteLine("[MIDL LSP] Server starting, waiting for messages...");
         while (!ct.IsCancellationRequested)
         {
             JsonDocument? msg;
@@ -41,14 +42,22 @@ public sealed class MidlLanguageServer
             {
                 break;
             }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[MIDL LSP] Read error: {ex.Message}");
+                break;
+            }
 
-            if (msg is null) break; // stream closed
+            if (msg is null) { Console.Error.WriteLine("[MIDL LSP] Stream closed"); break; }
 
             using (msg)
             {
+                var method = msg.RootElement.TryGetProperty("method", out var m) ? m.GetString() : "(response)";
+                Console.Error.WriteLine($"[MIDL LSP] Received: {method}");
                 await HandleMessageAsync(msg.RootElement);
             }
         }
+        Console.Error.WriteLine("[MIDL LSP] Server exiting");
     }
 
     private async Task HandleMessageAsync(JsonElement msg)
@@ -251,12 +260,16 @@ public sealed class MidlLanguageServer
     {
         try
         {
+            Console.Error.WriteLine($"[MIDL LSP] Analyzing {uri} ({text.Length} chars)");
             var references = GetReferencePaths(uri);
             var compilation = CompilationHelper.Compile(text, references, _compilationMode);
+            Console.Error.WriteLine($"[MIDL LSP] Analysis done: {compilation.Diagnostics.Count} diagnostics");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
+            Console.Error.WriteLine($"[MIDL LSP] Diagnostics published");
         }
         catch (Exception ex)
         {
+            Console.Error.WriteLine($"[MIDL LSP] Analysis error: {ex}");
             // If compilation crashes, report a single error diagnostic
             var errorDiag = new Analysis.Diagnostics.Diagnostic(
                 Analysis.Diagnostics.DiagnosticSeverity.Error,

@@ -13,6 +13,11 @@ public static class CompilationHelper
         return Compile(source, referencePaths: null, mode: CompilationMode.Strict);
     }
 
+    public static Compilation Compile(string source, CompilationMode mode)
+    {
+        return Compile(source, referencePaths: null, mode: mode);
+    }
+
     public static Compilation Compile(string source, IReadOnlyList<string>? referencePaths,
                                        CompilationMode mode = CompilationMode.Strict)
     {
@@ -37,7 +42,20 @@ public static class CompilationHelper
         var tokens = lexer.Lex();
         var parser = new Midl.Parser.Parser(tokens);
         var tree = parser.Parse();
+
+        // Collect syntax errors from the error-recovering parser's tree
+        var syntaxDiagnostics = new List<Midl.Analysis.Diagnostics.Diagnostic>();
+        SyntaxErrorCollector.CollectErrors(tree, tokens, syntaxDiagnostics);
+
         var binder = new Binder(mode);
-        return binder.Bind(tree, tokens, externalTypes);
+        var compilation = binder.Bind(tree, tokens, externalTypes);
+
+        // Merge syntax diagnostics with semantic diagnostics
+        if (syntaxDiagnostics.Count > 0)
+        {
+            compilation = compilation.WithAdditionalDiagnostics(syntaxDiagnostics);
+        }
+
+        return compilation;
     }
 }

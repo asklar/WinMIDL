@@ -17,6 +17,15 @@ public class Compilation
         Diagnostics = diagnostics;
     }
 
+    /// <summary>Returns a new Compilation with additional diagnostics merged in.</summary>
+    public Compilation WithAdditionalDiagnostics(IReadOnlyList<Diagnostic> additional)
+    {
+        var merged = new List<Diagnostic>(additional.Count + Diagnostics.Count);
+        merged.AddRange(additional);
+        merged.AddRange(Diagnostics);
+        return new Compilation(GlobalNamespace, merged);
+    }
+
     /// <summary>Lookup any type by fully qualified name.</summary>
     public ISymbol? GetTypeByName(string fullyQualifiedName)
     {
