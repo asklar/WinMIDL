@@ -45,6 +45,11 @@ public static class FormattingHandler
     public static string Format(string sourceText)
     {
         var lines = SplitLines(sourceText);
+
+        // Pre-process: split "declaration {" into two lines
+        // (but keep inline property accessors like "{ get; set; }" on one line)
+        lines = SplitBraceLines(lines);
+
         var result = new List<string>();
         int indentLevel = 0;
 
@@ -268,6 +273,49 @@ public static class FormattingHandler
             }
 
             result.Add(lines[i]);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Split lines where '{' appears at the end after a declaration, putting '{' on its own line.
+    /// Keeps inline property accessors like "String Name { get; set; };" on one line.
+    /// </summary>
+    private static List<string> SplitBraceLines(List<string> lines)
+    {
+        var result = new List<string>(lines.Count);
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+
+            // Skip empty lines
+            if (trimmed.Length == 0)
+            {
+                result.Add(line);
+                continue;
+            }
+
+            // Check if line ends with '{' and has content before it
+            // e.g. "namespace Foo{" or "runtimeclass Widget {"
+            if (trimmed.EndsWith('{') && trimmed.Length > 1)
+            {
+                var beforeBrace = trimmed[..^1].TrimEnd();
+                if (beforeBrace.Length > 0)
+                {
+                    // Don't split inline property accessors: "Type Name { get; set; };"
+                    // Those have '}' on the same line — but we're checking lines ending with '{'
+                    // which means this is the opening brace of a block, not inline
+                    result.Add(beforeBrace);
+                    result.Add("{");
+                    continue;
+                }
+            }
+
+            // Check for "} else {" or similar patterns — not common in MIDL but handle
+            // Also handle "};" which should stay together
+            result.Add(line);
         }
 
         return result;

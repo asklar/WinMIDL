@@ -137,4 +137,14 @@ public class FormattingTests
         Assert.Contains("void Foo()", formatted);
         Assert.DoesNotContain("  C", formatted);
     }
+
+    [Fact]
+    public void BraceOnSameLineAsDeclration_MovesToOwnLine()
+    {
+        var input = "namespace Foo{\n    runtimeclass Widget{\n        void DoWork();\n    }\n}\n";
+        var formatted = FormattingHandler.Format(input);
+        // { should be on its own line, not same line as namespace/runtimeclass
+        Assert.Contains("namespace Foo\n{", formatted);
+        Assert.Contains("runtimeclass Widget\n    {", formatted);
+    }
 }
