@@ -34,7 +34,8 @@ public sealed class DiagnosticsPublisher
                 severity = MapSeverity(d.Severity),
                 code = d.Code,
                 source = "midl",
-                message = d.Message
+                message = d.Message,
+                codeDescription = d.HelpUri != null ? new { href = d.HelpUri } : null
             });
         }
 

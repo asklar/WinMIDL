@@ -24,10 +24,11 @@ public static class SyntaxErrorCollector
             {
                 if (trivia.Kind == SyntaxKind.SkippedTokensTrivia && trivia is SyntaxTrivia st && st.Text.Trim().Length > 0)
                 {
+                    var text = st.Text.Trim();
                     diagnostics.Add(new Diagnostic(
                         DiagnosticSeverity.Error,
                         "MIDL1100",
-                        $"Unexpected token(s): '{st.Text.Trim()}'",
+                        $"Unexpected code '{text}'. Did you mean to put this inside a namespace or runtimeclass?",
                         position,
                         Math.Max(1, trivia.FullWidth)));
                 }
@@ -37,10 +38,11 @@ public static class SyntaxErrorCollector
             // Check the token itself
             if (token.Kind == SyntaxKind.ErrorToken && token.Text.Length > 0)
             {
+                var message = FormatErrorTokenMessage(token.Text);
                 diagnostics.Add(new Diagnostic(
                     DiagnosticSeverity.Error,
                     "MIDL1101",
-                    $"Unexpected character '{token.Text}'",
+                    message,
                     position,
                     Math.Max(1, token.Text.Length)));
             }
@@ -52,10 +54,11 @@ public static class SyntaxErrorCollector
             {
                 if (trivia.Kind == SyntaxKind.SkippedTokensTrivia && trivia is SyntaxTrivia st2 && st2.Text.Trim().Length > 0)
                 {
+                    var text = st2.Text.Trim();
                     diagnostics.Add(new Diagnostic(
                         DiagnosticSeverity.Error,
                         "MIDL1100",
-                        $"Unexpected token(s): '{st2.Text.Trim()}'",
+                        $"Unexpected code '{text}'. Did you mean to put this inside a namespace or runtimeclass?",
                         position,
                         Math.Max(1, trivia.FullWidth)));
                 }
@@ -63,10 +66,41 @@ public static class SyntaxErrorCollector
             }
         }
 
-        // Note: We intentionally do NOT report MissingToken as errors here.
-        // MissingToken nodes are the parser's way of recovering — they indicate
-        // the parser expected something but continued. The semantic binder will
-        // report meaningful errors for constructs that don't make sense.
-        // Reporting every MissingToken would flood the user with noise.
+        // Walk the green tree to find MissingTokens (parser-synthesized)
+        CollectMissingTokens(root, diagnostics);
+    }
+
+    private static void CollectMissingTokens(GreenNode node, List<Diagnostic> diagnostics)
+    {
+        if (node is SyntaxToken token)
+        {
+            if (token.Kind == SyntaxKind.MissingToken && token.Value is string expected)
+            {
+                diagnostics.Add(new Diagnostic(
+                    DiagnosticSeverity.Error,
+                    "MIDL1102",
+                    $"Expected '{expected}'",
+                    0,
+                    1));
+            }
+            return;
+        }
+
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot != null)
+            {
+                CollectMissingTokens(slot, diagnostics);
+            }
+        }
+    }
+
+    private static string FormatErrorTokenMessage(string text)
+    {
+        if (text is "@" or "#" or "$")
+            return $"Unexpected character '{text}'. MIDL does not use this character.";
+
+        return $"Unexpected character '{text}'";
     }
 }

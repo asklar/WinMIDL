@@ -7,5 +7,6 @@ public record Diagnostic(
     string Code,
     string Message,
     int Position,
-    int Length
+    int Length,
+    string? HelpUri = null
 );

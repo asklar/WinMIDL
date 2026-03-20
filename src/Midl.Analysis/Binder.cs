@@ -13,7 +13,9 @@ public class Binder
     private readonly NamespaceSymbol _globalNamespace = new("");
     private readonly List<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace)> _unresolvedRefs = [];
     private readonly HashSet<string> _definedTypes = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _definedTypesCaseInsensitive = new(StringComparer.OrdinalIgnoreCase);
     private readonly CompilationMode _mode;
+    private TokenPositionMap _posMap = null!;
 
     private SymbolTable _symbolTable = null!;
 
@@ -26,6 +28,7 @@ public class Binder
         IReadOnlyList<ISymbol>? externalTypes = null)
     {
         _symbolTable = new SymbolTable(_globalNamespace);
+        _posMap = new TokenPositionMap(tokens);
 
         // Import external types before binding user code
         if (externalTypes is { Count: > 0 })
@@ -71,7 +74,8 @@ public class Binder
             var typeName = ExtractTypeName(node);
             if (typeName != null)
             {
-                _diagnostics.Add(DiagnosticDescriptors.NamespaceRequired(typeName, 0));
+                int pos = _posMap.GetPositionOf(typeName);
+                _diagnostics.Add(DiagnosticDescriptors.NamespaceRequired(typeName, pos));
             }
         }
 
@@ -230,10 +234,14 @@ public class Binder
                     classSymbol.AddMember(BindConstructor(child, classSymbol, ns));
                     break;
                 case SyntaxKind.MethodDeclaration:
-                    classSymbol.AddMember(BindMethod(child, classSymbol, ns));
+                    var method = BindMethod(child, classSymbol, ns);
+                    CheckSameArityOverload(classSymbol.Members, method);
+                    classSymbol.AddMember(method);
                     break;
                 case SyntaxKind.PropertyDeclaration:
-                    classSymbol.AddMember(BindProperty(child, classSymbol, ns));
+                    var prop = BindProperty(child, classSymbol, ns);
+                    CheckWriteOnlyProperty(prop);
+                    classSymbol.AddMember(prop);
                     break;
                 case SyntaxKind.EventDeclaration:
                     classSymbol.AddMember(BindEvent(child, classSymbol, ns));
@@ -444,6 +452,12 @@ public class Binder
             {
                 symbol.AddField(BindField(child, symbol, ns));
             }
+        }
+
+        // MIDL1009: Empty struct
+        if (symbol.Fields.Count == 0)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.EmptyStruct(name));
         }
     }
 
@@ -701,6 +715,13 @@ public class Binder
             TrackTypeRef(param.Type, ns);
             param.IsArray = param.Type.IsArray;
         }
+
+        // MIDL1013: Reserved parameter names
+        if (name is "result" or "operation" or "value")
+        {
+            _diagnostics.Add(DiagnosticDescriptors.ReservedParameterName(name));
+        }
+
         return param;
     }
 
@@ -718,7 +739,7 @@ public class Binder
             {
                 var inner = node.GetSlot(0);
                 if (inner is SyntaxToken tok)
-                    return new TypeRef(tok.Text);
+                    return new TypeRef(tok.Text) { Position = _posMap.GetPositionOf(tok.Text) };
                 if (inner != null)
                     return ExtractTypeRef(inner);
                 return TypeRef.Unknown;
@@ -729,7 +750,7 @@ public class Binder
                 var nameToken = node.GetSlot(0) as SyntaxToken;
                 var typeArgList = node.GetSlot(1);
                 var typeArgs = ExtractTypeArguments(typeArgList);
-                return new TypeRef(nameToken?.Text ?? "", typeArgs);
+                return new TypeRef(nameToken?.Text ?? "", typeArgs) { Position = _posMap.GetPositionOf(nameToken?.Text ?? "") };
             }
 
             case SyntaxKind.QualifiedName:
@@ -748,7 +769,7 @@ public class Binder
 
             default:
                 if (node is SyntaxToken t)
-                    return new TypeRef(t.Text);
+                    return new TypeRef(t.Text) { Position = _posMap.GetPositionOf(t.Text) };
                 return TypeRef.Unknown;
         }
     }
@@ -773,7 +794,7 @@ public class Binder
             }
         }
 
-        return new TypeRef(string.Join(".", parts), typeArgs ?? []);
+        return new TypeRef(string.Join(".", parts), typeArgs ?? []) { Position = _posMap.GetPositionOf(parts.FirstOrDefault() ?? "") };
     }
 
     private List<TypeRef> ExtractTypeArguments(GreenNode? typeArgList)
@@ -973,6 +994,53 @@ public class Binder
             case SyntaxKind.WcharTKeyword:
                 _diagnostics.Add(DiagnosticDescriptors.LowercaseType("wchar_t", "Char"));
                 break;
+            case SyntaxKind.BooleanKeyword when token.Text == "boolean":
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("boolean", "Boolean"));
+                break;
+            case SyntaxKind.DoubleKeyword when token.Text == "double":
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("double", "Double"));
+                break;
+            case SyntaxKind.CharKeyword when token.Text == "char":
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("char", "Char"));
+                break;
+            case SyntaxKind.UnsignedKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.StrictModeTypeWarning("unsigned",
+                    "use UInt8/UInt16/UInt32/UInt64 instead"));
+                break;
+            case SyntaxKind.SignedKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.StrictModeTypeWarning("signed",
+                    "use Int16/Int32/Int64 instead"));
+                break;
+            case SyntaxKind.HandleTKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.StrictModeTypeWarning("handle_t",
+                    "handle_t is not used in MIDL3"));
+                break;
+            case SyntaxKind.ErrorStatusTKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.StrictModeTypeWarning("error_status_t",
+                    "error_status_t is not used in MIDL3"));
+                break;
+            case SyntaxKind.IdentifierToken:
+                CheckStrictModeIdentifier(token);
+                break;
+        }
+    }
+
+    private void CheckStrictModeIdentifier(SyntaxToken token)
+    {
+        switch (token.Text)
+        {
+            case "BSTR":
+                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("BSTR", "String"));
+                break;
+            case "LPSTR":
+                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("LPSTR", "String"));
+                break;
+            case "LPWSTR":
+                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("LPWSTR", "String"));
+                break;
+            case "VARIANT":
+                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("VARIANT", "Object"));
+                break;
         }
     }
 
@@ -1026,6 +1094,21 @@ public class Binder
             _diagnostics.Add(DiagnosticDescriptors.DuplicateDefinition(name));
             return false;
         }
+
+        // Case-insensitive collision check (WinRT type names are case-insensitive)
+        if (_definedTypesCaseInsensitive.TryGetValue(fullName, out var existing))
+        {
+            if (existing != fullName)
+            {
+                var existingShortName = existing.Contains('.') ? existing[(existing.LastIndexOf('.') + 1)..] : existing;
+                _diagnostics.Add(DiagnosticDescriptors.CaseInsensitiveTypeCollision(name, existingShortName));
+            }
+        }
+        else
+        {
+            _definedTypesCaseInsensitive[fullName] = fullName;
+        }
+
         return true;
     }
 
@@ -1163,6 +1246,29 @@ public class Binder
             if (node.GetSlot(i) is SyntaxToken t && t.Kind == kind) return true;
         }
         return false;
+    }
+
+    private void CheckSameArityOverload(IReadOnlyList<ISymbol> existingMembers, MethodSymbol newMethod)
+    {
+        if (string.IsNullOrEmpty(newMethod.Name)) return;
+        foreach (var member in existingMembers)
+        {
+            if (member is MethodSymbol existing &&
+                existing.Name == newMethod.Name &&
+                existing.Parameters.Count == newMethod.Parameters.Count)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.SameArityOverload(newMethod.Name, existing.Name));
+                return;
+            }
+        }
+    }
+
+    private void CheckWriteOnlyProperty(PropertySymbol prop)
+    {
+        if (prop.HasSetter && !prop.HasGetter && !string.IsNullOrEmpty(prop.Name))
+        {
+            _diagnostics.Add(DiagnosticDescriptors.WriteOnlyProperty(prop.Name));
+        }
     }
 
     private static bool IsTypeNode(SyntaxKind kind) =>

@@ -69,7 +69,19 @@ public sealed partial class Parser
     /// <summary>Create a synthetic missing token for error recovery.</summary>
     private SyntaxToken CreateMissingToken(SyntaxKind expected)
     {
-        return new SyntaxToken(SyntaxKind.MissingToken, "", value: null);
+        string expectedName = expected switch {
+            SyntaxKind.SemicolonToken => ";",
+            SyntaxKind.OpenBraceToken => "{",
+            SyntaxKind.CloseBraceToken => "}",
+            SyntaxKind.OpenParenToken => "(",
+            SyntaxKind.CloseParenToken => ")",
+            SyntaxKind.OpenBracketToken => "[",
+            SyntaxKind.CloseBracketToken => "]",
+            SyntaxKind.GreaterThanToken => ">",
+            SyntaxKind.IdentifierToken => "identifier",
+            _ => expected.ToString()
+        };
+        return new SyntaxToken(SyntaxKind.MissingToken, "", value: expectedName);
     }
 
     /// <summary>Build a green node list from a kind and variable children.</summary>
