@@ -74,9 +74,11 @@ public class Preprocessor
         string cppCmd = "cl.exe")
     {
         var args = new System.Text.StringBuilder();
-        args.Append("/E /nologo /c ");
+        // /TP = treat as C++ (so .idl extension works), /E = preprocess to stdout
+        args.Append("/E /nologo /c /TP ");
 
         // Always define MIDL/WinRT macros
+        // DO_NO_IMPORTS: skip import blocks in SDK headers (our parser handles imports)
         args.Append("/D__midl /DMIDL_PASS /D_WIN32 /D_WIN64 ");
         args.Append("/DNTDDI_VERSION=0x0A000000 /D_APISET_WINDOWS_VERSION=0x0602 ");
         args.Append("/DUNICODE /D_UNICODE ");
