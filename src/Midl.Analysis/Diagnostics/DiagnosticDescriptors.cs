@@ -382,4 +382,9 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Info, "MIDL3009",
             $"Namespace segment '{name}' should use PascalCase (e.g. '{char.ToUpperInvariant(name[0])}{name[1..]}').",
             position, Math.Max(name.Length, 1));
+
+    public static Diagnostic AttributeNamingConvention(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3010",
+            $"Attribute '{name}' should end with 'Attribute' by convention (e.g. '{name}Attribute'). Use [attributename(\"{name}\")] to keep the short name.",
+            position, Math.Max(name.Length, 1));
 }

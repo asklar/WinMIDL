@@ -1908,6 +1908,11 @@ public class Binder
                     ValidateDelegateReturnType(d);
                     ValidateMethodParametersForDelegate(d);
                     break;
+                case AttributeTypeSymbol at when !at.IsExternal && _emitQualityHints:
+                    if (!at.Name.EndsWith("Attribute", StringComparison.Ordinal))
+                        _diagnostics.Add(DiagnosticDescriptors.AttributeNamingConvention(
+                            at.Name, _posMap.GetPositionOf(at.Name)));
+                    break;
             }
         }
 
