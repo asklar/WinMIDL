@@ -304,4 +304,10 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1064",
             $"Attribute '{attrName}' argument {argIndex + 1} ('{fieldName}'): expected {expectedType} but got {actualKind}",
             position, Math.Max(attrName.Length, 1));
+
+    // Unknown attribute (MIDL1065)
+    public static Diagnostic UnknownAttribute(string attrName, int position) =>
+        new(DiagnosticSeverity.Warning, "MIDL1065",
+            $"Unknown attribute '{attrName}'. If this is a custom attribute, declare it with 'attribute {attrName} {{ ... }};'.",
+            position, Math.Max(attrName.Length, 1));
 }

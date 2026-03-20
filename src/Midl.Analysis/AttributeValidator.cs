@@ -24,6 +24,40 @@ public class AttributeValidator
     private static readonly HashSet<string> ValidDeprecationTypes =
         new(StringComparer.OrdinalIgnoreCase) { "deprecate", "remove" };
 
+    /// <summary>All well-known built-in attribute names recognized by the MIDL compiler.</summary>
+    private static readonly HashSet<string> WellKnownAttributes =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            // Type-level attributes
+            "uuid", "contract", "contractversion", "version",
+            "threading", "marshaling_behavior",
+            "activatable", "composable", "static",
+            "deprecated", "experimental",
+            "exclusiveto", "webhosthidden",
+            "default", "overridable", "protected",
+            "default_interface", "flags",
+            // Attribute meta-attributes
+            "attributeusage", "attributename", "allowmultiple",
+            // Member-level attributes
+            "method_name", "overload", "default_overload",
+            "return_name", "remote_async",
+            // Classic MIDL attributes (compat)
+            "object", "local", "pointer_default", "helpstring",
+            "dual", "oleautomation", "nonextensible", "hidden",
+            "restricted", "source", "propget", "propput", "propputref",
+            "id", "in", "out", "retval", "optional", "defaultvalue",
+            "size_is", "length_is", "max_is", "iid_is", "range",
+            "call_as", "endpoint", "string", "unique", "ptr", "ref",
+            "context_handle", "v1_enum", "async_uuid",
+            "noncreatable", "aggregatable", "appobject",
+            "entry", "dllname", "custom",
+            // XAML/composition
+            "contentproperty", "inputproperty",
+            "bindable", "create_instance",
+            "feature", "feature_name",
+            "internal",
+        };
+
     #pragma warning disable CS0649 // Field is never assigned
     private bool _currentClassIsStatic;
     #pragma warning restore CS0649
@@ -54,22 +88,27 @@ public class AttributeValidator
             {
                 case RuntimeClassSymbol rc:
                     ValidateRuntimeClass(rc);
+                    ValidateUnknownAttributes(rc.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(rc.Attributes, rc.Name, "target_runtimeclass", attrTypes);
                     break;
                 case InterfaceSymbol iface:
                     ValidateAttributes(iface.Attributes, iface.Name, isRuntimeClass: false);
+                    ValidateUnknownAttributes(iface.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(iface.Attributes, iface.Name, "target_interface", attrTypes);
                     break;
                 case EnumSymbol en:
                     ValidateAttributes(en.Attributes, en.Name, isRuntimeClass: false);
+                    ValidateUnknownAttributes(en.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(en.Attributes, en.Name, "target_enum", attrTypes);
                     break;
                 case StructSymbol st:
                     ValidateAttributes(st.Attributes, st.Name, isRuntimeClass: false);
+                    ValidateUnknownAttributes(st.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(st.Attributes, st.Name, "target_struct", attrTypes);
                     break;
                 case DelegateSymbol del:
                     ValidateAttributes(del.Attributes, del.Name, isRuntimeClass: false);
+                    ValidateUnknownAttributes(del.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(del.Attributes, del.Name, "target_delegate", attrTypes);
                     break;
                 case AttributeTypeSymbol:
@@ -264,6 +303,24 @@ public class AttributeValidator
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Report a warning for attributes that are neither well-known built-in
+    /// attributes nor user-defined custom attribute types.
+    /// </summary>
+    private void ValidateUnknownAttributes(
+        List<AttributeData> attributes,
+        Dictionary<string, AttributeTypeSymbol> attrTypes)
+    {
+        foreach (var attr in attributes)
+        {
+            if (!WellKnownAttributes.Contains(attr.Name) &&
+                !attrTypes.ContainsKey(attr.Name))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.UnknownAttribute(attr.Name, attr.Position));
+            }
+        }
     }
 
     private void ValidateCustomAttributeInstances(

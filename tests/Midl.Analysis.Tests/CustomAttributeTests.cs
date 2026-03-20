@@ -399,6 +399,42 @@ public class CustomAttributeTests
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1064");
     }
 
+    [Fact]
+    public void UnknownAttributeProducesWarning()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [foo]
+                interface bar
+                {
+                    Single x { set; get; };
+                }
+            }
+            """);
+
+        var warning = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1065");
+        Assert.NotNull(warning);
+        Assert.Contains("foo", warning.Message);
+    }
+
+    [Fact]
+    public void KnownAttributeNoWarning()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [uuid("12345678-1234-1234-1234-123456789abc")]
+                interface bar
+                {
+                    Single x { set; get; };
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1065");
+    }
+
     #endregion
 
     #region WinMD Round-Trip
