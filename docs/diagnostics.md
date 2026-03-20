@@ -19,6 +19,11 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 | [MIDL1011](#midl1011) | Warning | Same-arity method overload |
 | [MIDL1012](#midl1012) | Error | Write-only property |
 | [MIDL1013](#midl1013) | Warning | Reserved parameter name |
+| [MIDL1033](#midl1033) | Error | Protected/overridable on sealed class |
+| [MIDL1034](#midl1034) | Error | Undefined required interface |
+| [MIDL1035](#midl1035) | Error | Base type is not a runtimeclass |
+| [MIDL1036](#midl1036) | Error | Base class is sealed |
+| [MIDL1038](#midl1038) | Error | Runtimeclass in requires clause |
 | [MIDL1100](#midl1100) | Error | Unexpected code (skipped tokens) |
 | [MIDL1101](#midl1101) | Error | Unexpected character |
 | [MIDL1102](#midl1102) | Error | Expected token missing |
@@ -30,7 +35,7 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 
 ---
 
-## Semantic Errors (MIDL1001–MIDL1013)
+## Semantic Errors (MIDL1001–MIDL1038)
 
 These errors are emitted during semantic analysis (binding phase).
 
@@ -240,6 +245,82 @@ The parameter name is reserved by the MIDL compiler for auto-generated ABI param
 | `innerInterface` | Unsealed constructor | No |
 
 **Fix:** Rename the parameter, or use `[return_name("altName")]` to change the auto-generated name.
+
+---
+
+### MIDL1033
+
+**Protected or overridable on sealed class**
+
+```
+error MIDL1033: 'DoWork' cannot be protected in sealed runtimeclass 'MyClass'. Use 'unsealed runtimeclass' to allow inheritance.
+error MIDL1033: 'OnChanged' cannot be overridable in sealed runtimeclass 'MyClass'. Use 'unsealed runtimeclass' to allow inheritance.
+```
+
+A member marked `protected` or `overridable` can only appear in an `unsealed runtimeclass`. Sealed classes (the default) cannot participate in inheritance, so these modifiers are invalid.
+
+**Fix:** Mark the containing class as `unsealed runtimeclass`, or remove the `protected`/`overridable` modifier from the member.
+
+---
+
+### MIDL1034
+
+**Undefined required interface**
+
+```
+error MIDL1034: Required interface 'IUndefined' is undefined.
+```
+
+An interface's `requires` clause references an interface name that cannot be resolved.
+
+**Fix:** Check the spelling, add an `import` directive, or add a `/reference` to a `.winmd` file that defines the interface.
+
+---
+
+### MIDL1035
+
+**Base type is not a runtimeclass**
+
+```
+error MIDL1035: Base type 'MyStruct' is not a runtimeclass. Use ':' for implemented interfaces.
+```
+
+A runtimeclass specifies a base type in its inheritance list, but the resolved type is a struct, enum, delegate, or other non-runtimeclass type. Only runtimeclasses can be base classes.
+
+**Fix:** Use a runtimeclass as the base, or if you meant to implement an interface, ensure the type is declared as an `interface`.
+
+---
+
+### MIDL1036
+
+**Base class is sealed**
+
+```
+error MIDL1036: Cannot derive from sealed runtimeclass 'Base'. The base class must be declared as 'unsealed runtimeclass'.
+```
+
+A runtimeclass is trying to derive from another runtimeclass that is not marked as `unsealed`.
+
+**Fix:** Mark the base class as `unsealed runtimeclass`:
+
+```idl
+unsealed runtimeclass Base { }
+runtimeclass Derived : Base { }
+```
+
+---
+
+### MIDL1038
+
+**Runtimeclass in requires clause**
+
+```
+error MIDL1038: 'MyClass' is a runtimeclass. Only interfaces are allowed in 'requires' clauses.
+```
+
+An interface's `requires` clause references a runtimeclass instead of an interface. The `requires` clause is for specifying interface dependencies only.
+
+**Fix:** Replace the runtimeclass with the interface that the runtimeclass implements, or remove it from the `requires` clause.
 
 ---
 

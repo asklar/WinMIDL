@@ -91,7 +91,7 @@ public sealed partial class Parser
         // Event
         if (At(SyntaxKind.EventKeyword))
         {
-            return ParseEventDeclaration(attrNode);
+            return ParseEventDeclaration(attrNode, modNode);
         }
 
         // Now we need to distinguish constructor, method, property
@@ -242,10 +242,11 @@ public sealed partial class Parser
     }
 
     /// <summary>Parse: event DelegateType Name;</summary>
-    private GreenNode ParseEventDeclaration(GreenNode? attributes)
+    private GreenNode ParseEventDeclaration(GreenNode? attributes, GreenNode? modifiers = null)
     {
         var children = new List<GreenNode?>();
         if (attributes != null) children.Add(attributes);
+        if (modifiers != null) children.Add(modifiers);
 
         children.Add(Eat(SyntaxKind.EventKeyword));
         children.Add(ParseTypeReference());
