@@ -510,7 +510,8 @@ public static class CompletionHandler
         AddItem(items, "Single", KindTypeParameter, "32-bit floating point");
         AddItem(items, "Double", KindTypeParameter, "64-bit floating point");
         AddItem(items, "String", KindTypeParameter, "UTF-16 string");
-        AddItem(items, "Char", KindTypeParameter, "Unicode character");
+        AddItem(items, "Char16", KindTypeParameter, "16-bit UTF-16 code unit");
+        AddItem(items, "Char", KindTypeParameter, "Alias for Char16");
         AddItem(items, "Guid", KindTypeParameter, "128-bit globally unique identifier");
         AddItem(items, "Object", KindTypeParameter, "Base type for all WinRT types");
 

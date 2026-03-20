@@ -89,7 +89,8 @@ public static class BuiltInTypes
         symbolTable.RegisterAlias("FLOAT", "Single");
         symbolTable.RegisterAlias("DOUBLE", "Double");
         symbolTable.RegisterAlias("BOOL", "Boolean");
-        symbolTable.RegisterAlias("WCHAR", "Char");
+        symbolTable.RegisterAlias("WCHAR", "Char16");
+        symbolTable.RegisterAlias("Char", "Char16");
         symbolTable.RegisterAlias("ULONGLONG", "UInt64");
         symbolTable.RegisterAlias("LONGLONG", "Int64");
         symbolTable.RegisterAlias("__int64", "Int64");
@@ -105,8 +106,8 @@ public static class BuiltInTypes
             symbolTable.RegisterAlias("long", "Int32");
             symbolTable.RegisterAlias("short", "Int16");
             symbolTable.RegisterAlias("byte", "UInt8");
-            symbolTable.RegisterAlias("char", "Char");
-            symbolTable.RegisterAlias("wchar_t", "Char");
+            symbolTable.RegisterAlias("char", "Char16");
+            symbolTable.RegisterAlias("wchar_t", "Char16");
             symbolTable.RegisterAlias("hyper", "Int64");
             symbolTable.RegisterAlias("small", "UInt8");
             symbolTable.RegisterAlias("unsigned", "UInt32");

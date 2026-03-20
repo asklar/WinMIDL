@@ -125,6 +125,40 @@ public class LexerTests
     }
 
     [Fact]
+    public void NegativeInteger()
+    {
+        var tokens = Lex("-42");
+        Assert.Equal(SyntaxKind.NumericLiteralToken, tokens[0].Kind);
+        Assert.Equal("-42", tokens[0].Text);
+    }
+
+    [Fact]
+    public void NegativeFloat()
+    {
+        var tokens = Lex("-3.14");
+        Assert.Equal(SyntaxKind.FloatLiteralToken, tokens[0].Kind);
+        Assert.Equal("-3.14", tokens[0].Text);
+    }
+
+    [Fact]
+    public void NegativeHex()
+    {
+        var tokens = Lex("-0xFF");
+        Assert.Equal(SyntaxKind.NumericLiteralToken, tokens[0].Kind);
+        Assert.Equal("-0xFF", tokens[0].Text);
+    }
+
+    [Fact]
+    public void MinusWithSpace_StaysSeparate()
+    {
+        // "- 42" has whitespace between minus and digit — stays as separate tokens
+        var tokens = Lex("- 42");
+        Assert.Equal(SyntaxKind.MinusToken, tokens[0].Kind);
+        Assert.Equal(SyntaxKind.NumericLiteralToken, tokens[1].Kind);
+        Assert.Equal("42", tokens[1].Text);
+    }
+
+    [Fact]
     public void LexesStringLiteral()
     {
         var tokens = Lex("\"hello world\"");

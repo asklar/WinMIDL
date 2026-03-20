@@ -15,6 +15,13 @@ public class TypeRef
     public ISymbol? ResolvedSymbol { get; set; }
     public int Position { get; init; }
 
+    /// <summary>When reading from WinMD InterfaceImpl rows, indicates this is a [default] interface.</summary>
+    public bool IsDefaultInterface { get; set; }
+    /// <summary>When reading from WinMD InterfaceImpl rows, indicates this is a [protected] interface.</summary>
+    public bool IsProtectedInterface { get; set; }
+    /// <summary>When reading from WinMD InterfaceImpl rows, indicates this is an [overridable] interface.</summary>
+    public bool IsOverridableInterface { get; set; }
+
     public TypeRef(string name, IReadOnlyList<TypeRef>? typeArguments = null, bool isArray = false)
     {
         Name = name;
@@ -42,7 +49,7 @@ public class TypeRef
 
     internal static bool IsBuiltInType(string name) => name switch
     {
-        "Boolean" or "Char" or "Int16" or "Int32" or "Int64"
+        "Boolean" or "Char" or "Char16" or "Int16" or "Int32" or "Int64"
             or "UInt8" or "UInt16" or "UInt32" or "UInt64"
             or "Single" or "Double" or "String" or "Guid"
             or "Object" or "void" or "HRESULT"

@@ -311,6 +311,12 @@ public static class DiagnosticDescriptors
             $"Unknown attribute '{attrName}'. If this is a custom attribute, declare it with 'attribute {attrName} {{ ... }};'.",
             position, Math.Max(attrName.Length, 1));
 
+    // Attribute argument out of range (MIDL1066)
+    public static Diagnostic AttributeArgumentOutOfRange(string attrName, int argIndex, string fieldName, string fieldType, long value, string validRange, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1066",
+            $"Attribute '{attrName}' argument {argIndex + 1} ('{fieldName}'): value {value} is out of range for {fieldType} (valid: {validRange})",
+            position, Math.Max(attrName.Length, 1));
+
     // ─── Code Quality Hints (MIDL3001+) ─────────────────────────────
 
     public static Diagnostic InterfaceNamingConvention(string name, int position) =>

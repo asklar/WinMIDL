@@ -498,6 +498,126 @@ public class CustomAttributeTests
     }
 
     [Fact]
+    public void NegativeInteger_ForIntField_Accepted()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { Int32 Value; };
+                [MyAttr(-1)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code is "MIDL1064" or "MIDL1066");
+    }
+
+    [Fact]
+    public void NegativeFloat_ForDoubleField_Accepted()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { Double Value; };
+                [MyAttr(-3.14)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code is "MIDL1064" or "MIDL1066");
+    }
+
+    [Fact]
+    public void NegativeInteger_ForUInt8_OutOfRange()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { UInt8 Value; };
+                [MyAttr(-1)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1066");
+        Assert.NotNull(error);
+        Assert.Contains("-1", error.Message);
+        Assert.Contains("0..255", error.Message);
+    }
+
+    [Fact]
+    public void Overflow_UInt8_256()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { UInt8 Value; };
+                [MyAttr(256)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1066");
+        Assert.NotNull(error);
+        Assert.Contains("256", error.Message);
+    }
+
+    [Fact]
+    public void Overflow_UInt32_Negative()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { UInt32 Value; };
+                [MyAttr(-1)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1066");
+        Assert.NotNull(error);
+        Assert.Contains("-1", error.Message);
+    }
+
+    [Fact]
+    public void Overflow_Int16_40000()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { Int16 Value; };
+                [MyAttr(40000)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1066");
+        Assert.NotNull(error);
+    }
+
+    [Fact]
+    public void InRange_UInt8_255_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { UInt8 Value; };
+                [MyAttr(255)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1066");
+    }
+
+    [Fact]
     public void IdentifierArgForUnknownFieldType_NoDiagnostic()
     {
         // For enum or other non-primitive field types, identifiers should be accepted

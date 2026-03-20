@@ -211,6 +211,14 @@ public sealed class Lexer
                 _window.AdvanceChar();
                 if (_window.PeekChar() == '-') { _window.AdvanceChar(); return (SyntaxKind.MinusMinusToken, "--", null); }
                 if (_window.PeekChar() == '>') { _window.AdvanceChar(); return (SyntaxKind.ArrowToken, "->", null); }
+                // Negative numeric literal: -digits or -digits.digits
+                if (char.IsDigit(_window.PeekChar()))
+                {
+                    // Back up: ScanNumericLiteral expects to start at the first digit.
+                    // We already consumed '-', so prepend it to the result.
+                    var (numKind, numText, numVal) = ScanNumericLiteral();
+                    return (numKind, "-" + numText, "-" + numText);
+                }
                 return (SyntaxKind.MinusToken, "-", null);
 
             case '*': _window.AdvanceChar(); return (SyntaxKind.AsteriskToken, "*", null);

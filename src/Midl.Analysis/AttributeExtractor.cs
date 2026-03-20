@@ -259,9 +259,12 @@ public static class AttributeExtractor
 
     private static long ParseNumeric(string text)
     {
-        if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase) &&
-            long.TryParse(text.AsSpan(2), System.Globalization.NumberStyles.HexNumber, null, out var hex))
-            return hex;
+        bool negative = text.StartsWith('-');
+        var s = negative ? text.AsSpan(1) : text.AsSpan();
+
+        if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase) &&
+            long.TryParse(s[2..], System.Globalization.NumberStyles.HexNumber, null, out var hex))
+            return negative ? -hex : hex;
         if (long.TryParse(text, out var val))
             return val;
         return 0;

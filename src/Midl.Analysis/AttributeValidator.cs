@@ -348,7 +348,7 @@ public class AttributeValidator
             }
             else
             {
-                // Validate argument types (only when count matches)
+                // Validate argument types and ranges (only when count matches)
                 for (int i = 0; i < attr.Arguments.Count; i++)
                 {
                     var arg = attr.Arguments[i];
@@ -358,6 +358,17 @@ public class AttributeValidator
                         _diagnostics.Add(DiagnosticDescriptors.AttributeArgumentTypeMismatch(
                             attr.Name, i, field.Name, field.Type.DisplayName,
                             ArgKindDisplayName(arg.Kind), attr.Position));
+                    }
+                    else if (arg.Kind == ArgKind.Integer)
+                    {
+                        // Validate numeric range for integer fields
+                        var rangeError = ValidateNumericRange(arg.IntValue, field.Type.Name);
+                        if (rangeError != null)
+                        {
+                            _diagnostics.Add(DiagnosticDescriptors.AttributeArgumentOutOfRange(
+                                attr.Name, i, field.Name, field.Type.DisplayName,
+                                arg.IntValue, rangeError, attr.Position));
+                        }
                     }
                 }
             }
@@ -371,6 +382,7 @@ public class AttributeValidator
         {
             "String" or "string" or "HSTRING" => argKind is ArgKind.String,
             "Int32" or "Int16" or "Int64" or "UInt8" or "UInt16" or "UInt32" or "UInt64"
+                or "Char16" or "Char"
                 or "int" or "long" or "short" or "byte" => argKind is ArgKind.Integer,
             "Single" or "Double" or "float" or "double" => argKind is ArgKind.Integer or ArgKind.Float,
             "Boolean" or "boolean" or "bool" => argKind is ArgKind.Identifier or ArgKind.Integer,
@@ -392,4 +404,24 @@ public class AttributeValidator
         ArgKind.Expression => "expression",
         _ => kind.ToString(),
     };
+
+    /// <summary>
+    /// Validate that an integer value fits within the range of the target type.
+    /// Returns a human-readable range description on failure, or null if valid.
+    /// </summary>
+    private static string? ValidateNumericRange(long value, string typeName)
+    {
+        return typeName switch
+        {
+            "UInt8" or "byte" or "BYTE" when value < 0 || value > 255 => "0..255",
+            "Int16" or "short" when value < short.MinValue || value > short.MaxValue => $"{short.MinValue}..{short.MaxValue}",
+            "UInt16" or "WORD" when value < 0 || value > ushort.MaxValue => $"0..{ushort.MaxValue}",
+            "Char16" or "Char" or "WCHAR" when value < 0 || value > ushort.MaxValue => $"0..{ushort.MaxValue}",
+            "Int32" or "int" or "long" when value < int.MinValue || value > int.MaxValue => $"{int.MinValue}..{int.MaxValue}",
+            "UInt32" or "DWORD" or "unsigned" when value < 0 || value > uint.MaxValue => $"0..{uint.MaxValue}",
+            // Int64/UInt64: long already covers Int64 range; UInt64 can't be fully represented
+            "UInt64" or "ULONGLONG" when value < 0 => "0..18446744073709551615",
+            _ => null, // In range or type doesn't have a fixed range
+        };
+    }
 }
