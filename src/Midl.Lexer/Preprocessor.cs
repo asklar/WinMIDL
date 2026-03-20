@@ -11,6 +11,7 @@ namespace Midl.Lexer;
 public class Preprocessor
 {
     private readonly Dictionary<string, string> _defines = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, FunctionMacro> _functionMacros = new(StringComparer.Ordinal);
     private readonly List<string> _includePaths = new();
     private readonly string? _currentFilePath;
     private readonly HashSet<string> _pragmaOnceFiles = new(StringComparer.OrdinalIgnoreCase);
@@ -19,8 +20,10 @@ public class Preprocessor
     /// <summary>True if any #include directive was encountered during processing.</summary>
     public bool HasIncludeDirectives { get; private set; }
 
-    /// <summary>Errors and warnings from preprocessing (include not found, unknown directives, etc.).</summary>
+    /// <summary>Errors and warnings from preprocessing.</summary>
     public List<string> Errors { get; } = new();
+
+    private record FunctionMacro(string[] Params, string Body);
 
     public Preprocessor(IReadOnlyList<string>? defines = null,
                         IReadOnlyList<string>? includePaths = null,
@@ -222,6 +225,17 @@ public class Preprocessor
                             output.AppendLine();
                         break;
 
+                    case "error":
+                        if (IsActive(ifStack))
+                            Errors.Add($"#error {directive.Body.Trim()}");
+                        output.AppendLine();
+                        break;
+
+                    case "warning":
+                        // #warning is informational — just drop the line
+                        output.AppendLine();
+                        break;
+
                     default:
                         // Unknown directive — report error and drop
                         if (IsActive(ifStack))
@@ -256,7 +270,29 @@ public class Preprocessor
     {
         if (string.IsNullOrWhiteSpace(rest)) return;
 
+        // Check for function-like macro: NAME(param1, param2) body
+        var parenIdx = rest.IndexOf('(');
         var spaceIdx = rest.IndexOfAny([' ', '\t']);
+
+        if (parenIdx > 0 && (spaceIdx < 0 || parenIdx < spaceIdx))
+        {
+            // Function-like macro
+            var name = rest[..parenIdx].Trim();
+            var closeIdx = rest.IndexOf(')', parenIdx);
+            if (closeIdx > parenIdx)
+            {
+                var paramStr = rest[(parenIdx + 1)..closeIdx];
+                var parameters = paramStr.Split(',')
+                    .Select(p => p.Trim())
+                    .Where(p => p.Length > 0)
+                    .ToArray();
+                var body = rest[(closeIdx + 1)..].Trim();
+                _functionMacros[name] = new FunctionMacro(parameters, body);
+                return;
+            }
+        }
+
+        // Simple object-like macro
         if (spaceIdx < 0)
         {
             _defines[rest.Trim()] = "1";
@@ -273,7 +309,10 @@ public class Preprocessor
     {
         var name = rest.Trim();
         if (!string.IsNullOrEmpty(name))
+        {
             _defines.Remove(name);
+            _functionMacros.Remove(name);
+        }
     }
 
     private void HandleIfdef(Stack<IfState> ifStack, string rest, bool negate)
@@ -452,17 +491,80 @@ public class Preprocessor
 
     private string SubstituteMacros(string line)
     {
-        if (_defines.Count == 0) return line;
+        if (_defines.Count == 0 && _functionMacros.Count == 0) return line;
 
+        // Expand function-like macros first: NAME(arg1, arg2)
+        foreach (var (name, macro) in _functionMacros)
+        {
+            int idx;
+            while ((idx = line.IndexOf(name + "(", StringComparison.Ordinal)) >= 0)
+            {
+                // Verify it's a whole-word match
+                if (idx > 0 && char.IsLetterOrDigit(line[idx - 1])) break;
+
+                var argsStart = idx + name.Length + 1;
+                var argsEnd = FindMatchingParen(line, argsStart - 1);
+                if (argsEnd < 0) break;
+
+                var argsStr = line[argsStart..argsEnd];
+                var args = SplitMacroArgs(argsStr);
+
+                // Substitute parameters in body
+                var expanded = macro.Body;
+                for (int p = 0; p < macro.Params.Length && p < args.Length; p++)
+                {
+                    expanded = Regex.Replace(expanded,
+                        @"(?<!\w)" + Regex.Escape(macro.Params[p]) + @"(?!\w)",
+                        args[p].Trim());
+                }
+
+                line = line[..idx] + expanded + line[(argsEnd + 1)..];
+            }
+        }
+
+        // Simple object-like macros
         foreach (var (name, value) in _defines)
         {
             if (line.Contains(name))
             {
-                // Whole-word replacement using regex word boundaries
                 line = Regex.Replace(line, @"(?<!\w)" + Regex.Escape(name) + @"(?!\w)", value);
             }
         }
         return line;
+    }
+
+    private static int FindMatchingParen(string text, int openIdx)
+    {
+        int depth = 0;
+        for (int i = openIdx; i < text.Length; i++)
+        {
+            if (text[i] == '(') depth++;
+            else if (text[i] == ')')
+            {
+                depth--;
+                if (depth == 0) return i;
+            }
+        }
+        return -1;
+    }
+
+    private static string[] SplitMacroArgs(string argsStr)
+    {
+        var args = new List<string>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < argsStr.Length; i++)
+        {
+            if (argsStr[i] == '(') depth++;
+            else if (argsStr[i] == ')') depth--;
+            else if (argsStr[i] == ',' && depth == 0)
+            {
+                args.Add(argsStr[start..i]);
+                start = i + 1;
+            }
+        }
+        args.Add(argsStr[start..]);
+        return args.ToArray();
     }
 
     private bool EvaluateExpression(string expr)
@@ -477,9 +579,9 @@ public class Preprocessor
 
         // Handle defined(NAME) / defined NAME
         expr = Regex.Replace(expr, @"defined\s*\(\s*(\w+)\s*\)", m =>
-            _defines.ContainsKey(m.Groups[1].Value) ? "1" : "0");
+            (_defines.ContainsKey(m.Groups[1].Value) || _functionMacros.ContainsKey(m.Groups[1].Value)) ? "1" : "0");
         expr = Regex.Replace(expr, @"defined\s+(\w+)", m =>
-            _defines.ContainsKey(m.Groups[1].Value) ? "1" : "0");
+            (_defines.ContainsKey(m.Groups[1].Value) || _functionMacros.ContainsKey(m.Groups[1].Value)) ? "1" : "0");
 
         // Substitute macros in the expression
         expr = SubstituteMacros(expr);
