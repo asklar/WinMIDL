@@ -10,6 +10,7 @@ public sealed partial class Parser
 {
     private readonly IReadOnlyList<SyntaxToken> _tokens;
     private int _position;
+    private SyntaxToken? _pendingToken;
 
     private static readonly SyntaxToken s_eof = new(SyntaxKind.EndOfFileToken, "");
 
@@ -20,12 +21,14 @@ public sealed partial class Parser
     }
 
     /// <summary>Returns the current token without consuming it.</summary>
-    private SyntaxToken Current => _position < _tokens.Count ? _tokens[_position] : s_eof;
+    private SyntaxToken Current => _pendingToken ?? (_position < _tokens.Count ? _tokens[_position] : s_eof);
 
     /// <summary>Look ahead by offset tokens from the current position.</summary>
     private SyntaxToken Peek(int offset)
     {
-        int index = _position + offset;
+        if (offset == 0) return Current;
+        int actualOffset = _pendingToken != null ? offset - 1 : offset;
+        int index = _position + actualOffset;
         return index < _tokens.Count ? _tokens[index] : s_eof;
     }
 
@@ -61,9 +64,15 @@ public sealed partial class Parser
     /// <summary>Consume and return the current token unconditionally.</summary>
     private SyntaxToken EatToken()
     {
-        var token = Current;
+        if (_pendingToken != null)
+        {
+            var token = _pendingToken;
+            _pendingToken = null;
+            return token;
+        }
+        var t = Current;
         _position++;
-        return token;
+        return t;
     }
 
     /// <summary>Create a synthetic missing token for error recovery.</summary>

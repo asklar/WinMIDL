@@ -116,22 +116,17 @@ public sealed partial class Parser
             children.Add(ParseTypeReference());
         }
 
-        // Handle nested generics: >> should be parsed as two >
-        // In MIDL3 we expect spaces like IAsyncOperation<IVector<String> >
-        // but we should handle >> gracefully too
+        // Handle nested generics: >> should be split into two > tokens
         if (At(SyntaxKind.GreaterThanGreaterThanToken))
         {
-            // Split >> into two > tokens — consume the >> and push back a synthetic >
-            // We do this by consuming the >> and treating it as one >
-            // The outer generic will handle its own >
             var gg = EatToken();
-            // Create a synthetic > from the first half
+            // Create a synthetic > for closing this generic argument list
             var syntheticGt = new SyntaxToken(SyntaxKind.GreaterThanToken, ">",
                 leadingTrivia: gg.LeadingTrivia);
             children.Add(syntheticGt);
-            // We need to also handle the second >; we'll insert a synthetic > back
-            // Actually, for simplicity in a green tree, we record the >> and let the caller know
-            // This is tricky. Let's just accept > here.
+            // Push back a second > for the outer generic to consume
+            _pendingToken = new SyntaxToken(SyntaxKind.GreaterThanToken, ">",
+                trailingTrivia: gg.TrailingTrivia);
         }
         else
         {

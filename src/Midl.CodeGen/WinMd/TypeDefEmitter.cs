@@ -403,7 +403,7 @@ internal class TypeDefEmitter
         // Emit constructors
         foreach (var ctor in symbol.Members.OfType<ConstructorSymbol>())
         {
-            EmitConstructor(ctor);
+            EmitConstructor(ctor, symbol.IsUnsealed);
         }
 
         bool hasDirectMembers = symbol.Members.Any(m => m is MethodSymbol or PropertySymbol or EventSymbol);
@@ -539,17 +539,25 @@ internal class TypeDefEmitter
         _attrs.AddVersionAttribute(typeDef);
     }
 
-    private void EmitConstructor(ConstructorSymbol ctor)
+    private void EmitConstructor(ConstructorSymbol ctor, bool isUnsealed)
     {
+        // For composable (unsealed) runtimeclasses, the factory method has extra
+        // IInspectable* outer (in) and IInspectable** inner (out) params.
+        // These must be omitted from the .ctor MethodDefSig in WinMD metadata.
+        var ctorParams = ctor.Parameters;
+        int winmdParamCount = ctorParams.Count;
+        if (isUnsealed && winmdParamCount >= 2)
+            winmdParamCount -= 2;
+
         var sig = new BlobBuilder();
         new BlobEncoder(sig)
             .MethodSignature(isInstanceMethod: true)
-            .Parameters(ctor.Parameters.Count,
+            .Parameters(winmdParamCount,
                 ret => ret.Void(),
                 p =>
                 {
-                    foreach (var param in ctor.Parameters)
-                        p.AddParameter().Type().FromTypeRef(param.Type, _emitter);
+                    for (int i = 0; i < winmdParamCount; i++)
+                        p.AddParameter().Type().FromTypeRef(ctorParams[i].Type, _emitter);
                 });
 
         var paramList = _emitter.NextParamHandle;
@@ -563,10 +571,10 @@ internal class TypeDefEmitter
             paramList);
         _emitter.IncrementMethodRow();
 
-        for (int i = 0; i < ctor.Parameters.Count; i++)
+        for (int i = 0; i < winmdParamCount; i++)
         {
             M.AddParameter(ParameterAttributes.None,
-                M.GetOrAddString(ctor.Parameters[i].Name),
+                M.GetOrAddString(ctorParams[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
         }
@@ -584,6 +592,14 @@ internal class TypeDefEmitter
             -1,
             paramList);
         _emitter.IncrementMethodRow();
+
+        // Emit retval param at sequence 0 for non-void return types
+        var retvalName = GetRetvalParamName(method);
+        if (retvalName != null)
+        {
+            M.AddParameter(ParameterAttributes.Out, M.GetOrAddString(retvalName), 0);
+            _emitter.IncrementParamRow();
+        }
 
         for (int i = 0; i < method.Parameters.Count; i++)
         {
@@ -750,6 +766,14 @@ internal class TypeDefEmitter
             -1,
             paramList);
         _emitter.IncrementMethodRow();
+
+        // Emit retval param at sequence 0 for non-void return types
+        var retvalName = GetRetvalParamName(method);
+        if (retvalName != null)
+        {
+            M.AddParameter(ParameterAttributes.Out, M.GetOrAddString(retvalName), 0);
+            _emitter.IncrementParamRow();
+        }
 
         for (int i = 0; i < method.Parameters.Count; i++)
         {
@@ -918,10 +942,24 @@ internal class TypeDefEmitter
 
     private BlobBuilder EncodeMethodSig(TypeRef returnType, IReadOnlyList<ParameterSymbol> parameters, bool hasThis)
     {
+        // In WinRT WinMD, array params have an implicit preceding UInt32 length param
+        // that must be omitted from the MethodDefSig. Filter those out.
+        var winmdParams = new List<ParameterSymbol>();
+        for (int i = 0; i < parameters.Count; i++)
+        {
+            // Skip UInt32 length params that precede array params
+            if (i + 1 < parameters.Count && parameters[i + 1].IsArray
+                && parameters[i].Type.Name is "UInt32")
+            {
+                continue;
+            }
+            winmdParams.Add(parameters[i]);
+        }
+
         var blob = new BlobBuilder();
         new BlobEncoder(blob)
             .MethodSignature(isInstanceMethod: hasThis)
-            .Parameters(parameters.Count,
+            .Parameters(winmdParams.Count,
                 ret =>
                 {
                     if (returnType.Name == "void")
@@ -931,7 +969,7 @@ internal class TypeDefEmitter
                 },
                 p =>
                 {
-                    foreach (var param in parameters)
+                    foreach (var param in winmdParams)
                         p.AddParameter().Type().FromTypeRef(param.Type, _emitter);
                 });
         return blob;
@@ -1015,6 +1053,24 @@ internal class TypeDefEmitter
     #endregion
 
     #region Helpers
+
+    /// <summary>
+    /// Auto-generates the retval parameter name per WinRT convention.
+    /// Returns null for void-returning methods.
+    /// </summary>
+    private static string? GetRetvalParamName(MethodSymbol method)
+    {
+        var returnTypeName = method.ReturnType.Name;
+        if (returnTypeName == "void")
+            return null;
+
+        if (returnTypeName is "IAsyncAction" or "IAsyncOperation"
+            || returnTypeName.StartsWith("IAsyncOperation<")
+            || returnTypeName.StartsWith("IAsyncAction<"))
+            return "operation";
+
+        return "result";
+    }
 
     private static string GetNamespace(ISymbol symbol)
     {

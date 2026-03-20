@@ -270,8 +270,10 @@ public sealed class MidlLanguageServer
         try
         {
             MidlTrace.Lsp($"Analyzing {uri} ({text.Length} chars)");
+            var preprocessor = new Midl.Lexer.Preprocessor();
+            var preprocessed = preprocessor.Process(text);
             var references = GetReferencePaths(uri);
-            var compilation = CompilationHelper.Compile(text, references, _compilationMode);
+            var compilation = CompilationHelper.Compile(preprocessed, references, _compilationMode);
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
             MidlTrace.Lsp($"Diagnostics published");

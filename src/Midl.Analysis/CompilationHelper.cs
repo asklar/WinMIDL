@@ -27,9 +27,14 @@ public static class CompilationHelper
     public static Compilation Compile(string source, IReadOnlyList<string>? referencePaths,
                                        CompilationMode mode,
                                        IReadOnlyList<string>? includePaths,
-                                       string? currentFilePath)
+                                       string? currentFilePath,
+                                       IReadOnlyList<string>? defines = null)
     {
         MidlTrace.Write("COMPILE", $"Compiling {source.Length} chars, mode={mode}, {referencePaths?.Count ?? 0} references");
+
+        // Run preprocessor before lexing
+        var preprocessor = new Midl.Lexer.Preprocessor(defines, includePaths, currentFilePath);
+        source = preprocessor.Process(source);
 
         // Read external types from referenced .winmd files
         IReadOnlyList<ISymbol>? externalTypes = null;

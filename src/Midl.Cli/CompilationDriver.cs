@@ -107,7 +107,7 @@ public class CompilationDriver
             }
         }
 
-        // Read input (preprocessing skipped for now)
+        // Read input
         var source = File.ReadAllText(options.InputFile);
 
         return RunFromSource(source, options);
@@ -122,7 +122,13 @@ public class CompilationDriver
         Compilation compilation;
         try
         {
-            compilation = CompilationHelper.Compile(source, options.References.Count > 0 ? options.References : null, options.Mode);
+            compilation = CompilationHelper.Compile(
+                source,
+                options.References.Count > 0 ? options.References : null,
+                options.Mode,
+                options.IncludePaths.Count > 0 ? options.IncludePaths : null,
+                options.InputFile,
+                options.Defines.Count > 0 ? options.Defines : null);
         }
         catch (Exception ex)
         {
