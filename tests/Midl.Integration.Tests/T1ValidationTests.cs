@@ -161,14 +161,16 @@ public class T1ValidationTests
         bool hasCl = false;
         try
         {
-            var psi = new System.Diagnostics.ProcessStartInfo("cl.exe", "/?")
+            var psi = new System.Diagnostics.ProcessStartInfo("cl.exe")
             {
                 UseShellExecute = false, RedirectStandardOutput = true,
                 RedirectStandardError = true, CreateNoWindow = true
             };
             using var p = System.Diagnostics.Process.Start(psi);
-            p?.WaitForExit(5000);
-            hasCl = p?.ExitCode == 0;
+            p?.StandardOutput.ReadToEnd();
+            p?.StandardError.ReadToEnd();
+            p?.WaitForExit(10000);
+            hasCl = p != null;
         }
         catch { }
         Skip.If(!hasCl, "cl.exe not found — run from Developer Command Prompt");
