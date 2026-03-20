@@ -26,6 +26,8 @@ public class MethodSymbol : ISymbol
     public bool IsDefaultOverload { get; set; }
     public string? ReturnNameOverride { get; set; }
     public bool IsRemoteAsync { get; set; }
+    public string? ContractName { get; set; }
+    public int? ContractVersion { get; set; }
 
     public MethodSymbol(string name, ISymbol? containingSymbol)
     {

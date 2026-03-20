@@ -22,6 +22,8 @@ public class PropertySymbol : ISymbol
 
     // Extracted attribute data
     public List<AttributeData> Attributes { get; } = new();
+    public string? ContractName { get; set; }
+    public int? ContractVersion { get; set; }
 
     public PropertySymbol(string name, ISymbol? containingSymbol)
     {

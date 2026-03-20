@@ -117,4 +117,71 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Warning, MIDL2005_Code,
             $"'{typeName}': {advice}", position, typeName.Length,
             HelpUri: StrictModeHelpUri);
+
+    // Version/contract propagation diagnostics
+    public static Diagnostic InterfaceVersionTooEarly(string ifaceName, int ifaceVersion, int classVersion, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1014",
+            $"Interface '{ifaceName}' version {ifaceVersion} is earlier than containing class version {classVersion}",
+            position, ifaceName.Length);
+
+    public static Diagnostic ContractFamilyMismatch(string ifaceName, string ifaceContract, string className, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1015",
+            $"Interface '{ifaceName}' uses contract '{ifaceContract}' which is not in the contract history of runtimeclass '{className}'",
+            position, ifaceName.Length);
+
+    public static Diagnostic UndefinedContract(string contractName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1016",
+            $"Undefined contract '{contractName}'", position, contractName.Length);
+
+    public static Diagnostic EnumMemberVersionTooEarly(string memberName, int memberVersion, int enumVersion, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1017",
+            $"Enum member '{memberName}' version {memberVersion} is earlier than containing enum version {enumVersion}",
+            position, memberName.Length);
+
+    // Attribute semantic validation diagnostics (MIDL1020–MIDL1028)
+
+    public static Diagnostic InvalidThreadingModel(string value, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1020",
+            $"Invalid threading model '{value}'. Must be 'both', 'sta', or 'mta'.",
+            position, value.Length);
+
+    public static Diagnostic InvalidMarshalingBehavior(string value, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1021",
+            $"Invalid marshaling behavior '{value}'.",
+            position, value.Length);
+
+    public static Diagnostic InvalidComposableAccess(string value, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1022",
+            $"Invalid composable access '{value}'.",
+            position, value.Length);
+
+    public static Diagnostic ActivatableFactoryNotExclusiveTo(string factoryName, string className, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1023",
+            $"Activatable factory interface '{factoryName}' must be [exclusiveto({className})].",
+            position, factoryName.Length);
+
+    public static Diagnostic StaticInterfaceNotExclusiveTo(string ifaceName, string className, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1024",
+            $"Static interface '{ifaceName}' must be [exclusiveto({className})].",
+            position, ifaceName.Length);
+
+    public static Diagnostic ComposableAndActivatable(string className, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1025",
+            "Cannot have both [composable] and [activatable] on the same runtime class.",
+            position, className.Length);
+
+    public static Diagnostic InvalidDeprecationType(string value, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1026",
+            $"Invalid deprecation type '{value}'.",
+            position, value.Length);
+
+    public static Diagnostic ThreadingOnNonActivatable(string attrName, int position) =>
+        new(DiagnosticSeverity.Warning, "MIDL1027",
+            $"[{attrName}] is only meaningful on activatable or composable runtime classes.",
+            position, attrName.Length);
+
+    public static Diagnostic AttributeUsageNotOnAttribute(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1028",
+            $"[attributeusage] can only appear on attribute declarations, not on '{typeName}'.",
+            position, typeName.Length);
 }

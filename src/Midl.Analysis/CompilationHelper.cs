@@ -56,6 +56,14 @@ public static class CompilationHelper
         var synthesizer = new InterfaceSynthesizer();
         synthesizer.Synthesize(compilation);
 
+        // Propagate version/contract info and validate constraints
+        var propagator = new VersionPropagator(syntaxDiagnostics);
+        propagator.Propagate(compilation);
+
+        // Validate attribute semantics
+        var validator = new AttributeValidator(compilation, syntaxDiagnostics);
+        validator.Validate();
+
         // Merge syntax diagnostics with semantic diagnostics
         if (syntaxDiagnostics.Count > 0)
         {

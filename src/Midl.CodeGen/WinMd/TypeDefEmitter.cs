@@ -42,7 +42,7 @@ internal class TypeDefEmitter
         var methodList = _emitter.NextMethodHandle;
 
         var typeDef = M.AddTypeDefinition(
-            (TypeAttributes)(TypeAttributes.Interface | TypeAttributes.Abstract | TypeAttributes.Public
+            (TypeAttributes)(TypeAttributes.Interface | TypeAttributes.Abstract
                 | (TypeAttributes)MetadataConstants.TdWindowsRuntime),
             M.GetOrAddString(ns),
             M.GetOrAddString(ifaceName),
@@ -53,6 +53,7 @@ internal class TypeDefEmitter
         // Add a deterministic GUID based on the interface name
         var guid = GenerateDeterministicGuid($"{ns}.{ifaceName}");
         _attrs.AddGuidAttribute(typeDef, guid);
+        _attrs.AddExclusiveToAttribute(typeDef, rc.FullName);
 
         // Track properties and events for map tables
         var properties = new List<(PropertySymbol prop, MethodDefinitionHandle getter, MethodDefinitionHandle? setter)>();
@@ -184,9 +185,13 @@ internal class TypeDefEmitter
         var fieldList = _emitter.NextFieldHandle;
         var methodList = _emitter.NextMethodHandle;
 
+        var typeAttrs = TypeAttributes.Interface | TypeAttributes.Abstract
+            | (TypeAttributes)MetadataConstants.TdWindowsRuntime;
+        if (!symbol.IsExclusive)
+            typeAttrs |= TypeAttributes.Public;
+
         var typeDef = M.AddTypeDefinition(
-            (TypeAttributes)(TypeAttributes.Interface | TypeAttributes.Abstract | TypeAttributes.Public
-                | (TypeAttributes)MetadataConstants.TdWindowsRuntime),
+            typeAttrs,
             M.GetOrAddString(ns),
             M.GetOrAddString(symbol.Name),
             default,
@@ -231,6 +236,9 @@ internal class TypeDefEmitter
         }
 
         _attrs.AddVersionAttribute(typeDef);
+
+        if (symbol.IsExclusive && symbol.ExclusiveToClass != null)
+            _attrs.AddExclusiveToAttribute(typeDef, symbol.ExclusiveToClass);
     }
 
     #endregion
@@ -404,9 +412,73 @@ internal class TypeDefEmitter
                 M.AddInterfaceImplementation(typeDef, h);
         }
 
-        // ActivatableAttribute if has constructors
-        if (symbol.Members.Any(m => m is ConstructorSymbol))
-            _attrs.AddActivatableAttribute(typeDef);
+        // InterfaceImpl for protected interface
+        if (symbol.ProtectedInterface != null)
+        {
+            var h = _emitter.ResolveSymbolHandle(symbol.ProtectedInterface);
+            if (!h.IsNil)
+            {
+                var ifaceImpl = M.AddInterfaceImplementation(typeDef, h);
+                _attrs.AddProtectedAttribute(ifaceImpl);
+            }
+        }
+
+        // InterfaceImpl for overridable interface
+        if (symbol.OverridesInterface != null)
+        {
+            var h = _emitter.ResolveSymbolHandle(symbol.OverridesInterface);
+            if (!h.IsNil)
+            {
+                var ifaceImpl = M.AddInterfaceImplementation(typeDef, h);
+                _attrs.AddOverridableAttribute(ifaceImpl);
+            }
+        }
+
+        // ActivatableAttribute
+        uint attrVersion = symbol.Version != null ? (uint)symbol.Version.Value : 0x00010000;
+        if (symbol.Members.Any(m => m is ConstructorSymbol) || symbol.HasDefaultActivation)
+            _attrs.AddActivatableAttribute(typeDef, attrVersion);
+
+        if (symbol.FactoryInterface != null)
+            _attrs.AddActivatableAttribute(typeDef, symbol.FactoryInterface.FullName, attrVersion);
+
+        // StaticAttribute
+        if (symbol.StaticsInterface != null)
+            _attrs.AddStaticAttribute(typeDef, symbol.StaticsInterface.FullName, attrVersion);
+
+        // ThreadingAttribute
+        if (symbol.ThreadingModel != null)
+        {
+            int threadingValue = symbol.ThreadingModel.ToLowerInvariant() switch
+            {
+                "sta" => 1,
+                "mta" => 2,
+                "both" => 3,
+                _ => 3
+            };
+            _attrs.AddThreadingAttribute(typeDef, threadingValue);
+        }
+
+        // MarshalingBehaviorAttribute
+        if (symbol.MarshalingBehavior != null)
+        {
+            int marshalingValue = symbol.MarshalingBehavior.ToLowerInvariant() switch
+            {
+                "none" => 0,
+                "standard" => 1,
+                "agile" => 2,
+                _ => 2
+            };
+            _attrs.AddMarshalingBehaviorAttribute(typeDef, marshalingValue);
+        }
+
+        // DeprecatedAttribute
+        if (symbol.DeprecatedMessage != null)
+            _attrs.AddDeprecatedAttribute(typeDef, symbol.DeprecatedMessage, 0, attrVersion);
+
+        // ContractVersionAttribute
+        if (symbol.ContractName != null && symbol.ContractVersion != null)
+            _attrs.AddContractVersionAttribute(typeDef, symbol.ContractName, (uint)symbol.ContractVersion.Value);
 
         _attrs.AddVersionAttribute(typeDef);
     }
@@ -551,7 +623,7 @@ internal class TypeDefEmitter
         var sig = EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: false);
         var paramList = _emitter.NextParamHandle;
 
-        M.AddMethodDefinition(
+        var methodDef = M.AddMethodDefinition(
             MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Abstract
                 | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
             MethodImplAttributes.IL,
@@ -568,6 +640,11 @@ internal class TypeDefEmitter
                 i + 1);
             _emitter.IncrementParamRow();
         }
+
+        if (method.OverloadGroup != null)
+            _attrs.AddOverloadAttribute(methodDef, method.OverloadGroup);
+        if (method.IsDefaultOverload)
+            _attrs.AddDefaultOverloadAttribute(methodDef);
     }
 
     private MethodDefinitionHandle EmitPropertyGetter(PropertySymbol prop)

@@ -146,6 +146,15 @@ public class InterfaceSynthesizer
             rc.DefaultInterface = rc.ImplementedInterfaces.FirstOrDefault(
                 i => i != rc.FactoryInterface && i != rc.StaticsInterface);
         }
+
+        // Rule H-ext: Handle [default_interface] attribute on empty classes
+        if (rc.IsDefaultInterface && rc.DefaultInterface == null)
+        {
+            var ifaceName = GetUniqueName($"I{rc.Name}", ns);
+            var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, new List<ISymbol>());
+            rc.DefaultInterface = iface;
+            rc.ImplementedInterfaces.Add(iface);
+        }
     }
 
     private static InterfaceSymbol CreateExclusiveInterface(

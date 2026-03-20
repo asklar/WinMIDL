@@ -279,25 +279,44 @@ public class Binder
 
     private void BindVersionedBlockMembers(GreenNode node, RuntimeClassSymbol classSymbol, NamespaceSymbol ns)
     {
+        // Extract block-level attributes (e.g. [contract(C, N)] { ... })
+        List<AttributeData>? blockAttrs = null;
+        var blockAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (blockAttrList != null)
+        {
+            blockAttrs = AttributeExtractor.Extract(blockAttrList, _posMap);
+        }
+
         for (int i = 0; i < node.SlotCount; i++)
         {
             var child = node.GetSlot(i);
             if (child == null) continue;
 
+            ISymbol? member = null;
             switch (child.Kind)
             {
                 case SyntaxKind.ConstructorDeclaration:
-                    classSymbol.AddMember(BindConstructor(child, classSymbol, ns));
+                    member = BindConstructor(child, classSymbol, ns);
+                    classSymbol.AddMember(member);
                     break;
                 case SyntaxKind.MethodDeclaration:
-                    classSymbol.AddMember(BindMethod(child, classSymbol, ns));
+                    member = BindMethod(child, classSymbol, ns);
+                    classSymbol.AddMember(member);
                     break;
                 case SyntaxKind.PropertyDeclaration:
-                    classSymbol.AddMember(BindProperty(child, classSymbol, ns));
+                    member = BindProperty(child, classSymbol, ns);
+                    classSymbol.AddMember(member);
                     break;
                 case SyntaxKind.EventDeclaration:
-                    classSymbol.AddMember(BindEvent(child, classSymbol, ns));
+                    member = BindEvent(child, classSymbol, ns);
+                    classSymbol.AddMember(member);
                     break;
+            }
+
+            // Apply block-level attributes to the member
+            if (member != null && blockAttrs != null)
+            {
+                ApplyWellKnownAttributes(member, blockAttrs);
             }
         }
     }
@@ -1254,6 +1273,10 @@ public class Binder
                     if (symbol is InterfaceSymbol intf) { intf.ContractName = contractName; intf.ContractVersion = contractVersion; }
                     if (symbol is EnumSymbol en) { en.ContractName = contractName; en.ContractVersion = contractVersion; }
                     if (symbol is EnumMemberSymbol em) { em.ContractName = contractName; em.ContractVersion = contractVersion; }
+                    if (symbol is MethodSymbol cm) { cm.ContractName = contractName; cm.ContractVersion = contractVersion; }
+                    if (symbol is PropertySymbol cp) { cp.ContractName = contractName; cp.ContractVersion = contractVersion; }
+                    if (symbol is EventSymbol ce) { ce.ContractName = contractName; ce.ContractVersion = contractVersion; }
+                    if (symbol is ConstructorSymbol cc) { cc.ContractName = contractName; cc.ContractVersion = contractVersion; }
                     break;
                 case "contractversion":
                     if (symbol is ApiContractSymbol ac) ac.ContractVersion = (int?)attr.GetInt(0);

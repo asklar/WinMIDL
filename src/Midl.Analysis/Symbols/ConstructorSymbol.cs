@@ -17,6 +17,8 @@ public class ConstructorSymbol : ISymbol
 
     // Extracted attribute data
     public List<AttributeData> Attributes { get; } = new();
+    public string? ContractName { get; set; }
+    public int? ContractVersion { get; set; }
 
     public ConstructorSymbol(string name, ISymbol? containingSymbol)
     {
