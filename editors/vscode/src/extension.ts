@@ -26,8 +26,11 @@ function findServerBinary(context: vscode.ExtensionContext): string | undefined 
     const candidates = [
         // Dev build (dotnet build)
         path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', 'Midl.Cli.exe'),
+        // Dev build with RID subfolder (self-contained or SDK-style)
+        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', 'win-x64', 'Midl.Cli.exe'),
         // Release build
         path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Release', 'net10.0', 'Midl.Cli.exe'),
+        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Release', 'net10.0', 'win-x64', 'Midl.Cli.exe'),
         // Published output
         path.join(repoRoot, 'publish', 'Midl.Cli.exe'),
         // Linux/macOS (no .exe)

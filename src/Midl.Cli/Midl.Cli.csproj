@@ -21,8 +21,8 @@
     <StripSymbols>true</StripSymbols>
   </PropertyGroup>
 
-  <!-- Fallback: self-contained single-file when full AOT is not viable -->
-  <PropertyGroup Condition="'$(PublishAot)' != 'true'">
+  <!-- SelfContained + SingleFile only during publish, not during build -->
+  <PropertyGroup Condition="'$(PublishAot)' != 'true' and '$(IsPublishing)' == 'true'">
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
   </PropertyGroup>

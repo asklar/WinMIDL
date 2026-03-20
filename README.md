@@ -172,9 +172,30 @@ dotnet run --project src/Midl.Cli -- [switches] <input.idl>
 
 ---
 
+## Project Configuration (`winmidl.json`)
+
+For multi-file projects, create a `winmidl.json` in your project root to configure cross-file compilation:
+
+```jsonc
+{
+    "inputs": ["src/Widget.idl", "src/Helper.idl"],
+    "references": ["lib/MyLibrary.winmd"],
+    "defines": ["FEATURE_X"],
+    "includePaths": ["include"],
+    "noSdk": false
+}
+```
+
+The LSP discovers this file automatically, enabling cross-file symbol resolution, autocomplete, and diagnostics. For lightweight per-file hints, use `// @ref: other.idl` at the top of your source.
+
+> See [docs/winmidl-json.md](docs/winmidl-json.md) for the full specification.
+
+---
+
 ## Links
 
 - [Architecture](docs/architecture.md)
+- [Project Configuration (winmidl.json)](docs/winmidl-json.md)
 - [Testing Guide](docs/testing.md)
 - [Contributing](CONTRIBUTING.md)
 - [Implementation Plan](PLAN.md)
