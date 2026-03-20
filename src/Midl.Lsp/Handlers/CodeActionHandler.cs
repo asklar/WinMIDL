@@ -78,6 +78,29 @@ public static class CodeActionHandler
                         sl2, sc2, sl2, sc2, "get; "));
                 }
             }
+
+            // MIDL3016: Property { get; set; } → shorthand (remove accessor block)
+            if (code == "MIDL3016" && ourDiag is not null)
+            {
+                var searchStart = ourDiag.Position;
+                // Find "{ get; set; }" or "{ set; get; }" after the property name
+                var braceStart = text.IndexOf('{', searchStart);
+                if (braceStart >= 0)
+                {
+                    var braceEnd = text.IndexOf('}', braceStart);
+                    if (braceEnd >= 0)
+                    {
+                        // Replace from the space before '{' to '}' (inclusive)
+                        var replaceStart = braceStart;
+                        while (replaceStart > 0 && text[replaceStart - 1] == ' ')
+                            replaceStart--;
+                        var (sl3, sc3) = PositionHelper.OffsetToLineChar(lineStarts, replaceStart);
+                        var (el3, ec3) = PositionHelper.OffsetToLineChar(lineStarts, braceEnd + 1);
+                        actions.Add(MakeReplaceAction("Use property shorthand", uri, lspDiag,
+                            sl3, sc3, el3, ec3, ""));
+                    }
+                }
+            }
         }
 
         return actions.Count > 0 ? actions : null;
