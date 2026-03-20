@@ -52,37 +52,46 @@ public static class FormattingHandler
         {
             string trimmed = lines[i].Trim();
 
+            // Collapse multiple consecutive blank lines to one
             if (trimmed.Length == 0)
             {
+                if (result.Count > 0 && result[^1].Trim().Length == 0) continue; // skip duplicate blank
                 result.Add("");
                 continue;
             }
 
-            // Decrease indent before lines that start with '}'
+            // Decrease indent before lines that start with '}' or '};'
             if (trimmed.StartsWith('}'))
             {
                 indentLevel = Math.Max(0, indentLevel - 1);
             }
 
-            // Apply formatting rules to the line content
+            // Remove blank line right after opening '{'
+            if (result.Count > 0 && result[^1].Trim().Length == 0 &&
+                result.Count >= 2 && result[^2].TrimEnd().EndsWith('{'))
+            {
+                result.RemoveAt(result.Count - 1);
+            }
+
+            // Remove blank line right before closing '}'
+            if (trimmed.StartsWith('}') && result.Count > 0 && result[^1].Trim().Length == 0)
+            {
+                result.RemoveAt(result.Count - 1);
+            }
+
+            // Format the line content
             string formatted = FormatLineContent(trimmed);
 
             // Apply indentation
             string indented = new string(' ', indentLevel * 4) + formatted;
 
-            result.Add(indented);
+            result.Add(indented.TrimEnd());
 
             // Increase indent after lines that end with '{'
             if (trimmed.EndsWith('{'))
             {
                 indentLevel++;
             }
-        }
-
-        // Trim trailing whitespace from each line
-        for (int i = 0; i < result.Count; i++)
-        {
-            result[i] = result[i].TrimEnd();
         }
 
         // Ensure blank line between top-level declarations
@@ -118,12 +127,43 @@ public static class FormattingHandler
                 continue;
             }
 
-            // Ensure space after commas
+            // No space before semicolons
+            if (c == ';')
+            {
+                while (sb.Length > 0 && sb[^1] == ' ')
+                    sb.Remove(sb.Length - 1, 1);
+                sb.Append(';');
+                continue;
+            }
+
+            // Ensure space after commas (but not before)
             if (c == ',')
             {
+                while (sb.Length > 0 && sb[^1] == ' ')
+                    sb.Remove(sb.Length - 1, 1);
                 sb.Append(',');
                 if (i + 1 < line.Length && line[i + 1] != ' ')
                     sb.Append(' ');
+                continue;
+            }
+
+            // Tight spacing around generics: no space before < or after <, no space before >
+            if (c == '<')
+            {
+                while (sb.Length > 0 && sb[^1] == ' ')
+                    sb.Remove(sb.Length - 1, 1);
+                sb.Append('<');
+                // Skip spaces after <
+                while (i + 1 < line.Length && line[i + 1] == ' ')
+                    i++;
+                continue;
+            }
+
+            if (c == '>')
+            {
+                while (sb.Length > 0 && sb[^1] == ' ')
+                    sb.Remove(sb.Length - 1, 1);
+                sb.Append('>');
                 continue;
             }
 
@@ -137,12 +177,53 @@ public static class FormattingHandler
 
             if (c == ':')
             {
-                // Ensure space before ':'
                 if (sb.Length > 0 && sb[^1] != ' ')
                     sb.Append(' ');
                 sb.Append(':');
-                // Ensure space after ':'
                 if (i + 1 < line.Length && line[i + 1] != ' ')
+                    sb.Append(' ');
+                continue;
+            }
+
+            // Ensure space before '{' (property accessors)
+            if (c == '{')
+            {
+                if (sb.Length > 0 && sb[^1] != ' ')
+                    sb.Append(' ');
+                sb.Append('{');
+                if (i + 1 < line.Length && line[i + 1] != ' ')
+                    sb.Append(' ');
+                continue;
+            }
+
+            // Handle '}'
+            if (c == '}')
+            {
+                sb.Append('}');
+                continue;
+            }
+
+            // No space after '(' or before ')'
+            if (c == '(')
+            {
+                sb.Append('(');
+                while (i + 1 < line.Length && line[i + 1] == ' ')
+                    i++;
+                continue;
+            }
+
+            if (c == ')')
+            {
+                while (sb.Length > 0 && sb[^1] == ' ')
+                    sb.Remove(sb.Length - 1, 1);
+                sb.Append(')');
+                continue;
+            }
+
+            // Collapse multiple spaces into one
+            if (c == ' ')
+            {
+                if (sb.Length == 0 || sb[^1] != ' ')
                     sb.Append(' ');
                 continue;
             }
