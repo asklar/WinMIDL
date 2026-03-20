@@ -16,6 +16,7 @@ public class Binder
     private readonly Dictionary<string, string> _definedTypesCaseInsensitive = new(StringComparer.OrdinalIgnoreCase);
     private readonly CompilationMode _mode;
     private TokenPositionMap _posMap = null!;
+    private GreenNode _root = null!;
 
     private SymbolTable _symbolTable = null!;
 
@@ -32,6 +33,7 @@ public class Binder
         MidlTrace.Binder("Binding compilation unit");
         _symbolTable = new SymbolTable(_globalNamespace);
         _posMap = new TokenPositionMap(tokens);
+        _root = compilationUnit;
 
         // Register built-in WinRT types before any user code
         BuiltInTypes.Register(_symbolTable, _mode);
@@ -53,9 +55,12 @@ public class Binder
             foreach (var (importedTree, importedTokens) in importedTrees)
             {
                 var savedPosMap = _posMap;
+                var savedRoot = _root;
                 _posMap = new TokenPositionMap(importedTokens);
+                _root = importedTree;
                 BindCompilationUnit(importedTree, _globalNamespace);
                 _posMap = savedPosMap;
+                _root = savedRoot;
             }
         }
 
@@ -282,7 +287,7 @@ public class Binder
                     if (TryExtractUuidAttribute(rcAttrList, out var rcUuid))
                         existing.Uuid ??= rcUuid;
 
-                    var attrs = AttributeExtractor.Extract(rcAttrList, _posMap);
+                    var attrs = ExtractAttributes(rcAttrList);
                     existing.Attributes.AddRange(attrs);
                     ApplyWellKnownAttributes(existing, attrs);
                 }
@@ -311,7 +316,7 @@ public class Binder
         // Extract all attributes
         if (attrList != null)
         {
-            var attrs = AttributeExtractor.Extract(attrList, _posMap);
+            var attrs = ExtractAttributes(attrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -395,7 +400,7 @@ public class Binder
         var blockAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (blockAttrList != null)
         {
-            blockAttrs = AttributeExtractor.Extract(blockAttrList, _posMap);
+            blockAttrs = ExtractAttributes(blockAttrList);
         }
 
         for (int i = 0; i < node.SlotCount; i++)
@@ -461,7 +466,7 @@ public class Binder
         // Extract all attributes
         if (attrList != null)
         {
-            var attrs = AttributeExtractor.Extract(attrList, _posMap);
+            var attrs = ExtractAttributes(attrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -603,7 +608,7 @@ public class Binder
         var delAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (delAttrList != null)
         {
-            var attrs = AttributeExtractor.Extract(delAttrList, _posMap);
+            var attrs = ExtractAttributes(delAttrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -639,7 +644,7 @@ public class Binder
         var structAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (structAttrList != null)
         {
-            var attrs = AttributeExtractor.Extract(structAttrList, _posMap);
+            var attrs = ExtractAttributes(structAttrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -721,7 +726,7 @@ public class Binder
         var attrList = FindChild(node, SyntaxKind.AttributeList);
         if (attrList != null)
         {
-            var attrs = AttributeExtractor.Extract(attrList, _posMap);
+            var attrs = ExtractAttributes(attrList);
             symbol.Attributes.AddRange(attrs);
 
             foreach (var attr in attrs)
@@ -791,7 +796,7 @@ public class Binder
         // Extract all attributes on the enum
         if (enumAttrList != null)
         {
-            var attrs = AttributeExtractor.Extract(enumAttrList, _posMap);
+            var attrs = ExtractAttributes(enumAttrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -823,7 +828,7 @@ public class Binder
                     var memberAttrList = FindChild(child, SyntaxKind.AttributeList);
                     if (memberAttrList != null)
                     {
-                        var memberAttrs = AttributeExtractor.Extract(memberAttrList, _posMap);
+                        var memberAttrs = ExtractAttributes(memberAttrList);
                         member.Attributes.AddRange(memberAttrs);
                         ApplyWellKnownAttributes(member, memberAttrs);
                     }
@@ -857,7 +862,7 @@ public class Binder
         var acAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (acAttrList != null)
         {
-            var attrs = AttributeExtractor.Extract(acAttrList, _posMap);
+            var attrs = ExtractAttributes(acAttrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -894,7 +899,7 @@ public class Binder
         var ctorAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (ctorAttrList != null)
         {
-            var attrs = AttributeExtractor.Extract(ctorAttrList, _posMap);
+            var attrs = ExtractAttributes(ctorAttrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -922,7 +927,7 @@ public class Binder
         var methodAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (methodAttrList != null)
         {
-            var attrs = AttributeExtractor.Extract(methodAttrList, _posMap);
+            var attrs = ExtractAttributes(methodAttrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -963,7 +968,7 @@ public class Binder
         var propAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (propAttrList != null)
         {
-            var attrs = AttributeExtractor.Extract(propAttrList, _posMap);
+            var attrs = ExtractAttributes(propAttrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -1018,7 +1023,7 @@ public class Binder
         var eventAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (eventAttrList != null)
         {
-            var attrs = AttributeExtractor.Extract(eventAttrList, _posMap);
+            var attrs = ExtractAttributes(eventAttrList);
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
@@ -1613,6 +1618,17 @@ public class Binder
         return null;
     }
 
+    /// <summary>
+    /// Extract attributes from a green node, computing accurate source positions
+    /// from the green tree FullWidth accumulation (not text-based lookup).
+    /// </summary>
+    private List<AttributeData> ExtractAttributes(GreenNode? attrListNode)
+    {
+        if (attrListNode == null) return [];
+        int offset = AttributeExtractor.FindNodeOffset(_root, attrListNode) ?? 0;
+        return AttributeExtractor.Extract(attrListNode, offset);
+    }
+
     private static bool HasModifier(GreenNode modList, SyntaxKind modKind)
     {
         for (int i = 0; i < modList.SlotCount; i++)
@@ -1775,10 +1791,25 @@ public class Binder
                     ValidateBaseClass(rc);
                     ValidateEventDelegateTypes(rc.Members);
                     ValidateDuplicateMethodNames(rc.Members);
+                    ValidateStaticUnsealedConflict(rc);
+                    ValidateDeprecatedInheritance(rc);
+                    ValidateConstructorArityPerVersion(rc);
+                    ValidateMethodParameters(rc.Members);
                     break;
                 case InterfaceSymbol iface when !iface.IsExternal && !iface.IsSynthesized:
                     ValidateRequiredInterfaces(iface);
                     ValidateEventDelegateTypes(iface.Members);
+                    ValidateInterfaceMemberNameUniqueness(iface);
+                    ValidateMethodNameOverrideUniqueness(iface);
+                    ValidateDefaultOverloadExactlyOne(iface.Members, iface.Name);
+                    ValidateMethodParameters(iface.Members);
+                    break;
+                case StructSymbol s when !s.IsExternal:
+                    ValidateStructFieldTypes(s);
+                    break;
+                case DelegateSymbol d when !d.IsExternal:
+                    ValidateDelegateReturnType(d);
+                    ValidateMethodParametersForDelegate(d);
                     break;
             }
         }
@@ -1967,7 +1998,24 @@ public class Binder
         visited.Add(current.FullName);
     }
 
-    private static bool IsTypeDeclaration(SyntaxKind kind) => kind is
+
+    private static readonly HashSet<string> AllowedStructFieldBuiltIns = new(StringComparer.Ordinal) { "Boolean","Char","Int16","Int32","Int64","UInt8","UInt16","UInt32","UInt64","Single","Double","String","Guid" };
+    private void ValidateStructFieldTypes(StructSymbol s) { foreach (var field in s.Fields) if (!IsAllowedStructFieldType(field.Type)) _diagnostics.Add(DiagnosticDescriptors.StructFieldNotValueType(field.Name, _posMap.GetPositionOf(field.Name))); }
+    private static bool IsAllowedStructFieldType(TypeRef typeRef) { if (AllowedStructFieldBuiltIns.Contains(typeRef.Name)) return true; if (typeRef.Name == "IReference" && typeRef.TypeArguments.Count > 0) return true; if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol) return true; return false; }
+    private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; } else if (member is ConstructorSymbol c) { p = c.Parameters; } if (p != null) foreach (var param in p) ValidateParameter(param); if (_mode == CompilationMode.Strict && rt != null) CheckWinRtTypeCompatibility(rt); } }
+    private void ValidateMethodParametersForDelegate(DelegateSymbol d) { foreach (var param in d.Parameters) ValidateParameter(param); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(d.ReturnType); }
+    private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, _posMap.GetPositionOf(param.Name))); if (param.IsArray && param.Type.TypeArguments.Count > 0 && param.Type.TypeArguments.Any(a => a.IsArray)) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, _posMap.GetPositionOf(param.Name))); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
+    private static readonly HashSet<string> COnlyTypes = new(StringComparer.Ordinal) { "wchar_t","handle_t","error_status_t" };
+    private void CheckWinRtTypeCompatibility(TypeRef typeRef) { if (typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return; if (COnlyTypes.Contains(typeRef.Name)) _diagnostics.Add(DiagnosticDescriptors.WinRtTypeNotAllowed(typeRef.Name, typeRef.Position)); }
+    private void ValidateDelegateReturnType(DelegateSymbol d) { if (d.ReturnType.Name is "void" or "Void") return; if (_mode == CompilationMode.Compat && d.ReturnType.Name is "HRESULT") return; _diagnostics.Add(DiagnosticDescriptors.DelegateReturnMustBeVoid(d.Name, d.ReturnType.DisplayName, _posMap.GetPositionOf(d.Name))); }
+    private void ValidateInterfaceMemberNameUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal); foreach (var member in iface.Members) { var name = member.Name; if (string.IsNullOrEmpty(name)) continue; if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup)) continue; if (seen.TryGetValue(name, out var existing)) { if (existing is MethodSymbol em && !string.IsNullOrEmpty(em.OverloadGroup)) continue; _diagnostics.Add(DiagnosticDescriptors.InterfaceMemberNameCollision(name, iface.Name, _posMap.GetPositionOf(name))); } else seen[name] = member; } }
+    private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; var dc = ms.Count(m => m.IsDefaultOverload); if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOf(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOf(k.Item1))); } }
+    private void ValidateDeprecatedInheritance(RuntimeClassSymbol rc) { if (rc.BaseClass?.ResolvedSymbol is not RuntimeClassSymbol baseRc) return; if (string.IsNullOrEmpty(baseRc.DeprecatedMessage)) return; if (!string.IsNullOrEmpty(rc.DeprecatedMessage)) return; _diagnostics.Add(DiagnosticDescriptors.DeprecatedBaseClassInheritance(rc.Name, baseRc.Name, _posMap.GetPositionOf(rc.Name))); }
+    private void ValidateMethodNameOverrideUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, string>(StringComparer.Ordinal); foreach (var member in iface.Members) { if (member is not MethodSymbol m || string.IsNullOrEmpty(m.MethodNameOverride)) continue; if (seen.ContainsKey(m.MethodNameOverride)) _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameOverride(m.MethodNameOverride, iface.Name, _posMap.GetPositionOf(m.Name))); else seen[m.MethodNameOverride] = m.Name; } }
+    private void ValidateConstructorArityPerVersion(RuntimeClassSymbol rc) { var ctors = rc.Members.OfType<ConstructorSymbol>().ToList(); if (ctors.Count < 2) return; var g = new Dictionary<(int,int?), List<ConstructorSymbol>>(); foreach (var ctor in ctors) { var k = (ctor.Parameters.Count, ctor.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(ctor); } foreach (var (k, l) in g) if (l.Count > 1) _diagnostics.Add(DiagnosticDescriptors.ConstructorArityConflict(rc.Name, k.Item1, _posMap.GetPositionOf(rc.Name))); }
+    private void ValidateStaticUnsealedConflict(RuntimeClassSymbol rc) { if (rc.IsStatic && rc.IsUnsealed) _diagnostics.Add(DiagnosticDescriptors.StaticUnsealedConflict(rc.Name, _posMap.GetPositionOf(rc.Name))); }
+
+        private static bool IsTypeDeclaration(SyntaxKind kind) => kind is
         SyntaxKind.RuntimeClassDeclaration or SyntaxKind.InterfaceDeclaration
         or SyntaxKind.DelegateDeclaration or SyntaxKind.StructDeclaration
         or SyntaxKind.EnumDeclaration or SyntaxKind.ApiContractDeclaration

@@ -4,43 +4,47 @@ namespace Midl.Analysis;
 
 /// <summary>
 /// Walks an AttributeList green node and produces a list of AttributeData.
+/// Positions are computed from green tree FullWidth accumulation (not text-based lookup)
+/// to ensure each attribute usage gets the correct source position.
 /// </summary>
 public static class AttributeExtractor
 {
     /// <summary>Extract all attributes from an AttributeList green node.</summary>
-    public static List<AttributeData> Extract(GreenNode? attrListNode, TokenPositionMap posMap)
+    /// <param name="attrListNode">The AttributeList green node.</param>
+    /// <param name="baseOffset">Absolute source offset of the attrListNode start.</param>
+    public static List<AttributeData> Extract(GreenNode? attrListNode, int baseOffset = 0)
     {
         var result = new List<AttributeData>();
         if (attrListNode == null) return result;
 
-        ExtractFromNode(attrListNode, posMap, result);
+        ExtractFromNode(attrListNode, result, baseOffset);
         return result;
     }
 
-    private static void ExtractFromNode(GreenNode node, TokenPositionMap posMap, List<AttributeData> result)
+    private static void ExtractFromNode(GreenNode node, List<AttributeData> result, int offset)
     {
+        int childOffset = offset;
         for (int i = 0; i < node.SlotCount; i++)
         {
             var slot = node.GetSlot(i);
             if (slot == null) continue;
 
-            // Recurse into nested AttributeList nodes
             if (slot.Kind == SyntaxKind.AttributeList)
             {
-                ExtractFromNode(slot, posMap, result);
-                continue;
+                ExtractFromNode(slot, result, childOffset);
             }
-
-            if (slot.Kind == SyntaxKind.Attribute)
+            else if (slot.Kind == SyntaxKind.Attribute)
             {
-                var attr = ExtractAttribute(slot, posMap);
+                var attr = ExtractAttribute(slot, childOffset);
                 if (attr != null)
                     result.Add(attr);
             }
+
+            childOffset += slot.FullWidth;
         }
     }
 
-    private static AttributeData? ExtractAttribute(GreenNode attrNode, TokenPositionMap posMap)
+    private static AttributeData? ExtractAttribute(GreenNode attrNode, int nodeOffset)
     {
         // First child is the name (SimpleName, DottedName, or IdentifierToken)
         var nameNode = attrNode.GetSlot(0);
@@ -49,29 +53,51 @@ public static class AttributeExtractor
         var name = ExtractName(nameNode);
         if (string.IsNullOrEmpty(name)) return null;
 
-        int position = 0;
-        if (nameNode is SyntaxToken nt)
-            position = posMap.GetPositionOf(nt.Text);
-        else
-        {
-            var firstToken = FindFirstToken(nameNode);
-            if (firstToken != null)
-                position = posMap.GetPositionOf(firstToken.Text);
-        }
+        // Compute position of name node's text by skipping its leading trivia
+        int position = nodeOffset + GetLeadingTriviaWidth(nameNode);
 
         var data = new AttributeData { Name = name, Position = position };
 
         // Find AttributeArgumentList child
-        for (int j = 1; j < attrNode.SlotCount; j++)
+        int childOffset = nodeOffset;
+        for (int j = 0; j < attrNode.SlotCount; j++)
         {
-            var argList = attrNode.GetSlot(j);
-            if (argList == null || argList.Kind != SyntaxKind.AttributeArgumentList)
-                continue;
+            var child = attrNode.GetSlot(j);
+            if (child == null) continue;
 
-            ExtractArguments(argList, data.Arguments);
+            if (child.Kind == SyntaxKind.AttributeArgumentList)
+                ExtractArguments(child, data.Arguments);
+
+            childOffset += child.FullWidth;
         }
 
         return data;
+    }
+
+    /// <summary>Get the width of leading trivia for the first token in a node.</summary>
+    private static int GetLeadingTriviaWidth(GreenNode node)
+    {
+        var first = FindFirstToken(node);
+        return first?.LeadingTrivia.Sum(t => t.FullWidth) ?? 0;
+    }
+
+    /// <summary>
+    /// Compute the absolute source offset of a target green node within a root tree.
+    /// Uses reference equality to find the target.
+    /// </summary>
+    public static int? FindNodeOffset(GreenNode root, GreenNode target, int currentOffset = 0)
+    {
+        if (ReferenceEquals(root, target)) return currentOffset;
+        int offset = currentOffset;
+        for (int i = 0; i < root.SlotCount; i++)
+        {
+            var slot = root.GetSlot(i);
+            if (slot == null) continue;
+            var result = FindNodeOffset(slot, target, offset);
+            if (result.HasValue) return result;
+            offset += slot.FullWidth;
+        }
+        return null;
     }
 
     private static void ExtractArguments(GreenNode argListNode, List<AttributeArgValue> arguments)

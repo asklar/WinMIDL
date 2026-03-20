@@ -220,9 +220,183 @@ public class CustomAttributeTests
             }
             """);
 
-        // No MIDL1029 or MIDL1030 errors
+        // No MIDL1029, MIDL1030, or MIDL1064 errors
         Assert.DoesNotContain(compilation.Diagnostics,
-            d => d.Code == "MIDL1029" || d.Code == "MIDL1030");
+            d => d.Code == "MIDL1029" || d.Code == "MIDL1030" || d.Code == "MIDL1064");
+    }
+
+    [Fact]
+    public void WrongArgCountDiagnosticPointsToUsageSite()
+    {
+        // Bug fix: MIDL1030 squiggly must appear at the usage site [MyAttr(42)],
+        // not at the attribute definition "attribute MyAttr"
+        var idl = """
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    Int32 X;
+                    String Y;
+                };
+
+                [MyAttr(42)]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """;
+
+        var compilation = CompilationHelper.Compile(idl);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1030");
+        Assert.NotNull(error);
+        Assert.Contains("expects 2 arguments but got 1", error.Message);
+
+        // The position must be AFTER the attribute definition, at the usage site
+        // The attribute definition "attribute MyAttr" is near position ~80
+        // The usage "[MyAttr(42)]" is near position ~180+
+        int defPos = idl.IndexOf("attribute MyAttr");
+        Assert.True(error.Position > defPos,
+            $"Diagnostic position {error.Position} should be after the attribute definition at {defPos}");
+
+        // Position should be near the usage
+        int usagePos = idl.IndexOf("[MyAttr(42)]");
+        Assert.True(error.Position >= usagePos,
+            $"Diagnostic position {error.Position} should be at or after usage site at {usagePos}");
+    }
+
+    [Fact]
+    public void WrongArgTypeDiagnostic_StringInsteadOfInt()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    Int32 Level;
+                };
+
+                [MyAttr("hello")]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1064");
+        Assert.NotNull(error);
+        Assert.Contains("Level", error.Message);
+        Assert.Contains("Int32", error.Message);
+        Assert.Contains("string literal", error.Message);
+    }
+
+    [Fact]
+    public void WrongArgTypeDiagnostic_IntInsteadOfString()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    String Name;
+                };
+
+                [MyAttr(42)]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1064");
+        Assert.NotNull(error);
+        Assert.Contains("Name", error.Message);
+        Assert.Contains("String", error.Message);
+        Assert.Contains("numeric literal", error.Message);
+    }
+
+    [Fact]
+    public void WrongArgTypeDiagnostic_SwappedArgs()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    Int32 Level;
+                    String Description;
+                };
+
+                [MyAttr("hello", 42)]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        // Both arguments have wrong types
+        var errors = compilation.Diagnostics.Where(d => d.Code == "MIDL1064").ToList();
+        Assert.Equal(2, errors.Count);
+        Assert.Contains(errors, e => e.Message.Contains("Level"));
+        Assert.Contains(errors, e => e.Message.Contains("Description"));
+    }
+
+    [Fact]
+    public void CorrectArgTypes_NoDiagnostic()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    Int32 Level;
+                    String Description;
+                };
+
+                [MyAttr(42, "very cool")]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1064");
+    }
+
+    [Fact]
+    public void IdentifierArgForUnknownFieldType_NoDiagnostic()
+    {
+        // For enum or other non-primitive field types, identifiers should be accepted
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                enum MyEnum { A, B };
+
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    MyEnum Value;
+                };
+
+                [MyAttr(A)]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1064");
     }
 
     #endregion

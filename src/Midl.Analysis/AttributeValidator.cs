@@ -289,6 +289,49 @@ public class AttributeValidator
                 _diagnostics.Add(DiagnosticDescriptors.AttributeArgCountMismatch(
                     attr.Name, attrType.Fields.Count, attr.Arguments.Count, attr.Position));
             }
+            else
+            {
+                // Validate argument types (only when count matches)
+                for (int i = 0; i < attr.Arguments.Count; i++)
+                {
+                    var arg = attr.Arguments[i];
+                    var field = attrType.Fields[i];
+                    if (!IsArgTypeCompatible(arg.Kind, field.Type.Name))
+                    {
+                        _diagnostics.Add(DiagnosticDescriptors.AttributeArgumentTypeMismatch(
+                            attr.Name, i, field.Name, field.Type.DisplayName,
+                            ArgKindDisplayName(arg.Kind), attr.Position));
+                    }
+                }
+            }
         }
     }
+
+    /// <summary>Check if an argument kind is compatible with the expected field type.</summary>
+    private static bool IsArgTypeCompatible(ArgKind argKind, string fieldTypeName)
+    {
+        return fieldTypeName switch
+        {
+            "String" or "string" or "HSTRING" => argKind is ArgKind.String,
+            "Int32" or "Int16" or "Int64" or "UInt8" or "UInt16" or "UInt32" or "UInt64"
+                or "int" or "long" or "short" or "byte" or "Single" or "Double"
+                or "float" or "double" => argKind is ArgKind.Integer,
+            "Boolean" or "boolean" or "bool" => argKind is ArgKind.Identifier or ArgKind.Integer,
+            "Guid" => argKind is ArgKind.Guid or ArgKind.String,
+            // For enum types, type references, and unknown types: identifiers, type names,
+            // integers (for enum underlying values), and expressions are all acceptable
+            _ => argKind is ArgKind.Identifier or ArgKind.TypeName or ArgKind.Integer or ArgKind.Expression,
+        };
+    }
+
+    private static string ArgKindDisplayName(ArgKind kind) => kind switch
+    {
+        ArgKind.String => "string literal",
+        ArgKind.Integer => "numeric literal",
+        ArgKind.Identifier => "identifier",
+        ArgKind.TypeName => "type name",
+        ArgKind.Guid => "GUID literal",
+        ArgKind.Expression => "expression",
+        _ => kind.ToString(),
+    };
 }

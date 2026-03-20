@@ -283,4 +283,25 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1047",
             $"Cannot find imported file '{fileName}'.",
             position, fileName.Length);
+
+    public static Diagnostic WinRtTypeNotAllowed(string typeName, int position) => new(DiagnosticSeverity.Error, "MIDL1048", $"Type '{typeName}' is not a valid WinRT type in strict mode.", position, Math.Max(typeName.Length, 1));
+    public static Diagnostic NoNestedTypes(string innerType, string outerType, int position) => new(DiagnosticSeverity.Error, "MIDL1049", $"Type '{innerType}' cannot be declared inside '{outerType}'. WinRT does not support nested types.", position, Math.Max(innerType.Length, 1));
+    public static Diagnostic NoBidirectionalParams(string paramName, int position) => new(DiagnosticSeverity.Warning, "MIDL1050", $"Parameter '{paramName}' uses 'ref' (bidirectional). WinRT only supports 'in' or 'out' direction.", position, Math.Max(paramName.Length, 1));
+    public static Diagnostic NoArrayOfArrays(string paramName, int position) => new(DiagnosticSeverity.Error, "MIDL1051", $"Parameter '{paramName}' is an array of arrays. WinRT does not support jagged arrays.", position, Math.Max(paramName.Length, 1));
+    public static Diagnostic PropertyTypeInconsistency(string propertyName, string getterType, string setterType, int position) => new(DiagnosticSeverity.Error, "MIDL1052", $"Property '{propertyName}' getter returns '{getterType}' but setter accepts '{setterType}'.", position, Math.Max(propertyName.Length, 1));
+    public static Diagnostic DelegateReturnMustBeVoid(string delegateName, string returnType, int position) => new(DiagnosticSeverity.Error, "MIDL1053", $"Delegate '{delegateName}' must return void but returns '{returnType}'.", position, Math.Max(delegateName.Length, 1));
+    public static Diagnostic InterfaceMemberNameCollision(string memberName, string interfaceName, int position) => new(DiagnosticSeverity.Warning, "MIDL1054", $"Interface '{interfaceName}' has duplicate member name '{memberName}'.", position, Math.Max(memberName.Length, 1));
+    public static Diagnostic SameArityNeedsDefaultOverload(string methodName, int arity, int position) => new(DiagnosticSeverity.Warning, "MIDL1055", $"Methods named '{methodName}' with {arity} parameter(s) need [default_overload].", position, Math.Max(methodName.Length, 1));
+    public static Diagnostic DeprecatedBaseClassInheritance(string className, string baseName, int position) => new(DiagnosticSeverity.Warning, "MIDL1056", $"Base class '{baseName}' is deprecated. Consider marking '{className}' as deprecated too.", position, Math.Max(className.Length, 1));
+    public static Diagnostic InterfaceMethodNotImplemented(string className, string interfaceName, string methodName, int position) => new(DiagnosticSeverity.Info, "MIDL1057", $"Runtimeclass '{className}' implements '{interfaceName}' which declares '{methodName}'.", position, Math.Max(className.Length, 1));
+    public static Diagnostic DuplicateMethodNameOverride(string methodNameValue, string interfaceName, int position) => new(DiagnosticSeverity.Error, "MIDL1058", $"Duplicate method_name value '{methodNameValue}' in interface '{interfaceName}'.", position, Math.Max(methodNameValue.Length, 1));
+    public static Diagnostic DefaultOverloadNotExactlyOne(string methodName, int arity, int count, int position) => new(DiagnosticSeverity.Error, "MIDL1059", $"Methods named '{methodName}' with {arity} parameter(s) have {count} default_overload.", position, Math.Max(methodName.Length, 1));
+    public static Diagnostic ConstructorArityConflict(string className, int arity, int position) => new(DiagnosticSeverity.Error, "MIDL1060", $"Runtimeclass '{className}' has multiple constructors with {arity} parameter(s) on the same contract version.", position, Math.Max(className.Length, 1));
+    public static Diagnostic StaticUnsealedConflict(string className, int position) => new(DiagnosticSeverity.Error, "MIDL1061", $"Runtimeclass '{className}' cannot be both 'static' and 'unsealed'.", position, Math.Max(className.Length, 1));
+
+    // Custom attribute argument type validation (MIDL1064)
+    public static Diagnostic AttributeArgumentTypeMismatch(string attrName, int argIndex, string fieldName, string expectedType, string actualKind, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1064",
+            $"Attribute '{attrName}' argument {argIndex + 1} ('{fieldName}'): expected {expectedType} but got {actualKind}",
+            position, Math.Max(attrName.Length, 1));
 }
