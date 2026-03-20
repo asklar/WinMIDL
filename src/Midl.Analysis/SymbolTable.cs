@@ -11,8 +11,9 @@ public class SymbolTable
     private readonly Stack<ISymbol> _scopeStack = new();
     private readonly Dictionary<string, ISymbol> _allDefinedTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _typeAliases = new(StringComparer.Ordinal);
+    private readonly List<LazyWinMdProvider> _lazyProviders = new();
 
-    private static readonly Dictionary<string, string> ShorthandMappings = new(StringComparer.Ordinal)
+    private static readonly Dictionary<string, string> ShorthandMappings= new(StringComparer.Ordinal)
     {
         ["IVector"] = "Windows.Foundation.Collections.IVector",
         ["IVectorView"] = "Windows.Foundation.Collections.IVectorView",
@@ -36,6 +37,11 @@ public class SymbolTable
     }
 
     public ISymbol CurrentScope => _scopeStack.Peek();
+
+    public void AddLazyProvider(LazyWinMdProvider provider)
+    {
+        _lazyProviders.Add(provider);
+    }
 
     public void EnterScope(ISymbol scope)
     {
@@ -189,6 +195,7 @@ public class SymbolTable
 
     /// <summary>
     /// Qualified lookup: walk namespace hierarchy from global root.
+    /// Falls back to lazy WinMD providers if not found locally.
     /// </summary>
     public ISymbol? LookupQualified(string dottedName)
     {
@@ -212,7 +219,8 @@ public class SymbolTable
             var member = FindMemberByName(current, parts[i]);
             if (member != null && isLast) return member;
 
-            return null;
+            // Not found locally — try lazy providers
+            return TryResolveLazy(dottedName);
         }
 
         return current;
@@ -275,6 +283,162 @@ public class SymbolTable
         {
             if (m.Name == name && m.Kind != SymbolKind.Namespace)
                 return m;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Try to resolve a fully-qualified type name from lazy WinMD providers.
+    /// On success, imports the type into the namespace tree and returns it.
+    /// </summary>
+    internal ISymbol? TryResolveLazy(string qualifiedName)
+    {
+        if (_lazyProviders.Count == 0) return null;
+
+        foreach (var provider in _lazyProviders)
+        {
+            var symbol = provider.TryResolve(qualifiedName);
+            if (symbol != null)
+            {
+                var imported = ImportSingleType(symbol);
+                return imported ?? symbol;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Try to resolve a simple (unqualified) name by walking up the namespace chain
+    /// and checking lazy providers with each possible qualified name.
+    /// </summary>
+    internal ISymbol? TryResolveLazyBySimpleName(string simpleName, NamespaceSymbol containingNamespace)
+    {
+        if (_lazyProviders.Count == 0) return null;
+
+        NamespaceSymbol? current = containingNamespace;
+        while (current != null)
+        {
+            var fullName = string.IsNullOrEmpty(current.FullName)
+                ? simpleName
+                : $"{current.FullName}.{simpleName}";
+
+            var result = TryResolveLazy(fullName);
+            if (result != null) return result;
+
+            current = current.ContainingSymbol as NamespaceSymbol;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Import a single external symbol into the namespace tree, re-parenting it
+    /// from its temporary namespace chain into the real global hierarchy.
+    /// Returns the imported symbol (in the real namespace tree).
+    /// </summary>
+    internal ISymbol? ImportSingleType(ISymbol type)
+    {
+        var fullName = type.FullName;
+        if (_allDefinedTypes.ContainsKey(fullName))
+            return _allDefinedTypes[fullName];
+
+        var lastDot = fullName.LastIndexOf('.');
+        var nsName = lastDot >= 0 ? fullName[..lastDot] : "";
+        var ns = GetOrCreateNamespaceHierarchy(nsName);
+
+        switch (type)
+        {
+            case InterfaceSymbol iface:
+                var newIface = new InterfaceSymbol(iface.Name, ns)
+                {
+                    Uuid = iface.Uuid,
+                    IsExternal = true,
+                    SourceWinMdPath = iface.SourceWinMdPath,
+                };
+                foreach (var m in iface.Members)
+                    newIface.AddMember(m);
+                foreach (var r in iface.RequiredInterfaces)
+                    newIface.RequiredInterfaces.Add(r);
+                ns.AddMember(newIface);
+                _allDefinedTypes[newIface.FullName] = newIface;
+                return newIface;
+
+            case EnumSymbol e:
+                var newEnum = new EnumSymbol(e.Name, ns)
+                {
+                    IsFlags = e.IsFlags,
+                    UnderlyingType = e.UnderlyingType,
+                    IsExternal = true,
+                    SourceWinMdPath = e.SourceWinMdPath,
+                };
+                foreach (var m in e.EnumMembers)
+                    newEnum.AddMember(m);
+                ns.AddMember(newEnum);
+                _allDefinedTypes[newEnum.FullName] = newEnum;
+                return newEnum;
+
+            case StructSymbol s:
+                var newStruct = new StructSymbol(s.Name, ns)
+                {
+                    IsExternal = true,
+                    SourceWinMdPath = s.SourceWinMdPath,
+                };
+                foreach (var f in s.Fields)
+                    newStruct.AddField(f);
+                ns.AddMember(newStruct);
+                _allDefinedTypes[newStruct.FullName] = newStruct;
+                return newStruct;
+
+            case DelegateSymbol d:
+                var newDel = new DelegateSymbol(d.Name, ns)
+                {
+                    ReturnType = d.ReturnType,
+                    IsExternal = true,
+                    SourceWinMdPath = d.SourceWinMdPath,
+                };
+                newDel.Parameters.AddRange(d.Parameters);
+                ns.AddMember(newDel);
+                _allDefinedTypes[newDel.FullName] = newDel;
+                return newDel;
+
+            case RuntimeClassSymbol rc:
+                var newRc = new RuntimeClassSymbol(rc.Name, ns)
+                {
+                    Uuid = rc.Uuid,
+                    BaseClass = rc.BaseClass,
+                    IsStatic = rc.IsStatic,
+                    IsExternal = true,
+                    SourceWinMdPath = rc.SourceWinMdPath,
+                };
+                foreach (var i in rc.Interfaces)
+                    newRc.Interfaces.Add(i);
+                foreach (var m in rc.Members)
+                    newRc.AddMember(m);
+                ns.AddMember(newRc);
+                _allDefinedTypes[newRc.FullName] = newRc;
+                return newRc;
+
+            case ApiContractSymbol ac:
+                var newAc = new ApiContractSymbol(ac.Name, ns)
+                {
+                    Version = ac.Version,
+                    IsExternal = true,
+                    SourceWinMdPath = ac.SourceWinMdPath,
+                };
+                ns.AddMember(newAc);
+                _allDefinedTypes[newAc.FullName] = newAc;
+                return newAc;
+
+            case AttributeTypeSymbol at:
+                var newAt = new AttributeTypeSymbol(at.Name, ns)
+                {
+                    IsExternal = true,
+                    SourceWinMdPath = at.SourceWinMdPath,
+                };
+                foreach (var f in at.Fields)
+                    newAt.AddField(f);
+                ns.AddMember(newAt);
+                _allDefinedTypes[newAt.FullName] = newAt;
+                return newAt;
         }
         return null;
     }

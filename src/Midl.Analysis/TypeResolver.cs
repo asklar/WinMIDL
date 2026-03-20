@@ -69,6 +69,14 @@ public class TypeResolver
             return;
         }
 
+        // Try lazy WinMD providers by walking up the namespace chain
+        result = _symbolTable.TryResolveLazyBySimpleName(typeRef.Name, containingNamespace);
+        if (result != null)
+        {
+            typeRef.ResolvedSymbol = result;
+            return;
+        }
+
         // Try type aliases (HSTRING → String, DWORD → UInt32, etc.)
         var aliasTarget = _symbolTable.ResolveAlias(typeRef.Name);
         if (aliasTarget != null)

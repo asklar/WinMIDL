@@ -1,0 +1,109 @@
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using Midl.Analysis.Symbols;
+
+namespace Midl.Analysis;
+
+/// <summary>
+/// Lazily loads WinRT types from a .winmd file. Builds a lightweight name→handle
+/// index on open, then decodes individual TypeDefs only when requested.
+/// </summary>
+public class LazyWinMdProvider : IDisposable
+{
+    private const int TdWindowsRuntime = 0x4000;
+
+    private readonly PEReader _peReader;
+    private readonly MetadataReader _mdReader;
+    private readonly string? _sourcePath;
+
+    // Index: fully-qualified name → TypeDefinitionHandle
+    private readonly Dictionary<string, TypeDefinitionHandle> _typeIndex;
+
+    // Cache: already-resolved symbols
+    private readonly Dictionary<string, ISymbol> _cache = new(StringComparer.Ordinal);
+
+    public LazyWinMdProvider(string winmdPath)
+    {
+        var bytes = File.ReadAllBytes(winmdPath);
+        _peReader = new PEReader(new MemoryStream(bytes));
+        _mdReader = _peReader.GetMetadataReader();
+        _sourcePath = winmdPath;
+
+        // Build lightweight index: just names → handles (fast, no type decoding)
+        _typeIndex = new(StringComparer.Ordinal);
+        foreach (var handle in _mdReader.TypeDefinitions)
+        {
+            var td = _mdReader.GetTypeDefinition(handle);
+            var name = _mdReader.GetString(td.Name);
+            if (name == "<Module>") continue;
+
+            // Only index public WinRT types
+            var attrs = td.Attributes;
+            if ((attrs & TypeAttributes.VisibilityMask) != TypeAttributes.Public) continue;
+            if (((int)attrs & TdWindowsRuntime) == 0) continue;
+
+            var ns = _mdReader.GetString(td.Namespace);
+            var fullName = string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
+            _typeIndex[fullName] = handle;
+        }
+    }
+
+    internal LazyWinMdProvider(byte[] winmdBytes)
+    {
+        _peReader = new PEReader(new MemoryStream(winmdBytes));
+        _mdReader = _peReader.GetMetadataReader();
+        _sourcePath = null;
+
+        _typeIndex = new(StringComparer.Ordinal);
+        foreach (var handle in _mdReader.TypeDefinitions)
+        {
+            var td = _mdReader.GetTypeDefinition(handle);
+            var name = _mdReader.GetString(td.Name);
+            if (name == "<Module>") continue;
+
+            var attrs = td.Attributes;
+            if ((attrs & TypeAttributes.VisibilityMask) != TypeAttributes.Public) continue;
+            if (((int)attrs & TdWindowsRuntime) == 0) continue;
+
+            var ns = _mdReader.GetString(td.Namespace);
+            var fullName = string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
+            _typeIndex[fullName] = handle;
+        }
+    }
+
+    /// <summary>Number of types available (for diagnostics/logging).</summary>
+    public int TypeCount => _typeIndex.Count;
+
+    /// <summary>Check if a type exists without fully loading it.</summary>
+    public bool HasType(string fullName) => _typeIndex.ContainsKey(fullName);
+
+    /// <summary>Try to resolve a type by fully-qualified name. Loads on first access.</summary>
+    public ISymbol? TryResolve(string fullName)
+    {
+        if (_cache.TryGetValue(fullName, out var cached))
+            return cached;
+
+        if (!_typeIndex.TryGetValue(fullName, out var handle))
+            return null;
+
+        var symbol = WinMdReader.ReadSingleType(_mdReader, handle, _sourcePath);
+        if (symbol != null)
+            _cache[fullName] = symbol;
+
+        return symbol;
+    }
+
+    /// <summary>Find all types in a namespace (for completion suggestions).</summary>
+    public IEnumerable<string> GetTypesInNamespace(string ns)
+    {
+        var prefix = ns + ".";
+        return _typeIndex.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)
+            && !k.AsSpan(prefix.Length).Contains('.'));
+    }
+
+    public void Dispose()
+    {
+        _peReader?.Dispose();
+    }
+}

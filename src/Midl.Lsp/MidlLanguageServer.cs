@@ -182,48 +182,48 @@ public sealed class MidlLanguageServer
             }
         }
 
-        var capabilities = new
+        var capabilities = new Dictionary<string, object?>
         {
-            capabilities = new
+            ["capabilities"] = new Dictionary<string, object?>
             {
-                textDocumentSync = new
+                ["textDocumentSync"] = new Dictionary<string, object?>
                 {
-                    openClose = true,
-                    change = 1, // Full document sync
-                    save = new { includeText = true }
+                    ["openClose"] = true,
+                    ["change"] = 1, // Full document sync
+                    ["save"] = new Dictionary<string, object?> { ["includeText"] = true }
                 },
-                completionProvider = new
+                ["completionProvider"] = new Dictionary<string, object?>
                 {
-                    triggerCharacters = new[] { ".", " " },
-                    resolveProvider = false
+                    ["triggerCharacters"] = new[] { ".", " " },
+                    ["resolveProvider"] = false
                 },
-                hoverProvider = true,
-                documentSymbolProvider = true,
-                definitionProvider = true,
-                referencesProvider = true,
-                signatureHelpProvider = new
+                ["hoverProvider"] = true,
+                ["documentSymbolProvider"] = true,
+                ["definitionProvider"] = true,
+                ["referencesProvider"] = true,
+                ["signatureHelpProvider"] = new Dictionary<string, object?>
                 {
-                    triggerCharacters = new[] { "(", "," }
+                    ["triggerCharacters"] = new[] { "(", "," }
                 },
-                semanticTokensProvider = new
+                ["semanticTokensProvider"] = new Dictionary<string, object?>
                 {
-                    full = true,
-                    legend = new
+                    ["full"] = true,
+                    ["legend"] = new Dictionary<string, object?>
                     {
-                        tokenTypes = Handlers.SemanticTokensHandler.TokenTypes,
-                        tokenModifiers = Handlers.SemanticTokensHandler.TokenModifiers
+                        ["tokenTypes"] = Handlers.SemanticTokensHandler.TokenTypes,
+                        ["tokenModifiers"] = Handlers.SemanticTokensHandler.TokenModifiers
                     }
                 },
-                documentFormattingProvider = true,
-                codeActionProvider = new
+                ["documentFormattingProvider"] = true,
+                ["codeActionProvider"] = new Dictionary<string, object?>
                 {
-                    codeActionKinds = new[] { "quickfix" }
+                    ["codeActionKinds"] = new[] { "quickfix" }
                 }
             },
-            serverInfo = new
+            ["serverInfo"] = new Dictionary<string, object?>
             {
-                name = "midl-language-server",
-                version = "0.1.0"
+                ["name"] = "midl-language-server",
+                ["version"] = "0.1.0"
             }
         };
         await _writer.SendResponseAsync(id, capabilities);

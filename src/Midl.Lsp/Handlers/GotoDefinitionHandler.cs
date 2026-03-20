@@ -67,13 +67,13 @@ public static class GotoDefinitionHandler
         var (defLine, defChar) = PositionHelper.OffsetToLineChar(lineStarts, defOffset);
         var (defEndLine, defEndChar) = PositionHelper.OffsetToLineChar(lineStarts, defOffset + symbol.Name.Length);
 
-        return new
+        return new Dictionary<string, object?>
         {
-            uri,
-            range = new
+            ["uri"] = uri,
+            ["range"] = new Dictionary<string, object?>
             {
-                start = new { line = defLine, character = defChar },
-                end = new { line = defEndLine, character = defEndChar }
+                ["start"] = new Dictionary<string, object?> { ["line"] = defLine, ["character"] = defChar },
+                ["end"] = new Dictionary<string, object?> { ["line"] = defEndLine, ["character"] = defEndChar }
             }
         };
     }

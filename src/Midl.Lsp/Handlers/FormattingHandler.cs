@@ -25,16 +25,16 @@ public static class FormattingHandler
         var lineStarts = PositionHelper.BuildLineStarts(text);
         var (endLine, endChar) = PositionHelper.OffsetToLineChar(lineStarts, text.Length);
 
-        return new[]
+        return new object[]
         {
-            new
+            new Dictionary<string, object?>
             {
-                range = new
+                ["range"] = new Dictionary<string, object?>
                 {
-                    start = new { line = 0, character = 0 },
-                    end = new { line = endLine, character = endChar }
+                    ["start"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 },
+                    ["end"] = new Dictionary<string, object?> { ["line"] = endLine, ["character"] = endChar }
                 },
-                newText = formatted
+                ["newText"] = formatted
             }
         };
     }

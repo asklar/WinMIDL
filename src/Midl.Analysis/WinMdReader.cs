@@ -57,7 +57,22 @@ public class WinMdReader
         return symbols;
     }
 
-    private static ISymbol? ReadTypeDefAsSymbol(
+    /// <summary>Read a single TypeDef from an already-open MetadataReader (used by lazy loading).</summary>
+    internal static ISymbol? ReadSingleType(MetadataReader mdReader, TypeDefinitionHandle handle, string? sourcePath)
+    {
+        var typeDef = mdReader.GetTypeDefinition(handle);
+        var name = mdReader.GetString(typeDef.Name);
+        if (name == "<Module>") return null;
+
+        var attrs = typeDef.Attributes;
+        if ((attrs & TypeAttributes.VisibilityMask) != TypeAttributes.Public) return null;
+        if (((int)attrs & TdWindowsRuntime) == 0) return null;
+
+        var ns = mdReader.GetString(typeDef.Namespace);
+        return ReadTypeDefAsSymbol(mdReader, typeDef, handle, name, ns, sourcePath);
+    }
+
+    internal static ISymbol? ReadTypeDefAsSymbol(
         MetadataReader mdReader, TypeDefinition typeDef, TypeDefinitionHandle handle,
         string name, string ns, string? sourcePath)
     {
@@ -76,7 +91,7 @@ public class WinMdReader
         };
     }
 
-    private static string? GetBaseTypeName(MetadataReader mdReader, EntityHandle baseTypeHandle)
+    internal static string? GetBaseTypeName(MetadataReader mdReader, EntityHandle baseTypeHandle)
     {
         if (baseTypeHandle.IsNil) return null;
 
@@ -88,7 +103,7 @@ public class WinMdReader
         };
     }
 
-    private static string GetTypeRefFullName(MetadataReader mdReader, TypeReferenceHandle handle)
+    internal static string GetTypeRefFullName(MetadataReader mdReader, TypeReferenceHandle handle)
     {
         var typeRef = mdReader.GetTypeReference(handle);
         var ns = mdReader.GetString(typeRef.Namespace);
@@ -96,7 +111,7 @@ public class WinMdReader
         return string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
     }
 
-    private static string GetTypeDefFullName(MetadataReader mdReader, TypeDefinitionHandle handle)
+    internal static string GetTypeDefFullName(MetadataReader mdReader, TypeDefinitionHandle handle)
     {
         var typeDef = mdReader.GetTypeDefinition(handle);
         var ns = mdReader.GetString(typeDef.Namespace);

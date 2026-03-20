@@ -55,10 +55,10 @@ public static class SemanticTokensHandler
         var uri = textDocument.GetProperty("uri").GetString()!;
 
         var text = docManager.GetDocumentText(uri);
-        if (text is null) return new { data = Array.Empty<int>() };
+        if (text is null) return new Dictionary<string, object?> { ["data"] = Array.Empty<int>() };
 
         var (data, _, _) = HandleCore(text);
-        return new { data };
+        return new Dictionary<string, object?> { ["data"] = data };
     }
 
     /// <summary>

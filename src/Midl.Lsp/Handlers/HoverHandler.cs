@@ -117,13 +117,13 @@ public static class HoverHandler
         var (startLine, startChar) = PositionHelper.OffsetToLineChar(lineStarts, tokenStart);
         var (endLine, endChar) = PositionHelper.OffsetToLineChar(lineStarts, tokenStart + tokenLength);
 
-        return new
+        return new Dictionary<string, object?>
         {
-            contents = new { kind = "markdown", value = markdown },
-            range = new
+            ["contents"] = new Dictionary<string, object?> { ["kind"] = "markdown", ["value"] = markdown },
+            ["range"] = new Dictionary<string, object?>
             {
-                start = new { line = startLine, character = startChar },
-                end = new { line = endLine, character = endChar }
+                ["start"] = new Dictionary<string, object?> { ["line"] = startLine, ["character"] = startChar },
+                ["end"] = new Dictionary<string, object?> { ["line"] = endLine, ["character"] = endChar }
             }
         };
     }

@@ -37,21 +37,20 @@ public static class CompilationHelper
         var preprocessor = new Midl.Lexer.Preprocessor(defines, includePaths, currentFilePath);
         source = preprocessor.Process(source);
 
-        // Read external types from referenced .winmd files
-        IReadOnlyList<ISymbol>? externalTypes = null;
+        // Lazily index external types from referenced .winmd files
+        List<LazyWinMdProvider>? lazyProviders = null;
         if (referencePaths is { Count: > 0 })
         {
-            var reader = new WinMdReader();
-            var allExternal = new List<ISymbol>();
+            lazyProviders = new List<LazyWinMdProvider>();
             foreach (var path in referencePaths)
             {
                 if (File.Exists(path))
                 {
-                    var types = reader.ReadTypes(path);
-                    allExternal.AddRange(types);
+                    var provider = new LazyWinMdProvider(path);
+                    lazyProviders.Add(provider);
+                    MidlTrace.Write("COMPILE", $"Lazy-indexed {Path.GetFileName(path)}: {provider.TypeCount} types");
                 }
             }
-            externalTypes = allExternal;
         }
 
         var lexer = new Midl.Lexer.Lexer(source);
@@ -71,7 +70,7 @@ public static class CompilationHelper
         CollectImportedTrees(tree, importResolver, importedTrees, syntaxDiagnostics);
 
         var binder = new Binder(mode);
-        var compilation = binder.Bind(tree, tokens, externalTypes, importedTrees);
+        var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders);
 
         // Synthesize exclusive interfaces for runtime classes
         var synthesizer = new InterfaceSynthesizer();

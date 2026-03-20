@@ -11,10 +11,14 @@ public class Compilation
     public NamespaceSymbol GlobalNamespace { get; }
     public IReadOnlyList<Diagnostic> Diagnostics { get; }
 
-    public Compilation(NamespaceSymbol globalNamespace, IReadOnlyList<Diagnostic> diagnostics)
+    private readonly IReadOnlyList<LazyWinMdProvider>? _lazyProviders;
+
+    public Compilation(NamespaceSymbol globalNamespace, IReadOnlyList<Diagnostic> diagnostics,
+        IReadOnlyList<LazyWinMdProvider>? lazyProviders = null)
     {
         GlobalNamespace = globalNamespace;
         Diagnostics = diagnostics;
+        _lazyProviders = lazyProviders;
     }
 
     /// <summary>Returns a new Compilation with additional diagnostics merged in.</summary>
@@ -23,7 +27,7 @@ public class Compilation
         var merged = new List<Diagnostic>(additional.Count + Diagnostics.Count);
         merged.AddRange(additional);
         merged.AddRange(Diagnostics);
-        return new Compilation(GlobalNamespace, merged);
+        return new Compilation(GlobalNamespace, merged, _lazyProviders);
     }
 
     /// <summary>Lookup any type by fully qualified name.</summary>
@@ -37,11 +41,100 @@ public class Compilation
         foreach (var part in nsParts)
         {
             if (!current.ChildNamespaces.TryGetValue(part, out var child))
-                return null;
+            {
+                // Not in namespace tree — try lazy providers
+                return TryResolveLazyType(fullyQualifiedName);
+            }
             current = child;
         }
 
+        return current.Members.FirstOrDefault(m => m.Name == typeName && m.Kind != SymbolKind.Namespace)
+            ?? TryResolveLazyType(fullyQualifiedName);
+    }
+
+    private ISymbol? TryResolveLazyType(string fullyQualifiedName)
+    {
+        if (_lazyProviders == null) return null;
+
+        foreach (var provider in _lazyProviders)
+        {
+            var symbol = provider.TryResolve(fullyQualifiedName);
+            if (symbol != null)
+            {
+                // Import into namespace tree for future lookups
+                ImportLazyTypeIntoTree(symbol);
+                // Return from tree
+                return GetTypeFromTree(fullyQualifiedName);
+            }
+        }
+        return null;
+    }
+
+    private void ImportLazyTypeIntoTree(ISymbol symbol)
+    {
+        var fullName = symbol.FullName;
+        var lastDot = fullName.LastIndexOf('.');
+        var nsName = lastDot >= 0 ? fullName[..lastDot] : "";
+        var ns = GetOrCreateNamespaceHierarchy(nsName);
+        ns.AddMember(CreateImportedSymbol(symbol, ns));
+    }
+
+    private NamespaceSymbol GetOrCreateNamespaceHierarchy(string dottedName)
+    {
+        if (string.IsNullOrEmpty(dottedName)) return GlobalNamespace;
+        var parts = dottedName.Split('.');
+        var current = GlobalNamespace;
+        foreach (var part in parts)
+            current = current.GetOrCreateChildNamespace(part);
+        return current;
+    }
+
+    private ISymbol? GetTypeFromTree(string fullyQualifiedName)
+    {
+        var parts = fullyQualifiedName.Split('.');
+        var typeName = parts[^1];
+        var nsParts = parts[..^1];
+        var current = GlobalNamespace;
+        foreach (var part in nsParts)
+        {
+            if (!current.ChildNamespaces.TryGetValue(part, out var child))
+                return null;
+            current = child;
+        }
         return current.Members.FirstOrDefault(m => m.Name == typeName && m.Kind != SymbolKind.Namespace);
+    }
+
+    private static ISymbol CreateImportedSymbol(ISymbol source, NamespaceSymbol ns)
+    {
+        switch (source)
+        {
+            case InterfaceSymbol iface:
+                var newIface = new InterfaceSymbol(iface.Name, ns) { Uuid = iface.Uuid, IsExternal = true, SourceWinMdPath = iface.SourceWinMdPath };
+                foreach (var m in iface.Members) newIface.AddMember(m);
+                foreach (var r in iface.RequiredInterfaces) newIface.RequiredInterfaces.Add(r);
+                return newIface;
+            case EnumSymbol e:
+                var newEnum = new EnumSymbol(e.Name, ns) { IsFlags = e.IsFlags, UnderlyingType = e.UnderlyingType, IsExternal = true, SourceWinMdPath = e.SourceWinMdPath };
+                foreach (var m in e.EnumMembers) newEnum.AddMember(m);
+                return newEnum;
+            case StructSymbol s:
+                var newStruct = new StructSymbol(s.Name, ns) { IsExternal = true, SourceWinMdPath = s.SourceWinMdPath };
+                foreach (var f in s.Fields) newStruct.AddField(f);
+                return newStruct;
+            case DelegateSymbol d:
+                var newDel = new DelegateSymbol(d.Name, ns) { ReturnType = d.ReturnType, IsExternal = true, SourceWinMdPath = d.SourceWinMdPath };
+                newDel.Parameters.AddRange(d.Parameters);
+                return newDel;
+            case RuntimeClassSymbol rc:
+                var newRc = new RuntimeClassSymbol(rc.Name, ns) { Uuid = rc.Uuid, BaseClass = rc.BaseClass, IsStatic = rc.IsStatic, IsExternal = true, SourceWinMdPath = rc.SourceWinMdPath };
+                foreach (var i in rc.Interfaces) newRc.Interfaces.Add(i);
+                foreach (var m in rc.Members) newRc.AddMember(m);
+                return newRc;
+            case ApiContractSymbol ac:
+                return new ApiContractSymbol(ac.Name, ns) { Version = ac.Version, IsExternal = true, SourceWinMdPath = ac.SourceWinMdPath };
+            default:
+                return source;
+        }
     }
 
     /// <summary>Get all types (non-namespace symbols) in the compilation.</summary>

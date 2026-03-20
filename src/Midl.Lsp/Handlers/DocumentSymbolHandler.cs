@@ -97,25 +97,18 @@ public static class DocumentSymbolHandler
 
     private static object MakeDocumentSymbol(string name, int kind, object range, object selectionRange, List<object>? children)
     {
+        var result = new Dictionary<string, object?>
+        {
+            ["name"] = name,
+            ["kind"] = kind,
+            ["range"] = range,
+            ["selectionRange"] = selectionRange
+        };
         if (children is { Count: > 0 })
         {
-            return new
-            {
-                name,
-                kind,
-                range,
-                selectionRange,
-                children
-            };
+            result["children"] = children;
         }
-
-        return new
-        {
-            name,
-            kind,
-            range,
-            selectionRange
-        };
+        return result;
     }
 
     private static object FindSymbolRange(string text, int[] lineStarts, string? keyword, string name)
@@ -136,20 +129,20 @@ public static class DocumentSymbolHandler
         if (nameIdx < 0)
         {
             // Fallback: beginning of document
-            return new
+            return new Dictionary<string, object?>
             {
-                start = new { line = 0, character = 0 },
-                end = new { line = 0, character = 0 }
+                ["start"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 },
+                ["end"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 }
             };
         }
 
         var (startLine, startChar) = PositionHelper.OffsetToLineChar(lineStarts, nameIdx);
         var (endLine, endChar) = PositionHelper.OffsetToLineChar(lineStarts, nameIdx + name.Length);
 
-        return new
+        return new Dictionary<string, object?>
         {
-            start = new { line = startLine, character = startChar },
-            end = new { line = endLine, character = endChar }
+            ["start"] = new Dictionary<string, object?> { ["line"] = startLine, ["character"] = startChar },
+            ["end"] = new Dictionary<string, object?> { ["line"] = endLine, ["character"] = endChar }
         };
     }
 

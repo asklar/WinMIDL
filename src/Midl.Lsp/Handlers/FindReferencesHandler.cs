@@ -71,13 +71,13 @@ public static class FindReferencesHandler
                 var (startLine, startChar) = PositionHelper.OffsetToLineChar(lineStarts, textStart);
                 var (endLine, endChar) = PositionHelper.OffsetToLineChar(lineStarts, textStart + tok.Text.Length);
 
-                results.Add(new
+                results.Add(new Dictionary<string, object?>
                 {
-                    uri,
-                    range = new
+                    ["uri"] = uri,
+                    ["range"] = new Dictionary<string, object?>
                     {
-                        start = new { line = startLine, character = startChar },
-                        end = new { line = endLine, character = endChar }
+                        ["start"] = new Dictionary<string, object?> { ["line"] = startLine, ["character"] = startChar },
+                        ["end"] = new Dictionary<string, object?> { ["line"] = endLine, ["character"] = endChar }
                     }
                 });
             }

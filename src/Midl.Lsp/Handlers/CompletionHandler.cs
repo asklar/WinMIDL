@@ -49,12 +49,12 @@ public static class CompletionHandler
                                 SymbolKind.Delegate => KindClass,
                                 _ => KindClass,
                             };
-                            items.Add(new
+                            items.Add(new Dictionary<string, object?>
                             {
-                                label = type.Name,
-                                kind,
-                                detail = $"(external) {type.FullName}",
-                                insertText = type.FullName,
+                                ["label"] = type.Name,
+                                ["kind"] = kind,
+                                ["detail"] = $"(external) {type.FullName}",
+                                ["insertText"] = type.FullName,
                             });
                         }
                     }
@@ -66,7 +66,7 @@ public static class CompletionHandler
             }
         }
 
-        return new { isIncomplete = false, items = items.ToArray() };
+        return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
     }
 
     private static object[] BuildCompletionItems()
@@ -132,12 +132,12 @@ public static class CompletionHandler
 
     private static void AddItem(List<object> items, string label, int kind, string detail)
     {
-        items.Add(new
+        items.Add(new Dictionary<string, object?>
         {
-            label,
-            kind,
-            detail,
-            insertText = label
+            ["label"] = label,
+            ["kind"] = kind,
+            ["detail"] = detail,
+            ["insertText"] = label
         });
     }
 }

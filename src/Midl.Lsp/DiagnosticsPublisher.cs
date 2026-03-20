@@ -24,25 +24,29 @@ public sealed class DiagnosticsPublisher
             var (startLine, startChar) = PositionHelper.OffsetToLineChar(lineStarts, d.Position);
             var (endLine, endChar) = PositionHelper.OffsetToLineChar(lineStarts, d.Position + d.Length);
 
-            lspDiags.Add(new
+            var diag = new Dictionary<string, object?>
             {
-                range = new
+                ["range"] = new Dictionary<string, object?>
                 {
-                    start = new { line = startLine, character = startChar },
-                    end = new { line = endLine, character = endChar }
+                    ["start"] = new Dictionary<string, object?> { ["line"] = startLine, ["character"] = startChar },
+                    ["end"] = new Dictionary<string, object?> { ["line"] = endLine, ["character"] = endChar }
                 },
-                severity = MapSeverity(d.Severity),
-                code = d.Code,
-                source = "midl",
-                message = d.Message,
-                codeDescription = d.HelpUri != null ? new { href = d.HelpUri } : null
-            });
+                ["severity"] = MapSeverity(d.Severity),
+                ["code"] = d.Code,
+                ["source"] = "midl",
+                ["message"] = d.Message
+            };
+            if (d.HelpUri != null)
+            {
+                diag["codeDescription"] = new Dictionary<string, object?> { ["href"] = d.HelpUri };
+            }
+            lspDiags.Add(diag);
         }
 
-        await _writer.SendNotificationAsync("textDocument/publishDiagnostics", new
+        await _writer.SendNotificationAsync("textDocument/publishDiagnostics", new Dictionary<string, object?>
         {
-            uri,
-            diagnostics = lspDiags
+            ["uri"] = uri,
+            ["diagnostics"] = lspDiags
         });
     }
 

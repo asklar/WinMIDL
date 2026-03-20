@@ -87,21 +87,18 @@ public static class SignatureHelpHandler
 
         var (label, parameters) = BuildSignatureInfo(callable);
 
-        return new
+        return new Dictionary<string, object?>
         {
-            signatures = new[]
+            ["signatures"] = new object[]
             {
-                new
+                new Dictionary<string, object?>
                 {
-                    label,
-                    parameters = parameters.Select(p => new
-                    {
-                        label = p
-                    }).ToArray()
+                    ["label"] = label,
+                    ["parameters"] = parameters.Select(p => (object)new Dictionary<string, object?> { ["label"] = p }).ToArray()
                 }
             },
-            activeSignature = 0,
-            activeParameter = commaCount
+            ["activeSignature"] = 0,
+            ["activeParameter"] = commaCount
         };
     }
 

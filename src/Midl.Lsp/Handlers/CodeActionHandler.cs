@@ -46,26 +46,26 @@ public static class CodeActionHandler
                 var (sl, sc) = PositionHelper.OffsetToLineChar(lineStarts, ourDiag.Position);
                 var (el, ec) = PositionHelper.OffsetToLineChar(lineStarts, ourDiag.Position + ourDiag.Length);
 
-                actions.Add(new
+                actions.Add(new Dictionary<string, object?>
                 {
-                    title = $"Replace with '{replacement}'",
-                    kind = "quickfix",
-                    diagnostics = new[] { lspDiag },
-                    isPreferred = true,
-                    edit = new
+                    ["title"] = $"Replace with '{replacement}'",
+                    ["kind"] = "quickfix",
+                    ["diagnostics"] = new object[] { lspDiag },
+                    ["isPreferred"] = true,
+                    ["edit"] = new Dictionary<string, object?>
                     {
-                        changes = new Dictionary<string, object[]>
+                        ["changes"] = new Dictionary<string, object?>
                         {
                             [uri] = new object[]
                             {
-                                new
+                                new Dictionary<string, object?>
                                 {
-                                    range = new
+                                    ["range"] = new Dictionary<string, object?>
                                     {
-                                        start = new { line = sl, character = sc },
-                                        end = new { line = el, character = ec }
+                                        ["start"] = new Dictionary<string, object?> { ["line"] = sl, ["character"] = sc },
+                                        ["end"] = new Dictionary<string, object?> { ["line"] = el, ["character"] = ec }
                                     },
-                                    newText = replacement
+                                    ["newText"] = replacement
                                 }
                             }
                         }

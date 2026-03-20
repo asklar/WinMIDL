@@ -26,7 +26,8 @@ public class Binder
 
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
         IReadOnlyList<ISymbol>? externalTypes = null,
-        IReadOnlyList<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)>? importedTrees = null)
+        IReadOnlyList<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)>? importedTrees = null,
+        IReadOnlyList<LazyWinMdProvider>? lazyProviders = null)
     {
         MidlTrace.Binder("Binding compilation unit");
         _symbolTable = new SymbolTable(_globalNamespace);
@@ -34,6 +35,13 @@ public class Binder
 
         // Register built-in WinRT types before any user code
         BuiltInTypes.Register(_symbolTable, _mode);
+
+        // Register lazy providers for on-demand WinMD type resolution
+        if (lazyProviders != null)
+        {
+            foreach (var provider in lazyProviders)
+                _symbolTable.AddLazyProvider(provider);
+        }
 
         // Import external types before binding user code
         if (externalTypes is { Count: > 0 })
@@ -67,7 +75,7 @@ public class Binder
             MidlTrace.Binder($"Binding complete: {types} types, {_diagnostics.Count} diagnostics");
         }
 
-        return new Compilation(_globalNamespace, _diagnostics);
+        return new Compilation(_globalNamespace, _diagnostics, lazyProviders);
     }
 
     private void BindCompilationUnit(GreenNode node, NamespaceSymbol ns)
