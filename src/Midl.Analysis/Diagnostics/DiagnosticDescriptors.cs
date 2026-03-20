@@ -347,6 +347,18 @@ public static class DiagnosticDescriptors
             $"Type '{typeName}' is in namespace '{typeNamespace}' but WinMD file is named '{winmdName}'. WinMD file name should match the root namespace.",
             position, Math.Max(typeName.Length, 1));
 
+    // Protected accessor not valid in MIDL3 (MIDL1072)
+    public static Diagnostic ProtectedAccessorNotValid(string propName, string accessor, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1072",
+            $"'{accessor}' cannot be marked 'protected' individually. Apply 'protected' to the whole property '{propName}' instead.",
+            position, Math.Max(propName.Length, 1));
+
+    // Protected member on interface (MIDL1073)
+    public static Diagnostic ProtectedMemberOnInterface(string memberName, string interfaceName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1073",
+            $"Member '{memberName}' on interface '{interfaceName}' cannot be 'protected'. Interface members are always public.",
+            position, Math.Max(memberName.Length, 1));
+
     // ─── Code Quality Hints (MIDL3001+) ─────────────────────────────
 
     public static Diagnostic InterfaceNamingConvention(string name, string suggestion, int position) =>

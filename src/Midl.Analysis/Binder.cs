@@ -1085,9 +1085,17 @@ public class Binder
                 {
                     var next = accessors.GetSlot(a + 1);
                     if (next is SyntaxToken { Kind: SyntaxKind.GetKeyword })
+                    {
                         symbol.IsGetterProtected = true;
+                        _diagnostics.Add(DiagnosticDescriptors.ProtectedAccessorNotValid(
+                            symbol.Name, "get", _posMap.GetPositionOf("protected")));
+                    }
                     else if (next is SyntaxToken { Kind: SyntaxKind.SetKeyword })
+                    {
                         symbol.IsSetterProtected = true;
+                        _diagnostics.Add(DiagnosticDescriptors.ProtectedAccessorNotValid(
+                            symbol.Name, "set", _posMap.GetPositionOf("protected")));
+                    }
                 }
             }
         }
@@ -1937,6 +1945,7 @@ public class Binder
                     ValidateMethodNameOverrideUniqueness(iface);
                     ValidateDefaultOverloadExactlyOne(iface.Members, iface.Name);
                     ValidateMethodParameters(iface.Members);
+                    ValidateNoProtectedOnInterface(iface);
                     // Code quality hints
                     if (_emitQualityHints) ValidateInterfaceQuality(iface);
                     break;
@@ -2196,6 +2205,30 @@ public class Binder
             }
         }
         return null;
+    }
+
+    #endregion
+
+    #region Interface member validation
+
+    private void ValidateNoProtectedOnInterface(InterfaceSymbol iface)
+    {
+        foreach (var m in iface.Members)
+        {
+            bool isProtected = m switch
+            {
+                MethodSymbol ms => ms.IsProtected,
+                PropertySymbol ps => ps.IsProtected || ps.IsGetterProtected || ps.IsSetterProtected,
+                EventSymbol es => es.IsProtected,
+                _ => false
+            };
+
+            if (isProtected)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.ProtectedMemberOnInterface(
+                    m.Name, iface.Name, _posMap.GetPositionOf(m.Name)));
+            }
+        }
     }
 
     #endregion
