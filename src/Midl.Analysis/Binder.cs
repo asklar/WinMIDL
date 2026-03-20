@@ -457,7 +457,7 @@ public class Binder
         // MIDL1009: Empty struct
         if (symbol.Fields.Count == 0)
         {
-            _diagnostics.Add(DiagnosticDescriptors.EmptyStruct(name));
+            _diagnostics.Add(DiagnosticDescriptors.EmptyStruct(name, _posMap.GetPositionOf(name)));
         }
     }
 
@@ -719,7 +719,7 @@ public class Binder
         // MIDL1013: Reserved parameter names
         if (name is "result" or "operation" or "value")
         {
-            _diagnostics.Add(DiagnosticDescriptors.ReservedParameterName(name));
+            _diagnostics.Add(DiagnosticDescriptors.ReservedParameterName(name, _posMap.GetPositionOf(name)));
         }
 
         return param;
@@ -905,33 +905,52 @@ public class Binder
         switch (node.Kind)
         {
             case SyntaxKind.CoclassDeclaration:
-                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("coclass"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("coclass", FindKeywordPosition(node, SyntaxKind.CoclassKeyword)));
                 break;
             case SyntaxKind.LibraryDeclaration:
-                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("library"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("library", FindKeywordPosition(node, SyntaxKind.LibraryKeyword)));
                 break;
             case SyntaxKind.ModuleDeclaration:
-                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("module"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("module", FindKeywordPosition(node, SyntaxKind.ModuleKeyword)));
                 break;
             case SyntaxKind.TypedefDeclaration:
-                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("typedef"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("typedef", FindKeywordPosition(node, SyntaxKind.TypedefKeyword)));
                 break;
             case SyntaxKind.DispinterfaceDeclaration:
-                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("dispinterface"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("dispinterface", FindKeywordPosition(node, SyntaxKind.DispinterfaceKeyword)));
                 break;
             case SyntaxKind.CppQuoteDirective:
-                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("cpp_quote"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("cpp_quote", FindKeywordPosition(node, SyntaxKind.CppQuoteKeyword)));
                 break;
             case SyntaxKind.ImportlibDirective:
-                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("importlib"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("importlib", FindKeywordPosition(node, SyntaxKind.ImportlibKeyword)));
                 break;
             case SyntaxKind.UnionDeclaration:
-                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("union"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("union", FindKeywordPosition(node, SyntaxKind.UnionKeyword)));
                 break;
         }
     }
 
+    private int FindKeywordPosition(GreenNode node, SyntaxKind keywordKind)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot is SyntaxToken t && t.Kind == keywordKind)
+                return _posMap.GetPositionOf(t.Text);
+        }
+        return _posMap.GetPositionOfKind(keywordKind);
+    }
+
     private void CheckStrictModeTokens(GreenNode node)
+    {
+        // Walk the tree, but use _posMap to get positions for tokens
+        CheckStrictModeTokensRecursive(node, 0);
+    }
+
+    private int _strictTokenIndex = 0;
+
+    private void CheckStrictModeTokensRecursive(GreenNode node, int depth)
     {
         for (int i = 0; i < node.SlotCount; i++)
         {
@@ -940,7 +959,9 @@ public class Binder
 
             if (slot is SyntaxToken token)
             {
-                CheckStrictModeToken(token);
+                // Find this token's position in the token stream
+                int pos = _posMap.GetPositionOf(token.Text, _strictTokenIndex);
+                CheckStrictModeToken(token, pos);
             }
             else
             {
@@ -949,7 +970,8 @@ public class Binder
                 {
                     var innerType = slot.GetSlot(0);
                     var typeName = innerType is SyntaxToken t ? t.Text : "?";
-                    _diagnostics.Add(DiagnosticDescriptors.PointerType(typeName));
+                    int ptrPos = _posMap.GetPositionOf(typeName);
+                    _diagnostics.Add(DiagnosticDescriptors.PointerType(typeName, ptrPos));
                 }
 
                 // Check for classic [in]/[out] attributes on parameters
@@ -958,88 +980,88 @@ public class Binder
                     CheckStrictModeAttributes(slot);
                 }
 
-                CheckStrictModeTokens(slot);
+                CheckStrictModeTokensRecursive(slot, depth + 1);
             }
         }
     }
 
-    private void CheckStrictModeToken(SyntaxToken token)
+    private void CheckStrictModeToken(SyntaxToken token, int position)
     {
         switch (token.Kind)
         {
             case SyntaxKind.HResultKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.HResultReturnType());
+                _diagnostics.Add(DiagnosticDescriptors.HResultReturnType(position));
                 break;
             case SyntaxKind.ByteKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("byte", "UInt8"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("byte", "UInt8", position));
                 break;
             case SyntaxKind.ShortKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("short", "Int16"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("short", "Int16", position));
                 break;
             case SyntaxKind.LongKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("long", "Int32"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("long", "Int32", position));
                 break;
             case SyntaxKind.IntKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("int", "Int32"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("int", "Int32", position));
                 break;
             case SyntaxKind.FloatKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("float", "Single"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("float", "Single", position));
                 break;
             case SyntaxKind.HyperKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("hyper", "Int64"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("hyper", "Int64", position));
                 break;
             case SyntaxKind.SmallKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("small", "UInt8"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("small", "UInt8", position));
                 break;
             case SyntaxKind.WcharTKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("wchar_t", "Char"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("wchar_t", "Char", position));
                 break;
             case SyntaxKind.BooleanKeyword when token.Text == "boolean":
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("boolean", "Boolean"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("boolean", "Boolean", position));
                 break;
             case SyntaxKind.DoubleKeyword when token.Text == "double":
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("double", "Double"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("double", "Double", position));
                 break;
             case SyntaxKind.CharKeyword when token.Text == "char":
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("char", "Char"));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("char", "Char", position));
                 break;
             case SyntaxKind.UnsignedKeyword:
                 _diagnostics.Add(DiagnosticDescriptors.StrictModeTypeWarning("unsigned",
-                    "use UInt8/UInt16/UInt32/UInt64 instead"));
+                    "use UInt8/UInt16/UInt32/UInt64 instead", position));
                 break;
             case SyntaxKind.SignedKeyword:
                 _diagnostics.Add(DiagnosticDescriptors.StrictModeTypeWarning("signed",
-                    "use Int16/Int32/Int64 instead"));
+                    "use Int16/Int32/Int64 instead", position));
                 break;
             case SyntaxKind.HandleTKeyword:
                 _diagnostics.Add(DiagnosticDescriptors.StrictModeTypeWarning("handle_t",
-                    "handle_t is not used in MIDL3"));
+                    "handle_t is not used in MIDL3", position));
                 break;
             case SyntaxKind.ErrorStatusTKeyword:
                 _diagnostics.Add(DiagnosticDescriptors.StrictModeTypeWarning("error_status_t",
-                    "error_status_t is not used in MIDL3"));
+                    "error_status_t is not used in MIDL3", position));
                 break;
             case SyntaxKind.IdentifierToken:
-                CheckStrictModeIdentifier(token);
+                CheckStrictModeIdentifier(token, position);
                 break;
         }
     }
 
-    private void CheckStrictModeIdentifier(SyntaxToken token)
+    private void CheckStrictModeIdentifier(SyntaxToken token, int position)
     {
         switch (token.Text)
         {
             case "BSTR":
-                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("BSTR", "String"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("BSTR", "String", position));
                 break;
             case "LPSTR":
-                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("LPSTR", "String"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("LPSTR", "String", position));
                 break;
             case "LPWSTR":
-                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("LPWSTR", "String"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("LPWSTR", "String", position));
                 break;
             case "VARIANT":
-                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("VARIANT", "Object"));
+                _diagnostics.Add(DiagnosticDescriptors.ClassicMidlType("VARIANT", "Object", position));
                 break;
         }
     }
@@ -1064,7 +1086,7 @@ public class Binder
                 if (string.Equals(name, "in", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(name, "out", StringComparison.OrdinalIgnoreCase))
                 {
-                    _diagnostics.Add(DiagnosticDescriptors.ClassicAttribute(name));
+                    _diagnostics.Add(DiagnosticDescriptors.ClassicAttribute(name, _posMap.GetPositionOf(name)));
                 }
             }
         }
@@ -1088,10 +1110,11 @@ public class Binder
 
     private bool TryDefineType(NamespaceSymbol ns, string name)
     {
+        int pos = _posMap.GetPositionOf(name);
         var fullName = ns.FullName.Length > 0 ? $"{ns.FullName}.{name}" : name;
         if (!_definedTypes.Add(fullName))
         {
-            _diagnostics.Add(DiagnosticDescriptors.DuplicateDefinition(name));
+            _diagnostics.Add(DiagnosticDescriptors.DuplicateDefinition(name, pos));
             return false;
         }
 
@@ -1101,7 +1124,7 @@ public class Binder
             if (existing != fullName)
             {
                 var existingShortName = existing.Contains('.') ? existing[(existing.LastIndexOf('.') + 1)..] : existing;
-                _diagnostics.Add(DiagnosticDescriptors.CaseInsensitiveTypeCollision(name, existingShortName));
+                _diagnostics.Add(DiagnosticDescriptors.CaseInsensitiveTypeCollision(name, existingShortName, pos));
             }
         }
         else
@@ -1257,7 +1280,7 @@ public class Binder
                 existing.Name == newMethod.Name &&
                 existing.Parameters.Count == newMethod.Parameters.Count)
             {
-                _diagnostics.Add(DiagnosticDescriptors.SameArityOverload(newMethod.Name, existing.Name));
+                _diagnostics.Add(DiagnosticDescriptors.SameArityOverload(newMethod.Name, existing.Name, _posMap.GetPositionOf(newMethod.Name)));
                 return;
             }
         }
@@ -1267,7 +1290,7 @@ public class Binder
     {
         if (prop.HasSetter && !prop.HasGetter && !string.IsNullOrEmpty(prop.Name))
         {
-            _diagnostics.Add(DiagnosticDescriptors.WriteOnlyProperty(prop.Name));
+            _diagnostics.Add(DiagnosticDescriptors.WriteOnlyProperty(prop.Name, _posMap.GetPositionOf(prop.Name)));
         }
     }
 

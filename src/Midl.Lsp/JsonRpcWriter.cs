@@ -26,7 +26,14 @@ public sealed class JsonRpcWriter
 
     public async Task SendResponseAsync(object? id, object? result)
     {
-        var msg = new { jsonrpc = "2.0", id, result };
+        // LSP requires "result" field even when null — use Dictionary to prevent
+        // JsonIgnoreCondition.WhenWritingNull from stripping it
+        var msg = new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["id"] = id,
+            ["result"] = result
+        };
         await WriteMessageAsync(msg);
     }
 
