@@ -40,6 +40,10 @@ public class Preprocessor
         _defines["_WIN64"] = "1";
         _defines["__midl"] = "1";
         _defines["MIDL_PASS"] = "1";
+        _defines["_MSC_VER"] = "1900";
+        _defines["_WIN32_WINNT"] = "0x0A00";
+        _defines["WINVER"] = "0x0A00";
+        _defines["WINAPI_FAMILY"] = "0x03"; // WINAPI_FAMILY_DESKTOP_APP
 
         // Apply CLI /D defines (override pre-defined if needed)
         if (defines != null)

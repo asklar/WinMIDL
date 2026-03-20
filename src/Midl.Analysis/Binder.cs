@@ -1225,14 +1225,11 @@ public class Binder
         }
 
         // MIDL1043: 'void' is not valid as a parameter type
-        // In compat mode, standalone 'void' (no name) means "no parameters" — classic MIDL style
-        if (param.Type.Name is "void" or "Void")
+        // In compat mode: standalone void = "no params", named void = void pointer (classic MIDL)
+        // In strict mode: void as param type is always an error
+        if (param.Type.Name is "void" or "Void" && _mode == CompilationMode.Strict)
         {
-            bool isStandaloneVoid = name.Length == 0;
-            if (!isStandaloneVoid || _mode == CompilationMode.Strict)
-            {
-                _diagnostics.Add(DiagnosticDescriptors.VoidParameterType(_posMap.GetPositionOf("void")));
-            }
+            _diagnostics.Add(DiagnosticDescriptors.VoidParameterType(_posMap.GetPositionOf("void")));
         }
 
         // MIDL1013: Reserved parameter names
