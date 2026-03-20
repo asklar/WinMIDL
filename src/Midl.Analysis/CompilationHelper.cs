@@ -30,7 +30,8 @@ public static class CompilationHelper
                                        IReadOnlyList<string>? includePaths,
                                        string? currentFilePath,
                                        IReadOnlyList<string>? defines = null,
-                                        bool emitQualityHints = false)
+                                        bool emitQualityHints = false,
+                                        string? cppCmd = null)
     {
         MidlTrace.Write("COMPILE", $"Compiling {source.Length} chars, mode={mode}, {referencePaths?.Count ?? 0} references");
 
@@ -74,7 +75,8 @@ public static class CompilationHelper
         if (currentFilePath != null)
             importResolver.MarkImported(Path.GetFullPath(currentFilePath));
         var importedTrees = new List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)>();
-        CollectImportedTrees(tree, importResolver, importedTrees, syntaxDiagnostics);
+        CollectImportedTrees(tree, importResolver, importedTrees, syntaxDiagnostics,
+            includePaths: includePaths);
 
         var binder = new Binder(mode, emitQualityHints);
         var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders);
@@ -108,30 +110,32 @@ public static class CompilationHelper
         GreenNode tree,
         ImportResolver importResolver,
         List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)> importedTrees,
-        List<Midl.Analysis.Diagnostics.Diagnostic> diagnostics)
+        List<Midl.Analysis.Diagnostics.Diagnostic> diagnostics,
+        IReadOnlyList<string>? includePaths = null)
     {
         for (int i = 0; i < tree.SlotCount; i++)
         {
             var child = tree.GetSlot(i);
             if (child == null || child.Kind != SyntaxKind.ImportDirective) continue;
 
-            // Extract the string literal from the import directive
             var pathToken = ExtractImportPath(child);
             if (pathToken == null) continue;
 
             var resolved = importResolver.ResolveImportPath(pathToken);
             if (resolved == null)
             {
-                // MIDL1047: Import file not found
                 diagnostics.Add(DiagnosticDescriptors.ImportFileNotFound(pathToken, 0));
                 continue;
             }
 
-            if (importResolver.IsAlreadyImported(resolved)) continue; // Skip redundant
+            if (importResolver.IsAlreadyImported(resolved)) continue;
             importResolver.MarkImported(resolved);
 
-            // Parse the imported file
+            // Preprocess imported file (handles #include, #define, #ifdef, #if)
             var importedSource = File.ReadAllText(resolved);
+            var preprocessor = new Midl.Lexer.Preprocessor(null, includePaths, resolved);
+            importedSource = preprocessor.Process(importedSource);
+
             var importedLexer = new Midl.Lexer.Lexer(importedSource);
             var importedTokens = importedLexer.Lex();
             var importedParser = new Midl.Parser.Parser(importedTokens);
@@ -139,9 +143,10 @@ public static class CompilationHelper
 
             importedTrees.Add((importedTree, importedTokens));
 
-            // Recursively collect transitive imports from the imported file
+            // Recursively collect transitive imports
             var childResolver = importResolver.CreateChildResolver(resolved);
-            CollectImportedTrees(importedTree, childResolver, importedTrees, diagnostics);
+            CollectImportedTrees(importedTree, childResolver, importedTrees, diagnostics,
+                includePaths: includePaths);
         }
     }
 

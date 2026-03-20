@@ -150,4 +150,76 @@ public class T1ValidationTests
                 Console.WriteLine($"  {f}");
         }
     }
+
+    [SkippableFact]
+    public void PositiveModernIdlTestFilesCompile_WithClPreprocessor()
+    {
+        Skip.If(FixturesDir == null || !Directory.Exists(FixturesDir),
+            "MIDL_TEST_FIXTURES not set");
+
+        // Check if cl.exe is available
+        bool hasCl = false;
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo("cl.exe", "/?")
+            {
+                UseShellExecute = false, RedirectStandardOutput = true,
+                RedirectStandardError = true, CreateNoWindow = true
+            };
+            using var p = System.Diagnostics.Process.Start(psi);
+            p?.WaitForExit(5000);
+            hasCl = p?.ExitCode == 0;
+        }
+        catch { }
+        Skip.If(!hasCl, "cl.exe not found — run from Developer Command Prompt");
+
+        var positiveFiles = Directory.GetFiles(FixturesDir!, "MoIdl*.idl")
+            .Where(f => !f.Contains(".Negative.", StringComparison.OrdinalIgnoreCase)
+                     && !f.Contains("negative", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        Skip.If(positiveFiles.Length == 0, "No MoIdl positive test files found");
+
+        int passed = 0, failed = 0;
+        var failures = new List<string>();
+
+        foreach (var file in positiveFiles)
+        {
+            try
+            {
+                var source = File.ReadAllText(file);
+                var compilation = CompilationHelper.Compile(source,
+                    referencePaths: GetReferencePaths(),
+                    mode: CompilationMode.Compat,
+                    includePaths: GetIncludePaths(),
+                    currentFilePath: file,
+                    cppCmd: "cl.exe");
+                bool hasErrors = compilation.Diagnostics.Any(
+                    d => d.Severity == DiagnosticSeverity.Error);
+                if (!hasErrors)
+                    passed++;
+                else
+                {
+                    failed++;
+                    var firstError = compilation.Diagnostics
+                        .First(d => d.Severity == DiagnosticSeverity.Error);
+                    failures.Add($"{Path.GetFileName(file)} ({firstError.Code}: {firstError.Message[..Math.Min(60, firstError.Message.Length)]})");
+                }
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                failures.Add(Path.GetFileName(file) + $" (CRASH: {ex.Message[..Math.Min(40, ex.Message.Length)]})");
+            }
+        }
+
+        var rate = positiveFiles.Length > 0 ? (double)passed / positiveFiles.Length : 0;
+        Console.WriteLine($"MoIdl positive (cl.exe cpp): {passed}/{positiveFiles.Length} pass ({rate:P0})");
+        if (failures.Count > 0)
+        {
+            Console.WriteLine($"Failures ({failures.Count}):");
+            foreach (var f in failures.Take(20))
+                Console.WriteLine($"  {f}");
+        }
+    }
 }

@@ -64,6 +64,74 @@ public class Preprocessor
         return ProcessInternal(source, _currentFilePath);
     }
 
+    /// <summary>
+    /// Preprocess a file using an external C preprocessor (e.g. cl.exe /E).
+    /// This gives full C preprocessor semantics including #if expressions.
+    /// </summary>
+    public static string? ProcessWithExternalCpp(string filePath,
+        IReadOnlyList<string>? includePaths = null,
+        IReadOnlyList<string>? defines = null,
+        string cppCmd = "cl.exe")
+    {
+        var args = new System.Text.StringBuilder();
+        args.Append("/E /nologo /c ");
+
+        // Always define MIDL/WinRT macros
+        args.Append("/D__midl /DMIDL_PASS /D_WIN32 /D_WIN64 ");
+        args.Append("/DNTDDI_VERSION=0x0A000000 /D_APISET_WINDOWS_VERSION=0x0602 ");
+        args.Append("/DUNICODE /D_UNICODE ");
+
+        if (defines != null)
+        {
+            foreach (var d in defines)
+                args.Append($"/D{d} ");
+        }
+
+        if (includePaths != null)
+        {
+            foreach (var p in includePaths)
+                args.Append($"/I\"{p}\" ");
+        }
+
+        args.Append($"\"{filePath}\"");
+
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = cppCmd,
+                Arguments = args.ToString(),
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+
+            using var proc = System.Diagnostics.Process.Start(psi);
+            if (proc == null) return null;
+
+            var output = proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit(30_000);
+
+            if (proc.ExitCode != 0) return null;
+
+            // cl.exe /E outputs #line directives — strip them
+            var sb = new System.Text.StringBuilder(output.Length);
+            foreach (var line in output.Split('\n'))
+            {
+                var trimmed = line.TrimStart();
+                if (trimmed.StartsWith("#line") || trimmed.StartsWith("#pragma"))
+                    continue;
+                sb.AppendLine(line);
+            }
+            return sb.ToString();
+        }
+        catch
+        {
+            return null; // cl.exe not found or failed
+        }
+    }
+
     private string ProcessInternal(string source, string? filePath)
     {
         var lines = SplitLines(source);
