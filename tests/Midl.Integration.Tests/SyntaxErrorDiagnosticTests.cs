@@ -198,4 +198,23 @@ namespace TestApp
 
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1100");
     }
+
+    [Fact]
+    public void MultipleAttributesInOneBracket_ParsesCleanly()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [uuid(12345678-1234-1234-1234-123456789abc), webhosthidden]
+                interface IFoo { void Bar(); };
+
+                [activatable(1), threading(both), marshaling_behavior(agile)]
+                runtimeclass Widget { Widget(); }
+            }
+            """, CompilationMode.Compat);
+
+        var errors = compilation.Diagnostics
+            .Where(d => d.Severity == Analysis.Diagnostics.DiagnosticSeverity.Error).ToList();
+        Assert.Empty(errors);
+    }
 }
