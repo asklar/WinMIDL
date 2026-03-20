@@ -40,7 +40,7 @@ public class TypeRef
         }
     }
 
-    private static bool IsBuiltInType(string name) => name switch
+    internal static bool IsBuiltInType(string name) => name switch
     {
         "Boolean" or "Char" or "Int16" or "Int32" or "Int64"
             or "UInt8" or "UInt16" or "UInt32" or "UInt64"
@@ -48,6 +48,7 @@ public class TypeRef
             or "Object" or "void" or "HRESULT"
             or "wchar_t" or "handle_t" or "error_status_t"
             or "byte" or "short" or "long" or "int" or "float"
+            or "double" or "boolean" or "char"
             or "hyper" or "unsigned" or "signed" or "small" => true,
         _ => false,
     };

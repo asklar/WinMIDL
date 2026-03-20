@@ -588,17 +588,29 @@ public class WinMdDecompiler
         MethodSignature<string> sig)
     {
         var parts = new List<string>();
-        var parameters = method.GetParameters().Select(p => reader.GetParameter(p)).ToList();
+        
+        // Safely collect parameters — some methods may have no parameter rows
+        var paramHandles = method.GetParameters();
+        var parameters = new List<(int Seq, string Name)>();
+        foreach (var ph in paramHandles)
+        {
+            try
+            {
+                var p = reader.GetParameter(ph);
+                if (p.SequenceNumber > 0) // Skip return value (sequence 0)
+                    parameters.Add((p.SequenceNumber, reader.GetString(p.Name)));
+            }
+            catch
+            {
+                // Skip invalid parameter handles
+            }
+        }
 
         for (int i = 0; i < sig.ParameterTypes.Length; i++)
         {
             var typeName = MapToMidlType(sig.ParameterTypes[i]);
-            // Find the parameter name
-            string paramName = $"param{i + 1}";
-            var matchingParam = parameters.FirstOrDefault(p => p.SequenceNumber == i + 1);
-            if (matchingParam.SequenceNumber == i + 1)
-                paramName = reader.GetString(matchingParam.Name);
-
+            var match = parameters.FirstOrDefault(p => p.Seq == i + 1);
+            var paramName = match.Name ?? $"param{i + 1}";
             parts.Add($"{typeName} {paramName}");
         }
 

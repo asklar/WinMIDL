@@ -32,6 +32,9 @@ public class Binder
         _symbolTable = new SymbolTable(_globalNamespace);
         _posMap = new TokenPositionMap(tokens);
 
+        // Register built-in WinRT types before any user code
+        BuiltInTypes.Register(_symbolTable, _mode);
+
         // Import external types before binding user code
         if (externalTypes is { Count: > 0 })
             _symbolTable.ImportExternalTypes(externalTypes);

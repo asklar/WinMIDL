@@ -93,10 +93,18 @@ public class CompilationDriver
         // Decompile mode — WinMD to IDL
         if (options.DecompileMode)
         {
-            var decompiler = new WinMdDecompiler();
-            var idl = decompiler.Decompile(options.InputFile);
-            _out.Write(idl);
-            return 0;
+            try
+            {
+                var decompiler = new WinMdDecompiler();
+                var idl = decompiler.Decompile(options.InputFile);
+                _out.Write(idl);
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                _err.WriteLine($"error MIDL0001: decompilation failed: {ex.Message}");
+                return 2;
+            }
         }
 
         // Read input (preprocessing skipped for now)

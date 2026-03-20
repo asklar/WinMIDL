@@ -69,6 +69,24 @@ public class TypeResolver
             return;
         }
 
+        // Try type aliases (HSTRING → String, DWORD → UInt32, etc.)
+        var aliasTarget = _symbolTable.ResolveAlias(typeRef.Name);
+        if (aliasTarget != null)
+        {
+            // Try to resolve the alias target as a symbol
+            var targetSymbol = _symbolTable.LookupQualified(aliasTarget)
+                            ?? LookupInNamespaceChain(aliasTarget, containingNamespace);
+            if (targetSymbol != null)
+            {
+                typeRef.ResolvedSymbol = targetSymbol;
+                return;
+            }
+
+            // Alias targets a built-in primitive type (String, UInt32, etc.)
+            if (TypeRef.IsBuiltInType(aliasTarget))
+                return;
+        }
+
         diagnostics.Add(DiagnosticDescriptors.UndefinedType(typeRef.Name, typeRef.Position));
     }
 

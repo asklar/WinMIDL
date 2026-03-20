@@ -10,6 +10,7 @@ public class SymbolTable
     private readonly NamespaceSymbol _globalNamespace;
     private readonly Stack<ISymbol> _scopeStack = new();
     private readonly Dictionary<string, ISymbol> _allDefinedTypes = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _typeAliases = new(StringComparer.Ordinal);
 
     private static readonly Dictionary<string, string> ShorthandMappings = new(StringComparer.Ordinal)
     {
@@ -218,7 +219,26 @@ public class SymbolTable
     }
 
     /// <summary>
-    /// Shorthand resolution: try normal lookup, then shorthand mappings.
+    /// Register a type alias (e.g., HSTRING → String, DWORD → UInt32).
+    /// When looking up the alias name, the target type name is resolved instead.
+    /// </summary>
+    public void RegisterAlias(string alias, string targetType)
+    {
+        _typeAliases[alias] = targetType;
+    }
+
+    /// <summary>
+    /// Try to resolve a name through registered type aliases.
+    /// Returns the target type name if the name is a registered alias, null otherwise.
+    /// </summary>
+    public string? ResolveAlias(string name)
+    {
+        return _typeAliases.TryGetValue(name, out var target) ? target : null;
+    }
+
+    /// <summary>
+    /// Shorthand resolution: try normal lookup, then shorthand mappings,
+    /// then fall back to the global defined types table (for built-in types).
     /// </summary>
     public ISymbol? LookupWithShorthand(string name)
     {
@@ -227,6 +247,11 @@ public class SymbolTable
 
         if (ShorthandMappings.TryGetValue(name, out var qualified))
             return LookupQualified(qualified);
+
+        // Fallback: check _allDefinedTypes directly (finds built-in types
+        // that use detached namespaces and aren't in the real namespace tree)
+        if (_allDefinedTypes.TryGetValue(name, out var directMatch))
+            return directMatch;
 
         return null;
     }
