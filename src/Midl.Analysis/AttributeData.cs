@@ -30,12 +30,13 @@ public class AttributeData
         index < Arguments.Count && Arguments[index].Kind == ArgKind.Guid ? Arguments[index].GuidValue : null;
 }
 
-public enum ArgKind { String, Integer, Identifier, TypeName, Guid, Expression }
+public enum ArgKind { String, Integer, Float, Identifier, TypeName, Guid, Expression }
 
 public class AttributeArgValue
 {
     public ArgKind Kind { get; init; }
     public string? StringValue { get; init; }
     public long IntValue { get; init; }
+    public double FloatValue { get; init; }
     public Guid GuidValue { get; init; }
 }

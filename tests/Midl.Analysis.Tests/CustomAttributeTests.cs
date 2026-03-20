@@ -374,6 +374,130 @@ public class CustomAttributeTests
     }
 
     [Fact]
+    public void FloatLiteral_ForIntField_ProducesError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_interface)]
+                attribute foo
+                {
+                    Int32 x;
+                };
+
+                [foo(1.1)]
+                interface bar
+                {
+                    Single x { set; get; };
+                }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1064");
+        Assert.NotNull(error);
+        Assert.Contains("x", error.Message);
+        Assert.Contains("Int32", error.Message);
+        Assert.Contains("float literal", error.Message);
+    }
+
+    [Fact]
+    public void FloatLiteral_ForSingleField_NoDiagnostic()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    Single Value;
+                };
+
+                [MyAttr(3.14)]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1064");
+    }
+
+    [Fact]
+    public void FloatLiteral_ForDoubleField_NoDiagnostic()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    Double Value;
+                };
+
+                [MyAttr(2.718)]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1064");
+    }
+
+    [Fact]
+    public void FloatLiteral_ForStringField_ProducesError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    String Name;
+                };
+
+                [MyAttr(9.99)]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1064");
+        Assert.NotNull(error);
+        Assert.Contains("Name", error.Message);
+        Assert.Contains("String", error.Message);
+        Assert.Contains("float literal", error.Message);
+    }
+
+    [Fact]
+    public void IntegerLiteral_ForSingleField_IsAccepted()
+    {
+        // Integer literal should be accepted for float fields (implicit widening)
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr
+                {
+                    Single Value;
+                };
+
+                [MyAttr(42)]
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1064");
+    }
+
+    [Fact]
     public void IdentifierArgForUnknownFieldType_NoDiagnostic()
     {
         // For enum or other non-primitive field types, identifiers should be accepted

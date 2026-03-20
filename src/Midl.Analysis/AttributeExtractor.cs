@@ -138,6 +138,13 @@ public static class AttributeExtractor
                         Kind = ArgKind.Integer,
                         IntValue = ParseNumeric(token.Text)
                     },
+                    SyntaxKind.FloatLiteralToken => new AttributeArgValue
+                    {
+                        Kind = ArgKind.Float,
+                        FloatValue = double.TryParse(token.Text, System.Globalization.NumberStyles.Float,
+                            System.Globalization.CultureInfo.InvariantCulture, out var f) ? f : 0,
+                        StringValue = token.Text
+                    },
                     SyntaxKind.GuidLiteralToken => new AttributeArgValue
                     {
                         Kind = ArgKind.Guid,

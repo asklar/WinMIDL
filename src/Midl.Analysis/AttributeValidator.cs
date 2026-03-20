@@ -371,8 +371,8 @@ public class AttributeValidator
         {
             "String" or "string" or "HSTRING" => argKind is ArgKind.String,
             "Int32" or "Int16" or "Int64" or "UInt8" or "UInt16" or "UInt32" or "UInt64"
-                or "int" or "long" or "short" or "byte" or "Single" or "Double"
-                or "float" or "double" => argKind is ArgKind.Integer,
+                or "int" or "long" or "short" or "byte" => argKind is ArgKind.Integer,
+            "Single" or "Double" or "float" or "double" => argKind is ArgKind.Integer or ArgKind.Float,
             "Boolean" or "boolean" or "bool" => argKind is ArgKind.Identifier or ArgKind.Integer,
             "Guid" => argKind is ArgKind.Guid or ArgKind.String,
             // For enum types, type references, and unknown types: identifiers, type names,
@@ -385,6 +385,7 @@ public class AttributeValidator
     {
         ArgKind.String => "string literal",
         ArgKind.Integer => "numeric literal",
+        ArgKind.Float => "float literal",
         ArgKind.Identifier => "identifier",
         ArgKind.TypeName => "type name",
         ArgKind.Guid => "GUID literal",

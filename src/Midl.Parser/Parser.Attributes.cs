@@ -94,6 +94,7 @@ public sealed partial class Parser
                 break;
 
             case SyntaxKind.NumericLiteralToken:
+            case SyntaxKind.FloatLiteralToken:
                 children.Add(EatToken());
                 break;
 

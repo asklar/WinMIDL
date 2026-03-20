@@ -311,6 +311,21 @@ public sealed class Lexer
         {
             while (!_window.IsAtEnd && char.IsDigit(_window.PeekChar()))
                 _window.AdvanceChar();
+
+            // Float literal: digits followed by '.' and more digits (e.g. 1.1, 3.14)
+            if (!_window.IsAtEnd && _window.PeekChar() == '.' && char.IsDigit(_window.PeekChar(1)))
+            {
+                _window.AdvanceChar(); // '.'
+                while (!_window.IsAtEnd && char.IsDigit(_window.PeekChar()))
+                    _window.AdvanceChar();
+
+                // Optional f/F suffix
+                if (!_window.IsAtEnd && _window.PeekChar() is 'f' or 'F')
+                    _window.AdvanceChar();
+
+                string floatText = _window.GetText(start, _window.Position - start);
+                return (SyntaxKind.FloatLiteralToken, floatText, floatText);
+            }
         }
 
         // Optional U/L suffixes

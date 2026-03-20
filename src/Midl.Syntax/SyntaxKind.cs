@@ -53,6 +53,7 @@ public enum SyntaxKind : ushort
 
     // Tokens - Literals
     NumericLiteralToken,
+    FloatLiteralToken,
     StringLiteralToken,
     GuidLiteralToken,
 

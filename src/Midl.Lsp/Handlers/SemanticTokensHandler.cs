@@ -143,8 +143,8 @@ public static class SemanticTokensHandler
         if (token.Kind == SyntaxKind.StringLiteralToken)
             return TypeString;
 
-        // Numeric literals
-        if (token.Kind == SyntaxKind.NumericLiteralToken)
+        // Numeric and float literals
+        if (token.Kind is SyntaxKind.NumericLiteralToken or SyntaxKind.FloatLiteralToken)
             return TypeNumber;
 
         // Identifiers — resolve against symbols if available

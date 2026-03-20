@@ -89,6 +89,42 @@ public class LexerTests
     }
 
     [Fact]
+    public void LexesFloatLiterals()
+    {
+        var tokens = Lex("1.1 3.14 0.5 100.0");
+        Assert.Equal(5, tokens.Count); // 4 floats + EOF
+        Assert.Equal(SyntaxKind.FloatLiteralToken, tokens[0].Kind);
+        Assert.Equal("1.1", tokens[0].Text);
+        Assert.Equal(SyntaxKind.FloatLiteralToken, tokens[1].Kind);
+        Assert.Equal("3.14", tokens[1].Text);
+        Assert.Equal(SyntaxKind.FloatLiteralToken, tokens[2].Kind);
+        Assert.Equal("0.5", tokens[2].Text);
+        Assert.Equal(SyntaxKind.FloatLiteralToken, tokens[3].Kind);
+        Assert.Equal("100.0", tokens[3].Text);
+    }
+
+    [Fact]
+    public void FloatWithSuffix()
+    {
+        var tokens = Lex("1.5f");
+        Assert.Equal(2, tokens.Count); // float + EOF
+        Assert.Equal(SyntaxKind.FloatLiteralToken, tokens[0].Kind);
+        Assert.Equal("1.5f", tokens[0].Text);
+    }
+
+    [Fact]
+    public void IntegerDotIdentifier_NotFloat()
+    {
+        // "1.foo" should be 1 (integer), . (dot), foo (identifier) — not a float
+        var tokens = Lex("1.foo");
+        Assert.Equal(SyntaxKind.NumericLiteralToken, tokens[0].Kind);
+        Assert.Equal("1", tokens[0].Text);
+        Assert.Equal(SyntaxKind.DotToken, tokens[1].Kind);
+        Assert.Equal(SyntaxKind.IdentifierToken, tokens[2].Kind);
+        Assert.Equal("foo", tokens[2].Text);
+    }
+
+    [Fact]
     public void LexesStringLiteral()
     {
         var tokens = Lex("\"hello world\"");
