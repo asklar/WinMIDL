@@ -147,4 +147,18 @@ public class FormattingTests
         Assert.Contains("namespace Foo\n{", formatted);
         Assert.Contains("runtimeclass Widget\n    {", formatted);
     }
+
+    [Fact]
+    public void ClosingBraceOnSameLineAsContent_MovesToOwnLine()
+    {
+        var input = "namespace hello{\n\n    interface Ibar{\n        Single x { set; get;};     }\n\n}\n";
+        var formatted = FormattingHandler.Format(input);
+        // The closing } of the interface should be on its own line
+        Assert.DoesNotContain("};     }", formatted);
+        Assert.DoesNotContain(";}", formatted.Replace("};", "##").Replace("; }", "##"));
+        // Should have } on its own line
+        var lines = formatted.Split('\n');
+        var closingBraceLines = lines.Where(l => l.Trim() == "}" || l.Trim() == "};").ToList();
+        Assert.True(closingBraceLines.Count >= 2, "Should have at least 2 closing brace lines (interface + namespace)");
+    }
 }

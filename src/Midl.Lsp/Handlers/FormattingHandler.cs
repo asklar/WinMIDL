@@ -290,31 +290,57 @@ public static class FormattingHandler
         {
             var trimmed = line.Trim();
 
-            // Skip empty lines
             if (trimmed.Length == 0)
             {
                 result.Add(line);
                 continue;
             }
 
-            // Check if line ends with '{' and has content before it
-            // e.g. "namespace Foo{" or "runtimeclass Widget {"
+            // Split opening brace: "namespace Foo{" → "namespace Foo" + "{"
             if (trimmed.EndsWith('{') && trimmed.Length > 1)
             {
                 var beforeBrace = trimmed[..^1].TrimEnd();
                 if (beforeBrace.Length > 0)
                 {
-                    // Don't split inline property accessors: "Type Name { get; set; };"
-                    // Those have '}' on the same line — but we're checking lines ending with '{'
-                    // which means this is the opening brace of a block, not inline
                     result.Add(beforeBrace);
                     result.Add("{");
                     continue;
                 }
             }
 
-            // Check for "} else {" or similar patterns — not common in MIDL but handle
-            // Also handle "};" which should stay together
+            // Split closing brace that follows content on the same line:
+            // "Single x { set; get;};    }" → "Single x { set; get;};" + "}"
+            // But DON'T split inline accessors: "{ get; set; }" that are part of a property
+            if (trimmed.EndsWith('}') || trimmed.EndsWith("};"))
+            {
+                var suffix = trimmed.EndsWith("};") ? "};" : "}";
+                var core = trimmed[..^suffix.Length].TrimEnd();
+
+                // If there's content before the closing brace AND it's not just "{"
+                // then check if this is a standalone closing brace on a line with other stuff
+                if (core.Length > 0 && core != "{")
+                {
+                    // Count braces to see if } is closing a block (not an inline accessor)
+                    int depth = 0;
+                    bool inStr = false;
+                    for (int j = 0; j < core.Length; j++)
+                    {
+                        if (core[j] == '"') inStr = !inStr;
+                        if (inStr) continue;
+                        if (core[j] == '{') depth++;
+                        if (core[j] == '}') depth--;
+                    }
+
+                    // If depth is 0, the closing } is a block-level brace (not part of an inline accessor)
+                    if (depth == 0)
+                    {
+                        result.Add(core);
+                        result.Add(suffix);
+                        continue;
+                    }
+                }
+            }
+
             result.Add(line);
         }
 
