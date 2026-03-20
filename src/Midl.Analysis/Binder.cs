@@ -506,15 +506,39 @@ public class Binder
 
             switch (child.Kind)
             {
+                case SyntaxKind.ConstructorDeclaration:
+                {
+                    // MIDL1039: Constructors are not allowed in interfaces
+                    var ctorName = FindNameIdentifier(child);
+                    if (!string.IsNullOrEmpty(ctorName))
+                        _diagnostics.Add(DiagnosticDescriptors.ConstructorInInterface(ctorName, _posMap.GetPositionOf(ctorName)));
+                    break;
+                }
                 case SyntaxKind.MethodDeclaration:
-                    ifaceSymbol.AddMember(BindMethod(child, ifaceSymbol, ns));
+                {
+                    var method = BindMethod(child, ifaceSymbol, ns);
+                    // MIDL1040: Static members are not allowed in interfaces
+                    if (method.IsStatic && !string.IsNullOrEmpty(method.Name))
+                        _diagnostics.Add(DiagnosticDescriptors.StaticMemberInInterface(method.Name, _posMap.GetPositionOf(method.Name)));
+                    ifaceSymbol.AddMember(method);
                     break;
+                }
                 case SyntaxKind.PropertyDeclaration:
-                    ifaceSymbol.AddMember(BindProperty(child, ifaceSymbol, ns));
+                {
+                    var prop = BindProperty(child, ifaceSymbol, ns);
+                    if (prop.IsStatic && !string.IsNullOrEmpty(prop.Name))
+                        _diagnostics.Add(DiagnosticDescriptors.StaticMemberInInterface(prop.Name, _posMap.GetPositionOf(prop.Name)));
+                    ifaceSymbol.AddMember(prop);
                     break;
+                }
                 case SyntaxKind.EventDeclaration:
-                    ifaceSymbol.AddMember(BindEvent(child, ifaceSymbol, ns));
+                {
+                    var evt = BindEvent(child, ifaceSymbol, ns);
+                    if (evt.IsStatic && !string.IsNullOrEmpty(evt.Name))
+                        _diagnostics.Add(DiagnosticDescriptors.StaticMemberInInterface(evt.Name, _posMap.GetPositionOf(evt.Name)));
+                    ifaceSymbol.AddMember(evt);
                     break;
+                }
                 case SyntaxKind.VersionedBlock:
                     BindInterfaceVersionedBlockMembers(child, ifaceSymbol, ns);
                     break;
@@ -623,6 +647,19 @@ public class Binder
             if (child?.Kind == SyntaxKind.FieldDeclaration)
             {
                 symbol.AddField(BindField(child, symbol, ns));
+            }
+            // MIDL1041: Properties and events are not allowed in structs
+            else if (child?.Kind == SyntaxKind.PropertyDeclaration)
+            {
+                var propName = FindNameIdentifier(child);
+                if (!string.IsNullOrEmpty(propName))
+                    _diagnostics.Add(DiagnosticDescriptors.PropertyInStruct(propName, _posMap.GetPositionOf(propName)));
+            }
+            else if (child?.Kind == SyntaxKind.EventDeclaration)
+            {
+                var evtName = FindNameIdentifier(child);
+                if (!string.IsNullOrEmpty(evtName))
+                    _diagnostics.Add(DiagnosticDescriptors.EventInStruct(evtName, _posMap.GetPositionOf(evtName)));
             }
         }
 
@@ -756,6 +793,8 @@ public class Binder
         int closeBraceIdx = FindLastSlotIndex(node, SyntaxKind.CloseBraceToken);
         if (openBraceIdx < 0 || closeBraceIdx < 0) return;
 
+        var enumMemberNames = new HashSet<string>(StringComparer.Ordinal);
+
         for (int i = openBraceIdx + 1; i < closeBraceIdx; i++)
         {
             var child = node.GetSlot(i);
@@ -764,6 +803,12 @@ public class Binder
                 var memberName = FindFirstIdentifierText(child);
                 if (!string.IsNullOrEmpty(memberName))
                 {
+                    // MIDL1046: Duplicate enum member
+                    if (!enumMemberNames.Add(memberName))
+                    {
+                        _diagnostics.Add(DiagnosticDescriptors.DuplicateEnumMember(memberName, _posMap.GetPositionOf(memberName)));
+                    }
+
                     var member = new EnumMemberSymbol(memberName, symbol);
 
                     // Extract attributes on enum member
@@ -1045,6 +1090,12 @@ public class Binder
             param.Type = ExtractTypeRef(typeNode);
             TrackTypeRef(param.Type, ns);
             param.IsArray = param.Type.IsArray;
+        }
+
+        // MIDL1043: 'void' is not valid as a parameter type
+        if (param.Type.Name is "void" or "Void")
+        {
+            _diagnostics.Add(DiagnosticDescriptors.VoidParameterType(_posMap.GetPositionOf("void")));
         }
 
         // MIDL1013: Reserved parameter names
@@ -1714,12 +1765,18 @@ public class Binder
                 case RuntimeClassSymbol rc when !rc.IsExternal:
                     ValidateAccessModifiers(rc);
                     ValidateBaseClass(rc);
+                    ValidateEventDelegateTypes(rc.Members);
+                    ValidateDuplicateMethodNames(rc.Members);
                     break;
                 case InterfaceSymbol iface when !iface.IsExternal && !iface.IsSynthesized:
                     ValidateRequiredInterfaces(iface);
+                    ValidateEventDelegateTypes(iface.Members);
                     break;
             }
         }
+
+        ValidateCircularStructReferences(ns);
+
         foreach (var child in ns.ChildNamespaces.Values)
         {
             ValidateSemantics(child);
@@ -1801,9 +1858,106 @@ public class Binder
         }
     }
 
-    #endregion
+    /// <summary>MIDL1042: Validate that event types resolve to delegate types.</summary>
+    private void ValidateEventDelegateTypes(IReadOnlyList<ISymbol> members)
+    {
+        foreach (var member in members)
+        {
+            if (member is EventSymbol evt)
+            {
+                // Built-in types (Int32, String, etc.) are never delegates
+                if (evt.DelegateType.IsBuiltIn)
+                {
+                    _diagnostics.Add(DiagnosticDescriptors.EventWithNonDelegateType(
+                        evt.DelegateType.Name, evt.DelegateType.Position));
+                }
+                // Resolved to a non-delegate symbol
+                else if (evt.DelegateType.ResolvedSymbol != null
+                    && evt.DelegateType.ResolvedSymbol is not DelegateSymbol)
+                {
+                    _diagnostics.Add(DiagnosticDescriptors.EventWithNonDelegateType(
+                        evt.DelegateType.Name, evt.DelegateType.Position));
+                }
+            }
+        }
+    }
 
-    #region Namespace validation helpers
+    /// <summary>MIDL1044: Warn when methods share a name but neither has [overload].</summary>
+    private void ValidateDuplicateMethodNames(IReadOnlyList<ISymbol> members)
+    {
+        var methodsByName = new Dictionary<string, List<MethodSymbol>>(StringComparer.Ordinal);
+        foreach (var member in members)
+        {
+            if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name))
+            {
+                if (!methodsByName.TryGetValue(m.Name, out var list))
+                {
+                    list = [];
+                    methodsByName[m.Name] = list;
+                }
+                list.Add(m);
+            }
+        }
+
+        foreach (var (name, methods) in methodsByName)
+        {
+            if (methods.Count > 1 && methods.TrueForAll(m => string.IsNullOrEmpty(m.OverloadGroup)))
+            {
+                // Emit on the second method (first duplicate)
+                _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameWithoutOverload(
+                    name, _posMap.GetPositionOf(name)));
+            }
+        }
+    }
+
+    /// <summary>MIDL1045: Detect circular references between struct field types.</summary>
+    private void ValidateCircularStructReferences(NamespaceSymbol ns)
+    {
+        var structs = ns.Members.OfType<StructSymbol>().Where(s => !s.IsExternal).ToList();
+        if (structs.Count == 0) return;
+
+        var visiting = new HashSet<string>();
+        var visited = new HashSet<string>();
+        var reported = new HashSet<string>();
+
+        foreach (var s in structs)
+        {
+            DetectStructCycle(s, visiting, visited, reported);
+        }
+    }
+
+    private void DetectStructCycle(StructSymbol current, HashSet<string> visiting,
+        HashSet<string> visited, HashSet<string> reported)
+    {
+        if (visited.Contains(current.FullName)) return;
+        if (!visiting.Add(current.FullName)) return; // Already visiting — cycle found elsewhere
+
+        foreach (var field in current.Fields)
+        {
+            if (field.Type.ResolvedSymbol is StructSymbol fieldStruct && !fieldStruct.IsExternal)
+            {
+                if (visiting.Contains(fieldStruct.FullName))
+                {
+                    // Cycle detected
+                    var key = string.Compare(current.FullName, fieldStruct.FullName, StringComparison.Ordinal) < 0
+                        ? $"{current.FullName}<>{fieldStruct.FullName}"
+                        : $"{fieldStruct.FullName}<>{current.FullName}";
+                    if (reported.Add(key))
+                    {
+                        _diagnostics.Add(DiagnosticDescriptors.CircularStructReference(
+                            current.Name, fieldStruct.Name, _posMap.GetPositionOf(current.Name)));
+                    }
+                }
+                else
+                {
+                    DetectStructCycle(fieldStruct, visiting, visited, reported);
+                }
+            }
+        }
+
+        visiting.Remove(current.FullName);
+        visited.Add(current.FullName);
+    }
 
     private static bool IsTypeDeclaration(SyntaxKind kind) => kind is
         SyntaxKind.RuntimeClassDeclaration or SyntaxKind.InterfaceDeclaration

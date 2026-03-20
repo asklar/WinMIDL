@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    runtimeclass C
+    {
+        void M(void x);
+    }
+}

@@ -36,7 +36,8 @@ param(
     [string]$Mode = "compat",
     [string]$Filter = "*.idl",
     [switch]$ParseOnly,
-    [switch]$StopOnCrash
+    [switch]$StopOnCrash,
+    [switch]$ValidateNegatives
 )
 
 $ErrorActionPreference = "Continue"
@@ -167,6 +168,40 @@ Write-Host "  File breakdown:" -ForegroundColor DarkGray
 Write-Host "    Positive test files: $($positiveFiles.Count)" -ForegroundColor DarkGray
 Write-Host "    Negative test files: $($negativeFiles.Count)" -ForegroundColor DarkGray
 Write-Host ""
+
+# -ValidateNegatives: check that negative files produce errors and positive files compile clean
+if ($ValidateNegatives) {
+    Write-Host "=======================================" -ForegroundColor Cyan
+    Write-Host "  Positive/Negative Validation" -ForegroundColor Cyan
+    Write-Host "=======================================" -ForegroundColor Cyan
+
+    $positiveErrors = 0
+    $positiveClean = 0
+    foreach ($file in $positiveFiles) {
+        try {
+            $output = & $midlCli /Zs /nologo $modeSwitch $file.FullName 2>&1
+            $errorCount = ($output | Select-String "error MIDL").Count
+            if ($errorCount -gt 0) { $positiveErrors++ }
+            else { $positiveClean++ }
+        } catch { $positiveErrors++ }
+    }
+
+    $negativeCorrectlyFailed = 0
+    $negativeFalsePass = 0
+    foreach ($file in $negativeFiles) {
+        try {
+            $output = & $midlCli /Zs /nologo $modeSwitch $file.FullName 2>&1
+            $exitCode = $LASTEXITCODE
+            $errorCount = ($output | Select-String "error MIDL").Count
+            if ($errorCount -gt 0 -or $exitCode -gt 0) { $negativeCorrectlyFailed++ }
+            else { $negativeFalsePass++ }
+        } catch { $negativeCorrectlyFailed++ }
+    }
+
+    Write-Host "  Positive tests that pass clean: $positiveClean / $($positiveFiles.Count)" -ForegroundColor $(if ($positiveErrors -eq 0) { 'Green' } else { 'Yellow' })
+    Write-Host "  Negative tests that correctly fail: $negativeCorrectlyFailed / $($negativeFiles.Count)" -ForegroundColor $(if ($negativeFalsePass -eq 0) { 'Green' } else { 'Yellow' })
+    Write-Host ""
+}
 
 # The key metric: ZERO crashes
 if ($results.Crashed -eq 0) {

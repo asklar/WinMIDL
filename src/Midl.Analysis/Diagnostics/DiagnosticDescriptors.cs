@@ -231,4 +231,56 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1038",
             $"'{name}' is a runtimeclass. Only interfaces are allowed in 'requires' clauses.",
             position, name.Length);
+
+    // MIDL3 construct validation (MIDL1039–MIDL1047)
+
+    public static Diagnostic ConstructorInInterface(string name, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1039",
+            "Constructors are not allowed in interfaces. Only runtimeclasses can have constructors.",
+            position, name.Length);
+
+    public static Diagnostic StaticMemberInInterface(string memberName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1040",
+            $"Static members are not allowed in interfaces.",
+            position, memberName.Length);
+
+    public static Diagnostic PropertyInStruct(string name, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1041",
+            "Properties are not allowed in structs. Structs can only contain fields.",
+            position, name.Length);
+
+    public static Diagnostic EventInStruct(string name, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1041",
+            "Events are not allowed in structs.",
+            position, name.Length);
+
+    public static Diagnostic EventWithNonDelegateType(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1042",
+            $"Event type '{typeName}' is not a delegate type.",
+            position, typeName.Length);
+
+    public static Diagnostic VoidParameterType(int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1043",
+            "'void' is not valid as a parameter type.",
+            position, "void".Length);
+
+    public static Diagnostic DuplicateMethodNameWithoutOverload(string name, int position) =>
+        new(DiagnosticSeverity.Warning, "MIDL1044",
+            $"Methods '{name}' have same name but different signatures. Use [overload(\"name\")] and [method_name(\"name\")] to disambiguate.",
+            position, name.Length);
+
+    public static Diagnostic CircularStructReference(string structA, string structB, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1045",
+            $"Circular reference between struct '{structA}' and struct '{structB}'.",
+            position, structA.Length);
+
+    public static Diagnostic DuplicateEnumMember(string memberName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1046",
+            $"Duplicate enum member '{memberName}'.",
+            position, memberName.Length);
+
+    public static Diagnostic ImportFileNotFound(string fileName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1047",
+            $"Cannot find imported file '{fileName}'.",
+            position, fileName.Length);
 }

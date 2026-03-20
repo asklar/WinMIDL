@@ -1,0 +1,9 @@
+{
+    "diagnostics": [
+        {
+            "code": "MIDL1043",
+            "severity": "Error",
+            "messageContains": "'void' is not valid as a parameter type"
+        }
+    ]
+}

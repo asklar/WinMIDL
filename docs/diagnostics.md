@@ -24,6 +24,15 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 | [MIDL1035](#midl1035) | Error | Base type is not a runtimeclass |
 | [MIDL1036](#midl1036) | Error | Base class is sealed |
 | [MIDL1038](#midl1038) | Error | Runtimeclass in requires clause |
+| [MIDL1039](#midl1039) | Error | Constructor in interface |
+| [MIDL1040](#midl1040) | Error | Static member in interface |
+| [MIDL1041](#midl1041) | Error | Property or event in struct |
+| [MIDL1042](#midl1042) | Error | Event with non-delegate type |
+| [MIDL1043](#midl1043) | Error | Void parameter type |
+| [MIDL1044](#midl1044) | Warning | Duplicate method name without \[overload\] |
+| [MIDL1045](#midl1045) | Error | Circular struct reference |
+| [MIDL1046](#midl1046) | Error | Duplicate enum member |
+| [MIDL1047](#midl1047) | Error | Import file not found |
 | [MIDL1100](#midl1100) | Error | Unexpected code (skipped tokens) |
 | [MIDL1101](#midl1101) | Error | Unexpected character |
 | [MIDL1102](#midl1102) | Error | Expected token missing |
@@ -35,7 +44,7 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 
 ---
 
-## Semantic Errors (MIDL1001–MIDL1038)
+## Semantic Errors (MIDL1001–MIDL1047)
 
 These errors are emitted during semantic analysis (binding phase).
 
@@ -321,6 +330,202 @@ error MIDL1038: 'MyClass' is a runtimeclass. Only interfaces are allowed in 'req
 An interface's `requires` clause references a runtimeclass instead of an interface. The `requires` clause is for specifying interface dependencies only.
 
 **Fix:** Replace the runtimeclass with the interface that the runtimeclass implements, or remove it from the `requires` clause.
+
+---
+
+### MIDL1039
+
+**Constructor in interface**
+
+```
+error MIDL1039: Constructors are not allowed in interfaces. Only runtimeclasses can have constructors.
+```
+
+An interface declaration contains a constructor. WinRT interfaces cannot have constructors — only `runtimeclass` types can declare constructors.
+
+**Fix:** Move the constructor to a `runtimeclass`, or remove it:
+
+```idl
+// Wrong:
+interface IFoo { IFoo(); }
+
+// Right:
+runtimeclass Foo { Foo(); }
+```
+
+---
+
+### MIDL1040
+
+**Static member in interface**
+
+```
+error MIDL1040: Static members are not allowed in interfaces.
+```
+
+An interface contains a member declared as `static`. WinRT interfaces cannot have static members — static members belong on `runtimeclass` types.
+
+**Fix:** Move the static member to a `runtimeclass`, or remove the `static` keyword:
+
+```idl
+// Wrong:
+interface IFoo { static void Reset(); }
+
+// Right:
+runtimeclass Foo { static void Reset(); }
+```
+
+---
+
+### MIDL1041
+
+**Property or event in struct**
+
+```
+error MIDL1041: Properties are not allowed in structs. Structs can only contain fields.
+error MIDL1041: Events are not allowed in structs.
+```
+
+A struct declaration contains a property or event. WinRT structs can only contain fields (plain data members). Properties and events belong on `interface` or `runtimeclass` types.
+
+**Fix:** Use a plain field instead of a property, or move to a `runtimeclass`:
+
+```idl
+// Wrong:
+struct S { String Name { get; }; }
+
+// Right:
+struct S { String Name; }
+```
+
+---
+
+### MIDL1042
+
+**Event with non-delegate type**
+
+```
+error MIDL1042: Event type 'Int32' is not a delegate type.
+```
+
+An event is declared with a type that is not a delegate. WinRT events must use a delegate type (e.g., `EventHandler`, `TypedEventHandler<TSender, TArgs>`, or a custom delegate).
+
+**Fix:** Declare a delegate type and use it for the event:
+
+```idl
+// Wrong:
+event Int32 Changed;
+
+// Right:
+delegate void ChangedHandler(Object sender);
+event ChangedHandler Changed;
+```
+
+---
+
+### MIDL1043
+
+**Void parameter type**
+
+```
+error MIDL1043: 'void' is not valid as a parameter type.
+```
+
+A method parameter is declared with type `void`. The `void` keyword is only valid as a return type (meaning the method returns nothing), not as a parameter type.
+
+**Fix:** Use an actual type for the parameter:
+
+```idl
+// Wrong:
+void M(void x);
+
+// Right:
+void M(Int32 x);
+```
+
+---
+
+### MIDL1044
+
+**Duplicate method name without \[overload\]**
+
+```
+warning MIDL1044: Methods 'Do' have same name but different signatures. Use [overload("name")] and [method_name("name")] to disambiguate.
+```
+
+A runtimeclass has multiple methods with the same name but no `[overload]` attribute. WinRT requires overloaded methods to have unique ABI names, which are specified via `[overload]` and `[method_name]` attributes.
+
+**Fix:** Add `[overload]` and `[method_name]` attributes:
+
+```idl
+[overload("DoWithInt")]
+[method_name("DoWithInt")]
+void Do(Int32 x);
+
+[overload("DoWithString")]
+[method_name("DoWithString")]
+void Do(String x);
+```
+
+---
+
+### MIDL1045
+
+**Circular struct reference**
+
+```
+error MIDL1045: Circular reference between struct 'A' and struct 'B'.
+```
+
+Two or more structs form a circular reference through their fields. WinRT structs are value types and cannot contain circular references (this would require infinite storage).
+
+**Fix:** Break the cycle by using a `runtimeclass` (reference type) for one of the types, or restructure the data:
+
+```idl
+// Wrong:
+struct A { B b; }
+struct B { A a; }
+
+// Right:
+struct A { Int32 bId; }
+struct B { Int32 aId; }
+```
+
+---
+
+### MIDL1046
+
+**Duplicate enum member**
+
+```
+error MIDL1046: Duplicate enum member 'A'.
+```
+
+An enum contains two members with the same name.
+
+**Fix:** Remove the duplicate or rename one of the members:
+
+```idl
+enum E { A, B, C }
+```
+
+---
+
+### MIDL1047
+
+**Import file not found**
+
+```
+error MIDL1047: Cannot find imported file 'missing.idl'.
+```
+
+An `import` directive references a file that cannot be found relative to the current file or any include path (`/I`).
+
+**Fix:** Check the file path spelling, ensure the file exists, or add the directory to include paths with `/I path`:
+
+```idl
+import "types.idl";  // Must exist relative to current file or /I paths
+```
 
 ---
 

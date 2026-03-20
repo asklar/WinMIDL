@@ -1,3 +1,4 @@
+using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
 using Midl.Syntax;
 
@@ -113,7 +114,12 @@ public static class CompilationHelper
             if (pathToken == null) continue;
 
             var resolved = importResolver.ResolveImportPath(pathToken);
-            if (resolved == null) continue; // File not found — silently skip for now
+            if (resolved == null)
+            {
+                // MIDL1047: Import file not found
+                diagnostics.Add(DiagnosticDescriptors.ImportFileNotFound(pathToken, 0));
+                continue;
+            }
 
             if (importResolver.IsAlreadyImported(resolved)) continue; // Skip redundant
             importResolver.MarkImported(resolved);
