@@ -14,6 +14,11 @@ public class EnumMemberSymbol : ISymbol
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
 
+    // Extracted attribute data
+    public List<AttributeData> Attributes { get; } = new();
+    public string? ContractName { get; set; }
+    public int? ContractVersion { get; set; }
+
     public EnumMemberSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;

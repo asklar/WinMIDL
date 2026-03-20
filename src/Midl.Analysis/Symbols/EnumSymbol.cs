@@ -19,6 +19,11 @@ public class EnumSymbol : ISymbol
     private readonly List<EnumMemberSymbol> _members = [];
     public IReadOnlyList<EnumMemberSymbol> EnumMembers => _members;
 
+    // Extracted attribute data
+    public List<AttributeData> Attributes { get; } = new();
+    public string? ContractName { get; set; }
+    public int? ContractVersion { get; set; }
+
     public EnumSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;

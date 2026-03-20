@@ -17,6 +17,9 @@ public class StructSymbol : ISymbol
     private readonly List<FieldSymbol> _fields = [];
     public IReadOnlyList<FieldSymbol> Fields => _fields;
 
+    // Extracted attribute data
+    public List<AttributeData> Attributes { get; } = new();
+
     public StructSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;

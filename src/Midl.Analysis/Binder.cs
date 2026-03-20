@@ -183,6 +183,14 @@ public class Binder
             symbol.Uuid = rcUuid;
         }
 
+        // Extract all attributes
+        if (rcAttrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(rcAttrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
+
         // Check modifiers
         var modList = FindChild(node, SyntaxKind.ModifierList);
         if (modList != null)
@@ -320,6 +328,14 @@ public class Binder
             symbol.Uuid = uuid;
         }
 
+        // Extract all attributes
+        if (attrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(attrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
+
         // Requires clause
         var requiresClause = FindChild(node, SyntaxKind.RequiresClause);
         if (requiresClause != null)
@@ -429,6 +445,15 @@ public class Binder
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
+        // Extract all attributes
+        var delAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (delAttrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(delAttrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
+
         // Parameters
         var paramList = FindChild(node, SyntaxKind.ParameterList);
         if (paramList != null)
@@ -455,6 +480,15 @@ public class Binder
         var symbol = new StructSymbol(name, ns);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
+
+        // Extract all attributes
+        var structAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (structAttrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(structAttrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
 
         // Fields between braces
         int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
@@ -517,10 +551,18 @@ public class Binder
         _symbolTable.Define(symbol);
 
         // Check for [flags] attribute
-        var attrList = FindChild(node, SyntaxKind.AttributeList);
-        if (attrList != null && HasAttribute(attrList, "flags"))
+        var enumAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (enumAttrList != null && HasAttribute(enumAttrList, "flags"))
         {
             symbol.IsFlags = true;
+        }
+
+        // Extract all attributes on the enum
+        if (enumAttrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(enumAttrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
         }
 
         // Enum members between braces
@@ -536,7 +578,18 @@ public class Binder
                 var memberName = FindFirstIdentifierText(child);
                 if (!string.IsNullOrEmpty(memberName))
                 {
-                    symbol.AddMember(new EnumMemberSymbol(memberName, symbol));
+                    var member = new EnumMemberSymbol(memberName, symbol);
+
+                    // Extract attributes on enum member
+                    var memberAttrList = FindChild(child, SyntaxKind.AttributeList);
+                    if (memberAttrList != null)
+                    {
+                        var memberAttrs = AttributeExtractor.Extract(memberAttrList, _posMap);
+                        member.Attributes.AddRange(memberAttrs);
+                        ApplyWellKnownAttributes(member, memberAttrs);
+                    }
+
+                    symbol.AddMember(member);
                 }
             }
         }
@@ -560,6 +613,15 @@ public class Binder
         var symbol = new ApiContractSymbol(name, ns);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
+
+        // Extract all attributes
+        var acAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (acAttrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(acAttrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
     }
 
     #endregion
@@ -589,6 +651,15 @@ public class Binder
         var name = FindNameIdentifier(node);
         var symbol = new ConstructorSymbol(name, containingSymbol);
 
+        // Extract all attributes
+        var ctorAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (ctorAttrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(ctorAttrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
+
         var paramList = FindChild(node, SyntaxKind.ParameterList);
         if (paramList != null)
         {
@@ -607,6 +678,15 @@ public class Binder
         var symbol = new MethodSymbol(nameText, containingSymbol);
         symbol.ReturnType = ExtractTypeRef(returnTypeNode);
         TrackTypeRef(symbol.ReturnType, ns);
+
+        // Extract all attributes
+        var methodAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (methodAttrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(methodAttrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
 
         // Check modifiers
         var modList = FindChild(node, SyntaxKind.ModifierList);
@@ -639,6 +719,15 @@ public class Binder
         var symbol = new PropertySymbol(nameText, containingSymbol);
         symbol.Type = ExtractTypeRef(typeNode);
         TrackTypeRef(symbol.Type, ns);
+
+        // Extract all attributes
+        var propAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (propAttrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(propAttrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
 
         // Check modifiers
         var modList = FindChild(node, SyntaxKind.ModifierList);
@@ -685,6 +774,15 @@ public class Binder
         var symbol = new EventSymbol(name, containingSymbol);
         symbol.DelegateType = ExtractTypeRef(typeNode);
         TrackTypeRef(symbol.DelegateType, ns);
+
+        // Extract all attributes
+        var eventAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (eventAttrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(eventAttrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
 
         // Check modifiers
         var modList = FindChild(node, SyntaxKind.ModifierList);
@@ -1142,6 +1240,58 @@ public class Binder
     #endregion
 
     #region Helpers
+
+    private static void ApplyWellKnownAttributes(ISymbol symbol, List<AttributeData> attrs)
+    {
+        foreach (var attr in attrs)
+        {
+            switch (attr.Name.ToLowerInvariant())
+            {
+                case "contract":
+                    var contractName = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
+                    var contractVersion = (int?)attr.GetInt(1);
+                    if (symbol is RuntimeClassSymbol rc) { rc.ContractName = contractName; rc.ContractVersion = contractVersion; }
+                    if (symbol is InterfaceSymbol intf) { intf.ContractName = contractName; intf.ContractVersion = contractVersion; }
+                    if (symbol is EnumSymbol en) { en.ContractName = contractName; en.ContractVersion = contractVersion; }
+                    if (symbol is EnumMemberSymbol em) { em.ContractName = contractName; em.ContractVersion = contractVersion; }
+                    break;
+                case "contractversion":
+                    if (symbol is ApiContractSymbol ac) ac.ContractVersion = (int?)attr.GetInt(0);
+                    break;
+                case "version":
+                    if (symbol is RuntimeClassSymbol rc2) rc2.Version = (int?)attr.GetInt(0);
+                    if (symbol is InterfaceSymbol intf2) intf2.Version = (int?)attr.GetInt(0);
+                    break;
+                case "threading":
+                    if (symbol is RuntimeClassSymbol rc3) rc3.ThreadingModel = attr.GetIdentifier(0);
+                    break;
+                case "marshaling_behavior":
+                    if (symbol is RuntimeClassSymbol rc4) rc4.MarshalingBehavior = attr.GetIdentifier(0);
+                    break;
+                case "deprecated":
+                    if (symbol is RuntimeClassSymbol rc5) rc5.DeprecatedMessage = attr.GetString(0);
+                    break;
+                case "method_name":
+                    if (symbol is MethodSymbol m) m.MethodNameOverride = attr.GetString(0);
+                    break;
+                case "overload":
+                    if (symbol is MethodSymbol m2) m2.OverloadGroup = attr.GetString(0);
+                    break;
+                case "default_overload":
+                    if (symbol is MethodSymbol m3) m3.IsDefaultOverload = true;
+                    break;
+                case "return_name":
+                    if (symbol is MethodSymbol m4) m4.ReturnNameOverride = attr.GetString(0);
+                    break;
+                case "remote_async":
+                    if (symbol is MethodSymbol m5) m5.IsRemoteAsync = true;
+                    break;
+                case "default_interface":
+                    if (symbol is RuntimeClassSymbol rc6) rc6.IsDefaultInterface = true;
+                    break;
+            }
+        }
+    }
 
     private void TrackTypeRef(TypeRef typeRef, NamespaceSymbol ns)
     {

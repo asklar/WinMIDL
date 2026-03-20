@@ -33,6 +33,16 @@ public class RuntimeClassSymbol : ISymbol
     public bool HasDefaultActivation { get; set; }
     public List<InterfaceSymbol> ImplementedInterfaces { get; } = new();
 
+    // Extracted attribute data
+    public List<AttributeData> Attributes { get; } = new();
+    public string? ContractName { get; set; }
+    public int? ContractVersion { get; set; }
+    public int? Version { get; set; }
+    public string? ThreadingModel { get; set; }
+    public string? MarshalingBehavior { get; set; }
+    public string? DeprecatedMessage { get; set; }
+    public bool IsDefaultInterface { get; set; }
+
     public RuntimeClassSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;

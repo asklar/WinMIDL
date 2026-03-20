@@ -24,6 +24,12 @@ public class InterfaceSymbol : ISymbol
     private readonly List<ISymbol> _members = [];
     public IReadOnlyList<ISymbol> Members => _members;
 
+    // Extracted attribute data
+    public List<AttributeData> Attributes { get; } = new();
+    public string? ContractName { get; set; }
+    public int? ContractVersion { get; set; }
+    public int? Version { get; set; }
+
     public InterfaceSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;

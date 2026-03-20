@@ -15,6 +15,10 @@ public class ApiContractSymbol : ISymbol
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
 
+    // Extracted attribute data
+    public List<AttributeData> Attributes { get; } = new();
+    public int? ContractVersion { get; set; }
+
     public ApiContractSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;

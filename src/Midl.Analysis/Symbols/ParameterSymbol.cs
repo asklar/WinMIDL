@@ -19,6 +19,9 @@ public class ParameterSymbol : ISymbol
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
 
+    // Extracted attribute data
+    public List<AttributeData> Attributes { get; } = new();
+
     public ParameterSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;

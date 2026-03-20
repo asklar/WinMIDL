@@ -19,6 +19,14 @@ public class MethodSymbol : ISymbol
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
 
+    // Extracted attribute data
+    public List<AttributeData> Attributes { get; } = new();
+    public string? MethodNameOverride { get; set; }
+    public string? OverloadGroup { get; set; }
+    public bool IsDefaultOverload { get; set; }
+    public string? ReturnNameOverride { get; set; }
+    public bool IsRemoteAsync { get; set; }
+
     public MethodSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;
