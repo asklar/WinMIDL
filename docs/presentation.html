@@ -1009,7 +1009,7 @@ h3 {
     </div>
     <div class="principle-card">
       <div class="principle-title">NativeAOT</div>
-      <div class="principle-desc">3.6 MB single-file binary. 27 ms warm compile. No .NET runtime required at deployment.</div>
+      <div class="principle-desc">3.6 MB single-file binary. 14 ms warm compile. No .NET runtime required at deployment.</div>
     </div>
     <div class="principle-card">
       <div class="principle-title">.NET 10 / C#</div>
@@ -1141,11 +1141,13 @@ h3 {
   <h2>VS Code — <span class="accent">Real-time Diagnostics</span></h2>
   <div class="vscode-mock">
     <div class="vscode-titlebar">
-      <div class="terminal-dot red" style="width:10px;height:10px;"></div>
-      <div class="terminal-dot yellow" style="width:10px;height:10px;"></div>
-      <div class="terminal-dot green" style="width:10px;height:10px;"></div>
       <div class="vscode-tab">Widget.idl</div>
       <div class="vscode-tab-inactive">MyApp.idl</div>
+      <div class="window-controls" style="margin-left:auto;">
+        <span class="window-btn">━</span>
+        <span class="window-btn">□</span>
+        <span class="window-btn close">✕</span>
+      </div>
     </div>
     <div class="vscode-editor">
       <div class="vscode-gutter">
@@ -1317,10 +1319,12 @@ h3 {
   </ul>
   <div class="terminal">
     <div class="terminal-bar">
-      <div class="terminal-dot red"></div>
-      <div class="terminal-dot yellow"></div>
-      <div class="terminal-dot green"></div>
       <div class="terminal-title">PowerShell — winmidl</div>
+      <div class="window-controls">
+        <span class="window-btn">━</span>
+        <span class="window-btn">□</span>
+        <span class="window-btn close">✕</span>
+      </div>
     </div>
     <div class="terminal-body">
 <span class="prompt">❯</span> <span class="cmd">winmidl</span> <span class="flag">/winrt</span> <span class="file">Widget.idl</span>
@@ -1398,27 +1402,32 @@ h3 {
       <tr>
         <td class="metric">Warm compile</td>
         <td class="old">19 ms</td>
-        <td class="new">27 ms <span style="color:var(--text-dim);font-weight:400;">(1.4×)</span></td>
+        <td class="new">14 ms <span style="color:var(--success);font-weight:400;">✓ faster</span></td>
       </tr>
       <tr>
         <td class="metric">Cold start</td>
         <td class="old">~15 ms</td>
-        <td class="new">81 ms</td>
+        <td class="new">27 ms</td>
       </tr>
       <tr>
-        <td class="metric">LSP debounce</td>
-        <td class="na">N/A</td>
-        <td class="new">300 ms</td>
+        <td class="metric">Error recovery</td>
+        <td class="old" style="color:var(--error);">crashes</td>
+        <td class="new" style="color:var(--success);">graceful</td>
       </tr>
       <tr>
-        <td class="metric">WinMD loading</td>
-        <td class="na">N/A</td>
-        <td class="new">5 ms <span style="color:var(--text-dim);font-weight:400;">(lazy index)</span></td>
+        <td class="metric">LSP support</td>
+        <td class="old" style="color:var(--text-dim);">none</td>
+        <td class="new" style="color:var(--success);">full</td>
+      </tr>
+      <tr>
+        <td class="metric">Diagnostics</td>
+        <td class="old">~20 codes</td>
+        <td class="new">91 codes</td>
       </tr>
     </tbody>
   </table>
   <div class="note" style="font-size:15px;margin-top:24px;font-style:normal;">
-    Performance within <strong style="color:var(--white);">1.4×</strong> of the original — with dramatically better diagnostics and editor support
+    <strong style="color:var(--success);">Faster</strong> than the original on warm compile, with dramatically better diagnostics and editor support
   </div>
 </div>
 
