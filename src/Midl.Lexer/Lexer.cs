@@ -9,6 +9,7 @@ public sealed class Lexer
 {
     private readonly SlidingTextWindow _window;
     private readonly int _sourceLength;
+    private SyntaxKind _lastTokenKind = SyntaxKind.None;
 
     public Lexer(string sourceText)
     {
@@ -33,6 +34,7 @@ public sealed class Lexer
                 trailing.Count > 0 ? trailing.ToArray() : null);
 
             tokens.Add(token);
+            _lastTokenKind = kind;
 
             if (kind == SyntaxKind.EndOfFileToken)
                 break;
@@ -211,11 +213,9 @@ public sealed class Lexer
                 _window.AdvanceChar();
                 if (_window.PeekChar() == '-') { _window.AdvanceChar(); return (SyntaxKind.MinusMinusToken, "--", null); }
                 if (_window.PeekChar() == '>') { _window.AdvanceChar(); return (SyntaxKind.ArrowToken, "->", null); }
-                // Negative numeric literal: -digits or -digits.digits
-                if (char.IsDigit(_window.PeekChar()))
+                // Negative numeric literal only when previous token is a value-preceding operator
+                if (char.IsDigit(_window.PeekChar()) && IsValuePrecedingToken(_lastTokenKind))
                 {
-                    // Back up: ScanNumericLiteral expects to start at the first digit.
-                    // We already consumed '-', so prepend it to the result.
                     var (numKind, numText, numVal) = ScanNumericLiteral();
                     return (numKind, "-" + numText, "-" + numText);
                 }
@@ -382,6 +382,22 @@ public sealed class Lexer
 
     private static bool IsHexDigit(char ch) =>
         char.IsDigit(ch) || ch is (>= 'a' and <= 'f') or (>= 'A' and <= 'F');
+
+    /// <summary>
+    /// Returns true if the previous token kind can precede a negative numeric literal.
+    /// This prevents "-1234" from being a single token in contexts like UUID dashes.
+    /// </summary>
+    private static bool IsValuePrecedingToken(SyntaxKind kind) => kind is
+        SyntaxKind.None              // start of input
+        or SyntaxKind.OpenParenToken // (-1)
+        or SyntaxKind.CommaToken     // foo(-1, -2)
+        or SyntaxKind.EqualsToken    // A = -1
+        or SyntaxKind.OpenBracketToken // [-1]
+        or SyntaxKind.ColonToken     // case: -1
+        or SyntaxKind.PlusToken      // 1 + -2
+        or SyntaxKind.MinusToken     // 1 - -2
+        or SyntaxKind.AsteriskToken  // * -1
+        or SyntaxKind.SlashToken;    // / -1
 
     private SyntaxTrivia ScanPreprocessorDirective()
     {

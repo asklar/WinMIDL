@@ -83,7 +83,6 @@ public static class SyntaxErrorCollector
         {
             if (token.Kind == SyntaxKind.MissingToken && token.Value is string expected)
             {
-                // Position is where we are in the source — right where the missing token should be
                 diagnostics.Add(new Diagnostic(
                     DiagnosticSeverity.Error,
                     "MIDL1102",
@@ -92,6 +91,23 @@ public static class SyntaxErrorCollector
                     1));
             }
             return position + token.FullWidth;
+        }
+
+        // SkippedTokens node anywhere in the tree — parser had to skip to recover
+        if (node.Kind == SyntaxKind.SkippedTokens)
+        {
+            var text = CollectText(node).Trim();
+            // Skip content that's purely semicolons (trailing semicolons after declarations)
+            if (text.Length > 0 && text.Replace(";", "").Trim().Length > 0)
+            {
+                diagnostics.Add(new Diagnostic(
+                    DiagnosticSeverity.Error,
+                    "MIDL1100",
+                    $"Unexpected code '{TruncateText(text)}'.",
+                    position,
+                    Math.Max(1, node.FullWidth)));
+            }
+            return position + node.FullWidth;
         }
 
         int pos = position;
@@ -104,6 +120,27 @@ public static class SyntaxErrorCollector
             }
         }
         return pos;
+    }
+
+    private static string TruncateText(string text)
+    {
+        return text.Length > 40 ? text[..37] + "..." : text;
+    }
+
+    private static string CollectText(GreenNode node)
+    {
+        if (node is SyntaxToken t) return t.Text;
+        var parts = new List<string>();
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot != null)
+            {
+                var text = CollectText(slot);
+                if (text.Length > 0) parts.Add(text);
+            }
+        }
+        return string.Join(" ", parts);
     }
 
     private static string FormatErrorTokenMessage(string text)

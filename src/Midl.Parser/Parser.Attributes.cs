@@ -95,7 +95,17 @@ public sealed partial class Parser
 
             case SyntaxKind.NumericLiteralToken:
             case SyntaxKind.FloatLiteralToken:
-                children.Add(EatToken());
+                // Check for unquoted GUID pattern: 12345678-1234-1234-1234-123456789abc
+                if (Current.Kind == SyntaxKind.NumericLiteralToken &&
+                    Peek(1).Kind == SyntaxKind.MinusToken &&
+                    IsGuidPattern())
+                {
+                    children.Add(ParseUnquotedGuid());
+                }
+                else
+                {
+                    children.Add(EatToken());
+                }
                 break;
 
             case SyntaxKind.GuidLiteralToken:
@@ -111,7 +121,15 @@ public sealed partial class Parser
                 // Identifier or dotted name, or keyword used as value
                 if (IsIdentifierOrKeyword(Current.Kind))
                 {
-                    children.Add(ParseDottedName());
+                    // Check for unquoted GUID starting with hex identifier: AAAAAAAA-BBBB-...
+                    if (Peek(1).Kind == SyntaxKind.MinusToken && IsGuidPattern())
+                    {
+                        children.Add(ParseUnquotedGuid());
+                    }
+                    else
+                    {
+                        children.Add(ParseDottedName());
+                    }
                 }
                 else
                 {
@@ -122,6 +140,45 @@ public sealed partial class Parser
         }
 
         return MakeNode(SyntaxKind.AttributeArgument, children);
+    }
+
+    /// <summary>Check if current position looks like an unquoted GUID: hex-hex-hex-hex-hex</summary>
+    private bool IsGuidPattern()
+    {
+        // Look ahead for pattern: num - num/id - num/id - num/id - num/id
+        int dashCount = 0;
+        int look = 1;
+        while (look < 12) // GUIDs have 4 dashes, scan ahead enough tokens
+        {
+            var t = Peek(look);
+            if (t.Kind == SyntaxKind.MinusToken) dashCount++;
+            else if (t.Kind is SyntaxKind.NumericLiteralToken or SyntaxKind.IdentifierToken) { }
+            else break;
+            look++;
+        }
+        return dashCount >= 4;
+    }
+
+    /// <summary>Consume tokens forming an unquoted GUID and produce a single GuidLiteralToken.</summary>
+    private GreenNode ParseUnquotedGuid()
+    {
+        var parts = new List<string>();
+        var consumed = new List<GreenNode?>();
+        // Consume until we hit comma, close paren, close bracket, or non-guid token
+        while (!At(SyntaxKind.CloseParenToken) && !At(SyntaxKind.CloseBracketToken) &&
+               !At(SyntaxKind.CommaToken) && !At(SyntaxKind.EndOfFileToken))
+        {
+            if (Current.Kind is SyntaxKind.NumericLiteralToken or SyntaxKind.IdentifierToken
+                or SyntaxKind.MinusToken)
+            {
+                parts.Add(Current.Text);
+                consumed.Add(EatToken());
+            }
+            else break;
+        }
+        var guidText = string.Join("", parts);
+        // Create a composite node so FullWidth is correct
+        return MakeNode(SyntaxKind.GuidExpression, consumed);
     }
 
     /// <summary>Parse a parenthesized attribute argument: (expr)</summary>

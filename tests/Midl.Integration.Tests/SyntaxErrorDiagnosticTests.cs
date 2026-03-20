@@ -158,4 +158,44 @@ namespace TestApp
         var syntaxErrors = compilation.Diagnostics.Where(d => d.Code == "MIDL1102").ToList();
         Assert.Empty(syntaxErrors);
     }
+
+    [Fact]
+    public void UnrecognizedKeyword_InNamespace_ProducesError()
+    {
+        var compilation = CompilationHelper.Compile("namespace foo { class x { } }");
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1100");
+    }
+
+    [Fact]
+    public void BareIdentifier_InNamespace_ProducesError()
+    {
+        var compilation = CompilationHelper.Compile("namespace foo { bar }");
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1100");
+    }
+
+    [Fact]
+    public void UnquotedGuid_InAttribute_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N {
+                [uuid(12345678-1234-1234-1234-123456789abc)]
+                interface IFoo { void Bar(); };
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1100");
+    }
+
+    [Fact]
+    public void UnquotedHexGuid_InAttribute_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N {
+                [uuid(AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE)]
+                interface IFoo { void Bar(); };
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1100");
+    }
 }

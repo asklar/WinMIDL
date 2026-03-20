@@ -180,6 +180,18 @@ public static class AttributeExtractor
                 };
             }
 
+            // GuidExpression → GUID (unquoted: 12345678-1234-1234-1234-123456789abc)
+            if (slot.Kind == SyntaxKind.GuidExpression)
+            {
+                var guidText = CollectText(slot).Replace(" ", "");
+                return new AttributeArgValue
+                {
+                    Kind = ArgKind.Guid,
+                    GuidValue = Guid.TryParse(guidText, out var g) ? g : default,
+                    StringValue = guidText
+                };
+            }
+
             // SimpleName → Identifier
             if (slot.Kind == SyntaxKind.SimpleName)
             {
