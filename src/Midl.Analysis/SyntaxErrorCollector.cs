@@ -67,33 +67,43 @@ public static class SyntaxErrorCollector
         }
 
         // Walk the green tree to find MissingTokens (parser-synthesized)
-        CollectMissingTokens(root, diagnostics);
+        // Pass the token list so we can compute positions
+        CollectMissingTokens(root, tokens, diagnostics);
     }
 
-    private static void CollectMissingTokens(GreenNode node, List<Diagnostic> diagnostics)
+    private static void CollectMissingTokens(GreenNode node, IReadOnlyList<SyntaxToken> tokens, List<Diagnostic> diagnostics)
+    {
+        // Walk the tree, tracking cumulative position through FullWidth
+        CollectMissingTokensRecursive(node, 0, diagnostics);
+    }
+
+    private static int CollectMissingTokensRecursive(GreenNode node, int position, List<Diagnostic> diagnostics)
     {
         if (node is SyntaxToken token)
         {
             if (token.Kind == SyntaxKind.MissingToken && token.Value is string expected)
             {
+                // Position is where we are in the source — right where the missing token should be
                 diagnostics.Add(new Diagnostic(
                     DiagnosticSeverity.Error,
                     "MIDL1102",
                     $"Expected '{expected}'",
-                    0,
+                    position,
                     1));
             }
-            return;
+            return position + token.FullWidth;
         }
 
+        int pos = position;
         for (int i = 0; i < node.SlotCount; i++)
         {
             var slot = node.GetSlot(i);
             if (slot != null)
             {
-                CollectMissingTokens(slot, diagnostics);
+                pos = CollectMissingTokensRecursive(slot, pos, diagnostics);
             }
         }
+        return pos;
     }
 
     private static string FormatErrorTokenMessage(string text)

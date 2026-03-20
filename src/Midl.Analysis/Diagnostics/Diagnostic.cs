@@ -8,5 +8,6 @@ public record Diagnostic(
     string Message,
     int Position,
     int Length,
-    string? HelpUri = null
+    string? HelpUri = null,
+    Dictionary<string, string>? Data = null
 );

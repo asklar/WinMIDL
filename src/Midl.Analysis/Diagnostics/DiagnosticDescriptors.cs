@@ -104,12 +104,14 @@ public static class DiagnosticDescriptors
     public static Diagnostic LowercaseType(string lowercaseName, string modernName, int position) =>
         new(DiagnosticSeverity.Warning, MIDL2005_Code,
             string.Format(MIDL2005_Message, lowercaseName, modernName), position, lowercaseName.Length,
-            HelpUri: StrictModeHelpUri);
+            HelpUri: StrictModeHelpUri,
+            Data: new() { ["replacement"] = modernName });
 
     public static Diagnostic ClassicMidlType(string typeName, string suggestion, int position) =>
         new(DiagnosticSeverity.Warning, MIDL2005_Code,
             $"'{typeName}' is a classic MIDL type. Use '{suggestion}' in MIDL3.", position, typeName.Length,
-            HelpUri: StrictModeHelpUri);
+            HelpUri: StrictModeHelpUri,
+            Data: new() { ["replacement"] = suggestion });
 
     public static Diagnostic StrictModeTypeWarning(string typeName, string advice, int position) =>
         new(DiagnosticSeverity.Warning, MIDL2005_Code,

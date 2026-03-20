@@ -137,6 +137,10 @@ public sealed class MidlLanguageServer
                 await _writer.SendResponseAsync(id, FormattingHandler.Handle(@params, _docManager));
                 break;
 
+            case "textDocument/codeAction":
+                await _writer.SendResponseAsync(id, CodeActionHandler.Handle(@params, _docManager));
+                break;
+
             default:
                 if (hasId)
                 {
@@ -207,7 +211,11 @@ public sealed class MidlLanguageServer
                         tokenModifiers = Handlers.SemanticTokensHandler.TokenModifiers
                     }
                 },
-                documentFormattingProvider = true
+                documentFormattingProvider = true,
+                codeActionProvider = new
+                {
+                    codeActionKinds = new[] { "quickfix" }
+                }
             },
             serverInfo = new
             {
