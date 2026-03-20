@@ -25,6 +25,7 @@ public class WinMdEmitter
     internal TypeReferenceHandle SystemEnumRef { get; private set; }
     internal TypeReferenceHandle SystemValueTypeRef { get; private set; }
     internal TypeReferenceHandle SystemMulticastDelegateRef { get; private set; }
+    internal TypeReferenceHandle SystemAttributeRef { get; private set; }
     internal TypeReferenceHandle SystemGuidRef { get; private set; }
 
     // Pre-computed TypeDef handles
@@ -107,6 +108,7 @@ public class WinMdEmitter
         SystemEnumRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemEnum);
         SystemValueTypeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemValueType);
         SystemMulticastDelegateRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemMulticastDelegate);
+        SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
 
         // 5. <Module> type (required first row)

@@ -69,7 +69,7 @@ public class WinMdReader
             "System.Enum" => ReadEnum(mdReader, typeDef, handle, name, ns, sourcePath),
             "System.ValueType" => ReadStruct(mdReader, typeDef, name, ns, sourcePath),
             "System.MulticastDelegate" => ReadDelegate(mdReader, typeDef, name, ns, sourcePath),
-            "System.Attribute" => null, // Skip attribute types
+            "System.Attribute" => ReadAttributeType(mdReader, typeDef, name, ns, sourcePath),
             _ when (typeDef.Attributes & TypeAttributes.Interface) != 0
                 => ReadInterface(mdReader, typeDef, handle, name, ns, sourcePath),
             _ => ReadRuntimeClass(mdReader, typeDef, handle, name, ns, sourcePath),
@@ -399,6 +399,53 @@ public class WinMdReader
             IsExternal = true,
             SourceWinMdPath = sourcePath,
         };
+    }
+
+    #endregion
+
+    #region Attribute
+
+    private static AttributeTypeSymbol ReadAttributeType(
+        MetadataReader mdReader, TypeDefinition typeDef,
+        string name, string ns, string? sourcePath)
+    {
+        var nsSymbol = CreateNamespaceChain(ns);
+        var symbol = new AttributeTypeSymbol(name, nsSymbol)
+        {
+            IsExternal = true,
+            SourceWinMdPath = sourcePath,
+        };
+
+        // Read fields from the .ctor parameters (attribute ctor params = attribute fields in WinRT)
+        foreach (var methodHandle in typeDef.GetMethods())
+        {
+            var method = mdReader.GetMethodDefinition(methodHandle);
+            var methodName = mdReader.GetString(method.Name);
+            if (methodName != ".ctor") continue;
+
+            foreach (var paramHandle in method.GetParameters())
+            {
+                var param = mdReader.GetParameter(paramHandle);
+                if (param.SequenceNumber == 0) continue; // return type pseudo-param
+                var paramName = mdReader.GetString(param.Name);
+
+                var sig = method.DecodeSignature(new MidlSignatureTypeProvider(mdReader), null);
+                var paramType = param.SequenceNumber <= sig.ParameterTypes.Length
+                    ? sig.ParameterTypes[param.SequenceNumber - 1]
+                    : "Object";
+
+                var fieldSymbol = new FieldSymbol(paramName, symbol)
+                {
+                    Type = new TypeRef(paramType) { IsBuiltIn = IsBuiltInType(paramType) },
+                    IsExternal = true,
+                    SourceWinMdPath = sourcePath,
+                };
+                symbol.AddField(fieldSymbol);
+            }
+            break; // use the first .ctor
+        }
+
+        return symbol;
     }
 
     #endregion

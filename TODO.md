@@ -38,6 +38,7 @@
 - [x] Modern base types (Int32, String, Boolean, Guid, Object, Char, Single, Double, UInt8...)
 - [x] `declare { }` blocks
 - [x] `import` directive (parsed, not yet functional for IDL-to-IDL)
+- [x] User-defined `attribute` declarations (`ParseAttributeDeclaration`, `AttributeTypeSymbol`, validation, WinMD round-trip)
 
 ### Classic MIDL
 - [x] `coclass` declarations
@@ -85,10 +86,10 @@
 - [x] WinMD attribute emission — 13 custom attributes: ExclusiveToAttribute, ActivatableAttribute, StaticAttribute, ComposableAttribute, ThreadingAttribute, MarshalingBehaviorAttribute, DeprecatedAttribute, ContractVersionAttribute, OverloadAttribute, DefaultOverloadAttribute, OverridableAttribute, ProtectedAttribute, DefaultAttribute
 - [x] Synthesized interfaces get `tdNotPublic` flag + `ExclusiveToAttribute` in WinMD
 
-### Diagnostics (30 codes)
+### Diagnostics (32 codes)
 - [x] MIDL1001–MIDL1013: Semantic errors (undefined type, duplicate, namespace required, etc.)
 - [x] MIDL1014–MIDL1017: Version/contract errors (interface version, contract family, undefined contract, enum member version)
-- [x] MIDL1020–MIDL1028: Attribute validation (threading, marshaling, composable, exclusiveto, deprecated, attributeusage)
+- [x] MIDL1020–MIDL1030: Attribute validation (threading, marshaling, composable, exclusiveto, deprecated, attributeusage, custom attribute target/arg count)
 - [x] MIDL1100–MIDL1102: Syntax errors (skipped tokens, error chars, missing tokens)
 - [x] MIDL2001–MIDL2005: Strict mode warnings (classic constructs, lowercase types)
 - [x] Diagnostic positions tracked via `TokenPositionMap` (no more position=0)
@@ -108,13 +109,13 @@
 - [x] `midl.strictMode` setting
 - [x] Command palette: Toggle Strict Mode, Restart Server, Show Server Log
 
-### Testing (280+ tests)
+### Testing (290+ tests)
 - [x] Lexer: 29 tests (tokens, trivia, edge cases)
 - [x] Parser: 58 tests (structures, error recovery, completeness, classic MIDL)
 - [x] Analysis: 72 tests (binding, synthesis, WinMD round-trip, extraction, go-to-def)
 - [x] CodeGen: 32 tests (WinMD emitter, header, IID, DllData)
 - [x] Integration: 90 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions)
-- [x] IDL fixture suite (14 files with `.expected.json` + `.expected.tree` sidecars)
+- [x] IDL fixture suite (15 files with `.expected.json` + `.expected.tree` sidecars)
 - [x] End-to-end quick fix tests (apply fix → verify output IDL)
 - [x] Diagnostic position tests (squigglies on correct token, not in comments)
 
@@ -138,7 +139,6 @@
 ## ❌ Not Yet Implemented
 
 ### Critical for Production
-- [ ] **User-defined `attribute` declarations** — `ParseAttributeDeclaration`, `AttributeTypeSymbol`, type-check instances against definitions, emit to WinMD
 - [ ] **`import "file.idl"` (IDL-to-IDL imports)** — currently only `.winmd` references work
 - [ ] **Read custom attributes from imported `.winmd`** — `[uuid]`, `[contract]`, `[deprecated]`, `[exclusiveto]` on imported types are ignored
 - [ ] **Read parameterized interfaces from `.winmd`** — generic type arguments not decoded from imports

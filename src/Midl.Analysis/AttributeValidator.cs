@@ -36,24 +36,44 @@ public class AttributeValidator
 
     public void Validate()
     {
+        // Build lookup of user-defined attribute types
+        var attrTypes = new Dictionary<string, AttributeTypeSymbol>(StringComparer.OrdinalIgnoreCase);
+        foreach (var type in _compilation.GetAllTypes())
+        {
+            if (type is AttributeTypeSymbol at)
+            {
+                attrTypes[at.Name] = at;
+                if (at.AttributeNameOverride != null)
+                    attrTypes[at.AttributeNameOverride] = at;
+            }
+        }
+
         foreach (var type in _compilation.GetAllTypes())
         {
             switch (type)
             {
                 case RuntimeClassSymbol rc:
                     ValidateRuntimeClass(rc);
+                    ValidateCustomAttributeInstances(rc.Attributes, rc.Name, "target_runtimeclass", attrTypes);
                     break;
                 case InterfaceSymbol iface:
                     ValidateAttributes(iface.Attributes, iface.Name, isRuntimeClass: false);
+                    ValidateCustomAttributeInstances(iface.Attributes, iface.Name, "target_interface", attrTypes);
                     break;
                 case EnumSymbol en:
                     ValidateAttributes(en.Attributes, en.Name, isRuntimeClass: false);
+                    ValidateCustomAttributeInstances(en.Attributes, en.Name, "target_enum", attrTypes);
                     break;
                 case StructSymbol st:
                     ValidateAttributes(st.Attributes, st.Name, isRuntimeClass: false);
+                    ValidateCustomAttributeInstances(st.Attributes, st.Name, "target_struct", attrTypes);
                     break;
                 case DelegateSymbol del:
                     ValidateAttributes(del.Attributes, del.Name, isRuntimeClass: false);
+                    ValidateCustomAttributeInstances(del.Attributes, del.Name, "target_delegate", attrTypes);
+                    break;
+                case AttributeTypeSymbol:
+                    // attributeusage is valid on attribute declarations — skip that check
                     break;
             }
         }
@@ -244,5 +264,31 @@ public class AttributeValidator
         }
 
         return null;
+    }
+
+    private void ValidateCustomAttributeInstances(
+        List<AttributeData> attributes, string ownerName, string targetKind,
+        Dictionary<string, AttributeTypeSymbol> attrTypes)
+    {
+        foreach (var attr in attributes)
+        {
+            if (!attrTypes.TryGetValue(attr.Name, out var attrType))
+                continue;
+
+            // Validate target
+            if (attrType.ValidTargets.Count > 0 &&
+                !attrType.ValidTargets.Any(t => t.Equals(targetKind, StringComparison.OrdinalIgnoreCase)))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.AttributeWrongTarget(
+                    attr.Name, targetKind, string.Join(", ", attrType.ValidTargets), attr.Position));
+            }
+
+            // Validate argument count
+            if (attr.Arguments.Count != attrType.Fields.Count)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.AttributeArgCountMismatch(
+                    attr.Name, attrType.Fields.Count, attr.Arguments.Count, attr.Position));
+            }
+        }
     }
 }

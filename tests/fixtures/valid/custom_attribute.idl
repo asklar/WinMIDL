@@ -1,0 +1,15 @@
+namespace TestApp
+{
+    [attributeusage(target_runtimeclass)]
+    attribute AwesomeAttribute
+    {
+        Int32 Level;
+        String Description;
+    };
+
+    [Awesome(42, "very cool")]
+    runtimeclass MyClass
+    {
+        MyClass();
+    }
+}

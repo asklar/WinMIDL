@@ -184,4 +184,14 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1028",
             $"[attributeusage] can only appear on attribute declarations, not on '{typeName}'.",
             position, typeName.Length);
+
+    public static Diagnostic AttributeWrongTarget(string attrName, string targetKind, string validTargets, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1029",
+            $"Attribute '{attrName}' is not valid on {targetKind}. Valid targets: {validTargets}",
+            position, attrName.Length);
+
+    public static Diagnostic AttributeArgCountMismatch(string attrName, int expected, int actual, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1030",
+            $"Attribute '{attrName}' expects {expected} arguments but got {actual}",
+            position, attrName.Length);
 }

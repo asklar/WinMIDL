@@ -116,6 +116,10 @@ public class Binder
                 MidlTrace.Binder($"Binding {node.Kind} at declaration level");
                 BindApiContractDeclaration(node, ns);
                 break;
+            case SyntaxKind.AttributeDeclaration:
+                MidlTrace.Binder($"Binding {node.Kind} at declaration level");
+                BindAttributeDeclaration(node, ns);
+                break;
             case SyntaxKind.DeclareBlock:
                 BindDeclareBlock(node, ns);
                 break;
@@ -548,6 +552,70 @@ public class Binder
             TrackTypeRef(field.Type, ns);
         }
         return field;
+    }
+
+    #endregion
+
+    #region Attribute (user-defined)
+
+    private void BindAttributeDeclaration(GreenNode node, NamespaceSymbol ns)
+    {
+        int keywordIdx = FindSlotIndex(node, SyntaxKind.AttributeKeyword);
+        if (keywordIdx < 0) return;
+
+        var nameToken = node.GetSlot(keywordIdx + 1) as SyntaxToken;
+        var name = nameToken?.Text ?? "";
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (!TryDefineType(ns, name)) return;
+
+        var symbol = new AttributeTypeSymbol(name, ns);
+        ns.AddMember(symbol);
+        _symbolTable.Define(symbol);
+
+        // Extract attributes on the attribute declaration itself
+        var attrList = FindChild(node, SyntaxKind.AttributeList);
+        if (attrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(attrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+
+            foreach (var attr in attrs)
+            {
+                switch (attr.Name.ToLowerInvariant())
+                {
+                    case "attributeusage":
+                        foreach (var arg in attr.Arguments)
+                        {
+                            if (arg.Kind == ArgKind.Identifier && arg.StringValue != null)
+                                symbol.ValidTargets.Add(arg.StringValue);
+                        }
+                        break;
+
+                    case "attributename":
+                        symbol.AttributeNameOverride = attr.GetString(0);
+                        break;
+
+                    case "allowmultiple":
+                        symbol.AllowMultiple = true;
+                        break;
+                }
+            }
+        }
+
+        // Fields between braces
+        int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
+        int closeBraceIdx = FindLastSlotIndex(node, SyntaxKind.CloseBraceToken);
+        if (openBraceIdx < 0 || closeBraceIdx < 0) return;
+
+        for (int i = openBraceIdx + 1; i < closeBraceIdx; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child?.Kind == SyntaxKind.FieldDeclaration)
+            {
+                symbol.AddField(BindField(child, symbol, ns));
+            }
+        }
     }
 
     #endregion
@@ -1539,7 +1607,8 @@ public class Binder
     private static bool IsTypeDeclaration(SyntaxKind kind) => kind is
         SyntaxKind.RuntimeClassDeclaration or SyntaxKind.InterfaceDeclaration
         or SyntaxKind.DelegateDeclaration or SyntaxKind.StructDeclaration
-        or SyntaxKind.EnumDeclaration or SyntaxKind.ApiContractDeclaration;
+        or SyntaxKind.EnumDeclaration or SyntaxKind.ApiContractDeclaration
+        or SyntaxKind.AttributeDeclaration;
 
     private static string? ExtractTypeName(GreenNode node)
     {
@@ -1550,7 +1619,8 @@ public class Binder
             var slot = node.GetSlot(i);
             if (slot is SyntaxToken { Kind: SyntaxKind.RuntimeclassKeyword or SyntaxKind.InterfaceKeyword
                 or SyntaxKind.DelegateKeyword or SyntaxKind.StructKeyword
-                or SyntaxKind.EnumKeyword or SyntaxKind.ApicontractKeyword })
+                or SyntaxKind.EnumKeyword or SyntaxKind.ApicontractKeyword
+                or SyntaxKind.AttributeKeyword })
             {
                 var next = node.GetSlot(i + 1) as SyntaxToken;
                 if (next is { Kind: SyntaxKind.IdentifierToken })

@@ -85,6 +85,7 @@ public sealed partial class Parser
             SyntaxKind.StructKeyword => ParseStructDeclaration(attrNode),
             SyntaxKind.EnumKeyword => ParseEnumDeclaration(attrNode),
             SyntaxKind.ApicontractKeyword => ParseApiContractDeclaration(attrNode),
+            SyntaxKind.AttributeKeyword => ParseAttributeDeclaration(attrNode),
             SyntaxKind.DeclareKeyword => ParseDeclareBlock(attrNode),
             SyntaxKind.ImportKeyword => ParseImportDirective(),
             SyntaxKind.CoclassKeyword => ParseCoclassDeclaration(attrNode),

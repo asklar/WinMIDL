@@ -30,6 +30,7 @@ internal class TypeDefEmitter
             case DelegateSymbol d: EmitDelegate(d); break;
             case RuntimeClassSymbol rc: EmitRuntimeClass(rc); break;
             case ApiContractSymbol ac: EmitApiContract(ac); break;
+            case AttributeTypeSymbol at: EmitAttribute(at); break;
         }
     }
 
@@ -611,6 +612,59 @@ internal class TypeDefEmitter
             methodList);
 
         _attrs.AddContractVersionAttribute(typeDef, (uint)symbol.Version);
+        _attrs.AddVersionAttribute(typeDef);
+    }
+
+    #endregion
+
+    #region Attribute
+
+    private void EmitAttribute(AttributeTypeSymbol symbol)
+    {
+        var ns = GetNamespace(symbol);
+        var fieldList = _emitter.NextFieldHandle;
+        var methodList = _emitter.NextMethodHandle;
+
+        var typeDef = M.AddTypeDefinition(
+            (TypeAttributes)(TypeAttributes.Public | TypeAttributes.Sealed
+                | (TypeAttributes)MetadataConstants.TdWindowsRuntime),
+            M.GetOrAddString(ns),
+            M.GetOrAddString(symbol.Name),
+            _emitter.SystemAttributeRef,
+            fieldList,
+            methodList);
+
+        // .ctor with parameters matching fields
+        var ctorSig = new BlobBuilder();
+        new BlobEncoder(ctorSig)
+            .MethodSignature(isInstanceMethod: true)
+            .Parameters(symbol.Fields.Count,
+                ret => ret.Void(),
+                p =>
+                {
+                    foreach (var field in symbol.Fields)
+                        p.AddParameter().Type().FromTypeRef(field.Type, _emitter);
+                });
+
+        var ctorParamList = _emitter.NextParamHandle;
+        M.AddMethodDefinition(
+            MethodAttributes.Public | MethodAttributes.HideBySig
+                | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+            MethodImplAttributes.Runtime,
+            M.GetOrAddString(".ctor"),
+            M.GetOrAddBlob(ctorSig),
+            -1,
+            ctorParamList);
+        _emitter.IncrementMethodRow();
+
+        for (int i = 0; i < symbol.Fields.Count; i++)
+        {
+            M.AddParameter(ParameterAttributes.None,
+                M.GetOrAddString(symbol.Fields[i].Name),
+                i + 1);
+            _emitter.IncrementParamRow();
+        }
+
         _attrs.AddVersionAttribute(typeDef);
     }
 

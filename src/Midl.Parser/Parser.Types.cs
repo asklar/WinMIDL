@@ -148,6 +148,37 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.ApiContractDeclaration, children);
     }
 
+    /// <summary>Parse: [attrs] attribute Name { fields... };</summary>
+    private GreenNode ParseAttributeDeclaration(GreenNode? attributes)
+    {
+        var children = new List<GreenNode?>();
+        if (attributes != null) children.Add(attributes);
+
+        children.Add(Eat(SyntaxKind.AttributeKeyword));
+        children.Add(EatIdentifierOrKeyword());
+        children.Add(Eat(SyntaxKind.OpenBraceToken));
+
+        while (!At(SyntaxKind.CloseBraceToken) && !At(SyntaxKind.EndOfFileToken))
+        {
+            var before = _position;
+            children.Add(ParseFieldDeclaration());
+            if (_position == before)
+            {
+                var skip = SkipToMemberStart();
+                if (skip != null) children.Add(skip);
+                if (_position == before) children.Add(EatToken());
+            }
+        }
+
+        children.Add(Eat(SyntaxKind.CloseBraceToken));
+
+        // Optional trailing semicolon (classic MIDL)
+        if (At(SyntaxKind.SemicolonToken))
+            children.Add(EatToken());
+
+        return MakeNode(SyntaxKind.AttributeDeclaration, children);
+    }
+
     /// <summary>Parse: [attrs] union Name { arms... }; or union Name switch(type) { ... };</summary>
     private GreenNode ParseUnionDeclaration(GreenNode? attributes)
     {
