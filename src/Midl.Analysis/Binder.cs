@@ -1,0 +1,1177 @@
+using Midl.Analysis.Diagnostics;
+using Midl.Analysis.Symbols;
+using Midl.Syntax;
+
+namespace Midl.Analysis;
+
+/// <summary>
+/// Walks a green syntax tree and produces a bound compilation with symbols.
+/// </summary>
+public class Binder
+{
+    private readonly List<Diagnostic> _diagnostics = [];
+    private readonly NamespaceSymbol _globalNamespace = new("");
+    private readonly List<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace)> _unresolvedRefs = [];
+    private readonly HashSet<string> _definedTypes = new(StringComparer.Ordinal);
+    private readonly CompilationMode _mode;
+
+    private SymbolTable _symbolTable = null!;
+
+    public Binder(CompilationMode mode = CompilationMode.Strict)
+    {
+        _mode = mode;
+    }
+
+    public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
+        IReadOnlyList<ISymbol>? externalTypes = null)
+    {
+        _symbolTable = new SymbolTable(_globalNamespace);
+
+        // Import external types before binding user code
+        if (externalTypes is { Count: > 0 })
+            _symbolTable.ImportExternalTypes(externalTypes);
+
+        // Pass 1: create all symbols
+        BindCompilationUnit(compilationUnit, _globalNamespace);
+
+        // Pass 2: resolve type references
+        var resolver = new TypeResolver(_symbolTable);
+        resolver.ResolveAll(_unresolvedRefs, _diagnostics);
+
+        return new Compilation(_globalNamespace, _diagnostics);
+    }
+
+    private void BindCompilationUnit(GreenNode node, NamespaceSymbol ns)
+    {
+        // Strict mode: scan all tokens for classic MIDL types
+        if (_mode == CompilationMode.Strict)
+        {
+            CheckStrictModeTokens(node);
+        }
+
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child == null) continue;
+            BindDeclaration(child, ns);
+        }
+    }
+
+    private void BindDeclaration(GreenNode node, NamespaceSymbol ns)
+    {
+        // Strict mode: warn on classic MIDL constructs
+        if (_mode == CompilationMode.Strict)
+        {
+            CheckStrictModeViolation(node);
+        }
+
+        switch (node.Kind)
+        {
+            case SyntaxKind.NamespaceDeclaration:
+                BindNamespaceDeclaration(node, ns);
+                break;
+            case SyntaxKind.RuntimeClassDeclaration:
+                BindRuntimeClassDeclaration(node, ns);
+                break;
+            case SyntaxKind.InterfaceDeclaration:
+                BindInterfaceDeclaration(node, ns);
+                break;
+            case SyntaxKind.DelegateDeclaration:
+                BindDelegateDeclaration(node, ns);
+                break;
+            case SyntaxKind.StructDeclaration:
+                BindStructDeclaration(node, ns);
+                break;
+            case SyntaxKind.EnumDeclaration:
+                BindEnumDeclaration(node, ns);
+                break;
+            case SyntaxKind.ApiContractDeclaration:
+                BindApiContractDeclaration(node, ns);
+                break;
+            case SyntaxKind.DeclareBlock:
+                BindDeclareBlock(node, ns);
+                break;
+        }
+    }
+
+    #region Namespace
+
+    private void BindNamespaceDeclaration(GreenNode node, NamespaceSymbol parentNs)
+    {
+        // Find name: first DottedName or IdentifierToken after NamespaceKeyword
+        int keywordIdx = FindSlotIndex(node, SyntaxKind.NamespaceKeyword);
+        if (keywordIdx < 0) return;
+
+        var nameNode = node.GetSlot(keywordIdx + 1);
+        var nameText = ExtractDottedName(nameNode);
+        if (string.IsNullOrEmpty(nameText)) return;
+
+        // Create nested namespace hierarchy for dotted names
+        var parts = nameText.Split('.');
+        var current = parentNs;
+        foreach (var part in parts)
+        {
+            current = current.GetOrCreateChildNamespace(part);
+        }
+
+        // Bind declarations inside namespace body
+        int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
+        int closeBraceIdx = FindLastSlotIndex(node, SyntaxKind.CloseBraceToken);
+        if (openBraceIdx < 0 || closeBraceIdx < 0) return;
+
+        for (int i = openBraceIdx + 1; i < closeBraceIdx; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child != null)
+                BindDeclaration(child, current);
+        }
+    }
+
+    #endregion
+
+    #region RuntimeClass
+
+    private void BindRuntimeClassDeclaration(GreenNode node, NamespaceSymbol ns)
+    {
+        int keywordIdx = FindSlotIndex(node, SyntaxKind.RuntimeclassKeyword);
+        if (keywordIdx < 0) return;
+
+        var nameToken = node.GetSlot(keywordIdx + 1) as SyntaxToken;
+        var name = nameToken?.Text ?? "";
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (!TryDefineType(ns, name)) return;
+
+        var symbol = new RuntimeClassSymbol(name, ns);
+        ns.AddMember(symbol);
+        _symbolTable.Define(symbol);
+
+        // Extract [uuid("...")] if present
+        var rcAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (rcAttrList != null && TryExtractUuidAttribute(rcAttrList, out var rcUuid))
+        {
+            symbol.Uuid = rcUuid;
+        }
+
+        // Check modifiers
+        var modList = FindChild(node, SyntaxKind.ModifierList);
+        if (modList != null)
+        {
+            for (int i = 0; i < modList.SlotCount; i++)
+            {
+                if (modList.GetSlot(i) is SyntaxToken mod)
+                {
+                    switch (mod.Kind)
+                    {
+                        case SyntaxKind.StaticKeyword: symbol.IsStatic = true; break;
+                        case SyntaxKind.PartialKeyword: symbol.IsPartial = true; break;
+                        case SyntaxKind.UnsealedKeyword: symbol.IsUnsealed = true; break;
+                    }
+                }
+            }
+        }
+
+        // Base list
+        var baseList = FindChild(node, SyntaxKind.BaseList);
+        if (baseList != null)
+        {
+            bool first = true;
+            for (int i = 1; i < baseList.SlotCount; i++)
+            {
+                var slot = baseList.GetSlot(i);
+                if (slot == null || slot.Kind == SyntaxKind.CommaToken || slot.Kind == SyntaxKind.ColonToken)
+                    continue;
+
+                var typeRef = ExtractTypeRef(slot);
+                TrackTypeRef(typeRef, ns);
+
+                if (first)
+                {
+                    symbol.BaseClass = typeRef;
+                    first = false;
+                }
+                else
+                {
+                    symbol.Interfaces.Add(typeRef);
+                }
+            }
+        }
+
+        // Bind members
+        _symbolTable.EnterScope(symbol);
+        BindClassMembers(node, symbol, ns);
+        _symbolTable.ExitScope();
+    }
+
+    private void BindClassMembers(GreenNode node, RuntimeClassSymbol classSymbol, NamespaceSymbol ns)
+    {
+        int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
+        int closeBraceIdx = FindLastSlotIndex(node, SyntaxKind.CloseBraceToken);
+        if (openBraceIdx < 0 || closeBraceIdx < 0) return;
+
+        for (int i = openBraceIdx + 1; i < closeBraceIdx; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child == null) continue;
+
+            switch (child.Kind)
+            {
+                case SyntaxKind.ConstructorDeclaration:
+                    classSymbol.AddMember(BindConstructor(child, classSymbol, ns));
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                    classSymbol.AddMember(BindMethod(child, classSymbol, ns));
+                    break;
+                case SyntaxKind.PropertyDeclaration:
+                    classSymbol.AddMember(BindProperty(child, classSymbol, ns));
+                    break;
+                case SyntaxKind.EventDeclaration:
+                    classSymbol.AddMember(BindEvent(child, classSymbol, ns));
+                    break;
+                case SyntaxKind.VersionedBlock:
+                    BindVersionedBlockMembers(child, classSymbol, ns);
+                    break;
+            }
+        }
+    }
+
+    private void BindVersionedBlockMembers(GreenNode node, RuntimeClassSymbol classSymbol, NamespaceSymbol ns)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child == null) continue;
+
+            switch (child.Kind)
+            {
+                case SyntaxKind.ConstructorDeclaration:
+                    classSymbol.AddMember(BindConstructor(child, classSymbol, ns));
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                    classSymbol.AddMember(BindMethod(child, classSymbol, ns));
+                    break;
+                case SyntaxKind.PropertyDeclaration:
+                    classSymbol.AddMember(BindProperty(child, classSymbol, ns));
+                    break;
+                case SyntaxKind.EventDeclaration:
+                    classSymbol.AddMember(BindEvent(child, classSymbol, ns));
+                    break;
+            }
+        }
+    }
+
+    #endregion
+
+    #region Interface
+
+    private void BindInterfaceDeclaration(GreenNode node, NamespaceSymbol ns)
+    {
+        int keywordIdx = FindSlotIndex(node, SyntaxKind.InterfaceKeyword);
+        if (keywordIdx < 0) return;
+
+        var nameToken = node.GetSlot(keywordIdx + 1) as SyntaxToken;
+        var name = nameToken?.Text ?? "";
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (!TryDefineType(ns, name)) return;
+
+        var symbol = new InterfaceSymbol(name, ns);
+        ns.AddMember(symbol);
+        _symbolTable.Define(symbol);
+
+        // Extract [uuid("...")] if present
+        var attrList = FindChild(node, SyntaxKind.AttributeList);
+        if (attrList != null && TryExtractUuidAttribute(attrList, out var uuid))
+        {
+            symbol.Uuid = uuid;
+        }
+
+        // Requires clause
+        var requiresClause = FindChild(node, SyntaxKind.RequiresClause);
+        if (requiresClause != null)
+        {
+            for (int i = 1; i < requiresClause.SlotCount; i++)
+            {
+                var slot = requiresClause.GetSlot(i);
+                if (slot == null || slot.Kind == SyntaxKind.CommaToken) continue;
+                var typeRef = ExtractTypeRef(slot);
+                TrackTypeRef(typeRef, ns);
+                symbol.RequiredInterfaces.Add(typeRef);
+            }
+        }
+
+        // Base list
+        var baseList = FindChild(node, SyntaxKind.BaseList);
+        if (baseList != null)
+        {
+            for (int i = 1; i < baseList.SlotCount; i++)
+            {
+                var slot = baseList.GetSlot(i);
+                if (slot == null || slot.Kind == SyntaxKind.CommaToken || slot.Kind == SyntaxKind.ColonToken)
+                    continue;
+                var typeRef = ExtractTypeRef(slot);
+                TrackTypeRef(typeRef, ns);
+                symbol.RequiredInterfaces.Add(typeRef);
+            }
+        }
+
+        // Bind members
+        _symbolTable.EnterScope(symbol);
+        BindInterfaceMembers(node, symbol, ns);
+        _symbolTable.ExitScope();
+    }
+
+    private void BindInterfaceMembers(GreenNode node, InterfaceSymbol ifaceSymbol, NamespaceSymbol ns)
+    {
+        int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
+        int closeBraceIdx = FindLastSlotIndex(node, SyntaxKind.CloseBraceToken);
+        if (openBraceIdx < 0 || closeBraceIdx < 0) return;
+
+        for (int i = openBraceIdx + 1; i < closeBraceIdx; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child == null) continue;
+
+            switch (child.Kind)
+            {
+                case SyntaxKind.MethodDeclaration:
+                    ifaceSymbol.AddMember(BindMethod(child, ifaceSymbol, ns));
+                    break;
+                case SyntaxKind.PropertyDeclaration:
+                    ifaceSymbol.AddMember(BindProperty(child, ifaceSymbol, ns));
+                    break;
+                case SyntaxKind.EventDeclaration:
+                    ifaceSymbol.AddMember(BindEvent(child, ifaceSymbol, ns));
+                    break;
+                case SyntaxKind.VersionedBlock:
+                    BindInterfaceVersionedBlockMembers(child, ifaceSymbol, ns);
+                    break;
+            }
+        }
+    }
+
+    private void BindInterfaceVersionedBlockMembers(GreenNode node, InterfaceSymbol ifaceSymbol, NamespaceSymbol ns)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child == null) continue;
+
+            switch (child.Kind)
+            {
+                case SyntaxKind.MethodDeclaration:
+                    ifaceSymbol.AddMember(BindMethod(child, ifaceSymbol, ns));
+                    break;
+                case SyntaxKind.PropertyDeclaration:
+                    ifaceSymbol.AddMember(BindProperty(child, ifaceSymbol, ns));
+                    break;
+                case SyntaxKind.EventDeclaration:
+                    ifaceSymbol.AddMember(BindEvent(child, ifaceSymbol, ns));
+                    break;
+            }
+        }
+    }
+
+    #endregion
+
+    #region Delegate
+
+    private void BindDelegateDeclaration(GreenNode node, NamespaceSymbol ns)
+    {
+        int keywordIdx = FindSlotIndex(node, SyntaxKind.DelegateKeyword);
+        if (keywordIdx < 0) return;
+
+        // After delegate keyword: TypeReference, IdentifierToken, ParameterList
+        var returnTypeNode = node.GetSlot(keywordIdx + 1);
+        var nameToken = node.GetSlot(keywordIdx + 2) as SyntaxToken;
+        var name = nameToken?.Text ?? "";
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (!TryDefineType(ns, name)) return;
+
+        var symbol = new DelegateSymbol(name, ns);
+        symbol.ReturnType = ExtractTypeRef(returnTypeNode);
+        TrackTypeRef(symbol.ReturnType, ns);
+        ns.AddMember(symbol);
+        _symbolTable.Define(symbol);
+
+        // Parameters
+        var paramList = FindChild(node, SyntaxKind.ParameterList);
+        if (paramList != null)
+        {
+            symbol.Parameters.AddRange(BindParameters(paramList, symbol, ns));
+        }
+    }
+
+    #endregion
+
+    #region Struct
+
+    private void BindStructDeclaration(GreenNode node, NamespaceSymbol ns)
+    {
+        int keywordIdx = FindSlotIndex(node, SyntaxKind.StructKeyword);
+        if (keywordIdx < 0) return;
+
+        var nameToken = node.GetSlot(keywordIdx + 1) as SyntaxToken;
+        var name = nameToken?.Text ?? "";
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (!TryDefineType(ns, name)) return;
+
+        var symbol = new StructSymbol(name, ns);
+        ns.AddMember(symbol);
+        _symbolTable.Define(symbol);
+
+        // Fields between braces
+        int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
+        int closeBraceIdx = FindLastSlotIndex(node, SyntaxKind.CloseBraceToken);
+        if (openBraceIdx < 0 || closeBraceIdx < 0) return;
+
+        for (int i = openBraceIdx + 1; i < closeBraceIdx; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child?.Kind == SyntaxKind.FieldDeclaration)
+            {
+                symbol.AddField(BindField(child, symbol, ns));
+            }
+        }
+    }
+
+    private FieldSymbol BindField(GreenNode node, ISymbol containingSymbol, NamespaceSymbol ns)
+    {
+        // Slots: [AttributeList], TypeReference, IdentifierToken, SemicolonToken
+        var typeNode = FindChild(node, SyntaxKind.TypeReference)
+            ?? FindChild(node, SyntaxKind.GenericName)
+            ?? FindChild(node, SyntaxKind.QualifiedName)
+            ?? FindChild(node, SyntaxKind.ArrayType);
+
+        // Find name: last identifier token before semicolon
+        var name = FindNameIdentifier(node);
+
+        var field = new FieldSymbol(name, containingSymbol);
+        if (typeNode != null)
+        {
+            field.Type = ExtractTypeRef(typeNode);
+            TrackTypeRef(field.Type, ns);
+        }
+        return field;
+    }
+
+    #endregion
+
+    #region Enum
+
+    private void BindEnumDeclaration(GreenNode node, NamespaceSymbol ns)
+    {
+        int keywordIdx = FindSlotIndex(node, SyntaxKind.EnumKeyword);
+        if (keywordIdx < 0) return;
+
+        var nameToken = node.GetSlot(keywordIdx + 1) as SyntaxToken;
+        var name = nameToken?.Text ?? "";
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (!TryDefineType(ns, name)) return;
+
+        var symbol = new EnumSymbol(name, ns);
+        ns.AddMember(symbol);
+        _symbolTable.Define(symbol);
+
+        // Check for [flags] attribute
+        var attrList = FindChild(node, SyntaxKind.AttributeList);
+        if (attrList != null && HasAttribute(attrList, "flags"))
+        {
+            symbol.IsFlags = true;
+        }
+
+        // Enum members between braces
+        int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
+        int closeBraceIdx = FindLastSlotIndex(node, SyntaxKind.CloseBraceToken);
+        if (openBraceIdx < 0 || closeBraceIdx < 0) return;
+
+        for (int i = openBraceIdx + 1; i < closeBraceIdx; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child?.Kind == SyntaxKind.EnumMemberDeclaration)
+            {
+                var memberName = FindFirstIdentifierText(child);
+                if (!string.IsNullOrEmpty(memberName))
+                {
+                    symbol.AddMember(new EnumMemberSymbol(memberName, symbol));
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region ApiContract
+
+    private void BindApiContractDeclaration(GreenNode node, NamespaceSymbol ns)
+    {
+        int keywordIdx = FindSlotIndex(node, SyntaxKind.ApicontractKeyword);
+        if (keywordIdx < 0) return;
+
+        var nameToken = node.GetSlot(keywordIdx + 1) as SyntaxToken;
+        var name = nameToken?.Text ?? "";
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (!TryDefineType(ns, name)) return;
+
+        var symbol = new ApiContractSymbol(name, ns);
+        ns.AddMember(symbol);
+        _symbolTable.Define(symbol);
+    }
+
+    #endregion
+
+    #region DeclareBlock
+
+    private void BindDeclareBlock(GreenNode node, NamespaceSymbol ns)
+    {
+        int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
+        int closeBraceIdx = FindLastSlotIndex(node, SyntaxKind.CloseBraceToken);
+        if (openBraceIdx < 0 || closeBraceIdx < 0) return;
+
+        for (int i = openBraceIdx + 1; i < closeBraceIdx; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child != null)
+                BindDeclaration(child, ns);
+        }
+    }
+
+    #endregion
+
+    #region Members
+
+    private ConstructorSymbol BindConstructor(GreenNode node, ISymbol containingSymbol, NamespaceSymbol ns)
+    {
+        var name = FindNameIdentifier(node);
+        var symbol = new ConstructorSymbol(name, containingSymbol);
+
+        var paramList = FindChild(node, SyntaxKind.ParameterList);
+        if (paramList != null)
+        {
+            symbol.Parameters.AddRange(BindParameters(paramList, symbol, ns));
+        }
+
+        return symbol;
+    }
+
+    private MethodSymbol BindMethod(GreenNode node, ISymbol containingSymbol, NamespaceSymbol ns)
+    {
+        // Slots: [AttributeList], [ModifierList], TypeReference, IdentifierToken, ParameterList, SemicolonToken
+        // Find the TypeReference, then the next identifier after it
+        var (returnTypeNode, nameText) = ExtractReturnTypeAndName(node);
+
+        var symbol = new MethodSymbol(nameText, containingSymbol);
+        symbol.ReturnType = ExtractTypeRef(returnTypeNode);
+        TrackTypeRef(symbol.ReturnType, ns);
+
+        // Check modifiers
+        var modList = FindChild(node, SyntaxKind.ModifierList);
+        if (modList != null && HasModifier(modList, SyntaxKind.StaticKeyword))
+        {
+            symbol.IsStatic = true;
+        }
+
+        var paramList = FindChild(node, SyntaxKind.ParameterList);
+        if (paramList != null)
+        {
+            symbol.Parameters.AddRange(BindParameters(paramList, symbol, ns));
+        }
+
+        return symbol;
+    }
+
+    private PropertySymbol BindProperty(GreenNode node, ISymbol containingSymbol, NamespaceSymbol ns)
+    {
+        var (typeNode, nameText) = ExtractReturnTypeAndName(node);
+
+        var symbol = new PropertySymbol(nameText, containingSymbol);
+        symbol.Type = ExtractTypeRef(typeNode);
+        TrackTypeRef(symbol.Type, ns);
+
+        // Check modifiers
+        var modList = FindChild(node, SyntaxKind.ModifierList);
+        if (modList != null && HasModifier(modList, SyntaxKind.StaticKeyword))
+        {
+            symbol.IsStatic = true;
+        }
+
+        // Check accessors
+        var accessors = FindChild(node, SyntaxKind.PropertyAccessors);
+        if (accessors != null)
+        {
+            symbol.HasGetter = HasChildToken(accessors, SyntaxKind.GetKeyword);
+            symbol.HasSetter = HasChildToken(accessors, SyntaxKind.SetKeyword);
+        }
+        else
+        {
+            // No explicit accessors means get+set
+            symbol.HasGetter = true;
+            symbol.HasSetter = true;
+        }
+
+        return symbol;
+    }
+
+    private EventSymbol BindEvent(GreenNode node, ISymbol containingSymbol, NamespaceSymbol ns)
+    {
+        // Slots: [AttributeList], EventKeyword, TypeReference, IdentifierToken, SemicolonToken
+        int eventIdx = FindSlotIndex(node, SyntaxKind.EventKeyword);
+        if (eventIdx < 0) return new EventSymbol("", containingSymbol);
+
+        var typeNode = node.GetSlot(eventIdx + 1);
+        var nameToken = node.GetSlot(eventIdx + 2) as SyntaxToken;
+        var name = nameToken?.Text ?? "";
+
+        var symbol = new EventSymbol(name, containingSymbol);
+        symbol.DelegateType = ExtractTypeRef(typeNode);
+        TrackTypeRef(symbol.DelegateType, ns);
+
+        return symbol;
+    }
+
+    private List<ParameterSymbol> BindParameters(GreenNode paramList, ISymbol containingSymbol, NamespaceSymbol ns)
+    {
+        var result = new List<ParameterSymbol>();
+
+        for (int i = 0; i < paramList.SlotCount; i++)
+        {
+            var child = paramList.GetSlot(i);
+            if (child?.Kind != SyntaxKind.Parameter) continue;
+
+            var param = BindParameter(child, containingSymbol, ns);
+            result.Add(param);
+        }
+
+        return result;
+    }
+
+    private ParameterSymbol BindParameter(GreenNode node, ISymbol containingSymbol, NamespaceSymbol ns)
+    {
+        // Slots: [AttributeList...], [OutKeyword|RefKeyword], TypeReference, IdentifierToken
+        var direction = ParameterDirection.In;
+        GreenNode? typeNode = null;
+        string name = "";
+
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot == null) continue;
+
+            if (slot is SyntaxToken token)
+            {
+                switch (token.Kind)
+                {
+                    case SyntaxKind.OutKeyword:
+                        direction = ParameterDirection.Out;
+                        break;
+                    case SyntaxKind.RefKeyword:
+                        direction = ParameterDirection.Ref;
+                        break;
+                    case SyntaxKind.IdentifierToken:
+                    case var k when IsTypeKeywordOrNameable(k):
+                        // Last identifier-like token is the name
+                        name = token.Text;
+                        break;
+                }
+            }
+            else if (IsTypeNode(slot.Kind))
+            {
+                typeNode = slot;
+            }
+        }
+
+        var param = new ParameterSymbol(name, containingSymbol) { Direction = direction };
+        if (typeNode != null)
+        {
+            param.Type = ExtractTypeRef(typeNode);
+            TrackTypeRef(param.Type, ns);
+            param.IsArray = param.Type.IsArray;
+        }
+        return param;
+    }
+
+    #endregion
+
+    #region Type Reference Extraction
+
+    private TypeRef ExtractTypeRef(GreenNode? node)
+    {
+        if (node == null) return TypeRef.Unknown;
+
+        switch (node.Kind)
+        {
+            case SyntaxKind.TypeReference:
+            {
+                var inner = node.GetSlot(0);
+                if (inner is SyntaxToken tok)
+                    return new TypeRef(tok.Text);
+                if (inner != null)
+                    return ExtractTypeRef(inner);
+                return TypeRef.Unknown;
+            }
+
+            case SyntaxKind.GenericName:
+            {
+                var nameToken = node.GetSlot(0) as SyntaxToken;
+                var typeArgList = node.GetSlot(1);
+                var typeArgs = ExtractTypeArguments(typeArgList);
+                return new TypeRef(nameToken?.Text ?? "", typeArgs);
+            }
+
+            case SyntaxKind.QualifiedName:
+                return ExtractQualifiedTypeRef(node);
+
+            case SyntaxKind.ArrayType:
+            {
+                var elemRef = ExtractTypeRef(node.GetSlot(0));
+                return elemRef.WithArray();
+            }
+
+            case SyntaxKind.PointerType:
+            {
+                return ExtractTypeRef(node.GetSlot(0));
+            }
+
+            default:
+                if (node is SyntaxToken t)
+                    return new TypeRef(t.Text);
+                return TypeRef.Unknown;
+        }
+    }
+
+    private TypeRef ExtractQualifiedTypeRef(GreenNode node)
+    {
+        var parts = new List<string>();
+        List<TypeRef>? typeArgs = null;
+
+        for (int i = 0; i < node.SlotCount; i += 2)
+        {
+            var slot = node.GetSlot(i);
+            if (slot is SyntaxToken tok)
+            {
+                parts.Add(tok.Text);
+            }
+            else if (slot?.Kind == SyntaxKind.GenericName)
+            {
+                var gName = slot.GetSlot(0) as SyntaxToken;
+                parts.Add(gName?.Text ?? "");
+                typeArgs = ExtractTypeArguments(slot.GetSlot(1));
+            }
+        }
+
+        return new TypeRef(string.Join(".", parts), typeArgs ?? []);
+    }
+
+    private List<TypeRef> ExtractTypeArguments(GreenNode? typeArgList)
+    {
+        if (typeArgList == null || typeArgList.Kind != SyntaxKind.TypeArgumentList)
+            return [];
+
+        var args = new List<TypeRef>();
+        for (int i = 1; i < typeArgList.SlotCount - 1; i++)
+        {
+            var arg = typeArgList.GetSlot(i);
+            if (arg == null || arg.Kind == SyntaxKind.CommaToken) continue;
+            args.Add(ExtractTypeRef(arg));
+        }
+        return args;
+    }
+
+    #endregion
+
+    #region Name Extraction
+
+    private static string ExtractDottedName(GreenNode? node)
+    {
+        if (node is SyntaxToken token) return token.Text;
+        if (node == null) return "";
+
+        if (node.Kind == SyntaxKind.DottedName)
+        {
+            var parts = new List<string>();
+            for (int i = 0; i < node.SlotCount; i += 2)
+            {
+                if (node.GetSlot(i) is SyntaxToken t)
+                    parts.Add(t.Text);
+            }
+            return string.Join(".", parts);
+        }
+
+        return "";
+    }
+
+    /// <summary>
+    /// Extract return type node and name from a method/property declaration.
+    /// Pattern: [attrs], [mods], TypeReference, IdentifierToken, ...
+    /// </summary>
+    private static (GreenNode? TypeNode, string Name) ExtractReturnTypeAndName(GreenNode node)
+    {
+        GreenNode? typeNode = null;
+        string name = "";
+
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot == null) continue;
+
+            if (IsTypeNode(slot.Kind))
+            {
+                typeNode = slot;
+                // Next slot should be the name
+                var next = node.GetSlot(i + 1);
+                if (next is SyntaxToken nt)
+                    name = nt.Text;
+                break;
+            }
+        }
+
+        return (typeNode, name);
+    }
+
+    private static string FindNameIdentifier(GreenNode node)
+    {
+        // Find the last identifier-like token that isn't followed by another identifier
+        // For constructors: [attrs], [mods], IdentifierToken, ParameterList, Semicolon
+        // For fields: [attrs], TypeReference, IdentifierToken, Semicolon
+        string lastIdent = "";
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot is SyntaxToken t && IsIdentifierLike(t.Kind))
+            {
+                lastIdent = t.Text;
+            }
+            else if (slot?.Kind == SyntaxKind.ParameterList
+                     || slot?.Kind == SyntaxKind.SemicolonToken)
+            {
+                break;
+            }
+        }
+        return lastIdent;
+    }
+
+    private static string FindFirstIdentifierText(GreenNode node)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot is SyntaxToken t && IsIdentifierLike(t.Kind))
+                return t.Text;
+        }
+        return "";
+    }
+
+    #endregion
+
+    #region Strict Mode Checks
+
+    private void CheckStrictModeViolation(GreenNode node)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.CoclassDeclaration:
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("coclass"));
+                break;
+            case SyntaxKind.LibraryDeclaration:
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("library"));
+                break;
+            case SyntaxKind.ModuleDeclaration:
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("module"));
+                break;
+            case SyntaxKind.TypedefDeclaration:
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("typedef"));
+                break;
+            case SyntaxKind.DispinterfaceDeclaration:
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("dispinterface"));
+                break;
+            case SyntaxKind.CppQuoteDirective:
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("cpp_quote"));
+                break;
+            case SyntaxKind.ImportlibDirective:
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("importlib"));
+                break;
+            case SyntaxKind.UnionDeclaration:
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("union"));
+                break;
+        }
+    }
+
+    private void CheckStrictModeTokens(GreenNode node)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot == null) continue;
+
+            if (slot is SyntaxToken token)
+            {
+                CheckStrictModeToken(token);
+            }
+            else
+            {
+                // Check pointer types
+                if (slot.Kind == SyntaxKind.PointerType)
+                {
+                    var innerType = slot.GetSlot(0);
+                    var typeName = innerType is SyntaxToken t ? t.Text : "?";
+                    _diagnostics.Add(DiagnosticDescriptors.PointerType(typeName));
+                }
+
+                // Check for classic [in]/[out] attributes on parameters
+                if (slot.Kind == SyntaxKind.AttributeList)
+                {
+                    CheckStrictModeAttributes(slot);
+                }
+
+                CheckStrictModeTokens(slot);
+            }
+        }
+    }
+
+    private void CheckStrictModeToken(SyntaxToken token)
+    {
+        switch (token.Kind)
+        {
+            case SyntaxKind.HResultKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.HResultReturnType());
+                break;
+            case SyntaxKind.ByteKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("byte", "UInt8"));
+                break;
+            case SyntaxKind.ShortKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("short", "Int16"));
+                break;
+            case SyntaxKind.LongKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("long", "Int32"));
+                break;
+            case SyntaxKind.IntKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("int", "Int32"));
+                break;
+            case SyntaxKind.FloatKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("float", "Single"));
+                break;
+            case SyntaxKind.HyperKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("hyper", "Int64"));
+                break;
+            case SyntaxKind.SmallKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("small", "UInt8"));
+                break;
+            case SyntaxKind.WcharTKeyword:
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("wchar_t", "Char"));
+                break;
+        }
+    }
+
+    private void CheckStrictModeAttributes(GreenNode attrList)
+    {
+        for (int i = 0; i < attrList.SlotCount; i++)
+        {
+            var slot = attrList.GetSlot(i);
+            if (slot == null) continue;
+
+            if (slot.Kind == SyntaxKind.AttributeList)
+            {
+                CheckStrictModeAttributes(slot);
+                continue;
+            }
+
+            if (slot.Kind == SyntaxKind.Attribute)
+            {
+                var nameNode = slot.GetSlot(0);
+                var name = nameNode is SyntaxToken t ? t.Text : ExtractDottedName(nameNode);
+                if (string.Equals(name, "in", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(name, "out", StringComparison.OrdinalIgnoreCase))
+                {
+                    _diagnostics.Add(DiagnosticDescriptors.ClassicAttribute(name));
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region Helpers
+
+    private void TrackTypeRef(TypeRef typeRef, NamespaceSymbol ns)
+    {
+        if (!typeRef.IsBuiltIn && typeRef.Name != "?")
+        {
+            _unresolvedRefs.Add((typeRef, ns));
+        }
+        foreach (var arg in typeRef.TypeArguments)
+        {
+            TrackTypeRef(arg, ns);
+        }
+    }
+
+    private bool TryDefineType(NamespaceSymbol ns, string name)
+    {
+        var fullName = ns.FullName.Length > 0 ? $"{ns.FullName}.{name}" : name;
+        if (!_definedTypes.Add(fullName))
+        {
+            _diagnostics.Add(DiagnosticDescriptors.DuplicateDefinition(name));
+            return false;
+        }
+        return true;
+    }
+
+    private static int FindSlotIndex(GreenNode node, SyntaxKind kind)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot != null && slot.Kind == kind) return i;
+        }
+        return -1;
+    }
+
+    private static int FindLastSlotIndex(GreenNode node, SyntaxKind kind)
+    {
+        for (int i = node.SlotCount - 1; i >= 0; i--)
+        {
+            var slot = node.GetSlot(i);
+            if (slot != null && slot.Kind == kind) return i;
+        }
+        return -1;
+    }
+
+    private static GreenNode? FindChild(GreenNode node, SyntaxKind kind)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot != null && slot.Kind == kind) return slot;
+        }
+        return null;
+    }
+
+    private static bool HasModifier(GreenNode modList, SyntaxKind modKind)
+    {
+        for (int i = 0; i < modList.SlotCount; i++)
+        {
+            if (modList.GetSlot(i) is SyntaxToken t && t.Kind == modKind) return true;
+        }
+        return false;
+    }
+
+    private static bool HasAttribute(GreenNode attrListNode, string attrName)
+    {
+        for (int i = 0; i < attrListNode.SlotCount; i++)
+        {
+            var slot = attrListNode.GetSlot(i);
+            if (slot == null) continue;
+
+            // Could be nested: AttributeList > AttributeList > Attribute
+            if (slot.Kind == SyntaxKind.AttributeList)
+            {
+                if (HasAttribute(slot, attrName)) return true;
+                continue;
+            }
+
+            if (slot.Kind == SyntaxKind.Attribute)
+            {
+                var nameNode = slot.GetSlot(0);
+                var name = nameNode is SyntaxToken t ? t.Text : ExtractDottedName(nameNode);
+                if (string.Equals(name, attrName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool TryExtractUuidAttribute(GreenNode attrListNode, out Guid uuid)
+    {
+        uuid = default;
+        for (int i = 0; i < attrListNode.SlotCount; i++)
+        {
+            var slot = attrListNode.GetSlot(i);
+            if (slot == null) continue;
+
+            if (slot.Kind == SyntaxKind.AttributeList)
+            {
+                if (TryExtractUuidAttribute(slot, out uuid)) return true;
+                continue;
+            }
+
+            if (slot.Kind == SyntaxKind.Attribute)
+            {
+                var nameNode = slot.GetSlot(0);
+                var name = nameNode is SyntaxToken t ? t.Text : ExtractDottedName(nameNode);
+                if (!string.Equals(name, "uuid", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                // Find AttributeArgumentList, then extract first string/guid literal
+                for (int j = 1; j < slot.SlotCount; j++)
+                {
+                    var argList = slot.GetSlot(j);
+                    if (argList == null || argList.Kind != SyntaxKind.AttributeArgumentList)
+                        continue;
+
+                    var guidText = ExtractFirstLiteralText(argList);
+                    if (guidText != null && Guid.TryParse(guidText, out uuid))
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static string? ExtractFirstLiteralText(GreenNode node)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot == null) continue;
+
+            if (slot is SyntaxToken token)
+            {
+                if (token.Kind is SyntaxKind.StringLiteralToken or SyntaxKind.GuidLiteralToken)
+                {
+                    var text = token.Text;
+                    // Strip surrounding quotes if present
+                    if (text.Length >= 2 && text[0] == '"' && text[^1] == '"')
+                        text = text[1..^1];
+                    return text;
+                }
+            }
+
+            // Recurse into AttributeArgument nodes
+            var result = ExtractFirstLiteralText(slot);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    private static bool HasChildToken(GreenNode node, SyntaxKind kind)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            if (node.GetSlot(i) is SyntaxToken t && t.Kind == kind) return true;
+        }
+        return false;
+    }
+
+    private static bool IsTypeNode(SyntaxKind kind) =>
+        kind is SyntaxKind.TypeReference or SyntaxKind.GenericName
+            or SyntaxKind.QualifiedName or SyntaxKind.ArrayType
+            or SyntaxKind.PointerType;
+
+    private static bool IsIdentifierLike(SyntaxKind kind) =>
+        kind == SyntaxKind.IdentifierToken || IsTypeKeywordOrNameable(kind);
+
+    private static bool IsTypeKeywordOrNameable(SyntaxKind kind) =>
+        kind is SyntaxKind.BooleanKeyword or SyntaxKind.CharKeyword
+            or SyntaxKind.Int16Keyword or SyntaxKind.Int32Keyword or SyntaxKind.Int64Keyword
+            or SyntaxKind.UInt8Keyword or SyntaxKind.UInt16Keyword or SyntaxKind.UInt32Keyword
+            or SyntaxKind.UInt64Keyword or SyntaxKind.SingleKeyword or SyntaxKind.DoubleKeyword
+            or SyntaxKind.StringKeyword or SyntaxKind.GuidKeyword or SyntaxKind.ObjectKeyword
+            or SyntaxKind.VoidKeyword or SyntaxKind.HResultKeyword
+            or SyntaxKind.EventKeyword or SyntaxKind.GetKeyword or SyntaxKind.SetKeyword
+            or SyntaxKind.RequiresKeyword or SyntaxKind.ContractKeyword;
+
+    #endregion
+}

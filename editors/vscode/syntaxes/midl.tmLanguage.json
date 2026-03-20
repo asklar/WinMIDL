@@ -1,0 +1,167 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "MIDL",
+  "scopeName": "source.midl",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#guids" },
+    { "include": "#numbers" },
+    { "include": "#attributes" },
+    { "include": "#event-declaration" },
+    { "include": "#keywords" },
+    { "include": "#classic-declaration-keywords" },
+    { "include": "#additional-keywords" },
+    { "include": "#type-keywords" },
+    { "include": "#classic-type-keywords" },
+    { "include": "#qualified-type-name" },
+    { "include": "#storage-modifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.midl",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.midl",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.midl",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.midl",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "guids": {
+      "patterns": [
+        {
+          "name": "constant.other.guid.midl",
+          "match": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.midl",
+          "match": "\\b0[xX][0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.midl",
+          "match": "\\b[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?\\b"
+        }
+      ]
+    },
+    "attribute-keywords": {
+      "patterns": [
+        {
+          "name": "entity.other.attribute-name.midl",
+          "match": "\\b(uuid|contract|contractversion|activatable|composable|threading|marshaling_behavior|deprecated|exclusiveto|experimental|feature|flags|version|default_overload|method_name|interface_name|static_name|constructor_name|protected_name|overridable_name|return_name|default_interface|contentproperty|allowforweb|attributeusage|attributename|allowmultiple|overload|fastabi|from_contract|internal|remote_async|v1_enum)\\b"
+        },
+        {
+          "name": "entity.other.attribute-name.midl",
+          "match": "\\b(in|out|retval|propget|propput|propputref|optional|vararg|hidden|restricted|object|local|dual|oleautomation|source|bindable|readonly|string|unique|ptr|ref|pointer_default|size_is|length_is|first_is|last_is|max_is|min_is|switch_is|switch_type|iid_is|id|custom|helpstring|call_as|wire_marshal|represent_as|transmit_as|context_handle|encode|decode|range)\\b"
+        }
+      ]
+    },
+    "attributes": {
+      "patterns": [
+        {
+          "name": "meta.attribute.midl",
+          "begin": "\\[",
+          "end": "\\]",
+          "patterns": [
+            { "include": "#attribute-keywords" },
+            { "include": "#strings" },
+            { "include": "#numbers" },
+            { "include": "#guids" },
+            { "include": "#qualified-type-name" },
+            { "include": "#comments" }
+          ]
+        }
+      ]
+    },
+    "event-declaration": {
+      "patterns": [
+        {
+          "match": "\\b(event)\\b",
+          "name": "keyword.control.midl"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.midl",
+          "match": "\\b(namespace|runtimeclass|interface|delegate|struct|enum|event|import|declare|apicontract|attribute|void)\\b"
+        }
+      ]
+    },
+    "classic-declaration-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.midl",
+          "match": "\\b(coclass|library|module|typedef|union|dispinterface|importlib|contract)\\b"
+        }
+      ]
+    },
+    "additional-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.other.midl",
+          "match": "\\b(requires|import|cpp_quote|default|case|switch|SAFEARRAY|pipe)\\b"
+        },
+        {
+          "name": "constant.language.midl",
+          "match": "\\b(TRUE|FALSE|NULL)\\b"
+        }
+      ]
+    },
+    "type-keywords": {
+      "patterns": [
+        {
+          "name": "storage.type.midl",
+          "match": "\\b(Boolean|Char|Int16|Int32|Int64|UInt8|UInt16|UInt32|UInt64|Single|Double|String|Guid|Object)\\b"
+        }
+      ]
+    },
+    "classic-type-keywords": {
+      "patterns": [
+        {
+          "name": "support.type.midl",
+          "match": "\\b(HRESULT|boolean|byte|char|short|long|int|float|double|hyper|unsigned|signed|small|wchar_t|handle_t|error_status_t|void|BSTR|LPSTR|LPWSTR|VARIANT|IUnknown|IDispatch|IInspectable)\\b"
+        }
+      ]
+    },
+    "qualified-type-name": {
+      "patterns": [
+        {
+          "name": "entity.name.type.qualified.midl",
+          "match": "\\b[A-Z][a-zA-Z0-9]*(\\.[A-Z][a-zA-Z0-9]*)+\\b"
+        }
+      ]
+    },
+    "storage-modifiers": {
+      "patterns": [
+        {
+          "name": "storage.modifier.midl",
+          "match": "\\b(static|partial|unsealed|protected|overridable|get|set|out|ref|const)\\b"
+        }
+      ]
+    }
+  }
+}

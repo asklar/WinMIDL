@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Midl.Analysis/Midl.Analysis.csproj" />
+    <Project Path="src/Midl.Cli/Midl.Cli.csproj" />
+    <Project Path="src/Midl.CodeGen/Midl.CodeGen.csproj" />
+    <Project Path="src/Midl.Lexer/Midl.Lexer.csproj" />
+    <Project Path="src/Midl.Lsp/Midl.Lsp.csproj" />
+    <Project Path="src/Midl.Parser/Midl.Parser.csproj" />
+    <Project Path="src/Midl.Syntax/Midl.Syntax.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Midl.Analysis.Tests/Midl.Analysis.Tests.csproj" />
+    <Project Path="tests/Midl.CodeGen.Tests/Midl.CodeGen.Tests.csproj" />
+    <Project Path="tests/Midl.Integration.Tests/Midl.Integration.Tests.csproj" />
+    <Project Path="tests/Midl.Lexer.Tests/Midl.Lexer.Tests.csproj" />
+    <Project Path="tests/Midl.Parser.Tests/Midl.Parser.Tests.csproj" />
+  </Folder>
+</Solution>

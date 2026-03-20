@@ -1,0 +1,256 @@
+using Midl.Analysis.Symbols;
+
+namespace Midl.Analysis;
+
+/// <summary>
+/// Namespace-aware name resolution with scoped lookup.
+/// </summary>
+public class SymbolTable
+{
+    private readonly NamespaceSymbol _globalNamespace;
+    private readonly Stack<ISymbol> _scopeStack = new();
+    private readonly Dictionary<string, ISymbol> _allDefinedTypes = new(StringComparer.Ordinal);
+
+    private static readonly Dictionary<string, string> ShorthandMappings = new(StringComparer.Ordinal)
+    {
+        ["IVector"] = "Windows.Foundation.Collections.IVector",
+        ["IVectorView"] = "Windows.Foundation.Collections.IVectorView",
+        ["IMap"] = "Windows.Foundation.Collections.IMap",
+        ["IMapView"] = "Windows.Foundation.Collections.IMapView",
+        ["IIterable"] = "Windows.Foundation.Collections.IIterable",
+        ["IKeyValuePair"] = "Windows.Foundation.Collections.IKeyValuePair",
+        ["IObservableVector"] = "Windows.Foundation.Collections.IObservableVector",
+        ["IObservableMap"] = "Windows.Foundation.Collections.IObservableMap",
+        ["IAsyncOperation"] = "Windows.Foundation.IAsyncOperation",
+        ["IAsyncAction"] = "Windows.Foundation.IAsyncAction",
+        ["IReference"] = "Windows.Foundation.IReference",
+        ["EventHandler"] = "Windows.Foundation.EventHandler",
+        ["TypedEventHandler"] = "Windows.Foundation.TypedEventHandler",
+    };
+
+    public SymbolTable(NamespaceSymbol globalNamespace)
+    {
+        _globalNamespace = globalNamespace;
+        _scopeStack.Push(globalNamespace);
+    }
+
+    public ISymbol CurrentScope => _scopeStack.Peek();
+
+    public void EnterScope(ISymbol scope)
+    {
+        _scopeStack.Push(scope);
+    }
+
+    public void ExitScope()
+    {
+        if (_scopeStack.Count > 1)
+            _scopeStack.Pop();
+    }
+
+    public void Define(ISymbol symbol)
+    {
+        // Track fully-qualified types for fast lookup
+        if (symbol.Kind is not (SymbolKind.Namespace or SymbolKind.Parameter
+            or SymbolKind.Method or SymbolKind.Property or SymbolKind.Event
+            or SymbolKind.Constructor or SymbolKind.Field or SymbolKind.EnumMember))
+        {
+            _allDefinedTypes[symbol.FullName] = symbol;
+        }
+    }
+
+    /// <summary>
+    /// Bulk-import external symbols (e.g., from .winmd references) into the symbol table.
+    /// Creates namespace hierarchy and inserts each type into the appropriate namespace.
+    /// </summary>
+    public void ImportExternalTypes(IReadOnlyList<ISymbol> externalTypes)
+    {
+        foreach (var type in externalTypes)
+        {
+            var fullName = type.FullName;
+            var lastDot = fullName.LastIndexOf('.');
+            var nsName = lastDot >= 0 ? fullName[..lastDot] : "";
+
+            // Create namespace hierarchy from fully-qualified name
+            var ns = GetOrCreateNamespaceHierarchy(nsName);
+
+            // Re-parent the symbol into the real namespace
+            switch (type)
+            {
+                case InterfaceSymbol iface:
+                    var newIface = new InterfaceSymbol(iface.Name, ns)
+                    {
+                        Uuid = iface.Uuid,
+                        IsExternal = true,
+                        SourceWinMdPath = iface.SourceWinMdPath,
+                    };
+                    foreach (var m in iface.Members)
+                        newIface.AddMember(m);
+                    foreach (var r in iface.RequiredInterfaces)
+                        newIface.RequiredInterfaces.Add(r);
+                    ns.AddMember(newIface);
+                    _allDefinedTypes[newIface.FullName] = newIface;
+                    break;
+
+                case EnumSymbol e:
+                    var newEnum = new EnumSymbol(e.Name, ns)
+                    {
+                        IsFlags = e.IsFlags,
+                        UnderlyingType = e.UnderlyingType,
+                        IsExternal = true,
+                        SourceWinMdPath = e.SourceWinMdPath,
+                    };
+                    foreach (var m in e.EnumMembers)
+                        newEnum.AddMember(m);
+                    ns.AddMember(newEnum);
+                    _allDefinedTypes[newEnum.FullName] = newEnum;
+                    break;
+
+                case StructSymbol s:
+                    var newStruct = new StructSymbol(s.Name, ns)
+                    {
+                        IsExternal = true,
+                        SourceWinMdPath = s.SourceWinMdPath,
+                    };
+                    foreach (var f in s.Fields)
+                        newStruct.AddField(f);
+                    ns.AddMember(newStruct);
+                    _allDefinedTypes[newStruct.FullName] = newStruct;
+                    break;
+
+                case DelegateSymbol d:
+                    var newDel = new DelegateSymbol(d.Name, ns)
+                    {
+                        ReturnType = d.ReturnType,
+                        IsExternal = true,
+                        SourceWinMdPath = d.SourceWinMdPath,
+                    };
+                    newDel.Parameters.AddRange(d.Parameters);
+                    ns.AddMember(newDel);
+                    _allDefinedTypes[newDel.FullName] = newDel;
+                    break;
+
+                case RuntimeClassSymbol rc:
+                    var newRc = new RuntimeClassSymbol(rc.Name, ns)
+                    {
+                        Uuid = rc.Uuid,
+                        BaseClass = rc.BaseClass,
+                        IsStatic = rc.IsStatic,
+                        IsExternal = true,
+                        SourceWinMdPath = rc.SourceWinMdPath,
+                    };
+                    foreach (var i in rc.Interfaces)
+                        newRc.Interfaces.Add(i);
+                    foreach (var m in rc.Members)
+                        newRc.AddMember(m);
+                    ns.AddMember(newRc);
+                    _allDefinedTypes[newRc.FullName] = newRc;
+                    break;
+
+                case ApiContractSymbol ac:
+                    var newAc = new ApiContractSymbol(ac.Name, ns)
+                    {
+                        Version = ac.Version,
+                        IsExternal = true,
+                        SourceWinMdPath = ac.SourceWinMdPath,
+                    };
+                    ns.AddMember(newAc);
+                    _allDefinedTypes[newAc.FullName] = newAc;
+                    break;
+            }
+        }
+    }
+
+    private NamespaceSymbol GetOrCreateNamespaceHierarchy(string dottedName)
+    {
+        if (string.IsNullOrEmpty(dottedName)) return _globalNamespace;
+
+        var parts = dottedName.Split('.');
+        var current = _globalNamespace;
+        foreach (var part in parts)
+        {
+            current = current.GetOrCreateChildNamespace(part);
+        }
+        return current;
+    }
+
+    /// <summary>
+    /// Scoped lookup: search current scope, then parent scopes.
+    /// </summary>
+    public ISymbol? Lookup(string name)
+    {
+        foreach (var scope in _scopeStack)
+        {
+            var result = LookupInScope(scope, name);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Qualified lookup: walk namespace hierarchy from global root.
+    /// </summary>
+    public ISymbol? LookupQualified(string dottedName)
+    {
+        if (_allDefinedTypes.TryGetValue(dottedName, out var cached))
+            return cached;
+
+        var parts = dottedName.Split('.');
+        NamespaceSymbol current = _globalNamespace;
+
+        for (int i = 0; i < parts.Length; i++)
+        {
+            bool isLast = i == parts.Length - 1;
+
+            if (current.ChildNamespaces.TryGetValue(parts[i], out var childNs))
+            {
+                if (isLast) return childNs;
+                current = childNs;
+                continue;
+            }
+
+            var member = FindMemberByName(current, parts[i]);
+            if (member != null && isLast) return member;
+
+            return null;
+        }
+
+        return current;
+    }
+
+    /// <summary>
+    /// Shorthand resolution: try normal lookup, then shorthand mappings.
+    /// </summary>
+    public ISymbol? LookupWithShorthand(string name)
+    {
+        var result = Lookup(name);
+        if (result != null) return result;
+
+        if (ShorthandMappings.TryGetValue(name, out var qualified))
+            return LookupQualified(qualified);
+
+        return null;
+    }
+
+    private static ISymbol? LookupInScope(ISymbol scope, string name)
+    {
+        return scope switch
+        {
+            NamespaceSymbol ns => ns.ChildNamespaces.TryGetValue(name, out var child)
+                ? child
+                : FindMemberByName(ns, name),
+            RuntimeClassSymbol rc => rc.Members.FirstOrDefault(m => m.Name == name),
+            InterfaceSymbol iface => iface.Members.FirstOrDefault(m => m.Name == name),
+            _ => null,
+        };
+    }
+
+    private static ISymbol? FindMemberByName(NamespaceSymbol ns, string name)
+    {
+        foreach (var m in ns.Members)
+        {
+            if (m.Name == name && m.Kind != SymbolKind.Namespace)
+                return m;
+        }
+        return null;
+    }
+}

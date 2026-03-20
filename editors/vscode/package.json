@@ -1,0 +1,87 @@
+{
+  "name": "midl-language",
+  "displayName": "MIDL Language Support",
+  "description": "Language support for Microsoft Interface Definition Language (MIDL/MIDL3) — syntax highlighting, snippets, and language server integration for .idl files",
+  "version": "0.0.1",
+  "publisher": "microsoft",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/midl"
+  },
+  "keywords": [
+    "MIDL",
+    "IDL",
+    "WinRT",
+    "MIDL3",
+    "Windows Runtime"
+  ],
+  "activationEvents": [
+    "onLanguage:midl"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "midl",
+        "aliases": [
+          "MIDL",
+          "midl",
+          "IDL",
+          "MIDL3"
+        ],
+        "extensions": [
+          ".idl"
+        ],
+        "firstLine": "^\\s*(namespace|import|\\[|runtimeclass|interface|delegate|struct|enum|//)",
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "midl",
+        "scopeName": "source.midl",
+        "path": "./syntaxes/midl.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "midl",
+        "path": "./snippets/midl.json"
+      }
+    ],
+    "configuration": {
+      "title": "MIDL",
+      "properties": {
+        "midl.serverPath": {
+          "type": "string",
+          "default": "midl",
+          "description": "Path to the MIDL CLI executable for the language server."
+        },
+        "midl.strictMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable strict MIDL3 mode. When enabled, classic MIDL constructs (coclass, library, typedef, etc.) produce warnings. Disable for mixed MIDL2/MIDL3 codebases."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "package": "npx @vscode/vsce package"
+  },
+  "main": "./out/extension.js",
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}

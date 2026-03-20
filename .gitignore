@@ -1,0 +1,27 @@
+# .NET
+bin/
+obj/
+publish/
+*.user
+*.suo
+*.cache
+*.log
+*.vsidx
+.vs/
+
+# NuGet
+packages/
+*.nupkg
+
+# VS Code extension
+editors/vscode/out/
+editors/vscode/node_modules/
+editors/vscode/*.vsix
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Test results
+TestResults/
+*.trx

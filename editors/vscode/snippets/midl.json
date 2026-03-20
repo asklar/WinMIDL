@@ -1,0 +1,161 @@
+{
+    "Namespace": {
+        "prefix": "namespace",
+        "body": [
+            "namespace ${1:MyNamespace}",
+            "{",
+            "    $0",
+            "}"
+        ],
+        "description": "Create a namespace declaration"
+    },
+    "Runtime Class": {
+        "prefix": "runtimeclass",
+        "body": [
+            "runtimeclass ${1:ClassName}",
+            "{",
+            "    ${1:ClassName}();",
+            "    $0",
+            "}"
+        ],
+        "description": "Create a runtime class"
+    },
+    "Unsealed Runtime Class": {
+        "prefix": "unsealedruntimeclass",
+        "body": [
+            "unsealed runtimeclass ${1:ClassName} : ${2:BaseClass}",
+            "{",
+            "    protected ${1:ClassName}();",
+            "    $0",
+            "}"
+        ],
+        "description": "Create an unsealed (composable) runtime class"
+    },
+    "Static Runtime Class": {
+        "prefix": "staticruntimeclass",
+        "body": [
+            "static runtimeclass ${1:ClassName}",
+            "{",
+            "    static $0",
+            "}"
+        ],
+        "description": "Create a static-only runtime class"
+    },
+    "Interface": {
+        "prefix": "interface",
+        "body": [
+            "interface ${1:IInterfaceName}",
+            "{",
+            "    $0",
+            "}"
+        ],
+        "description": "Create an interface"
+    },
+    "Interface with Requires": {
+        "prefix": "interfacerequires",
+        "body": [
+            "interface ${1:IInterfaceName} requires ${2:IBaseInterface}",
+            "{",
+            "    $0",
+            "}"
+        ],
+        "description": "Create an interface with requires clause"
+    },
+    "Delegate": {
+        "prefix": "delegate",
+        "body": [
+            "delegate ${1:void} ${2:MyHandler}(${3:Object sender, Object args});"
+        ],
+        "description": "Create a delegate type"
+    },
+    "Struct": {
+        "prefix": "struct",
+        "body": [
+            "struct ${1:MyStruct}",
+            "{",
+            "    ${2:Int32} ${3:Field1};",
+            "    $0",
+            "};"
+        ],
+        "description": "Create a struct"
+    },
+    "Enum": {
+        "prefix": "enum",
+        "body": [
+            "enum ${1:MyEnum}",
+            "{",
+            "    ${2:Value1},",
+            "    $0",
+            "};"
+        ],
+        "description": "Create an enum"
+    },
+    "Flags Enum": {
+        "prefix": "flagsenum",
+        "body": [
+            "[flags]",
+            "enum ${1:MyFlags}",
+            "{",
+            "    None   = 0x00000000,",
+            "    ${2:Flag1} = 0x00000001,",
+            "    $0",
+            "};"
+        ],
+        "description": "Create a flags enum"
+    },
+    "Read-Only Property": {
+        "prefix": "propget",
+        "body": "${1:String} ${2:Name} { get; };",
+        "description": "Read-only property"
+    },
+    "Read-Write Property": {
+        "prefix": "proprw",
+        "body": "${1:String} ${2:Name};",
+        "description": "Read-write property (shorthand)"
+    },
+    "Event": {
+        "prefix": "event",
+        "body": "event Windows.Foundation.TypedEventHandler<${1:SenderType}, ${2:Object}> ${3:EventName};",
+        "description": "Typed event declaration"
+    },
+    "Async Method": {
+        "prefix": "asyncmethod",
+        "body": "Windows.Foundation.IAsyncOperation<${1:String}> ${2:MethodName}Async(${3});",
+        "description": "Async method returning IAsyncOperation"
+    },
+    "Async Action": {
+        "prefix": "asyncaction",
+        "body": "Windows.Foundation.IAsyncAction ${1:MethodName}Async(${2});",
+        "description": "Async method returning IAsyncAction"
+    },
+    "Contract Attribute": {
+        "prefix": "contract",
+        "body": "[contract(${1:Windows.Foundation.UniversalApiContract}, ${2:1})]",
+        "description": "Contract version attribute"
+    },
+    "API Contract": {
+        "prefix": "apicontract",
+        "body": [
+            "[contractversion(${1:1})]",
+            "apicontract ${2:MyContract}",
+            "{",
+            "};"
+        ],
+        "description": "Define an API contract"
+    },
+    "Versioned Block": {
+        "prefix": "versionedblock",
+        "body": [
+            "[contract(${1:ContractName}, ${2:2})]",
+            "{",
+            "    $0",
+            "}"
+        ],
+        "description": "Versioned member block"
+    },
+    "Import": {
+        "prefix": "import",
+        "body": "import \"${1:Windows.Foundation.idl}\";",
+        "description": "Import an IDL file"
+    }
+}

@@ -1,0 +1,22 @@
+namespace Midl.Analysis.Symbols;
+
+public class EnumMemberSymbol : ISymbol
+{
+    public string Name { get; }
+    public SymbolKind Kind => SymbolKind.EnumMember;
+    public ISymbol? ContainingSymbol { get; }
+
+    public string FullName =>
+        ContainingSymbol is { FullName.Length: > 0 }
+            ? $"{ContainingSymbol.FullName}.{Name}"
+            : Name;
+
+    public bool IsExternal { get; set; }
+    public string? SourceWinMdPath { get; set; }
+
+    public EnumMemberSymbol(string name, ISymbol? containingSymbol)
+    {
+        Name = name;
+        ContainingSymbol = containingSymbol;
+    }
+}
