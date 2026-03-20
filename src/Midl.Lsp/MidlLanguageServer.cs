@@ -111,7 +111,7 @@ public sealed class MidlLanguageServer
                 break;
 
             case "textDocument/completion":
-                await _writer.SendResponseAsync(id, CompletionHandler.Handle(@params, _docManager));
+                await _writer.SendResponseAsync(id, CompletionHandler.Handle(@params, _docManager, _sdkIncludePaths, _projectFile));
                 break;
 
             case "textDocument/hover":
@@ -226,7 +226,7 @@ public sealed class MidlLanguageServer
                 },
                 ["completionProvider"] = new Dictionary<string, object?>
                 {
-                    ["triggerCharacters"] = new[] { ".", " ", "[" },
+                    ["triggerCharacters"] = new[] { ".", " ", "[", "\"" },
                     ["resolveProvider"] = false
                 },
                 ["hoverProvider"] = true,

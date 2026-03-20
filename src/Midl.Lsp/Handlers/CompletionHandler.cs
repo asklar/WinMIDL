@@ -20,10 +20,12 @@ public static class CompletionHandler
     private const int KindModule = 9;  // for namespace
     private const int KindEvent = 23;
     private const int KindProperty = 10; // for attributes
+    private const int KindFile = 17; // for import file completions
 
     private static readonly object[] s_staticCompletionItems = BuildCompletionItems();
 
-    public static object Handle(JsonElement? @params, DocumentManager docManager)
+    public static object Handle(JsonElement? @params, DocumentManager docManager,
+        IReadOnlyList<string>? includePaths = null, ProjectFile? projectFile = null)
     {
         if (@params == null)
             return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = s_staticCompletionItems };
@@ -40,13 +42,25 @@ public static class CompletionHandler
             if (text == null)
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = s_staticCompletionItems };
 
-            // Check if cursor is inside an attribute context [...]
             int offset = GetOffset(text, line, character);
+
+            // Check if cursor is inside an import "..." string
+            string? fileDir = null;
+            if (uri.StartsWith("file:///"))
+                fileDir = Path.GetDirectoryName(Uri.UnescapeDataString(uri[8..]));
+
+            var importContext = DetectImportContext(text, line);
+            if (importContext != null)
+            {
+                var items = BuildImportCompletions(importContext, fileDir, includePaths, projectFile);
+                return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
+            }
+
+            // Check if cursor is inside an attribute context [...]
             var attrContext = DetectAttributeContext(text, offset);
 
             if (attrContext != null)
             {
-                // Inside [...] — return only applicable attributes
                 var items = BuildAttributeCompletions(text, attrContext);
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
             }
@@ -336,6 +350,110 @@ public static class CompletionHandler
             "return_name(\"${1:name}\")"),
         ("remote_async", "Marks method for remote async projection", ["target_member"], null),
     ];
+
+    #region Import Completions
+
+    /// <summary>
+    /// Detects if the cursor is on an import line: import "..."
+    /// Returns the partial text typed so far inside the quotes, or "" if just opened.
+    /// </summary>
+    private static string? DetectImportContext(string text, int line)
+    {
+        var lines = text.Split('\n');
+        if (line < 0 || line >= lines.Length) return null;
+
+        var currentLine = lines[line].TrimStart();
+        // Match: import "partial_text  (with or without closing quote)
+        if (!currentLine.StartsWith("import ", StringComparison.Ordinal) &&
+            !currentLine.StartsWith("import\t", StringComparison.Ordinal))
+            return null;
+
+        int quoteStart = currentLine.IndexOf('"');
+        if (quoteStart < 0) return null;
+
+        // Extract text after the opening quote
+        var afterQuote = currentLine[(quoteStart + 1)..];
+        int quoteEnd = afterQuote.IndexOf('"');
+        return quoteEnd >= 0 ? afterQuote[..quoteEnd] : afterQuote.TrimEnd('\r');
+    }
+
+    /// <summary>Build completions for import "..." — lists .idl files from include paths and project.</summary>
+    private static List<object> BuildImportCompletions(string partialPath,
+        string? fileDir, IReadOnlyList<string>? includePaths, ProjectFile? projectFile)
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var items = new List<object>();
+
+        // Collect all search directories
+        var searchDirs = new List<string>();
+        if (fileDir != null) searchDirs.Add(fileDir);
+        if (includePaths != null) searchDirs.AddRange(includePaths);
+        if (projectFile != null) searchDirs.AddRange(projectFile.GetAbsoluteIncludePaths());
+
+        // Also add project input file directories
+        if (projectFile != null)
+        {
+            foreach (var input in projectFile.GetAbsoluteInputPaths())
+            {
+                var dir = Path.GetDirectoryName(input);
+                if (dir != null && !searchDirs.Contains(dir))
+                    searchDirs.Add(dir);
+            }
+        }
+
+        foreach (var dir in searchDirs)
+        {
+            if (!Directory.Exists(dir)) continue;
+
+            try
+            {
+                foreach (var file in Directory.EnumerateFiles(dir, "*.idl", SearchOption.TopDirectoryOnly))
+                {
+                    var name = Path.GetFileName(file);
+                    if (!seen.Add(name)) continue;
+
+                    // Filter by partial text typed so far
+                    if (partialPath.Length > 0 &&
+                        !name.StartsWith(partialPath, StringComparison.OrdinalIgnoreCase) &&
+                        !name.Contains(partialPath, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    var isInProject = projectFile?.Inputs.Any(i =>
+                        Path.GetFileName(i).Equals(name, StringComparison.OrdinalIgnoreCase)) ?? false;
+
+                    items.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = name,
+                        ["kind"] = KindFile,
+                        ["detail"] = isInProject ? "(project)" : Path.GetDirectoryName(file),
+                        ["insertText"] = name,
+                        ["filterText"] = name,
+                    });
+                }
+            }
+            catch
+            {
+                // Ignore directory access errors
+            }
+        }
+
+        // Sort: project files first, then alphabetical
+        items.Sort((a, b) =>
+        {
+            var ad = ((Dictionary<string, object?>)a)["detail"]?.ToString() ?? "";
+            var bd = ((Dictionary<string, object?>)b)["detail"]?.ToString() ?? "";
+            bool aProj = ad == "(project)";
+            bool bProj = bd == "(project)";
+            if (aProj != bProj) return aProj ? -1 : 1;
+            var al = ((Dictionary<string, object?>)a)["label"]?.ToString() ?? "";
+            var bl = ((Dictionary<string, object?>)b)["label"]?.ToString() ?? "";
+            return string.Compare(al, bl, StringComparison.OrdinalIgnoreCase);
+        });
+
+        return items;
+    }
+
+    #endregion
 
     private static int GetOffset(string text, int line, int character)
     {

@@ -136,6 +136,71 @@ public class LspHandlerTests
     }
 
     [Fact]
+    public void CompletionOnImportLine_ShowsIdlFiles()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_import_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            // Create sibling IDL files
+            File.WriteAllText(Path.Combine(tempDir, "Helper.idl"), "namespace H { }");
+            File.WriteAllText(Path.Combine(tempDir, "Types.idl"), "namespace T { }");
+            File.WriteAllText(Path.Combine(tempDir, "NotIdl.txt"), "hello");
+
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(tempDir, "Widget.idl")).Replace("\\", "/");
+            var source = "import \"\"\nnamespace W { }";
+            var dm = CreateDocManager(uri, source);
+
+            // Cursor at line 0, char 8 — inside import ""
+            var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 8), dm,
+                includePaths: new[] { tempDir });
+
+            var json = JsonSerializer.Serialize(result);
+
+            // Should include .idl files
+            Assert.Contains("Helper.idl", json);
+            Assert.Contains("Types.idl", json);
+
+            // Should NOT include non-.idl files
+            Assert.DoesNotContain("NotIdl.txt", json);
+
+            // Should NOT include keywords
+            Assert.DoesNotContain("\"runtimeclass\"", json);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void CompletionOnImportLine_FiltersPartialTyping()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_import_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            File.WriteAllText(Path.Combine(tempDir, "Helper.idl"), "namespace H { }");
+            File.WriteAllText(Path.Combine(tempDir, "Types.idl"), "namespace T { }");
+
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(tempDir, "Widget.idl")).Replace("\\", "/");
+            var source = "import \"Hel\"\nnamespace W { }";
+            var dm = CreateDocManager(uri, source);
+
+            var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 11), dm,
+                includePaths: new[] { tempDir });
+
+            var json = JsonSerializer.Serialize(result);
+            Assert.Contains("Helper.idl", json);
+            Assert.DoesNotContain("Types.idl", json);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
     public void CompletionIncludesExternalTypes()
     {
         // Create a reference .winmd with an external type
