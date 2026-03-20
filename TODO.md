@@ -1,6 +1,6 @@
 # TODO — MIDL Compiler Rewrite Status
 
-> **Last updated**: 2026-03-20
+> **Last updated**: 2026-03-20T06:15Z
 > This file tracks implementation status. Keep it current with every feature change.
 
 ## ✅ Implemented
@@ -17,9 +17,16 @@
 - [x] Proxy/stub skeleton generation
 - [x] CLI with 30+ switches, response files, `/debug` tracing
 - [x] `--analyze` mode (Rust-style rich console output with squigglies)
-- [x] `--decompile` mode (WinMD to IDL decompilation)
+- [x] `--decompile` mode (WinMD to MIDL3 IDL — idiomatic properties, events, skips exclusive interfaces)
 - [x] LSP server (JSON-RPC over stdio, no external NuGet deps)
 - [x] VS Code extension (TextMate grammar, 19 snippets, LSP client, F5 debug)
+- [x] Built-in C preprocessor (`#define`, `#ifdef`, `#include`, `#pragma`, macro expansion)
+- [x] Built-in WinRT types (IInspectable, HSTRING, EventRegistrationToken, Windows.Foundation.*, Collections.*)
+- [x] Win32 type aliases (DWORD→UInt32, BYTE→UInt8, GUID→Guid, HSTRING→String, etc.)
+- [x] GitHub Actions CI pipeline (build, test, NativeAOT, VS Code extension)
+- [x] NativeAOT / single-file publish support
+- [x] OS test fixture reference via `MIDL_TEST_FIXTURES` env var (1186 files, 0 crashes)
+- [x] `scripts/test-os-fixtures.ps1` test runner
 
 ### MIDL3 Syntax
 - [x] `namespace` (nested, dotted)
@@ -31,15 +38,18 @@
 - [x] `apicontract`
 - [x] `event` (modern syntax)
 - [x] Properties (`{ get; set; }` and shorthand)
-- [x] Constructors
+- [x] Constructors (default + parameterized)
 - [x] `static` methods and properties
 - [x] `protected` and `overridable` members
 - [x] Versioned blocks `[contract(C, N)] { ... }`
 - [x] Generic/parameterized types (`IVector<T>`, `IMap<K,V>`)
+- [x] `>>` disambiguation in nested generics (`IAsyncOperation<IVector<String>>` works)
 - [x] Modern base types (Int32, String, Boolean, Guid, Object, Char, Single, Double, UInt8...)
 - [x] `declare { }` blocks
-- [x] `import` directive (parsed, not yet functional for IDL-to-IDL)
-- [x] User-defined `attribute` declarations (`ParseAttributeDeclaration`, `AttributeTypeSymbol`, validation, WinMD round-trip)
+- [x] `import "file.idl"` (multi-file IDL compilation with transitive imports)
+- [x] `partial runtimeclass` merging across declarations
+- [x] User-defined `attribute` declarations with `[attributeusage]`, `[attributename]`, `[allowmultiple]`
+- [x] Parameter passing: `out`, `ref const` (structs), `ref` (fill arrays), `T[]` arrays
 
 ### Classic MIDL
 - [x] `coclass` declarations
@@ -61,47 +71,40 @@
 - [x] Protected members → `I<Class>Protected`
 - [x] Overridable members → `I<Class>Overrides`
 - [x] Default interface selection (first instance interface)
+- [x] `[default_interface]` on empty classes → synthesizes empty interface
 - [x] Auto-numbering on name collision (suffix 2, 3...)
 - [x] `IsExclusive` / `ExclusiveToClass` on synthesized interfaces
 
-### Attribute Extraction
-- [x] `AttributeExtractor` — parses attribute arguments into typed `AttributeData`
-- [x] `[uuid]` extraction → InterfaceSymbol.Uuid
-- [x] `[contract(name, version)]` → ContractName, ContractVersion
-- [x] `[version(N)]` → Version
-- [x] `[threading(model)]` → ThreadingModel
-- [x] `[marshaling_behavior(behavior)]` → MarshalingBehavior
-- [x] `[deprecated("msg",...)]` → DeprecatedMessage
-- [x] `[method_name("name")]` → MethodNameOverride
-- [x] `[overload("name")]` → OverloadGroup
-- [x] `[default_overload]` → IsDefaultOverload
-- [x] `[return_name("name")]` → ReturnNameOverride
-- [x] `[remote_async]` → IsRemoteAsync
-- [x] `[default_interface]` → IsDefaultInterface
-- [x] `[contractversion(N)]` → ApiContractSymbol.ContractVersion
+### Attribute Pipeline
+- [x] `AttributeExtractor` — typed extraction of all attribute arguments
+- [x] `AttributeValidator` — semantic checks (MIDL1020–1030)
+- [x] `VersionPropagator` — contract/version flows + validation (MIDL1014–1017)
+- [x] WinMD emission — 13 custom attributes (ExclusiveToAttribute, ActivatableAttribute, etc.)
+- [x] Synthesized interfaces get `tdNotPublic` flag + `ExclusiveToAttribute`
+- [x] WinMD PropertyMap/EventMap/MethodSemantics tables
+- [x] WinMD MethodImpl table (class→interface back-references)
+- [x] WinMD InterfaceImpl for `requires` chains
+- [x] WinMD composition factory encoding (omit IInspectable* outer/inner params)
+- [x] WinMD array param encoding (omit length param from MethodDefSig)
+- [x] Reserved parameter name auto-generation (result/operation/value)
+- [x] PIID algorithm (SHA-1/UUID v5 deterministic IIDs for parameterized types)
+- [x] Custom attribute reading from imported `.winmd` (uuid, version, deprecated, exclusiveto, threading, marshaling)
+- [x] Code action fixers for type name corrections (int→Int32, boolean→Boolean, etc.)
 
-### Attribute Pipeline (complete)
-- [x] `AttributeExtractor` — parses all attribute arguments into typed `AttributeData`
-- [x] `AttributeValidator` — semantic checks (MIDL1020–1028): threading, marshaling, composable access, deprecation type, exclusiveto rules, `[default_interface]` empty class synthesis
-- [x] `VersionPropagator` — contract/version flows: class→interface→member, validation (MIDL1014–1017)
-- [x] WinMD attribute emission — 13 custom attributes: ExclusiveToAttribute, ActivatableAttribute, StaticAttribute, ComposableAttribute, ThreadingAttribute, MarshalingBehaviorAttribute, DeprecatedAttribute, ContractVersionAttribute, OverloadAttribute, DefaultOverloadAttribute, OverridableAttribute, ProtectedAttribute, DefaultAttribute
-- [x] Synthesized interfaces get `tdNotPublic` flag + `ExclusiveToAttribute` in WinMD
-- [x] WinMD PropertyMap/EventMap/MethodSemantics tables for properties and events
-- [x] WinMD MethodImpl table — class method stubs back-reference synthesized interface methods
-- [x] WinMD InterfaceImpl for `requires` clauses on interfaces
-- [x] WinMD-to-IDL decompiler (`WinMdDecompiler`)
-
-### Diagnostics (32 codes)
-- [x] MIDL1001–MIDL1013: Semantic errors (undefined type, duplicate, namespace required, etc.)
-- [x] MIDL1014–MIDL1017: Version/contract errors (interface version, contract family, undefined contract, enum member version)
+### Diagnostics (47 codes)
+- [x] MIDL1001–MIDL1013: Semantic errors (undefined type, duplicate, namespace required, empty struct, case collision, write-only property, reserved param name, etc.)
+- [x] MIDL1014–MIDL1017: Version/contract errors
 - [x] MIDL1020–MIDL1030: Attribute validation (threading, marshaling, composable, exclusiveto, deprecated, attributeusage, custom attribute target/arg count)
-- [x] MIDL1100–MIDL1102: Syntax errors (skipped tokens, error chars, missing tokens)
-- [x] MIDL2001–MIDL2005: Strict mode warnings (classic constructs, lowercase types)
-- [x] Diagnostic positions tracked via `TokenPositionMap` (no more position=0)
-- [x] `position` parameter is **required** on all diagnostic factory methods
+- [x] MIDL1031–MIDL1032: Partial runtimeclass conflicts
+- [x] MIDL1033–MIDL1038: Access/inheritance validation (protected/overridable on sealed, undefined requires, base not runtimeclass, sealed base, runtimeclass on requires list)
+- [x] MIDL1100–MIDL1102: Syntax errors (skipped tokens, error chars, missing tokens with expected info)
+- [x] MIDL2001–MIDL2005: Strict mode warnings (classic constructs, lowercase types, HRESULT, pointers)
+- [x] All diagnostic positions tracked via `TokenPositionMap` — `position` is **required** (no defaults)
+- [x] Diagnostics include `HelpUri` linking to MIDL3 docs
+- [x] Diagnostics include `Data` dict for code action fixers
 
 ### LSP Features
-- [x] Real-time diagnostics (syntax + semantic)
+- [x] Real-time diagnostics (syntax + semantic, including all 47 codes)
 - [x] Keyword + type completions (including external WinMD types)
 - [x] Hover (keyword docs, symbol info, external type markers)
 - [x] Go-to-definition (within file)
@@ -110,64 +113,58 @@
 - [x] Semantic tokens
 - [x] Document formatting
 - [x] Document symbols / outline
-- [x] Code actions / quick fixes (int→Int32, boolean→Boolean, etc.)
+- [x] Code actions / quick fixes (type name corrections with `Data["replacement"]`)
 - [x] `midl.strictMode` setting
 - [x] Command palette: Toggle Strict Mode, Restart Server, Show Server Log
 
-### Testing (330+ tests)
-- [x] Lexer: 29 tests (tokens, trivia, edge cases)
-- [x] Parser: 58 tests (structures, error recovery, completeness, classic MIDL)
-- [x] Analysis: 112 tests (binding, synthesis, WinMD round-trip, extraction, go-to-def, imports)
-- [x] CodeGen: 51 tests (WinMD emitter, header, IID, DllData, tables, decompiler)
-- [x] Integration: 94 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions)
-- [x] IDL fixture suite (15 files with `.expected.json` + `.expected.tree` sidecars)
-- [x] End-to-end quick fix tests (apply fix → verify output IDL)
+### Testing (449 tests)
+- [x] Lexer: 50 tests (tokens, trivia, edge cases, preprocessor)
+- [x] Parser: 62 tests (structures, error recovery, completeness, classic MIDL, generic disambiguation)
+- [x] Analysis: 138 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types)
+- [x] CodeGen: 55 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes)
+- [x] Integration: 146 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, 50 keyword coverage, OS fixtures)
+- [x] IDL fixture suite (18 files with `.expected.json` + `.expected.tree` sidecars)
+- [x] OS fixture test script (`scripts/test-os-fixtures.ps1` — 1186 files, 0 crashes)
+- [x] End-to-end quick fix tests (apply fix → verify output → recompile → no warnings)
 - [x] Diagnostic position tests (squigglies on correct token, not in comments)
+- [x] WinMD round-trip test (IDL → WinMD → decompile → recompile)
+
+### Infrastructure
+- [x] GitHub Actions CI (build + test + NativeAOT + VS Code extension)
+- [x] NativeAOT / single-file publish support
+- [x] MidlTrace debug logging (`/debug` or `MIDL_DEBUG=1`)
+- [x] `/strict` (default) / `/no_strict` / `/compat` mode switches
+- [x] Auto-derived output filenames (input.idl → input.h, input_i.c, input.winmd)
 
 ### Documentation
-- [x] README.md
-- [x] CONTRIBUTING.md
+- [x] README.md (with Mermaid pipeline diagram)
+- [x] CONTRIBUTING.md (with dependency graph diagram)
+- [x] TODO.md (this file)
 - [x] docs/architecture.md (7 Mermaid diagrams)
 - [x] docs/testing.md (VS Code extension build/test instructions)
-- [x] docs/diagnostics.md (all 21 error codes)
-- [x] editors/vscode/README.md (marketplace README)
+- [x] docs/diagnostics.md (all diagnostic codes with examples and fixes)
+- [x] editors/vscode/README.md (marketplace-style feature list)
 - [x] editors/vscode/CHANGELOG.md
 
 ---
 
 ## 🔄 In Progress
 
-*(nothing currently in progress)*
+- [ ] **Comprehensive diagnostic sweep** — add validation for: constructor in interface, static in interface, property/event in struct, event with non-delegate type, void parameter, duplicate method without [overload], circular struct references, duplicate enum values, import not found
 
 ---
 
 ## ❌ Not Yet Implemented
 
-### Critical for Production
-- [ ] **`import "file.idl"` (IDL-to-IDL imports)** — currently only `.winmd` references work
-- [ ] **Read custom attributes from imported `.winmd`** — `[uuid]`, `[contract]`, `[deprecated]`, `[exclusiveto]` on imported types are ignored
-- [ ] **Read parameterized interfaces from `.winmd`** — generic type arguments not decoded from imports
-- [ ] **PIID algorithm** — deterministic IID generation for parameterized type instances (SHA-1/RFC 4122 v5)
-- [ ] **`partial runtimeclass` merging** — parsed but not merged across declarations
-- [ ] **Composition factory encoding in WinMD** — controlling `IInspectable*` and non-delegating `IInspectable**` omitted from metadata `.ctor`
-- [ ] **WinMD array encoding** — array length param omitted from MethodDefSig
-- [ ] **Reserved parameter name auto-generation** — `result`, `operation`, `value` for retval params
-- [ ] **`>>` vs `> >` disambiguation in parser** — currently `>>` is one token; nested generics need space
-
 ### Important
-- [ ] **C preprocessor integration** — `cl.exe /E` invocation or built-in subset
 - [ ] **`importlib` dispatch in parser** — recognized but not dispatched in classic mode
-- [ ] **35 attribute-context keywords** not in lexer keyword table (work as identifiers, but no SyntaxKind)
+- [ ] **Read parameterized interfaces from `.winmd`** — generic type arguments not decoded from imports
 - [ ] **NDR format string generation** (NDR20 + NDR64) — stub skeleton only
 - [ ] **C proxy/stub code generation** (_c.c, _s.c) — skeleton only
 - [ ] **Type library (.tlb) generation** — requires COM `ICreateTypeLib2`
 - [ ] **ACF grammar** — placeholder only
 - [ ] **~110 more CLI switches** — 30 of ~140 implemented
 - [ ] **Velocity/Feature API staging** — `[feature(Name)]` → `[experimental]` transform
-- [ ] **Contract history validation** (MIDL5132) — interface contracts must be in class's contract family
-- [ ] **Case-insensitive namespace/type uniqueness validation**
-- [ ] **Struct field restriction validation** — only value types, strings, `IReference<T>`
-- [ ] **Unicode 3.0 identifier validation** — currently ASCII only
 - [ ] **Incremental parsing for LSP** — currently full reparse on every edit
 - [ ] **Cross-file analysis in LSP** — currently single-file only
 - [ ] **WinMD file naming rules** — namespace matching, case-insensitive
@@ -176,13 +173,11 @@
 - [ ] **`[fastabi]`** — parsed but not semantically processed
 
 ### Nice to Have
-- [ ] **NativeAOT publish** — single-file `midl.exe`
 - [ ] **Rename symbol** in LSP
 - [ ] **WinMD inspection** — go-to-def into imported `.winmd` types
 - [ ] **Formatting** — more sophisticated (preserve user formatting, align attributes)
 - [ ] **Code lens** — show interface synthesis results inline
 - [ ] **Extension icon** — custom icon for the VS Code extension
-- [ ] **Test with Windows product IDL corpus** (T2 testing)
 - [ ] **Golden-file comparison** against original midl.exe output (T3 testing)
 - [ ] **Drop-in replacement** test in razzle build (T4 testing)
 
