@@ -117,7 +117,7 @@ public class T1ValidationTests
             {
                 var source = File.ReadAllText(file);
                 var compilation = CompilationHelper.Compile(source,
-                    referencePaths: GetReferencePaths(),
+                    referencePaths: null, // compat mode — types come from IDL imports, not WinMD
                     mode: CompilationMode.Compat,
                     includePaths: GetIncludePaths(),
                     currentFilePath: file);

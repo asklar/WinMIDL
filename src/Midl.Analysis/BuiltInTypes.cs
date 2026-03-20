@@ -71,12 +71,11 @@ public static class BuiltInTypes
         RegisterInterface(symbolTable, "Windows.Foundation.Collections", "IVectorChangedEventArgs");
         RegisterEnum(symbolTable, "Windows.Foundation.Collections", "CollectionChange");
 
-        // 4. Global type aliases (classic C / Win32 types → WinRT equivalents)
+        // 4. Global type aliases — WinRT canonical names (always available)
         symbolTable.RegisterAlias("HSTRING", "String");
         symbolTable.RegisterAlias("HRESULT", "Int32");
         symbolTable.RegisterAlias("GUID", "Guid");
         symbolTable.RegisterAlias("EventRegistrationToken", "Windows.Foundation.EventRegistrationToken");
-        symbolTable.RegisterAlias("BYTE", "UInt8");
         symbolTable.RegisterAlias("UINT8", "UInt8");
         symbolTable.RegisterAlias("INT16", "Int16");
         symbolTable.RegisterAlias("UINT16", "UInt16");
@@ -84,19 +83,43 @@ public static class BuiltInTypes
         symbolTable.RegisterAlias("UINT32", "UInt32");
         symbolTable.RegisterAlias("INT64", "Int64");
         symbolTable.RegisterAlias("UINT64", "UInt64");
-        symbolTable.RegisterAlias("DWORD", "UInt32");
-        symbolTable.RegisterAlias("WORD", "UInt16");
-        symbolTable.RegisterAlias("FLOAT", "Single");
-        symbolTable.RegisterAlias("DOUBLE", "Double");
-        symbolTable.RegisterAlias("BOOL", "Boolean");
-        symbolTable.RegisterAlias("WCHAR", "Char16");
         symbolTable.RegisterAlias("Char", "Char16");
-        symbolTable.RegisterAlias("ULONGLONG", "UInt64");
-        symbolTable.RegisterAlias("LONGLONG", "Int64");
-        symbolTable.RegisterAlias("__int64", "Int64");
-        symbolTable.RegisterAlias("AsyncStatus", "Int32");
 
-        // 5. Compat-mode classic C lowercase types
+        // 5. Win32 / MIDL2 type aliases (compat mode only)
+        if (mode == CompilationMode.Compat)
+        {
+            symbolTable.RegisterAlias("BYTE", "UInt8");
+            symbolTable.RegisterAlias("DWORD", "UInt32");
+            symbolTable.RegisterAlias("WORD", "UInt16");
+            symbolTable.RegisterAlias("FLOAT", "Single");
+            symbolTable.RegisterAlias("DOUBLE", "Double");
+            symbolTable.RegisterAlias("BOOL", "Boolean");
+            symbolTable.RegisterAlias("WCHAR", "Char16");
+            symbolTable.RegisterAlias("ULONGLONG", "UInt64");
+            symbolTable.RegisterAlias("LONGLONG", "Int64");
+            symbolTable.RegisterAlias("__int64", "Int64");
+            symbolTable.RegisterAlias("AsyncStatus", "Int32");
+            symbolTable.RegisterAlias("ULONG", "UInt32");
+            symbolTable.RegisterAlias("LONG", "Int32");
+            symbolTable.RegisterAlias("USHORT", "UInt16");
+            symbolTable.RegisterAlias("SHORT", "Int16");
+            symbolTable.RegisterAlias("UCHAR", "UInt8");
+            symbolTable.RegisterAlias("CHAR", "UInt8");
+            symbolTable.RegisterAlias("LPVOID", "Object");
+            symbolTable.RegisterAlias("HANDLE", "UInt64");
+            symbolTable.RegisterAlias("SIZE_T", "UInt64");
+            symbolTable.RegisterAlias("UINT", "UInt32");
+            symbolTable.RegisterAlias("INT", "Int32");
+            symbolTable.RegisterAlias("LPWSTR", "String");
+            symbolTable.RegisterAlias("LPCWSTR", "String");
+            symbolTable.RegisterAlias("LPSTR", "String");
+            symbolTable.RegisterAlias("LPCSTR", "String");
+            symbolTable.RegisterAlias("BSTR", "String");
+            symbolTable.RegisterAlias("VARIANT", "Object");
+            symbolTable.RegisterAlias("IID", "Guid");
+        }
+
+        // 6. Compat-mode classic C lowercase types
         if (mode == CompilationMode.Compat)
         {
             symbolTable.RegisterAlias("double", "Double");

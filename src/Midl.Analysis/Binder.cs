@@ -9,7 +9,8 @@ namespace Midl.Analysis;
 /// </summary>
 public class Binder
 {
-    private readonly List<Diagnostic> _diagnostics = [];
+    private readonly List<Diagnostic> _realDiagnostics = [];
+    private List<Diagnostic> _diagnostics;
     private readonly NamespaceSymbol _globalNamespace = new("");
     private readonly List<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace)> _unresolvedRefs = [];
     private readonly HashSet<string> _definedTypes = new(StringComparer.Ordinal);
@@ -25,6 +26,7 @@ public class Binder
     {
         _mode = mode;
         _emitQualityHints = emitQualityHints;
+        _diagnostics = _realDiagnostics;
     }
 
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
@@ -54,6 +56,9 @@ public class Binder
         // Bind imported trees first (they provide types for the main file)
         if (importedTrees is { Count: > 0 })
         {
+            // Swap to a throwaway diagnostics list — we don't report errors from imported files
+            var importDiag = new List<Diagnostic>();
+            _diagnostics = importDiag;
             foreach (var (importedTree, importedTokens) in importedTrees)
             {
                 var savedPosMap = _posMap;
@@ -64,6 +69,7 @@ public class Binder
                 _posMap = savedPosMap;
                 _root = savedRoot;
             }
+            _diagnostics = _realDiagnostics;
         }
 
         // Pass 1: create all symbols
