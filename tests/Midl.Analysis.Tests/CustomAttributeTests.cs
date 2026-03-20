@@ -618,6 +618,90 @@ public class CustomAttributeTests
     }
 
     [Fact]
+    public void HexLiteral_UInt8_0xFF_Accepted()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { UInt8 Value; };
+                [MyAttr(0xFF)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code is "MIDL1064" or "MIDL1066");
+    }
+
+    [Fact]
+    public void HexLiteral_UInt8_0x100_OutOfRange()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { UInt8 Value; };
+                [MyAttr(0x100)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1066");
+        Assert.NotNull(error);
+        Assert.Contains("256", error.Message);
+        Assert.Contains("0..255", error.Message);
+    }
+
+    [Fact]
+    public void HexLiteral_UInt32_0xFFFFFFFF_Accepted()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { UInt32 Value; };
+                [MyAttr(0xFFFFFFFF)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code is "MIDL1064" or "MIDL1066");
+    }
+
+    [Fact]
+    public void HexLiteral_UInt16_0xFFFF_Accepted()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { UInt16 Value; };
+                [MyAttr(0xFFFF)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code is "MIDL1064" or "MIDL1066");
+    }
+
+    [Fact]
+    public void HexLiteral_UInt16_0x10000_OutOfRange()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyAttr { UInt16 Value; };
+                [MyAttr(0x10000)]
+                runtimeclass Foo { Foo(); }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1066");
+        Assert.NotNull(error);
+    }
+
+    [Fact]
     public void IdentifierArgForUnknownFieldType_NoDiagnostic()
     {
         // For enum or other non-primitive field types, identifiers should be accepted
