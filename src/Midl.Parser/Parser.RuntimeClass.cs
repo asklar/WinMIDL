@@ -22,6 +22,13 @@ public sealed partial class Parser
             children.Add(ParseBaseList());
         }
 
+        // Forward declaration: runtimeclass Foo;
+        if (At(SyntaxKind.SemicolonToken))
+        {
+            children.Add(EatToken());
+            return MakeNode(SyntaxKind.RuntimeClassDeclaration, children);
+        }
+
         children.Add(Eat(SyntaxKind.OpenBraceToken));
 
         // Parse members

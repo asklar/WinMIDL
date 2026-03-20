@@ -27,6 +27,13 @@ public sealed partial class Parser
             children.Add(ParseBaseList());
         }
 
+        // Forward declaration: interface IFoo;
+        if (At(SyntaxKind.SemicolonToken))
+        {
+            children.Add(EatToken());
+            return MakeNode(SyntaxKind.InterfaceDeclaration, children);
+        }
+
         children.Add(Eat(SyntaxKind.OpenBraceToken));
 
         // Parse interface members (methods, properties, events — no constructors)

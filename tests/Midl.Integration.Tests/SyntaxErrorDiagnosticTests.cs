@@ -68,4 +68,94 @@ namespace TestApp
         Assert.NotEmpty(errors);
         Assert.Contains(errors, e => e.Message.Contains("Foo"));
     }
+
+    [Fact]
+    public void ForwardDeclaration_AttributeNoCascadingErrors()
+    {
+        // "attribute foo;" without a body should parse cleanly without cascading errors
+        var compilation = CompilationHelper.Compile("""
+            namespace hello
+            {
+                attribute foo;
+                interface bar
+                {
+                    Single x { set; get; };
+                }
+            }
+            """);
+
+        // No MIDL1102 (syntax errors) — forward decl should be handled gracefully
+        var syntaxErrors = compilation.Diagnostics.Where(d => d.Code == "MIDL1102").ToList();
+        Assert.Empty(syntaxErrors);
+    }
+
+    [Fact]
+    public void ForwardDeclaration_InterfaceNoCascadingErrors()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                interface IFoo;
+                runtimeclass MyClass
+                {
+                    MyClass();
+                }
+            }
+            """);
+
+        var syntaxErrors = compilation.Diagnostics.Where(d => d.Code == "MIDL1102").ToList();
+        Assert.Empty(syntaxErrors);
+    }
+
+    [Fact]
+    public void ForwardDeclaration_RuntimeclassNoCascadingErrors()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                runtimeclass Foo;
+                runtimeclass Bar
+                {
+                    Bar();
+                }
+            }
+            """);
+
+        var syntaxErrors = compilation.Diagnostics.Where(d => d.Code == "MIDL1102").ToList();
+        Assert.Empty(syntaxErrors);
+    }
+
+    [Fact]
+    public void ForwardDeclaration_StructNoCascadingErrors()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                struct MyPoint;
+                struct RealPoint
+                {
+                    Single X;
+                    Single Y;
+                };
+            }
+            """);
+
+        var syntaxErrors = compilation.Diagnostics.Where(d => d.Code == "MIDL1102").ToList();
+        Assert.Empty(syntaxErrors);
+    }
+
+    [Fact]
+    public void ForwardDeclaration_EnumNoCascadingErrors()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                enum Color;
+                enum Shape { Circle, Square };
+            }
+            """);
+
+        var syntaxErrors = compilation.Diagnostics.Where(d => d.Code == "MIDL1102").ToList();
+        Assert.Empty(syntaxErrors);
+    }
 }

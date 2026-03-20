@@ -4,7 +4,7 @@ namespace Midl.Parser;
 
 public sealed partial class Parser
 {
-    /// <summary>Parse: [attrs] struct Name { fields... }</summary>
+    /// <summary>Parse: [attrs] struct Name { fields... } or forward declaration: struct Name;</summary>
     private GreenNode ParseStructDeclaration(GreenNode? attributes)
     {
         var children = new List<GreenNode?>();
@@ -12,6 +12,14 @@ public sealed partial class Parser
 
         children.Add(Eat(SyntaxKind.StructKeyword));
         children.Add(EatIdentifierOrKeyword());
+
+        // Forward declaration: struct Name;
+        if (At(SyntaxKind.SemicolonToken))
+        {
+            children.Add(EatToken());
+            return MakeNode(SyntaxKind.StructDeclaration, children);
+        }
+
         children.Add(Eat(SyntaxKind.OpenBraceToken));
 
         while (!At(SyntaxKind.CloseBraceToken) && !At(SyntaxKind.EndOfFileToken))
@@ -53,7 +61,7 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.FieldDeclaration, children);
     }
 
-    /// <summary>Parse: [attrs] enum Name { member, member, ... }</summary>
+    /// <summary>Parse: [attrs] enum Name { member, member, ... } or forward declaration: enum Name;</summary>
     private GreenNode ParseEnumDeclaration(GreenNode? attributes)
     {
         var children = new List<GreenNode?>();
@@ -61,6 +69,14 @@ public sealed partial class Parser
 
         children.Add(Eat(SyntaxKind.EnumKeyword));
         children.Add(EatIdentifierOrKeyword());
+
+        // Forward declaration: enum Name;
+        if (At(SyntaxKind.SemicolonToken))
+        {
+            children.Add(EatToken());
+            return MakeNode(SyntaxKind.EnumDeclaration, children);
+        }
+
         children.Add(Eat(SyntaxKind.OpenBraceToken));
 
         while (!At(SyntaxKind.CloseBraceToken) && !At(SyntaxKind.EndOfFileToken))
@@ -148,7 +164,7 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.ApiContractDeclaration, children);
     }
 
-    /// <summary>Parse: [attrs] attribute Name { fields... };</summary>
+    /// <summary>Parse: [attrs] attribute Name { fields... }; or forward declaration: attribute Name;</summary>
     private GreenNode ParseAttributeDeclaration(GreenNode? attributes)
     {
         var children = new List<GreenNode?>();
@@ -156,6 +172,14 @@ public sealed partial class Parser
 
         children.Add(Eat(SyntaxKind.AttributeKeyword));
         children.Add(EatIdentifierOrKeyword());
+
+        // Forward declaration: attribute Name;
+        if (At(SyntaxKind.SemicolonToken))
+        {
+            children.Add(EatToken());
+            return MakeNode(SyntaxKind.AttributeDeclaration, children);
+        }
+
         children.Add(Eat(SyntaxKind.OpenBraceToken));
 
         while (!At(SyntaxKind.CloseBraceToken) && !At(SyntaxKind.EndOfFileToken))
