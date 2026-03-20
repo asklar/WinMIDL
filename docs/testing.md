@@ -711,3 +711,20 @@ dotnet --version
 # Check which test frameworks are detected
 dotnet test --list-tests -v d 2>&1 | head -50
 ```
+
+---
+
+## Running against OS IDL files (T1/T2 testing)
+
+The `OsFixtureTests` class in `Midl.Integration.Tests` can parse real Windows OS IDL
+files from the MidlRT test suite. These tests skip gracefully when the environment
+variable is not set, so CI won't fail.
+
+Set the `MIDL_TEST_FIXTURES` environment variable to point at a directory of IDL files:
+
+```powershell
+$env:MIDL_TEST_FIXTURES = "E:\os\src\com\rpc\midl\MidlRT\unittest"
+dotnet test --filter "OsFixture"
+```
+
+Tests skip gracefully when the env var is not set (CI won't fail).
