@@ -12,7 +12,7 @@ public class StrictModeTests
         var compilation = CompilationHelper.Compile(source, referencePaths: null, mode: CompilationMode.Strict);
 
         var warning = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL2001");
-        Assert.Equal(DiagnosticSeverity.Warning, warning.Severity);
+        Assert.Equal(DiagnosticSeverity.Error, warning.Severity);
         Assert.Contains("coclass", warning.Message);
     }
 
@@ -23,7 +23,7 @@ public class StrictModeTests
         var compilation = CompilationHelper.Compile(source, referencePaths: null, mode: CompilationMode.Strict);
 
         var warning = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL2001");
-        Assert.Equal(DiagnosticSeverity.Warning, warning.Severity);
+        Assert.Equal(DiagnosticSeverity.Error, warning.Severity);
         Assert.Contains("library", warning.Message);
     }
 
@@ -36,7 +36,7 @@ public class StrictModeTests
         // Should have MIDL2001 for typedef and MIDL2005 for lowercase 'int'
         Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL2001" && d.Message.Contains("typedef"));
         Assert.All(compilation.Diagnostics.Where(d => d.Code == "MIDL2001"),
-            d => Assert.Equal(DiagnosticSeverity.Warning, d.Severity));
+            d => Assert.Equal(DiagnosticSeverity.Error, d.Severity));
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class StrictModeTests
         var compilation = CompilationHelper.Compile(source, referencePaths: null, mode: CompilationMode.Strict);
 
         var warning = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL2001");
-        Assert.Equal(DiagnosticSeverity.Warning, warning.Severity);
+        Assert.Equal(DiagnosticSeverity.Error, warning.Severity);
         Assert.Contains("cpp_quote", warning.Message);
     }
 
@@ -144,7 +144,7 @@ public class StrictModeTests
         var compilation = CompilationHelper.Compile(source, referencePaths: null, mode: CompilationMode.Strict);
 
         var warning = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL2005");
-        Assert.Equal(DiagnosticSeverity.Warning, warning.Severity);
+        Assert.Equal(DiagnosticSeverity.Error, warning.Severity);
         Assert.Contains("int", warning.Message);
         Assert.Contains("Int32", warning.Message);
     }

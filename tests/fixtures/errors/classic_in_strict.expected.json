@@ -2,7 +2,7 @@
     "diagnostics": [
         {
             "code": "MIDL2005",
-            "severity": "Warning",
+            "severity": "Error",
             "messageContains": "Int32",
             "tokenText": "int"
         }

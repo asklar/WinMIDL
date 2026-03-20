@@ -121,6 +121,8 @@ function startLanguageServer(serverPath: string, context: vscode.ExtensionContex
         transport: TransportKind.stdio
     };
 
+    const config = vscode.workspace.getConfiguration('midl');
+
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
             { scheme: 'file', language: 'midl' },
@@ -129,7 +131,11 @@ function startLanguageServer(serverPath: string, context: vscode.ExtensionContex
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher('**/*.idl')
         },
-        outputChannel: outputChannel
+        outputChannel: outputChannel,
+        initializationOptions: {
+            "midl.strictMode": config.get<boolean>('strictMode', true),
+            "midl.codeQualityHints": config.get<boolean>('codeQualityHints', true)
+        }
     };
 
     client = new LanguageClient(

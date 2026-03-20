@@ -23,8 +23,11 @@ public static class CodeActionHandler
         var lineStarts = PositionHelper.BuildLineStarts(text);
         var actions = new List<object>();
 
-        // Recompile to get our diagnostics with Data (replacement info)
-        var compilation = CompilationHelper.Compile(text);
+        // Recompile to get our diagnostics with Data (replacement info).
+        // Use quality hints so MIDL3xxx diagnostics are available for code actions.
+        var compilation = CompilationHelper.Compile(text, referencePaths: null,
+            mode: CompilationMode.Strict, includePaths: null, currentFilePath: null,
+            defines: null, emitQualityHints: true);
 
         foreach (var lspDiag in diagnostics.EnumerateArray())
         {
@@ -46,34 +49,68 @@ public static class CodeActionHandler
                 var (sl, sc) = PositionHelper.OffsetToLineChar(lineStarts, ourDiag.Position);
                 var (el, ec) = PositionHelper.OffsetToLineChar(lineStarts, ourDiag.Position + ourDiag.Length);
 
-                actions.Add(new Dictionary<string, object?>
+                actions.Add(MakeReplaceAction($"Replace with '{replacement}'", uri, lspDiag,
+                    sl, sc, el, ec, replacement));
+            }
+
+            // MIDL3005: Insert default constructor
+            if (code == "MIDL3005" && ourDiag is not null)
+            {
+                var className = text.Substring(ourDiag.Position, ourDiag.Length);
+                var braceIdx = text.IndexOf('{', ourDiag.Position);
+                if (braceIdx >= 0)
                 {
-                    ["title"] = $"Replace with '{replacement}'",
-                    ["kind"] = "quickfix",
-                    ["diagnostics"] = new object[] { lspDiag },
-                    ["isPreferred"] = true,
-                    ["edit"] = new Dictionary<string, object?>
-                    {
-                        ["changes"] = new Dictionary<string, object?>
-                        {
-                            [uri] = new object[]
-                            {
-                                new Dictionary<string, object?>
-                                {
-                                    ["range"] = new Dictionary<string, object?>
-                                    {
-                                        ["start"] = new Dictionary<string, object?> { ["line"] = sl, ["character"] = sc },
-                                        ["end"] = new Dictionary<string, object?> { ["line"] = el, ["character"] = ec }
-                                    },
-                                    ["newText"] = replacement
-                                }
-                            }
-                        }
-                    }
-                });
+                    var (il, ic) = PositionHelper.OffsetToLineChar(lineStarts, braceIdx + 1);
+                    actions.Add(MakeReplaceAction($"Add default constructor '{className}()'", uri, lspDiag,
+                        il, ic, il, ic, $" {className}();"));
+                }
+            }
+
+            // MIDL3007: Add getter before setter
+            if (code == "MIDL3007" && ourDiag is not null)
+            {
+                var searchStart = ourDiag.Position;
+                var setIdx = text.IndexOf("set", searchStart);
+                if (setIdx >= 0)
+                {
+                    var (sl2, sc2) = PositionHelper.OffsetToLineChar(lineStarts, setIdx);
+                    actions.Add(MakeReplaceAction("Add getter", uri, lspDiag,
+                        sl2, sc2, sl2, sc2, "get; "));
+                }
             }
         }
 
         return actions.Count > 0 ? actions : null;
+    }
+
+    private static Dictionary<string, object?> MakeReplaceAction(
+        string title, string uri, JsonElement lspDiag,
+        int startLine, int startChar, int endLine, int endChar, string newText)
+    {
+        return new Dictionary<string, object?>
+        {
+            ["title"] = title,
+            ["kind"] = "quickfix",
+            ["diagnostics"] = new object[] { lspDiag },
+            ["isPreferred"] = true,
+            ["edit"] = new Dictionary<string, object?>
+            {
+                ["changes"] = new Dictionary<string, object?>
+                {
+                    [uri] = new object[]
+                    {
+                        new Dictionary<string, object?>
+                        {
+                            ["range"] = new Dictionary<string, object?>
+                            {
+                                ["start"] = new Dictionary<string, object?> { ["line"] = startLine, ["character"] = startChar },
+                                ["end"] = new Dictionary<string, object?> { ["line"] = endLine, ["character"] = endChar }
+                            },
+                            ["newText"] = newText
+                        }
+                    }
+                }
+            }
+        };
     }
 }

@@ -191,7 +191,7 @@ public class WinMdReader
             var typeName = DecodeFieldType(mdReader, field);
             var fieldSymbol = new FieldSymbol(fieldName, symbol)
             {
-                Type = new TypeRef(typeName) { IsBuiltIn = IsBuiltInType(typeName) },
+                Type = ParseTypeRef(typeName),
                 IsExternal = true,
                 SourceWinMdPath = sourcePath,
             };
@@ -287,7 +287,7 @@ public class WinMdReader
 
             var sig = method.DecodeSignature(new MidlSignatureTypeProvider(mdReader), null);
 
-            symbol.ReturnType = new TypeRef(sig.ReturnType) { IsBuiltIn = IsBuiltInType(sig.ReturnType) };
+            symbol.ReturnType = ParseTypeRef(sig.ReturnType);
 
             foreach (var paramHandle in method.GetParameters())
             {
@@ -299,7 +299,7 @@ public class WinMdReader
                     : "Object";
                 var paramSymbol = new ParameterSymbol(paramName, symbol)
                 {
-                    Type = new TypeRef(paramType) { IsBuiltIn = IsBuiltInType(paramType) },
+                    Type = ParseTypeRef(paramType),
                     IsExternal = true,
                     SourceWinMdPath = sourcePath,
                 };
@@ -335,7 +335,30 @@ public class WinMdReader
             var ifaceImpl = mdReader.GetInterfaceImplementation(ifaceImplHandle);
             var ifaceName = GetEntityName(mdReader, ifaceImpl.Interface);
             if (!string.IsNullOrEmpty(ifaceName))
-                symbol.Interfaces.Add(new TypeRef(ifaceName) { IsBuiltIn = false });
+            {
+                var ifaceTypeRef = ParseTypeRef(ifaceName);
+
+                // Read InterfaceImpl custom attributes (Default, Protected, Overridable)
+                foreach (var attrHandle in ifaceImpl.GetCustomAttributes())
+                {
+                    var attr = mdReader.GetCustomAttribute(attrHandle);
+                    var attrName = GetAttributeTypeName(mdReader, attr.Constructor);
+                    switch (attrName)
+                    {
+                        case "DefaultAttribute":
+                            ifaceTypeRef.IsDefaultInterface = true;
+                            break;
+                        case "ProtectedAttribute":
+                            ifaceTypeRef.IsProtectedInterface = true;
+                            break;
+                        case "OverridableAttribute":
+                            ifaceTypeRef.IsOverridableInterface = true;
+                            break;
+                    }
+                }
+
+                symbol.Interfaces.Add(ifaceTypeRef);
+            }
         }
 
         // Read GUID
@@ -358,7 +381,7 @@ public class WinMdReader
         var sig = method.DecodeSignature(new MidlSignatureTypeProvider(mdReader), null);
         var symbol = new MethodSymbol(name, parent)
         {
-            ReturnType = new TypeRef(sig.ReturnType) { IsBuiltIn = IsBuiltInType(sig.ReturnType) },
+            ReturnType = ParseTypeRef(sig.ReturnType),
             IsExternal = true,
             SourceWinMdPath = sourcePath,
         };
@@ -378,7 +401,7 @@ public class WinMdReader
 
             symbol.Parameters.Add(new ParameterSymbol(paramName, symbol)
             {
-                Type = new TypeRef(paramType) { IsBuiltIn = IsBuiltInType(paramType) },
+                Type = ParseTypeRef(paramType),
                 Direction = direction,
                 IsExternal = true,
                 SourceWinMdPath = sourcePath,
@@ -397,7 +420,7 @@ public class WinMdReader
 
         var symbol = new PropertySymbol(propName, parent)
         {
-            Type = new TypeRef(propSig.ReturnType) { IsBuiltIn = IsBuiltInType(propSig.ReturnType) },
+            Type = ParseTypeRef(propSig.ReturnType),
             IsExternal = true,
             SourceWinMdPath = sourcePath,
         };
@@ -419,7 +442,7 @@ public class WinMdReader
 
         return new EventSymbol(eventName, parent)
         {
-            DelegateType = new TypeRef(delegateTypeName ?? "Object"),
+            DelegateType = ParseTypeRef(delegateTypeName ?? "Object"),
             IsExternal = true,
             SourceWinMdPath = sourcePath,
         };
@@ -460,7 +483,7 @@ public class WinMdReader
 
                 var fieldSymbol = new FieldSymbol(paramName, symbol)
                 {
-                    Type = new TypeRef(paramType) { IsBuiltIn = IsBuiltInType(paramType) },
+                    Type = ParseTypeRef(paramType),
                     IsExternal = true,
                     SourceWinMdPath = sourcePath,
                 };
@@ -534,8 +557,15 @@ public class WinMdReader
         {
             HandleKind.TypeReference => GetTypeRefFullName(mdReader, (TypeReferenceHandle)handle),
             HandleKind.TypeDefinition => GetTypeDefFullName(mdReader, (TypeDefinitionHandle)handle),
+            HandleKind.TypeSpecification => DecodeTypeSpec(mdReader, (TypeSpecificationHandle)handle),
             _ => string.Empty,
         };
+    }
+
+    private static string DecodeTypeSpec(MetadataReader mdReader, TypeSpecificationHandle handle)
+    {
+        var spec = mdReader.GetTypeSpecification(handle);
+        return spec.DecodeSignature(new MidlSignatureTypeProvider(mdReader), null);
     }
 
     #endregion
@@ -780,6 +810,54 @@ public class WinMdReader
             or "Object" or "void" => true,
         _ => false,
     };
+
+    /// <summary>
+    /// Parses a decoded signature type name (which may contain generic instantiation syntax)
+    /// into a structured TypeRef with type arguments.
+    /// </summary>
+    public static TypeRef ParseTypeRef(string typeName)
+    {
+        if (string.IsNullOrEmpty(typeName))
+            return new TypeRef("Object");
+
+        bool isArray = typeName.EndsWith("[]");
+        if (isArray)
+            typeName = typeName[..^2];
+
+        int angleBracket = typeName.IndexOf('<');
+        if (angleBracket > 0 && typeName.EndsWith('>'))
+        {
+            var baseName = typeName[..angleBracket];
+            var argsString = typeName[(angleBracket + 1)..^1];
+            var typeArgs = ParseTypeArguments(argsString);
+            return new TypeRef(baseName, typeArgs, isArray);
+        }
+
+        return new TypeRef(typeName, isArray: isArray);
+    }
+
+    private static List<TypeRef> ParseTypeArguments(string argsString)
+    {
+        var result = new List<TypeRef>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < argsString.Length; i++)
+        {
+            switch (argsString[i])
+            {
+                case '<': depth++; break;
+                case '>': depth--; break;
+                case ',' when depth == 0:
+                    var arg = argsString[start..i].Trim();
+                    if (arg.Length > 0) result.Add(ParseTypeRef(arg));
+                    start = i + 1;
+                    break;
+            }
+        }
+        var lastArg = argsString[start..].Trim();
+        if (lastArg.Length > 0) result.Add(ParseTypeRef(lastArg));
+        return result;
+    }
 
     #endregion
 

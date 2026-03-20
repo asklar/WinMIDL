@@ -35,6 +35,21 @@ public class WinMdEmitter
     internal IReadOnlyDictionary<string, TypeDefinitionHandle> TypeDefHandles => _typeDefHandles;
     internal IReadOnlyDictionary<string, TypeDefinitionHandle> SynthInterfaceHandles => _synthInterfaceHandles;
 
+    /// <summary>Resolve a synthesized interface handle, creating a local TypeRef for WinMD compliance.</summary>
+    internal EntityHandle ResolveSynthInterfaceHandle(string rcFullName)
+    {
+        if (_synthInterfaceHandles.TryGetValue(rcFullName, out var handle))
+        {
+            // Derive synth interface name: "Ns.MyClass" → "Ns.IMyClass"
+            var lastDot = rcFullName.LastIndexOf('.');
+            var synthFullName = lastDot >= 0
+                ? $"{rcFullName[..lastDot]}.I{rcFullName[(lastDot + 1)..]}"
+                : $"I{rcFullName}";
+            return GetTypeRefForTypeDef(synthFullName, handle);
+        }
+        return default;
+    }
+
     // Running row counters (1-based)
     private int _fieldRow = 1;
     private int _methodRow = 1;
@@ -72,6 +87,7 @@ public class WinMdEmitter
         _ilStream = new BlobBuilder();
         _typeDefHandles.Clear();
         _synthInterfaceHandles.Clear();
+        _localTypeRefs.Clear();
         _fieldRow = 1;
         _methodRow = 1;
         _paramRow = 1;
@@ -162,13 +178,38 @@ public class WinMdEmitter
         return default;
     }
 
-    /// <summary>Resolve a symbol to its TypeDef handle.</summary>
+    /// <summary>Resolve a symbol to its TypeDef handle, wrapped as a local TypeRef for WinMD compliance.</summary>
     internal EntityHandle ResolveSymbolHandle(ISymbol symbol)
     {
         if (_typeDefHandles.TryGetValue(symbol.FullName, out var handle))
-            return handle;
+            return GetTypeRefForTypeDef(symbol.FullName, handle);
         return default;
     }
+
+    /// <summary>
+    /// Creates a TypeRef that points to a TypeDef in the same module.
+    /// System WinMDs use TypeRef for ALL type references, even same-file types.
+    /// </summary>
+    internal TypeReferenceHandle GetTypeRefForTypeDef(string fullName, TypeDefinitionHandle typeDef)
+    {
+        if (_localTypeRefs.TryGetValue(fullName, out var existing))
+            return existing;
+
+        var lastDot = fullName.LastIndexOf('.');
+        var ns = lastDot >= 0 ? fullName[..lastDot] : "";
+        var name = lastDot >= 0 ? fullName[(lastDot + 1)..] : fullName;
+
+        var assemblyScope = MetadataTokens.EntityHandle(TableIndex.Module, 1);
+        var typeRef = _metadata.AddTypeReference(
+            assemblyScope,
+            _metadata.GetOrAddString(ns),
+            _metadata.GetOrAddString(name));
+        _localTypeRefs[fullName] = typeRef;
+        return typeRef;
+    }
+
+    // Cache for local TypeRef handles pointing to same-file TypeDefs
+    private readonly Dictionary<string, TypeReferenceHandle> _localTypeRefs = new();
 
     private TypeReferenceHandle AddMscorlibTypeRef(string ns, string name)
     {

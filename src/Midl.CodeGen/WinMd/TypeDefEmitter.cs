@@ -441,10 +441,14 @@ internal class TypeDefEmitter
         }
 
         // InterfaceImpl for synthesized default interface
-        if (hasDirectMembers && _emitter.SynthInterfaceHandles.TryGetValue(symbol.FullName, out var synthHandle))
+        if (hasDirectMembers)
         {
-            var ifaceImpl = M.AddInterfaceImplementation(typeDef, synthHandle);
-            _attrs.AddDefaultAttribute(ifaceImpl);
+            var synthRef = _emitter.ResolveSynthInterfaceHandle(symbol.FullName);
+            if (!synthRef.IsNil)
+            {
+                var ifaceImpl = M.AddInterfaceImplementation(typeDef, synthRef);
+                _attrs.AddDefaultAttribute(ifaceImpl);
+            }
         }
 
         // InterfaceImpl for explicit interfaces
@@ -1125,7 +1129,11 @@ internal static class SignatureTypeEncoderExtensions
                 encoder.Type(emitter.SystemGuidRef, isValueType: true);
                 break;
             default:
-                if (typeRef.ResolvedSymbol != null)
+                if (typeRef.TypeArguments.Count > 0)
+                {
+                    EncodeGenericInstantiation(encoder, typeRef, emitter);
+                }
+                else if (typeRef.ResolvedSymbol != null)
                 {
                     var handle = emitter.ResolveSymbolHandle(typeRef.ResolvedSymbol);
                     bool isValueType = typeRef.ResolvedSymbol is EnumSymbol or StructSymbol;
@@ -1137,5 +1145,34 @@ internal static class SignatureTypeEncoderExtensions
                 }
                 break;
         }
+    }
+
+    private static void EncodeGenericInstantiation(SignatureTypeEncoder encoder, TypeRef typeRef, WinMdEmitter emitter)
+    {
+        EntityHandle genTypeHandle = default;
+        bool isValueType = false;
+
+        if (typeRef.ResolvedSymbol != null)
+        {
+            genTypeHandle = emitter.ResolveSymbolHandle(typeRef.ResolvedSymbol);
+            isValueType = typeRef.ResolvedSymbol is EnumSymbol or StructSymbol;
+        }
+
+        if (genTypeHandle.IsNil)
+        {
+            encoder.Object();
+            return;
+        }
+
+        var typeSpecSig = new BlobBuilder();
+        var typeSpecEncoder = new BlobEncoder(typeSpecSig).TypeSpecificationSignature();
+        var genInstEncoder = typeSpecEncoder.GenericInstantiation(genTypeHandle, typeRef.TypeArguments.Count, isValueType);
+        foreach (var arg in typeRef.TypeArguments)
+        {
+            genInstEncoder.AddArgument().FromTypeRef(arg, emitter);
+        }
+
+        var typeSpecHandle = emitter.Metadata.AddTypeSpecification(emitter.Metadata.GetOrAddBlob(typeSpecSig));
+        encoder.Type(typeSpecHandle, isValueType);
     }
 }

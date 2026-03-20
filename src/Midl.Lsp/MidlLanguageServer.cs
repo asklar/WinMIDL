@@ -19,6 +19,7 @@ public sealed class MidlLanguageServer
     private List<string>? _referencePaths = null;
     private List<string>? _sdkIncludePaths = null;
     private CompilationMode _compilationMode = CompilationMode.Strict;
+    private bool _enableQualityHints = true;
     private ProjectFile? _projectFile;
     private string? _workspaceRoot;
 
@@ -176,6 +177,17 @@ public sealed class MidlLanguageServer
                     {
                         _compilationMode = CompilationMode.Compat;
                     }
+
+                    if (initOpts.TryGetProperty("midl.codeQualityHints", out var qualityProp) &&
+                        qualityProp.ValueKind == JsonValueKind.False)
+                    {
+                        _enableQualityHints = false;
+                    }
+                    else if (initOpts.TryGetProperty("codeQualityHints", out var qualityProp2) &&
+                             qualityProp2.ValueKind == JsonValueKind.False)
+                    {
+                        _enableQualityHints = false;
+                    }
                 }
 
                 // Discover workspace root
@@ -320,7 +332,7 @@ public sealed class MidlLanguageServer
             var compilation = CompilationHelper.Compile(preprocessed, references, _compilationMode,
                 includePaths, filePath,
                 defines: defines,
-                emitQualityHints: true);
+                emitQualityHints: _enableQualityHints);
 
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);

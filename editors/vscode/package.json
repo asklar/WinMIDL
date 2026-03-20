@@ -77,6 +77,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enable strict MIDL3 mode. When enabled, classic MIDL constructs (coclass, library, typedef, etc.) produce warnings. Disable for mixed MIDL2/MIDL3 codebases."
+        },
+        "midl.codeQualityHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show code quality hints (naming conventions, empty types, etc.)"
         }
       }
     }

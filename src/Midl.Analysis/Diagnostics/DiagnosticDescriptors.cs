@@ -82,39 +82,39 @@ public static class DiagnosticDescriptors
     private const string StrictModeHelpUri = "https://learn.microsoft.com/en-us/uwp/midl-3/";
 
     public static Diagnostic ClassicConstruct(string constructName, int position) =>
-        new(DiagnosticSeverity.Warning, MIDL2001_Code,
+        new(DiagnosticSeverity.Error, MIDL2001_Code,
             string.Format(MIDL2001_Message, constructName), position, constructName.Length,
             HelpUri: StrictModeHelpUri);
 
     public static Diagnostic HResultReturnType(int position) =>
-        new(DiagnosticSeverity.Warning, MIDL2002_Code,
+        new(DiagnosticSeverity.Error, MIDL2002_Code,
             MIDL2002_Message, position, "HRESULT".Length,
             HelpUri: StrictModeHelpUri);
 
     public static Diagnostic ClassicAttribute(string attrName, int position) =>
-        new(DiagnosticSeverity.Warning, MIDL2003_Code,
+        new(DiagnosticSeverity.Error, MIDL2003_Code,
             string.Format(MIDL2003_Message, attrName), position, attrName.Length,
             HelpUri: StrictModeHelpUri);
 
     public static Diagnostic PointerType(string typeName, int position) =>
-        new(DiagnosticSeverity.Warning, MIDL2004_Code,
+        new(DiagnosticSeverity.Error, MIDL2004_Code,
             string.Format(MIDL2004_Message, typeName), position, typeName.Length,
             HelpUri: StrictModeHelpUri);
 
     public static Diagnostic LowercaseType(string lowercaseName, string modernName, int position) =>
-        new(DiagnosticSeverity.Warning, MIDL2005_Code,
+        new(DiagnosticSeverity.Error, MIDL2005_Code,
             string.Format(MIDL2005_Message, lowercaseName, modernName), position, lowercaseName.Length,
             HelpUri: StrictModeHelpUri,
             Data: new() { ["replacement"] = modernName });
 
     public static Diagnostic ClassicMidlType(string typeName, string suggestion, int position) =>
-        new(DiagnosticSeverity.Warning, MIDL2005_Code,
+        new(DiagnosticSeverity.Error, MIDL2005_Code,
             $"'{typeName}' is a classic MIDL type. Use '{suggestion}' in MIDL3.", position, typeName.Length,
             HelpUri: StrictModeHelpUri,
             Data: new() { ["replacement"] = suggestion });
 
     public static Diagnostic StrictModeTypeWarning(string typeName, string advice, int position) =>
-        new(DiagnosticSeverity.Warning, MIDL2005_Code,
+        new(DiagnosticSeverity.Error, MIDL2005_Code,
             $"'{typeName}': {advice}", position, typeName.Length,
             HelpUri: StrictModeHelpUri);
 
@@ -346,7 +346,8 @@ public static class DiagnosticDescriptors
     public static Diagnostic InterfaceNamingConvention(string name, string suggestion, int position) =>
         new(DiagnosticSeverity.Info, "MIDL3001",
             $"Interface '{name}' should follow 'I' + PascalCase naming convention (e.g. '{suggestion}').",
-            position, Math.Max(name.Length, 1));
+            position, Math.Max(name.Length, 1),
+            Data: new() { ["replacement"] = suggestion });
 
     public static Diagnostic EmptyRuntimeClass(string name, int position) =>
         new(DiagnosticSeverity.Info, "MIDL3002",
@@ -381,10 +382,47 @@ public static class DiagnosticDescriptors
     public static Diagnostic NamespaceCasingConvention(string name, int position) =>
         new(DiagnosticSeverity.Info, "MIDL3009",
             $"Namespace segment '{name}' should use PascalCase (e.g. '{char.ToUpperInvariant(name[0])}{name[1..]}').",
-            position, Math.Max(name.Length, 1));
+            position, Math.Max(name.Length, 1),
+            Data: new() { ["replacement"] = $"{char.ToUpperInvariant(name[0])}{name[1..]}" });
 
     public static Diagnostic AttributeNamingConvention(string name, int position) =>
         new(DiagnosticSeverity.Info, "MIDL3010",
             $"Attribute '{name}' should end with 'Attribute' by convention (e.g. '{name}Attribute'). Use [attributename(\"{name}\")] to keep the short name.",
+            position, Math.Max(name.Length, 1),
+            Data: new() { ["replacement"] = name + "Attribute" });
+
+    public static Diagnostic DelegateNamingConvention(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3011",
+            $"Delegate '{name}' should end with 'Handler' or 'Callback' by convention.",
             position, Math.Max(name.Length, 1));
+
+    public static Diagnostic EventArgsNamingConvention(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3012",
+            $"Struct '{name}' used as event args should end with 'EventArgs' by convention.",
+            position, Math.Max(name.Length, 1));
+
+    public static Diagnostic AsyncMethodNamingConvention(string methodName, string typeName, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3013",
+            $"Method '{methodName}' on '{typeName}' returns an async type but doesn't end with 'Async'.",
+            position, Math.Max(methodName.Length, 1),
+            Data: new() { ["replacement"] = methodName + "Async" });
+
+    public static Diagnostic TypeNamePascalCase(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3014",
+            $"Type name '{name}' should use PascalCase without underscores.",
+            position, Math.Max(name.Length, 1),
+            Data: new() { ["replacement"] = ConvertToPascalCase(name) });
+
+    public static Diagnostic MemberNamePascalCase(string name, string typeName, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3015",
+            $"Member '{name}' on '{typeName}' should use PascalCase.",
+            position, Math.Max(name.Length, 1),
+            Data: new() { ["replacement"] = char.ToUpperInvariant(name[0]) + name[1..] });
+
+    private static string ConvertToPascalCase(string name)
+    {
+        var parts = name.Split('_', StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(parts.Select(p =>
+            p.Length > 0 ? char.ToUpperInvariant(p[0]) + p[1..] : ""));
+    }
 }

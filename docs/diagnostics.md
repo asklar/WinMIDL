@@ -33,7 +33,20 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 | [MIDL1045](#midl1045) | Error | Circular struct reference |
 | [MIDL1046](#midl1046) | Error | Duplicate enum member |
 | [MIDL1047](#midl1047) | Error | Import file not found |
-| [MIDL1100](#midl1100) | Error | Unexpected code (skipped tokens) |
+| [MIDL1048](#midl1048) | Error | C-only type in strict mode |
+| [MIDL1049](#midl1049) | Error | Nested type declaration |
+| [MIDL1050](#midl1050) | Warning | Bidirectional (ref) parameter |
+| [MIDL1051](#midl1051) | Error | Array of arrays |
+| [MIDL1052](#midl1052) | Error | Property type inconsistency |
+| [MIDL1053](#midl1053) | Error | Delegate non-void return |
+| [MIDL1054](#midl1054) | Warning | Duplicate interface member name |
+| [MIDL1055](#midl1055) | Warning | Same-arity overload without [default_overload] |
+| [MIDL1056](#midl1056) | Warning | Deprecated base class inheritance |
+| [MIDL1057](#midl1057) | Info | Interface method not implemented |
+| [MIDL1058](#midl1058) | Error | Duplicate [method_name] value |
+| [MIDL1059](#midl1059) | Error | Multiple [default_overload] on same arity |
+| [MIDL1060](#midl1060) | Error | Constructor arity conflict per version |
+| [MIDL1061](#midl1061) | Error | Static + unsealed conflict || [MIDL1100](#midl1100) | Error | Unexpected code (skipped tokens) |
 | [MIDL1101](#midl1101) | Error | Unexpected character |
 | [MIDL1102](#midl1102) | Error | Expected token missing |
 | [MIDL2001](#midl2001) | Warning | Classic MIDL construct (strict mode) |
@@ -44,7 +57,49 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 
 ---
 
-## Semantic Errors (MIDL1001–MIDL1047)
+
+### MIDL1048
+**C-only type in strict mode** — Types like `wchar_t`, `handle_t`, `error_status_t` are not valid WinRT types in strict MIDL3 mode.
+
+### MIDL1049
+**Nested type declaration** — WinRT does not support nested type declarations (e.g., a runtimeclass inside another runtimeclass).
+
+### MIDL1050
+**Bidirectional parameter** — The `ref` (bidirectional) parameter direction is not recommended in WinRT. Use `in` or `out` instead.
+
+### MIDL1051
+**Array of arrays** — WinRT does not support jagged arrays (`T[][]`). Use a single-dimensional array instead.
+
+### MIDL1052
+**Property type inconsistency** — A property's getter return type must match its setter parameter type.
+
+### MIDL1053
+**Delegate non-void return** — WinRT delegates must return `void`. In compat mode, `HRESULT` is also allowed.
+
+### MIDL1054
+**Duplicate interface member name** — Interface members must have unique names. Use `[overload]` to disambiguate methods with the same name.
+
+### MIDL1055
+**Same-arity overload needs [default_overload]** — When methods share the same name and parameter count, exactly one must have `[default_overload]`.
+
+### MIDL1056
+**Deprecated base class** — Consider marking the derived class as deprecated when the base class is deprecated.
+
+### MIDL1057
+**Interface method info** — Informational diagnostic noting interface method declarations on implemented interfaces.
+
+### MIDL1058
+**Duplicate method_name** — Each `[method_name("X")]` value must be unique within an interface.
+
+### MIDL1059
+**Multiple default_overload** — For same-name same-arity methods, exactly one must have `[default_overload]`, not more.
+
+### MIDL1060
+**Constructor arity conflict** — Cannot have two constructors with the same parameter count on the same contract version.
+
+### MIDL1061
+**Static + unsealed conflict** — A runtimeclass cannot be both `static` and `unsealed`.
+## Semantic Errors (MIDL1001–MIDL1061)
 
 These errors are emitted during semantic analysis (binding phase).
 

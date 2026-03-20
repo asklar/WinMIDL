@@ -1447,8 +1447,9 @@ public class Binder
                 if (slot.Kind == SyntaxKind.PointerType)
                 {
                     var innerType = slot.GetSlot(0);
-                    var typeName = innerType is SyntaxToken t ? t.Text : "?";
-                    int ptrPos = _posMap.GetPositionOf(typeName);
+                    // Walk to the first token to get the type name
+                    var typeName = CollectNodeText(innerType);
+                    int ptrPos = _posMap.GetPositionOf(typeName.Length > 0 ? typeName : "*");
                     _diagnostics.Add(DiagnosticDescriptors.PointerType(typeName, ptrPos));
                 }
 
@@ -1701,6 +1702,20 @@ public class Binder
         return null;
     }
 
+    /// <summary>Collect the text of all tokens in a green node (ignoring trivia).</summary>
+    private static string CollectNodeText(GreenNode? node)
+    {
+        if (node == null) return "";
+        if (node is SyntaxToken t) return t.Text;
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot != null) sb.Append(CollectNodeText(slot));
+        }
+        return sb.ToString();
+    }
+
     /// <summary>
     /// Extract attributes from a green node, computing accurate source positions
     /// from the green tree FullWidth accumulation (not text-based lookup).
@@ -1907,12 +1922,23 @@ public class Binder
                 case DelegateSymbol d when !d.IsExternal:
                     ValidateDelegateReturnType(d);
                     ValidateMethodParametersForDelegate(d);
+                    if (_emitQualityHints && !d.Name.EndsWith("Handler") && !d.Name.EndsWith("Callback") && !d.Name.EndsWith("EventHandler"))
+                        _diagnostics.Add(DiagnosticDescriptors.DelegateNamingConvention(d.Name, _posMap.GetPositionOf(d.Name)));
                     break;
                 case AttributeTypeSymbol at when !at.IsExternal && _emitQualityHints:
                     if (!at.Name.EndsWith("Attribute", StringComparison.Ordinal))
                         _diagnostics.Add(DiagnosticDescriptors.AttributeNamingConvention(
                             at.Name, _posMap.GetPositionOf(at.Name)));
                     break;
+            }
+
+            // MIDL3014: Type name should be PascalCase (no underscores)
+            if (_emitQualityHints && !member.IsExternal &&
+                member.Name.Length > 0 &&
+                (member.Name.Contains('_') || char.IsLower(member.Name[0])))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.TypeNamePascalCase(
+                    member.Name, _posMap.GetPositionOf(member.Name)));
             }
         }
 
@@ -2223,6 +2249,32 @@ public class Binder
             _diagnostics.Add(DiagnosticDescriptors.EmptyInterface(
                 iface.Name, _posMap.GetPositionOf(iface.Name)));
         }
+
+        // MIDL3013: Async method should end with 'Async'
+        foreach (var method in iface.Members.OfType<MethodSymbol>())
+        {
+            if (method.ReturnType.Name.Contains("IAsync") && !method.Name.EndsWith("Async"))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.AsyncMethodNamingConvention(
+                    method.Name, iface.Name, _posMap.GetPositionOf(method.Name)));
+            }
+        }
+
+        // MIDL3015: Member name should be PascalCase
+        foreach (var m in iface.Members)
+        {
+            var memberName = m switch
+            {
+                MethodSymbol ms => ms.Name,
+                PropertySymbol ps => ps.Name,
+                _ => null
+            };
+            if (memberName is { Length: > 0 } && char.IsLower(memberName[0]))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.MemberNamePascalCase(
+                    memberName, iface.Name, _posMap.GetPositionOf(memberName)));
+            }
+        }
     }
 
     private void ValidateRuntimeClassQuality(RuntimeClassSymbol rc)
@@ -2263,6 +2315,32 @@ public class Binder
             {
                 _diagnostics.Add(DiagnosticDescriptors.MethodNameClash(
                     method.Name, rc.Name, _posMap.GetPositionOf(method.Name)));
+            }
+        }
+
+        // MIDL3013: Async method should end with 'Async'
+        foreach (var method in rc.Members.OfType<MethodSymbol>())
+        {
+            if (method.ReturnType.Name.Contains("IAsync") && !method.Name.EndsWith("Async"))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.AsyncMethodNamingConvention(
+                    method.Name, rc.Name, _posMap.GetPositionOf(method.Name)));
+            }
+        }
+
+        // MIDL3015: Member name should be PascalCase
+        foreach (var m in rc.Members)
+        {
+            var memberName = m switch
+            {
+                MethodSymbol ms => ms.Name,
+                PropertySymbol ps => ps.Name,
+                _ => null
+            };
+            if (memberName is { Length: > 0 } && char.IsLower(memberName[0]))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.MemberNamePascalCase(
+                    memberName, rc.Name, _posMap.GetPositionOf(memberName)));
             }
         }
     }

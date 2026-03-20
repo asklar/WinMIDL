@@ -479,5 +479,75 @@ public class SemanticValidationTests
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code.StartsWith("MIDL3"));
     }
 
+    [Fact]
+    public void QualityHint_DelegateNaming()
+    {
+        var compilation = CompileWithQualityHints("namespace N { delegate void MyThing(); }");
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL3011");
+    }
+
+    [Fact]
+    public void QualityHint_DelegateNaming_Handler_NoWarning()
+    {
+        var compilation = CompileWithQualityHints("namespace N { delegate void ClickHandler(); }");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3011");
+    }
+
+    [Fact]
+    public void QualityHint_AsyncMethodNaming()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass C {
+                    C();
+                    Windows.Foundation.IAsyncAction DoWork();
+                }
+            }
+            """);
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL3013");
+    }
+
+    [Fact]
+    public void QualityHint_AsyncMethodNaming_Correct()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass C {
+                    C();
+                    Windows.Foundation.IAsyncAction DoWorkAsync();
+                }
+            }
+            """);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3013");
+    }
+
+    [Fact]
+    public void QualityHint_TypeNamePascalCase()
+    {
+        var compilation = CompileWithQualityHints("namespace N { struct my_point { Int32 X; Int32 Y; }; }");
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL3014");
+    }
+
+    [Fact]
+    public void QualityHint_MemberNamePascalCase()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass C {
+                    C();
+                    void doWork();
+                }
+            }
+            """);
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL3015");
+    }
+
+    [Fact]
+    public void QualityHints_Disabled_ByDefault_NoMIDL3xxx()
+    {
+        var compilation = CompilationHelper.Compile("namespace N { delegate void MyThing(); }");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code.StartsWith("MIDL3"));
+    }
+
     #endregion
 }
