@@ -2282,7 +2282,8 @@ public class Binder
         // MIDL3016: Get+set property can use shorthand
         foreach (var prop in iface.Members.OfType<PropertySymbol>())
         {
-            if (prop.HasGetter && prop.HasSetter)
+            if (prop.HasGetter && prop.HasSetter &&
+                !prop.IsGetterProtected && !prop.IsSetterProtected)
             {
                 _diagnostics.Add(DiagnosticDescriptors.PropertyCanUseShorthand(
                     prop.Name, iface.Name, _posMap.GetPositionOf(prop.Name)));
