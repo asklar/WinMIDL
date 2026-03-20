@@ -212,6 +212,7 @@ public class Binder
         bool isPartial = false;
         bool isStatic = false;
         bool isUnsealed = false;
+        bool isInternal = false;
         var modList = FindChild(node, SyntaxKind.ModifierList);
         if (modList != null)
         {
@@ -224,6 +225,7 @@ public class Binder
                         case SyntaxKind.StaticKeyword: isStatic = true; break;
                         case SyntaxKind.PartialKeyword: isPartial = true; break;
                         case SyntaxKind.UnsealedKeyword: isUnsealed = true; break;
+                        case SyntaxKind.InternalKeyword: isInternal = true; break;
                     }
                 }
             }
@@ -326,6 +328,7 @@ public class Binder
         symbol.IsStatic = isStatic;
         symbol.IsPartial = isPartial;
         symbol.IsUnsealed = isUnsealed;
+        symbol.IsInternal = isInternal;
 
         // Base list
         var mainBaseList = FindChild(node, SyntaxKind.BaseList);

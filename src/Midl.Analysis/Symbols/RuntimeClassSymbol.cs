@@ -24,6 +24,7 @@ public class RuntimeClassSymbol : ISymbol
     public bool IsStatic { get; set; }
     public bool IsPartial { get; set; }
     public bool IsUnsealed { get; set; }
+    public bool IsInternal { get; set; }
 
     public InterfaceSymbol? DefaultInterface { get; set; }
     public InterfaceSymbol? FactoryInterface { get; set; }

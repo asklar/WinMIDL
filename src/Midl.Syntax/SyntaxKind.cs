@@ -96,6 +96,7 @@ public enum SyntaxKind : ushort
     StaticKeyword,
     PartialKeyword,
     UnsealedKeyword,
+    InternalKeyword,
     ProtectedKeyword,
     OverridableKeyword,
     OutKeyword,

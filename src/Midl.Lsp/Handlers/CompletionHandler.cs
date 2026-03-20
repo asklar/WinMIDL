@@ -137,7 +137,7 @@ public static class CompletionHandler
         // Inside a type body: check if we're inside a class/interface body for member-level attrs
         // Also handle modifiers before the keyword
         if (StartsWithWord(remaining, "static") || StartsWithWord(remaining, "partial") ||
-            StartsWithWord(remaining, "unsealed"))
+            StartsWithWord(remaining, "unsealed") || StartsWithWord(remaining, "internal"))
             return "target_runtimeclass";
 
         // Check if cursor is inside a type body (between { and })
@@ -635,6 +635,7 @@ public static class CompletionHandler
                 AddItem(items, "static", KindKeyword, "Static runtimeclass modifier");
                 AddItem(items, "partial", KindKeyword, "Partial runtimeclass modifier");
                 AddItem(items, "unsealed", KindKeyword, "Unsealed runtimeclass modifier");
+                AddItem(items, "internal", KindKeyword, "Internal visibility modifier");
                 AddItem(items, "}", KindKeyword, "Close scope");
                 break;
         }
