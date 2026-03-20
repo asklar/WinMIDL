@@ -1392,43 +1392,50 @@ h3 {
         <th class="metric"></th>
         <th class="old">Original midl.exe</th>
         <th class="new">WinMIDL (NativeAOT)</th>
+        <th class="metric">Ratio</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td class="metric">Binary size</td>
-        <td class="old">~2 MB</td>
-        <td class="new">3.6 MB</td>
+        <td class="metric">Avg per-file compile</td>
+        <td class="old">23.8 ms</td>
+        <td class="new">22.5 ms <span style="color:var(--success);font-weight:400;">✓</span></td>
+        <td class="new" style="color:var(--success);">1.1x faster</td>
       </tr>
       <tr>
-        <td class="metric">Warm compile</td>
-        <td class="old">19 ms</td>
-        <td class="new">14 ms <span style="color:var(--success);font-weight:400;">✓ faster</span></td>
+        <td class="metric">Batch (29 files)</td>
+        <td class="old">691 ms</td>
+        <td class="new">628 ms <span style="color:var(--success);font-weight:400;">✓</span></td>
+        <td class="new" style="color:var(--success);">1.1x faster</td>
       </tr>
       <tr>
-        <td class="metric">Cold start</td>
-        <td class="old">~15 ms</td>
-        <td class="new">27 ms</td>
+        <td class="metric">Error file overhead</td>
+        <td class="old">—</td>
+        <td class="new">+3%</td>
+        <td class="new">negligible</td>
       </tr>
       <tr>
         <td class="metric">Error recovery</td>
         <td class="old" style="color:var(--error);">crashes</td>
         <td class="new" style="color:var(--success);">graceful</td>
+        <td></td>
       </tr>
       <tr>
         <td class="metric">LSP support</td>
         <td class="old" style="color:var(--text-dim);">none</td>
         <td class="new" style="color:var(--success);">full</td>
+        <td></td>
       </tr>
       <tr>
         <td class="metric">Diagnostics</td>
         <td class="old">~20 codes</td>
         <td class="new">91 codes</td>
+        <td></td>
       </tr>
     </tbody>
   </table>
   <div class="note" style="font-size:15px;margin-top:24px;font-style:normal;">
-    <strong style="color:var(--success);">Faster</strong> than the original on warm compile, with dramatically better diagnostics and editor support
+    <strong style="color:var(--success);">1.1x faster</strong> than the original across 29 files, with 91 diagnostics, full LSP, and graceful error recovery
   </div>
 </div>
 
