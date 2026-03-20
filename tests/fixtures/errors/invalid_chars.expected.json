@@ -1,0 +1,9 @@
+{
+    "diagnostics": [
+        {
+            "code": "MIDL1101",
+            "severity": "Error",
+            "messageContains": "Unexpected character"
+        }
+    ]
+}

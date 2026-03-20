@@ -1,0 +1,10 @@
+{
+    "diagnostics": [
+        {
+            "code": "MIDL1003",
+            "severity": "Error",
+            "messageContains": "Namespace required",
+            "tokenText": "Orphan"
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+CompilationUnit
+  NamespaceDeclaration
+    NamespaceKeyword "namespace"
+    IdentifierToken "TestApp"
+    OpenBraceToken "{"
+    StructDeclaration
+      StructKeyword "struct"
+      IdentifierToken "Point"
+      OpenBraceToken "{"
+      FieldDeclaration
+      FieldDeclaration
+      CloseBraceToken "}"
+    EnumDeclaration
+      EnumKeyword "enum"
+      IdentifierToken "Color"
+      OpenBraceToken "{"
+      EnumMemberDeclaration
+      EnumMemberDeclaration
+      EnumMemberDeclaration
+      CloseBraceToken "}"
+    EnumDeclaration
+      EnumKeyword "enum"
+      IdentifierToken "Permissions"
+      OpenBraceToken "{"
+      EnumMemberDeclaration
+      EnumMemberDeclaration
+      EnumMemberDeclaration
+      EnumMemberDeclaration
+      CloseBraceToken "}"
+    CloseBraceToken "}"
+  EndOfFileToken

@@ -1,0 +1,15 @@
+CompilationUnit
+  NamespaceDeclaration
+    NamespaceKeyword "namespace"
+    IdentifierToken "TestApp"
+    OpenBraceToken "{"
+    RuntimeClassDeclaration
+      RuntimeclassKeyword "runtimeclass"
+      IdentifierToken "SimpleClass"
+      OpenBraceToken "{"
+      ConstructorDeclaration
+      PropertyDeclaration
+      MethodDeclaration
+      CloseBraceToken "}"
+    CloseBraceToken "}"
+  EndOfFileToken

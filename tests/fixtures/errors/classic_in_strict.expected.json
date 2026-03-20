@@ -1,0 +1,10 @@
+{
+    "diagnostics": [
+        {
+            "code": "MIDL2005",
+            "severity": "Warning",
+            "messageContains": "Int32",
+            "tokenText": "int"
+        }
+    ]
+}

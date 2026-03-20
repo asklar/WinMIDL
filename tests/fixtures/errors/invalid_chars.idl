@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    runtimeclass Bad
+    {
+        @@@ void M();
+    }
+}

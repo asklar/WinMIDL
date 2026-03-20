@@ -1,0 +1,17 @@
+namespace TestApp
+{
+    interface IReadable
+    {
+        String Read();
+    }
+
+    interface IWritable
+    {
+        void Write(String data);
+    }
+
+    interface IReadWritable requires IReadable, IWritable
+    {
+        void Flush();
+    }
+}

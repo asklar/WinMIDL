@@ -1,0 +1,9 @@
+namespace TestApp
+{
+    static runtimeclass AppSettings
+    {
+        static String GetValue(String key);
+        static void SetValue(String key, String value);
+        static Boolean IsDebugMode { get; };
+    }
+}

@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    runtimeclass Demo
+    {
+        int GetValue();
+    }
+}

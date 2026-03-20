@@ -1,0 +1,9 @@
+namespace TestApp
+{
+    runtimeclass SimpleClass
+    {
+        SimpleClass();
+        String Name { get; };
+        void DoWork();
+    }
+}

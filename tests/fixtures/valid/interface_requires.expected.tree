@@ -1,0 +1,26 @@
+CompilationUnit
+  NamespaceDeclaration
+    NamespaceKeyword "namespace"
+    IdentifierToken "TestApp"
+    OpenBraceToken "{"
+    InterfaceDeclaration
+      InterfaceKeyword "interface"
+      IdentifierToken "IReadable"
+      OpenBraceToken "{"
+      MethodDeclaration
+      CloseBraceToken "}"
+    InterfaceDeclaration
+      InterfaceKeyword "interface"
+      IdentifierToken "IWritable"
+      OpenBraceToken "{"
+      MethodDeclaration
+      CloseBraceToken "}"
+    InterfaceDeclaration
+      InterfaceKeyword "interface"
+      IdentifierToken "IReadWritable"
+      RequiresClause
+      OpenBraceToken "{"
+      MethodDeclaration
+      CloseBraceToken "}"
+    CloseBraceToken "}"
+  EndOfFileToken

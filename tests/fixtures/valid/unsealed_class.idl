@@ -1,0 +1,15 @@
+namespace TestApp
+{
+    unsealed runtimeclass BaseWidget
+    {
+        protected void OnDraw();
+        overridable void OnResize();
+        String Label { get; };
+    }
+
+    runtimeclass Button : BaseWidget
+    {
+        Button();
+        void Click();
+    }
+}

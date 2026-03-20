@@ -1,0 +1,14 @@
+namespace TestApp
+{
+    runtimeclass VersionedClass
+    {
+        VersionedClass();
+        String Name { get; };
+
+        [contract(TestApp.TestContract, 2)]
+        {
+            void NewMethod();
+            Boolean NewProperty { get; };
+        }
+    }
+}

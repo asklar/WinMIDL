@@ -1,0 +1,24 @@
+namespace TestApp
+{
+    struct Point
+    {
+        Int32 X;
+        Int32 Y;
+    };
+
+    enum Color
+    {
+        Red,
+        Green,
+        Blue,
+    };
+
+    [flags]
+    enum Permissions
+    {
+        None   = 0x00000000,
+        Read   = 0x00000001,
+        Write  = 0x00000002,
+        Delete = 0x00000004,
+    };
+}

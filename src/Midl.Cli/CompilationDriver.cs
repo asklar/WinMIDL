@@ -103,7 +103,13 @@ public class CompilationDriver
             return 2;
         }
 
-        // Report diagnostics
+        // Analyze mode — rich console output with source context
+        if (options.AnalyzeMode)
+        {
+            return RunAnalyzeMode(source, compilation, options);
+        }
+
+        // Report diagnostics (standard midl-compatible format)
         int errorCount = 0;
         int warningCount = 0;
 
@@ -232,6 +238,121 @@ public class CompilationDriver
         _out.WriteLine($"MIDL: {errors} error(s), {warnings} warning(s)");
     }
 
+    private static int[] BuildLineStarts(string text)
+    {
+        var starts = new List<int> { 0 };
+        for (int i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '\n')
+                starts.Add(i + 1);
+        }
+        return starts.ToArray();
+    }
+
+    private static (int line, int col) OffsetToLineCol(int[] lineStarts, int offset)
+    {
+        int line = Array.BinarySearch(lineStarts, offset);
+        if (line < 0) line = ~line - 1;
+        if (line < 0) line = 0;
+        int col = offset - lineStarts[line];
+        return (line, col);
+    }
+
+    /// <summary>
+    /// Rich analyze mode: Rust/C#-style diagnostic output with source context and squiggly underlines.
+    /// Usage: midl --analyze input.idl
+    /// </summary>
+    private int RunAnalyzeMode(string source, Compilation compilation, CommandLineOptions options)
+    {
+        var lineStarts = BuildLineStarts(source);
+        var lines = source.Split('\n');
+        int errorCount = 0;
+        int warningCount = 0;
+
+        if (compilation.Diagnostics.Count == 0)
+        {
+            _out.WriteLine("  \u2713 No diagnostics. File is valid MIDL3.");
+            PrintSymbolSummary(compilation);
+            return 0;
+        }
+
+        foreach (var diag in compilation.Diagnostics)
+        {
+            if (diag.Severity == DiagnosticSeverity.Warning && options.NoWarnings)
+                continue;
+
+            var (line, col) = OffsetToLineCol(lineStarts, diag.Position);
+            var isError = diag.Severity == DiagnosticSeverity.Error ||
+                         (diag.Severity == DiagnosticSeverity.Warning && options.WarningsAsErrors);
+
+            if (isError) errorCount++; else warningCount++;
+
+            // Header
+            var label = isError ? "error" : "warning";
+            _err.WriteLine($"{label}[{diag.Code}]: {diag.Message}");
+
+            // Location
+            var fileName = options.InputFile ?? "<stdin>";
+            _err.WriteLine($"  --> {fileName}:{line + 1}:{col + 1}");
+
+            // Source snippet
+            if (line >= 0 && line < lines.Length)
+            {
+                var lineNum = (line + 1).ToString();
+                var pad = new string(' ', lineNum.Length);
+                var sourceLine = lines[line].TrimEnd('\r');
+
+                _err.WriteLine($"  {pad} |");
+                _err.WriteLine($"  {lineNum} | {sourceLine}");
+
+                // Squiggly underline
+                var spanLen = Math.Max(1, Math.Min(diag.Length, Math.Max(0, sourceLine.Length - col)));
+                if (col >= 0 && col <= sourceLine.Length)
+                {
+                    var marker = new string(' ', col) + new string(isError ? '^' : '~', spanLen);
+                    _err.WriteLine($"  {pad} | {marker}");
+                }
+
+                // Hint for fixable diagnostics
+                if (diag.Data != null && diag.Data.TryGetValue("replacement", out var replacement))
+                {
+                    _err.WriteLine($"  {pad} = help: replace with `{replacement}`");
+                }
+
+                if (diag.HelpUri != null)
+                {
+                    _err.WriteLine($"  {pad} = see: {diag.HelpUri}");
+                }
+            }
+
+            _err.WriteLine();
+        }
+
+        // Summary
+        _err.Write("  ");
+        if (errorCount > 0) _err.Write($"{errorCount} error(s)");
+        if (errorCount > 0 && warningCount > 0) _err.Write(", ");
+        if (warningCount > 0) _err.Write($"{warningCount} warning(s)");
+        _err.WriteLine(" emitted");
+
+        if (errorCount == 0)
+            PrintSymbolSummary(compilation);
+
+        return errorCount > 0 ? 2 : (warningCount > 0 ? 1 : 0);
+    }
+
+    private void PrintSymbolSummary(Compilation compilation)
+    {
+        var types = compilation.GetAllTypes().ToList();
+        if (types.Count > 0)
+        {
+            _out.WriteLine();
+            _out.WriteLine("  Symbols:");
+            foreach (var t in types)
+                _out.WriteLine($"    {t.Kind,-15} {t.FullName}");
+        }
+    }
+
     private void PrintConfirm(CommandLineOptions options)
     {
         _out.WriteLine("Effective options:");
@@ -287,6 +408,7 @@ public class CompilationDriver
         _out.WriteLine("  /version               Print version");
         _out.WriteLine("  /?, /help              Show this help");
         _out.WriteLine("  --lsp                  Start Language Server Protocol mode");
+        _out.WriteLine("  --analyze              Rich analysis output with source context");
         _out.WriteLine("  @<file>                Read options from response file");
     }
 }

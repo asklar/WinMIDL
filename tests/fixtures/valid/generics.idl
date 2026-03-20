@@ -1,0 +1,11 @@
+namespace TestApp
+{
+    runtimeclass DataService
+    {
+        DataService();
+        String GetName();
+        Int32 GetScore(String key);
+        Boolean IsReady { get; };
+        Object GetData();
+    }
+}

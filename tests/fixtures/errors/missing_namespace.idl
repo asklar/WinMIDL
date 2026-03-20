@@ -1,0 +1,4 @@
+runtimeclass Orphan
+{
+    void DoWork();
+}

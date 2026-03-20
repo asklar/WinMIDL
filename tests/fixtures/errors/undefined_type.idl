@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    runtimeclass Broken
+    {
+        void Process(NonExistentType input);
+    }
+}
