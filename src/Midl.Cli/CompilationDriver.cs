@@ -160,16 +160,21 @@ public class CompilationDriver
 
         // Generate outputs
         var outDir = options.OutputDirectory ?? ".";
+        var baseName = options.InputFile != null
+            ? Path.GetFileNameWithoutExtension(options.InputFile)
+            : "output";
+        var filesWritten = new List<string>();
 
         if (!options.NoHeader)
         {
             var headerEmitter = new HeaderEmitter();
             var headerContent = headerEmitter.Emit(compilation);
-            if (options.HeaderFile != null)
+            var headerPath = options.HeaderFile ?? $"{baseName}.h";
             {
-                var path = Path.Combine(outDir, options.HeaderFile);
+                var path = Path.Combine(outDir, headerPath);
                 Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
                 File.WriteAllText(path, headerContent);
+                filesWritten.Add(path);
             }
         }
 
@@ -177,20 +182,23 @@ public class CompilationDriver
         {
             var iidEmitter = new IidEmitter();
             var iidContent = iidEmitter.Emit(compilation);
-            if (options.IidFile != null)
+            var iidPath = options.IidFile ?? $"{baseName}_i.c";
             {
-                var path = Path.Combine(outDir, options.IidFile);
+                var path = Path.Combine(outDir, iidPath);
                 Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
                 File.WriteAllText(path, iidContent);
+                filesWritten.Add(path);
             }
         }
 
-        if (options.WinRtMode && options.WinMdFile != null)
+        if (options.WinRtMode)
         {
             var winmdEmitter = new WinMdEmitter();
-            var path = Path.Combine(outDir, options.WinMdFile);
+            var winmdPath = options.WinMdFile ?? $"{baseName}.winmd";
+            var path = Path.Combine(outDir, winmdPath);
             Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
             winmdEmitter.Emit(compilation, path);
+            filesWritten.Add(path);
         }
 
         if (!options.NoDllData)
@@ -215,6 +223,13 @@ public class CompilationDriver
                 Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
                 File.WriteAllText(path, stubContent);
             }
+        }
+
+        // Print what was generated
+        if (filesWritten.Count > 0 && !options.NoLogo)
+        {
+            foreach (var f in filesWritten)
+                _out.WriteLine($"  -> {f}");
         }
 
         PrintSummary(errorCount, warningCount);
