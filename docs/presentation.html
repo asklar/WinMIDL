@@ -260,7 +260,7 @@ h3 {
   font-family: 'Cascadia Code', 'Consolas', monospace;
   font-size: clamp(16px, 1.6vw, 22px);
   line-height: 2.2;
-  max-width: 700px;
+  max-width: 860px;
   margin: 20px 0;
   box-shadow: 0 0 30px var(--accent-glow), 0 0 60px rgba(0,122,204,0.15), 0 8px 32px rgba(0,0,0,0.3);
 }
@@ -1460,7 +1460,8 @@ h3 {
 
   const slides = document.querySelectorAll('.slide');
   const total = slides.length;
-  let current = 0;
+  let current = parseInt(localStorage.getItem('winmidl-slide') || '0', 10);
+  if (current < 0 || current >= total) current = 0;
   let animating = false;
 
   const progressBar = document.getElementById('progressBar');
@@ -1507,6 +1508,7 @@ h3 {
     next.style.opacity = '';
 
     current = index;
+    localStorage.setItem('winmidl-slide', current);
     updateUI();
 
     // Trigger animations for this slide
@@ -1622,11 +1624,13 @@ h3 {
     }
   }
 
-  // Initial setup
+  // Initial setup — show the restored slide (or slide 0)
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
   updateUI();
 
-  // Handle initial slide animations if starting on an animated slide
-  setTimeout(() => triggerSlideAnimations(0), 100);
+  // Handle initial slide animations
+  setTimeout(() => triggerSlideAnimations(current), 100);
 })();
 </script>
 </body>
