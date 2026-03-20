@@ -425,4 +425,9 @@ public static class DiagnosticDescriptors
         return string.Concat(parts.Select(p =>
             p.Length > 0 ? char.ToUpperInvariant(p[0]) + p[1..] : ""));
     }
+
+    public static Diagnostic PropertyCanUseShorthand(string propName, string typeName, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3016",
+            $"Property '{propName}' on '{typeName}' has both get and set. Consider using shorthand: '{propName};' instead of '{{ get; set; }}'.",
+            position, Math.Max(propName.Length, 1));
 }

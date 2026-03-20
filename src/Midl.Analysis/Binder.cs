@@ -2250,6 +2250,16 @@ public class Binder
                 iface.Name, _posMap.GetPositionOf(iface.Name)));
         }
 
+        // MIDL3016: Get+set property can use shorthand
+        foreach (var prop in iface.Members.OfType<PropertySymbol>())
+        {
+            if (prop.HasGetter && prop.HasSetter)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.PropertyCanUseShorthand(
+                    prop.Name, iface.Name, _posMap.GetPositionOf(prop.Name)));
+            }
+        }
+
         // MIDL3013: Async method should end with 'Async'
         foreach (var method in iface.Members.OfType<MethodSymbol>())
         {
@@ -2299,11 +2309,17 @@ public class Binder
         }
 
         // MIDL3007: Setter-only property
+        // MIDL3016: Get+set property can use shorthand
         foreach (var prop in rc.Members.OfType<PropertySymbol>())
         {
             if (prop.HasSetter && !prop.HasGetter)
             {
                 _diagnostics.Add(DiagnosticDescriptors.PropertySetterOnly(
+                    prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));
+            }
+            else if (prop.HasGetter && prop.HasSetter)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.PropertyCanUseShorthand(
                     prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));
             }
         }
