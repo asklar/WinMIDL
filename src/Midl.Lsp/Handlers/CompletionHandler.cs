@@ -467,6 +467,7 @@ public static class CompletionHandler
         EnumBody,           // Inside enum { } → no type completions, just identifiers
         InterfaceBody,      // Inside interface { } → types + void + event
         RuntimeClassBody,   // Inside runtimeclass { } → types + void + event + modifiers + constructor
+        AttributeBody,      // Inside attribute { } → value types for fields
         TypePosition,       // Expecting a type (param, return, field) → all types
         BaseList,           // After : → interfaces, classes
         RequiresList,       // After requires → interfaces only
@@ -521,6 +522,7 @@ public static class CompletionHandler
                 if (braceDepth > 0) { braceDepth--; continue; }
                 var before = text.AsSpan(0, i).TrimEnd();
 
+                if (ContainsWordBefore(before, "attribute")) return CompletionContext.AttributeBody;
                 if (ContainsWordBefore(before, "struct")) return CompletionContext.StructBody;
                 if (ContainsWordBefore(before, "enum")) return CompletionContext.EnumBody;
                 if (ContainsWordBefore(before, "interface")) return CompletionContext.InterfaceBody;
@@ -569,6 +571,13 @@ public static class CompletionHandler
                 AddValueTypes(items);
                 AddItem(items, "}", KindKeyword, "Close struct");
                 AddUserTypes(items, text, t => t is StructSymbol or EnumSymbol);
+                break;
+
+            case CompletionContext.AttributeBody:
+                // Attribute fields: value types + String + enums (same as struct fields)
+                AddValueTypes(items);
+                AddItem(items, "}", KindKeyword, "Close attribute");
+                AddUserTypes(items, text, t => t is EnumSymbol);
                 break;
 
             case CompletionContext.EnumBody:

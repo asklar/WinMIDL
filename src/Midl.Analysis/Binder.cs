@@ -1881,6 +1881,8 @@ public class Binder
                     ValidateDeprecatedInheritance(rc);
                     ValidateConstructorArityPerVersion(rc);
                     ValidateMethodParameters(rc.Members);
+                    ValidateExclusiveToConstraints(rc);
+                    ValidateDefaultInterface(rc);
                     // Code quality hints
                     if (_emitQualityHints) ValidateRuntimeClassQuality(rc);
                     break;
@@ -2138,6 +2140,42 @@ public class Binder
 
     #endregion
 
+    #region ExclusiveTo and Default Interface validation
+
+    private void ValidateExclusiveToConstraints(RuntimeClassSymbol rc)
+    {
+        foreach (var iface in rc.ImplementedInterfaces)
+        {
+            if (iface.IsExclusive && iface.ExclusiveToClass != null &&
+                !string.Equals(iface.ExclusiveToClass, rc.Name, StringComparison.Ordinal))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.ExclusiveToViolation(
+                    iface.Name, iface.ExclusiveToClass, rc.Name,
+                    _posMap.GetPositionOf(iface.Name)));
+            }
+        }
+    }
+
+    private void ValidateDefaultInterface(RuntimeClassSymbol rc)
+    {
+        // Count non-synthesized member interfaces
+        var memberInterfaces = rc.ImplementedInterfaces
+            .Where(i => !i.IsSynthesized)
+            .ToList();
+
+        if (memberInterfaces.Count <= 1) return;
+
+        // InterfaceSynthesizer auto-picks a default, but warn if none was explicitly marked
+        if (rc.DefaultInterface == null)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.MissingDefaultInterface(
+                rc.Name, memberInterfaces.Count,
+                _posMap.GetPositionOf(rc.Name)));
+        }
+    }
+
+    #endregion
+
     #region Code Quality Hints
 
     private void ValidateNamespaceCasing(NamespaceSymbol ns)
@@ -2155,17 +2193,23 @@ public class Binder
 
     private void ValidateInterfaceQuality(InterfaceSymbol iface)
     {
-        // MIDL3001: Interface should start with 'I'
-        if (iface.Name.Length > 0 && iface.Name[0] != 'I')
+        // MIDL3001: Interface should follow I + PascalCase convention
+        if (iface.Name.Length >= 2 && iface.Name[0] == 'I' && char.IsUpper(iface.Name[1]))
         {
+            // Good: IFoo, IBar, IStringable — no warning
+        }
+        else if (iface.Name.Length > 0 && iface.Name[0] != 'I')
+        {
+            // Missing I prefix: Foo → IFoo
             _diagnostics.Add(DiagnosticDescriptors.InterfaceNamingConvention(
-                iface.Name, _posMap.GetPositionOf(iface.Name)));
+                iface.Name, $"I{iface.Name}", _posMap.GetPositionOf(iface.Name)));
         }
         else if (iface.Name.Length > 1 && iface.Name[0] == 'I' && char.IsLower(iface.Name[1]))
         {
-            // "Ifoo" — the 'I' prefix should be followed by uppercase
+            // Has I but next char is lowercase: Ibar → IBar
+            var suggestion = "I" + char.ToUpperInvariant(iface.Name[1]) + iface.Name[2..];
             _diagnostics.Add(DiagnosticDescriptors.InterfaceNamingConvention(
-                iface.Name, _posMap.GetPositionOf(iface.Name)));
+                iface.Name, suggestion, _posMap.GetPositionOf(iface.Name)));
         }
 
         // MIDL3003: Empty interface

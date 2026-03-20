@@ -329,11 +329,23 @@ public static class DiagnosticDescriptors
             $"Enum member '{memberName}' in '{enumName}': value {valueText} is out of range for {underlyingType} (valid: {validRange})",
             position, Math.Max(valueText.Length, 1));
 
+    // ExclusiveTo violation (MIDL1069)
+    public static Diagnostic ExclusiveToViolation(string interfaceName, string exclusiveToClass, string implementingClass, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1069",
+            $"Interface '{interfaceName}' is [exclusiveto({exclusiveToClass})] and cannot be implemented by '{implementingClass}'.",
+            position, Math.Max(interfaceName.Length, 1));
+
+    // Missing default interface (MIDL1070)
+    public static Diagnostic MissingDefaultInterface(string className, int interfaceCount, int position) =>
+        new(DiagnosticSeverity.Warning, "MIDL1070",
+            $"Runtimeclass '{className}' implements {interfaceCount} interfaces but none is marked [default]. The first interface will be used as default.",
+            position, Math.Max(className.Length, 1));
+
     // ─── Code Quality Hints (MIDL3001+) ─────────────────────────────
 
-    public static Diagnostic InterfaceNamingConvention(string name, int position) =>
+    public static Diagnostic InterfaceNamingConvention(string name, string suggestion, int position) =>
         new(DiagnosticSeverity.Info, "MIDL3001",
-            $"Interface '{name}' should start with 'I' by convention (e.g. 'I{name}').",
+            $"Interface '{name}' should follow 'I' + PascalCase naming convention (e.g. '{suggestion}').",
             position, Math.Max(name.Length, 1));
 
     public static Diagnostic EmptyRuntimeClass(string name, int position) =>

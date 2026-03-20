@@ -367,6 +367,18 @@ public class SemanticValidationTests
     }
 
     [Fact]
+    public void QualityHint_InterfaceLowercaseAfterI()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N { interface Ibar { void DoWork(); }; }
+            """);
+
+        var hint = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3001");
+        Assert.NotNull(hint);
+        Assert.Contains("IBar", hint.Message); // Suggests IBar, not IIbar
+    }
+
+    [Fact]
     public void QualityHint_EmptyRuntimeClass()
     {
         var compilation = CompileWithQualityHints("""
