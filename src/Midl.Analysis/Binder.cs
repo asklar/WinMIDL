@@ -1493,7 +1493,7 @@ public class Binder
                 _diagnostics.Add(DiagnosticDescriptors.LowercaseType("small", "UInt8", position));
                 break;
             case SyntaxKind.WcharTKeyword:
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("wchar_t", "Char", position));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("wchar_t", "Char16", position));
                 break;
             case SyntaxKind.BooleanKeyword when token.Text == "boolean":
                 _diagnostics.Add(DiagnosticDescriptors.LowercaseType("boolean", "Boolean", position));
@@ -1502,7 +1502,7 @@ public class Binder
                 _diagnostics.Add(DiagnosticDescriptors.LowercaseType("double", "Double", position));
                 break;
             case SyntaxKind.CharKeyword when token.Text == "char":
-                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("char", "Char", position));
+                _diagnostics.Add(DiagnosticDescriptors.LowercaseType("char", "Char16", position));
                 break;
             case SyntaxKind.UnsignedKeyword:
                 _diagnostics.Add(DiagnosticDescriptors.StrictModeTypeWarning("unsigned",
