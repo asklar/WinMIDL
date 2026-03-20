@@ -21,9 +21,6 @@
     "MIDL3",
     "Windows Runtime"
   ],
-  "activationEvents": [
-    "onLanguage:midl"
-  ],
   "contributes": {
     "languages": [
       {
