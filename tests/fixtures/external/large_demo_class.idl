@@ -1,0 +1,60 @@
+namespace DemoNamespace
+{
+
+	delegate void ChangedTemplateEngineDelegate();
+
+	[PUBLIC_API]
+	[webhosthidden]
+	[overridable(SmartClassBase)]
+	unsealed runtimeclass SmartClass : DemoNamespace.BaseClass
+	{
+		SmartClass();
+
+		// This should always return true...
+		Boolean IsSmart{ get; };
+
+		[REQUIRE_NON_NULL]
+		SmartDemoNamespace.TemplateEngine TemplateEngine{ get; set; };
+		[REQUIRE_NON_NULL]
+		SmartDemoNamespace.Hashcode Hashcode{ get; set; };
+
+		[PROPERTY_CHANGED_CALLBACK]
+		Boolean HasDoneClassyThings{ get; set; };
+
+		[DEFAULT_VALUE("DemoNamespace.SmartClass")]
+		[MUX_PROPERTY_CHANGED_CALLBACK]
+		String ObjectName{ get; set; };
+
+		overridable void DoOverridableThings();
+
+		event DemoNamespace.ValueChangedHandler<SmartClass, SmartClassNameChangedEventArgs> NameChanged;
+		event ChangedTemplateEngineDelegate ChangedTemplateEngine;
+
+		static String NamespaceAlias{ get; };
+		static String ClassNameAlias{ get; };
+		static String DerivateClassNameAlias();
+
+		[PREVIEW_API]
+		static DemoNamespace.Validator ObjectNameValdiator{ get; set; };
+	}
+
+	apicontract SmartContract{};
+
+	[PUBLIC_API]
+	[webhosthidden]
+	unsealed runtimeclass SmartClassNameChangedEventArgs : DemoNamespace.BaseEventArgs
+	{
+		SmartClassNameChangedEventArgs();
+
+		[REQUIRE_NON_NULL]
+		String OldName{ get; set; };
+
+		[REQUIRE_NON_NULL]
+		String NewName{ get; set; };
+	}
+
+	static runtimeclass SmartNameFactory
+	{
+		static String GetName(SmartClass SmartClass);
+	}
+}
