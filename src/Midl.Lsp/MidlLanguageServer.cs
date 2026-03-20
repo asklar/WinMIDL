@@ -19,6 +19,8 @@ public sealed class MidlLanguageServer
     private List<string>? _referencePaths = null;
     private List<string>? _sdkIncludePaths = null;
     private CompilationMode _compilationMode = CompilationMode.Strict;
+    private ProjectFile? _projectFile;
+    private string? _workspaceRoot;
 
     // Suppress CS0649 — _referencePaths can be set via SetReferencePaths for testing/config
     public void SetReferencePaths(List<string> paths) => _referencePaths = paths;
@@ -175,10 +177,40 @@ public sealed class MidlLanguageServer
                         _compilationMode = CompilationMode.Compat;
                     }
                 }
+
+                // Discover workspace root
+                if (@params.Value.TryGetProperty("rootUri", out var rootUri) &&
+                    rootUri.GetString() is { } rootUriStr && rootUriStr.StartsWith("file:///"))
+                {
+                    _workspaceRoot = Uri.UnescapeDataString(rootUriStr[8..]);
+                }
+                else if (@params.Value.TryGetProperty("rootPath", out var rootPath) &&
+                         rootPath.GetString() is { } rootPathStr)
+                {
+                    _workspaceRoot = rootPathStr;
+                }
             }
             catch
             {
                 // Ignore errors reading initialization options
+            }
+        }
+
+        // Discover winmidl.json project file in workspace
+        if (_workspaceRoot != null)
+        {
+            var projectPath = Path.Combine(_workspaceRoot, "winmidl.json");
+            if (File.Exists(projectPath))
+            {
+                try
+                {
+                    _projectFile = ProjectFile.Load(projectPath);
+                    MidlTrace.Lsp($"Loaded winmidl.json: {_projectFile.Inputs.Count} inputs, {_projectFile.References.Count} references");
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"[MIDL LSP] Failed to load winmidl.json: {ex.Message}");
+                }
             }
         }
 
@@ -274,9 +306,22 @@ public sealed class MidlLanguageServer
             MidlTrace.Lsp($"Analyzing {uri} ({text.Length} chars)");
             var preprocessor = new Midl.Lexer.Preprocessor();
             var preprocessed = preprocessor.Process(text);
+
+            // Resolve the file path for cross-file context
+            string? filePath = null;
+            if (uri.StartsWith("file:///"))
+                filePath = Uri.UnescapeDataString(uri[8..]);
+
             var references = GetReferencePaths(uri);
-            var compilation = CompilationHelper.Compile(preprocessed, references, _compilationMode, _sdkIncludePaths, null,
-                defines: null, emitQualityHints: true);
+            var includePaths = GetIncludePaths(filePath);
+            var defines = _projectFile?.Defines;
+
+            // Compile with cross-file context: sibling IDL files are compiled as imports
+            var compilation = CompilationHelper.Compile(preprocessed, references, _compilationMode,
+                includePaths, filePath,
+                defines: defines,
+                emitQualityHints: true);
+
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
             MidlTrace.Lsp($"Diagnostics published");
@@ -284,7 +329,6 @@ public sealed class MidlLanguageServer
         catch (Exception ex)
         {
             Console.Error.WriteLine($"[MIDL LSP] Analysis error: {ex}");
-            // If compilation crashes, report a single error diagnostic
             var errorDiag = new Analysis.Diagnostics.Diagnostic(
                 Analysis.Diagnostics.DiagnosticSeverity.Error,
                 "MIDL0000",
@@ -296,10 +340,20 @@ public sealed class MidlLanguageServer
 
     private List<string>? GetReferencePaths(string uri)
     {
-        if (_referencePaths is { Count: > 0 })
-            return _referencePaths;
+        var paths = new List<string>();
 
-        // Try to find .winmd files in the workspace directory
+        // Explicit references from configuration
+        if (_referencePaths is { Count: > 0 })
+            paths.AddRange(_referencePaths);
+
+        // References from winmidl.json project file
+        if (_projectFile != null)
+            paths.AddRange(_projectFile.GetAbsoluteReferencePaths().Where(File.Exists));
+
+        if (paths.Count > 0)
+            return paths;
+
+        // Fallback: scan workspace directory for .winmd files
         try
         {
             string? dir = null;
@@ -322,6 +376,47 @@ public sealed class MidlLanguageServer
         }
 
         return null;
+    }
+
+    private List<string>? GetIncludePaths(string? filePath)
+    {
+        var paths = new List<string>();
+
+        // SDK include paths
+        if (_sdkIncludePaths is { Count: > 0 })
+            paths.AddRange(_sdkIncludePaths);
+
+        // Project file include paths
+        if (_projectFile != null)
+            paths.AddRange(_projectFile.GetAbsoluteIncludePaths());
+
+        // File's own directory for relative imports
+        if (filePath != null)
+        {
+            var dir = Path.GetDirectoryName(filePath);
+            if (dir != null && !paths.Contains(dir))
+                paths.Add(dir);
+        }
+
+        // Parse // @ref: directives from sibling IDL files for cross-file context
+        if (filePath != null)
+        {
+            var text = _docManager.GetDocumentText(
+                "file:///" + Uri.EscapeDataString(filePath).Replace("%5C", "/").Replace("%2F", "/"));
+            if (text != null)
+            {
+                var dir = Path.GetDirectoryName(filePath);
+                var refPaths = RefDirectiveParser.ParseRefs(text, dir);
+                foreach (var refPath in refPaths)
+                {
+                    var refDir = Path.GetDirectoryName(refPath);
+                    if (refDir != null && !paths.Contains(refDir))
+                        paths.Add(refDir);
+                }
+            }
+        }
+
+        return paths.Count > 0 ? paths : null;
     }
 
     private static object? GetIdValue(JsonElement element)
