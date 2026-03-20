@@ -4,7 +4,10 @@
 
 .DESCRIPTION
     Compiles IDL files with both compilers and compares timing.
-    Requires NativeAOT-published WinMIDL binary for fair comparison.
+    Uses NativeAOT binary for fair comparison. Run publish-optimized.ps1 first.
+
+.PARAMETER WinMidlPath
+    Explicit path to WinMIDL binary. Auto-detected if not specified.
 
 .PARAMETER IdlFiles
     Path(s) to IDL files to benchmark. Defaults to tests/fixtures/valid/*.idl
@@ -20,6 +23,7 @@
 #>
 [CmdletBinding()]
 param(
+    [string]$WinMidlPath,
     [string[]]$IdlFiles,
     [int]$Iterations = 5,
     [switch]$PublishFirst,
@@ -126,7 +130,14 @@ function Build-WinMidl {
 # ── Find WinMIDL binary ────────────────────────────────────────────────────
 
 function Find-WinMidl {
-    # Check published binary
+    # Explicit path takes priority
+    if ($WinMidlPath -and (Test-Path $WinMidlPath)) { return $WinMidlPath }
+
+    # Check AOT published binary (preferred — smallest, fastest)
+    $aotExe = Join-Path $repoRoot 'publish\aot-x64\Midl.Cli.exe'
+    if (Test-Path $aotExe) { return $aotExe }
+
+    # Check standard published binary
     $publishExe = Join-Path $repoRoot 'publish\win-x64\Midl.Cli.exe'
     if (Test-Path $publishExe) { return $publishExe }
 

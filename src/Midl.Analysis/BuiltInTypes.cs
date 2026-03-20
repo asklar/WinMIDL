@@ -13,7 +13,9 @@ public static class BuiltInTypes
     private const string BuiltInSource = "<built-in>";
 
     // Detached namespace cache so multiple types in the same namespace share one instance
-    private static readonly Dictionary<string, NamespaceSymbol> _detachedNamespaces = new(StringComparer.Ordinal);
+    // ThreadStatic to avoid races when parallel tests call Register concurrently
+    [ThreadStatic]
+    private static Dictionary<string, NamespaceSymbol>? _detachedNamespaces;
 
     /// <summary>
     /// Register all built-in WinRT types into the symbol table.
@@ -21,7 +23,7 @@ public static class BuiltInTypes
     /// </summary>
     public static void Register(SymbolTable symbolTable, CompilationMode mode)
     {
-        _detachedNamespaces.Clear();
+        _detachedNamespaces = new(StringComparer.Ordinal);
 
         // 1. Core WinRT interfaces (global namespace)
         RegisterInterface(symbolTable, "", "IInspectable");
@@ -110,7 +112,7 @@ public static class BuiltInTypes
             symbolTable.RegisterAlias("unsigned", "UInt32");
         }
 
-        _detachedNamespaces.Clear();
+        _detachedNamespaces = null;
     }
 
     /// <summary>
@@ -119,6 +121,7 @@ public static class BuiltInTypes
     /// </summary>
     private static NamespaceSymbol GetDetachedNamespace(string dottedName)
     {
+        _detachedNamespaces ??= new(StringComparer.Ordinal);
         if (string.IsNullOrEmpty(dottedName))
         {
             if (!_detachedNamespaces.TryGetValue("", out var globalNs))

@@ -55,6 +55,24 @@ if (-not $SkipTests) {
 $outDir = Join-Path $repoRoot $OutputDir $Runtime
 $cliProject = Join-Path $repoRoot "src" "Midl.Cli"
 
+# Ensure Windows SDK lib path is available for native linker
+if (-not $env:LIB -or -not ($env:LIB -match "Windows Kits")) {
+    try {
+        $sdkRoot = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots" -ErrorAction SilentlyContinue).KitsRoot10
+        if ($sdkRoot) {
+            $sdkVer = Get-ChildItem "$sdkRoot\Lib" -Directory -ErrorAction SilentlyContinue | 
+                Where-Object { $_.Name -match '^\d+\.' } |
+                Sort-Object Name -Descending | Select-Object -First 1
+            if ($sdkVer) {
+                $v = $sdkVer.Name
+                $libPaths = @("$sdkRoot\Lib\$v\um\x64", "$sdkRoot\Lib\$v\ucrt\x64") -join ";"
+                $env:LIB = if ($env:LIB) { "$libPaths;$env:LIB" } else { $libPaths }
+                Write-Host "  SDK lib path: $libPaths" -ForegroundColor DarkGray
+            }
+        }
+    } catch { }
+}
+
 Write-Host "Attempting NativeAOT publish..." -ForegroundColor Yellow
 $aotArgs = @(
     "publish"
