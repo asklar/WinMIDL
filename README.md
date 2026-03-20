@@ -60,8 +60,8 @@ dotnet run --project src/Midl.Cli -- /Zs input.idl
 | `src/Midl.Lsp` | Language Server Protocol server |
 | `src/Midl.Cli` | Command-line interface (30+ switches) |
 | `editors/vscode` | VS Code extension (TextMate grammar + LSP client) |
-| `tests/` | 5 test projects, 104+ tests |
-| `docs/` | Architecture, testing, contributing guides |
+| `tests/` | 5 test projects, 650+ tests |
+| `docs/` | Architecture, testing, diagnostics, winmidl.json guides |
 
 ---
 

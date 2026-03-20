@@ -46,14 +46,37 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 | [MIDL1058](#midl1058) | Error | Duplicate [method_name] value |
 | [MIDL1059](#midl1059) | Error | Multiple [default_overload] on same arity |
 | [MIDL1060](#midl1060) | Error | Constructor arity conflict per version |
-| [MIDL1061](#midl1061) | Error | Static + unsealed conflict || [MIDL1100](#midl1100) | Error | Unexpected code (skipped tokens) |
+| [MIDL1061](#midl1061) | Error | Static + unsealed conflict |
+| [MIDL1064](#midl1064) | Error | Attribute argument type mismatch |
+| [MIDL1065](#midl1065) | Warning | Unknown attribute |
+| [MIDL1066](#midl1066) | Error | Attribute argument out of range |
+| [MIDL1067](#midl1067) | Error | Enum value must be integer |
+| [MIDL1068](#midl1068) | Error | Enum value out of range |
+| [MIDL1069](#midl1069) | Error | ExclusiveTo violation |
+| [MIDL1070](#midl1070) | Warning | Missing default interface |
+| [MIDL1071](#midl1071) | Warning | WinMD namespace mismatch |
+| [MIDL1072](#midl1072) | Error | Protected on individual accessor |
+| [MIDL1073](#midl1073) | Error | Protected member on interface || [MIDL1100](#midl1100) | Error | Unexpected code (skipped tokens) |
 | [MIDL1101](#midl1101) | Error | Unexpected character |
 | [MIDL1102](#midl1102) | Error | Expected token missing |
-| [MIDL2001](#midl2001) | Warning | Classic MIDL construct (strict mode) |
-| [MIDL2002](#midl2002) | Warning | HRESULT return type (strict mode) |
-| [MIDL2003](#midl2003) | Warning | Classic MIDL attribute (strict mode) |
-| [MIDL2004](#midl2004) | Warning | Pointer type (strict mode) |
-| [MIDL2005](#midl2005) | Warning | Classic MIDL type name (strict mode) |
+| [MIDL2001](#midl2001) | Error | Classic MIDL construct (strict mode) |
+| [MIDL2002](#midl2002) | Error | HRESULT return type (strict mode) |
+| [MIDL2003](#midl2003) | Error | Classic MIDL attribute (strict mode) |
+| [MIDL2004](#midl2004) | Error | Pointer type (strict mode) |
+| [MIDL2005](#midl2005) | Error | Classic MIDL type name (strict mode) |
+| [MIDL3001](#midl3001) | Info | Interface naming convention |
+| [MIDL3002](#midl3002) | Info | Empty runtimeclass |
+| [MIDL3003](#midl3003) | Info | Empty interface |
+| [MIDL3005](#midl3005) | Info | Runtimeclass has no constructor |
+| [MIDL3007](#midl3007) | Info | Property setter without getter |
+| [MIDL3008](#midl3008) | Info | Method name clashes with type name |
+| [MIDL3009](#midl3009) | Info | Namespace casing convention |
+| [MIDL3010](#midl3010) | Info | Attribute naming convention |
+| [MIDL3011](#midl3011) | Info | Delegate naming convention |
+| [MIDL3013](#midl3013) | Info | Async method naming convention |
+| [MIDL3014](#midl3014) | Info | Type name PascalCase |
+| [MIDL3015](#midl3015) | Info | Member name PascalCase |
+| [MIDL3016](#midl3016) | Info | Property can use shorthand |
 
 ---
 
@@ -99,6 +122,76 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 
 ### MIDL1061
 **Static + unsealed conflict** — A runtimeclass cannot be both `static` and `unsealed`.
+
+---
+
+### MIDL1064
+**Attribute argument type mismatch** — An attribute argument has the wrong type for its corresponding field. For example, passing a string literal where an Int32 is expected.
+
+**Fix:** Use the correct literal type: integers for Int32/UInt32 fields, strings for String fields, etc.
+
+---
+
+### MIDL1065
+**Unknown attribute** — An attribute name is not recognized as a built-in attribute or a user-defined custom attribute.
+
+**Fix:** Declare the attribute with the `attribute` keyword, or check the spelling:
+```idl
+[attributeusage(target_runtimeclass)]
+attribute MyAttr { Int32 Level; };
+```
+
+---
+
+### MIDL1066
+**Attribute argument out of range** — A numeric attribute argument is outside the valid range for the field type (e.g., 256 for UInt8).
+
+---
+
+### MIDL1067
+**Enum value must be integer** — Enum member values must be integer literals. Float or string literals are not valid.
+
+**Fix:** Use an integer: `A = 42` or `A = 0xFF`
+
+---
+
+### MIDL1068
+**Enum value out of range** — An enum member value exceeds the range of the underlying type (Int32 for standard enums, UInt32 for `[flags]` enums).
+
+---
+
+### MIDL1069
+**ExclusiveTo violation** — An interface marked `[exclusiveto(ClassA)]` cannot be implemented by a different class.
+
+---
+
+### MIDL1070
+**Missing default interface** — A runtimeclass implements multiple interfaces but none is marked `[default]`. The first interface will be used as default.
+
+---
+
+### MIDL1071
+**WinMD namespace mismatch** — The explicit WinMD output filename doesn't match the root namespace of the types it contains.
+
+---
+
+### MIDL1072
+**Protected on individual accessor** — Individual property accessors cannot be marked `protected` in MIDL3. Apply `protected` to the whole property.
+
+```idl
+// Wrong:
+String Name { protected set; get; };
+
+// Right:
+protected String Name { get; set; };
+```
+
+---
+
+### MIDL1073
+**Protected member on interface** — Interface members are always public. The `protected` modifier is only valid on `unsealed runtimeclass` members.
+
+---
 ## Semantic Errors (MIDL1001–MIDL1061)
 
 These errors are emitted during semantic analysis (binding phase).
@@ -635,17 +728,17 @@ The parser expected a specific token but didn't find it. A synthetic "missing" t
 
 ---
 
-## Strict Mode Warnings (MIDL2001–MIDL2005)
+## Strict Mode Errors (MIDL2001–MIDL2005)
 
-These warnings are emitted in **strict MIDL3 mode** (the default). They indicate the use of classic MIDL constructs that are not part of MIDL3 syntax. Disable with `/no_strict` or `/compat`.
+These errors are emitted in **strict MIDL3 mode** (the default). They indicate the use of classic MIDL constructs that are not part of MIDL3 syntax. Disable with `/no_strict` or `/compat`.
 
 ### MIDL2001
 
 **Classic MIDL construct**
 
 ```
-warning MIDL2001: 'coclass' is a classic MIDL construct and is not allowed in strict MIDL3 mode.
-                  Use /compat to enable classic syntax.
+error MIDL2001: 'coclass' is a classic MIDL construct and is not allowed in strict MIDL3 mode.
+               Use /compat to enable classic syntax.
 ```
 
 The following classic constructs trigger this warning:
@@ -672,7 +765,7 @@ The following classic constructs trigger this warning:
 **HRESULT return type**
 
 ```
-warning MIDL2002: HRESULT return type is not used in MIDL3. Methods should return the actual type directly.
+error MIDL2002: HRESULT return type is not used in MIDL3. Methods should return the actual type directly.
 ```
 
 In classic MIDL, methods return `HRESULT` and use `[out, retval]` parameters for the actual return value. In MIDL3, methods return the value directly.
@@ -696,7 +789,7 @@ String GetName();
 **Classic MIDL attribute**
 
 ```
-warning MIDL2003: '[in]' is a classic MIDL attribute. In MIDL3, use the equivalent modern syntax.
+error MIDL2003: '[in]' is a classic MIDL attribute. In MIDL3, use the equivalent modern syntax.
 ```
 
 Classic `[in]` and `[out]` parameter attributes are not needed in MIDL3. Parameters are `in` by default; use the `out` keyword for output parameters.
@@ -717,7 +810,7 @@ Classic `[in]` and `[out]` parameter attributes are not needed in MIDL3. Paramet
 **Pointer type**
 
 ```
-warning MIDL2004: Pointer types ('IFoo*') are not used in MIDL3. Reference types are passed directly.
+error MIDL2004: Pointer types ('IFoo*') are not used in MIDL3. Reference types are passed directly.
 ```
 
 MIDL3 does not use pointer syntax (`*`). Reference types (interfaces, runtime classes) are passed directly by name.
@@ -738,7 +831,7 @@ MIDL3 does not use pointer syntax (`*`). Reference types (interfaces, runtime cl
 **Classic MIDL type name** ⚡ *Quick fix available*
 
 ```
-warning MIDL2005: Lowercase 'int' is MIDL2 syntax. Use 'Int32' (capitalized) for MIDL3.
+error MIDL2005: Lowercase 'int' is MIDL2 syntax. Use 'Int32' (capitalized) for MIDL3.
 ```
 
 MIDL3 uses capitalized type names that match WinRT naming conventions. The following replacements are available as **one-click quick fixes** in VS Code:
@@ -754,8 +847,8 @@ MIDL3 uses capitalized type names that match WinRT naming conventions. The follo
 | `float` | `Single` | |
 | `double` | `Double` | |
 | `boolean` | `Boolean` | Lowercase `boolean` is MIDL2 |
-| `char` | `Char` | |
-| `wchar_t` | `Char` | |
+| `char` | `Char16` | |
+| `wchar_t` | `Char16` | |
 | `BSTR` | `String` | |
 | `LPSTR` | `String` | |
 | `LPWSTR` | `String` | |
@@ -768,6 +861,53 @@ MIDL3 uses capitalized type names that match WinRT naming conventions. The follo
 **Fix:** Click the 💡 lightbulb in VS Code to auto-replace, or manually change the type name.
 
 📖 [MIDL3 documentation](https://learn.microsoft.com/en-us/uwp/midl-3/)
+
+---
+
+## Code Quality Hints (MIDL3001–MIDL3016)
+
+These Info-level hints are shown in the LSP/editor only (not in CLI by default). Toggle with the `midl.codeQualityHints` VS Code setting.
+
+### MIDL3001 ⚡
+**Interface naming convention** — Interfaces should start with `I` followed by PascalCase. `Foo` → `IFoo`, `Ibar` → `IBar`.
+
+### MIDL3002
+**Empty runtimeclass** — A runtimeclass has no members. Consider adding constructors, methods, properties, or events.
+
+### MIDL3003
+**Empty interface** — An interface has no members.
+
+### MIDL3005 ⚡
+**No constructor** — A runtimeclass has no constructor and no `[activatable]` attribute. It won't be default-activatable. Quick fix inserts `ClassName();`.
+
+### MIDL3007 ⚡
+**Setter without getter** — A property has a setter but no getter. This is unusual in WinRT. Quick fix adds `get;`.
+
+### MIDL3008
+**Method name clashes with type** — A method shares its name with the containing type, which may cause confusion.
+
+### MIDL3009 ⚡
+**Namespace casing** — Namespace segments should use PascalCase. `myApp` → `MyApp`.
+
+### MIDL3010 ⚡
+**Attribute naming** — Custom attribute types should end with `Attribute`. `MyTag` → `MyTagAttribute`. Use `[attributename("MyTag")]` to keep the short name.
+
+### MIDL3011
+**Delegate naming** — Delegates should end with `Handler` or `Callback`.
+
+### MIDL3013 ⚡
+**Async method naming** — Methods returning `IAsyncOperation`/`IAsyncAction` should end with `Async`. `DoWork` → `DoWorkAsync`.
+
+### MIDL3014 ⚡
+**Type name PascalCase** — Type names should use PascalCase without underscores. `my_type` → `MyType`.
+
+### MIDL3015 ⚡
+**Member name PascalCase** — Method and property names should start with an uppercase letter. `doWork` → `DoWork`.
+
+### MIDL3016 ⚡
+**Property shorthand** — A property with both public `get` and `set` can use shorthand: `String Name;` instead of `String Name { get; set; };`. Quick fix removes the accessor block.
+
+> ⚡ = Quick fix available in VS Code
 
 ---
 
@@ -789,7 +929,8 @@ midl /WX input.idl
 
 ### VS Code
 
-In VS Code Settings, set `midl.strictMode` to `false` to disable MIDL2xxx warnings.
+- Set `midl.strictMode` to `false` to disable MIDL2xxx strict mode errors.
+- Set `midl.codeQualityHints` to `false` to disable MIDL3xxx code quality hints.
 
 ---
 

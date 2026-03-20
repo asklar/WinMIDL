@@ -50,6 +50,9 @@ public static class FormattingHandler
         // (but keep inline property accessors like "{ get; set; }" on one line)
         lines = SplitBraceLines(lines);
 
+        // Join multi-line property accessors onto the preceding declaration line
+        lines = JoinPropertyAccessors(lines);
+
         var result = new List<string>();
         int indentLevel = 0;
 
@@ -112,6 +115,10 @@ public static class FormattingHandler
 
     private static string FormatLineContent(string line)
     {
+        // Comment-only lines: preserve content as-is
+        if (line.StartsWith("//"))
+            return line;
+
         var sb = new StringBuilder(line.Length + 8);
         bool inString = false;
 
@@ -132,12 +139,23 @@ public static class FormattingHandler
                 continue;
             }
 
-            // No space before semicolons
+            // Inline comment: preserve rest of line as-is
+            if (c == '/' && i + 1 < line.Length && line[i + 1] == '/')
+            {
+                if (sb.Length > 0 && sb[^1] != ' ')
+                    sb.Append(' ');
+                sb.Append(line[i..]);
+                break;
+            }
+
+            // No space before semicolons; space after when followed by content
             if (c == ';')
             {
                 while (sb.Length > 0 && sb[^1] == ' ')
                     sb.Remove(sb.Length - 1, 1);
                 sb.Append(';');
+                if (i + 1 < line.Length && line[i + 1] != ' ' && line[i + 1] != '}' && line[i + 1] != ')')
+                    sb.Append(' ');
                 continue;
             }
 
@@ -158,7 +176,6 @@ public static class FormattingHandler
                 while (sb.Length > 0 && sb[^1] == ' ')
                     sb.Remove(sb.Length - 1, 1);
                 sb.Append('<');
-                // Skip spaces after <
                 while (i + 1 < line.Length && line[i + 1] == ' ')
                     i++;
                 continue;
@@ -190,7 +207,7 @@ public static class FormattingHandler
                 continue;
             }
 
-            // Ensure space before '{' (property accessors)
+            // Ensure space before '{' (property accessors and inline blocks)
             if (c == '{')
             {
                 if (sb.Length > 0 && sb[^1] != ' ')
@@ -201,16 +218,20 @@ public static class FormattingHandler
                 continue;
             }
 
-            // Handle '}'
+            // Ensure space before '}' when inline (property accessors)
             if (c == '}')
             {
+                if (sb.Length > 0 && sb[^1] != ' ')
+                    sb.Append(' ');
                 sb.Append('}');
                 continue;
             }
 
-            // No space after '(' or before ')'
+            // No space before '(' (except after control-flow keywords), no space after '('
             if (c == '(')
             {
+                while (sb.Length > 0 && sb[^1] == ' ')
+                    sb.Remove(sb.Length - 1, 1);
                 sb.Append('(');
                 while (i + 1 < line.Length && line[i + 1] == ' ')
                     i++;
@@ -248,7 +269,6 @@ public static class FormattingHandler
         {
             string trimmed = lines[i].TrimStart();
 
-            // Check if this line starts a top-level declaration
             bool isDeclaration = false;
             foreach (var kw in declarationKeywords)
             {
@@ -259,14 +279,17 @@ public static class FormattingHandler
                 }
             }
 
-            // If this is a declaration and the previous non-empty line is not a blank line or the first line, insert blank line
-            if (isDeclaration && result.Count > 0)
-            {
-                // Find last non-empty line
-                bool hasPrecedingBlank = result.Count > 0 && result[^1].Trim().Length == 0;
-                bool isPreviousOpenBrace = result.Count > 0 && result[^1].TrimEnd().EndsWith('{');
+            bool isAttribute = trimmed.StartsWith('[') && trimmed.TrimEnd().EndsWith(']');
 
-                if (!hasPrecedingBlank && !isPreviousOpenBrace)
+            if ((isDeclaration || isAttribute) && result.Count > 0)
+            {
+                string prev = result[^1].Trim();
+                bool hasPrecedingBlank = prev.Length == 0;
+                bool isPreviousOpenBrace = result[^1].TrimEnd().EndsWith('{');
+                bool isPreviousAttribute = prev.StartsWith('[') && prev.TrimEnd().EndsWith(']');
+                bool isPreviousComment = prev.StartsWith("//");
+
+                if (!hasPrecedingBlank && !isPreviousOpenBrace && !isPreviousAttribute && !isPreviousComment)
                 {
                     result.Add("");
                 }
@@ -342,6 +365,80 @@ public static class FormattingHandler
             }
 
             result.Add(line);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Joins multi-line property accessor blocks (get;/set; on separate lines) onto the
+    /// preceding property declaration line, producing e.g. "String Name { get; set; };".
+    /// </summary>
+    private static List<string> JoinPropertyAccessors(List<string> lines)
+    {
+        var result = new List<string>(lines.Count);
+        string[] typeKeywords = ["namespace", "runtimeclass", "interface", "struct", "enum", "delegate", "apicontract"];
+        int i = 0;
+
+        while (i < lines.Count)
+        {
+            string trimmed = lines[i].Trim();
+
+            if (trimmed == "{" && result.Count > 0)
+            {
+                // Look ahead for get;/set; accessor lines
+                int j = i + 1;
+                var accessors = new List<string>();
+                while (j < lines.Count)
+                {
+                    var t = lines[j].Trim();
+                    if (t == "get;" || t == "set;")
+                    {
+                        accessors.Add(t);
+                        j++;
+                    }
+                    else break;
+                }
+
+                if (accessors.Count > 0 && j < lines.Count)
+                {
+                    var closing = lines[j].Trim();
+                    if (closing == "}" || closing == "};")
+                    {
+                        // Don't join if preceding line is a type/namespace declaration
+                        string prev = result[^1].Trim();
+                        bool isTypeDecl = false;
+                        foreach (var kw in typeKeywords)
+                        {
+                            if (prev.StartsWith(kw) && (prev.Length == kw.Length || !char.IsLetterOrDigit(prev[kw.Length])))
+                            {
+                                isTypeDecl = true;
+                                break;
+                            }
+                        }
+
+                        if (!isTypeDecl)
+                        {
+                            string accessorStr = string.Join(" ", accessors);
+                            string suffix = closing == "};" ? ";" : "";
+
+                            // Handle stray semicolon on next line
+                            if (suffix == "" && j + 1 < lines.Count && lines[j + 1].Trim() == ";")
+                            {
+                                suffix = ";";
+                                j++;
+                            }
+
+                            result[^1] = result[^1].TrimEnd() + " { " + accessorStr + " }" + suffix;
+                            i = j + 1;
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            result.Add(lines[i]);
+            i++;
         }
 
         return result;

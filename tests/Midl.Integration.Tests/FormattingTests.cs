@@ -108,7 +108,7 @@ public class FormattingTests
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        String Name{get; set;};\n    }\n}\n";
         var formatted = FormattingHandler.Format(input);
-        Assert.Contains("Name { get; set;}", formatted);
+        Assert.Contains("Name { get; set; };", formatted);
     }
 
     [Fact]
@@ -160,5 +160,109 @@ public class FormattingTests
         var lines = formatted.Split('\n');
         var closingBraceLines = lines.Where(l => l.Trim() == "}" || l.Trim() == "};").ToList();
         Assert.True(closingBraceLines.Count >= 2, "Should have at least 2 closing brace lines (interface + namespace)");
+    }
+
+    [Fact]
+    public void PropertyAccessorInline_GetOnly()
+    {
+        var input = "namespace N\n{\n    runtimeclass C\n    {\n        Int32 Value{get;};\n    }\n}\n";
+        var formatted = FormattingHandler.Format(input);
+        Assert.Contains("Int32 Value { get; };", formatted);
+    }
+
+    [Fact]
+    public void PropertyAccessorInline_GetSet()
+    {
+        var input = "namespace N\n{\n    runtimeclass C\n    {\n        String Name{get;set;};\n    }\n}\n";
+        var formatted = FormattingHandler.Format(input);
+        Assert.Contains("String Name { get; set; };", formatted);
+    }
+
+    [Fact]
+    public void MultiLinePropertyAccessor_JoinedInline()
+    {
+        var input = "namespace N\n{\n    runtimeclass C\n    {\n        String Name\n        {\n            get;\n            set;\n        };\n    }\n}\n";
+        var formatted = FormattingHandler.Format(input);
+        Assert.Contains("String Name { get; set; };", formatted);
+        // Should NOT have get; or set; on their own indented lines
+        var lines = formatted.Split('\n');
+        Assert.DoesNotContain(lines, l => l.Trim() == "get;");
+        Assert.DoesNotContain(lines, l => l.Trim() == "set;");
+    }
+
+    [Fact]
+    public void AttributeGroupBlankLine()
+    {
+        var input = "namespace N\n{\n    runtimeclass A\n    {\n    }\n    [contract(C, 1)]\n    [activatable(1)]\n    runtimeclass B\n    {\n    }\n}\n";
+        var formatted = FormattingHandler.Format(input);
+        // Blank line before first attribute of a group
+        Assert.Contains("}\n\n    [contract(C, 1)]", formatted);
+        // No blank line between consecutive attributes
+        Assert.Contains("[contract(C, 1)]\n    [activatable(1)]", formatted);
+    }
+
+    [Fact]
+    public void CommentReindented()
+    {
+        var input = "namespace N\n{\n// misindented comment\n    runtimeclass C\n    {\n// another comment\n        void Foo();\n    }\n}\n";
+        var formatted = FormattingHandler.Format(input);
+        // Comments should be indented to match their context
+        Assert.Contains("    // misindented comment", formatted);
+        Assert.Contains("        // another comment", formatted);
+    }
+
+    [Fact]
+    public void GenericCommaSpacing()
+    {
+        var input = "namespace N\n{\n    runtimeclass C\n    {\n        event TypedEventHandler<Widget,Object> Changed;\n    }\n}\n";
+        var formatted = FormattingHandler.Format(input);
+        Assert.Contains("TypedEventHandler<Widget, Object>", formatted);
+    }
+
+    [Fact]
+    public void SemicolonSpacingInsideAccessors()
+    {
+        var input = "namespace N\n{\n    runtimeclass C\n    {\n        String X{get;set;};\n    }\n}\n";
+        var formatted = FormattingHandler.Format(input);
+        // Space after ; between accessors
+        Assert.Contains("{ get; set; }", formatted);
+        // No space before ;
+        Assert.DoesNotContain("get ;", formatted);
+        Assert.DoesNotContain("set ;", formatted);
+    }
+
+    [Fact]
+    public void FullDocumentFormatting()
+    {
+        var input = """
+            // My widget
+            namespace MyApp{
+            [contract(MyContract, 1)]
+                 [activatable(1)]
+            runtimeclass Widget : SomeBase
+            {
+            Widget();
+                 Widget(String name);
+                     String Name{get;set;};
+                Int32 Value{get;};
+                  void DoWork(  Int32 x,String y  );
+            event TypedEventHandler<Widget,Object> Changed;
+            }
+            }
+            """;
+
+        var formatted = FormattingHandler.Format(input);
+
+        Assert.Contains("// My widget", formatted);
+        Assert.Contains("namespace MyApp", formatted);
+        Assert.Contains("    [contract(MyContract, 1)]", formatted);
+        Assert.Contains("    [activatable(1)]", formatted);
+        Assert.Contains("    runtimeclass Widget : SomeBase", formatted);
+        Assert.Contains("        Widget();", formatted);
+        Assert.Contains("        Widget(String name);", formatted);
+        Assert.Contains("        String Name { get; set; };", formatted);
+        Assert.Contains("        Int32 Value { get; };", formatted);
+        Assert.Contains("        void DoWork(Int32 x, String y);", formatted);
+        Assert.Contains("        event TypedEventHandler<Widget, Object> Changed;", formatted);
     }
 }

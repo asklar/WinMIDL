@@ -1,6 +1,6 @@
 # TODO — MIDL Compiler Rewrite Status
 
-> **Last updated**: 2026-03-20T09:55Z
+> **Last updated**: 2026-03-20T11:30Z
 > This file tracks implementation status. Keep it current with every feature change.
 
 ## ✅ Implemented
@@ -122,22 +122,22 @@
 - [x] Classic constructs in strict mode: coclass, library, typedef, etc. (MIDL2001)
 - [x] Classic `[in]`/`[out]`/`[retval]` attributes in strict mode (MIDL2003)
 
-### Diagnostics (82 codes)
+### Diagnostics (91 codes)
 - [x] MIDL1001–MIDL1013: Semantic errors (undefined type, duplicate, namespace required, empty struct, case collision, write-only property, reserved param name, etc.)
 - [x] MIDL1014–MIDL1017: Version/contract errors
 - [x] MIDL1020–MIDL1030: Attribute validation (threading, marshaling, composable, exclusiveto, deprecated, attributeusage, custom attribute target/arg count)
 - [x] MIDL1031–MIDL1032: Partial runtimeclass conflicts
 - [x] MIDL1033–MIDL1038: Access/inheritance validation
 - [x] MIDL1039–MIDL1061: WinRT validation rules (15 rules)
-- [x] MIDL1064–MIDL1070: Attribute arg types, ranges, unknown attrs, exclusiveto, default interface
+- [x] MIDL1064–MIDL1073: Attribute arg types/ranges, unknown attrs, exclusiveto, default interface, enum values, per-namespace WinMD, protected accessor errors
 - [x] MIDL1100–MIDL1102: Syntax errors (skipped tokens, error chars, missing tokens)
-- [x] MIDL2001–MIDL2005: Strict mode warnings (classic constructs, lowercase types, HRESULT, pointers, classic attrs)
-- [x] MIDL3001–MIDL3010: Code quality hints (interface naming, empty types, constructors, setter-only, method name clash, namespace casing, attribute naming)
+- [x] MIDL2001–MIDL2005: Strict mode **errors** (classic constructs, lowercase types, HRESULT, pointers, classic attrs)
+- [x] MIDL3001–MIDL3016: Code quality hints (interface naming, empty types, constructors, setter-only, method name clash, namespace casing, attribute naming, delegate naming, async naming, PascalCase, property shorthand)
 - [x] All diagnostic positions tracked via green tree FullWidth accumulation — accurate to the usage site
-- [x] Diagnostics include `HelpUri` linking to MIDL3 docs
+- [x] Code action fixers for all fixable diagnostics (type corrections, naming, property shorthand)
 
 ### LSP Features
-- [x] Real-time diagnostics (syntax + semantic, all 82 codes)
+- [x] Real-time diagnostics (syntax + semantic, all 91 codes)
 - [x] **Context-aware autocomplete**:
   - Top-level: declaration keywords
   - Runtimeclass body: types + void + event + modifiers + constructor name
@@ -154,21 +154,23 @@
 - [x] Find all references
 - [x] Signature help
 - [x] Semantic tokens (including float literals)
-- [x] Document formatting
+- [x] Document formatting (blank line normalization, brace splitting, tight generics, property accessor inline, comment preservation)
 - [x] Document symbols / outline (filters external/synthesized)
-- [x] Code actions / quick fixes (type name corrections, code quality fixers)
+- [x] Code actions / quick fixes (type name corrections, naming conventions, property shorthand, constructor insertion)
 - [x] `midl.strictMode` setting
-- [x] `midl.codeQualityHints` setting (toggle code quality warnings)
+- [x] `midl.codeQualityHints` setting (toggle code quality hints)
 - [x] Command palette: Toggle Strict Mode, Restart Server, Show Server Log
 - [x] Cross-file context via `winmidl.json` project file
 - [x] Cross-file hints via `// @ref: file.idl` directives
+- [x] Debounce (300ms) — avoids recompilation on every keystroke
+- [x] Content-hash caching — skips recompilation if text unchanged
 
-### Testing (618 tests)
+### Testing (651 tests)
 - [x] Lexer: 57 tests (tokens, trivia, edge cases, preprocessor, float/negative literals)
 - [x] Parser: 62 tests (structures, error recovery, completeness, classic MIDL, generic disambiguation, forward declarations)
-- [x] Analysis: 245 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, hex literals, naming conventions, custom attribute types/ranges)
-- [x] CodeGen: 72 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes)
-- [x] Integration: 182 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete)
+- [x] Analysis: 258 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, hex literals, naming conventions, custom attribute types/ranges, protected accessor validation)
+- [x] CodeGen: 77 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes, per-namespace output)
+- [x] Integration: 197 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete)
 - [x] IDL fixture suite (18 files with `.expected.json` + `.expected.tree` sidecars)
 - [x] OS fixture test script (`scripts/test-os-fixtures.ps1` — 1186 files, 0 crashes)
 
@@ -178,13 +180,6 @@
 - [x] `winmidl.json` project file format ([docs/winmidl-json.md](docs/winmidl-json.md))
 - [x] F5 dev loop: builds .NET server + TS extension in parallel
 - [x] README.md, CONTRIBUTING.md, docs/architecture.md, docs/testing.md, docs/diagnostics.md, docs/winmidl-json.md
-
----
-
-## 🔄 In Progress
-
-- [ ] **Additional code quality hints** (MIDL3011–3015): delegate naming, async method naming, PascalCase types/members
-- [ ] **Code action fixers** for all MIDL3xxx hints (rename suggestions)
 
 ---
 
@@ -198,20 +193,18 @@
 - [ ] **ACF grammar** — placeholder only
 - [ ] **~84 more CLI switches** — accept-and-ignore for drop-in compatibility
 - [ ] **Velocity/Feature API staging** — `[feature(Name)]` → `[experimental]` transform
-- [ ] **Incremental parsing for LSP** — currently full reparse on every edit
-- [ ] **WinMD file naming rules** — namespace matching, case-insensitive
 - [ ] **`[contentproperty]`** — parsed but not semantically processed
 - [ ] **`[allowforweb]`** — parsed but not semantically processed
 - [ ] **`[fastabi]`** — parsed but not semantically processed
 
 ### Nice to Have
 - [ ] **WinMD inspection** — go-to-def into imported `.winmd` types
-- [ ] **Formatting** — more sophisticated (preserve user formatting, align attributes)
 - [ ] **Code lens** — show interface synthesis results inline
 - [ ] **Extension icon** — custom icon for the VS Code extension
 - [ ] **Golden-file comparison** against original midl.exe output (T3 testing)
 - [ ] **Drop-in replacement** test in razzle build (T4 testing)
 - [ ] **Rename symbol** refinement (cross-file rename)
+- [ ] **Incremental parsing** — deferred; full reparse is <10ms, debounce handles perf
 
 ---
 
