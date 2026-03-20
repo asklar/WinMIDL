@@ -71,24 +71,24 @@ public static class BuiltInTypes
         RegisterInterface(symbolTable, "Windows.Foundation.Collections", "IVectorChangedEventArgs");
         RegisterEnum(symbolTable, "Windows.Foundation.Collections", "CollectionChange");
 
-        // 4. Global type aliases — WinRT canonical names (always available)
-        symbolTable.RegisterAlias("HSTRING", "String");
-        symbolTable.RegisterAlias("HRESULT", "Int32");
-        symbolTable.RegisterAlias("GUID", "Guid");
+        // 4. Global type aliases — always available
         symbolTable.RegisterAlias("EventRegistrationToken", "Windows.Foundation.EventRegistrationToken");
-        symbolTable.RegisterAlias("UINT8", "UInt8");
-        symbolTable.RegisterAlias("INT16", "Int16");
-        symbolTable.RegisterAlias("UINT16", "UInt16");
-        symbolTable.RegisterAlias("INT32", "Int32");
-        symbolTable.RegisterAlias("UINT32", "UInt32");
-        symbolTable.RegisterAlias("INT64", "Int64");
-        symbolTable.RegisterAlias("UINT64", "UInt64");
         symbolTable.RegisterAlias("Char", "Char16");
 
-        // 5. Win32 / MIDL2 type aliases (compat mode only)
+        // 5. Win32 / C / MIDL2 type aliases (compat mode only)
         if (mode == CompilationMode.Compat)
         {
+            symbolTable.RegisterAlias("HSTRING", "String");
+            symbolTable.RegisterAlias("HRESULT", "Int32");
+            symbolTable.RegisterAlias("GUID", "Guid");
             symbolTable.RegisterAlias("BYTE", "UInt8");
+            symbolTable.RegisterAlias("UINT8", "UInt8");
+            symbolTable.RegisterAlias("INT16", "Int16");
+            symbolTable.RegisterAlias("UINT16", "UInt16");
+            symbolTable.RegisterAlias("INT32", "Int32");
+            symbolTable.RegisterAlias("UINT32", "UInt32");
+            symbolTable.RegisterAlias("INT64", "Int64");
+            symbolTable.RegisterAlias("UINT64", "UInt64");
             symbolTable.RegisterAlias("DWORD", "UInt32");
             symbolTable.RegisterAlias("WORD", "UInt16");
             symbolTable.RegisterAlias("FLOAT", "Single");
