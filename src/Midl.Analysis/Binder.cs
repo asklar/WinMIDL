@@ -1077,10 +1077,23 @@ public class Binder
         {
             symbol.HasGetter = HasChildToken(accessors, SyntaxKind.GetKeyword);
             symbol.HasSetter = HasChildToken(accessors, SyntaxKind.SetKeyword);
+
+            // Check for protected get/set: ProtectedKeyword immediately before GetKeyword/SetKeyword
+            for (int a = 0; a < accessors.SlotCount - 1; a++)
+            {
+                if (accessors.GetSlot(a) is SyntaxToken { Kind: SyntaxKind.ProtectedKeyword })
+                {
+                    var next = accessors.GetSlot(a + 1);
+                    if (next is SyntaxToken { Kind: SyntaxKind.GetKeyword })
+                        symbol.IsGetterProtected = true;
+                    else if (next is SyntaxToken { Kind: SyntaxKind.SetKeyword })
+                        symbol.IsSetterProtected = true;
+                }
+            }
         }
         else
         {
-            // No explicit accessors means get+set
+            // No explicit accessors means public get+set (shorthand)
             symbol.HasGetter = true;
             symbol.HasSetter = true;
         }
@@ -2333,7 +2346,9 @@ public class Binder
                 _diagnostics.Add(DiagnosticDescriptors.PropertySetterOnly(
                     prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));
             }
-            else if (prop.HasGetter && prop.HasSetter && !prop.IsProtected && !prop.IsOverridable)
+            else if (prop.HasGetter && prop.HasSetter &&
+                     !prop.IsProtected && !prop.IsOverridable &&
+                     !prop.IsGetterProtected && !prop.IsSetterProtected)
             {
                 _diagnostics.Add(DiagnosticDescriptors.PropertyCanUseShorthand(
                     prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));

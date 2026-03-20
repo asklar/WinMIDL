@@ -14,6 +14,8 @@ public class PropertySymbol : ISymbol
     public TypeRef Type { get; set; } = TypeRef.Unknown;
     public bool HasGetter { get; set; }
     public bool HasSetter { get; set; }
+    public bool IsGetterProtected { get; set; }
+    public bool IsSetterProtected { get; set; }
     public bool IsStatic { get; set; }
     public bool IsProtected { get; set; }
     public bool IsOverridable { get; set; }

@@ -232,7 +232,15 @@ public sealed partial class Parser
 
         while (!At(SyntaxKind.CloseBraceToken) && !At(SyntaxKind.EndOfFileToken))
         {
-            if (At(SyntaxKind.GetKeyword) || At(SyntaxKind.SetKeyword))
+            // Optional modifier before accessor: protected get; or protected set;
+            if (At(SyntaxKind.ProtectedKeyword) &&
+                (Peek(1).Kind is SyntaxKind.GetKeyword or SyntaxKind.SetKeyword))
+            {
+                children.Add(EatToken()); // protected
+                children.Add(EatToken()); // get or set
+                children.Add(Eat(SyntaxKind.SemicolonToken));
+            }
+            else if (At(SyntaxKind.GetKeyword) || At(SyntaxKind.SetKeyword))
             {
                 children.Add(EatToken());
                 children.Add(Eat(SyntaxKind.SemicolonToken));
