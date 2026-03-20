@@ -4,6 +4,7 @@ using Midl.CodeGen.DllData;
 using Midl.CodeGen.Header;
 using Midl.CodeGen.Stub;
 using Midl.CodeGen.WinMd;
+using Midl.Syntax;
 
 using IidEmitter = Midl.CodeGen.Iid.IidEmitter;
 
@@ -30,6 +31,14 @@ public class CompilationDriver
 
     public int Run(CommandLineOptions options)
     {
+        // Initialize tracing
+        MidlTrace.InitFromEnvironment();
+        if (options.DebugTrace)
+            MidlTrace.Enable(null); // stderr
+
+        MidlTrace.Cli($"Input: {options.InputFile}");
+        MidlTrace.Cli($"Mode: {options.Mode}, WinRT: {options.WinRtMode}");
+
         // Banner
         if (!options.NoLogo)
             _out.WriteLine(Banner);
@@ -160,6 +169,7 @@ public class CompilationDriver
 
         // Generate outputs
         var outDir = options.OutputDirectory ?? ".";
+        MidlTrace.Cli($"Output dir: {outDir}");
         var baseName = options.InputFile != null
             ? Path.GetFileNameWithoutExtension(options.InputFile)
             : "output";
@@ -424,6 +434,7 @@ public class CompilationDriver
         _out.WriteLine("  /?, /help              Show this help");
         _out.WriteLine("  --lsp                  Start Language Server Protocol mode");
         _out.WriteLine("  --analyze              Rich analysis output with source context");
+        _out.WriteLine("  /debug                 Enable debug trace output (or set MIDL_DEBUG=1)");
         _out.WriteLine("  @<file>                Read options from response file");
     }
 }

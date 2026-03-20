@@ -99,6 +99,8 @@ public sealed partial class Parser
     /// <summary>Skip tokens until we find one of the stop kinds. Returns collected tokens as a SkippedTokens node, or null.</summary>
     private GreenNode? SkipTokensUntil(params SyntaxKind[] stopKinds)
     {
+        if (MidlTrace.IsEnabled)
+            MidlTrace.Parser($"Error recovery: skipping to {stopKinds[0]} at token {_position}");
         var skipped = new List<GreenNode>();
         while (!At(SyntaxKind.EndOfFileToken) && !AtAny(stopKinds))
         {
@@ -187,6 +189,9 @@ public sealed partial class Parser
     /// <summary>Entry point: parse a full compilation unit.</summary>
     public GreenNode Parse()
     {
-        return ParseCompilationUnit();
+        MidlTrace.Parser($"Parsing {_tokens.Count} tokens");
+        var tree = ParseCompilationUnit();
+        MidlTrace.Parser($"Parse complete: {tree.Kind}, {tree.SlotCount} children");
+        return tree;
     }
 }

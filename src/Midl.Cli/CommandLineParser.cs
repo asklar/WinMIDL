@@ -41,6 +41,7 @@ public class CommandLineOptions
     public bool NoMidl { get; set; }                   // /nomidl
     public Midl.Analysis.CompilationMode Mode { get; set; } = Midl.Analysis.CompilationMode.Strict;
     public bool AnalyzeMode { get; set; }              // --analyze (rich console output)
+    public bool DebugTrace { get; set; }               // /debug (enable trace output)
     public List<string> UnknownSwitches { get; } = new();
     public List<string> Errors { get; } = new();
 }
@@ -314,6 +315,11 @@ public static class CommandLineParser
             case "analyze":
                 options.AnalyzeMode = true;
                 options.SyntaxCheckOnly = true; // analyze implies no codegen
+                i++;
+                return true;
+
+            case "debug":
+                options.DebugTrace = true;
                 i++;
                 return true;
 

@@ -13,6 +13,8 @@ public class EventSymbol : ISymbol
 
     public TypeRef DelegateType { get; set; } = TypeRef.Unknown;
     public bool IsStatic { get; set; }
+    public bool IsProtected { get; set; }
+    public bool IsOverridable { get; set; }
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
 

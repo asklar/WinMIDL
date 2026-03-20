@@ -21,6 +21,8 @@ public static class CompilationHelper
     public static Compilation Compile(string source, IReadOnlyList<string>? referencePaths,
                                        CompilationMode mode = CompilationMode.Strict)
     {
+        MidlTrace.Write("COMPILE", $"Compiling {source.Length} chars, mode={mode}, {referencePaths?.Count ?? 0} references");
+
         // Read external types from referenced .winmd files
         IReadOnlyList<ISymbol>? externalTypes = null;
         if (referencePaths is { Count: > 0 })
@@ -49,6 +51,10 @@ public static class CompilationHelper
 
         var binder = new Binder(mode);
         var compilation = binder.Bind(tree, tokens, externalTypes);
+
+        // Synthesize exclusive interfaces for runtime classes
+        var synthesizer = new InterfaceSynthesizer();
+        synthesizer.Synthesize(compilation);
 
         // Merge syntax diagnostics with semantic diagnostics
         if (syntaxDiagnostics.Count > 0)

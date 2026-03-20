@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Lsp.Handlers;
+using Midl.Syntax;
 
 namespace Midl.Lsp;
 
@@ -53,7 +54,7 @@ public sealed class MidlLanguageServer
             using (msg)
             {
                 var method = msg.RootElement.TryGetProperty("method", out var m) ? m.GetString() : "(response)";
-                Console.Error.WriteLine($"[MIDL LSP] Received: {method}");
+                MidlTrace.Lsp($"Received: {method}");
                 await HandleMessageAsync(msg.RootElement);
             }
         }
@@ -268,12 +269,12 @@ public sealed class MidlLanguageServer
     {
         try
         {
-            Console.Error.WriteLine($"[MIDL LSP] Analyzing {uri} ({text.Length} chars)");
+            MidlTrace.Lsp($"Analyzing {uri} ({text.Length} chars)");
             var references = GetReferencePaths(uri);
             var compilation = CompilationHelper.Compile(text, references, _compilationMode);
-            Console.Error.WriteLine($"[MIDL LSP] Analysis done: {compilation.Diagnostics.Count} diagnostics");
+            MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
-            Console.Error.WriteLine($"[MIDL LSP] Diagnostics published");
+            MidlTrace.Lsp($"Diagnostics published");
         }
         catch (Exception ex)
         {

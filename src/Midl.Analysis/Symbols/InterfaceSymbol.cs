@@ -15,6 +15,10 @@ public class InterfaceSymbol : ISymbol
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
 
+    public bool IsExclusive { get; set; }
+    public string? ExclusiveToClass { get; set; }
+    public bool IsSynthesized { get; set; }
+
     public List<TypeRef> RequiredInterfaces { get; } = [];
 
     private readonly List<ISymbol> _members = [];

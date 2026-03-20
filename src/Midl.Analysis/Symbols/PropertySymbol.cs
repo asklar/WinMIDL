@@ -15,6 +15,8 @@ public class PropertySymbol : ISymbol
     public bool HasGetter { get; set; }
     public bool HasSetter { get; set; }
     public bool IsStatic { get; set; }
+    public bool IsProtected { get; set; }
+    public bool IsOverridable { get; set; }
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
 

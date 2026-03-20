@@ -1,4 +1,5 @@
 using Midl.Lsp;
+using Midl.Syntax;
 
 namespace Midl.Cli;
 
@@ -10,6 +11,7 @@ class Program
 
         if (options.LspMode)
         {
+            MidlTrace.InitFromEnvironment();
             var server = new MidlLanguageServer(
                 Console.OpenStandardInput(),
                 Console.OpenStandardOutput());

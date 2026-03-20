@@ -4,6 +4,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
+using Midl.Syntax;
 
 namespace Midl.CodeGen.WinMd;
 
@@ -51,6 +52,7 @@ public class WinMdEmitter
     /// <summary>Write WinMD to a file on disk.</summary>
     public void Emit(Compilation compilation, string outputPath)
     {
+        MidlTrace.CodeGen($"Emitting WinMD to '{outputPath}'");
         var bytes = EmitToBytes(compilation);
         File.WriteAllBytes(outputPath, bytes);
     }
@@ -143,6 +145,8 @@ public class WinMdEmitter
             }
             typeDefEmitter.Emit(type);
         }
+
+        MidlTrace.CodeGen($"WinMD complete: {allTypes.Count} types");
 
         // 8. Serialize PE
         return SerializePE();

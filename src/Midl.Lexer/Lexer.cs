@@ -8,14 +8,17 @@ using Midl.Syntax;
 public sealed class Lexer
 {
     private readonly SlidingTextWindow _window;
+    private readonly int _sourceLength;
 
     public Lexer(string sourceText)
     {
         _window = new SlidingTextWindow(sourceText);
+        _sourceLength = sourceText.Length;
     }
 
     public IReadOnlyList<SyntaxToken> Lex()
     {
+        MidlTrace.Lexer($"Lexing {_sourceLength} chars");
         var tokens = new List<SyntaxToken>();
 
         while (true)
@@ -33,6 +36,12 @@ public sealed class Lexer
 
             if (kind == SyntaxKind.EndOfFileToken)
                 break;
+        }
+
+        if (MidlTrace.IsEnabled)
+        {
+            int keywords = tokens.Count(t => t.Kind >= SyntaxKind.BooleanKeyword && t.Kind <= SyntaxKind.DefaultKeyword);
+            MidlTrace.Lexer($"Produced {tokens.Count} tokens ({keywords} keywords, {tokens.Count(t => t.Kind == SyntaxKind.IdentifierToken)} identifiers)");
         }
 
         return tokens;

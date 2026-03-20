@@ -25,6 +25,14 @@ public class RuntimeClassSymbol : ISymbol
     public bool IsPartial { get; set; }
     public bool IsUnsealed { get; set; }
 
+    public InterfaceSymbol? DefaultInterface { get; set; }
+    public InterfaceSymbol? FactoryInterface { get; set; }
+    public InterfaceSymbol? StaticsInterface { get; set; }
+    public InterfaceSymbol? ProtectedInterface { get; set; }
+    public InterfaceSymbol? OverridesInterface { get; set; }
+    public bool HasDefaultActivation { get; set; }
+    public List<InterfaceSymbol> ImplementedInterfaces { get; } = new();
+
     public RuntimeClassSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;

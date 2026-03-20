@@ -14,6 +14,8 @@ public class MethodSymbol : ISymbol
     public TypeRef ReturnType { get; set; } = TypeRef.Void;
     public List<ParameterSymbol> Parameters { get; } = [];
     public bool IsStatic { get; set; }
+    public bool IsProtected { get; set; }
+    public bool IsOverridable { get; set; }
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
 

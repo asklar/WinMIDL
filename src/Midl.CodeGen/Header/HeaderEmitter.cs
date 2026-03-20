@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
+using Midl.Syntax;
 
 namespace Midl.CodeGen.Header;
 
@@ -44,6 +45,7 @@ public class HeaderEmitter
 
         // Collect all types
         var allTypes = compilation.GetAllTypes().ToList();
+        MidlTrace.CodeGen($"Generating header, {allTypes.Count} types");
 
         // Forward declarations
         EmitForwardDeclarations(sb, allTypes);

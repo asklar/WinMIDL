@@ -27,6 +27,7 @@ public class Binder
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
         IReadOnlyList<ISymbol>? externalTypes = null)
     {
+        MidlTrace.Binder("Binding compilation unit");
         _symbolTable = new SymbolTable(_globalNamespace);
         _posMap = new TokenPositionMap(tokens);
 
@@ -40,6 +41,12 @@ public class Binder
         // Pass 2: resolve type references
         var resolver = new TypeResolver(_symbolTable);
         resolver.ResolveAll(_unresolvedRefs, _diagnostics);
+
+        if (MidlTrace.IsEnabled)
+        {
+            var types = new Compilation(_globalNamespace, _diagnostics).GetAllTypes().Count();
+            MidlTrace.Binder($"Binding complete: {types} types, {_diagnostics.Count} diagnostics");
+        }
 
         return new Compilation(_globalNamespace, _diagnostics);
     }
@@ -82,24 +89,31 @@ public class Binder
         switch (node.Kind)
         {
             case SyntaxKind.NamespaceDeclaration:
+                MidlTrace.Binder($"Binding {node.Kind} at declaration level");
                 BindNamespaceDeclaration(node, ns);
                 break;
             case SyntaxKind.RuntimeClassDeclaration:
+                MidlTrace.Binder($"Binding {node.Kind} at declaration level");
                 BindRuntimeClassDeclaration(node, ns);
                 break;
             case SyntaxKind.InterfaceDeclaration:
+                MidlTrace.Binder($"Binding {node.Kind} at declaration level");
                 BindInterfaceDeclaration(node, ns);
                 break;
             case SyntaxKind.DelegateDeclaration:
+                MidlTrace.Binder($"Binding {node.Kind} at declaration level");
                 BindDelegateDeclaration(node, ns);
                 break;
             case SyntaxKind.StructDeclaration:
+                MidlTrace.Binder($"Binding {node.Kind} at declaration level");
                 BindStructDeclaration(node, ns);
                 break;
             case SyntaxKind.EnumDeclaration:
+                MidlTrace.Binder($"Binding {node.Kind} at declaration level");
                 BindEnumDeclaration(node, ns);
                 break;
             case SyntaxKind.ApiContractDeclaration:
+                MidlTrace.Binder($"Binding {node.Kind} at declaration level");
                 BindApiContractDeclaration(node, ns);
                 break;
             case SyntaxKind.DeclareBlock:
@@ -119,6 +133,8 @@ public class Binder
         var nameNode = node.GetSlot(keywordIdx + 1);
         var nameText = ExtractDottedName(nameNode);
         if (string.IsNullOrEmpty(nameText)) return;
+
+        MidlTrace.Binder($"Entering namespace '{nameText}'");
 
         // Create nested namespace hierarchy for dotted names
         var parts = nameText.Split('.');
@@ -598,6 +614,14 @@ public class Binder
         {
             symbol.IsStatic = true;
         }
+        if (modList != null && HasModifier(modList, SyntaxKind.ProtectedKeyword))
+        {
+            symbol.IsProtected = true;
+        }
+        if (modList != null && HasModifier(modList, SyntaxKind.OverridableKeyword))
+        {
+            symbol.IsOverridable = true;
+        }
 
         var paramList = FindChild(node, SyntaxKind.ParameterList);
         if (paramList != null)
@@ -621,6 +645,14 @@ public class Binder
         if (modList != null && HasModifier(modList, SyntaxKind.StaticKeyword))
         {
             symbol.IsStatic = true;
+        }
+        if (modList != null && HasModifier(modList, SyntaxKind.ProtectedKeyword))
+        {
+            symbol.IsProtected = true;
+        }
+        if (modList != null && HasModifier(modList, SyntaxKind.OverridableKeyword))
+        {
+            symbol.IsOverridable = true;
         }
 
         // Check accessors
@@ -653,6 +685,21 @@ public class Binder
         var symbol = new EventSymbol(name, containingSymbol);
         symbol.DelegateType = ExtractTypeRef(typeNode);
         TrackTypeRef(symbol.DelegateType, ns);
+
+        // Check modifiers
+        var modList = FindChild(node, SyntaxKind.ModifierList);
+        if (modList != null && HasModifier(modList, SyntaxKind.StaticKeyword))
+        {
+            symbol.IsStatic = true;
+        }
+        if (modList != null && HasModifier(modList, SyntaxKind.ProtectedKeyword))
+        {
+            symbol.IsProtected = true;
+        }
+        if (modList != null && HasModifier(modList, SyntaxKind.OverridableKeyword))
+        {
+            symbol.IsOverridable = true;
+        }
 
         return symbol;
     }
