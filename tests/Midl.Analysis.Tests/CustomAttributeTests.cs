@@ -174,6 +174,87 @@ public class CustomAttributeTests
     }
 
     [Fact]
+    public void WrongTarget_ClassOnlyAttrOnMethod()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute ClassOnly { Int32 Value; };
+                runtimeclass Foo {
+                    Foo();
+                    [ClassOnly(1)]
+                    void Bar();
+                }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1029");
+        Assert.NotNull(error);
+        Assert.Contains("not valid on target_method", error.Message);
+    }
+
+    [Fact]
+    public void WrongTarget_MethodOnlyAttrOnProperty()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_method)]
+                attribute MethodOnly { };
+                runtimeclass Foo {
+                    Foo();
+                    [MethodOnly]
+                    String Name { get; };
+                }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1029");
+        Assert.NotNull(error);
+        Assert.Contains("not valid on target_property", error.Message);
+    }
+
+    [Fact]
+    public void CorrectTarget_MethodAttrOnMethod_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [attributeusage(target_method)]
+                attribute MethodAttr { };
+                runtimeclass Foo {
+                    Foo();
+                    [MethodAttr]
+                    void Bar();
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1029");
+    }
+
+    [Fact]
+    public void NoAttributeUsage_DefaultAll_AcceptedEverywhere()
+    {
+        // No [attributeusage] means all targets are valid (default = all)
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                attribute Universal { Int32 Value; };
+                [Universal(1)]
+                runtimeclass Foo {
+                    Foo();
+                    [Universal(2)]
+                    void Bar();
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1029");
+    }
+
+    [Fact]
     public void WrongArgCountDiagnostic()
     {
         var compilation = CompilationHelper.Compile("""

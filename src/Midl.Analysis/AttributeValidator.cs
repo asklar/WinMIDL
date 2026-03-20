@@ -90,16 +90,21 @@ public class AttributeValidator
                     ValidateRuntimeClass(rc);
                     ValidateUnknownAttributes(rc.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(rc.Attributes, rc.Name, "target_runtimeclass", attrTypes);
+                    ValidateMemberAttributes(rc.Members, attrTypes);
                     break;
                 case InterfaceSymbol iface:
                     ValidateAttributes(iface.Attributes, iface.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(iface.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(iface.Attributes, iface.Name, "target_interface", attrTypes);
+                    ValidateMemberAttributes(iface.Members, attrTypes);
                     break;
                 case EnumSymbol en:
                     ValidateAttributes(en.Attributes, en.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(en.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(en.Attributes, en.Name, "target_enum", attrTypes);
+                    // Validate enum member attributes
+                    foreach (var m in en.EnumMembers)
+                        ValidateCustomAttributeInstances(m.Attributes, m.Name, "target_field", attrTypes);
                     break;
                 case StructSymbol st:
                     ValidateAttributes(st.Attributes, st.Name, isRuntimeClass: false);
@@ -320,6 +325,29 @@ public class AttributeValidator
             {
                 _diagnostics.Add(DiagnosticDescriptors.UnknownAttribute(attr.Name, attr.Position));
             }
+        }
+    }
+
+    /// <summary>Validate custom attributes on members (methods, properties, events, constructors).</summary>
+    private void ValidateMemberAttributes(
+        IReadOnlyList<ISymbol> members,
+        Dictionary<string, AttributeTypeSymbol> attrTypes)
+    {
+        foreach (var member in members)
+        {
+            var (attrs, targetKind, name) = member switch
+            {
+                MethodSymbol m => (m.Attributes, "target_method", m.Name),
+                PropertySymbol p => (p.Attributes, "target_property", p.Name),
+                EventSymbol e => (e.Attributes, "target_event", e.Name),
+                ConstructorSymbol c => (c.Attributes, "target_method", c.Name),
+                _ => (null, null, null),
+            };
+
+            if (attrs == null || targetKind == null) continue;
+
+            ValidateUnknownAttributes(attrs, attrTypes);
+            ValidateCustomAttributeInstances(attrs, name!, targetKind, attrTypes);
         }
     }
 

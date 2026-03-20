@@ -249,9 +249,14 @@ public static class CompletionHandler
                 if (type is AttributeTypeSymbol attr)
                 {
                     // Check attributeusage targets
-                    bool applicable = attr.ValidTargets.Count == 0 || // no restriction
+                    bool applicable = attr.ValidTargets.Count == 0 || // no restriction = all targets
                         targetKind == "target_all" ||
-                        attr.ValidTargets.Any(t => t.Equals(targetKind, StringComparison.OrdinalIgnoreCase));
+                        attr.ValidTargets.Any(t => t.Equals(targetKind, StringComparison.OrdinalIgnoreCase)) ||
+                        // Inside a type body, show attrs for any member kind
+                        (targetKind == "target_method" && attr.ValidTargets.Any(t =>
+                            t.StartsWith("target_method", StringComparison.OrdinalIgnoreCase) ||
+                            t.StartsWith("target_property", StringComparison.OrdinalIgnoreCase) ||
+                            t.StartsWith("target_event", StringComparison.OrdinalIgnoreCase)));
 
                     if (applicable)
                     {
