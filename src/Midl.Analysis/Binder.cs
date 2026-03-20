@@ -317,7 +317,7 @@ public class Binder
             }
         }
 
-        if (!TryDefineType(ns, name)) return;
+        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new RuntimeClassSymbol(name, ns);
         ns.AddMember(symbol);
@@ -467,7 +467,7 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name)) return;
+        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new InterfaceSymbol(name, ns);
         ns.AddMember(symbol);
@@ -613,7 +613,7 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name)) return;
+        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new DelegateSymbol(name, ns);
         symbol.ReturnType = ExtractTypeRef(returnTypeNode);
@@ -651,7 +651,7 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name)) return;
+        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new StructSymbol(name, ns);
         ns.AddMember(symbol);
@@ -733,7 +733,7 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name)) return;
+        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new AttributeTypeSymbol(name, ns);
         ns.AddMember(symbol);
@@ -797,7 +797,7 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name)) return;
+        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new EnumSymbol(name, ns);
         ns.AddMember(symbol);
@@ -950,13 +950,13 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name)) return;
+        bool isForwardDecl = FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0;
+        if (!TryDefineType(ns, name, isForwardDecl)) return;
 
         var symbol = new ApiContractSymbol(name, ns);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
-        // Extract all attributes
         var acAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (acAttrList != null)
         {
@@ -1699,17 +1699,19 @@ public class Binder
         }
     }
 
-    private bool TryDefineType(NamespaceSymbol ns, string name)
+    private bool TryDefineType(NamespaceSymbol ns, string name, bool isForwardDeclaration = false)
     {
         int pos = _posMap.GetPositionOf(name);
         var fullName = ns.FullName.Length > 0 ? $"{ns.FullName}.{name}" : name;
         if (!_definedTypes.Add(fullName))
         {
-            // Allow redefinition if the existing type is external/built-in
-            // (imported files may redefine types we already have as built-ins)
+            // Forward declaration of an already-defined type → silently skip
+            if (isForwardDeclaration) return false;
+
+            // Full definition of an already-defined external/built-in → allow override
             var existingSymbol = _symbolTable.LookupQualified(fullName);
             if (existingSymbol is { IsExternal: true })
-                return true; // Silently allow — import overrides built-in
+                return true;
 
             _diagnostics.Add(DiagnosticDescriptors.DuplicateDefinition(name, pos));
             return false;
