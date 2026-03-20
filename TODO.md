@@ -78,8 +78,17 @@
 - [x] `[default_interface]` → IsDefaultInterface
 - [x] `[contractversion(N)]` → ApiContractSymbol.ContractVersion
 
-### Diagnostics (21 codes)
+### Attribute Pipeline (complete)
+- [x] `AttributeExtractor` — parses all attribute arguments into typed `AttributeData`
+- [x] `AttributeValidator` — semantic checks (MIDL1020–1028): threading, marshaling, composable access, deprecation type, exclusiveto rules, `[default_interface]` empty class synthesis
+- [x] `VersionPropagator` — contract/version flows: class→interface→member, validation (MIDL1014–1017)
+- [x] WinMD attribute emission — 13 custom attributes: ExclusiveToAttribute, ActivatableAttribute, StaticAttribute, ComposableAttribute, ThreadingAttribute, MarshalingBehaviorAttribute, DeprecatedAttribute, ContractVersionAttribute, OverloadAttribute, DefaultOverloadAttribute, OverridableAttribute, ProtectedAttribute, DefaultAttribute
+- [x] Synthesized interfaces get `tdNotPublic` flag + `ExclusiveToAttribute` in WinMD
+
+### Diagnostics (30 codes)
 - [x] MIDL1001–MIDL1013: Semantic errors (undefined type, duplicate, namespace required, etc.)
+- [x] MIDL1014–MIDL1017: Version/contract errors (interface version, contract family, undefined contract, enum member version)
+- [x] MIDL1020–MIDL1028: Attribute validation (threading, marshaling, composable, exclusiveto, deprecated, attributeusage)
 - [x] MIDL1100–MIDL1102: Syntax errors (skipped tokens, error chars, missing tokens)
 - [x] MIDL2001–MIDL2005: Strict mode warnings (classic constructs, lowercase types)
 - [x] Diagnostic positions tracked via `TokenPositionMap` (no more position=0)
@@ -122,9 +131,7 @@
 
 ## 🔄 In Progress
 
-- [ ] **Version propagation** — contract/version flows apicontract→type→interface→member, validation rules
-- [ ] **Attribute semantic checks** — type-check threading/marshaling enum values, composable access, `[default_interface]` on empty classes
-- [ ] **WinMD attribute emission** — emit ExclusiveToAttribute, ActivatableAttribute, StaticAttribute, ThreadingAttribute, MarshalingBehaviorAttribute, DeprecatedAttribute, OverloadAttribute, ProtectedAttribute, OverridableAttribute + `tdNotPublic` on exclusive interfaces
+*(nothing currently in progress)*
 
 ---
 
