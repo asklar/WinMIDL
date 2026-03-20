@@ -923,9 +923,9 @@ h3 {
   font-size: 13px;
 }
 
-.hint-code { flex: 1; color: var(--text); }
-.hint-message { color: var(--info); font-size: 12px; flex: 1.5; }
-.hint-fix { color: var(--success); font-size: 11px; white-space: nowrap; }
+.hint-code { flex: 0 0 280px; color: var(--text); }
+.hint-message { color: var(--info); font-size: 12px; flex: 1; min-width: 0; }
+.hint-fix { color: var(--success); font-size: 11px; white-space: nowrap; flex: 0 0 auto; }
 
 /* Responsive adjustments */
 @media (max-width: 900px) {
