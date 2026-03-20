@@ -125,6 +125,7 @@ jobs:
         run: |
           npm ci
           npx tsc -p .
+          mkdir -p ../../publish
           npx @vscode/vsce package -o ../../publish/midl-language.vsix
 
       - name: Upload artifact
