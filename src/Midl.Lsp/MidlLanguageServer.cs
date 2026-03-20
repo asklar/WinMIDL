@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Lsp.Handlers;
@@ -22,6 +23,13 @@ public sealed class MidlLanguageServer
     private bool _enableQualityHints = true;
     private ProjectFile? _projectFile;
     private string? _workspaceRoot;
+
+    // Debounce: delay analysis after last edit to avoid recompiling on every keystroke
+    private readonly ConcurrentDictionary<string, CancellationTokenSource> _debounceTokens = new();
+    private const int DebounceDelayMs = 300;
+
+    // Content cache: skip recompilation if text hasn't changed
+    private readonly ConcurrentDictionary<string, int> _lastAnalyzedHash = new();
 
     // Suppress CS0649 — _referencePaths can be set via SetReferencePaths for testing/config
     public void SetReferencePaths(List<string> paths) => _referencePaths = paths;
@@ -292,13 +300,29 @@ public sealed class MidlLanguageServer
         var td = @params.Value.GetProperty("textDocument");
         var uri = td.GetProperty("uri").GetString()!;
 
-        // With full document sync (change=1), the first content change has the full text
         var changes = @params.Value.GetProperty("contentChanges");
         if (changes.GetArrayLength() > 0)
         {
             var text = changes[0].GetProperty("text").GetString()!;
             _docManager.UpdateDocument(uri, text);
-            await AnalyzeAndPublishAsync(uri, text);
+
+            // Debounce: cancel any pending analysis for this URI, schedule a new one
+            if (_debounceTokens.TryRemove(uri, out var oldCts))
+                oldCts.Cancel();
+
+            var cts = new CancellationTokenSource();
+            _debounceTokens[uri] = cts;
+
+            try
+            {
+                await Task.Delay(DebounceDelayMs, cts.Token);
+                _debounceTokens.TryRemove(uri, out _);
+                await AnalyzeAndPublishAsync(uri, text);
+            }
+            catch (TaskCanceledException)
+            {
+                // Superseded by a newer edit — expected
+            }
         }
     }
 
@@ -309,13 +333,25 @@ public sealed class MidlLanguageServer
         var td = @params.Value.GetProperty("textDocument");
         var uri = td.GetProperty("uri").GetString()!;
         _docManager.CloseDocument(uri);
+        _lastAnalyzedHash.TryRemove(uri, out _);
+        if (_debounceTokens.TryRemove(uri, out var cts))
+            cts.Cancel();
     }
 
     private async Task AnalyzeAndPublishAsync(string uri, string text)
     {
+        // Skip recompilation if the text hasn't changed since last analysis
+        var hash = text.GetHashCode();
+        if (_lastAnalyzedHash.TryGetValue(uri, out var lastHash) && lastHash == hash)
+        {
+            MidlTrace.Lsp($"Skipping analysis for {uri} (unchanged)");
+            return;
+        }
+
         try
         {
             MidlTrace.Lsp($"Analyzing {uri} ({text.Length} chars)");
+            _lastAnalyzedHash[uri] = hash;
             var preprocessor = new Midl.Lexer.Preprocessor();
             var preprocessed = preprocessor.Process(text);
 
