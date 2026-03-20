@@ -16,6 +16,7 @@ public class Binder
     private readonly Dictionary<string, string> _definedTypesCaseInsensitive = new(StringComparer.OrdinalIgnoreCase);
     private readonly CompilationMode _mode;
     private readonly bool _emitQualityHints;
+    private bool _bindingImportedFile;
     private TokenPositionMap _posMap = null!;
     private GreenNode _root = null!;
 
@@ -54,6 +55,7 @@ public class Binder
         // Bind imported trees first (they provide types for the main file)
         if (importedTrees is { Count: > 0 })
         {
+            _bindingImportedFile = true;
             foreach (var (importedTree, importedTokens) in importedTrees)
             {
                 var savedPosMap = _posMap;
@@ -64,6 +66,7 @@ public class Binder
                 _posMap = savedPosMap;
                 _root = savedRoot;
             }
+            _bindingImportedFile = false;
         }
 
         // Pass 1: create all symbols
@@ -1707,6 +1710,9 @@ public class Binder
         {
             // Forward declaration of an already-defined type → silently skip
             if (isForwardDeclaration) return false;
+
+            // Duplicate from imported file → MIDL import is idempotent
+            if (_bindingImportedFile) return false;
 
             // Full definition of an already-defined external/built-in → allow override
             var existingSymbol = _symbolTable.LookupQualified(fullName);
