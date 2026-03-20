@@ -53,9 +53,12 @@ public static class DocumentSymbolHandler
     {
         foreach (var member in ns.Members)
         {
+            // Skip external/built-in types and symbols with empty names
+            if (member.IsExternal || string.IsNullOrEmpty(member.Name))
+                continue;
+
             if (member.Kind == Analysis.Symbols.SymbolKind.Namespace && member is NamespaceSymbol childNs)
             {
-                // Find namespace in text for range
                 var range = FindSymbolRange(text, lineStarts, "namespace", member.Name);
                 var children = new List<object>();
                 CollectSymbols(childNs, lineStarts, text, children);
@@ -63,6 +66,10 @@ public static class DocumentSymbolHandler
                 symbols.Add(MakeDocumentSymbol(member.Name, SymbolKindNamespace, range, range, children));
                 continue;
             }
+
+            // Skip synthesized interfaces (they don't appear in source)
+            if (member is InterfaceSymbol { IsSynthesized: true })
+                continue;
 
             var symbolRange = FindSymbolRange(text, lineStarts, KindToKeyword(member.Kind), member.Name);
             int lspKind = MapSymbolKind(member.Kind);
@@ -89,6 +96,8 @@ public static class DocumentSymbolHandler
 
         foreach (var m in members)
         {
+            if (string.IsNullOrEmpty(m.Name)) continue;
+
             var range = FindSymbolRange(text, lineStarts, null, m.Name);
             int kind = MapSymbolKind(m.Kind);
             children.Add(MakeDocumentSymbol(m.Name, kind, range, range, null));
