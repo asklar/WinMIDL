@@ -37,20 +37,130 @@ public class LspHandlerTests
     #region Completion Tests
 
     [Fact]
-    public void CompletionIncludesKeywords()
+    public void CompletionAtTopLevel_ShowsDeclarationKeywords()
     {
         var uri = "file:///test.midl";
         var dm = CreateDocManager(uri, "namespace Foo { }");
-        // Position NOT inside brackets — should return keywords
+        // Position inside namespace body → top-level context
         var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 16), dm);
 
         var json = JsonSerializer.Serialize(result);
 
-        Assert.Contains("\"namespace\"", json);
+        // Should include declaration keywords
         Assert.Contains("\"runtimeclass\"", json);
         Assert.Contains("\"interface\"", json);
-        Assert.Contains("\"String\"", json);
+        Assert.Contains("\"struct\"", json);
+        Assert.Contains("\"enum\"", json);
+        Assert.Contains("\"delegate\"", json);
+
+        // Should NOT include types (those belong inside type bodies)
+        Assert.DoesNotContain("\"Int32\"", json);
+        Assert.DoesNotContain("\"String\"", json);
+    }
+
+    [Fact]
+    public void CompletionInRuntimeClassBody_ShowsTypesAndModifiers()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    runtimeclass Foo {\n        \n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor at line 2, char 8 — inside runtimeclass body
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 2, 8), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include types for method return / property types
         Assert.Contains("\"Int32\"", json);
+        Assert.Contains("\"String\"", json);
+        Assert.Contains("\"void\"", json);
+
+        // Should include member keywords
+        Assert.Contains("\"event\"", json);
+        Assert.Contains("\"static\"", json);
+
+        // Should suggest constructor
+        Assert.Contains("\"Foo\"", json);
+
+        // Should NOT include top-level keywords
+        Assert.DoesNotContain("\"namespace\"", json);
+        Assert.DoesNotContain("\"import\"", json);
+    }
+
+    [Fact]
+    public void CompletionInStructBody_ShowsOnlyValueTypes()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    struct Point {\n        \n    };\n}";
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 2, 8), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include value types
+        Assert.Contains("\"Int32\"", json);
+        Assert.Contains("\"Single\"", json);
+        Assert.Contains("\"Boolean\"", json);
+
+        // Should NOT include reference types or keywords
+        Assert.DoesNotContain("\"Object\"", json);
+        Assert.DoesNotContain("\"IVector\"", json);
+        Assert.DoesNotContain("\"void\"", json);
+        Assert.DoesNotContain("\"event\"", json);
+    }
+
+    [Fact]
+    public void CompletionInEnumBody_NoTypeCompletions()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    enum Color {\n        \n    };\n}";
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 2, 8), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should NOT include types
+        Assert.DoesNotContain("\"Int32\"", json);
+        Assert.DoesNotContain("\"String\"", json);
+        Assert.DoesNotContain("\"runtimeclass\"", json);
+    }
+
+    [Fact]
+    public void CompletionAfterRequires_ShowsInterfacesOnly()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    interface IFoo { };\n    interface IBar\n    requires \n    { }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor at line 3, char 13 — after "requires "
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 3, 13), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include user-defined interfaces
+        Assert.Contains("IFoo", json);
+
+        // Should NOT include types, keywords, structs
+        Assert.DoesNotContain("\"Int32\"", json);
+        Assert.DoesNotContain("\"runtimeclass\"", json);
+        Assert.DoesNotContain("\"void\"", json);
+    }
+
+    [Fact]
+    public void CompletionAfterColon_ShowsInterfacesAndClasses()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    interface IFoo { };\n    runtimeclass Foo : \n    { }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor at line 2, char 23 — after ": "
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 2, 23), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include interfaces
+        Assert.Contains("IFoo", json);
+
+        // Should NOT include primitive types or declaration keywords
+        Assert.DoesNotContain("\"Int32\"", json);
+        Assert.DoesNotContain("\"struct\"", json);
     }
 
     [Fact]

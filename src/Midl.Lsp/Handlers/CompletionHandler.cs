@@ -21,6 +21,7 @@ public static class CompletionHandler
     private const int KindEvent = 23;
     private const int KindProperty = 10; // for attributes
     private const int KindFile = 17; // for import file completions
+    private const int KindConstructor = 4; // for constructor suggestions
 
     private static readonly object[] s_staticCompletionItems = BuildCompletionItems();
 
@@ -68,33 +69,10 @@ public static class CompletionHandler
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
             }
 
-            // Normal completion: static items + external types
-            var allItems = new List<object>(s_staticCompletionItems);
-            var compilation = CompilationHelper.Compile(text);
-            foreach (var type in compilation.GetAllTypes())
-            {
-                if (type.IsExternal)
-                {
-                    var kind = type.Kind switch
-                    {
-                        SymbolKind.Interface => KindInterface,
-                        SymbolKind.RuntimeClass => KindClass,
-                        SymbolKind.Enum => KindEnum,
-                        SymbolKind.Struct => KindStruct,
-                        SymbolKind.Delegate => KindClass,
-                        _ => KindClass,
-                    };
-                    allItems.Add(new Dictionary<string, object?>
-                    {
-                        ["label"] = type.Name,
-                        ["kind"] = kind,
-                        ["detail"] = $"(external) {type.FullName}",
-                        ["insertText"] = type.FullName,
-                    });
-                }
-            }
-
-            return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = allItems.ToArray() };
+            // Context-aware completion based on cursor position
+            var context = DetectCompletionContext(text, offset, line);
+            var contextItems = BuildContextualCompletions(context, text, uri);
+            return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = contextItems.ToArray() };
         }
         catch
         {
@@ -479,6 +457,279 @@ public static class CompletionHandler
         }
         return Math.Min(offset + character, text.Length);
     }
+
+    #region Contextual Completion
+
+    private enum CompletionContext
+    {
+        TopLevel,           // Namespace body or file top-level → declaration keywords
+        StructBody,         // Inside struct { } → value types only (primitives, enums, structs)
+        EnumBody,           // Inside enum { } → no type completions, just identifiers
+        InterfaceBody,      // Inside interface { } → types + void + event
+        RuntimeClassBody,   // Inside runtimeclass { } → types + void + event + modifiers + constructor
+        TypePosition,       // Expecting a type (param, return, field) → all types
+        BaseList,           // After : → interfaces, classes
+        RequiresList,       // After requires → interfaces only
+    }
+
+    private static CompletionContext DetectCompletionContext(string text, int offset, int line)
+    {
+        // First check if we're on a requires clause or base list (before the opening brace)
+        // Scan backward from cursor for requires keyword or : token on the same "declaration line"
+        for (int i = offset - 1; i >= 0; i--)
+        {
+            char c = text[i];
+            if (c == '\n') break; // Only check current line
+            if (c == '{' || c == '}') break; // Hit a brace boundary
+        }
+
+        // Check the text between the last declaration keyword and cursor
+        // for requires or : that would indicate a base/requires list context
+        var lineText = GetLineText(text, line).TrimStart();
+        if (lineText.StartsWith("requires ", StringComparison.Ordinal) ||
+            lineText.StartsWith("requires\t", StringComparison.Ordinal))
+            return CompletionContext.RequiresList;
+
+        // Check if cursor follows a : in a base list context (e.g. "runtimeclass Foo : ")
+        // or is after a comma in a base list
+        var beforeCursor = text.AsSpan(0, offset);
+        int lastBrace = beforeCursor.LastIndexOf('{');
+        int lastCloseBrace = beforeCursor.LastIndexOf('}');
+        int effectiveStart = Math.Max(lastBrace, lastCloseBrace) + 1;
+        var segment = text.AsSpan(effectiveStart, offset - effectiveStart);
+        if (segment.Contains("requires", StringComparison.Ordinal))
+        {
+            // We're after a requires keyword, before the opening brace
+            int reqIdx = segment.LastIndexOf("requires".AsSpan(), StringComparison.Ordinal);
+            var afterReq = segment[(reqIdx + 8)..].TrimStart();
+            // If there's no '{' after requires, we're in the requires list
+            if (!afterReq.Contains('{'))
+                return CompletionContext.RequiresList;
+        }
+        // Check for base list: "runtimeclass Foo :" or "interface IFoo :"  
+        if (IsInBaseList(segment))
+            return CompletionContext.BaseList;
+
+        // Walk backward to find enclosing scope
+        int braceDepth = 0;
+        for (int i = offset - 1; i >= 0; i--)
+        {
+            char c = text[i];
+            if (c == '}') { braceDepth++; continue; }
+            if (c == '{')
+            {
+                if (braceDepth > 0) { braceDepth--; continue; }
+                var before = text.AsSpan(0, i).TrimEnd();
+
+                if (ContainsWordBefore(before, "struct")) return CompletionContext.StructBody;
+                if (ContainsWordBefore(before, "enum")) return CompletionContext.EnumBody;
+                if (ContainsWordBefore(before, "interface")) return CompletionContext.InterfaceBody;
+                if (ContainsWordBefore(before, "runtimeclass")) return CompletionContext.RuntimeClassBody;
+                if (ContainsWordBefore(before, "namespace")) return CompletionContext.TopLevel;
+
+                // Could be inside a property accessor { get; set; } — keep scanning up
+                continue;
+            }
+        }
+
+        return CompletionContext.TopLevel;
+    }
+
+    private static bool IsInBaseList(ReadOnlySpan<char> segment)
+    {
+        // Look for pattern: keyword Name : ... (with no { yet)
+        // The colon must come after a type declaration keyword + name
+        bool foundColon = false;
+        for (int i = segment.Length - 1; i >= 0; i--)
+        {
+            if (segment[i] == ':') { foundColon = true; break; }
+            if (segment[i] == '{' || segment[i] == '}' || segment[i] == ';') break;
+        }
+        if (!foundColon) return false;
+
+        // Verify a declaration keyword precedes the colon
+        return ContainsWordBefore(segment, "runtimeclass") ||
+               ContainsWordBefore(segment, "interface");
+    }
+
+    private static string GetLineText(string text, int line)
+    {
+        var lines = text.Split('\n');
+        return line >= 0 && line < lines.Length ? lines[line] : "";
+    }
+
+    private static List<object> BuildContextualCompletions(CompletionContext context, string text, string uri)
+    {
+        var items = new List<object>();
+
+        switch (context)
+        {
+            case CompletionContext.StructBody:
+                // Structs: only value types (primitives, enums, other structs, String, IReference<T>)
+                AddValueTypes(items);
+                AddItem(items, "}", KindKeyword, "Close struct");
+                AddUserTypes(items, text, t => t is StructSymbol or EnumSymbol);
+                break;
+
+            case CompletionContext.EnumBody:
+                // Enum body: no type completions needed (just member names)
+                AddItem(items, "}", KindKeyword, "Close enum");
+                break;
+
+            case CompletionContext.InterfaceBody:
+                AddAllTypes(items);
+                AddItem(items, "void", KindKeyword, "No return value");
+                AddItem(items, "event", KindEvent, "Declares an event");
+                AddItem(items, "}", KindKeyword, "Close interface");
+                AddItem(items, "requires", KindKeyword, "Requires clause");
+                AddUserTypes(items, text);
+                break;
+
+            case CompletionContext.RuntimeClassBody:
+                AddAllTypes(items);
+                AddItem(items, "void", KindKeyword, "No return value");
+                AddItem(items, "event", KindEvent, "Declares an event");
+                AddItem(items, "static", KindKeyword, "Marks member as static");
+                AddItem(items, "protected", KindKeyword, "Restricts to derived classes");
+                AddItem(items, "overridable", KindKeyword, "Allows override in derived classes");
+                AddItem(items, "}", KindKeyword, "Close runtimeclass");
+                AddConstructorName(items, text);
+                AddUserTypes(items, text);
+                break;
+
+            case CompletionContext.BaseList:
+                // After : in runtimeclass/interface declaration → interfaces and classes
+                AddUserTypes(items, text, t => t is InterfaceSymbol or RuntimeClassSymbol);
+                AddItem(items, "IStringable", KindInterface, "Windows.Foundation.IStringable");
+                AddItem(items, "IClosable", KindInterface, "Windows.Foundation.IClosable");
+                break;
+
+            case CompletionContext.RequiresList:
+                // After requires → only interfaces
+                AddUserTypes(items, text, t => t is InterfaceSymbol);
+                AddItem(items, "IStringable", KindInterface, "Windows.Foundation.IStringable");
+                AddItem(items, "IClosable", KindInterface, "Windows.Foundation.IClosable");
+                break;
+
+            case CompletionContext.TopLevel:
+            default:
+                // Top-level: declaration keywords + import
+                AddItem(items, "namespace", KindKeyword, "Declares a namespace scope");
+                AddItem(items, "runtimeclass", KindClass, "Declares a Windows Runtime class");
+                AddItem(items, "interface", KindInterface, "Declares a Windows Runtime interface");
+                AddItem(items, "delegate", KindKeyword, "Declares a delegate type");
+                AddItem(items, "struct", KindStruct, "Declares a value type struct");
+                AddItem(items, "enum", KindEnum, "Declares an enumeration");
+                AddItem(items, "apicontract", KindKeyword, "Declares an API contract");
+                AddItem(items, "attribute", KindKeyword, "Declares a custom attribute type");
+                AddItem(items, "import", KindKeyword, "Imports an IDL file");
+                AddItem(items, "static", KindKeyword, "Static runtimeclass modifier");
+                AddItem(items, "partial", KindKeyword, "Partial runtimeclass modifier");
+                AddItem(items, "unsealed", KindKeyword, "Unsealed runtimeclass modifier");
+                AddItem(items, "}", KindKeyword, "Close scope");
+                break;
+        }
+
+        return items;
+    }
+
+    /// <summary>Add WinRT value types (valid in struct fields).</summary>
+    private static void AddValueTypes(List<object> items)
+    {
+        AddItem(items, "Boolean", KindTypeParameter, "8-bit Boolean");
+        AddItem(items, "Char16", KindTypeParameter, "16-bit UTF-16 code unit");
+        AddItem(items, "Int16", KindTypeParameter, "16-bit signed integer");
+        AddItem(items, "Int32", KindTypeParameter, "32-bit signed integer");
+        AddItem(items, "Int64", KindTypeParameter, "64-bit signed integer");
+        AddItem(items, "UInt8", KindTypeParameter, "8-bit unsigned integer");
+        AddItem(items, "UInt16", KindTypeParameter, "16-bit unsigned integer");
+        AddItem(items, "UInt32", KindTypeParameter, "32-bit unsigned integer");
+        AddItem(items, "UInt64", KindTypeParameter, "64-bit unsigned integer");
+        AddItem(items, "Single", KindTypeParameter, "32-bit float");
+        AddItem(items, "Double", KindTypeParameter, "64-bit float");
+        AddItem(items, "String", KindTypeParameter, "UTF-16 string");
+        AddItem(items, "Guid", KindTypeParameter, "128-bit GUID");
+    }
+
+    /// <summary>Add all WinRT types (primitives + reference types).</summary>
+    private static void AddAllTypes(List<object> items)
+    {
+        AddValueTypes(items);
+        AddItem(items, "Object", KindTypeParameter, "Base type for all WinRT types");
+        // Common parameterized types
+        AddItem(items, "IVector", KindInterface, "Windows.Foundation.Collections.IVector<T>");
+        AddItem(items, "IVectorView", KindInterface, "Windows.Foundation.Collections.IVectorView<T>");
+        AddItem(items, "IMap", KindInterface, "Windows.Foundation.Collections.IMap<K,V>");
+        AddItem(items, "IMapView", KindInterface, "Windows.Foundation.Collections.IMapView<K,V>");
+        AddItem(items, "IIterable", KindInterface, "Windows.Foundation.Collections.IIterable<T>");
+        AddItem(items, "IAsyncOperation", KindInterface, "Windows.Foundation.IAsyncOperation<T>");
+        AddItem(items, "IAsyncAction", KindInterface, "Windows.Foundation.IAsyncAction");
+        AddItem(items, "IReference", KindInterface, "Windows.Foundation.IReference<T>");
+        AddItem(items, "EventHandler", KindClass, "Windows.Foundation.EventHandler<T>");
+        AddItem(items, "TypedEventHandler", KindClass, "Windows.Foundation.TypedEventHandler<S,A>");
+    }
+
+    /// <summary>Add user-defined types from the compilation.</summary>
+    private static void AddUserTypes(List<object> items, string text,
+        Func<ISymbol, bool>? filter = null)
+    {
+        try
+        {
+            var compilation = CompilationHelper.Compile(text);
+            foreach (var type in compilation.GetAllTypes())
+            {
+                if (string.IsNullOrEmpty(type.Name)) continue;
+                if (filter != null && !filter(type)) continue;
+
+                var kind = type.Kind switch
+                {
+                    Analysis.Symbols.SymbolKind.Interface => KindInterface,
+                    Analysis.Symbols.SymbolKind.RuntimeClass => KindClass,
+                    Analysis.Symbols.SymbolKind.Enum => KindEnum,
+                    Analysis.Symbols.SymbolKind.Struct => KindStruct,
+                    Analysis.Symbols.SymbolKind.Delegate => KindClass,
+                    _ => KindClass,
+                };
+                var detail = type.IsExternal ? $"(external) {type.FullName}" : type.FullName;
+                items.Add(new Dictionary<string, object?>
+                {
+                    ["label"] = type.Name,
+                    ["kind"] = kind,
+                    ["detail"] = detail,
+                    ["insertText"] = type.IsExternal ? type.FullName : type.Name,
+                });
+            }
+        }
+        catch { /* partial file — skip user types */ }
+    }
+
+    /// <summary>Suggest the enclosing runtimeclass name as a constructor.</summary>
+    private static void AddConstructorName(List<object> items, string text)
+    {
+        // Scan for the runtimeclass name
+        int idx = text.LastIndexOf("runtimeclass ", StringComparison.Ordinal);
+        if (idx < 0) return;
+
+        int nameStart = idx + "runtimeclass ".Length;
+        int nameEnd = nameStart;
+        while (nameEnd < text.Length && (char.IsLetterOrDigit(text[nameEnd]) || text[nameEnd] == '_'))
+            nameEnd++;
+
+        if (nameEnd > nameStart)
+        {
+            var name = text[nameStart..nameEnd];
+            items.Insert(0, new Dictionary<string, object?>
+            {
+                ["label"] = name,
+                ["kind"] = KindConstructor,
+                ["detail"] = "Constructor",
+                ["insertText"] = name + "(${1});",
+                ["insertTextFormat"] = 2,
+            });
+        }
+    }
+
+    #endregion
 
     private static object[] BuildCompletionItems()
     {
