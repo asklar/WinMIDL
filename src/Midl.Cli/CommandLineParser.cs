@@ -306,6 +306,7 @@ public static class CommandLineParser
                 return true;
 
             case "compat":
+            case "no_strict":
                 options.Mode = Midl.Analysis.CompilationMode.Compat;
                 i++;
                 return true;

@@ -404,7 +404,7 @@ public class CompilationDriver
         _out.WriteLine("  /metadata_dir <dir>    Specify metadata directory");
         _out.WriteLine("  /nomidl                Do not invoke MIDL");
         _out.WriteLine("  /strict                Pure MIDL3 mode (default) — warn on classic constructs");
-        _out.WriteLine("  /compat                Compatibility mode — accept classic MIDL syntax");
+        _out.WriteLine("  /no_strict, /compat    Compatibility mode — accept classic MIDL syntax");
         _out.WriteLine("  /version               Print version");
         _out.WriteLine("  /?, /help              Show this help");
         _out.WriteLine("  --lsp                  Start Language Server Protocol mode");
