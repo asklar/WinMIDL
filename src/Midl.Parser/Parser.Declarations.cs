@@ -94,6 +94,9 @@ public sealed partial class Parser
             SyntaxKind.CppQuoteKeyword => ParseCppQuoteDirective(attrNode),
             SyntaxKind.UnionKeyword => ParseUnionDeclaration(attrNode),
             SyntaxKind.DispinterfaceKeyword => ParseDispinterfaceDeclaration(attrNode),
+            // feature_name is a Velocity/Feature staging declaration (not a keyword)
+            _ when Current.Kind == SyntaxKind.IdentifierToken && Current.Text == "feature_name"
+                => ParseFeatureNameDeclaration(),
             _ => HandleUnexpectedDeclaration(attrNode, modNode)
         };
     }
@@ -101,7 +104,6 @@ public sealed partial class Parser
     /// <summary>Handle tokens that don't start a recognized declaration.</summary>
     private GreenNode? HandleUnexpectedDeclaration(GreenNode? attrNode, GreenNode? modNode)
     {
-        // If we had attributes or modifiers, package them with skipped tokens
         var parts = new List<GreenNode?>();
         if (attrNode != null) parts.Add(attrNode);
         if (modNode != null) parts.Add(modNode);
@@ -113,6 +115,31 @@ public sealed partial class Parser
             return MakeNode(SyntaxKind.SkippedTokens, parts);
 
         return null;
+    }
+
+    /// <summary>Parse: feature_name Name = {State, Value}; — Velocity/Feature staging declaration.</summary>
+    private GreenNode ParseFeatureNameDeclaration()
+    {
+        var children = new List<GreenNode?>();
+        children.Add(EatToken()); // feature_name (identifier)
+        children.Add(EatIdentifierOrKeyword()); // Name
+
+        if (At(SyntaxKind.EqualsToken))
+        {
+            children.Add(EatToken()); // =
+            if (At(SyntaxKind.OpenBraceToken))
+            {
+                children.Add(EatToken()); // {
+                while (!At(SyntaxKind.CloseBraceToken) && !At(SyntaxKind.EndOfFileToken))
+                    children.Add(EatToken());
+                children.Add(Eat(SyntaxKind.CloseBraceToken));
+            }
+        }
+
+        if (At(SyntaxKind.SemicolonToken))
+            children.Add(EatToken());
+
+        return MakeNode(SyntaxKind.DeclareBlock, children);
     }
 
     /// <summary>Parse: declare { declarations... }</summary>

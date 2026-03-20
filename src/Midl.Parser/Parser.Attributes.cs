@@ -96,9 +96,8 @@ public sealed partial class Parser
             case SyntaxKind.NumericLiteralToken:
             case SyntaxKind.FloatLiteralToken:
                 // Check for unquoted GUID pattern: 12345678-1234-1234-1234-123456789abc
-                if (Current.Kind == SyntaxKind.NumericLiteralToken &&
-                    Peek(1).Kind == SyntaxKind.MinusToken &&
-                    IsGuidPattern())
+                // Note: 05fd4fdb lexes as NumericLiteral(05) + Identifier(fd4fdb) + MinusToken
+                if (Current.Kind == SyntaxKind.NumericLiteralToken && IsGuidPatternFromHere())
                 {
                     children.Add(ParseUnquotedGuid());
                 }
@@ -122,7 +121,7 @@ public sealed partial class Parser
                 if (IsIdentifierOrKeyword(Current.Kind))
                 {
                     // Check for unquoted GUID starting with hex identifier: AAAAAAAA-BBBB-...
-                    if (Peek(1).Kind == SyntaxKind.MinusToken && IsGuidPattern())
+                    if (IsGuidPatternFromHere())
                     {
                         children.Add(ParseUnquotedGuid());
                     }
@@ -142,21 +141,26 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.AttributeArgument, children);
     }
 
-    /// <summary>Check if current position looks like an unquoted GUID: hex-hex-hex-hex-hex</summary>
-    private bool IsGuidPattern()
+    // Regex for unquoted GUID: 8hex-4hex-4hex-4hex-12hex (hex groups may span multiple tokens)
+    private static readonly System.Text.RegularExpressions.Regex s_guidRegex = new(
+        @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+        System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>Check if tokens from current position form an unquoted GUID.</summary>
+    private bool IsGuidPatternFromHere()
     {
-        // Look ahead for pattern: num - num/id - num/id - num/id - num/id
-        int dashCount = 0;
-        int look = 1;
-        while (look < 12) // GUIDs have 4 dashes, scan ahead enough tokens
+        // Concatenate upcoming token texts (num, ident, minus) and try GUID regex
+        var sb = new System.Text.StringBuilder(40);
+        for (int look = 0; look < 20; look++)
         {
             var t = Peek(look);
-            if (t.Kind == SyntaxKind.MinusToken) dashCount++;
-            else if (t.Kind is SyntaxKind.NumericLiteralToken or SyntaxKind.IdentifierToken) { }
-            else break;
-            look++;
+            if (t.Kind is SyntaxKind.NumericLiteralToken or SyntaxKind.IdentifierToken
+                or SyntaxKind.MinusToken)
+                sb.Append(t.Text);
+            else
+                break;
         }
-        return dashCount >= 4;
+        return s_guidRegex.IsMatch(sb.ToString());
     }
 
     /// <summary>Consume tokens forming an unquoted GUID and produce a single GuidLiteralToken.</summary>

@@ -1,5 +1,6 @@
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
+using Midl.Cli;
 
 namespace Midl.Integration.Tests;
 
@@ -12,6 +13,42 @@ public class T1ValidationTests
 {
     private static readonly string? FixturesDir =
         Environment.GetEnvironmentVariable("MIDL_TEST_FIXTURES");
+
+    private static List<string> GetIncludePaths()
+    {
+        var paths = new List<string>();
+        if (FixturesDir != null) paths.Add(FixturesDir);
+
+        // Discover Windows SDK include paths
+        if (OperatingSystem.IsWindows())
+        {
+            var sdk = WindowsSdkLocator.Discover();
+            if (sdk != null)
+            {
+                paths.AddRange(sdk.IncludePaths);
+                Console.WriteLine($"SDK discovered: {sdk.Root} v{sdk.Version}, {sdk.IncludePaths.Count} include paths");
+                foreach (var p in sdk.IncludePaths)
+                    Console.WriteLine($"  SDK include: {p}");
+            }
+            else
+            {
+                Console.WriteLine("SDK not discovered!");
+            }
+        }
+
+        return paths;
+    }
+
+    private static List<string>? GetReferencePaths()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            var sdk = WindowsSdkLocator.Discover();
+            if (sdk?.WindowsWinMdPath != null)
+                return [sdk.WindowsWinMdPath];
+        }
+        return null;
+    }
 
     [SkippableFact]
     public void NegativeTestFilesProduceErrors()
@@ -79,7 +116,11 @@ public class T1ValidationTests
             try
             {
                 var source = File.ReadAllText(file);
-                var compilation = CompilationHelper.Compile(source, CompilationMode.Compat);
+                var compilation = CompilationHelper.Compile(source,
+                    referencePaths: GetReferencePaths(),
+                    mode: CompilationMode.Compat,
+                    includePaths: GetIncludePaths(),
+                    currentFilePath: file);
                 bool hasErrors = compilation.Diagnostics.Any(
                     d => d.Severity == DiagnosticSeverity.Error);
                 if (!hasErrors)
@@ -87,19 +128,26 @@ public class T1ValidationTests
                 else
                 {
                     failed++;
-                    failures.Add(Path.GetFileName(file));
+                    var firstError = compilation.Diagnostics
+                        .First(d => d.Severity == DiagnosticSeverity.Error);
+                    failures.Add($"{Path.GetFileName(file)} ({firstError.Code}: {firstError.Message[..Math.Min(60, firstError.Message.Length)]})");
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 failed++;
-                failures.Add(Path.GetFileName(file) + " (CRASH)");
+                failures.Add(Path.GetFileName(file) + $" (CRASH: {ex.Message[..Math.Min(40, ex.Message.Length)]})");
             }
         }
 
         // Report rate but don't fail — this is aspirational
         var rate = positiveFiles.Length > 0 ? (double)passed / positiveFiles.Length : 0;
-        // Just log, don't assert a threshold yet
         Console.WriteLine($"MoIdl positive: {passed}/{positiveFiles.Length} pass ({rate:P0})");
+        if (failures.Count > 0)
+        {
+            Console.WriteLine($"Failures ({failures.Count}):");
+            foreach (var f in failures.Take(20))
+                Console.WriteLine($"  {f}");
+        }
     }
 }

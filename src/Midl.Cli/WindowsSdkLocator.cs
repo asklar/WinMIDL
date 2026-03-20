@@ -31,10 +31,12 @@ public static class WindowsSdkLocator
         var includeDir = Path.Combine(sdkRoot, "Include");
         if (!Directory.Exists(includeDir)) return null;
 
+        // Prefer versions that have the winrt subdirectory (needed for inspectable.idl etc.)
         return Directory.GetDirectories(includeDir)
             .Select(Path.GetFileName)
             .Where(d => d != null && Version.TryParse(d, out _))
-            .OrderByDescending(d => d)
+            .OrderByDescending(d => Directory.Exists(Path.Combine(includeDir, d!, "winrt")) ? 1 : 0)
+            .ThenByDescending(d => d)
             .FirstOrDefault();
     }
 
