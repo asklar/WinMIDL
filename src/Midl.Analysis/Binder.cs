@@ -58,6 +58,9 @@ public class Binder
         var resolver = new TypeResolver(_symbolTable);
         resolver.ResolveAll(_unresolvedRefs, _diagnostics);
 
+        // Pass 3: semantic validation (inheritance, access modifiers, requires)
+        ValidateSemantics(_globalNamespace);
+
         if (MidlTrace.IsEnabled)
         {
             var types = new Compilation(_globalNamespace, _diagnostics).GetAllTypes().Count();
@@ -1697,6 +1700,106 @@ public class Binder
             or SyntaxKind.VoidKeyword or SyntaxKind.HResultKeyword
             or SyntaxKind.EventKeyword or SyntaxKind.GetKeyword or SyntaxKind.SetKeyword
             or SyntaxKind.RequiresKeyword or SyntaxKind.ContractKeyword;
+
+    #endregion
+
+    #region Semantic validation (Pass 3)
+
+    private void ValidateSemantics(NamespaceSymbol ns)
+    {
+        foreach (var member in ns.Members)
+        {
+            switch (member)
+            {
+                case RuntimeClassSymbol rc when !rc.IsExternal:
+                    ValidateAccessModifiers(rc);
+                    ValidateBaseClass(rc);
+                    break;
+                case InterfaceSymbol iface when !iface.IsExternal && !iface.IsSynthesized:
+                    ValidateRequiredInterfaces(iface);
+                    break;
+            }
+        }
+        foreach (var child in ns.ChildNamespaces.Values)
+        {
+            ValidateSemantics(child);
+        }
+    }
+
+    private void ValidateAccessModifiers(RuntimeClassSymbol rc)
+    {
+        if (rc.IsUnsealed) return;
+
+        foreach (var member in rc.Members)
+        {
+            switch (member)
+            {
+                case MethodSymbol m:
+                    if (m.IsProtected)
+                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
+                            m.Name, "protected", rc.Name, _posMap.GetPositionOf(m.Name)));
+                    if (m.IsOverridable)
+                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
+                            m.Name, "overridable", rc.Name, _posMap.GetPositionOf(m.Name)));
+                    break;
+                case PropertySymbol p:
+                    if (p.IsProtected)
+                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
+                            p.Name, "protected", rc.Name, _posMap.GetPositionOf(p.Name)));
+                    if (p.IsOverridable)
+                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
+                            p.Name, "overridable", rc.Name, _posMap.GetPositionOf(p.Name)));
+                    break;
+                case EventSymbol e:
+                    if (e.IsProtected)
+                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
+                            e.Name, "protected", rc.Name, _posMap.GetPositionOf(e.Name)));
+                    if (e.IsOverridable)
+                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
+                            e.Name, "overridable", rc.Name, _posMap.GetPositionOf(e.Name)));
+                    break;
+            }
+        }
+    }
+
+    private void ValidateBaseClass(RuntimeClassSymbol rc)
+    {
+        if (rc.BaseClass == null || rc.BaseClass.ResolvedSymbol == null) return;
+
+        var baseSymbol = rc.BaseClass.ResolvedSymbol;
+        if (baseSymbol is RuntimeClassSymbol baseRc)
+        {
+            if (!baseRc.IsUnsealed)
+                _diagnostics.Add(DiagnosticDescriptors.BaseClassSealed(
+                    rc.BaseClass.Name, rc.BaseClass.Position));
+        }
+        else if (baseSymbol is not InterfaceSymbol)
+        {
+            // Base resolves to a struct, enum, delegate, etc. — not valid
+            _diagnostics.Add(DiagnosticDescriptors.BaseNotRuntimeClass(
+                rc.BaseClass.Name, rc.BaseClass.Position));
+        }
+    }
+
+    private void ValidateRequiredInterfaces(InterfaceSymbol iface)
+    {
+        foreach (var req in iface.RequiredInterfaces)
+        {
+            if (req.ResolvedSymbol == null)
+            {
+                // Only emit if TypeResolver didn't already report MIDL1001
+                // Check: if the name is not built-in and not "?", it was already reported
+                // We emit our own more specific diagnostic
+                _diagnostics.Add(DiagnosticDescriptors.UndefinedRequiredInterface(
+                    req.Name, req.Position));
+            }
+            else if (req.ResolvedSymbol is RuntimeClassSymbol)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.RuntimeClassOnRequiresList(
+                    req.Name, req.Position));
+            }
+        }
+    }
 
     #endregion
 

@@ -204,4 +204,31 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1032",
             $"Partial runtimeclass '{name}' has conflicting base class ('{existing}' vs '{incoming}')",
             position, name.Length);
+
+    // Inheritance / access modifier validation (MIDL1033–MIDL1038)
+
+    public static Diagnostic ProtectedOrOverridableOnSealedClass(string memberName, string modifier, string className, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1033",
+            $"'{memberName}' cannot be {modifier} in sealed runtimeclass '{className}'. Use 'unsealed runtimeclass' to allow inheritance.",
+            position, memberName.Length);
+
+    public static Diagnostic UndefinedRequiredInterface(string name, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1034",
+            $"Required interface '{name}' is undefined.",
+            position, name.Length);
+
+    public static Diagnostic BaseNotRuntimeClass(string name, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1035",
+            $"Base type '{name}' is not a runtimeclass. Use ':' for implemented interfaces.",
+            position, name.Length);
+
+    public static Diagnostic BaseClassSealed(string name, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1036",
+            $"Cannot derive from sealed runtimeclass '{name}'. The base class must be declared as 'unsealed runtimeclass'.",
+            position, name.Length);
+
+    public static Diagnostic RuntimeClassOnRequiresList(string name, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1038",
+            $"'{name}' is a runtimeclass. Only interfaces are allowed in 'requires' clauses.",
+            position, name.Length);
 }
