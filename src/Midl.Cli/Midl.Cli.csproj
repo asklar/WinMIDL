@@ -14,11 +14,22 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AssemblyName>Midl.Cli</AssemblyName>
+    <Product>WinMIDL</Product>
+    <Description>Microsoft Interface Definition Language Compiler</Description>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <!-- Version set via /p:Version= from CI/CD or defaults to 0.0.1-dev -->
+    <Version Condition="'$(Version)' == ''">0.0.1-dev</Version>
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">0.0.1.0</AssemblyVersion>
+    <FileVersion Condition="'$(FileVersion)' == ''">0.0.1.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(PublishAot)' == 'true'">
     <PublishAot>true</PublishAot>
     <StripSymbols>true</StripSymbols>
+    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <OptimizationPreference>Size</OptimizationPreference>
   </PropertyGroup>
 
   <!-- SelfContained + SingleFile only during publish, not during build -->

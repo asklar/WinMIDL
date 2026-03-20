@@ -7,6 +7,9 @@ on:
 permissions:
   contents: write
 
+env:
+  DOTNET_VERSION: '10.0.x'
+
 jobs:
   build-and-test:
     runs-on: windows-latest
@@ -16,7 +19,7 @@ jobs:
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
           dotnet-quality: 'preview'
 
       - name: Restore
@@ -44,11 +47,42 @@ jobs:
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
           dotnet-quality: 'preview'
 
-      - name: Publish (${{ matrix.name }})
-        run: dotnet publish src/Midl.Cli -c Release -r ${{ matrix.rid }} --self-contained -o publish/${{ matrix.rid }}
+      - name: Extract version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $ver = $tag -replace '^v', ''
+          # Strip prerelease for AssemblyVersion (must be X.Y.Z.W)
+          $asmVer = ($ver -replace '-.*$', '')
+          if ($asmVer -notmatch '^\d+\.\d+\.\d+$') { $asmVer = '0.0.0' }
+          $asmVer = "$asmVer.0"
+          echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
+          echo "ASM_VERSION=$asmVer" >> $env:GITHUB_OUTPUT
+          echo "Version: $ver, AssemblyVersion: $asmVer"
+
+      - name: Publish NativeAOT (${{ matrix.name }})
+        run: >
+          dotnet publish src/Midl.Cli -c Release -r ${{ matrix.rid }}
+          -p:PublishAot=true
+          -p:Version=${{ steps.version.outputs.VERSION }}
+          -p:AssemblyVersion=${{ steps.version.outputs.ASM_VERSION }}
+          -p:FileVersion=${{ steps.version.outputs.ASM_VERSION }}
+          -o publish/${{ matrix.rid }}
+
+      - name: Fallback to self-contained if AOT fails
+        if: failure()
+        run: >
+          dotnet publish src/Midl.Cli -c Release -r ${{ matrix.rid }}
+          --self-contained
+          -p:PublishSingleFile=true
+          -p:Version=${{ steps.version.outputs.VERSION }}
+          -p:AssemblyVersion=${{ steps.version.outputs.ASM_VERSION }}
+          -p:FileVersion=${{ steps.version.outputs.ASM_VERSION }}
+          -o publish/${{ matrix.rid }}
 
       - name: Zip artifacts
         run: Compress-Archive -Path publish/${{ matrix.rid }}/* -DestinationPath publish/winmidl-${{ matrix.rid }}.zip
@@ -70,7 +104,23 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build VS Code Extension
+      - name: Extract version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $ver = $tag -replace '^v', ''
+          echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
+
+      - name: Set extension version
+        working-directory: editors/vscode
+        shell: pwsh
+        run: |
+          $pkg = Get-Content package.json | ConvertFrom-Json
+          $pkg.version = "${{ steps.version.outputs.VERSION }}" -replace '-.*$', ''
+          $pkg | ConvertTo-Json -Depth 10 | Set-Content package.json
+
+      - name: Build and package VS Code Extension
         working-directory: editors/vscode
         run: |
           npm ci
