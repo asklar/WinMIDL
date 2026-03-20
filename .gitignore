@@ -25,3 +25,6 @@ Thumbs.db
 # Test results
 TestResults/
 *.trx
+*.winmd
+*.h
+*.c

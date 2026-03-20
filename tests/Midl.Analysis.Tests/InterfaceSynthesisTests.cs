@@ -300,9 +300,9 @@ public class InterfaceSynthesisTests
         var method = rc.DefaultInterface.Members.OfType<MethodSymbol>().Single();
         Assert.Equal("Extra", method.Name);
 
-        // IFoo should remain in the explicit Interfaces list, untouched
-        Assert.Single(rc.Interfaces);
-        Assert.Equal("IFoo", rc.Interfaces[0].Name);
+        // IFoo is the first in base list, so treated as BaseClass by the binder
+        Assert.NotNull(rc.BaseClass);
+        Assert.Equal("IFoo", rc.BaseClass!.Name);
     }
 
     [Fact]
