@@ -16,6 +16,10 @@ public class DelegateSymbol : ISymbol
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
 
+    public Guid? Uuid { get; set; }
+    public int? Version { get; set; }
+    public string? DeprecatedMessage { get; set; }
+
     // Extracted attribute data
     public List<AttributeData> Attributes { get; } = new();
 

@@ -194,4 +194,14 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1030",
             $"Attribute '{attrName}' expects {expected} arguments but got {actual}",
             position, attrName.Length);
+
+    public static Diagnostic PartialConflictingModifiers(string name, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1031",
+            $"Partial runtimeclass '{name}' has conflicting modifiers (sealed vs unsealed)",
+            position, name.Length);
+
+    public static Diagnostic PartialConflictingBaseClass(string name, string existing, string incoming, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1032",
+            $"Partial runtimeclass '{name}' has conflicting base class ('{existing}' vs '{incoming}')",
+            position, name.Length);
 }

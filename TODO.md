@@ -17,6 +17,7 @@
 - [x] Proxy/stub skeleton generation
 - [x] CLI with 30+ switches, response files, `/debug` tracing
 - [x] `--analyze` mode (Rust-style rich console output with squigglies)
+- [x] `--decompile` mode (WinMD to IDL decompilation)
 - [x] LSP server (JSON-RPC over stdio, no external NuGet deps)
 - [x] VS Code extension (TextMate grammar, 19 snippets, LSP client, F5 debug)
 
@@ -85,6 +86,10 @@
 - [x] `VersionPropagator` — contract/version flows: class→interface→member, validation (MIDL1014–1017)
 - [x] WinMD attribute emission — 13 custom attributes: ExclusiveToAttribute, ActivatableAttribute, StaticAttribute, ComposableAttribute, ThreadingAttribute, MarshalingBehaviorAttribute, DeprecatedAttribute, ContractVersionAttribute, OverloadAttribute, DefaultOverloadAttribute, OverridableAttribute, ProtectedAttribute, DefaultAttribute
 - [x] Synthesized interfaces get `tdNotPublic` flag + `ExclusiveToAttribute` in WinMD
+- [x] WinMD PropertyMap/EventMap/MethodSemantics tables for properties and events
+- [x] WinMD MethodImpl table — class method stubs back-reference synthesized interface methods
+- [x] WinMD InterfaceImpl for `requires` clauses on interfaces
+- [x] WinMD-to-IDL decompiler (`WinMdDecompiler`)
 
 ### Diagnostics (32 codes)
 - [x] MIDL1001–MIDL1013: Semantic errors (undefined type, duplicate, namespace required, etc.)
@@ -109,12 +114,12 @@
 - [x] `midl.strictMode` setting
 - [x] Command palette: Toggle Strict Mode, Restart Server, Show Server Log
 
-### Testing (290+ tests)
+### Testing (330+ tests)
 - [x] Lexer: 29 tests (tokens, trivia, edge cases)
 - [x] Parser: 58 tests (structures, error recovery, completeness, classic MIDL)
-- [x] Analysis: 72 tests (binding, synthesis, WinMD round-trip, extraction, go-to-def)
-- [x] CodeGen: 32 tests (WinMD emitter, header, IID, DllData)
-- [x] Integration: 90 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions)
+- [x] Analysis: 112 tests (binding, synthesis, WinMD round-trip, extraction, go-to-def, imports)
+- [x] CodeGen: 51 tests (WinMD emitter, header, IID, DllData, tables, decompiler)
+- [x] Integration: 94 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions)
 - [x] IDL fixture suite (15 files with `.expected.json` + `.expected.tree` sidecars)
 - [x] End-to-end quick fix tests (apply fix → verify output IDL)
 - [x] Diagnostic position tests (squigglies on correct token, not in comments)
@@ -145,8 +150,6 @@
 - [ ] **PIID algorithm** — deterministic IID generation for parameterized type instances (SHA-1/RFC 4122 v5)
 - [ ] **`partial runtimeclass` merging** — parsed but not merged across declarations
 - [ ] **Composition factory encoding in WinMD** — controlling `IInspectable*` and non-delegating `IInspectable**` omitted from metadata `.ctor`
-- [ ] **WinMD class MethodImpl table** — back-references from class methods to interface methods
-- [ ] **WinMD property/event encoding** — PropertyMap, MethodSemantics, EventMap tables
 - [ ] **WinMD array encoding** — array length param omitted from MethodDefSig
 - [ ] **Reserved parameter name auto-generation** — `result`, `operation`, `value` for retval params
 - [ ] **`>>` vs `> >` disambiguation in parser** — currently `>>` is one token; nested generics need space

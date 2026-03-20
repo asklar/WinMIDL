@@ -67,8 +67,8 @@ public class WinMdReader
         return baseTypeName switch
         {
             "System.Enum" => ReadEnum(mdReader, typeDef, handle, name, ns, sourcePath),
-            "System.ValueType" => ReadStruct(mdReader, typeDef, name, ns, sourcePath),
-            "System.MulticastDelegate" => ReadDelegate(mdReader, typeDef, name, ns, sourcePath),
+            "System.ValueType" => ReadStruct(mdReader, typeDef, handle, name, ns, sourcePath),
+            "System.MulticastDelegate" => ReadDelegate(mdReader, typeDef, handle, name, ns, sourcePath),
             "System.Attribute" => ReadAttributeType(mdReader, typeDef, name, ns, sourcePath),
             _ when (typeDef.Attributes & TypeAttributes.Interface) != 0
                 => ReadInterface(mdReader, typeDef, handle, name, ns, sourcePath),
@@ -158,7 +158,7 @@ public class WinMdReader
     #region Struct
 
     private static StructSymbol ReadStruct(
-        MetadataReader mdReader, TypeDefinition typeDef,
+        MetadataReader mdReader, TypeDefinition typeDef, TypeDefinitionHandle handle,
         string name, string ns, string? sourcePath)
     {
         var nsSymbol = CreateNamespaceChain(ns);
@@ -242,6 +242,9 @@ public class WinMdReader
             symbol.AddMember(evtSymbol);
         }
 
+        // Read custom attributes (Version, Deprecated, ExclusiveTo, etc.)
+        ApplyCustomAttributes(mdReader, handle, symbol);
+
         return symbol;
     }
 
@@ -250,7 +253,7 @@ public class WinMdReader
     #region Delegate
 
     private static DelegateSymbol ReadDelegate(
-        MetadataReader mdReader, TypeDefinition typeDef,
+        MetadataReader mdReader, TypeDefinition typeDef, TypeDefinitionHandle handle,
         string name, string ns, string? sourcePath)
     {
         var nsSymbol = CreateNamespaceChain(ns);
@@ -290,6 +293,9 @@ public class WinMdReader
             break;
         }
 
+        // Read GUID
+        symbol.Uuid = ReadGuidAttribute(mdReader, handle);
+
         return symbol;
     }
 
@@ -319,6 +325,9 @@ public class WinMdReader
 
         // Read GUID
         symbol.Uuid = ReadGuidAttribute(mdReader, handle);
+
+        // Read custom attributes (Version, Deprecated, Threading, Marshaling, etc.)
+        ApplyCustomAttributes(mdReader, handle, symbol);
 
         return symbol;
     }
@@ -546,6 +555,162 @@ public class WinMdReader
             return new Guid(a, b, c, d, e, f, g, h, i, j, k);
         }
         return null;
+    }
+
+    /// <summary>
+    /// Reads well-known custom attributes from a type definition and applies them to a symbol.
+    /// Handles: VersionAttribute, ContractVersionAttribute, DeprecatedAttribute,
+    /// ExclusiveToAttribute, ThreadingAttribute, MarshalingBehaviorAttribute.
+    /// </summary>
+    private static void ApplyCustomAttributes(MetadataReader mdReader, TypeDefinitionHandle handle, ISymbol symbol)
+    {
+        var typeDef = mdReader.GetTypeDefinition(handle);
+        foreach (var attrHandle in typeDef.GetCustomAttributes())
+        {
+            var attr = mdReader.GetCustomAttribute(attrHandle);
+            var attrName = GetAttributeTypeName(mdReader, attr.Constructor);
+            if (attrName == null) continue;
+
+            var blob = mdReader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) continue;
+            blob.ReadUInt16(); // prolog
+
+            switch (attrName)
+            {
+                case "VersionAttribute":
+                    if (blob.RemainingBytes >= 4)
+                    {
+                        var version = (int)blob.ReadUInt32();
+                        if (symbol is RuntimeClassSymbol rc) rc.Version = version;
+                        else if (symbol is InterfaceSymbol iface) iface.Version = version;
+                        else if (symbol is DelegateSymbol del) del.Version = version;
+                    }
+                    break;
+
+                case "ContractVersionAttribute":
+                    // ContractVersionAttribute can have (String contractName, UInt32 version)
+                    // or just (UInt32 version) — try to read string first
+                    try
+                    {
+                        if (blob.RemainingBytes >= 4)
+                        {
+                            // Try to read as (string, uint32)
+                            var savedOffset = blob.Offset;
+                            string? contractName = TryReadSerializedString(ref blob);
+                            if (contractName != null && blob.RemainingBytes >= 4)
+                            {
+                                var contractVer = (int)blob.ReadUInt32();
+                                if (symbol is RuntimeClassSymbol rc2) { rc2.ContractName = contractName; rc2.ContractVersion = contractVer; }
+                                else if (symbol is InterfaceSymbol iface2) { iface2.ContractName = contractName; iface2.ContractVersion = contractVer; }
+                            }
+                            else
+                            {
+                                // Rewind and read as just uint32
+                                blob.Reset();
+                                blob.ReadUInt16(); // re-read prolog
+                                var contractVer = (int)blob.ReadUInt32();
+                                if (symbol is RuntimeClassSymbol rc3) rc3.ContractVersion = contractVer;
+                                else if (symbol is InterfaceSymbol iface3) iface3.ContractVersion = contractVer;
+                            }
+                        }
+                    }
+                    catch { /* best-effort attribute decoding */ }
+                    break;
+
+                case "DeprecatedAttribute":
+                    try
+                    {
+                        var message = TryReadSerializedString(ref blob);
+                        if (message != null)
+                        {
+                            if (symbol is RuntimeClassSymbol rc4) rc4.DeprecatedMessage = message;
+                            else if (symbol is InterfaceSymbol iface4) iface4.DeprecatedMessage = message;
+                            else if (symbol is DelegateSymbol del2) del2.DeprecatedMessage = message;
+                        }
+                    }
+                    catch { /* best-effort */ }
+                    break;
+
+                case "ExclusiveToAttribute":
+                    try
+                    {
+                        // The argument is a System.Type, encoded as a serialized string of the type name
+                        var typeName = TryReadSerializedString(ref blob);
+                        if (typeName != null && symbol is InterfaceSymbol iface5)
+                        {
+                            iface5.IsExclusive = true;
+                            iface5.ExclusiveToClass = typeName;
+                        }
+                    }
+                    catch { /* best-effort */ }
+                    break;
+
+                case "ThreadingAttribute":
+                    if (blob.RemainingBytes >= 4)
+                    {
+                        var threadingValue = blob.ReadInt32();
+                        var threadingModel = threadingValue switch
+                        {
+                            0 => "STA",
+                            1 => "MTA",
+                            2 => "Both",
+                            3 => "InvalidThreading",
+                            _ => null
+                        };
+                        if (threadingModel != null && symbol is RuntimeClassSymbol rc5)
+                            rc5.ThreadingModel = threadingModel;
+                    }
+                    break;
+
+                case "MarshalingBehaviorAttribute":
+                    if (blob.RemainingBytes >= 4)
+                    {
+                        var marshalingValue = blob.ReadInt32();
+                        var marshalingBehavior = marshalingValue switch
+                        {
+                            0 => "None",
+                            1 => "Agile",
+                            2 => "Standard",
+                            3 => "InvalidMarshaling",
+                            _ => null
+                        };
+                        if (marshalingBehavior != null && symbol is RuntimeClassSymbol rc6)
+                            rc6.MarshalingBehavior = marshalingBehavior;
+                    }
+                    break;
+            }
+        }
+    }
+
+    /// <summary>Tries to read a serialized string from a custom attribute blob.</summary>
+    private static string? TryReadSerializedString(ref BlobReader blob)
+    {
+        if (blob.RemainingBytes == 0) return null;
+
+        // 0xFF = null string, otherwise length-prefixed UTF-8
+        var firstByte = blob.ReadByte();
+        if (firstByte == 0xFF) return null;
+
+        // The first byte is the start of a compressed length
+        int length;
+        if ((firstByte & 0x80) == 0)
+        {
+            length = firstByte;
+        }
+        else if ((firstByte & 0xC0) == 0x80)
+        {
+            if (blob.RemainingBytes < 1) return null;
+            length = ((firstByte & 0x3F) << 8) | blob.ReadByte();
+        }
+        else
+        {
+            if (blob.RemainingBytes < 3) return null;
+            length = ((firstByte & 0x1F) << 24) | (blob.ReadByte() << 16) | (blob.ReadByte() << 8) | blob.ReadByte();
+        }
+
+        if (blob.RemainingBytes < length) return null;
+        var bytes = blob.ReadBytes(length);
+        return System.Text.Encoding.UTF8.GetString(bytes);
     }
 
     private static bool HasCustomAttribute(MetadataReader mdReader, TypeDefinitionHandle handle, string ns, string attrTypeName)

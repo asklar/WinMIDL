@@ -29,6 +29,7 @@ public class InterfaceSymbol : ISymbol
     public string? ContractName { get; set; }
     public int? ContractVersion { get; set; }
     public int? Version { get; set; }
+    public string? DeprecatedMessage { get; set; }
 
     public InterfaceSymbol(string name, ISymbol? containingSymbol)
     {

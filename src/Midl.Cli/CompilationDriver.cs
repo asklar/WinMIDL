@@ -1,5 +1,6 @@
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
+using Midl.CodeGen.Decompiler;
 using Midl.CodeGen.DllData;
 using Midl.CodeGen.Header;
 using Midl.CodeGen.Stub;
@@ -87,6 +88,15 @@ public class CompilationDriver
         {
             _err.WriteLine($"error MIDL1001: cannot open input file '{options.InputFile}'");
             return 2;
+        }
+
+        // Decompile mode — WinMD to IDL
+        if (options.DecompileMode)
+        {
+            var decompiler = new WinMdDecompiler();
+            var idl = decompiler.Decompile(options.InputFile);
+            _out.Write(idl);
+            return 0;
         }
 
         // Read input (preprocessing skipped for now)
@@ -434,6 +444,7 @@ public class CompilationDriver
         _out.WriteLine("  /?, /help              Show this help");
         _out.WriteLine("  --lsp                  Start Language Server Protocol mode");
         _out.WriteLine("  --analyze              Rich analysis output with source context");
+        _out.WriteLine("  --decompile            Decompile WinMD to IDL");
         _out.WriteLine("  /debug                 Enable debug trace output (or set MIDL_DEBUG=1)");
         _out.WriteLine("  @<file>                Read options from response file");
     }

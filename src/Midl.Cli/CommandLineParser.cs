@@ -41,6 +41,7 @@ public class CommandLineOptions
     public bool NoMidl { get; set; }                   // /nomidl
     public Midl.Analysis.CompilationMode Mode { get; set; } = Midl.Analysis.CompilationMode.Strict;
     public bool AnalyzeMode { get; set; }              // --analyze (rich console output)
+    public bool DecompileMode { get; set; }             // --decompile (WinMD to IDL)
     public bool DebugTrace { get; set; }               // /debug (enable trace output)
     public List<string> UnknownSwitches { get; } = new();
     public List<string> Errors { get; } = new();
@@ -72,6 +73,13 @@ public static class CommandLineParser
             if (arg is "--lsp")
             {
                 options.LspMode = true;
+                i++;
+                continue;
+            }
+
+            if (arg is "--decompile")
+            {
+                options.DecompileMode = true;
                 i++;
                 continue;
             }
@@ -315,6 +323,11 @@ public static class CommandLineParser
             case "analyze":
                 options.AnalyzeMode = true;
                 options.SyntaxCheckOnly = true; // analyze implies no codegen
+                i++;
+                return true;
+
+            case "decompile":
+                options.DecompileMode = true;
                 i++;
                 return true;
 

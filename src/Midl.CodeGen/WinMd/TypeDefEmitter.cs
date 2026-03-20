@@ -14,6 +14,9 @@ internal class TypeDefEmitter
     private readonly CustomAttributeEmitter _attrs;
     private MetadataBuilder M => _emitter.Metadata;
 
+    // Tracks synthesized interface method handles keyed by runtimeclass FullName → member name → MethodDef handle
+    private readonly Dictionary<string, List<(string memberName, MethodDefinitionHandle handle)>> _synthMethodHandles = new();
+
     public TypeDefEmitter(WinMdEmitter emitter, CustomAttributeEmitter attrs)
     {
         _emitter = emitter;
@@ -60,29 +63,42 @@ internal class TypeDefEmitter
         var properties = new List<(PropertySymbol prop, MethodDefinitionHandle getter, MethodDefinitionHandle? setter)>();
         var events = new List<(EventSymbol evt, MethodDefinitionHandle adder, MethodDefinitionHandle remover)>();
 
+        // Track interface method handles for MethodImpl table
+        var ifaceMethodHandles = new List<(string memberName, MethodDefinitionHandle handle)>();
+
         // Emit members from the runtime class (excluding constructors)
         foreach (var member in rc.Members)
         {
             switch (member)
             {
                 case MethodSymbol method:
-                    EmitInterfaceMethod(method);
+                {
+                    var methodHandle = EmitInterfaceMethod(method);
+                    ifaceMethodHandles.Add((method.Name, methodHandle));
                     break;
+                }
                 case PropertySymbol prop:
                 {
                     var getter = EmitPropertyGetter(prop);
+                    ifaceMethodHandles.Add(($"get_{prop.Name}", getter));
                     MethodDefinitionHandle? setter = prop.HasSetter ? EmitPropertySetter(prop) : null;
+                    if (setter.HasValue)
+                        ifaceMethodHandles.Add(($"put_{prop.Name}", setter.Value));
                     properties.Add((prop, getter, setter));
                     break;
                 }
                 case EventSymbol evt:
                 {
                     var (adder, remover) = EmitEventAccessors(evt);
+                    ifaceMethodHandles.Add(($"add_{evt.Name}", adder));
+                    ifaceMethodHandles.Add(($"remove_{evt.Name}", remover));
                     events.Add((evt, adder, remover));
                     break;
                 }
             }
         }
+
+        _synthMethodHandles[rc.FullName] = ifaceMethodHandles;
 
         EmitPropertyTable(typeDef, properties);
         EmitEventTable(typeDef, events);
@@ -236,7 +252,21 @@ internal class TypeDefEmitter
                 M.AddInterfaceImplementation(typeDef, handle);
         }
 
-        _attrs.AddVersionAttribute(typeDef);
+        // Emit [Guid] if the interface has a UUID
+        if (symbol.Uuid.HasValue)
+            _attrs.AddGuidAttribute(typeDef, symbol.Uuid.Value);
+        else
+            _attrs.AddGuidAttribute(typeDef, GenerateDeterministicGuid(symbol.FullName));
+
+        // Emit version attribute with the symbol's version if available
+        if (symbol.Version.HasValue)
+            _attrs.AddVersionAttribute(typeDef, (uint)symbol.Version.Value);
+        else
+            _attrs.AddVersionAttribute(typeDef);
+
+        // Emit [deprecated] if present
+        if (symbol.DeprecatedMessage != null)
+            _attrs.AddDeprecatedAttribute(typeDef, symbol.DeprecatedMessage, 0, (uint)(symbol.Version ?? 0x00010000));
 
         if (symbol.IsExclusive && symbol.ExclusiveToClass != null)
             _attrs.AddExclusiveToAttribute(typeDef, symbol.ExclusiveToClass);
@@ -378,7 +408,8 @@ internal class TypeDefEmitter
 
         bool hasDirectMembers = symbol.Members.Any(m => m is MethodSymbol or PropertySymbol or EventSymbol);
 
-        // Emit runtime method stubs for direct members
+        // Emit runtime method stubs for direct members, tracking handles for MethodImpl
+        var classMethodStubs = new List<(string memberName, MethodDefinitionHandle handle)>();
         if (hasDirectMembers)
         {
             foreach (var member in symbol.Members)
@@ -386,14 +417,25 @@ internal class TypeDefEmitter
                 switch (member)
                 {
                     case MethodSymbol method:
-                        EmitRuntimeMethodStub(method);
+                    {
+                        var stubHandle = EmitRuntimeMethodStub(method);
+                        classMethodStubs.Add((method.Name, stubHandle));
                         break;
+                    }
                     case PropertySymbol prop:
-                        EmitRuntimePropertyStubs(prop);
+                    {
+                        var (getterStub, setterStub) = EmitRuntimePropertyStubs(prop);
+                        if (!getterStub.IsNil) classMethodStubs.Add(($"get_{prop.Name}", getterStub));
+                        if (setterStub.HasValue) classMethodStubs.Add(($"put_{prop.Name}", setterStub.Value));
                         break;
+                    }
                     case EventSymbol evt:
-                        EmitRuntimeEventStubs(evt);
+                    {
+                        var (adderStub, removerStub) = EmitRuntimeEventStubs(evt);
+                        classMethodStubs.Add(($"add_{evt.Name}", adderStub));
+                        classMethodStubs.Add(($"remove_{evt.Name}", removerStub));
                         break;
+                    }
                 }
             }
         }
@@ -432,6 +474,19 @@ internal class TypeDefEmitter
             {
                 var ifaceImpl = M.AddInterfaceImplementation(typeDef, h);
                 _attrs.AddOverridableAttribute(ifaceImpl);
+            }
+        }
+
+        // MethodImpl: link class method stubs to synthesized interface method declarations
+        if (hasDirectMembers && _synthMethodHandles.TryGetValue(symbol.FullName, out var ifaceMethods))
+        {
+            foreach (var (stubName, stubHandle) in classMethodStubs)
+            {
+                var ifaceMethod = ifaceMethods.FirstOrDefault(m => m.memberName == stubName);
+                if (!ifaceMethod.handle.IsNil)
+                {
+                    M.AddMethodImplementation(typeDef, stubHandle, ifaceMethod.handle);
+                }
             }
         }
 
@@ -517,11 +572,11 @@ internal class TypeDefEmitter
         }
     }
 
-    private void EmitRuntimeMethodStub(MethodSymbol method)
+    private MethodDefinitionHandle EmitRuntimeMethodStub(MethodSymbol method)
     {
         var sig = EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: false);
         var paramList = _emitter.NextParamHandle;
-        M.AddMethodDefinition(
+        var handle = M.AddMethodDefinition(
             MethodAttributes.Public | MethodAttributes.HideBySig,
             MethodImplAttributes.Runtime,
             M.GetOrAddString(method.Name),
@@ -537,14 +592,19 @@ internal class TypeDefEmitter
                 i + 1);
             _emitter.IncrementParamRow();
         }
+
+        return handle;
     }
 
-    private void EmitRuntimePropertyStubs(PropertySymbol prop)
+    private (MethodDefinitionHandle getter, MethodDefinitionHandle? setter) EmitRuntimePropertyStubs(PropertySymbol prop)
     {
+        MethodDefinitionHandle getter = default;
+        MethodDefinitionHandle? setter = null;
+
         if (prop.HasGetter)
         {
             var sig = EncodeMethodSig(prop.Type, Array.Empty<ParameterSymbol>(), hasThis: false);
-            M.AddMethodDefinition(
+            getter = M.AddMethodDefinition(
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
                 MethodImplAttributes.Runtime,
                 M.GetOrAddString($"get_{prop.Name}"),
@@ -556,7 +616,7 @@ internal class TypeDefEmitter
         if (prop.HasSetter)
         {
             var sig = EncodeSetterSig(prop.Type);
-            M.AddMethodDefinition(
+            setter = M.AddMethodDefinition(
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
                 MethodImplAttributes.Runtime,
                 M.GetOrAddString($"put_{prop.Name}"),
@@ -565,13 +625,15 @@ internal class TypeDefEmitter
                 _emitter.NextParamHandle);
             _emitter.IncrementMethodRow();
         }
+
+        return (getter, setter);
     }
 
-    private void EmitRuntimeEventStubs(EventSymbol evt)
+    private (MethodDefinitionHandle adder, MethodDefinitionHandle remover) EmitRuntimeEventStubs(EventSymbol evt)
     {
         // add_ method: takes EventRegistrationToken handler, returns void (simplified)
         var addSig = EncodeEventAccessorSig(evt, isAdd: true);
-        M.AddMethodDefinition(
+        var adder = M.AddMethodDefinition(
             MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
             MethodImplAttributes.Runtime,
             M.GetOrAddString($"add_{evt.Name}"),
@@ -582,7 +644,7 @@ internal class TypeDefEmitter
 
         // remove_ method
         var removeSig = EncodeEventAccessorSig(evt, isAdd: false);
-        M.AddMethodDefinition(
+        var remover = M.AddMethodDefinition(
             MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
             MethodImplAttributes.Runtime,
             M.GetOrAddString($"remove_{evt.Name}"),
@@ -590,6 +652,8 @@ internal class TypeDefEmitter
             -1,
             _emitter.NextParamHandle);
         _emitter.IncrementMethodRow();
+
+        return (adder, remover);
     }
 
     #endregion
@@ -672,7 +736,7 @@ internal class TypeDefEmitter
 
     #region Method Emission Helpers
 
-    private void EmitInterfaceMethod(MethodSymbol method)
+    private MethodDefinitionHandle EmitInterfaceMethod(MethodSymbol method)
     {
         var sig = EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: false);
         var paramList = _emitter.NextParamHandle;
@@ -699,6 +763,8 @@ internal class TypeDefEmitter
             _attrs.AddOverloadAttribute(methodDef, method.OverloadGroup);
         if (method.IsDefaultOverload)
             _attrs.AddDefaultOverloadAttribute(methodDef);
+
+        return methodDef;
     }
 
     private MethodDefinitionHandle EmitPropertyGetter(PropertySymbol prop)

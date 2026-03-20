@@ -25,7 +25,8 @@ public class Binder
     }
 
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
-        IReadOnlyList<ISymbol>? externalTypes = null)
+        IReadOnlyList<ISymbol>? externalTypes = null,
+        IReadOnlyList<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)>? importedTrees = null)
     {
         MidlTrace.Binder("Binding compilation unit");
         _symbolTable = new SymbolTable(_globalNamespace);
@@ -34,6 +35,18 @@ public class Binder
         // Import external types before binding user code
         if (externalTypes is { Count: > 0 })
             _symbolTable.ImportExternalTypes(externalTypes);
+
+        // Bind imported trees first (they provide types for the main file)
+        if (importedTrees is { Count: > 0 })
+        {
+            foreach (var (importedTree, importedTokens) in importedTrees)
+            {
+                var savedPosMap = _posMap;
+                _posMap = new TokenPositionMap(importedTokens);
+                BindCompilationUnit(importedTree, _globalNamespace);
+                _posMap = savedPosMap;
+            }
+        }
 
         // Pass 1: create all symbols
         BindCompilationUnit(compilationUnit, _globalNamespace);
@@ -174,28 +187,10 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name)) return;
-
-        var symbol = new RuntimeClassSymbol(name, ns);
-        ns.AddMember(symbol);
-        _symbolTable.Define(symbol);
-
-        // Extract [uuid("...")] if present
-        var rcAttrList = FindChild(node, SyntaxKind.AttributeList);
-        if (rcAttrList != null && TryExtractUuidAttribute(rcAttrList, out var rcUuid))
-        {
-            symbol.Uuid = rcUuid;
-        }
-
-        // Extract all attributes
-        if (rcAttrList != null)
-        {
-            var attrs = AttributeExtractor.Extract(rcAttrList, _posMap);
-            symbol.Attributes.AddRange(attrs);
-            ApplyWellKnownAttributes(symbol, attrs);
-        }
-
-        // Check modifiers
+        // Check if this is a partial class
+        bool isPartial = false;
+        bool isStatic = false;
+        bool isUnsealed = false;
         var modList = FindChild(node, SyntaxKind.ModifierList);
         if (modList != null)
         {
@@ -205,22 +200,120 @@ public class Binder
                 {
                     switch (mod.Kind)
                     {
-                        case SyntaxKind.StaticKeyword: symbol.IsStatic = true; break;
-                        case SyntaxKind.PartialKeyword: symbol.IsPartial = true; break;
-                        case SyntaxKind.UnsealedKeyword: symbol.IsUnsealed = true; break;
+                        case SyntaxKind.StaticKeyword: isStatic = true; break;
+                        case SyntaxKind.PartialKeyword: isPartial = true; break;
+                        case SyntaxKind.UnsealedKeyword: isUnsealed = true; break;
                     }
                 }
             }
         }
 
+        // Partial merging: if partial and an existing symbol with the same name exists, merge into it
+        if (isPartial)
+        {
+            var existing = ns.Members.FirstOrDefault(m => m.Name == name && m is RuntimeClassSymbol) as RuntimeClassSymbol;
+            if (existing != null)
+            {
+                // Validate matching modifiers
+                if (existing.IsUnsealed != isUnsealed)
+                {
+                    int pos = _posMap.GetPositionOf(name);
+                    _diagnostics.Add(new Diagnostics.Diagnostic(
+                        Diagnostics.DiagnosticSeverity.Error, "MIDL1031",
+                        $"Partial runtimeclass '{name}' has conflicting modifiers (sealed vs unsealed)",
+                        pos, name.Length));
+                }
+
+                // Validate no conflicting base classes
+                var baseList = FindChild(node, SyntaxKind.BaseList);
+                if (baseList != null)
+                {
+                    bool first = true;
+                    for (int i = 1; i < baseList.SlotCount; i++)
+                    {
+                        var slot = baseList.GetSlot(i);
+                        if (slot == null || slot.Kind == SyntaxKind.CommaToken || slot.Kind == SyntaxKind.ColonToken)
+                            continue;
+
+                        var typeRef = ExtractTypeRef(slot);
+                        TrackTypeRef(typeRef, ns);
+
+                        if (first)
+                        {
+                            if (existing.BaseClass != null && existing.BaseClass.Name != typeRef.Name)
+                            {
+                                int pos = _posMap.GetPositionOf(name);
+                                _diagnostics.Add(new Diagnostics.Diagnostic(
+                                    Diagnostics.DiagnosticSeverity.Error, "MIDL1032",
+                                    $"Partial runtimeclass '{name}' has conflicting base class ('{existing.BaseClass.Name}' vs '{typeRef.Name}')",
+                                    pos, name.Length));
+                            }
+                            else if (existing.BaseClass == null)
+                            {
+                                existing.BaseClass = typeRef;
+                            }
+                            first = false;
+                        }
+                        else
+                        {
+                            existing.Interfaces.Add(typeRef);
+                        }
+                    }
+                }
+
+                // Merge attributes
+                var rcAttrList = FindChild(node, SyntaxKind.AttributeList);
+                if (rcAttrList != null)
+                {
+                    if (TryExtractUuidAttribute(rcAttrList, out var rcUuid))
+                        existing.Uuid ??= rcUuid;
+
+                    var attrs = AttributeExtractor.Extract(rcAttrList, _posMap);
+                    existing.Attributes.AddRange(attrs);
+                    ApplyWellKnownAttributes(existing, attrs);
+                }
+
+                // Merge members
+                _symbolTable.EnterScope(existing);
+                BindClassMembers(node, existing, ns);
+                _symbolTable.ExitScope();
+                return;
+            }
+        }
+
+        if (!TryDefineType(ns, name)) return;
+
+        var symbol = new RuntimeClassSymbol(name, ns);
+        ns.AddMember(symbol);
+        _symbolTable.Define(symbol);
+
+        // Extract [uuid("...")] if present
+        var attrList = FindChild(node, SyntaxKind.AttributeList);
+        if (attrList != null && TryExtractUuidAttribute(attrList, out var uuid))
+        {
+            symbol.Uuid = uuid;
+        }
+
+        // Extract all attributes
+        if (attrList != null)
+        {
+            var attrs = AttributeExtractor.Extract(attrList, _posMap);
+            symbol.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(symbol, attrs);
+        }
+
+        symbol.IsStatic = isStatic;
+        symbol.IsPartial = isPartial;
+        symbol.IsUnsealed = isUnsealed;
+
         // Base list
-        var baseList = FindChild(node, SyntaxKind.BaseList);
-        if (baseList != null)
+        var mainBaseList = FindChild(node, SyntaxKind.BaseList);
+        if (mainBaseList != null)
         {
             bool first = true;
-            for (int i = 1; i < baseList.SlotCount; i++)
+            for (int i = 1; i < mainBaseList.SlotCount; i++)
             {
-                var slot = baseList.GetSlot(i);
+                var slot = mainBaseList.GetSlot(i);
                 if (slot == null || slot.Kind == SyntaxKind.CommaToken || slot.Kind == SyntaxKind.ColonToken)
                     continue;
 
