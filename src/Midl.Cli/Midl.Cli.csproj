@@ -28,8 +28,9 @@
     <PublishAot>true</PublishAot>
     <StripSymbols>true</StripSymbols>
     <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+    <OptimizationPreference>Speed</OptimizationPreference>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <OptimizationPreference>Size</OptimizationPreference>
   </PropertyGroup>
 
   <!-- SelfContained + SingleFile only during publish, not during build -->
