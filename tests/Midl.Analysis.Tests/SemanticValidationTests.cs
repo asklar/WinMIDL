@@ -332,6 +332,106 @@ public class SemanticValidationTests
     }
 
     #endregion
+
+    #region Protected Accessor Validation (MIDL1072-1073)
+
+    [Fact]
+    public void ProtectedAccessor_OnSet_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N {
+                interface IFoo {
+                    Single x { protected set; get; };
+                }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1072");
+        Assert.NotNull(error);
+        Assert.Contains("set", error.Message);
+        Assert.Contains("protected", error.Message);
+    }
+
+    [Fact]
+    public void ProtectedAccessor_OnGet_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N {
+                interface IFoo {
+                    String Name { protected get; set; };
+                }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1072");
+        Assert.NotNull(error);
+        Assert.Contains("get", error.Message);
+    }
+
+    [Fact]
+    public void ProtectedMember_OnInterface_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N {
+                interface IFoo {
+                    Single x { protected set; get; };
+                }
+            }
+            """);
+
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1073");
+        Assert.NotNull(error);
+        Assert.Contains("IFoo", error.Message);
+        Assert.Contains("public", error.Message);
+    }
+
+    [Fact]
+    public void PublicAccessors_OnInterface_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N {
+                interface IFoo {
+                    String Name { get; set; };
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code is "MIDL1072" or "MIDL1073");
+    }
+
+    [Fact]
+    public void ReadOnlyProperty_NoShorthandHint()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                interface IFoo {
+                    Single X { get; };
+                }
+            }
+            """);
+
+        // get-only property should NOT suggest shorthand (shorthand means get+set)
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3016");
+    }
+
+    [Fact]
+    public void ProtectedProperty_OnRuntimeClass_NoAccessorError()
+    {
+        // protected on the whole property is valid on unsealed runtimeclass
+        var compilation = CompilationHelper.Compile("""
+            namespace N {
+                unsealed runtimeclass Foo {
+                    Foo();
+                    protected String Name { get; set; };
+                }
+            }
+            """);
+
+        // No MIDL1072 (per-accessor) — protected is on the property itself, not individual accessors
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1072");
+    }
+
+    #endregion
 
     #region Code Quality Hints (MIDL3xxx)
 
