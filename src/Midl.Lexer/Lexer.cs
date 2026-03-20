@@ -96,6 +96,10 @@ public sealed class Lexer
                     trivia.Add(ScanEndOfLine());
                 break;
             }
+            else if (ch == '/' && _window.PeekChar(1) == '*')
+            {
+                trivia.Add(ScanMultiLineComment());
+            }
             else if (ch == '\r' || ch == '\n')
             {
                 trivia.Add(ScanEndOfLine());

@@ -161,7 +161,8 @@ public class PreprocessorTests
     {
         var pp = new Preprocessor();
         var result = pp.Process("#include \"nonexistent.h\"");
-        Assert.Contains("not found", result);
+        // Unresolved #include should produce empty output (directive consumed)
+        Assert.DoesNotContain("nonexistent", result);
     }
 
     [Fact]
@@ -222,7 +223,9 @@ public class PreprocessorTests
     {
         var pp = new Preprocessor();
         var result = pp.Process("#pragma warning(disable: 4001)");
-        Assert.Contains("/* #pragma warning(disable: 4001) */", result);
+        // Unknown pragmas are consumed (directive dropped), not injected as comments
+        Assert.DoesNotContain("#pragma", result);
+        Assert.DoesNotContain("/*", result);
     }
 
     [Fact]

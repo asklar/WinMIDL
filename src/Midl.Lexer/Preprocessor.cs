@@ -220,11 +220,8 @@ public class Preprocessor
                         break;
 
                     default:
-                        // Unknown directive — pass through as comment
-                        if (IsActive(ifStack))
-                            output.AppendLine($"/* {trimmed} */");
-                        else
-                            output.AppendLine();
+                        // Unknown directive — drop silently (preserve line count)
+                        output.AppendLine();
                         break;
                 }
             }
@@ -357,7 +354,7 @@ public class Preprocessor
 
         var resolved = ResolveIncludePath(path, parentFilePath);
         if (resolved == null)
-            return $"/* #include \"{path}\" not found */\n";
+            return "\n";
 
         var fullPath = Path.GetFullPath(resolved);
 
@@ -367,21 +364,20 @@ public class Preprocessor
 
         // Infinite recursion check
         if (_includeStack.Contains(fullPath))
-            return $"/* #include \"{path}\" skipped (recursive) */\n";
+            return "\n";
 
         _includeStack.Add(fullPath);
         try
         {
             var content = File.ReadAllText(resolved);
             var processed = ProcessInternal(content, resolved);
-            // Ensure it ends with a newline for proper concatenation
             if (!processed.EndsWith('\n'))
                 return processed + "\n";
             return processed;
         }
         catch
         {
-            return $"/* #include \"{path}\" not found */\n";
+            return "\n";
         }
         finally
         {
@@ -400,8 +396,8 @@ public class Preprocessor
         }
         else
         {
-            // Pass through other pragmas as comments
-            output.AppendLine($"/* #pragma {trimmed} */");
+            // Unknown pragma — drop the directive line
+            output.AppendLine();
         }
     }
 
