@@ -269,6 +269,70 @@ public class SemanticValidationTests
         Assert.Equal(DiagnosticSeverity.Error, diag.Severity);
     }
 
+    #region Enum Value Validation
+
+    [Fact]
+    public void EnumValue_FloatLiteral_Error()
+    {
+        var compilation = CompilationHelper.Compile("namespace N { enum E { A = 1.5 }; }");
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1067");
+        Assert.NotNull(error);
+        Assert.Contains("1.5", error.Message);
+        Assert.Contains("integer literal", error.Message);
+    }
+
+    [Fact]
+    public void EnumValue_StringLiteral_Error()
+    {
+        var compilation = CompilationHelper.Compile("""namespace N { enum E { A = "hello" }; }""");
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1067");
+        Assert.NotNull(error);
+        Assert.Contains("hello", error.Message);
+    }
+
+    [Fact]
+    public void EnumValue_NegativeInInt32_Valid()
+    {
+        var compilation = CompilationHelper.Compile("namespace N { enum E { A = -1 }; }");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code is "MIDL1067" or "MIDL1068");
+    }
+
+    [Fact]
+    public void EnumValue_NegativeInFlagsUInt32_OutOfRange()
+    {
+        var compilation = CompilationHelper.Compile("namespace N { [flags] enum E { A = -1, B = 2 }; }");
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1068");
+        Assert.NotNull(error);
+        Assert.Contains("-1", error.Message);
+        Assert.Contains("UInt32", error.Message);
+    }
+
+    [Fact]
+    public void EnumValue_ExceedsInt32Max_OutOfRange()
+    {
+        var compilation = CompilationHelper.Compile("namespace N { enum E { A = 3000000000 }; }");
+        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1068");
+        Assert.NotNull(error);
+        Assert.Contains("3000000000", error.Message);
+        Assert.Contains("Int32", error.Message);
+    }
+
+    [Fact]
+    public void EnumValue_FlagsHex_Valid()
+    {
+        var compilation = CompilationHelper.Compile("namespace N { [flags] enum E { A = 0xFFFFFFFF }; }");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code is "MIDL1067" or "MIDL1068");
+    }
+
+    [Fact]
+    public void EnumValue_FlagsValid_NoErrors()
+    {
+        var compilation = CompilationHelper.Compile("namespace N { [flags] enum E { A = 1, B = 2, C = 4 }; }");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code is "MIDL1067" or "MIDL1068");
+    }
+
+    #endregion
+
     #region Code Quality Hints (MIDL3xxx)
 
     private static Compilation CompileWithQualityHints(string source)

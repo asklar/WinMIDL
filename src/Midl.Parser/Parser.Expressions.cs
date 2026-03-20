@@ -47,6 +47,7 @@ public sealed partial class Parser
         switch (Current.Kind)
         {
             case SyntaxKind.NumericLiteralToken:
+            case SyntaxKind.FloatLiteralToken:
                 return MakeNode(SyntaxKind.NumericLiteralExpression, EatToken());
 
             case SyntaxKind.StringLiteralToken:

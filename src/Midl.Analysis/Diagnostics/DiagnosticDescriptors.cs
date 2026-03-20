@@ -317,6 +317,18 @@ public static class DiagnosticDescriptors
             $"Attribute '{attrName}' argument {argIndex + 1} ('{fieldName}'): value {value} is out of range for {fieldType} (valid: {validRange})",
             position, Math.Max(attrName.Length, 1));
 
+    // Enum value must be integer (MIDL1067)
+    public static Diagnostic EnumValueNotInteger(string memberName, string enumName, string valueText, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1067",
+            $"Enum member '{memberName}' in '{enumName}': value '{valueText}' must be an integer literal",
+            position, Math.Max(valueText.Length, 1));
+
+    // Enum value out of range (MIDL1068)
+    public static Diagnostic EnumValueOutOfRange(string memberName, string enumName, string valueText, string underlyingType, string validRange, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1068",
+            $"Enum member '{memberName}' in '{enumName}': value {valueText} is out of range for {underlyingType} (valid: {validRange})",
+            position, Math.Max(valueText.Length, 1));
+
     // ─── Code Quality Hints (MIDL3001+) ─────────────────────────────
 
     public static Diagnostic InterfaceNamingConvention(string name, int position) =>

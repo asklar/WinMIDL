@@ -793,6 +793,8 @@ public class Binder
         if (enumAttrList != null && HasAttribute(enumAttrList, "flags"))
         {
             symbol.IsFlags = true;
+            // Per WinRT spec: [flags] enums have UInt32 underlying type
+            symbol.UnderlyingType = "UInt32";
         }
 
         // Extract all attributes on the enum
@@ -826,6 +828,9 @@ public class Binder
 
                     var member = new EnumMemberSymbol(memberName, symbol);
 
+                    // Extract explicit value (Name = expr)
+                    ExtractEnumMemberValue(child, member, symbol);
+
                     // Extract attributes on enum member
                     var memberAttrList = FindChild(child, SyntaxKind.AttributeList);
                     if (memberAttrList != null)
@@ -838,6 +843,82 @@ public class Binder
                     symbol.AddMember(member);
                 }
             }
+        }
+    }
+
+    private void ExtractEnumMemberValue(GreenNode memberNode, EnumMemberSymbol member, EnumSymbol parentEnum)
+    {
+        int eqIdx = FindSlotIndex(memberNode, SyntaxKind.EqualsToken);
+        if (eqIdx < 0) return;
+
+        for (int j = eqIdx + 1; j < memberNode.SlotCount; j++)
+        {
+            var valSlot = memberNode.GetSlot(j);
+            if (valSlot == null) continue;
+            if (valSlot is SyntaxToken { Kind: SyntaxKind.CommaToken }) break;
+
+            // Unwrap expression nodes to find the actual token
+            var token = FindFirstToken(valSlot);
+            if (token == null) break;
+
+            member.ExplicitValueText = token.Text;
+
+            if (token.Kind == SyntaxKind.NumericLiteralToken)
+            {
+                long v = 0;
+                bool parsed = false;
+                var txt = token.Text;
+                bool neg = txt.StartsWith('-');
+                var s = neg ? txt.AsSpan(1) : txt.AsSpan();
+                if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase) &&
+                    long.TryParse(s[2..], System.Globalization.NumberStyles.HexNumber, null, out v))
+                { if (neg) v = -v; parsed = true; }
+                else if (long.TryParse(txt, out v))
+                { parsed = true; }
+
+                if (parsed)
+                {
+                    member.ExplicitValue = v;
+                    ValidateEnumValueRange(v, txt, member.Name, parentEnum);
+                }
+            }
+            else if (token.Kind is SyntaxKind.FloatLiteralToken or SyntaxKind.StringLiteralToken)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.EnumValueNotInteger(
+                    member.Name, parentEnum.Name, token.Text, _posMap.GetPositionOf(token.Text)));
+            }
+            break;
+        }
+    }
+
+    private static SyntaxToken? FindFirstToken(GreenNode node)
+    {
+        if (node is SyntaxToken t) return t;
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot == null) continue;
+            var result = FindFirstToken(slot);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    private void ValidateEnumValueRange(long value, string valueText, string memberName, EnumSymbol parentEnum)
+    {
+        if (parentEnum.UnderlyingType == "UInt32")
+        {
+            if (value < 0 || value > uint.MaxValue)
+                _diagnostics.Add(DiagnosticDescriptors.EnumValueOutOfRange(
+                    memberName, parentEnum.Name, valueText, "UInt32", $"0..{uint.MaxValue}",
+                    _posMap.GetPositionOf(valueText)));
+        }
+        else
+        {
+            if (value < int.MinValue || value > int.MaxValue)
+                _diagnostics.Add(DiagnosticDescriptors.EnumValueOutOfRange(
+                    memberName, parentEnum.Name, valueText, "Int32", $"{int.MinValue}..{int.MaxValue}",
+                    _posMap.GetPositionOf(valueText)));
         }
     }
 
@@ -1815,6 +1896,11 @@ public class Binder
                     break;
                 case StructSymbol s when !s.IsExternal:
                     ValidateStructFieldTypes(s);
+                    break;
+                case EnumSymbol en when !en.IsExternal:
+                    if (en.IsFlags && en.UnderlyingType != "UInt32")
+                        _diagnostics.Add(DiagnosticDescriptors.FlagsEnumMustBeUInt32(
+                            en.Name, _posMap.GetPositionOf(en.Name)));
                     break;
                 case DelegateSymbol d when !d.IsExternal:
                     ValidateDelegateReturnType(d);

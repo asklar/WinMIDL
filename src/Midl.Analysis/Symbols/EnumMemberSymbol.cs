@@ -19,6 +19,11 @@ public class EnumMemberSymbol : ISymbol
     public string? ContractName { get; set; }
     public int? ContractVersion { get; set; }
 
+    /// <summary>Explicit value if assigned (e.g. A = 42). Null if auto-assigned.</summary>
+    public long? ExplicitValue { get; set; }
+    /// <summary>Raw text of the explicit value (for diagnostics).</summary>
+    public string? ExplicitValueText { get; set; }
+
     public EnumMemberSymbol(string name, ISymbol? containingSymbol)
     {
         Name = name;
