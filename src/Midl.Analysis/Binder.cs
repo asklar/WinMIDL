@@ -927,6 +927,9 @@ public class Binder
 
     private void ValidateEnumValueRange(long value, string valueText, string memberName, EnumSymbol parentEnum)
     {
+        // In compat mode, classic MIDL allows large enum values (e.g. 0x80000000 in COM enums)
+        if (_mode == CompilationMode.Compat) return;
+
         if (parentEnum.UnderlyingType == "UInt32")
         {
             if (value < 0 || value > uint.MaxValue)
