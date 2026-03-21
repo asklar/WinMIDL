@@ -27,6 +27,7 @@ public class WinMdEmitter
     internal TypeReferenceHandle SystemMulticastDelegateRef { get; private set; }
     internal TypeReferenceHandle SystemAttributeRef { get; private set; }
     internal TypeReferenceHandle SystemGuidRef { get; private set; }
+    internal TypeReferenceHandle EventRegistrationTokenRef { get; private set; }
 
     // Pre-computed TypeDef handles
     private readonly Dictionary<string, TypeDefinitionHandle> _typeDefHandles = new();
@@ -127,6 +128,17 @@ public class WinMdEmitter
         SystemMulticastDelegateRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemMulticastDelegate);
         SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
+
+        // EventRegistrationToken is in Windows.Foundation, referenced via a Windows assembly
+        var windowsRef = _metadata.AddAssemblyReference(
+            _metadata.GetOrAddString("Windows"),
+            new Version(255, 255, 255, 255),
+            default, default, default, default);
+        _externalAssemblyRefs["Windows"] = windowsRef;
+        EventRegistrationTokenRef = _metadata.AddTypeReference(
+            windowsRef,
+            _metadata.GetOrAddString("Windows.Foundation"),
+            _metadata.GetOrAddString("EventRegistrationToken"));
 
         // 5. <Module> type (required first row)
         _metadata.AddTypeDefinition(
@@ -408,6 +420,17 @@ public class WinMdEmitter
         SystemMulticastDelegateRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemMulticastDelegate);
         SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
+
+        // EventRegistrationToken is in Windows.Foundation, referenced via a Windows assembly
+        var windowsRef2 = _metadata.AddAssemblyReference(
+            _metadata.GetOrAddString("Windows"),
+            new Version(255, 255, 255, 255),
+            default, default, default, default);
+        _externalAssemblyRefs["Windows"] = windowsRef2;
+        EventRegistrationTokenRef = _metadata.AddTypeReference(
+            windowsRef2,
+            _metadata.GetOrAddString("Windows.Foundation"),
+            _metadata.GetOrAddString("EventRegistrationToken"));
 
         // 5. <Module> type (required first row)
         _metadata.AddTypeDefinition(

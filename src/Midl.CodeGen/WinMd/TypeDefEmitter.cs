@@ -146,9 +146,9 @@ internal class TypeDefEmitter
                 M.GetOrAddBlob(enumFieldSig));
 
             if (isFlags)
-                M.AddConstant(fieldHandle, (uint)i);
+                M.AddConstant(fieldHandle, member.ExplicitValue.HasValue ? (uint)member.ExplicitValue.Value : (uint)i);
             else
-                M.AddConstant(fieldHandle, i);
+                M.AddConstant(fieldHandle, member.ExplicitValue.HasValue ? (int)member.ExplicitValue.Value : i);
 
             _emitter.IncrementFieldRow();
         }
@@ -495,7 +495,7 @@ internal class TypeDefEmitter
         }
 
         // ActivatableAttribute
-        uint attrVersion = symbol.Version != null ? (uint)symbol.Version.Value : 0x00010000;
+        uint attrVersion = symbol.Version != null ? (uint)(symbol.Version.Value << 16) : 0x00010000;
         if (symbol.Members.Any(m => m is ConstructorSymbol) || symbol.HasDefaultActivation)
             _attrs.AddActivatableAttribute(typeDef, attrVersion);
 
@@ -540,7 +540,7 @@ internal class TypeDefEmitter
         if (symbol.ContractName != null && symbol.ContractVersion != null)
             _attrs.AddContractVersionAttribute(typeDef, symbol.ContractName, (uint)symbol.ContractVersion.Value);
 
-        _attrs.AddVersionAttribute(typeDef);
+        _attrs.AddVersionAttribute(typeDef, attrVersion);
     }
 
     private void EmitConstructor(ConstructorSymbol ctor, bool isUnsealed)
@@ -908,7 +908,12 @@ internal class TypeDefEmitter
         bool first = true;
         foreach (var (evt, adder, remover) in events)
         {
-            var eventType = _emitter.ResolveTypeHandle(evt.DelegateType);
+            EntityHandle eventType;
+            if (evt.DelegateType.TypeArguments.Count > 0)
+                eventType = ResolveGenericTypeHandle(evt.DelegateType);
+            else
+                eventType = _emitter.ResolveTypeHandle(evt.DelegateType);
+
             var eventHandle = M.AddEvent(
                 EventAttributes.None,
                 M.GetOrAddString(evt.Name),
@@ -923,6 +928,38 @@ internal class TypeDefEmitter
             M.AddMethodSemantics(eventHandle, MethodSemanticsAttributes.Adder, adder);
             M.AddMethodSemantics(eventHandle, MethodSemanticsAttributes.Remover, remover);
         }
+    }
+
+    /// <summary>
+    /// Resolves a generic type reference to a TypeSpec handle encoding the generic instantiation.
+    /// </summary>
+    private EntityHandle ResolveGenericTypeHandle(TypeRef typeRef)
+    {
+        if (typeRef.ResolvedSymbol == null)
+            return default;
+
+        var genTypeHandle = _emitter.ResolveSymbolHandle(typeRef.ResolvedSymbol);
+        if (genTypeHandle.IsNil)
+            return default;
+
+        bool isValueType = typeRef.ResolvedSymbol is EnumSymbol or StructSymbol;
+        var typeSpecSig = new BlobBuilder();
+        var typeSpecEncoder = new BlobEncoder(typeSpecSig).TypeSpecificationSignature();
+        var genInstEncoder = typeSpecEncoder.GenericInstantiation(genTypeHandle, typeRef.TypeArguments.Count, isValueType);
+        foreach (var arg in typeRef.TypeArguments)
+        {
+            genInstEncoder.AddArgument().FromTypeRef(arg, _emitter);
+        }
+
+        return M.AddTypeSpecification(M.GetOrAddBlob(typeSpecSig));
+    }
+
+    /// <summary>
+    /// Encodes a generic type reference into a SignatureTypeEncoder (for method signatures).
+    /// </summary>
+    private void EncodeGenericTypeRef(SignatureTypeEncoder encoder, TypeRef typeRef)
+    {
+        encoder.FromTypeRef(typeRef, _emitter);
     }
 
     #endregion
@@ -1006,17 +1043,22 @@ internal class TypeDefEmitter
         var blob = new BlobBuilder();
         if (isAdd)
         {
-            // add: takes delegate handler, returns void
+            // add: takes delegate handler, returns EventRegistrationToken
             new BlobEncoder(blob)
                 .MethodSignature()
                 .Parameters(1,
-                    ret => ret.Void(),
+                    ret => ret.Type().Type(_emitter.EventRegistrationTokenRef, isValueType: true),
                     p =>
                     {
                         var typeEnc = p.AddParameter().Type();
                         var handle = _emitter.ResolveTypeHandle(evt.DelegateType);
                         if (!handle.IsNil)
-                            typeEnc.Type(handle, isValueType: false);
+                        {
+                            if (evt.DelegateType.TypeArguments.Count > 0)
+                                EncodeGenericTypeRef(typeEnc, evt.DelegateType);
+                            else
+                                typeEnc.Type(handle, isValueType: false);
+                        }
                         else
                             typeEnc.Object();
                     });
@@ -1028,7 +1070,7 @@ internal class TypeDefEmitter
                 .MethodSignature()
                 .Parameters(1,
                     ret => ret.Void(),
-                    p => p.AddParameter().Type().Int64()); // simplified: use Int64 for token
+                    p => p.AddParameter().Type().Type(_emitter.EventRegistrationTokenRef, isValueType: true));
         }
         return blob;
     }
@@ -1090,14 +1132,34 @@ internal class TypeDefEmitter
 
     private static Guid GenerateDeterministicGuid(string name)
     {
-        // Simple deterministic GUID from name (namespace-based UUID v5 approach simplified)
-        var bytes = System.Text.Encoding.UTF8.GetBytes(name);
-        var hash = System.Security.Cryptography.SHA256.HashData(bytes);
-        var guidBytes = new byte[16];
-        Array.Copy(hash, guidBytes, 16);
-        guidBytes[7] = (byte)((guidBytes[7] & 0x0F) | 0x50); // version 5
-        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80); // variant
-        return new Guid(guidBytes);
+        // WinRT UUID v5 algorithm with base UUID {11f47ad5-7b73-42c0-abae-878b1e16adee}
+        byte[] baseUuid = {
+            0x11, 0xf4, 0x7a, 0xd5,
+            0x7b, 0x73,
+            0x42, 0xc0,
+            0xab, 0xae,
+            0x87, 0x8b, 0x1e, 0x16, 0xad, 0xee
+        };
+
+        var nameBytes = System.Text.Encoding.UTF8.GetBytes(name);
+        var input = new byte[baseUuid.Length + nameBytes.Length];
+        Array.Copy(baseUuid, input, baseUuid.Length);
+        Array.Copy(nameBytes, 0, input, baseUuid.Length, nameBytes.Length);
+
+        var hash = System.Security.Cryptography.SHA1.HashData(input);
+
+        // Set version 5 (byte 6, high nibble)
+        hash[6] = (byte)((hash[6] & 0x0F) | 0x50);
+        // Set variant RFC 4122 (byte 8, high 2 bits)
+        hash[8] = (byte)((hash[8] & 0x3F) | 0x80);
+
+        // Convert from big-endian UUID to .NET Guid
+        int a = (hash[0] << 24) | (hash[1] << 16) | (hash[2] << 8) | hash[3];
+        short b = (short)((hash[4] << 8) | hash[5]);
+        short c = (short)((hash[6] << 8) | hash[7]);
+        byte[] d = { hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15] };
+
+        return new Guid(a, b, c, d);
     }
 
     #endregion
@@ -1164,15 +1226,11 @@ internal static class SignatureTypeEncoderExtensions
             return;
         }
 
-        var typeSpecSig = new BlobBuilder();
-        var typeSpecEncoder = new BlobEncoder(typeSpecSig).TypeSpecificationSignature();
-        var genInstEncoder = typeSpecEncoder.GenericInstantiation(genTypeHandle, typeRef.TypeArguments.Count, isValueType);
+        // Write generic instantiation inline in the signature using GenericInstantiation encoder
+        var genInstEncoder = encoder.GenericInstantiation(genTypeHandle, typeRef.TypeArguments.Count, isValueType);
         foreach (var arg in typeRef.TypeArguments)
         {
             genInstEncoder.AddArgument().FromTypeRef(arg, emitter);
         }
-
-        var typeSpecHandle = emitter.Metadata.AddTypeSpecification(emitter.Metadata.GetOrAddBlob(typeSpecSig));
-        encoder.Type(typeSpecHandle, isValueType);
     }
 }
