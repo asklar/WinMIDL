@@ -356,8 +356,6 @@ public sealed class MidlLanguageServer
         {
             MidlTrace.Lsp($"Analyzing {uri} ({text.Length} chars)");
             _lastAnalyzedHash[uri] = hash;
-            var preprocessor = new Midl.Lexer.Preprocessor();
-            var preprocessed = preprocessor.Process(text);
 
             // Resolve the file path for cross-file context
             string? filePath = null;
@@ -368,8 +366,8 @@ public sealed class MidlLanguageServer
             var includePaths = GetIncludePaths(filePath);
             var defines = _projectFile?.Defines;
 
-            // Compile with cross-file context: sibling IDL files are compiled as imports
-            var compilation = CompilationHelper.Compile(preprocessed, references, _compilationMode,
+            // CompilationHelper handles preprocessing internally — pass raw source text
+            var compilation = CompilationHelper.Compile(text, references, _compilationMode,
                 includePaths, filePath,
                 defines: defines,
                 emitQualityHints: _enableQualityHints);
