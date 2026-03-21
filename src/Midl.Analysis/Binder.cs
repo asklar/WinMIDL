@@ -1370,7 +1370,7 @@ public class Binder
             {
                 var inner = node.GetSlot(0);
                 if (inner is SyntaxToken tok)
-                    return new TypeRef(tok.Text) { Position = _posMap.GetPositionOf(tok.Text) };
+                    return new TypeRef(tok.Text) { Position = GetNodePosition(node) };
                 if (inner != null)
                     return ExtractTypeRef(inner);
                 return TypeRef.Unknown;
@@ -1381,7 +1381,7 @@ public class Binder
                 var nameToken = node.GetSlot(0) as SyntaxToken;
                 var typeArgList = node.GetSlot(1);
                 var typeArgs = ExtractTypeArguments(typeArgList);
-                return new TypeRef(nameToken?.Text ?? "", typeArgs) { Position = _posMap.GetPositionOf(nameToken?.Text ?? "") };
+                return new TypeRef(nameToken?.Text ?? "", typeArgs) { Position = GetNodePosition(node) };
             }
 
             case SyntaxKind.QualifiedName:
@@ -1400,7 +1400,7 @@ public class Binder
 
             default:
                 if (node is SyntaxToken t)
-                    return new TypeRef(t.Text) { Position = _posMap.GetPositionOf(t.Text) };
+                    return new TypeRef(t.Text) { Position = GetNodePosition(node) };
                 return TypeRef.Unknown;
         }
     }
@@ -1425,7 +1425,24 @@ public class Binder
             }
         }
 
-        return new TypeRef(string.Join(".", parts), typeArgs ?? []) { Position = _posMap.GetPositionOf(parts.FirstOrDefault() ?? "") };
+        return new TypeRef(string.Join(".", parts), typeArgs ?? []) { Position = GetNodePosition(node) };
+    }
+
+    /// <summary>Get accurate source position for a green node using tree offset.</summary>
+    private int GetNodePosition(GreenNode node)
+    {
+        var offset = AttributeExtractor.FindNodeOffset(_root, node);
+        if (offset.HasValue)
+        {
+            // Skip leading trivia to get to the actual text
+            var firstToken = FindFirstToken(node);
+            if (firstToken != null)
+                return offset.Value + firstToken.LeadingTrivia.Sum(t => t.FullWidth);
+            return offset.Value;
+        }
+        // Fallback to text-based lookup
+        var token = FindFirstToken(node);
+        return token != null ? _posMap.GetPositionOf(token.Text) : 0;
     }
 
     private List<TypeRef> ExtractTypeArguments(GreenNode? typeArgList)
