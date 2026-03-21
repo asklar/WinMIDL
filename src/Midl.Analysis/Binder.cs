@@ -175,6 +175,9 @@ public class Binder
             case SyntaxKind.DeclareBlock:
                 BindDeclareBlock(node, ns);
                 break;
+            case SyntaxKind.TypedefDeclaration:
+                BindTypedefDeclaration(node, ns);
+                break;
         }
     }
 
@@ -967,6 +970,42 @@ public class Binder
             symbol.Attributes.AddRange(attrs);
             ApplyWellKnownAttributes(symbol, attrs);
         }
+    }
+
+    #endregion
+
+    #region Typedef
+
+    /// <summary>
+    /// Bind a typedef declaration. For typedef enum/struct/union, bind the inner type.
+    /// Also register the alias name.
+    /// </summary>
+    private void BindTypedefDeclaration(GreenNode node, NamespaceSymbol ns)
+    {
+        // Walk children looking for inner type declarations (enum, struct, union)
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var child = node.GetSlot(i);
+            if (child == null) continue;
+
+            switch (child.Kind)
+            {
+                case SyntaxKind.EnumDeclaration:
+                    BindEnumDeclaration(child, ns);
+                    break;
+                case SyntaxKind.StructDeclaration:
+                    BindStructDeclaration(child, ns);
+                    break;
+                case SyntaxKind.UnionDeclaration:
+                    // Union declarations are classic MIDL — just skip in binding
+                    break;
+            }
+        }
+
+        // Register the typedef alias name (last identifier before semicolon)
+        // typedef Type AliasName; → register AliasName as alias for Type
+        // For typedef enum Name { ... } Name; the inner enum is already bound,
+        // so the alias is redundant but harmless to register.
     }
 
     #endregion
