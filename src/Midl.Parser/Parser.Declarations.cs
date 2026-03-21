@@ -88,6 +88,7 @@ public sealed partial class Parser
             SyntaxKind.AttributeKeyword => ParseAttributeDeclaration(attrNode),
             SyntaxKind.DeclareKeyword => ParseDeclareBlock(attrNode),
             SyntaxKind.ImportKeyword => ParseImportDirective(),
+#if WITH_COMPAT
             SyntaxKind.CoclassKeyword => ParseCoclassDeclaration(attrNode),
             SyntaxKind.LibraryKeyword => ParseLibraryDeclaration(attrNode),
             SyntaxKind.TypedefKeyword => ParseTypedefDeclaration(attrNode),
@@ -97,6 +98,7 @@ public sealed partial class Parser
             // feature_name is a Velocity/Feature staging declaration (not a keyword)
             _ when Current.Kind == SyntaxKind.IdentifierToken && Current.Text == "feature_name"
                 => ParseFeatureNameDeclaration(),
+#endif
             _ => HandleUnexpectedDeclaration(attrNode, modNode)
         };
     }
@@ -117,6 +119,7 @@ public sealed partial class Parser
         return null;
     }
 
+#if WITH_COMPAT
     /// <summary>Parse: feature_name Name = {State, Value}; — Velocity/Feature staging declaration.</summary>
     private GreenNode ParseFeatureNameDeclaration()
     {
@@ -141,6 +144,7 @@ public sealed partial class Parser
 
         return MakeNode(SyntaxKind.DeclareBlock, children);
     }
+#endif
 
     /// <summary>Parse: declare { declarations... }</summary>
     private GreenNode ParseDeclareBlock(GreenNode? attributes)

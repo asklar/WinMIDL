@@ -135,6 +135,7 @@ public sealed partial class Parser
             SyntaxKind.CloseBraceToken,
             SyntaxKind.ImportKeyword,
             SyntaxKind.DeclareKeyword,
+#if WITH_COMPAT
             SyntaxKind.CoclassKeyword,
             SyntaxKind.LibraryKeyword,
             SyntaxKind.TypedefKeyword,
@@ -142,6 +143,7 @@ public sealed partial class Parser
             SyntaxKind.UnionKeyword,
             SyntaxKind.DispinterfaceKeyword,
             SyntaxKind.ImportlibKeyword,
+#endif
             SyntaxKind.EndOfFileToken);
     }
 
@@ -163,12 +165,16 @@ public sealed partial class Parser
             SyntaxKind.StaticKeyword,
             SyntaxKind.PartialKeyword,
             SyntaxKind.UnsealedKeyword,
+#if WITH_COMPAT
             SyntaxKind.CoclassKeyword,
             SyntaxKind.LibraryKeyword,
             SyntaxKind.TypedefKeyword,
             SyntaxKind.CppQuoteKeyword,
             SyntaxKind.UnionKeyword,
             SyntaxKind.DispinterfaceKeyword);
+#else
+            SyntaxKind.EndOfFileToken); // dummy terminator — never matches
+#endif
     }
 
     /// <summary>Check if a kind is a modifier keyword for class declarations.</summary>

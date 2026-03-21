@@ -30,8 +30,11 @@ public static class CompilationHelper
                                        IReadOnlyList<string>? includePaths,
                                        string? currentFilePath,
                                        IReadOnlyList<string>? defines = null,
-                                        bool emitQualityHints = false,
-                                        string? cppCmd = null)
+                                        bool emitQualityHints = false
+#if WITH_COMPAT
+                                        , string? cppCmd = null
+#endif
+                                        )
     {
         MidlTrace.Write("COMPILE", $"Compiling {source.Length} chars, mode={mode}, {referencePaths?.Count ?? 0} references");
 
@@ -83,7 +86,11 @@ public static class CompilationHelper
             importResolver.MarkImported(Path.GetFullPath(currentFilePath));
         var importedTrees = new List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)>();
         CollectImportedTrees(tree, importResolver, importedTrees, syntaxDiagnostics,
-            includePaths: includePaths, cppCmd: cppCmd);
+            includePaths: includePaths
+#if WITH_COMPAT
+            , cppCmd: cppCmd
+#endif
+            );
 
         var binder = new Binder(mode, emitQualityHints);
         var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders);
@@ -118,8 +125,11 @@ public static class CompilationHelper
         ImportResolver importResolver,
         List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)> importedTrees,
         List<Midl.Analysis.Diagnostics.Diagnostic> diagnostics,
-        IReadOnlyList<string>? includePaths = null,
-        string? cppCmd = null)
+        IReadOnlyList<string>? includePaths = null
+#if WITH_COMPAT
+        , string? cppCmd = null
+#endif
+        )
     {
         for (int i = 0; i < tree.SlotCount; i++)
         {
@@ -141,6 +151,7 @@ public static class CompilationHelper
 
             // Preprocess imported file — try external cl.exe first, fall back to built-in
             string importedSource;
+#if WITH_COMPAT
             if (cppCmd != null)
             {
                 var externalResult = Midl.Lexer.Preprocessor.ProcessWithExternalCpp(
@@ -153,6 +164,7 @@ public static class CompilationHelper
                 }
             }
             else
+#endif
             {
                 importedSource = File.ReadAllText(resolved);
                 var pp = new Midl.Lexer.Preprocessor(null, includePaths, resolved);
@@ -169,7 +181,11 @@ public static class CompilationHelper
             // Recursively collect transitive imports
             var childResolver = importResolver.CreateChildResolver(resolved);
             CollectImportedTrees(importedTree, childResolver, importedTrees, diagnostics,
-                includePaths: includePaths, cppCmd: cppCmd);
+                includePaths: includePaths
+#if WITH_COMPAT
+                , cppCmd: cppCmd
+#endif
+                );
         }
     }
 

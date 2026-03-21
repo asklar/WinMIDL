@@ -37,12 +37,14 @@ public static class KeywordTable
         ["event"] = SyntaxKind.EventKeyword,
         ["import"] = SyntaxKind.ImportKeyword,
         ["declare"] = SyntaxKind.DeclareKeyword,
+#if WITH_COMPAT
         ["coclass"] = SyntaxKind.CoclassKeyword,
         ["library"] = SyntaxKind.LibraryKeyword,
         ["module"] = SyntaxKind.ModuleKeyword,
         ["typedef"] = SyntaxKind.TypedefKeyword,
         ["union"] = SyntaxKind.UnionKeyword,
         ["dispinterface"] = SyntaxKind.DispinterfaceKeyword,
+#endif
         ["contract"] = SyntaxKind.ContractKeyword,
 
         // Modifier keywords
@@ -69,6 +71,7 @@ public static class KeywordTable
         ["SAFEARRAY"] = SyntaxKind.SafeArrayKeyword,
         ["pipe"] = SyntaxKind.PipeKeyword,
         ["HRESULT"] = SyntaxKind.HResultKeyword,
+#if WITH_COMPAT
         ["cpp_quote"] = SyntaxKind.CppQuoteKeyword,
         ["boolean"] = SyntaxKind.BooleanKeyword,
         ["byte"] = SyntaxKind.ByteKeyword,
@@ -85,6 +88,7 @@ public static class KeywordTable
         ["handle_t"] = SyntaxKind.HandleTKeyword,
         ["error_status_t"] = SyntaxKind.ErrorStatusTKeyword,
         ["importlib"] = SyntaxKind.ImportlibKeyword,
+#endif
         ["in"] = SyntaxKind.InKeyword,
         ["retval"] = SyntaxKind.RetvalKeyword,
         ["char"] = SyntaxKind.CharKeyword,

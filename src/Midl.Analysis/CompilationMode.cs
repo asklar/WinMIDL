@@ -11,9 +11,11 @@ public enum CompilationMode
     /// </summary>
     Strict,
 
+#if WITH_COMPAT
     /// <summary>
     /// Compatibility mode. Accepts both MIDL3 and classic MIDL/MIDLRT syntax.
     /// Use for existing codebases with mixed syntax.
     /// </summary>
     Compat
+#endif
 }

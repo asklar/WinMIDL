@@ -107,10 +107,12 @@ public class Binder
     private void BindDeclaration(GreenNode node, NamespaceSymbol ns)
     {
         // Strict mode: warn on classic MIDL constructs
+#if WITH_COMPAT
         if (_mode == CompilationMode.Strict)
         {
             CheckStrictModeViolation(node);
         }
+#endif
 
         // WinRT namespace requirements (varies by type and mode)
         if (ns.Name == "" && IsTypeDeclaration(node.Kind))
@@ -127,8 +129,12 @@ public class Binder
                     or SyntaxKind.ApiContractDeclaration;
 
                 // In strict mode, everything requires a namespace
+#if WITH_COMPAT
                 if (_mode == CompilationMode.Strict)
                     requiresNamespace = true;
+#else
+                requiresNamespace = true;
+#endif
 
                 if (requiresNamespace)
                 {
@@ -175,9 +181,11 @@ public class Binder
             case SyntaxKind.DeclareBlock:
                 BindDeclareBlock(node, ns);
                 break;
+#if WITH_COMPAT
             case SyntaxKind.TypedefDeclaration:
                 BindTypedefDeclaration(node, ns);
                 break;
+#endif
         }
     }
 
@@ -934,7 +942,9 @@ public class Binder
     private void ValidateEnumValueRange(long value, string valueText, string memberName, EnumSymbol parentEnum)
     {
         // In compat mode, classic MIDL allows large enum values (e.g. 0x80000000 in COM enums)
+#if WITH_COMPAT
         if (_mode == CompilationMode.Compat) return;
+#endif
 
         if (parentEnum.UnderlyingType == "UInt32")
         {
@@ -984,6 +994,7 @@ public class Binder
 
     #endregion
 
+#if WITH_COMPAT
     #region Typedef
 
     /// <summary>
@@ -1069,6 +1080,7 @@ public class Binder
     }
 
     #endregion
+#endif
 
     #region DeclareBlock
 
@@ -1221,6 +1233,7 @@ public class Binder
             // No explicit accessors means public get+set (shorthand)
             symbol.HasGetter = true;
             symbol.HasSetter = true;
+            symbol.IsShorthand = true;
         }
 
         return symbol;
@@ -1518,6 +1531,7 @@ public class Binder
 
     #region Strict Mode Checks
 
+#if WITH_COMPAT
     private void CheckStrictModeViolation(GreenNode node)
     {
         switch (node.Kind)
@@ -1548,6 +1562,7 @@ public class Binder
                 break;
         }
     }
+#endif
 
     private int FindKeywordPosition(GreenNode node, SyntaxKind keywordKind)
     {
@@ -2303,7 +2318,11 @@ public class Binder
     private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, _posMap.GetPositionOf(param.Name))); if (param.IsArray && param.Type.TypeArguments.Count > 0 && param.Type.TypeArguments.Any(a => a.IsArray)) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, _posMap.GetPositionOf(param.Name))); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
     private static readonly HashSet<string> COnlyTypes = new(StringComparer.Ordinal) { "wchar_t","handle_t","error_status_t" };
     private void CheckWinRtTypeCompatibility(TypeRef typeRef) { if (typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return; if (COnlyTypes.Contains(typeRef.Name)) _diagnostics.Add(DiagnosticDescriptors.WinRtTypeNotAllowed(typeRef.Name, typeRef.Position)); }
-    private void ValidateDelegateReturnType(DelegateSymbol d) { if (d.ReturnType.Name is "void" or "Void") return; if (_mode == CompilationMode.Compat && d.ReturnType.Name is "HRESULT") return; _diagnostics.Add(DiagnosticDescriptors.DelegateReturnMustBeVoid(d.Name, d.ReturnType.DisplayName, _posMap.GetPositionOf(d.Name))); }
+    private void ValidateDelegateReturnType(DelegateSymbol d) { if (d.ReturnType.Name is "void" or "Void") return;
+#if WITH_COMPAT
+        if (_mode == CompilationMode.Compat && d.ReturnType.Name is "HRESULT") return;
+#endif
+        _diagnostics.Add(DiagnosticDescriptors.DelegateReturnMustBeVoid(d.Name, d.ReturnType.DisplayName, _posMap.GetPositionOf(d.Name))); }
     private void ValidateInterfaceMemberNameUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal); foreach (var member in iface.Members) { var name = member.Name; if (string.IsNullOrEmpty(name)) continue; if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup)) continue; if (seen.TryGetValue(name, out var existing)) { if (existing is MethodSymbol em && !string.IsNullOrEmpty(em.OverloadGroup)) continue; _diagnostics.Add(DiagnosticDescriptors.InterfaceMemberNameCollision(name, iface.Name, _posMap.GetPositionOf(name))); } else seen[name] = member; } }
     private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; var dc = ms.Count(m => m.IsDefaultOverload); if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOf(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOf(k.Item1))); } }
     private void ValidateDeprecatedInheritance(RuntimeClassSymbol rc) { if (rc.BaseClass?.ResolvedSymbol is not RuntimeClassSymbol baseRc) return; if (string.IsNullOrEmpty(baseRc.DeprecatedMessage)) return; if (!string.IsNullOrEmpty(rc.DeprecatedMessage)) return; _diagnostics.Add(DiagnosticDescriptors.DeprecatedBaseClassInheritance(rc.Name, baseRc.Name, _posMap.GetPositionOf(rc.Name))); }
@@ -2442,10 +2461,10 @@ public class Binder
                 iface.Name, _posMap.GetPositionOf(iface.Name)));
         }
 
-        // MIDL3016: Get+set property can use shorthand
+        // MIDL3016: Get+set property can use shorthand (skip if already shorthand)
         foreach (var prop in iface.Members.OfType<PropertySymbol>())
         {
-            if (prop.HasGetter && prop.HasSetter &&
+            if (prop.HasGetter && prop.HasSetter && !prop.IsShorthand &&
                 !prop.IsGetterProtected && !prop.IsSetterProtected)
             {
                 _diagnostics.Add(DiagnosticDescriptors.PropertyCanUseShorthand(
@@ -2510,7 +2529,7 @@ public class Binder
                 _diagnostics.Add(DiagnosticDescriptors.PropertySetterOnly(
                     prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));
             }
-            else if (prop.HasGetter && prop.HasSetter &&
+            else if (prop.HasGetter && prop.HasSetter && !prop.IsShorthand &&
                      !prop.IsProtected && !prop.IsOverridable &&
                      !prop.IsGetterProtected && !prop.IsSetterProtected)
             {

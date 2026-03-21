@@ -1,3 +1,4 @@
+#if WITH_COMPAT
 using Midl.Syntax;
 
 namespace Midl.Parser;
@@ -249,3 +250,4 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.DispinterfaceDeclaration, children);
     }
 }
+#endif

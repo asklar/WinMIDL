@@ -415,6 +415,36 @@ public class SemanticValidationTests
     }
 
     [Fact]
+    public void ShorthandProperty_NoShorthandHint()
+    {
+        // Property already using shorthand (Single X;) should NOT suggest shorthand
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                interface IFoo {
+                    Single X;
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3016");
+    }
+
+    [Fact]
+    public void ExplicitGetSet_ShowsShorthandHint()
+    {
+        // Property with explicit { get; set; } SHOULD suggest shorthand
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                interface IFoo {
+                    Single X { get; set; };
+                }
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL3016");
+    }
+
+    [Fact]
     public void ProtectedProperty_OnRuntimeClass_NoAccessorError()
     {
         // protected on the whole property is valid on unsealed runtimeclass

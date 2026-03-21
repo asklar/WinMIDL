@@ -497,7 +497,9 @@ public class CompilationDriver
         _out.WriteLine("  /I <path>              Add include path");
         _out.WriteLine("  /U <name>              Undefine preprocessor symbol");
         _out.WriteLine("  /reference <file>      Add WinMD reference");
+#if WITH_COMPAT
         _out.WriteLine("  /cpp_cmd <command>     Specify C preprocessor command");
+#endif
         _out.WriteLine("  /cpp_opt <options>     Specify C preprocessor options");
         _out.WriteLine("  /no_cpp                Do not run C preprocessor");
         _out.WriteLine("  /env <target>          Target environment (win32|win64|x64|arm64)");
@@ -514,7 +516,9 @@ public class CompilationDriver
         _out.WriteLine("  /metadata_dir <dir>    Specify metadata directory");
         _out.WriteLine("  /nomidl                Do not invoke MIDL");
         _out.WriteLine("  /strict                Pure MIDL3 mode (default) — warn on classic constructs");
+#if WITH_COMPAT
         _out.WriteLine("  /no_strict, /compat    Compatibility mode — accept classic MIDL syntax");
+#endif
         _out.WriteLine("  /version               Print version");
         _out.WriteLine("  /?, /help              Show this help");
         _out.WriteLine("  --lsp                  Start Language Server Protocol mode");

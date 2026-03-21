@@ -13,7 +13,9 @@ public class CommandLineOptions
     public string? DllDataFile { get; set; }           // /dlldata
     public string? WinMdFile { get; set; }             // /winmd
     public string? AcfFile { get; set; }               // /acf
+#if WITH_COMPAT
     public string? CppCommand { get; set; }            // /cpp_cmd
+#endif
     public string? CppOptions { get; set; }            // /cpp_opt
     public bool NoCpp { get; set; }                    // /no_cpp
     public bool WinRtMode { get; set; }                // /winrt
@@ -182,12 +184,14 @@ public static class CommandLineParser
                     options.Errors.Add("Missing value for /acf");
                 return true;
 
+#if WITH_COMPAT
             case "cpp_cmd":
                 if (TryConsumeValue(args, ref i, out var cppCmd))
                     options.CppCommand = cppCmd;
                 else
                     options.Errors.Add("Missing value for /cpp_cmd");
                 return true;
+#endif
 
             case "cpp_opt":
                 if (TryConsumeValue(args, ref i, out var cppOpt))
@@ -333,11 +337,13 @@ public static class CommandLineParser
                 i++;
                 return true;
 
+#if WITH_COMPAT
             case "compat":
             case "no_strict":
                 options.Mode = Midl.Analysis.CompilationMode.Compat;
                 i++;
                 return true;
+#endif
 
             case "analyze":
                 options.AnalyzeMode = true;

@@ -75,6 +75,7 @@ public class Preprocessor
         return ProcessInternal(source, _currentFilePath);
     }
 
+#if WITH_COMPAT
     /// <summary>
     /// Preprocess a file using an external C preprocessor (e.g. cl.exe /E).
     /// This gives full C preprocessor semantics including #if expressions.
@@ -144,6 +145,7 @@ public class Preprocessor
             return null; // cl.exe not found or failed
         }
     }
+#endif
 
     private string ProcessInternal(string source, string? filePath)
     {

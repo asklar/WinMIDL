@@ -178,12 +178,16 @@ public sealed class MidlLanguageServer
                     if (initOpts.TryGetProperty("midl.strictMode", out var strictProp) &&
                         strictProp.ValueKind == JsonValueKind.False)
                     {
+#if WITH_COMPAT
                         _compilationMode = CompilationMode.Compat;
+#endif
                     }
                     else if (initOpts.TryGetProperty("strictMode", out var strictProp2) &&
                              strictProp2.ValueKind == JsonValueKind.False)
                     {
+#if WITH_COMPAT
                         _compilationMode = CompilationMode.Compat;
+#endif
                     }
 
                     if (initOpts.TryGetProperty("midl.codeQualityHints", out var qualityProp) &&

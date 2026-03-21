@@ -75,6 +75,7 @@ public static class BuiltInTypes
         symbolTable.RegisterAlias("EventRegistrationToken", "Windows.Foundation.EventRegistrationToken");
         symbolTable.RegisterAlias("Char", "Char16");
 
+#if WITH_COMPAT
         // 5. Win32 / C / MIDL2 type aliases (compat mode only)
         if (mode == CompilationMode.Compat)
         {
@@ -143,6 +144,7 @@ public static class BuiltInTypes
             symbolTable.RegisterAlias("small", "UInt8");
             symbolTable.RegisterAlias("unsigned", "UInt32");
         }
+#endif
 
         _detachedNamespaces = null;
     }
