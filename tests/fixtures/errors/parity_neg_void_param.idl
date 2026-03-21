@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    runtimeclass Widget
+    {
+        void Process(void x);
+    }
+}

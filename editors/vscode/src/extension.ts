@@ -144,6 +144,26 @@ function startLanguageServer(serverPath: string, context: vscode.ExtensionContex
         initializationOptions: {
             "midl.strictMode": config.get<boolean>('strictMode', true),
             "midl.codeQualityHints": config.get<boolean>('codeQualityHints', true)
+        },
+        middleware: {
+            provideDefinition: async (document, position, token, next) => {
+                const result = await next(document, position, token);
+                if (result && !Array.isArray(result) && 'uri' in result) {
+                    const loc = result as vscode.Location;
+                    const targetPath = loc.uri.fsPath;
+                    try {
+                        const stat = fs.statSync(targetPath);
+                        if (stat.isDirectory()) {
+                            // @ref: to a directory — reveal in OS file explorer
+                            vscode.commands.executeCommand('revealFileInOS', loc.uri);
+                            return null;
+                        }
+                    } catch {
+                        // File doesn't exist locally, fall through to default behavior
+                    }
+                }
+                return result;
+            }
         }
     };
 

@@ -1,0 +1,13 @@
+namespace TestApp
+{
+    enum MyStatus
+    {
+        Ok = 0,
+        Error = 1
+    };
+
+    runtimeclass BadClass : MyStatus
+    {
+        BadClass();
+    }
+}

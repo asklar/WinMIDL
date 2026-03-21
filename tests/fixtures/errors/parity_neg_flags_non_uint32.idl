@@ -1,0 +1,9 @@
+namespace TestApp
+{
+    [flags]
+    enum Permissions : Int64
+    {
+        Read = 1,
+        Write = 2,
+    };
+}

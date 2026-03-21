@@ -23,7 +23,7 @@ public class BinderTests
         var compilation = CompilationHelper.Compile("""
             namespace Foo
             {
-                runtimeclass Bar { }
+                [default_interface] runtimeclass Bar { }
             }
             """);
 
@@ -44,11 +44,11 @@ public class BinderTests
         var compilation = CompilationHelper.Compile("""
             namespace A.B
             {
-                runtimeclass X { }
+                [default_interface] runtimeclass X { }
             }
             namespace A.B.C
             {
-                runtimeclass Y { }
+                [default_interface] runtimeclass Y { }
             }
             """);
 
@@ -279,7 +279,7 @@ public class BinderTests
         var compilation = CompilationHelper.Compile("""
             namespace Windows.Foundation
             {
-                runtimeclass Uri { }
+                [default_interface] runtimeclass Uri { }
             }
             namespace MyApp
             {
@@ -363,8 +363,8 @@ public class BinderTests
         var compilation = CompilationHelper.Compile("""
             namespace TestApp
             {
-                runtimeclass Widget { }
-                runtimeclass Widget { }
+                [default_interface] runtimeclass Widget { }
+                [default_interface] runtimeclass Widget { }
             }
             """);
 

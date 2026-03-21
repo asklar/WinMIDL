@@ -1,0 +1,21 @@
+namespace TestApp.Parity
+{
+    static runtimeclass StaticService
+    {
+        static String GetVersion();
+        static Int32 ComputeHash(String input);
+        static Boolean IsSupported();
+        static void Initialize();
+        static void Shutdown();
+        static void Configure(String key, String value);
+        static Double ComputeRatio(Int32 numerator, Int32 denominator);
+
+        static String DefaultName { get; set; };
+        static Int32 InstanceCount { get; };
+        static Boolean Verbose { get; set; };
+        static Double Threshold { get; };
+
+        static event Windows.Foundation.EventHandler<Object> GlobalChanged;
+        static event Windows.Foundation.EventHandler<Int32> CountUpdated;
+    }
+}

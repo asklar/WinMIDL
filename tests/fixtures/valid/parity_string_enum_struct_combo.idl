@@ -1,0 +1,34 @@
+namespace TestApp.Parity
+{
+    enum ConnectionState
+    {
+        Disconnected = 0,
+        Connecting = 1,
+        Connected = 2,
+        Reconnecting = 3,
+        Failed = 4
+    };
+
+    struct ConnectionInfo
+    {
+        String Host;
+        Int32 Port;
+        Boolean Secure;
+        ConnectionState State;
+    };
+
+    delegate void ConnectionChangedHandler(ConnectionInfo info, ConnectionState oldState);
+
+    runtimeclass ConnectionManager
+    {
+        ConnectionManager();
+        ConnectionManager(String host, Int32 port);
+        Boolean IsConnected { get; };
+        ConnectionInfo GetInfo();
+        ConnectionState GetState();
+        void Connect(String host, Int32 port);
+        void Disconnect();
+        Windows.Foundation.IAsyncAction ConnectAsync(String host, Int32 port);
+        event ConnectionChangedHandler StateChanged;
+    }
+}

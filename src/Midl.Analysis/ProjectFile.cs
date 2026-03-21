@@ -122,12 +122,14 @@ public class ProjectFile
 /// <summary>
 /// Extracts // @ref: directives from IDL source text.
 /// These allow lightweight cross-file hints without a project file.
+/// Supports: file paths, directory paths, and quoted paths.
 /// </summary>
 public static class RefDirectiveParser
 {
     /// <summary>
     /// Parse // @ref: directives from source text.
-    /// Returns resolved absolute paths relative to the given base directory.
+    /// Returns resolved absolute paths (files or directories) relative to the given base directory.
+    /// Paths may be quoted with double quotes.
     /// </summary>
     public static List<string> ParseRefs(string source, string? baseDir)
     {
@@ -143,11 +145,16 @@ public static class RefDirectiveParser
             if (comment.StartsWith("@ref:", StringComparison.OrdinalIgnoreCase))
             {
                 var path = comment[5..].Trim();
+
+                // Strip surrounding quotes
+                if (path.Length >= 2 && path[0] == '"' && path[^1] == '"')
+                    path = path[1..^1].Trim();
+
                 if (!string.IsNullOrEmpty(path))
                 {
                     if (baseDir != null && !Path.IsPathRooted(path))
                         path = Path.GetFullPath(Path.Combine(baseDir, path));
-                    if (File.Exists(path))
+                    if (File.Exists(path) || Directory.Exists(path))
                         refs.Add(path);
                 }
             }
@@ -157,5 +164,48 @@ public static class RefDirectiveParser
                 break;
         }
         return refs;
+    }
+
+    /// <summary>
+    /// Given a directory path, find .winmd files that could contain a given namespace.
+    /// Tries: "Namespace.winmd", "Namespace.SubNs.winmd", walking up the namespace chain.
+    /// Also returns all .winmd files in the directory as fallback.
+    /// </summary>
+    public static List<string> ResolveWinMdsFromDirectory(string dirPath, string? targetNamespace = null)
+    {
+        var results = new List<string>();
+        if (!Directory.Exists(dirPath)) return results;
+
+        try
+        {
+            var allWinmds = Directory.GetFiles(dirPath, "*.winmd", SearchOption.TopDirectoryOnly);
+
+            // If we have a target namespace, try namespace-based matching first
+            if (!string.IsNullOrEmpty(targetNamespace))
+            {
+                var ns = targetNamespace;
+                while (!string.IsNullOrEmpty(ns))
+                {
+                    var candidate = Path.Combine(dirPath, ns + ".winmd");
+                    if (File.Exists(candidate) && !results.Contains(candidate))
+                        results.Add(candidate);
+                    var dot = ns.LastIndexOf('.');
+                    ns = dot >= 0 ? ns[..dot] : null;
+                }
+            }
+
+            // Fallback: add all .winmd files from the directory
+            foreach (var winmd in allWinmds)
+            {
+                if (!results.Contains(winmd))
+                    results.Add(winmd);
+            }
+        }
+        catch
+        {
+            // Ignore directory access errors
+        }
+
+        return results;
     }
 }

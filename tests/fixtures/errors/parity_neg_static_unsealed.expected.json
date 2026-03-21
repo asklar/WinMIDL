@@ -1,0 +1,7 @@
+{
+    "diagnostics": [
+        {"code": "MIDL1061", "severity": "Error", "messageContains": "cannot be both"}
+    ],
+    "originalMidlAlsoRejects": true,
+    "originalMidlError": "MIDL5158"
+}

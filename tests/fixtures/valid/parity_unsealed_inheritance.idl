@@ -1,0 +1,32 @@
+namespace TestApp.Parity
+{
+    unsealed runtimeclass Animal
+    {
+        protected Animal();
+        protected Animal(String name);
+
+        String Name { get; };
+        Int32 Age { get; set; };
+        overridable void MakeSound();
+        overridable String Describe();
+    }
+
+    unsealed runtimeclass Mammal : Animal
+    {
+        protected Mammal();
+        protected Mammal(String name);
+
+        Boolean IsWarmBlooded { get; };
+        overridable void Breathe();
+    }
+
+    runtimeclass Dog : Mammal
+    {
+        Dog();
+        Dog(String name);
+
+        String Breed { get; };
+        void Fetch();
+        void Sit();
+    }
+}

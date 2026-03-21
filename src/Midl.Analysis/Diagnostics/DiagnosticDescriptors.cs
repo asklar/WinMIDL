@@ -49,7 +49,7 @@ public static class DiagnosticDescriptors
             position, name.Length);
 
     public static Diagnostic SameArityOverload(string name, string other, int position) =>
-        new(DiagnosticSeverity.Warning, "MIDL1011",
+        new(DiagnosticSeverity.Error, "MIDL1011",
             $"Method '{name}' has same arity as '{other}' — use [default_overload] to disambiguate",
             position, name.Length);
 
@@ -296,7 +296,7 @@ public static class DiagnosticDescriptors
     public static Diagnostic NoArrayOfArrays(string paramName, int position) => new(DiagnosticSeverity.Error, "MIDL1051", $"Parameter '{paramName}' is an array of arrays. WinRT does not support jagged arrays.", position, Math.Max(paramName.Length, 1));
     public static Diagnostic PropertyTypeInconsistency(string propertyName, string getterType, string setterType, int position) => new(DiagnosticSeverity.Error, "MIDL1052", $"Property '{propertyName}' getter returns '{getterType}' but setter accepts '{setterType}'.", position, Math.Max(propertyName.Length, 1));
     public static Diagnostic DelegateReturnMustBeVoid(string delegateName, string returnType, int position) => new(DiagnosticSeverity.Error, "MIDL1053", $"Delegate '{delegateName}' must return void but returns '{returnType}'.", position, Math.Max(delegateName.Length, 1));
-    public static Diagnostic InterfaceMemberNameCollision(string memberName, string interfaceName, int position) => new(DiagnosticSeverity.Warning, "MIDL1054", $"Interface '{interfaceName}' has duplicate member name '{memberName}'.", position, Math.Max(memberName.Length, 1));
+    public static Diagnostic InterfaceMemberNameCollision(string memberName, string interfaceName, int position) => new(DiagnosticSeverity.Error, "MIDL1054", $"Interface '{interfaceName}' has duplicate member name '{memberName}'.", position, Math.Max(memberName.Length, 1));
     public static Diagnostic SameArityNeedsDefaultOverload(string methodName, int arity, int position) => new(DiagnosticSeverity.Warning, "MIDL1055", $"Methods named '{methodName}' with {arity} parameter(s) need [default_overload].", position, Math.Max(methodName.Length, 1));
     public static Diagnostic DeprecatedBaseClassInheritance(string className, string baseName, int position) => new(DiagnosticSeverity.Warning, "MIDL1056", $"Base class '{baseName}' is deprecated. Consider marking '{className}' as deprecated too.", position, Math.Max(className.Length, 1));
     public static Diagnostic InterfaceMethodNotImplemented(string className, string interfaceName, string methodName, int position) => new(DiagnosticSeverity.Info, "MIDL1057", $"Runtimeclass '{className}' implements '{interfaceName}' which declares '{methodName}'.", position, Math.Max(className.Length, 1));
@@ -304,6 +304,24 @@ public static class DiagnosticDescriptors
     public static Diagnostic DefaultOverloadNotExactlyOne(string methodName, int arity, int count, int position) => new(DiagnosticSeverity.Error, "MIDL1059", $"Methods named '{methodName}' with {arity} parameter(s) have {count} default_overload.", position, Math.Max(methodName.Length, 1));
     public static Diagnostic ConstructorArityConflict(string className, int arity, int position) => new(DiagnosticSeverity.Error, "MIDL1060", $"Runtimeclass '{className}' has multiple constructors with {arity} parameter(s) on the same contract version.", position, Math.Max(className.Length, 1));
     public static Diagnostic StaticUnsealedConflict(string className, int position) => new(DiagnosticSeverity.Error, "MIDL1061", $"Runtimeclass '{className}' cannot be both 'static' and 'unsealed'.", position, Math.Max(className.Length, 1));
+
+    // Empty runtimeclass without default_interface (MIDL1062)
+    public static Diagnostic EmptyRuntimeClassNoInterface(string className, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1062",
+            $"Runtimeclass '{className}' must implement at least one interface or have [default_interface].",
+            position, Math.Max(className.Length, 1));
+
+    // No optional/default/vararg params in WinRT (MIDL1063)
+    public static Diagnostic OptionalParamNotAllowed(string paramName, string methodName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1063",
+            $"Parameter '{paramName}' in '{methodName}' cannot be optional. WinRT does not support optional, default, or vararg parameters.",
+            position, Math.Max(paramName.Length, 1));
+
+    // Runtimeclass used as param needs default interface (MIDL1077)
+    public static Diagnostic ParamClassNeedsDefaultInterface(string paramName, string className, string methodName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1077",
+            $"Parameter '{paramName}' in '{methodName}': runtimeclass '{className}' has no default interface and cannot be used as a parameter type.",
+            position, Math.Max(className.Length, 1));
 
     // Custom attribute argument type validation (MIDL1064)
     public static Diagnostic AttributeArgumentTypeMismatch(string attrName, int argIndex, string fieldName, string expectedType, string actualKind, int position) =>
@@ -364,6 +382,24 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1073",
             $"Member '{memberName}' on interface '{interfaceName}' cannot be 'protected'. Interface members are always public.",
             position, Math.Max(memberName.Length, 1));
+
+    // [contract] argument not an apicontract (MIDL1075)
+    public static Diagnostic ContractArgNotApiContract(string attrTarget, string contractName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1075",
+            $"[contract] on '{attrTarget}': '{contractName}' is not declared as an apicontract.",
+            position, Math.Max(contractName.Length, 1));
+
+    // [feature] argument not a feature_name (MIDL1076)
+    public static Diagnostic FeatureArgNotFeatureName(string attrTarget, string featureName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1076",
+            $"[feature] on '{attrTarget}': '{featureName}' is not declared via feature_name.",
+            position, Math.Max(featureName.Length, 1));
+
+    // Circular interface requires (MIDL1078)
+    public static Diagnostic CircularRequires(string interfaceName, string cycle, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1078",
+            $"Interface '{interfaceName}' has a circular 'requires' dependency: {cycle}.",
+            position, Math.Max(interfaceName.Length, 1));
 
     // ─── Code Quality Hints (MIDL3001+) ─────────────────────────────
 

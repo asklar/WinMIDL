@@ -38,31 +38,28 @@ if (-not $FixturesDir) { $FixturesDir = Join-Path $RepoRoot 'tests\fixtures\vali
 if (-not $GoldenDir) { $GoldenDir = Join-Path $RepoRoot 'tests\golden' }
 
 function Find-OriginalMidl {
-    # Try Windows SDK locations
-    $sdkRoots = @(
-        "${env:ProgramFiles(x86)}\Windows Kits\10\bin",
-        "$env:ProgramFiles\Windows Kits\10\bin"
-    )
+    $sdkRoot = "${env:ProgramFiles(x86)}\Windows Kits\10"
+    $binDir = Join-Path $sdkRoot 'bin'
+    if (-not (Test-Path $binDir)) { return $null }
 
-    foreach ($root in $sdkRoots) {
-        if (-not (Test-Path $root)) { continue }
+    # Prefer SDK versions that have winrt include + Windows.winmd (needed for pure MIDL3)
+    $versions = Get-ChildItem -Path $binDir -Directory |
+        Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } |
+        Sort-Object { [Version]$_.Name } -Descending
 
-        # Find highest version SDK
-        $versions = Get-ChildItem -Path $root -Directory |
-            Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } |
-            Sort-Object { [Version]$_.Name } -Descending
-
-        foreach ($ver in $versions) {
-            $midlPath = Join-Path $ver.FullName 'x64\midl.exe'
-            if (Test-Path $midlPath) {
-                return $midlPath
-            }
-            # Try arm64 as fallback
-            $midlPath = Join-Path $ver.FullName 'arm64\midl.exe'
-            if (Test-Path $midlPath) {
-                return $midlPath
-            }
+    foreach ($ver in $versions) {
+        $midlPath = Join-Path $ver.FullName 'x64\midl.exe'
+        $winrtInc = Join-Path $sdkRoot "Include\$($ver.Name)\winrt"
+        $unionWinmd = Join-Path $sdkRoot "UnionMetadata\$($ver.Name)\Windows.winmd"
+        if ((Test-Path $midlPath) -and (Test-Path $winrtInc) -and (Test-Path $unionWinmd)) {
+            return $midlPath
         }
+    }
+
+    # Fallback: any midl.exe
+    foreach ($ver in $versions) {
+        $midlPath = Join-Path $ver.FullName 'x64\midl.exe'
+        if (Test-Path $midlPath) { return $midlPath }
     }
 
     # Try PATH
@@ -110,7 +107,7 @@ function Invoke-WinMidlCompile {
         $proc = Start-Process -FilePath $winmidl -ArgumentList $args -NoNewWindow -Wait -PassThru `
             -RedirectStandardOutput (Join-Path $OutputDir 'stdout.txt') `
             -RedirectStandardError (Join-Path $OutputDir 'stderr.txt')
-        return $proc.ExitCode -eq 0
+        return $proc.ExitCode -le 1  # 0=success, 1=warnings only, 2=errors
     }
     else {
         # Use dotnet run
@@ -119,8 +116,8 @@ function Invoke-WinMidlCompile {
             Write-Warning "WinMIDL binary not found and CLI project not available"
             return $false
         }
-        $result = & dotnet run --project $cliProj -- /winrt /winmd $winmdPath /h $headerPath /nologo $IdlPath 2>&1
-        return $LASTEXITCODE -eq 0
+        $result = & dotnet run --project $cliProj --no-build -- /winrt /winmd $winmdPath /h $headerPath /nologo $IdlPath 2>&1
+        return $LASTEXITCODE -le 1
     }
 }
 
@@ -136,14 +133,56 @@ function Invoke-OriginalMidlCompile {
     $headerPath = Join-Path $OutputDir "$BaseName.h"
     $iidPath = Join-Path $OutputDir "${BaseName}_i.c"
 
+    # Find SDK paths for /reference, /metadata_dir, /I
+    # MidlExe path: .../Windows Kits/10/bin/10.0.XXXXX.0/x64/midl.exe
+    $sdkVersion = Split-Path -Leaf (Split-Path -Parent (Split-Path -Parent $MidlExe))
+    $sdkRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MidlExe)))
+
+    $unionMeta = Join-Path $sdkRoot "UnionMetadata\$sdkVersion"
+    $windowsWinmd = Join-Path $unionMeta "Windows.winmd"
+    $sdkInclude = Join-Path $sdkRoot "Include\$sdkVersion"
+    $winrtInc = Join-Path $sdkInclude "winrt"
+
+    # If this SDK version doesn't have the needed files, search for one that does
+    if (-not (Test-Path $windowsWinmd) -or -not (Test-Path $winrtInc)) {
+        $sdkBase = Join-Path $sdkRoot "UnionMetadata"
+        if (Test-Path $sdkBase) {
+            $altVer = Get-ChildItem $sdkBase -Directory | Where-Object {
+                (Test-Path (Join-Path $_.FullName "Windows.winmd"))
+            } | Sort-Object Name -Descending | Select-Object -First 1
+            if ($altVer) {
+                $v = $altVer.Name
+                $unionMeta = $altVer.FullName
+                $windowsWinmd = Join-Path $unionMeta "Windows.winmd"
+                $sdkInclude = Join-Path $sdkRoot "Include\$v"
+                $winrtInc = Join-Path $sdkInclude "winrt"
+            }
+        }
+    }
+
     $args = @(
         '/winrt',
-        '/winmd', $winmdPath,
-        '/h', $headerPath,
-        '/iid', $iidPath,
-        '/nologo',
-        $IdlPath
+        '/nomidl',
+        '/winmd', "`"$winmdPath`"",
+        '/h', "`"$headerPath`"",
+        '/iid', "`"$iidPath`"",
+        '/nologo'
     )
+
+    if (Test-Path $windowsWinmd) {
+        $args += '/reference'
+        $args += "`"$windowsWinmd`""
+    }
+    if (Test-Path $unionMeta) {
+        $args += '/metadata_dir'
+        $args += "`"$unionMeta`""
+    }
+    if (Test-Path $winrtInc) {
+        $args += '/I'
+        $args += "`"$winrtInc`""
+    }
+
+    $args += "`"$IdlPath`""
 
     $proc = Start-Process -FilePath $MidlExe -ArgumentList $args -NoNewWindow -Wait -PassThru `
         -RedirectStandardOutput (Join-Path $OutputDir 'stdout.txt') `
@@ -218,6 +257,54 @@ function Compare-IidFiles {
         return @{ Status = 'identical' }
     }
     return @{ Status = 'differs'; Diffs = @('IID content mismatch (GUIDs must be identical)') }
+}
+
+function Compare-WinMd {
+    param(
+        [string]$ExpectedPath,
+        [string]$ActualPath
+    )
+
+    if (-not (Test-Path $ExpectedPath)) { return @{ Status = 'skip'; Reason = 'Expected WinMD not found' } }
+    if (-not (Test-Path $ActualPath)) { return @{ Status = 'skip'; Reason = 'Actual WinMD not found' } }
+
+    # Dump both WinMDs using --dump-winmd
+    $winmidl = Find-WinMidl
+    $cliProj = Join-Path $RepoRoot 'src\Midl.Cli\Midl.Cli.csproj'
+
+    if ($winmidl) {
+        $expectedDump = & $winmidl --dump-winmd $ExpectedPath 2>$null
+        $actualDump = & $winmidl --dump-winmd $ActualPath 2>$null
+    }
+    elseif (Test-Path $cliProj) {
+        $expectedDump = & dotnet run --project $cliProj --no-build -- --dump-winmd $ExpectedPath 2>$null
+        $actualDump = & dotnet run --project $cliProj --no-build -- --dump-winmd $ActualPath 2>$null
+    }
+    else {
+        return @{ Status = 'skip'; Reason = 'WinMIDL not available for --dump-winmd' }
+    }
+
+    $expectedStr = ($expectedDump -join "`n").Trim()
+    $actualStr = ($actualDump -join "`n").Trim()
+
+    if ($expectedStr -eq $actualStr) {
+        return @{ Status = 'identical' }
+    }
+
+    # Find first differences
+    $expectedLines = $expectedStr -split "`n"
+    $actualLines = $actualStr -split "`n"
+    $diffs = @()
+    $maxLines = [Math]::Max($expectedLines.Count, $actualLines.Count)
+    for ($i = 0; $i -lt $maxLines -and $diffs.Count -lt 5; $i++) {
+        $eLine = if ($i -lt $expectedLines.Count) { $expectedLines[$i] } else { '<EOF>' }
+        $aLine = if ($i -lt $actualLines.Count) { $actualLines[$i] } else { '<EOF>' }
+        if ($eLine -ne $aLine) {
+            $diffs += "Line $($i+1): expected='$eLine' actual='$aLine'"
+        }
+    }
+
+    return @{ Status = 'differs'; Diffs = $diffs }
 }
 
 # --- Main ---
@@ -342,26 +429,30 @@ else {
             'skip' { Write-Host "  [IID]    Skipped: $($iidResult.Reason)" -ForegroundColor DarkGray }
         }
 
-        # Compare WinMD structurally using dotnet
+        # Compare WinMD structurally via --dump-winmd
         $origWinmd = Join-Path $originalDir "$name.winmd"
         $winmidlWinmd = Join-Path $winmidlDir "$name.winmd"
 
-        if ((Test-Path $origWinmd) -and (Test-Path $winmidlWinmd)) {
-            Write-Host "  [WINMD]  Both files present (use WinMdComparer in tests for structural comparison)" -ForegroundColor DarkGray
-        }
-        elseif (Test-Path $winmidlWinmd) {
-            Write-Host "  [WINMD]  WinMIDL output present (no original baseline)" -ForegroundColor DarkGray
-        }
-        else {
-            Write-Host "  [WINMD]  No WinMD files to compare" -ForegroundColor DarkGray
+        $winmdResult = Compare-WinMd -ExpectedPath $origWinmd -ActualPath $winmidlWinmd
+
+        switch ($winmdResult.Status) {
+            'identical' { Write-Host "  [WINMD]  Identical" -ForegroundColor Green }
+            'differs' {
+                Write-Host "  [WINMD]  Differs" -ForegroundColor Yellow
+                $winmdResult.Diffs | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow }
+            }
+            'skip' { Write-Host "  [WINMD]  Skipped: $($winmdResult.Reason)" -ForegroundColor DarkGray }
         }
 
-        # Tally result
-        if ($headerResult.Status -eq 'identical' -and $iidResult.Status -eq 'identical') {
-            $stats.Identical++
-        }
-        elseif ($headerResult.Status -eq 'differs' -or $iidResult.Status -eq 'differs') {
+        # Tally result (header + IID + WinMD)
+        $allIdentical = @($headerResult, $iidResult, $winmdResult) | Where-Object { $_.Status -eq 'identical' }
+        $anyDiffers = @($headerResult, $iidResult, $winmdResult) | Where-Object { $_.Status -eq 'differs' }
+
+        if ($anyDiffers.Count -gt 0) {
             $stats.Differs++
+        }
+        elseif ($allIdentical.Count -gt 0) {
+            $stats.Identical++
         }
         else {
             $stats.Skipped++

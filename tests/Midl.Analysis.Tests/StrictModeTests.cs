@@ -56,7 +56,7 @@ public class StrictModeTests
         var source = """
             namespace N
             {
-                runtimeclass C { }
+                [default_interface] runtimeclass C { }
             }
             """;
         var compilation = CompilationHelper.Compile(source, referencePaths: null, mode: CompilationMode.Strict);
@@ -100,6 +100,7 @@ public class StrictModeTests
         Assert.Empty(compilation.Diagnostics);
     }
 
+#if WITH_COMPAT
     [Fact]
     public void CompatMode_AcceptCoclass()
     {
@@ -126,6 +127,7 @@ public class StrictModeTests
         // No strict-mode warnings in compat mode
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code.StartsWith("MIDL2"));
     }
+#endif
 
     [Fact]
     public void StrictMode_WarnLowercaseBoolean()

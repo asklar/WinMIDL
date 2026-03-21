@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "messageContains": "Circular reference",
+      "code": "MIDL1045",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL2025",
+  "originalMidlAlsoRejects": true
+}

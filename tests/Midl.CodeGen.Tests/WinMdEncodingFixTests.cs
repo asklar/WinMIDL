@@ -45,6 +45,7 @@ public class WinMdEncodingFixTests
         var bytes = CompileAndEmit("""
             namespace Test
             {
+                [default_interface]
                 unsealed runtimeclass Widget
                 {
                     Widget(String name);

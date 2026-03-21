@@ -1,0 +1,56 @@
+namespace TestApp.Parity
+{
+    enum Color
+    {
+        Red = 0,
+        Green = 1,
+        Blue = 2,
+        Yellow = 3,
+        Cyan = 4,
+        Magenta = 5
+    };
+
+    enum Size
+    {
+        Small = 0,
+        Medium = 1,
+        Large = 2,
+        ExtraLarge = 3
+    };
+
+    struct Point2D
+    {
+        Single X;
+        Single Y;
+    };
+
+    struct Point3D
+    {
+        Single X;
+        Single Y;
+        Single Z;
+    };
+
+    struct Rectangle
+    {
+        Point2D Origin;
+        Single Width;
+        Single Height;
+    };
+
+    struct ColoredRect
+    {
+        Rectangle Rect;
+        Color FillColor;
+        Color BorderColor;
+    };
+
+    runtimeclass ShapeFactory
+    {
+        ShapeFactory();
+        Point2D CreatePoint(Single x, Single y);
+        Point3D CreatePoint3D(Single x, Single y, Single z);
+        Rectangle CreateRect(Point2D origin, Single w, Single h);
+        ColoredRect CreateColoredRect(Rectangle rect, Color fill, Color border);
+    }
+}

@@ -1,0 +1,35 @@
+namespace TestApp.Parity
+{
+    unsealed runtimeclass PropertyBase
+    {
+        protected PropertyBase();
+        protected PropertyBase(String name);
+
+        // Read-only properties (various types)
+        String ReadOnlyName { get; };
+        Int32 ReadOnlyId { get; };
+        Boolean ReadOnlyFlag { get; };
+        Double ReadOnlyValue { get; };
+
+        // Read-write properties (various types)
+        String ReadWriteName { get; set; };
+        Int32 ReadWriteCount { get; set; };
+        Boolean ReadWriteEnabled { get; set; };
+        Double ReadWriteFactor { get; set; };
+        Single ReadWriteRatio { get; set; };
+    }
+
+    runtimeclass PropertyChild : PropertyBase
+    {
+        PropertyChild();
+        PropertyChild(String name);
+
+        // Shorthand properties (auto get+set)
+        String ChildName;
+        Int32 ChildValue;
+        Boolean ChildFlag;
+
+        // Explicit read-only in derived
+        UInt32 DerivedId { get; };
+    }
+}

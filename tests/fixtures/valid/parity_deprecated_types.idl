@@ -1,0 +1,51 @@
+namespace TestApp.Parity
+{
+    [contractversion(3)]
+    apicontract DeprecationContract {};
+
+    [contract(DeprecationContract, 1)]
+    [deprecated("Use NewWidget instead", deprecate, DeprecationContract, 2)]
+    runtimeclass DeprecatedWidget
+    {
+        DeprecatedWidget();
+        String Name { get; };
+    }
+
+    [contract(DeprecationContract, 1)]
+    interface IDeprecatedInterface
+    {
+        [deprecated("Use NewMethod instead", deprecate, DeprecationContract, 2)]
+        void OldMethod();
+        void NewMethod();
+
+        [deprecated("Use NewProp instead", deprecate, DeprecationContract, 2)]
+        String OldProp { get; };
+        String NewProp { get; };
+    }
+
+    [contract(DeprecationContract, 1)]
+    runtimeclass MixedDeprecation
+    {
+        MixedDeprecation();
+
+        [deprecated("Replaced by GetNewValue", deprecate, DeprecationContract, 2)]
+        Int32 GetOldValue();
+        Int32 GetNewValue();
+
+        [deprecated("Replaced by NewCount", deprecate, DeprecationContract, 2)]
+        Int32 OldCount { get; };
+        Int32 NewCount { get; };
+
+        [deprecated("Replaced by CurrentChanged", deprecate, DeprecationContract, 2)]
+        event Windows.Foundation.TypedEventHandler<MixedDeprecation, Object> LegacyChanged;
+        event Windows.Foundation.TypedEventHandler<MixedDeprecation, Object> CurrentChanged;
+    }
+
+    [contract(DeprecationContract, 1)]
+    [deprecated("Entire class removed", remove, DeprecationContract, 3)]
+    runtimeclass RemovedService
+    {
+        RemovedService();
+        void DoWork();
+    }
+}

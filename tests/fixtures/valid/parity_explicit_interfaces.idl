@@ -1,0 +1,39 @@
+namespace TestApp.Parity
+{
+    interface IRenderable
+    {
+        void Render();
+        Int32 ZOrder { get; };
+    }
+
+    interface ISerializable
+    {
+        String Serialize();
+        void Deserialize(String data);
+    }
+
+    interface IPrintable
+    {
+        String Print();
+        void SetMargins(Double left, Double top, Double right, Double bottom);
+    }
+
+    interface ICloneable2
+    {
+        Object Clone();
+    }
+
+    runtimeclass GraphicElement : [default] IRenderable, ISerializable, ICloneable2
+    {
+        GraphicElement();
+        GraphicElement(String name);
+        String ElementName { get; };
+    }
+
+    runtimeclass Document : [default] ISerializable, IPrintable
+    {
+        Document();
+        String Title { get; set; };
+        Int32 PageCount { get; };
+    }
+}

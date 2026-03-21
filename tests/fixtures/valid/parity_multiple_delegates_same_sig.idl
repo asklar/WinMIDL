@@ -1,0 +1,20 @@
+namespace TestApp.Parity
+{
+    delegate void OnStartHandler(String name);
+    delegate void OnStopHandler(String name);
+    delegate void OnPauseHandler(String name);
+    delegate void OnResumeHandler(String name);
+
+    runtimeclass LifecycleWidget
+    {
+        LifecycleWidget();
+        event OnStartHandler Started;
+        event OnStopHandler Stopped;
+        event OnPauseHandler Paused;
+        event OnResumeHandler Resumed;
+        void Start();
+        void Stop();
+        void Pause();
+        void Resume();
+    }
+}

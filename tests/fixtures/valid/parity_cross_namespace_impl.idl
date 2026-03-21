@@ -1,0 +1,17 @@
+namespace TestApp.Parity.Contracts
+{
+    delegate void DataNotification(String message);
+}
+
+namespace TestApp.Parity.Impl
+{
+    runtimeclass DataService
+    {
+        DataService();
+        String ServiceName { get; };
+        String GetData();
+        void SetData(String data);
+        void Notify(String message);
+        event TestApp.Parity.Contracts.DataNotification Notified;
+    }
+}

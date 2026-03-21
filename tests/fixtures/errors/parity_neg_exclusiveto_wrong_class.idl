@@ -1,0 +1,16 @@
+namespace TestApp
+{
+    runtimeclass A
+    {
+    }
+
+    runtimeclass B : [default] IExclusive
+    {
+    }
+
+    [exclusiveto(A)]
+    interface IExclusive
+    {
+        void DoWork();
+    }
+}

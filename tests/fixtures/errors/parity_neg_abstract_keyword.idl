@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    abstract runtimeclass BadClass
+    {
+        void DoWork();
+    }
+}

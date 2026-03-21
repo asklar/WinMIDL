@@ -12,7 +12,7 @@ public class AttributeValidationTests
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
-                [threading(both), activatable]
+                [threading(both), activatable, default_interface]
                 runtimeclass C { }
             }
             """);
@@ -26,7 +26,7 @@ public class AttributeValidationTests
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
-                [threading(invalid), activatable]
+                [threading(invalid), activatable, default_interface]
                 runtimeclass C { }
             }
             """);
@@ -42,7 +42,7 @@ public class AttributeValidationTests
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
-                [marshaling_behavior(agile), activatable]
+                [marshaling_behavior(agile), activatable, default_interface]
                 runtimeclass C { }
             }
             """);
@@ -56,7 +56,7 @@ public class AttributeValidationTests
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
-                [marshaling_behavior(bogus), activatable]
+                [marshaling_behavior(bogus), activatable, default_interface]
                 runtimeclass C { }
             }
             """);
@@ -72,7 +72,7 @@ public class AttributeValidationTests
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
-                [deprecated("msg", bogus, C, 1)]
+                [deprecated("msg", bogus, C, 1), default_interface]
                 runtimeclass C { }
             }
             """);
@@ -128,7 +128,7 @@ public class AttributeValidationTests
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
-                [threading(both), marshaling_behavior(agile), activatable]
+                [threading(both), marshaling_behavior(agile), activatable, default_interface]
                 runtimeclass C { }
             }
             """);
@@ -142,7 +142,7 @@ public class AttributeValidationTests
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
-                [attributeusage(target_all)]
+                [attributeusage(target_all), default_interface]
                 runtimeclass C { }
             }
             """);

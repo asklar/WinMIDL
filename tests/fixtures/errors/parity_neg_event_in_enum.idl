@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    enum BadEnum
+    {
+        A = 0,
+        event Windows.Foundation.TypedEventHandler<Object, Object> Changed;
+    };
+}

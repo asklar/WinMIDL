@@ -376,6 +376,7 @@ public class WinMdEmitterTests
                         void Show();
                     }
 
+                    [default_interface]
                     runtimeclass Widget
                     {
                         Widget();

@@ -1,0 +1,11 @@
+namespace TestApp.Parity
+{
+    runtimeclass BuilderWidget
+    {
+        BuilderWidget();
+        BuilderWidget WithName(String name);
+        BuilderWidget WithId(Int32 id);
+        BuilderWidget WithFlag(Boolean flag);
+        String Build();
+    }
+}

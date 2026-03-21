@@ -1,0 +1,19 @@
+namespace TestApp.Parity
+{
+    struct Coordinate
+    {
+        Double Lat;
+        Double Lon;
+    };
+
+    runtimeclass GeocoderService
+    {
+        GeocoderService();
+        Coordinate Geocode(String address);
+        String ReverseGeocode(Coordinate coord);
+        Windows.Foundation.Collections.IVector<Coordinate> GeocodeMultiple(Windows.Foundation.Collections.IVector<String> addresses);
+        Windows.Foundation.IAsyncOperation<Coordinate> GeocodeAsync(String address);
+        Boolean IsValidCoordinate(Coordinate coord);
+        Double Distance(Coordinate from, Coordinate to);
+    }
+}

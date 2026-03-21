@@ -1,0 +1,38 @@
+namespace TestApp.Parity
+{
+    interface IBaseNode
+    {
+        String Id { get; };
+        void Initialize();
+    }
+
+    interface INamedNode requires IBaseNode
+    {
+        String DisplayName { get; set; };
+    }
+
+    interface IOrderedNode requires INamedNode
+    {
+        Int32 SortOrder { get; set; };
+        void MoveUp();
+        void MoveDown();
+    }
+
+    interface ITaggable
+    {
+        String Tag { get; set; };
+    }
+
+    interface ICompositeNode requires IBaseNode, ITaggable
+    {
+        Int32 ChildCount { get; };
+        void AddChild(IBaseNode child);
+        void RemoveChild(String id);
+    }
+
+    runtimeclass TreeNode : [default] IOrderedNode, ITaggable
+    {
+        TreeNode();
+        TreeNode(String id);
+    }
+}

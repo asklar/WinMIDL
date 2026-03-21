@@ -1,5 +1,9 @@
 namespace TestApp
 {
+    [contractversion(2)]
+    apicontract TestContract {};
+
+    [contract(TestApp.TestContract, 1)]
     runtimeclass VersionedClass
     {
         VersionedClass();

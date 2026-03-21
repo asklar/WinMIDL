@@ -1,0 +1,40 @@
+namespace TestApp.Parity
+{
+    interface IReadable2
+    {
+        String Read();
+    }
+
+    interface IWritable2
+    {
+        void Write(String data);
+    }
+
+    interface ISeekable
+    {
+        void Seek(Int32 position);
+        Int32 Position { get; };
+    }
+
+    interface IClosable2
+    {
+        void Close();
+    }
+
+    interface IFullStream requires IReadable2, IWritable2, ISeekable, IClosable2
+    {
+        Int32 Length { get; };
+        void Flush();
+    }
+
+    runtimeclass FullStream
+    {
+        FullStream();
+        String Read();
+        void Write(String data);
+        void Seek(Int32 position);
+        void Close();
+        Int32 Length { get; };
+        void Flush();
+    }
+}

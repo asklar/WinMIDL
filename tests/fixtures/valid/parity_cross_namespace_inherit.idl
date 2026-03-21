@@ -1,0 +1,19 @@
+namespace TestApp.Parity.Base
+{
+    unsealed runtimeclass CrossNsBase
+    {
+        protected CrossNsBase();
+        String BaseName { get; };
+        overridable void OnCreate();
+    }
+}
+
+namespace TestApp.Parity.Derived
+{
+    runtimeclass CrossNsDerived : TestApp.Parity.Base.CrossNsBase
+    {
+        CrossNsDerived();
+        CrossNsDerived(String name);
+        Int32 DerivedId { get; };
+    }
+}

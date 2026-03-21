@@ -31,7 +31,7 @@ public class KeywordCoverageTests
             {
                 namespace B
                 {
-                    runtimeclass C { }
+                    [default_interface] runtimeclass C { }
                 }
             }");
     }
@@ -60,6 +60,7 @@ public class KeywordCoverageTests
         AssertCompiles(@"
             namespace TestApp
             {
+                [default_interface]
                 runtimeclass Sealed
                 {
                     Sealed();
@@ -317,6 +318,7 @@ public class KeywordCoverageTests
         AssertCompiles(@"
             namespace TestApp
             {
+                [default_interface]
                 runtimeclass C
                 {
                     C();
@@ -330,6 +332,7 @@ public class KeywordCoverageTests
         AssertCompiles(@"
             namespace TestApp
             {
+                [default_interface]
                 runtimeclass C
                 {
                     C(Int32 x, String y);
@@ -565,7 +568,7 @@ public class KeywordCoverageTests
                     Int32 Level;
                 };
 
-                [MyAttr(42)]
+                [MyAttr(42), default_interface]
                 runtimeclass C
                 {
                     C();
@@ -580,7 +583,7 @@ public class KeywordCoverageTests
             namespace TestApp
             {
                 apicontract TestContract {};
-                [contract(TestApp.TestContract, 1)]
+                [contract(TestApp.TestContract, 1), default_interface]
                 runtimeclass C
                 {
                     C();
@@ -595,7 +598,7 @@ public class KeywordCoverageTests
             namespace TestApp
             {
                 apicontract TestContract {};
-                [deprecated(""old"", deprecate, TestApp.TestContract, 2)]
+                [deprecated(""old"", deprecate, TestApp.TestContract, 2), default_interface]
                 runtimeclass C
                 {
                     C();
@@ -609,7 +612,7 @@ public class KeywordCoverageTests
         AssertCompiles(@"
             namespace TestApp
             {
-                [threading(both)]
+                [threading(both), default_interface]
                 runtimeclass C
                 {
                     C();
@@ -623,7 +626,7 @@ public class KeywordCoverageTests
         AssertCompiles(@"
             namespace TestApp
             {
-                [marshaling_behavior(agile)]
+                [marshaling_behavior(agile), default_interface]
                 runtimeclass C
                 {
                     C();
@@ -714,6 +717,7 @@ public class KeywordCoverageTests
             }");
     }
 
+#if WITH_COMPAT
     [Fact]
     public void CppQuote()
     {
@@ -745,4 +749,5 @@ public class KeywordCoverageTests
                 }
             }", CompilationMode.Compat);
     }
+#endif
 }

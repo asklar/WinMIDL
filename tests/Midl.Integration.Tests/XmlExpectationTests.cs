@@ -14,6 +14,7 @@ public class XmlExpectationTests
     private static readonly string? FixturesDir =
         Environment.GetEnvironmentVariable("MIDL_TEST_FIXTURES");
 
+#if WITH_COMPAT
     [SkippableFact]
     public void PositiveTestsMatchXmlExpectations()
     {
@@ -94,6 +95,7 @@ public class XmlExpectationTests
                 Console.WriteLine($"  {detail}");
         }
     }
+#endif
 
     private static List<ExpectedType> ParseXmlExpectations(string xmlPath)
     {

@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    enum Color
+    {
+        Red = "red",
+    };
+}

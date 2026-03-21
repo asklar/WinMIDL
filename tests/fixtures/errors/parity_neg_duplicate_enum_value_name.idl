@@ -1,0 +1,9 @@
+namespace TestApp
+{
+    enum BadEnum
+    {
+        Value1 = 0,
+        Value2 = 1,
+        Value1 = 2
+    };
+}

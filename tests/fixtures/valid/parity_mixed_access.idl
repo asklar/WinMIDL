@@ -1,0 +1,21 @@
+namespace TestApp.Parity
+{
+    unsealed runtimeclass MixedAccessBase
+    {
+        protected MixedAccessBase();
+        protected MixedAccessBase(String name);
+        String Name { get; };
+        overridable void OnLoad();
+        overridable void OnSave();
+        overridable Boolean CanProcess();
+        void PublicMethod();
+        Int32 PublicProperty { get; };
+    }
+
+    runtimeclass MixedAccessDerived : MixedAccessBase
+    {
+        MixedAccessDerived();
+        MixedAccessDerived(String name);
+        String DerivedLabel { get; };
+    }
+}

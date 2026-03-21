@@ -1,0 +1,27 @@
+namespace TestApp.Parity
+{
+    struct ReturnData
+    {
+        String Name;
+        Int32 Value;
+    };
+
+    enum ReturnStatus
+    {
+        Ok = 0,
+        Error = 1,
+        Pending = 2
+    };
+
+    delegate void ReturnCallback(ReturnData data);
+
+    runtimeclass ReturnTypeWidget
+    {
+        ReturnTypeWidget();
+        ReturnData GetData();
+        ReturnStatus GetStatus();
+        Windows.Foundation.Collections.IVector<ReturnData> GetAllData();
+        Windows.Foundation.IAsyncOperation<ReturnData> GetDataAsync();
+        Windows.Foundation.IAsyncOperation<ReturnStatus> GetStatusAsync();
+    }
+}

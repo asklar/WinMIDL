@@ -72,6 +72,9 @@ public class AttributeValidator
     {
         // Build lookup of user-defined attribute types
         var attrTypes = new Dictionary<string, AttributeTypeSymbol>(StringComparer.OrdinalIgnoreCase);
+        // Build lookup of declared apicontract names (both full and simple names)
+        var apiContracts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var type in _compilation.GetAllTypes())
         {
             if (type is AttributeTypeSymbol at)
@@ -80,7 +83,15 @@ public class AttributeValidator
                 if (at.AttributeNameOverride != null)
                     attrTypes[at.AttributeNameOverride] = at;
             }
+            if (type is ApiContractSymbol)
+            {
+                apiContracts.Add(type.FullName);
+                apiContracts.Add(type.Name);
+            }
         }
+
+        // Also use feature_name declarations from the compilation
+        var featureNames = _compilation.FeatureNames;
 
         foreach (var type in _compilation.GetAllTypes())
         {
@@ -90,34 +101,40 @@ public class AttributeValidator
                     ValidateRuntimeClass(rc);
                     ValidateUnknownAttributes(rc.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(rc.Attributes, rc.Name, "target_runtimeclass", attrTypes);
-                    ValidateMemberAttributes(rc.Members, attrTypes);
+                    ValidateContractAndFeatureArgs(rc.Attributes, rc.Name, apiContracts, featureNames);
+                    ValidateMemberAttributes(rc.Members, attrTypes, apiContracts, featureNames);
                     break;
                 case InterfaceSymbol iface:
                     ValidateAttributes(iface.Attributes, iface.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(iface.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(iface.Attributes, iface.Name, "target_interface", attrTypes);
-                    ValidateMemberAttributes(iface.Members, attrTypes);
+                    ValidateContractAndFeatureArgs(iface.Attributes, iface.Name, apiContracts, featureNames);
+                    ValidateMemberAttributes(iface.Members, attrTypes, apiContracts, featureNames);
                     break;
                 case EnumSymbol en:
                     ValidateAttributes(en.Attributes, en.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(en.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(en.Attributes, en.Name, "target_enum", attrTypes);
-                    // Validate enum member attributes
+                    ValidateContractAndFeatureArgs(en.Attributes, en.Name, apiContracts, featureNames);
                     foreach (var m in en.EnumMembers)
+                    {
                         ValidateCustomAttributeInstances(m.Attributes, m.Name, "target_field", attrTypes);
+                        ValidateContractAndFeatureArgs(m.Attributes, m.Name, apiContracts, featureNames);
+                    }
                     break;
                 case StructSymbol st:
                     ValidateAttributes(st.Attributes, st.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(st.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(st.Attributes, st.Name, "target_struct", attrTypes);
+                    ValidateContractAndFeatureArgs(st.Attributes, st.Name, apiContracts, featureNames);
                     break;
                 case DelegateSymbol del:
                     ValidateAttributes(del.Attributes, del.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(del.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(del.Attributes, del.Name, "target_delegate", attrTypes);
+                    ValidateContractAndFeatureArgs(del.Attributes, del.Name, apiContracts, featureNames);
                     break;
                 case AttributeTypeSymbol:
-                    // attributeusage is valid on attribute declarations — skip that check
                     break;
             }
         }
@@ -331,7 +348,9 @@ public class AttributeValidator
     /// <summary>Validate custom attributes on members (methods, properties, events, constructors).</summary>
     private void ValidateMemberAttributes(
         IReadOnlyList<ISymbol> members,
-        Dictionary<string, AttributeTypeSymbol> attrTypes)
+        Dictionary<string, AttributeTypeSymbol> attrTypes,
+        HashSet<string> apiContracts,
+        HashSet<string> featureNames)
     {
         foreach (var member in members)
         {
@@ -348,6 +367,36 @@ public class AttributeValidator
 
             ValidateUnknownAttributes(attrs, attrTypes);
             ValidateCustomAttributeInstances(attrs, name!, targetKind, attrTypes);
+            ValidateContractAndFeatureArgs(attrs, name!, apiContracts, featureNames);
+        }
+    }
+
+    private void ValidateContractAndFeatureArgs(
+        List<AttributeData> attributes, string ownerName,
+        HashSet<string> apiContracts, HashSet<string> featureNames)
+    {
+        foreach (var attr in attributes)
+        {
+            var lowerName = attr.Name.ToLowerInvariant();
+
+            if (lowerName == "contract")
+            {
+                var contractRef = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
+                if (contractRef != null && !apiContracts.Contains(contractRef))
+                {
+                    _diagnostics.Add(DiagnosticDescriptors.ContractArgNotApiContract(
+                        ownerName, contractRef, attr.Position));
+                }
+            }
+            else if (lowerName == "feature")
+            {
+                var featureRef = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
+                if (featureRef != null && !featureNames.Contains(featureRef))
+                {
+                    _diagnostics.Add(DiagnosticDescriptors.FeatureArgNotFeatureName(
+                        ownerName, featureRef, attr.Position));
+                }
+            }
         }
     }
 

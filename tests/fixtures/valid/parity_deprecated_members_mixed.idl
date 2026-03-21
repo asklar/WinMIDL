@@ -1,0 +1,30 @@
+namespace TestApp.Parity
+{
+    [contractversion(3)]
+    apicontract DepMixContract {};
+
+    [contract(DepMixContract, 1)]
+    runtimeclass DeprecatedMembersWidget
+    {
+        DeprecatedMembersWidget();
+
+        void CurrentMethod();
+        [deprecated("Use CurrentMethod", deprecate, DepMixContract, 2)]
+        void LegacyMethod();
+
+        Int32 CurrentCount { get; };
+        [deprecated("Use CurrentCount", deprecate, DepMixContract, 2)]
+        Int32 OldCount { get; };
+
+        event Windows.Foundation.TypedEventHandler<DeprecatedMembersWidget, Object> CurrentEvent;
+        [deprecated("Use CurrentEvent", deprecate, DepMixContract, 2)]
+        event Windows.Foundation.TypedEventHandler<DeprecatedMembersWidget, Object> OldEvent;
+
+        [contract(DepMixContract, 2)]
+        {
+            void V2Method();
+            [deprecated("Use V2Method differently", deprecate, DepMixContract, 3)]
+            void V2OldMethod();
+        }
+    }
+}

@@ -1,0 +1,21 @@
+namespace TestApp.Parity
+{
+    [contractversion(2)]
+    apicontract StaticInstanceContract {};
+
+    [contract(StaticInstanceContract, 1)]
+    runtimeclass StaticInstanceWidget
+    {
+        StaticInstanceWidget();
+        StaticInstanceWidget(String name);
+        String Name { get; set; };
+        Int32 Id { get; };
+        void DoWork();
+
+        [contract(StaticInstanceContract, 2)]
+        {
+            static Int32 GetInstanceCount();
+            static void ResetAll();
+        }
+    }
+}

@@ -1,4 +1,5 @@
 using Midl.Analysis.Symbols;
+using Midl.Syntax;
 
 namespace Midl.Analysis;
 
@@ -12,6 +13,10 @@ public class SymbolTable
     private readonly Dictionary<string, ISymbol> _allDefinedTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _typeAliases = new(StringComparer.Ordinal);
     private readonly List<LazyWinMdProvider> _lazyProviders = new();
+    private List<string>? _refDirectories;
+
+    // Track which directory+winmd combinations we've already tried loading
+    private readonly HashSet<string> _loadedWinMds = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly Dictionary<string, string> ShorthandMappings= new(StringComparer.Ordinal)
     {
@@ -41,6 +46,13 @@ public class SymbolTable
     public void AddLazyProvider(LazyWinMdProvider provider)
     {
         _lazyProviders.Add(provider);
+        if (provider is { } p && p.SourcePath != null)
+            _loadedWinMds.Add(p.SourcePath);
+    }
+
+    public void SetRefDirectories(IReadOnlyList<string>? dirs)
+    {
+        _refDirectories = dirs?.Count > 0 ? new List<string>(dirs) : null;
     }
 
     public void EnterScope(ISymbol scope)
@@ -293,7 +305,7 @@ public class SymbolTable
     /// </summary>
     internal ISymbol? TryResolveLazy(string qualifiedName)
     {
-        if (_lazyProviders.Count == 0) return null;
+        if (_lazyProviders.Count == 0 && _refDirectories == null) return null;
 
         foreach (var provider in _lazyProviders)
         {
@@ -304,6 +316,58 @@ public class SymbolTable
                 return imported ?? symbol;
             }
         }
+
+        // Try namespace-based directory resolution: for A.B.C.TypeName,
+        // look in ref directories for A.B.C.winmd, A.B.winmd, A.winmd
+        if (_refDirectories != null)
+        {
+            var resolved = TryResolveFromRefDirectories(qualifiedName);
+            if (resolved != null) return resolved;
+        }
+
+        return null;
+    }
+
+    private ISymbol? TryResolveFromRefDirectories(string qualifiedName)
+    {
+        // Extract namespace from qualified name (everything before the last dot)
+        var lastDot = qualifiedName.LastIndexOf('.');
+        if (lastDot < 0) return null;
+        var ns = qualifiedName[..lastDot];
+
+        // Walk up the namespace chain: A.B.C → A.B → A
+        while (!string.IsNullOrEmpty(ns))
+        {
+            foreach (var dir in _refDirectories!)
+            {
+                var candidate = Path.Combine(dir, ns + ".winmd");
+                if (!_loadedWinMds.Contains(candidate) && File.Exists(candidate))
+                {
+                    MidlTrace.Binder($"RefDir: loading {candidate} for {qualifiedName}");
+                    _loadedWinMds.Add(candidate);
+                    try
+                    {
+                        var provider = new LazyWinMdProvider(candidate);
+                        _lazyProviders.Add(provider);
+
+                        var symbol = provider.TryResolve(qualifiedName);
+                        if (symbol != null)
+                        {
+                            var imported = ImportSingleType(symbol);
+                            return imported ?? symbol;
+                        }
+                    }
+                    catch
+                    {
+                        // Skip unreadable WinMD files
+                    }
+                }
+            }
+
+            var dot = ns.LastIndexOf('.');
+            ns = dot >= 0 ? ns[..dot] : null;
+        }
+
         return null;
     }
 
@@ -313,7 +377,7 @@ public class SymbolTable
     /// </summary>
     internal ISymbol? TryResolveLazyBySimpleName(string simpleName, NamespaceSymbol containingNamespace)
     {
-        if (_lazyProviders.Count == 0) return null;
+        if (_lazyProviders.Count == 0 && _refDirectories == null) return null;
 
         NamespaceSymbol? current = containingNamespace;
         while (current != null)
@@ -339,8 +403,12 @@ public class SymbolTable
     {
         var fullName = type.FullName;
         if (_allDefinedTypes.ContainsKey(fullName))
+        {
+            MidlTrace.Binder($"ImportSingleType: {fullName} already defined");
             return _allDefinedTypes[fullName];
+        }
 
+        MidlTrace.Binder($"ImportSingleType: importing {fullName} ({type.Kind})");
         var lastDot = fullName.LastIndexOf('.');
         var nsName = lastDot >= 0 ? fullName[..lastDot] : "";
         var ns = GetOrCreateNamespaceHierarchy(nsName);
@@ -406,6 +474,7 @@ public class SymbolTable
                     Uuid = rc.Uuid,
                     BaseClass = rc.BaseClass,
                     IsStatic = rc.IsStatic,
+                    IsUnsealed = rc.IsUnsealed,
                     IsExternal = true,
                     SourceWinMdPath = rc.SourceWinMdPath,
                 };

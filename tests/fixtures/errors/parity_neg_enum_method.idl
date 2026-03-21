@@ -1,0 +1,9 @@
+namespace TestApp
+{
+    enum BadEnum
+    {
+        A = 0,
+        B = 1,
+        void DoWork();
+    };
+}

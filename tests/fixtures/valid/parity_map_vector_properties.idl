@@ -1,0 +1,16 @@
+namespace TestApp.Parity
+{
+    runtimeclass CollectionPropertyWidget
+    {
+        CollectionPropertyWidget();
+
+        Windows.Foundation.Collections.IVector<String> Names { get; };
+        Windows.Foundation.Collections.IVector<Int32> Ids { get; };
+        Windows.Foundation.Collections.IVectorView<String> ReadOnlyNames { get; };
+        Windows.Foundation.Collections.IMap<String, String> StringMap { get; };
+        Windows.Foundation.Collections.IMap<String, Int32> CountMap { get; };
+        Windows.Foundation.Collections.IMapView<String, String> ReadOnlyStringMap { get; };
+        Windows.Foundation.Collections.IIterable<String> IterableNames { get; };
+        Windows.Foundation.Collections.IVector<Object> MixedItems { get; };
+    }
+}

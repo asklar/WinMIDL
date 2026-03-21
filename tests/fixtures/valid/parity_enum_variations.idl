@@ -1,0 +1,51 @@
+namespace TestApp.Parity
+{
+    enum SimpleSequential
+    {
+        First,
+        Second,
+        Third,
+        Fourth
+    };
+
+    enum ExplicitValues
+    {
+        None = 0,
+        Low = 10,
+        Medium = 100,
+        High = 1000,
+        Max = 10000
+    };
+
+    [flags]
+    enum PermissionFlags
+    {
+        None    = 0x0,
+        Read    = 0x1,
+        Write   = 0x2,
+        Execute = 0x4,
+        Delete  = 0x8,
+        Admin   = 0x10,
+        All     = 0x1F
+    };
+
+    [flags]
+    enum FileAttributes2
+    {
+        Normal    = 0,
+        ReadOnly  = 0x1,
+        Hidden    = 0x2,
+        System    = 0x4,
+        Archive   = 0x8,
+        Temporary = 0x10,
+        Encrypted = 0x20
+    };
+
+    runtimeclass EnumUser
+    {
+        EnumUser();
+        SimpleSequential GetSequential();
+        void SetPermissions(PermissionFlags flags);
+        FileAttributes2 GetAttributes();
+    }
+}

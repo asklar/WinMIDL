@@ -1,0 +1,12 @@
+namespace TestApp.Parity
+{
+    runtimeclass GenericConsumer
+    {
+        GenericConsumer();
+        Windows.Foundation.Collections.IVector<String> GetNames();
+        Windows.Foundation.Collections.IVectorView<Int32> GetIds();
+        Windows.Foundation.Collections.IMap<String, Object> GetMetadata();
+        Windows.Foundation.IAsyncOperation<Boolean> ValidateAsync();
+        Windows.Foundation.Collections.IIterable<String> EnumerateItems();
+    }
+}

@@ -1,5 +1,6 @@
 namespace DemoNamespace
 {
+  [default_interface]
   unsealed runtimeclass DemoClass
   {
     protected DemoClass();

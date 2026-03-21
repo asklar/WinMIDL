@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    runtimeclass BadGeneric<T>
+    {
+        BadGeneric();
+        T GetValue();
+    }
+}

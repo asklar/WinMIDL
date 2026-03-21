@@ -1,0 +1,31 @@
+namespace TestApp.Parity
+{
+    unsealed runtimeclass Level0Base
+    {
+        protected Level0Base();
+        String BaseLabel { get; };
+        overridable void OnInit();
+    }
+
+    unsealed runtimeclass Level1Mid : Level0Base
+    {
+        protected Level1Mid();
+        Int32 MidValue { get; };
+        overridable void OnProcess();
+    }
+
+    unsealed runtimeclass Level2Upper : Level1Mid
+    {
+        protected Level2Upper();
+        Boolean UpperFlag { get; };
+        overridable void OnComplete();
+    }
+
+    runtimeclass Level3Leaf : Level2Upper
+    {
+        Level3Leaf();
+        Level3Leaf(String name);
+        Double LeafMetric { get; };
+        void Execute();
+    }
+}

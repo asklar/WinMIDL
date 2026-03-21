@@ -1,0 +1,20 @@
+namespace TestApp.Parity
+{
+    runtimeclass DefaultIfaceWidget1
+    {
+        DefaultIfaceWidget1();
+        String Name { get; };
+        void Initialize();
+        Int32 Count { get; };
+        void Refresh();
+    }
+
+    runtimeclass DefaultIfaceWidget2
+    {
+        DefaultIfaceWidget2();
+        String Label { get; };
+        void Start();
+        void Stop();
+        Boolean Running { get; };
+    }
+}

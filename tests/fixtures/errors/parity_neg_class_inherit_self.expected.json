@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "messageContains": "sealed runtimeclass",
+      "code": "MIDL1036",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL2256",
+  "originalMidlAlsoRejects": true
+}

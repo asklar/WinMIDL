@@ -117,4 +117,33 @@ public class SemanticTokensTests
         }
         Assert.True(foundMethod, "DoWork should be classified as method token type");
     }
+
+    [Fact]
+    public void ClassifyRefDirective()
+    {
+        var source = "// @ref: SomeFile.winmd\nnamespace N { }\n";
+        var (data, tokenTypes, _) = SemanticTokensHandler.HandleCore(source);
+        Assert.True(data.Length >= 15, "Should have at least 3 tokens for @ref line (comment + decorator + string)");
+
+        int commentIdx = Array.IndexOf(tokenTypes, "comment");
+        int decoratorIdx = Array.IndexOf(tokenTypes, "decorator");
+        int stringIdx = Array.IndexOf(tokenTypes, "string");
+
+        // First token: "// " (3 chars) as comment
+        Assert.Equal(0, data[0]); // deltaLine
+        Assert.Equal(0, data[1]); // deltaChar
+        Assert.Equal(3, data[2]); // length of "// "
+        Assert.Equal(commentIdx, data[3]);
+
+        // Second token: "@ref:" (5 chars) as decorator
+        Assert.Equal(0, data[5]); // same line
+        Assert.Equal(3, data[6]); // deltaChar = 3
+        Assert.Equal(5, data[7]); // length of "@ref:"
+        Assert.Equal(decoratorIdx, data[8]);
+
+        // Third token: "SomeFile.winmd" (14 chars) as string
+        Assert.Equal(0, data[10]); // same line
+        Assert.Equal(14, data[12]); // length
+        Assert.Equal(stringIdx, data[13]);
+    }
 }

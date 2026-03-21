@@ -1,0 +1,26 @@
+namespace TestApp.Parity.NsAlpha
+{
+    runtimeclass AlphaWidget
+    {
+        AlphaWidget();
+        String Label { get; };
+    }
+}
+
+namespace TestApp.Parity.NsBeta
+{
+    runtimeclass BetaWidget
+    {
+        BetaWidget();
+        Int32 Count { get; };
+    }
+}
+
+namespace TestApp.Parity.NsGamma
+{
+    runtimeclass GammaWidget
+    {
+        GammaWidget();
+        Boolean Active { get; };
+    }
+}

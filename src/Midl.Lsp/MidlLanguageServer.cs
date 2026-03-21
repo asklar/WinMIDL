@@ -18,6 +18,7 @@ public sealed class MidlLanguageServer
     private readonly DiagnosticsPublisher _diagnostics;
     private bool _shutdownRequested;
     private List<string>? _referencePaths = null;
+    private List<string>? _refDirectories = null;
     private List<string>? _sdkIncludePaths = null;
     private CompilationMode _compilationMode = CompilationMode.Strict;
     private bool _enableQualityHints = true;
@@ -370,7 +371,8 @@ public sealed class MidlLanguageServer
             var compilation = CompilationHelper.Compile(text, references, _compilationMode,
                 includePaths, filePath,
                 defines: defines,
-                emitQualityHints: _enableQualityHints);
+                emitQualityHints: _enableQualityHints,
+                refDirectories: _refDirectories);
 
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
@@ -400,18 +402,51 @@ public sealed class MidlLanguageServer
         if (_projectFile != null)
             paths.AddRange(_projectFile.GetAbsoluteReferencePaths().Where(File.Exists));
 
+        // Parse // @ref: directives — .winmd files and directories
+        string? filePath = null;
+        if (uri.StartsWith("file:///"))
+            filePath = Uri.UnescapeDataString(uri[8..]);
+
+        List<string>? refDirs = null;
+        if (filePath != null)
+        {
+            var text = _docManager.GetDocumentText(uri);
+            if (text != null)
+            {
+                var dir = Path.GetDirectoryName(filePath);
+                var refPaths = RefDirectiveParser.ParseRefs(text, dir);
+                foreach (var refPath in refPaths)
+                {
+                    if (Directory.Exists(refPath))
+                    {
+                        // Directory ref — collect all .winmd files in it
+                        refDirs ??= new List<string>();
+                        refDirs.Add(refPath);
+                        var winmds = RefDirectiveParser.ResolveWinMdsFromDirectory(refPath);
+                        foreach (var winmd in winmds)
+                        {
+                            if (!paths.Contains(winmd))
+                                paths.Add(winmd);
+                        }
+                    }
+                    else if (refPath.EndsWith(".winmd", StringComparison.OrdinalIgnoreCase) && !paths.Contains(refPath))
+                    {
+                        paths.Add(refPath);
+                    }
+                }
+            }
+        }
+
+        // Store directory refs for namespace-based lazy resolution
+        _refDirectories = refDirs;
+
         if (paths.Count > 0)
             return paths;
 
         // Fallback: scan workspace directory for .winmd files
         try
         {
-            string? dir = null;
-            if (uri.StartsWith("file:///"))
-            {
-                var filePath = Uri.UnescapeDataString(uri[8..]);
-                dir = Path.GetDirectoryName(filePath);
-            }
+            string? dir = filePath != null ? Path.GetDirectoryName(filePath) : null;
 
             if (dir != null && Directory.Exists(dir))
             {

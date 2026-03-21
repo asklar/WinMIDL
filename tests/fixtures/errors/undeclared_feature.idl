@@ -1,0 +1,10 @@
+// [feature] referencing undeclared feature_name — should error (MIDL1076)
+namespace TestApp
+{
+    [feature(UndeclaredFeature)]
+    runtimeclass FeatureWidget
+    {
+        FeatureWidget();
+        void DoWork();
+    };
+}

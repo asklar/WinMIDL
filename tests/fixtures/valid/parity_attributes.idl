@@ -1,0 +1,48 @@
+namespace TestApp.Parity
+{
+    [uuid("12345678-1234-5678-9ABC-DEF012345678")]
+    interface IMarkedInterface
+    {
+        void DoSomething();
+    }
+
+    [threading(both)]
+    [marshaling_behavior(agile)]
+    runtimeclass AttributedClass
+    {
+        AttributedClass();
+        String Label { get; set; };
+    }
+
+    [contractversion(1)]
+    apicontract AttrContract
+    {
+    };
+
+    [deprecated("Use AttributedClass instead", deprecate, 1)]
+    [default_interface]
+    runtimeclass OldClass
+    {
+        OldClass();
+    }
+
+    unsealed runtimeclass ComposableBase
+    {
+        protected ComposableBase();
+        protected ComposableBase(String name);
+        String Name { get; };
+    }
+
+    runtimeclass ActivatableWidget : ComposableBase
+    {
+        ActivatableWidget();
+        ActivatableWidget(String label);
+        void Activate();
+    }
+
+    static runtimeclass SettingsHelper
+    {
+        static String Read(String key);
+        static void Write(String key, String data);
+    }
+}

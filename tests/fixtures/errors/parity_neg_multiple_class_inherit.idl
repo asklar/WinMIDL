@@ -1,0 +1,17 @@
+namespace TestApp
+{
+    unsealed runtimeclass Base1
+    {
+        protected Base1();
+    }
+
+    unsealed runtimeclass Base2
+    {
+        protected Base2();
+    }
+
+    runtimeclass BadChild : Base1, Base2
+    {
+        BadChild();
+    }
+}

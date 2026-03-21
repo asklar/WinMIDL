@@ -1,0 +1,10 @@
+namespace TestApp.Parity
+{
+    runtimeclass ObservableWidget
+    {
+        ObservableWidget();
+        Windows.Foundation.Collections.IObservableVector<String> Names { get; };
+        Windows.Foundation.Collections.IObservableMap<String, Int32> Counts { get; };
+        Windows.Foundation.Collections.IObservableVector<Object> Items { get; };
+    }
+}

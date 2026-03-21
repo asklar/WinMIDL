@@ -1,0 +1,13 @@
+namespace TestApp
+{
+    interface IFoo
+    {
+        void Foo();
+    }
+
+    [exclusiveto(BadClass)]
+    runtimeclass BadClass : [default] IFoo
+    {
+        BadClass();
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "messageContains": "Unexpected code",
+      "code": "MIDL1100",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL2025",
+  "originalMidlAlsoRejects": true
+}

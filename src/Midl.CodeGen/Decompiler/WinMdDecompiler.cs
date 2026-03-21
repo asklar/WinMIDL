@@ -91,7 +91,7 @@ public class WinMdDecompiler
                 DecompileStruct(reader, td, name, sb, indent);
                 break;
             case "System.MulticastDelegate":
-                DecompileDelegate(reader, td, name, sb, indent);
+                DecompileDelegate(reader, td, handle, name, sb, indent);
                 break;
             case "System.Attribute":
                 // Skip WinRT attribute types in decompiled output
@@ -104,6 +104,8 @@ public class WinMdDecompiler
                         break;
                     DecompileInterface(reader, td, handle, name, sb, indent);
                 }
+                else if (IsApiContract(reader, td, handle))
+                    DecompileApiContract(reader, td, handle, name, sb, indent);
                 else
                     DecompileRuntimeClass(reader, td, handle, name, sb, indent);
                 break;
@@ -162,7 +164,10 @@ public class WinMdDecompiler
     private void DecompileInterface(MetadataReader reader, TypeDefinition td, TypeDefinitionHandle handle,
         string name, StringBuilder sb, string indent)
     {
-        // Emit uuid attribute if present
+        // Emit all attributes (uuid, exclusiveto, deprecated, version, contract, etc.)
+        EmitAttributes(reader, handle, sb, indent);
+
+        // Emit uuid attribute if present (always emit separately for interfaces)
         var guid = ReadGuidAttribute(reader, handle);
         if (guid.HasValue)
             sb.AppendLine($"{indent}[uuid({FormatGuid(guid.Value)})]");
@@ -237,9 +242,11 @@ public class WinMdDecompiler
 
     #region Delegate
 
-    private void DecompileDelegate(MetadataReader reader, TypeDefinition td,
+    private void DecompileDelegate(MetadataReader reader, TypeDefinition td, TypeDefinitionHandle handle,
         string name, StringBuilder sb, string indent)
     {
+        EmitAttributes(reader, handle, sb, indent);
+
         // Find Invoke method
         foreach (var methodHandle in td.GetMethods())
         {
@@ -265,8 +272,8 @@ public class WinMdDecompiler
     private void DecompileRuntimeClass(MetadataReader reader, TypeDefinition td, TypeDefinitionHandle handle,
         string name, StringBuilder sb, string indent)
     {
-        // Check for attributes to emit
-        EmitContractAttribute(reader, handle, sb, indent);
+        // Emit all custom attributes
+        EmitAttributes(reader, handle, sb, indent);
 
         // Check if sealed/static
         bool isSealed = td.Attributes.HasFlag(TypeAttributes.Sealed);
@@ -398,39 +405,275 @@ public class WinMdDecompiler
 
     #region Attribute helpers
 
-    private void EmitContractAttribute(MetadataReader reader, TypeDefinitionHandle handle, StringBuilder sb, string indent)
+    /// <summary>
+    /// Reads all well-known custom attributes from a type and emits them as MIDL3 syntax.
+    /// Handles: threading, marshaling_behavior, composable, activatable, static,
+    /// deprecated, exclusiveto, webhosthidden, version, contract, contractversion.
+    /// GuidAttribute and FlagsAttribute are handled separately.
+    /// </summary>
+    private void EmitAttributes(MetadataReader reader, TypeDefinitionHandle handle, StringBuilder sb, string indent)
     {
         var td = reader.GetTypeDefinition(handle);
         foreach (var attrHandle in td.GetCustomAttributes())
         {
             var attr = reader.GetCustomAttribute(attrHandle);
             var attrName = GetAttributeTypeName(reader, attr.Constructor);
-            if (attrName == "ContractVersionAttribute")
+            if (attrName == null) continue;
+
+            switch (attrName)
             {
-                // Try to read contract name and version from blob
-                var blob = reader.GetBlobReader(attr.Value);
-                if (blob.Length >= 2)
+                case "ThreadingAttribute":
+                    EmitThreadingAttribute(reader, attr, sb, indent);
+                    break;
+                case "MarshalingBehaviorAttribute":
+                    EmitMarshalingBehaviorAttribute(reader, attr, sb, indent);
+                    break;
+                case "ComposableAttribute":
+                    EmitComposableAttribute(reader, attr, sb, indent);
+                    break;
+                case "ActivatableAttribute":
+                    EmitActivatableAttribute(reader, attr, sb, indent);
+                    break;
+                case "StaticAttribute":
+                    EmitStaticAttribute(reader, attr, sb, indent);
+                    break;
+                case "DeprecatedAttribute":
+                    EmitDeprecatedAttribute(reader, attr, sb, indent);
+                    break;
+                case "ExclusiveToAttribute":
+                    EmitExclusiveToAttribute(reader, attr, sb, indent);
+                    break;
+                case "WebHostHiddenAttribute":
+                    sb.AppendLine($"{indent}[webhosthidden]");
+                    break;
+                case "VersionAttribute":
+                    EmitVersionAttribute(reader, attr, sb, indent);
+                    break;
+                case "ContractVersionAttribute":
+                    EmitContractVersionAttribute(reader, attr, sb, indent);
+                    break;
+            }
+        }
+    }
+
+    private static void EmitThreadingAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        var blob = reader.GetBlobReader(attr.Value);
+        if (blob.Length < 6) return; // prolog(2) + int32(4)
+        blob.ReadUInt16(); // prolog
+        var value = blob.ReadInt32();
+        var model = value switch { 1 => "sta", 2 => "mta", 3 => "both", _ => null };
+        if (model != null)
+            sb.AppendLine($"{indent}[threading({model})]");
+    }
+
+    private static void EmitMarshalingBehaviorAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        var blob = reader.GetBlobReader(attr.Value);
+        if (blob.Length < 6) return;
+        blob.ReadUInt16(); // prolog
+        var value = blob.ReadInt32();
+        var behavior = value switch { 0 => "none", 1 => "standard", 2 => "agile", _ => null };
+        if (behavior != null)
+            sb.AppendLine($"{indent}[marshaling_behavior({behavior})]");
+    }
+
+    private static void EmitComposableAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        try
+        {
+            var blob = reader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) return;
+            blob.ReadUInt16(); // prolog
+            var factoryType = ReadSerializedString(ref blob);
+            if (factoryType != null && blob.RemainingBytes >= 8)
+            {
+                var access = blob.ReadInt32();
+                var version = blob.ReadUInt32();
+                var accessStr = access == 2 ? "protected" : "public";
+                sb.AppendLine($"{indent}[composable({GetShortName(factoryType)}, {accessStr}, {version})]");
+            }
+        }
+        catch { /* best-effort attribute decoding */ }
+    }
+
+    private static void EmitActivatableAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        try
+        {
+            int paramCount = GetCtorParameterCount(reader, attr.Constructor);
+            var blob = reader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) return;
+            blob.ReadUInt16(); // prolog
+
+            if (paramCount >= 3)
+            {
+                // Factory variant: (Type factoryType, UInt32 version, String platform)
+                var factoryType = ReadSerializedString(ref blob);
+                if (factoryType != null && blob.RemainingBytes >= 4)
                 {
-                    blob.ReadUInt16(); // prolog
-                    // First parameter could be string (contract name) or uint (version)
-                    // For the named variant: string contractName, uint version
-                    try
-                    {
-                        var contractName = ReadSerializedString(ref blob);
-                        if (contractName != null && blob.RemainingBytes >= 4)
-                        {
-                            var version = blob.ReadUInt32();
-                            sb.AppendLine($"{indent}[contract({contractName}, {version})]");
-                            return;
-                        }
-                    }
-                    catch
-                    {
-                        // Fall through — might be the uint-only variant
-                    }
+                    var version = blob.ReadUInt32();
+                    sb.AppendLine($"{indent}[activatable({GetShortName(factoryType)}, {version})]");
+                }
+            }
+            else
+            {
+                // Simple variant: (UInt32 version, String platform)
+                if (blob.RemainingBytes >= 4)
+                {
+                    var version = blob.ReadUInt32();
+                    sb.AppendLine($"{indent}[activatable({version})]");
                 }
             }
         }
+        catch { /* best-effort */ }
+    }
+
+    private static void EmitStaticAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        try
+        {
+            var blob = reader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) return;
+            blob.ReadUInt16(); // prolog
+            var staticType = ReadSerializedString(ref blob);
+            if (staticType != null && blob.RemainingBytes >= 4)
+            {
+                var version = blob.ReadUInt32();
+                sb.AppendLine($"{indent}[static({GetShortName(staticType)}, {version})]");
+            }
+        }
+        catch { /* best-effort */ }
+    }
+
+    private static void EmitDeprecatedAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        try
+        {
+            var blob = reader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) return;
+            blob.ReadUInt16(); // prolog
+            var message = ReadSerializedString(ref blob);
+            if (message != null && blob.RemainingBytes >= 8)
+            {
+                var deprecationType = blob.ReadInt32();
+                var version = blob.ReadUInt32();
+                var depTypeStr = deprecationType == 1 ? "remove" : "deprecate";
+                sb.AppendLine($"{indent}[deprecated(\"{message}\", {depTypeStr}, {version})]");
+            }
+        }
+        catch { /* best-effort */ }
+    }
+
+    private static void EmitExclusiveToAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        try
+        {
+            var blob = reader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) return;
+            blob.ReadUInt16(); // prolog
+            var typeName = ReadSerializedString(ref blob);
+            if (typeName != null)
+                sb.AppendLine($"{indent}[exclusiveto({GetShortName(typeName)})]");
+        }
+        catch { /* best-effort */ }
+    }
+
+    private static void EmitVersionAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        var blob = reader.GetBlobReader(attr.Value);
+        if (blob.Length < 6) return;
+        blob.ReadUInt16(); // prolog
+        var version = blob.ReadUInt32();
+        if (version != 0x00010000) // skip default version to keep output clean
+            sb.AppendLine($"{indent}[version({version})]");
+    }
+
+    private void EmitContractVersionAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        try
+        {
+            int paramCount = GetCtorParameterCount(reader, attr.Constructor);
+            var blob = reader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) return;
+            blob.ReadUInt16(); // prolog
+
+            if (paramCount >= 2)
+            {
+                // Named variant: (String contractName, UInt32 version)
+                var contractName = ReadSerializedString(ref blob);
+                if (contractName != null && blob.RemainingBytes >= 4)
+                {
+                    var version = blob.ReadUInt32();
+                    sb.AppendLine($"{indent}[contract({contractName}, {version})]");
+                }
+            }
+            else
+            {
+                // Version-only variant: (UInt32 version)
+                if (blob.RemainingBytes >= 4)
+                {
+                    var version = blob.ReadUInt32();
+                    sb.AppendLine($"{indent}[contractversion({version})]");
+                }
+            }
+        }
+        catch { /* best-effort */ }
+    }
+
+    /// <summary>
+    /// Gets the parameter count from a constructor's MemberRef signature.
+    /// </summary>
+    private static int GetCtorParameterCount(MetadataReader reader, EntityHandle ctorHandle)
+    {
+        if (ctorHandle.Kind == HandleKind.MemberReference)
+        {
+            var memberRef = reader.GetMemberReference((MemberReferenceHandle)ctorHandle);
+            var sigBlob = reader.GetBlobReader(memberRef.Signature);
+            sigBlob.ReadSignatureHeader(); // calling convention
+            return sigBlob.ReadCompressedInteger(); // parameter count
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Detects whether a type definition represents an apicontract.
+    /// ApiContracts are sealed types with ContractVersionAttribute (uint-only variant) and no methods.
+    /// </summary>
+    private static bool IsApiContract(MetadataReader reader, TypeDefinition td, TypeDefinitionHandle handle)
+    {
+        if (!td.Attributes.HasFlag(TypeAttributes.Sealed)) return false;
+
+        // Must have no methods
+        bool hasMethods = false;
+        foreach (var _ in td.GetMethods()) { hasMethods = true; break; }
+        if (hasMethods) return false;
+
+        // Must have ContractVersionAttribute with uint-only constructor (1 param)
+        foreach (var attrHandle in td.GetCustomAttributes())
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            var attrName = GetAttributeTypeName(reader, attr.Constructor);
+            if (attrName == "ContractVersionAttribute")
+            {
+                int paramCount = GetCtorParameterCount(reader, attr.Constructor);
+                if (paramCount == 1) return true;
+            }
+        }
+        return false;
+    }
+
+    #endregion
+
+    #region ApiContract
+
+    private void DecompileApiContract(MetadataReader reader, TypeDefinition td, TypeDefinitionHandle handle,
+        string name, StringBuilder sb, string indent)
+    {
+        EmitAttributes(reader, handle, sb, indent);
+        sb.AppendLine($"{indent}apicontract {name}");
+        sb.AppendLine($"{indent}{{");
+        sb.AppendLine($"{indent}}};");
     }
 
     private static Guid? ReadGuidAttribute(MetadataReader reader, TypeDefinitionHandle handle)

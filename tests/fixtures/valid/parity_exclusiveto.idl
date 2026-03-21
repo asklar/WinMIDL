@@ -1,0 +1,24 @@
+namespace TestApp.Parity
+{
+    runtimeclass ExclusiveWidget;
+
+    [exclusiveto(ExclusiveWidget)]
+    interface IExclusiveInternal
+    {
+        void InternalReset();
+        Int32 DebugId { get; };
+    }
+
+    [exclusiveto(ExclusiveWidget)]
+    interface IExclusivePrivate
+    {
+        void SecretMethod();
+        String SecretValue { get; };
+    }
+
+    runtimeclass ExclusiveWidget : [default] IExclusiveInternal, IExclusivePrivate
+    {
+        ExclusiveWidget();
+        String Name { get; };
+    }
+}

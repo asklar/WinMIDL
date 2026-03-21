@@ -1,0 +1,7 @@
+{
+    "diagnostics": [
+        {"code": "MIDL1035", "severity": "Error", "messageContains": "is not a runtimeclass"}
+    ],
+    "originalMidlAlsoRejects": true,
+    "originalMidlError": "MIDL5150"
+}

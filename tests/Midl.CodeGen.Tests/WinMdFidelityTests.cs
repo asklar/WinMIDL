@@ -147,7 +147,7 @@ public class WinMdFidelityTests
         var bytes = CompileAndEmit("""
             namespace Test
             {
-                runtimeclass Widget { Widget(); }
+                [default_interface] runtimeclass Widget { Widget(); }
             }
             """);
 

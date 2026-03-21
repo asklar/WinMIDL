@@ -1,0 +1,26 @@
+namespace TestApp.Parity
+{
+    interface ISerializable2
+    {
+        String Serialize();
+        void Deserialize(String data);
+    }
+
+    interface IComparable2
+    {
+        Int32 CompareTo(Object other);
+    }
+
+    unsealed runtimeclass BaseItem
+    {
+        protected BaseItem();
+        String Name { get; };
+    }
+
+    runtimeclass DerivedItem : BaseItem, ISerializable2, IComparable2
+    {
+        DerivedItem();
+        DerivedItem(String name);
+        Int32 Priority { get; set; };
+    }
+}

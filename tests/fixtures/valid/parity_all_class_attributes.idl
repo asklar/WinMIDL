@@ -1,0 +1,12 @@
+namespace TestApp.Parity
+{
+    [threading(both)]
+    [marshaling_behavior(agile)]
+    runtimeclass FullyAttributedClass
+    {
+        FullyAttributedClass();
+        String Name { get; set; };
+        void DoWork();
+        Int32 WorkCount { get; };
+    }
+}

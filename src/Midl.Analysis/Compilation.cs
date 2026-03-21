@@ -13,6 +13,9 @@ public class Compilation
 
     private readonly IReadOnlyList<LazyWinMdProvider>? _lazyProviders;
 
+    /// <summary>Set of feature_name declarations encountered during binding.</summary>
+    public HashSet<string> FeatureNames { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     public Compilation(NamespaceSymbol globalNamespace, IReadOnlyList<Diagnostic> diagnostics,
         IReadOnlyList<LazyWinMdProvider>? lazyProviders = null)
     {
@@ -27,7 +30,9 @@ public class Compilation
         var merged = new List<Diagnostic>(additional.Count + Diagnostics.Count);
         merged.AddRange(additional);
         merged.AddRange(Diagnostics);
-        return new Compilation(GlobalNamespace, merged, _lazyProviders);
+        var result = new Compilation(GlobalNamespace, merged, _lazyProviders);
+        foreach (var fn in FeatureNames) result.FeatureNames.Add(fn);
+        return result;
     }
 
     /// <summary>Lookup any type by fully qualified name.</summary>

@@ -1,0 +1,28 @@
+namespace TestApp.Parity
+{
+    [default_interface]
+    runtimeclass EmptyRuntimeClass
+    {
+    }
+
+    [default_interface]
+    runtimeclass EmptyWithLabel
+    {
+        String Label { get; };
+    }
+
+    struct MinimalStruct
+    {
+        Int32 Value;
+    };
+
+    enum MinimalEnum
+    {
+        Default = 0
+    };
+
+    static runtimeclass EmptyStaticClass
+    {
+        static void Noop();
+    }
+}

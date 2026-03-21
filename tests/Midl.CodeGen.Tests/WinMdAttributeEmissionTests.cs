@@ -135,6 +135,7 @@ public class WinMdAttributeEmissionTests
         var bytes = CompileAndEmit("""
             namespace Test
             {
+                [default_interface]
                 runtimeclass Foo
                 {
                     Foo();
@@ -181,7 +182,7 @@ public class WinMdAttributeEmissionTests
         var bytes = CompileAndEmit("""
             namespace Test
             {
-                [threading(both)]
+                [threading(both), default_interface]
                 runtimeclass Widget
                 {
                     Widget();
@@ -204,7 +205,7 @@ public class WinMdAttributeEmissionTests
         var bytes = CompileAndEmit("""
             namespace Test
             {
-                [marshaling_behavior(agile)]
+                [marshaling_behavior(agile), default_interface]
                 runtimeclass Widget
                 {
                     Widget();
@@ -230,7 +231,7 @@ public class WinMdAttributeEmissionTests
                 [contractversion(3)]
                 apicontract TestContract { }
 
-                [contract(TestContract, 2)]
+                [contract(TestContract, 2), default_interface]
                 runtimeclass Widget
                 {
                     Widget();

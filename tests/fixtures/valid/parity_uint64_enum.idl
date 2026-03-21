@@ -1,0 +1,24 @@
+namespace TestApp.Parity
+{
+    [flags]
+    enum LargeFlags
+    {
+        None       = 0x0,
+        Bit0       = 0x1,
+        Bit4       = 0x10,
+        Bit8       = 0x100,
+        Bit12      = 0x1000,
+        Bit16      = 0x10000,
+        Bit20      = 0x100000,
+        Bit24      = 0x1000000,
+        Bit28      = 0x10000000,
+        AllBits    = 0x11111111
+    };
+
+    runtimeclass FlagChecker
+    {
+        FlagChecker();
+        Boolean HasFlag(LargeFlags value, LargeFlags flag);
+        LargeFlags CombineFlags(LargeFlags a, LargeFlags b);
+    }
+}

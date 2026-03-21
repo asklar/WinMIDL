@@ -1,0 +1,12 @@
+namespace TestApp
+{
+    runtimeclass MyWidget
+    {
+        MyWidget();
+    }
+
+    interface IBadInterface requires MyWidget
+    {
+        void DoWork();
+    }
+}

@@ -1,0 +1,13 @@
+namespace TestApp.Parity
+{
+    runtimeclass CharWidget
+    {
+        CharWidget();
+        Char GetSeparator();
+        void SetSeparator(Char c);
+        Char Separator { get; set; };
+        Boolean IsLetter(Char c);
+        Boolean IsDigit(Char c);
+        String CharToString(Char c);
+    }
+}

@@ -4,6 +4,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using Midl.Analysis.Symbols;
+using Midl.Syntax;
 
 namespace Midl.Analysis;
 
@@ -327,6 +328,8 @@ public class WinMdReader
         {
             IsExternal = true,
             SourceWinMdPath = sourcePath,
+            // A class without the Sealed flag is unsealed (composable)
+            IsUnsealed = (typeDef.Attributes & TypeAttributes.Sealed) == 0,
         };
 
         // Read implemented interfaces
@@ -615,6 +618,17 @@ public class WinMdReader
             var attr = mdReader.GetCustomAttribute(attrHandle);
             var attrName = GetAttributeTypeName(mdReader, attr.Constructor);
             if (attrName == null) continue;
+
+            // Some attributes only need presence detection, no blob decoding
+            if (attrName == "ComposableAttribute")
+            {
+                if (symbol is RuntimeClassSymbol rcComp)
+                {
+                    rcComp.IsUnsealed = true;
+                    MidlTrace.Binder($"ComposableAttribute → {symbol.Name}.IsUnsealed = true");
+                }
+                continue;
+            }
 
             var blob = mdReader.GetBlobReader(attr.Value);
             if (blob.Length < 2) continue;

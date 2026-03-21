@@ -1,0 +1,29 @@
+namespace TestApp.Parity
+{
+    delegate void SimpleNotify();
+    delegate void ValueUpdated(String propertyName, Object newValue);
+    delegate void ProgressHandler(Int32 percent, String message);
+    delegate void ErrorHandler(Int32 code, String description, Boolean isFatal);
+
+    runtimeclass EventEmitter
+    {
+        EventEmitter();
+
+        // TypedEventHandler with various arg types
+        event Windows.Foundation.TypedEventHandler<EventEmitter, Object> GenericEvent;
+        event Windows.Foundation.TypedEventHandler<EventEmitter, String> NameChanged;
+        event Windows.Foundation.TypedEventHandler<EventEmitter, Int32> CountChanged;
+        event Windows.Foundation.TypedEventHandler<EventEmitter, Boolean> EnabledChanged;
+
+        // EventHandler
+        event Windows.Foundation.EventHandler<Object> SimpleObjectEvent;
+        event Windows.Foundation.EventHandler<Int32> IntEvent;
+        event Windows.Foundation.EventHandler<String> StringEvent;
+
+        // Custom delegates as events
+        event SimpleNotify Notified;
+        event ValueUpdated PropertyChanged;
+        event ProgressHandler ProgressUpdated;
+        event ErrorHandler ErrorOccurred;
+    }
+}

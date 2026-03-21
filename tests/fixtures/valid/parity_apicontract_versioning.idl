@@ -1,0 +1,68 @@
+namespace TestApp.Parity
+{
+    [contractversion(3)]
+    apicontract TestApiContract {};
+
+    [contractversion(2)]
+    apicontract SecondaryContract {};
+
+    [contract(TestApiContract, 1)]
+    enum ApiStatus
+    {
+        Ready = 0,
+        Busy = 1,
+        Error = 2
+    };
+
+    [contract(TestApiContract, 1)]
+    struct ApiSettings
+    {
+        String Name;
+        Int32 Version;
+        Boolean Debug;
+    };
+
+    [contract(TestApiContract, 1)]
+    delegate void ApiCallback(String result);
+
+    [contract(TestApiContract, 1)]
+    interface IApiEndpoint
+    {
+        String Url { get; };
+        void Connect();
+    }
+
+    [contract(TestApiContract, 1)]
+    runtimeclass ApiService
+    {
+        ApiService();
+        String ServiceName { get; };
+        void Start();
+
+        [contract(TestApiContract, 2)]
+        {
+            Int32 ConnectionCount { get; };
+            void Restart();
+            event Windows.Foundation.TypedEventHandler<ApiService, Object> Restarted;
+        }
+
+        [contract(TestApiContract, 3)]
+        {
+            Boolean IsHealthy { get; };
+            ApiStatus GetStatus();
+            static ApiService CreateWithSettings(ApiSettings settings);
+        }
+    }
+
+    [contract(SecondaryContract, 1)]
+    runtimeclass SecondaryService
+    {
+        SecondaryService();
+        void Execute();
+
+        [contract(SecondaryContract, 2)]
+        {
+            String Result { get; };
+        }
+    }
+}

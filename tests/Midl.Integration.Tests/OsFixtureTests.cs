@@ -51,6 +51,7 @@ public class OsFixtureTests
         Assert.Equal(SyntaxKind.CompilationUnit, tree.Kind);
     }
 
+#if WITH_COMPAT
     [SkippableTheory]
     [MemberData(nameof(GetOsIdlFiles))]
     public void OsIdlFile_CompilesWithoutCrash(string name, string path)
@@ -65,4 +66,5 @@ public class OsFixtureTests
         var compilation = CompilationHelper.Compile(source, CompilationMode.Compat);
         Assert.NotNull(compilation);
     }
+#endif
 }

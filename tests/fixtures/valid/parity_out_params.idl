@@ -1,0 +1,18 @@
+namespace TestApp.Parity
+{
+    runtimeclass DataParser
+    {
+        DataParser();
+
+        Boolean TryParseInt(String input, out Int32 parsed);
+        Boolean TryParseDouble(String input, out Double parsed);
+        Boolean TryParseBool(String input, out Boolean parsed);
+        Boolean TryParseName(String input, out String parsedName);
+
+        void GetBounds(out Int32 minBound, out Int32 maxBound);
+        void GetDimensions(out Double width, out Double height, out Double depth);
+        void GetInfo(out String infoName, out Int32 infoVersion, out Boolean infoValid);
+
+        Boolean TryGetKeyValue(String key, out String foundValue, out Boolean exists);
+    }
+}

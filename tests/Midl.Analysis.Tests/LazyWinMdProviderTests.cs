@@ -42,6 +42,7 @@ public class LazyWinMdProviderTests
                     void DoWork();
                 };
 
+                [default_interface]
                 runtimeclass Widget
                 {
                     Widget();

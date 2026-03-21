@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    delegate void BadDelegate(String name)
+    {
+        void ExtraMethod();
+    };
+}

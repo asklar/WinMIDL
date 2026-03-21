@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "messageContains": "Duplicate enum member",
+      "code": "MIDL1046",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5029",
+  "originalMidlAlsoRejects": true
+}

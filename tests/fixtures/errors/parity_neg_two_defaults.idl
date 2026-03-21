@@ -1,0 +1,17 @@
+namespace TestApp
+{
+    interface IFoo
+    {
+        void Foo();
+    }
+
+    interface IBar
+    {
+        void Bar();
+    }
+
+    runtimeclass BadClass : [default] IFoo, [default] IBar
+    {
+        BadClass();
+    }
+}

@@ -91,6 +91,7 @@ namespace TestNs
         Assert.NotEmpty(warnings);
     }
 
+#if WITH_COMPAT
     [Fact]
     public void MissingTokenHasExpectedInfo()
     {
@@ -101,6 +102,7 @@ namespace TestNs
             .ToList();
         Assert.NotEmpty(errors);
     }
+#endif
 
     [Fact]
     public void EmptyStructDiagnostic()
@@ -148,6 +150,7 @@ namespace TestNs
         Assert.NotEmpty(errors);
     }
 
+#if WITH_COMPAT
     [Fact]
     public void AllDiagnosticsHaveNonEmptyMessages()
     {
@@ -170,4 +173,5 @@ namespace TestNs
             }
         }
     }
+#endif
 }

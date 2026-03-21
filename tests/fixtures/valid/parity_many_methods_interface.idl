@@ -1,0 +1,23 @@
+namespace TestApp.Parity
+{
+    runtimeclass LargeInterfaceImpl
+    {
+        LargeInterfaceImpl();
+        void Method1();
+        void Method2(String a);
+        void Method3(Int32 a, Int32 b);
+        String Method4();
+        Int32 Method5();
+        Boolean Method6();
+        Double Method7(Double x);
+        Single Method8(Single y);
+        void Method9(String a, Int32 b, Boolean c);
+        String Method10(Int32 id);
+        Boolean Method11(String name);
+        Int32 Method12(String key, Int32 defaultValue);
+        void Method13(Boolean flag);
+        Double Method14(Int32 a, Int32 b);
+        String Method15(String prefix, String suffix);
+        void Method16(String a, String b, String c, Int32 d);
+    }
+}

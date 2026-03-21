@@ -1,0 +1,12 @@
+namespace TestApp
+{
+    interface IFoo
+    {
+        void DoWork();
+    }
+
+    struct BadStruct
+    {
+        IFoo Ref;
+    };
+}

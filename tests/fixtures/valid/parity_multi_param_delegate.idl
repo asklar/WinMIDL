@@ -1,0 +1,13 @@
+namespace TestApp.Parity
+{
+    delegate void SixParamCallback(String name, Int32 id, Boolean active, Double value, Single ratio, Int32 priority);
+    delegate void SevenParamCallback(String a, String b, Int32 c, Int32 d, Boolean e, Double f, Single g);
+    delegate void ComplexCallback(String name, Int32 minVal, Int32 maxVal, Boolean inclusive, Double threshold);
+
+    runtimeclass MultiParamDelegateUser
+    {
+        MultiParamDelegateUser();
+        event SixParamCallback DataReceived;
+        event ComplexCallback FilterRequested;
+    }
+}

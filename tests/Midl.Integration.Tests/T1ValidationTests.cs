@@ -50,6 +50,7 @@ public class T1ValidationTests
         return null;
     }
 
+#if WITH_COMPAT
     [SkippableFact]
     public void NegativeTestFilesProduceErrors()
     {
@@ -224,4 +225,5 @@ public class T1ValidationTests
                 Console.WriteLine($"  {f}");
         }
     }
+#endif
 }

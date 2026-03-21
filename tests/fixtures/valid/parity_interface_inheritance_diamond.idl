@@ -1,0 +1,31 @@
+namespace TestApp.Parity
+{
+    interface INode
+    {
+        String Id { get; };
+    }
+
+    interface IInputNode requires INode
+    {
+        void Accept(Object data);
+    }
+
+    interface IOutputNode requires INode
+    {
+        Object Produce();
+    }
+
+    interface IProcessorNode requires IInputNode, IOutputNode
+    {
+        void Process();
+    }
+
+    runtimeclass ProcessorWidget
+    {
+        ProcessorWidget();
+        String Name { get; };
+        void Process();
+        void Accept(Object data);
+        Object Produce();
+    }
+}

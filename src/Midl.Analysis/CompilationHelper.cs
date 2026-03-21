@@ -30,7 +30,8 @@ public static class CompilationHelper
                                        IReadOnlyList<string>? includePaths,
                                        string? currentFilePath,
                                        IReadOnlyList<string>? defines = null,
-                                        bool emitQualityHints = false
+                                        bool emitQualityHints = false,
+                                        IReadOnlyList<string>? refDirectories = null
 #if WITH_COMPAT
                                         , string? cppCmd = null
 #endif
@@ -93,7 +94,7 @@ public static class CompilationHelper
             );
 
         var binder = new Binder(mode, emitQualityHints);
-        var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders);
+        var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders, refDirectories);
 
         // Synthesize exclusive interfaces for runtime classes
         var synthesizer = new InterfaceSynthesizer();

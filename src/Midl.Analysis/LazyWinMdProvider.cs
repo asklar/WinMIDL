@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Midl.Analysis.Symbols;
+using Midl.Syntax;
 
 namespace Midl.Analysis;
 
@@ -16,6 +17,8 @@ public class LazyWinMdProvider : IDisposable
     private readonly PEReader _peReader;
     private readonly MetadataReader _mdReader;
     private readonly string? _sourcePath;
+
+    public string? SourcePath => _sourcePath;
 
     // Index: fully-qualified name → TypeDefinitionHandle
     private readonly Dictionary<string, TypeDefinitionHandle> _typeIndex;
@@ -81,15 +84,25 @@ public class LazyWinMdProvider : IDisposable
     /// <summary>Try to resolve a type by fully-qualified name. Loads on first access.</summary>
     public ISymbol? TryResolve(string fullName)
     {
+        MidlTrace.Binder($"LazyWinMd.TryResolve: {fullName}");
         if (_cache.TryGetValue(fullName, out var cached))
             return cached;
 
         if (!_typeIndex.TryGetValue(fullName, out var handle))
+        {
+            MidlTrace.Binder($"LazyWinMd.TryResolve: {fullName} not in index");
             return null;
+        }
 
         var symbol = WinMdReader.ReadSingleType(_mdReader, handle, _sourcePath);
         if (symbol != null)
+        {
             _cache[fullName] = symbol;
+            if (symbol is RuntimeClassSymbol rc)
+                MidlTrace.Binder($"LazyWinMd.TryResolve: {fullName} → RuntimeClass IsUnsealed={rc.IsUnsealed}");
+            else
+                MidlTrace.Binder($"LazyWinMd.TryResolve: {fullName} → {symbol.Kind}");
+        }
 
         return symbol;
     }

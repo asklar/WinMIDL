@@ -1,0 +1,12 @@
+namespace TestApp
+{
+    struct Point
+    {
+        Int32 X;
+        Int32 Y;
+    };
+
+    runtimeclass Derived : Point
+    {
+    }
+}

@@ -3,6 +3,7 @@
   "name": "MIDL",
   "scopeName": "source.midl",
   "patterns": [
+    { "include": "#directives" },
     { "include": "#comments" },
     { "include": "#strings" },
     { "include": "#guids" },
@@ -18,6 +19,20 @@
     { "include": "#storage-modifiers" }
   ],
   "repository": {
+    "directives": {
+      "patterns": [
+        {
+          "name": "meta.directive.ref.midl",
+          "match": "(//\\s*)(@ref:)(\\s*)(.*)",
+          "captures": {
+            "1": { "name": "punctuation.definition.directive.midl" },
+            "2": { "name": "keyword.other.directive.ref.midl" },
+            "3": { "name": "meta.directive.ref.midl" },
+            "4": { "name": "string.unquoted.path.midl" }
+          }
+        }
+      ]
+    },
     "comments": {
       "patterns": [
         {

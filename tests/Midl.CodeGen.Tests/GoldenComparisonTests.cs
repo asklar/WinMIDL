@@ -248,7 +248,7 @@ public class GoldenComparisonTests
             {
                 enum Color { Red, Green, Blue }
                 struct Point { Int32 X; Int32 Y; }
-                runtimeclass Widget { Widget(); }
+                [default_interface] runtimeclass Widget { Widget(); }
             }
             """;
 

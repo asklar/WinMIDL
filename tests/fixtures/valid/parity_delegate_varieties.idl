@@ -1,0 +1,24 @@
+namespace TestApp.Parity
+{
+    delegate void VoidCallback();
+    delegate void SingleParamCallback(String value);
+    delegate void TwoParamCallback(String name, Int32 value);
+    delegate void ThreeParamCallback(String name, Int32 value, Boolean enabled);
+    delegate void MultiParamCallback(String a, Int32 b, Double c, Boolean d, Single e);
+
+    delegate String StringTransform(String input);
+    delegate Int32 IntCompare(String a, String b);
+    delegate Boolean BoolPredicate(Int32 value);
+    delegate Double MathOperation(Double x, Double y);
+
+    delegate void OutCallback(String input, out Int32 result);
+    delegate Boolean TryParseDelegate(String input, out Double value);
+
+    runtimeclass DelegateUser
+    {
+        DelegateUser();
+        event VoidCallback SimpleEvent;
+        event SingleParamCallback MessageReceived;
+        event StringTransform TransformRequested;
+    }
+}

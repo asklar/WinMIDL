@@ -1,0 +1,16 @@
+namespace TestApp
+{
+    interface IBase
+    {
+        void DoWork();
+    }
+
+    runtimeclass Base : [default] IBase
+    {
+    }
+
+    // Base is sealed (default), deriving should fail
+    runtimeclass Derived : Base
+    {
+    }
+}

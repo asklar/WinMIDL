@@ -1,0 +1,33 @@
+namespace TestApp.Parity
+{
+    [contractversion(2)]
+    apicontract CalcContract {};
+
+    [contract(CalcContract, 1)]
+    runtimeclass Calculator
+    {
+        Calculator();
+
+        Int32 Add(Int32 a, Int32 b);
+        String Concat(String a, String b);
+        String Format(Int32 formatCode);
+        Int32 Parse(String input);
+
+        [contract(CalcContract, 2)]
+        {
+            [overload("AddDoubles")]
+            [default_overload]
+            Double Add(Double a, Double b);
+
+            [overload("ConcatThree")]
+            String Concat(String a, String b, String c);
+
+            [overload("FormatDouble")]
+            [default_overload]
+            String Format(Double formatValue);
+
+            [overload("ParseWithDefault")]
+            Int32 Parse(String input, Int32 defaultVal);
+        }
+    }
+}

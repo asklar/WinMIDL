@@ -1,0 +1,35 @@
+namespace TestApp.Parity
+{
+    [contractversion(4)]
+    apicontract WidgetContract {};
+
+    [contract(WidgetContract, 1)]
+    runtimeclass VersionedMember
+    {
+        VersionedMember();
+        String Name { get; };
+        void DoBasicWork();
+        Boolean IsReady { get; };
+
+        [contract(WidgetContract, 2)]
+        {
+            Int32 Count { get; set; };
+            void DoAdvancedWork();
+            Double Efficiency { get; };
+            event Windows.Foundation.TypedEventHandler<VersionedMember, Object> Updated;
+        }
+
+        [contract(WidgetContract, 3)]
+        {
+            Boolean IsOptimized { get; };
+            void Optimize(Int32 level);
+            static VersionedMember CreateOptimized(String name);
+        }
+
+        [contract(WidgetContract, 4)]
+        {
+            void Reset();
+            String GetDiagnostics();
+        }
+    }
+}

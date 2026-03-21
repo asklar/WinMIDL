@@ -110,6 +110,7 @@ public class WinMdReaderTests
                     void Activate();
                 };
 
+                [default_interface]
                 runtimeclass MyClass
                 {
                     MyClass();

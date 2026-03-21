@@ -1,0 +1,6 @@
+namespace TestApp
+{
+    struct EmptyStruct
+    {
+    };
+}

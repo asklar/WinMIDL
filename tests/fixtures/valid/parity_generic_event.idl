@@ -1,0 +1,14 @@
+namespace TestApp.Parity
+{
+    delegate void NamesChangedDelegate(Windows.Foundation.Collections.IVector<String> names);
+    delegate void MappingsChangedDelegate(Windows.Foundation.Collections.IMap<String, Int32> mappings);
+
+    runtimeclass GenericEventWidget
+    {
+        GenericEventWidget();
+        event NamesChangedDelegate NamesChanged;
+        event MappingsChangedDelegate MappingsChanged;
+        event Windows.Foundation.TypedEventHandler<GenericEventWidget, Int32> CountChanged;
+        event Windows.Foundation.TypedEventHandler<GenericEventWidget, Boolean> ActiveChanged;
+    }
+}

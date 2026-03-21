@@ -1,0 +1,37 @@
+namespace TestApp.Parity
+{
+    [contractversion(3)]
+    apicontract OverloadContract {};
+
+    [contract(OverloadContract, 1)]
+    runtimeclass OverloadVarietyWidget
+    {
+        OverloadVarietyWidget();
+
+        void Process(String data);
+        String Format(Int32 value);
+        Boolean Search(String query);
+        void Configure(String key);
+
+        [contract(OverloadContract, 2)]
+        {
+            [overload("ProcessWithFlags")]
+            [default_overload]
+            void Process(String data, Boolean verbose);
+
+            [overload("FormatDouble")]
+            [default_overload]
+            String Format(Double value);
+
+            [overload("SearchWithLimit")]
+            Boolean Search(String query, Int32 maxResults);
+        }
+
+        [contract(OverloadContract, 3)]
+        {
+            [overload("ConfigureWithValue")]
+            [default_overload]
+            void Configure(String key, String value);
+        }
+    }
+}

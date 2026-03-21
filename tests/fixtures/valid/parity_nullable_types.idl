@@ -1,0 +1,14 @@
+namespace TestApp.Parity
+{
+    runtimeclass NullableWidget
+    {
+        NullableWidget();
+        Windows.Foundation.IReference<Int32> NullableInt { get; set; };
+        Windows.Foundation.IReference<Boolean> NullableBool { get; set; };
+        Windows.Foundation.IReference<Double> NullableDouble { get; set; };
+        Windows.Foundation.IReference<Single> NullableSingle { get; set; };
+        Windows.Foundation.IReference<Guid> NullableGuid { get; };
+        void SetNullableValue(Windows.Foundation.IReference<Int32> value);
+        Windows.Foundation.IReference<Int32> GetNullableValue();
+    }
+}

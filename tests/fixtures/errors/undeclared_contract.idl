@@ -1,0 +1,15 @@
+// [contract] referencing undeclared apicontract — should error (MIDL1075)
+namespace TestApp
+{
+    [contractversion(1)]
+    apicontract RealContract
+    {
+    };
+
+    [contract(NonExistentContract, 2)]
+    runtimeclass BadWidget
+    {
+        BadWidget();
+        void DoWork();
+    };
+}

@@ -1,0 +1,26 @@
+namespace TestApp.Parity
+{
+    [contractversion(3)]
+    apicontract IfaceVersionContract {};
+
+    [contract(IfaceVersionContract, 1)]
+    runtimeclass VersionedService
+    {
+        VersionedService();
+        VersionedService(String name);
+        String GetName();
+        void Start();
+
+        [contract(IfaceVersionContract, 2)]
+        {
+            void Stop();
+            Boolean IsRunning { get; };
+        }
+
+        [contract(IfaceVersionContract, 3)]
+        {
+            String GetDiagnostics();
+            void Restart();
+        }
+    }
+}

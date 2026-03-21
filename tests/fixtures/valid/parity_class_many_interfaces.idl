@@ -1,0 +1,14 @@
+namespace TestApp.Parity
+{
+    runtimeclass SuperWidget
+    {
+        SuperWidget();
+        SuperWidget(String name);
+        String Name { get; };
+        String Print();
+        Boolean Validate();
+        void Reset();
+        String Tag { get; set; };
+        Object Clone();
+    }
+}

@@ -8,6 +8,7 @@ namespace TestApp
     };
 
     [Awesome(42, "very cool")]
+    [default_interface]
     runtimeclass MyClass
     {
         MyClass();

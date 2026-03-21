@@ -1,0 +1,16 @@
+namespace TestApp.Parity
+{
+    runtimeclass MultiCtorItem
+    {
+        MultiCtorItem();
+        MultiCtorItem(String name);
+        MultiCtorItem(String name, Int32 count);
+        MultiCtorItem(String name, Int32 count, Boolean enabled);
+        MultiCtorItem(String name, Int32 count, Boolean enabled, Double factor);
+
+        String Name { get; };
+        Int32 Count { get; };
+        Boolean Enabled { get; };
+        Double Factor { get; };
+    }
+}

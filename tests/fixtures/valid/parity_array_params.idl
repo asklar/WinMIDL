@@ -1,0 +1,13 @@
+namespace TestApp.Parity
+{
+    runtimeclass ArrayParamWidget
+    {
+        ArrayParamWidget();
+        void ProcessIds(Int32[] ids);
+        void ProcessNames(String[] names);
+        void FillValues(out Double[] values);
+        void TransformInts(ref Int32[] data);
+        Int32[] GetIds();
+        String[] GetLabels();
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "originalMidlError": "MIDL5053",
+  "originalMidlAlsoRejects": true,
+  "diagnostics": [
+    {
+      "messageContains": "must implement",
+      "severity": "Error",
+      "code": "MIDL1062"
+    }
+  ]
+}

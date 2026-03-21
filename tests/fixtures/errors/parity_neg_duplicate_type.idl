@@ -1,0 +1,10 @@
+namespace TestApp
+{
+    runtimeclass Foo
+    {
+    }
+
+    runtimeclass Foo
+    {
+    }
+}

@@ -1,0 +1,18 @@
+namespace TestApp.Parity
+{
+    runtimeclass FwdUser
+    {
+        FwdUser();
+        void SetTargetName(String name);
+        String GetTargetName();
+        Boolean HasTarget { get; };
+    }
+
+    runtimeclass FwdTarget
+    {
+        FwdTarget();
+        FwdTarget(String data);
+        String Data { get; };
+        void LinkTo(FwdUser user);
+    }
+}

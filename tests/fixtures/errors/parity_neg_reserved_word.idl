@@ -1,0 +1,6 @@
+namespace TestApp
+{
+    runtimeclass interface
+    {
+    }
+}

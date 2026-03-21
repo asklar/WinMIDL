@@ -1,0 +1,8 @@
+// Empty runtimeclass with activatable but no interface — should error (MIDL1062)
+namespace TestApp
+{
+    runtimeclass EmptyActivatable
+    {
+        EmptyActivatable();
+    }
+}

@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    enum BadEnum
+    {
+        A = 0,
+        Int32 Value { get; };
+    };
+}

@@ -28,11 +28,17 @@ public static class GotoDefinitionHandler
 
     /// <summary>
     /// Core logic, testable without LSP JSON plumbing.
-    /// Returns an LSP Location object or null.
+    /// Returns an LSP Location object, a command response, or null.
     /// </summary>
     public static object? HandleCore(string sourceText, string uri, int line, int character)
     {
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
+
+        // Check if cursor is on a // @ref: line → navigate to the referenced file/folder
+        var refTarget = TryGetRefDirectiveTarget(sourceText, lineStarts, line);
+        if (refTarget != null)
+            return CreateRefDirectiveResponse(refTarget, uri, lineStarts, line);
+
         int offset = PositionHelper.LineCharToOffset(lineStarts, line, character);
 
         var lexer = new Lexer.Lexer(sourceText);
@@ -57,8 +63,27 @@ public static class GotoDefinitionHandler
         var symbol = FindSymbol(compilation, name);
         if (symbol is null) return null;
 
-        // External symbols can't be navigated to
-        if (symbol.IsExternal) return null;
+        // External symbols: navigate to the @ref line that provides them
+        if (symbol.IsExternal)
+        {
+            var refLine = FindRefLineForExternalSymbol(sourceText, symbol);
+            if (refLine >= 0)
+            {
+                var (rl, rc) = PositionHelper.OffsetToLineChar(lineStarts,
+                    PositionHelper.LineCharToOffset(lineStarts, refLine, 0));
+                var lineText = GetLineText(sourceText, lineStarts, refLine);
+                return new Dictionary<string, object?>
+                {
+                    ["uri"] = uri,
+                    ["range"] = new Dictionary<string, object?>
+                    {
+                        ["start"] = new Dictionary<string, object?> { ["line"] = refLine, ["character"] = 0 },
+                        ["end"] = new Dictionary<string, object?> { ["line"] = refLine, ["character"] = lineText.Length }
+                    }
+                };
+            }
+            return null;
+        }
 
         // Find the definition location in source text
         int defOffset = FindDefinitionOffset(sourceText, symbol);
@@ -76,6 +101,138 @@ public static class GotoDefinitionHandler
                 ["end"] = new Dictionary<string, object?> { ["line"] = defEndLine, ["character"] = defEndChar }
             }
         };
+    }
+
+    /// <summary>
+    /// Checks if the given line is a // @ref: directive and returns the resolved path.
+    /// </summary>
+    public static string? TryGetRefDirectiveTarget(string sourceText, int[] lineStarts, int line)
+    {
+        var lineText = GetLineText(sourceText, lineStarts, line).TrimStart();
+        if (!lineText.StartsWith("//")) return null;
+        var comment = lineText[2..].TrimStart();
+        if (!comment.StartsWith("@ref:", StringComparison.OrdinalIgnoreCase)) return null;
+        var path = comment[5..].Trim();
+        if (path.Length >= 2 && path[0] == '"' && path[^1] == '"')
+            path = path[1..^1].Trim();
+        return string.IsNullOrEmpty(path) ? null : path;
+    }
+
+    /// <summary>
+    /// Creates a response for F12 on a @ref line.
+    /// For files: returns an LSP Location pointing to the file.
+    /// For directories: returns a location with a special URI scheme that the extension handles.
+    /// </summary>
+    private static object? CreateRefDirectiveResponse(string path, string currentUri, int[] lineStarts, int line)
+    {
+        // Try to resolve relative to current file
+        string? resolvedPath = null;
+        if (currentUri.StartsWith("file:///"))
+        {
+            var filePath = Uri.UnescapeDataString(currentUri[8..]);
+            var dir = Path.GetDirectoryName(filePath);
+            if (dir != null && !Path.IsPathRooted(path))
+                resolvedPath = Path.GetFullPath(Path.Combine(dir, path));
+            else
+                resolvedPath = path;
+        }
+        else
+        {
+            resolvedPath = path;
+        }
+
+        if (resolvedPath == null) return null;
+
+        if (Directory.Exists(resolvedPath))
+        {
+            // For directories, return a file URI to the directory (VS Code will open it in explorer)
+            var dirUri = "file:///" + resolvedPath.Replace('\\', '/');
+            return new Dictionary<string, object?>
+            {
+                ["uri"] = dirUri,
+                ["range"] = new Dictionary<string, object?>
+                {
+                    ["start"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 },
+                    ["end"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 }
+                }
+            };
+        }
+
+        if (File.Exists(resolvedPath))
+        {
+            var fileUri = "file:///" + resolvedPath.Replace('\\', '/');
+            return new Dictionary<string, object?>
+            {
+                ["uri"] = fileUri,
+                ["range"] = new Dictionary<string, object?>
+                {
+                    ["start"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 },
+                    ["end"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 }
+                }
+            };
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// For an external symbol (from WinMD), find which // @ref: line in the source
+    /// could have provided it — matches by WinMD filename or namespace prefix.
+    /// </summary>
+    public static int FindRefLineForExternalSymbol(string sourceText, ISymbol symbol)
+    {
+        var winmdPath = symbol.SourceWinMdPath;
+        var winmdFileName = winmdPath != null ? Path.GetFileName(winmdPath) : null;
+        var ns = symbol.FullName;
+
+        using var reader = new StringReader(sourceText);
+        string? line;
+        int lineNum = 0;
+        while ((line = reader.ReadLine()) != null)
+        {
+            var trimmed = line.TrimStart();
+            if (!trimmed.StartsWith("//"))
+            {
+                if (trimmed.Length > 0) break; // past comment header
+                lineNum++;
+                continue;
+            }
+
+            var comment = trimmed[2..].TrimStart();
+            if (comment.StartsWith("@ref:", StringComparison.OrdinalIgnoreCase))
+            {
+                var path = comment[5..].Trim();
+                if (path.Length >= 2 && path[0] == '"' && path[^1] == '"')
+                    path = path[1..^1].Trim();
+
+                // Match by WinMD filename
+                if (winmdFileName != null &&
+                    Path.GetFileName(path).Equals(winmdFileName, StringComparison.OrdinalIgnoreCase))
+                    return lineNum;
+
+                // Match by namespace prefix in directory name or filename
+                if (ns != null)
+                {
+                    var fileNameNoExt = Path.GetFileNameWithoutExtension(path);
+                    if (ns.StartsWith(fileNameNoExt, StringComparison.OrdinalIgnoreCase))
+                        return lineNum;
+                }
+            }
+
+            lineNum++;
+        }
+        return -1;
+    }
+
+    private static string GetLineText(string sourceText, int[] lineStarts, int line)
+    {
+        if (line >= lineStarts.Length) return "";
+        int start = lineStarts[line];
+        int end = line + 1 < lineStarts.Length ? lineStarts[line + 1] : sourceText.Length;
+        // Trim trailing newline
+        while (end > start && (sourceText[end - 1] == '\n' || sourceText[end - 1] == '\r'))
+            end--;
+        return sourceText[start..end];
     }
 
     private static ISymbol? FindSymbol(Compilation compilation, string name)

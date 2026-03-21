@@ -1,0 +1,12 @@
+namespace TestApp
+{
+    interface IA requires IB
+    {
+        void MethodA();
+    }
+
+    interface IB requires IA
+    {
+        void MethodB();
+    }
+}

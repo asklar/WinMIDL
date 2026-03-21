@@ -1,0 +1,11 @@
+{
+  "originalMidlError": "MIDL2025",
+  "originalMidlAlsoRejects": true,
+  "diagnostics": [
+    {
+      "messageContains": "Expected",
+      "severity": "Error",
+      "code": "MIDL1102"
+    }
+  ]
+}

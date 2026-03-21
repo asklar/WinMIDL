@@ -1,0 +1,10 @@
+namespace TestApp.Parity
+{
+    runtimeclass MultiOutWidget
+    {
+        MultiOutWidget();
+        void GetFullDetails(out String name, out Int32 id, out Boolean active, out Double value, out Single ratio);
+        Boolean TryParse(String input, out String name, out Int32 count);
+        void Decompose(out Int32 x, out Int32 y, out Int32 z);
+    }
+}

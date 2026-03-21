@@ -1,0 +1,7 @@
+{
+    "diagnostics": [
+        {"code": "MIDL1078", "severity": "Error", "messageContains": "circular"}
+    ],
+    "originalMidlAlsoRejects": true,
+    "originalMidlError": "MIDL2256"
+}

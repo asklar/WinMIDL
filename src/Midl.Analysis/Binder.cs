@@ -14,6 +14,7 @@ public class Binder
     private readonly List<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace)> _unresolvedRefs = [];
     private readonly HashSet<string> _definedTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _definedTypesCaseInsensitive = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _featureNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly CompilationMode _mode;
     private readonly bool _emitQualityHints;
     private bool _bindingImportedFile;
@@ -31,7 +32,8 @@ public class Binder
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
         IReadOnlyList<ISymbol>? externalTypes = null,
         IReadOnlyList<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)>? importedTrees = null,
-        IReadOnlyList<LazyWinMdProvider>? lazyProviders = null)
+        IReadOnlyList<LazyWinMdProvider>? lazyProviders = null,
+        IReadOnlyList<string>? refDirectories = null)
     {
         MidlTrace.Binder("Binding compilation unit");
         _symbolTable = new SymbolTable(_globalNamespace);
@@ -47,6 +49,10 @@ public class Binder
             foreach (var provider in lazyProviders)
                 _symbolTable.AddLazyProvider(provider);
         }
+
+        // Set reference directories for namespace-based WinMD discovery
+        if (refDirectories is { Count: > 0 })
+            _symbolTable.SetRefDirectories(refDirectories);
 
         // Import external types before binding user code
         if (externalTypes is { Count: > 0 })
@@ -85,7 +91,9 @@ public class Binder
             MidlTrace.Binder($"Binding complete: {types} types, {_diagnostics.Count} diagnostics");
         }
 
-        return new Compilation(_globalNamespace, _diagnostics, lazyProviders);
+        var compilation = new Compilation(_globalNamespace, _diagnostics, lazyProviders);
+        foreach (var fn in _featureNames) compilation.FeatureNames.Add(fn);
+        return compilation;
     }
 
     private void BindCompilationUnit(GreenNode node, NamespaceSymbol ns)
@@ -1082,10 +1090,29 @@ public class Binder
     #endregion
 #endif
 
-    #region DeclareBlock
+    #region DeclareBlock / feature_name
 
     private void BindDeclareBlock(GreenNode node, NamespaceSymbol ns)
     {
+        // Check for feature_name declarations:
+        //   feature_name MyFeature = { "Enabled", "1.0" };
+        if (node.SlotCount >= 2)
+        {
+            var firstToken = node.GetSlot(0) as SyntaxToken;
+            if (firstToken?.Text == "feature_name")
+            {
+                var nameToken = node.GetSlot(1) as SyntaxToken;
+                var name = nameToken?.Text;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    _featureNames.Add(name);
+                    MidlTrace.Binder($"Registered feature_name '{name}'");
+                }
+                return;
+            }
+        }
+
+        // General declare block: declare { ... }
         int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
         int closeBraceIdx = FindLastSlotIndex(node, SyntaxKind.CloseBraceToken);
         if (openBraceIdx < 0 || closeBraceIdx < 0) return;
@@ -1301,6 +1328,7 @@ public class Binder
         // Slots: [AttributeList...], [OutKeyword|RefKeyword], TypeReference, IdentifierToken
         var direction = ParameterDirection.In;
         GreenNode? typeNode = null;
+        GreenNode? paramAttrList = null;
         string name = "";
 
         for (int i = 0; i < node.SlotCount; i++)
@@ -1329,9 +1357,22 @@ public class Binder
             {
                 typeNode = slot;
             }
+            else if (slot.Kind == SyntaxKind.AttributeList)
+            {
+                // Parameter attributes like [optional], [in], [out], [retval]
+                paramAttrList = slot;
+            }
         }
 
         var param = new ParameterSymbol(name, containingSymbol) { Direction = direction };
+
+        // Extract parameter attributes
+        if (paramAttrList != null)
+        {
+            var attrs = ExtractAttributes(paramAttrList);
+            param.Attributes.AddRange(attrs);
+        }
+
         if (typeNode != null)
         {
             param.Type = ExtractTypeRef(typeNode);
@@ -2097,6 +2138,9 @@ public class Binder
                     ValidateMethodParameters(rc.Members);
                     ValidateExclusiveToConstraints(rc);
                     ValidateDefaultInterface(rc);
+                    ValidateNonEmptyRuntimeClass(rc);
+                    ValidateNoOptionalParams(rc.Members, rc.Name);
+                    ValidateParamClassHasDefaultInterface(rc.Members, rc.Name);
                     // Code quality hints
                     if (_emitQualityHints) ValidateRuntimeClassQuality(rc);
                     break;
@@ -2108,6 +2152,8 @@ public class Binder
                     ValidateDefaultOverloadExactlyOne(iface.Members, iface.Name);
                     ValidateMethodParameters(iface.Members);
                     ValidateNoProtectedOnInterface(iface);
+                    ValidateNoOptionalParams(iface.Members, iface.Name);
+                    ValidateParamClassHasDefaultInterface(iface.Members, iface.Name);
                     // Code quality hints
                     if (_emitQualityHints) ValidateInterfaceQuality(iface);
                     break;
@@ -2221,6 +2267,37 @@ public class Binder
             {
                 _diagnostics.Add(DiagnosticDescriptors.RuntimeClassOnRequiresList(
                     req.Name, req.Position));
+            }
+        }
+
+        // Detect circular requires chains
+        var visited = new HashSet<string> { iface.FullName };
+        var path = new List<string> { iface.Name };
+        DetectCircularRequires(iface, iface, visited, path);
+    }
+
+    private void DetectCircularRequires(InterfaceSymbol root, InterfaceSymbol current,
+        HashSet<string> visited, List<string> path)
+    {
+        foreach (var req in current.RequiredInterfaces)
+        {
+            if (req.ResolvedSymbol is not InterfaceSymbol reqIface) continue;
+
+            if (reqIface.FullName == root.FullName)
+            {
+                path.Add(reqIface.Name);
+                var cycle = string.Join(" -> ", path);
+                _diagnostics.Add(DiagnosticDescriptors.CircularRequires(
+                    root.Name, cycle, root.RequiredInterfaces[0].Position));
+                path.RemoveAt(path.Count - 1);
+                return;
+            }
+
+            if (visited.Add(reqIface.FullName))
+            {
+                path.Add(reqIface.Name);
+                DetectCircularRequires(root, reqIface, visited, path);
+                path.RemoveAt(path.Count - 1);
             }
         }
     }
@@ -2430,6 +2507,78 @@ public class Binder
             _diagnostics.Add(DiagnosticDescriptors.MissingDefaultInterface(
                 rc.Name, memberInterfaces.Count,
                 _posMap.GetPositionOf(rc.Name)));
+        }
+    }
+
+    private void ValidateNonEmptyRuntimeClass(RuntimeClassSymbol rc)
+    {
+        // Static classes don't need member interfaces
+        if (rc.IsStatic) return;
+        // [default_interface] explicitly marks a class as having an interface
+        if (rc.IsDefaultInterface) return;
+        // Classes with a base class inherit its interface
+        if (rc.BaseClass != null) return;
+        // Classes with explicit interfaces are fine
+        if (rc.Interfaces.Count > 0) return;
+        // Classes with non-constructor members get a synthesized default interface
+        bool hasNonConstructorMember = rc.Members.Any(m => m is not ConstructorSymbol);
+        if (hasNonConstructorMember) return;
+
+        _diagnostics.Add(DiagnosticDescriptors.EmptyRuntimeClassNoInterface(
+            rc.Name, _posMap.GetPositionOf(rc.Name)));
+
+        _diagnostics.Add(DiagnosticDescriptors.EmptyRuntimeClassNoInterface(
+            rc.Name, _posMap.GetPositionOf(rc.Name)));
+    }
+
+    private void ValidateNoOptionalParams(IReadOnlyList<ISymbol> members, string ownerName)
+    {
+        foreach (var member in members)
+        {
+            List<ParameterSymbol>? parameters = null;
+            string methodName = ownerName;
+            if (member is MethodSymbol m) { parameters = m.Parameters; methodName = m.Name; }
+            else if (member is ConstructorSymbol c) { parameters = c.Parameters; methodName = c.Name; }
+            if (parameters == null) continue;
+
+            foreach (var param in parameters)
+            {
+                // Check for [optional] attribute on parameters
+                if (param.Attributes.Any(a => a.Name.Equals("optional", StringComparison.OrdinalIgnoreCase)))
+                {
+                    _diagnostics.Add(DiagnosticDescriptors.OptionalParamNotAllowed(
+                        param.Name, methodName, _posMap.GetPositionOf(param.Name)));
+                }
+            }
+        }
+    }
+
+    private void ValidateParamClassHasDefaultInterface(IReadOnlyList<ISymbol> members, string ownerName)
+    {
+        foreach (var member in members)
+        {
+            List<ParameterSymbol>? parameters = null;
+            string methodName = ownerName;
+            if (member is MethodSymbol m) { parameters = m.Parameters; methodName = m.Name; }
+            else if (member is ConstructorSymbol c) { parameters = c.Parameters; methodName = c.Name; }
+            if (parameters == null) continue;
+
+            foreach (var param in parameters)
+            {
+                if (param.Type.ResolvedSymbol is RuntimeClassSymbol paramRc && !paramRc.IsExternal)
+                {
+                    // Check if the class has a default interface (explicit or synthesized)
+                    bool hasDefault = paramRc.IsDefaultInterface
+                        || paramRc.DefaultInterface != null
+                        || paramRc.Interfaces.Any(i => i.IsDefaultInterface)
+                        || paramRc.Members.Count > 0; // members get synthesized into a default interface
+                    if (!hasDefault && !paramRc.IsStatic)
+                    {
+                        _diagnostics.Add(DiagnosticDescriptors.ParamClassNeedsDefaultInterface(
+                            param.Name, paramRc.Name, methodName, _posMap.GetPositionOf(param.Name)));
+                    }
+                }
+            }
         }
     }
 

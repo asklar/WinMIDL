@@ -1,0 +1,13 @@
+namespace TestApp.Parity
+{
+    runtimeclass SealedMultiWidget
+    {
+        SealedMultiWidget();
+        SealedMultiWidget(String name);
+        Int32 SortKey { get; };
+        Boolean MatchesFilter(String filter);
+        String DisplayText { get; };
+        String ToShortString();
+        String ToDetailString();
+    }
+}

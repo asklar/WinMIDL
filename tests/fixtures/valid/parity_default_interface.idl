@@ -1,0 +1,38 @@
+namespace TestApp.Parity
+{
+    interface IWidgetCore
+    {
+        String CoreName { get; };
+        void Activate();
+    }
+
+    interface IWidgetExtra
+    {
+        Int32 ExtraPriority { get; set; };
+        void DoExtra();
+    }
+
+    interface IWidgetAdvanced
+    {
+        Double AdvancedScore { get; };
+        void Recalculate();
+    }
+
+    [default_interface]
+    runtimeclass MinimalWidget
+    {
+        MinimalWidget();
+        String Label { get; };
+    }
+
+    runtimeclass MultiInterfaceWidget : [default] IWidgetCore, IWidgetExtra, IWidgetAdvanced
+    {
+        MultiInterfaceWidget();
+        MultiInterfaceWidget(String name);
+    }
+
+    runtimeclass AutoDefaultWidget : IWidgetCore, IWidgetExtra
+    {
+        AutoDefaultWidget();
+    }
+}

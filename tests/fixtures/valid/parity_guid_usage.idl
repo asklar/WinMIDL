@@ -1,0 +1,13 @@
+namespace TestApp.Parity
+{
+    runtimeclass GuidWidget
+    {
+        GuidWidget();
+        Guid Id { get; };
+        Guid GenerateId();
+        void SetId(Guid id);
+        Boolean CompareIds(Guid a, Guid b);
+        void ProcessIds(Guid id1, Guid id2, Guid id3);
+        Windows.Foundation.Collections.IVector<Guid> GetAllIds();
+    }
+}

@@ -1,0 +1,15 @@
+namespace TestApp.Parity
+{
+    delegate void DataHandler(Object sender, String data);
+    delegate void ValidationHandler(String input, out String error, out Boolean isValid);
+
+    runtimeclass EventSourceImpl
+    {
+        EventSourceImpl();
+        void SendData(String data);
+        void ReceiveData();
+        event DataHandler DataReceived;
+        event DataHandler DataSent;
+        event Windows.Foundation.TypedEventHandler<Object, String> StatusChanged;
+    }
+}

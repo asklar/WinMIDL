@@ -1,0 +1,22 @@
+namespace TestApp.Parity.Level1.Level2.Level3.Level4.Level5
+{
+    runtimeclass DeepWidget
+    {
+        DeepWidget();
+        String FullName { get; };
+        Int32 Depth { get; };
+    }
+
+    struct DeepData
+    {
+        String Name;
+        Int32 Value;
+    };
+
+    enum DeepStatus
+    {
+        None = 0,
+        Active = 1,
+        Done = 2
+    };
+}

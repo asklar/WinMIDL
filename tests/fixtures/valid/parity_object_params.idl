@@ -1,0 +1,13 @@
+namespace TestApp.Parity
+{
+    runtimeclass ObjectWidget
+    {
+        ObjectWidget();
+        Object GetValue();
+        void SetValue(Object value);
+        Object Tag { get; set; };
+        Windows.Foundation.Collections.IVector<Object> GetAll();
+        Windows.Foundation.Collections.IMap<String, Object> GetProperties();
+        Boolean Equals(Object other);
+    }
+}

@@ -1,0 +1,12 @@
+namespace TestApp
+{
+    runtimeclass MyWidget
+    {
+        MyWidget();
+    }
+
+    struct BadStruct
+    {
+        MyWidget Widget;
+    };
+}

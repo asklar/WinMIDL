@@ -1,0 +1,16 @@
+namespace TestApp.Parity
+{
+    delegate void StatusChangedHandler(String status, Int32 code);
+    delegate void ErrorOccurredHandler(String message, Boolean fatal);
+    delegate void ProgressHandler(Double percent, String description);
+
+    runtimeclass EventPatternWidget
+    {
+        EventPatternWidget();
+        event StatusChangedHandler StatusChanged;
+        event ErrorOccurredHandler ErrorOccurred;
+        event ProgressHandler ProgressUpdated;
+        event Windows.Foundation.TypedEventHandler<EventPatternWidget, Object> GenericChanged;
+        event Windows.Foundation.EventHandler<Object> SimpleChanged;
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "diagnostics": [
+        {"code": "MIDL1067", "severity": "Error", "messageContains": "must be an integer literal"}
+    ],
+    "originalMidlAlsoRejects": true,
+    "originalMidlError": "MIDL2336"
+}

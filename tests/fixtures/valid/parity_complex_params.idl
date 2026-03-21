@@ -1,0 +1,30 @@
+namespace TestApp.Parity
+{
+    struct ComplexParam
+    {
+        String Name;
+        Int32 Id;
+        Boolean Active;
+    };
+
+    runtimeclass ComplexParamWidget
+    {
+        ComplexParamWidget();
+        void ProcessAll(
+            String name,
+            Int32 count,
+            Boolean flag,
+            Double value,
+            ComplexParam param
+        );
+        void AcceptCollections(
+            Windows.Foundation.Collections.IVector<String> names,
+            Windows.Foundation.Collections.IMap<String, Int32> counts
+        );
+        void MixedParams(
+            String name,
+            out Int32 result,
+            out Boolean success
+        );
+    }
+}

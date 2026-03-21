@@ -1,0 +1,7 @@
+{
+    "diagnostics": [
+        {"code": "MIDL1011", "severity": "Error", "messageContains": "default_overload"}
+    ],
+    "originalMidlAlsoRejects": true,
+    "originalMidlError": "MIDL2096"
+}

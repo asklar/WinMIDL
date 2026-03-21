@@ -28,6 +28,7 @@ public static class SemanticTokensHandler
         "string",       // 11
         "number",       // 12
         "struct",       // 13
+        "decorator",    // 14
     ];
 
     public static readonly string[] TokenModifiers = ["declaration", "static"];
@@ -46,6 +47,7 @@ public static class SemanticTokensHandler
     private const int TypeString = 11;
     private const int TypeNumber = 12;
     private const int TypeStruct = 13;
+    private const int TypeDecorator = 14;
 
     public static object? Handle(JsonElement? @params, DocumentManager docManager)
     {
@@ -98,11 +100,41 @@ public static class SemanticTokensHandler
                     && trivia is SyntaxTrivia st)
                 {
                     var (tLine, tChar) = PositionHelper.OffsetToLineChar(lineStarts, pos);
-                    int deltaLine = tLine - prevLine;
-                    int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
-                    encodedTokens.AddRange([deltaLine, deltaChar, st.Text.Length, TypeComment, 0]);
-                    prevLine = tLine;
-                    prevChar = tChar;
+
+                    // Check for // @ref: directive — split into decorator + string tokens
+                    if (trivia.Kind == SyntaxKind.SingleLineCommentTrivia && TryParseRefDirective(st.Text, out var slashLen, out var refLen, out var pathStart, out var pathLen))
+                    {
+                        // "// " part as comment
+                        int deltaLine = tLine - prevLine;
+                        int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
+                        encodedTokens.AddRange([deltaLine, deltaChar, slashLen, TypeComment, 0]);
+                        prevLine = tLine;
+                        prevChar = tChar;
+
+                        // "@ref:" part as decorator
+                        int refChar = tChar + slashLen;
+                        deltaLine = 0;
+                        deltaChar = refChar - prevChar;
+                        encodedTokens.AddRange([deltaLine, deltaChar, refLen, TypeDecorator, 0]);
+                        prevChar = refChar;
+
+                        // path part as string
+                        if (pathLen > 0)
+                        {
+                            int pathChar = tChar + pathStart;
+                            deltaChar = pathChar - prevChar;
+                            encodedTokens.AddRange([0, deltaChar, pathLen, TypeString, 0]);
+                            prevChar = pathChar;
+                        }
+                    }
+                    else
+                    {
+                        int deltaLine = tLine - prevLine;
+                        int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
+                        encodedTokens.AddRange([deltaLine, deltaChar, st.Text.Length, TypeComment, 0]);
+                        prevLine = tLine;
+                        prevChar = tChar;
+                    }
                 }
                 pos += trivia.FullWidth;
             }
@@ -229,4 +261,26 @@ public static class SemanticTokensHandler
         SyntaxKind.StringKeyword or SyntaxKind.GuidKeyword or
         SyntaxKind.ObjectKeyword or SyntaxKind.TrueKeyword or
         SyntaxKind.FalseKeyword or SyntaxKind.NullKeyword;
+
+    /// <summary>
+    /// Checks if a comment is a // @ref: directive and returns the spans of each part.
+    /// </summary>
+    private static bool TryParseRefDirective(string text, out int slashLen, out int refLen, out int pathStart, out int pathLen)
+    {
+        slashLen = refLen = pathStart = pathLen = 0;
+        if (!text.StartsWith("//")) return false;
+
+        int i = 2;
+        while (i < text.Length && text[i] == ' ') i++;
+        if (i + 5 > text.Length) return false;
+        if (!text.AsSpan(i).StartsWith("@ref:", StringComparison.OrdinalIgnoreCase)) return false;
+
+        slashLen = i;       // "// " (including spaces)
+        refLen = 5;         // "@ref:"
+        int afterRef = i + 5;
+        while (afterRef < text.Length && text[afterRef] == ' ') afterRef++;
+        pathStart = afterRef;
+        pathLen = text.Length - afterRef;
+        return true;
+    }
 }

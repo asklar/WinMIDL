@@ -1,0 +1,22 @@
+namespace TestApp.Parity
+{
+    delegate void ItemAddedHandler(String item, Int32 index);
+    delegate void ItemRemovedHandler(String item);
+    delegate void CollectionClearedHandler();
+    delegate void ItemMovedHandler(Int32 oldIndex, Int32 newIndex);
+
+    runtimeclass EventSourceWidget
+    {
+        EventSourceWidget();
+        event ItemAddedHandler ItemAdded;
+        event ItemRemovedHandler ItemRemoved;
+        event CollectionClearedHandler CollectionCleared;
+        event ItemMovedHandler ItemMoved;
+        event Windows.Foundation.TypedEventHandler<EventSourceWidget, Object> StateChanged;
+
+        void AddItem(String item);
+        void RemoveItem(String item);
+        void Clear();
+        void MoveItem(Int32 fromIndex, Int32 toIndex);
+    }
+}

@@ -1,0 +1,9 @@
+namespace TestApp
+{
+    delegate void MyCallback(String msg);
+
+    runtimeclass BadClass : MyCallback
+    {
+        BadClass();
+    }
+}

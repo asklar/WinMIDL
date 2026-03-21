@@ -1,0 +1,7 @@
+{
+    "diagnostics": [
+        {"code": "MIDL1062", "severity": "Error", "messageContains": "must implement at least one interface"}
+    ],
+    "originalMidlAlsoRejects": true,
+    "originalMidlError": "MIDL5053"
+}

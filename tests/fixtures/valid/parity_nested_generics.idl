@@ -1,0 +1,11 @@
+namespace TestApp.Parity
+{
+    runtimeclass NestedGenericWidget
+    {
+        NestedGenericWidget();
+        Windows.Foundation.Collections.IVector<Windows.Foundation.Collections.IMap<String, Int32> > GetCategorizedCounts();
+        Windows.Foundation.Collections.IMap<String, Windows.Foundation.Collections.IVector<String> > GetGroupedNames();
+        Windows.Foundation.IAsyncOperation<Windows.Foundation.Collections.IVector<String> > FetchNamesAsync();
+        Windows.Foundation.IAsyncOperation<Windows.Foundation.Collections.IMap<String, Int32> > FetchCountsAsync();
+    }
+}

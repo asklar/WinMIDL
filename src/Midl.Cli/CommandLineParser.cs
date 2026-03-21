@@ -44,6 +44,7 @@ public class CommandLineOptions
     public Midl.Analysis.CompilationMode Mode { get; set; } = Midl.Analysis.CompilationMode.Strict;
     public bool AnalyzeMode { get; set; }              // --analyze (rich console output)
     public bool DecompileMode { get; set; }             // --decompile (WinMD to IDL)
+    public bool DumpWinMd { get; set; }                 // --dump-winmd (dump WinMD metadata)
     public bool DebugTrace { get; set; }               // /debug (enable trace output)
     public bool NoDefIdir { get; set; }                // /no_def_idir — don't add default include dirs
     public List<string> UnknownSwitches { get; } = new();
@@ -83,6 +84,13 @@ public static class CommandLineParser
             if (arg is "--decompile")
             {
                 options.DecompileMode = true;
+                i++;
+                continue;
+            }
+
+            if (arg is "--dump-winmd")
+            {
+                options.DumpWinMd = true;
                 i++;
                 continue;
             }
@@ -353,6 +361,11 @@ public static class CommandLineParser
 
             case "decompile":
                 options.DecompileMode = true;
+                i++;
+                return true;
+
+            case "dump-winmd":
+                options.DumpWinMd = true;
                 i++;
                 return true;
 

@@ -1,0 +1,23 @@
+namespace TestApp.Parity
+{
+    [contractversion(3)]
+    apicontract ParityContract {};
+
+    [contract(ParityContract, 1)]
+    runtimeclass ContractedWidget
+    {
+        ContractedWidget();
+        String Name { get; };
+
+        [contract(ParityContract, 2)]
+        {
+            void NewMethod();
+            Boolean NewProperty { get; };
+        }
+
+        [contract(ParityContract, 3)]
+        {
+            static ContractedWidget Create(String name);
+        }
+    }
+}

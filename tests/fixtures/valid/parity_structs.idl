@@ -1,0 +1,22 @@
+namespace TestApp.Parity
+{
+    struct SimpleRect
+    {
+        Single X;
+        Single Y;
+        Single Width;
+        Single Height;
+    };
+
+    struct MixedFields
+    {
+        String Name;
+        Int32 Id;
+        UInt32 Flags;
+        Double Value;
+        Boolean IsActive;
+        Int64 Timestamp;
+        UInt8 Priority;
+        Guid Token;
+    };
+}

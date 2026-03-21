@@ -1,0 +1,24 @@
+namespace TestApp.Parity
+{
+    [contractversion(3)]
+    apicontract StaticContract {};
+
+    [contract(StaticContract, 1)]
+    static runtimeclass MultiStaticService
+    {
+        static String GetVersion();
+        static void Initialize();
+
+        [contract(StaticContract, 2)]
+        {
+            static Int32 GetBuildNumber();
+            static Boolean IsFeatureEnabled(String feature);
+        }
+
+        [contract(StaticContract, 3)]
+        {
+            static void ResetAll();
+            static String GetDiagnostics();
+        }
+    }
+}

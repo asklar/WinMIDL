@@ -1,0 +1,22 @@
+namespace TestApp.Parity
+{
+    struct DelegateResult
+    {
+        String Name;
+        Int32 Code;
+    };
+
+    delegate void StringRequestHandler(out String result);
+    delegate void IntRequestHandler(out Int32 result);
+    delegate void BoolRequestHandler(out Boolean result);
+    delegate void DoubleRequestHandler(out Double result);
+    delegate void ResultRequestHandler(out DelegateResult result);
+    delegate void FactoryHandler(String name, out Object result);
+
+    runtimeclass DelegateReturnWidget
+    {
+        DelegateReturnWidget();
+        event StringRequestHandler NameRequested;
+        event BoolRequestHandler ConfirmationRequested;
+    }
+}

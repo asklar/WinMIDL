@@ -1,0 +1,22 @@
+namespace TestApp.Parity.InterfaceOnly
+{
+    interface IReader
+    {
+        String Read();
+        Int32 ReadInt();
+        Boolean CanRead { get; };
+    }
+
+    interface IWriter
+    {
+        void Write(String data);
+        void WriteInt(Int32 value);
+        Boolean CanWrite { get; };
+    }
+
+    interface IReaderWriter requires IReader, IWriter
+    {
+        void Flush();
+        Int32 Position { get; set; };
+    }
+}

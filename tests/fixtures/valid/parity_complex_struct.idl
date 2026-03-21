@@ -1,0 +1,73 @@
+namespace TestApp.Parity
+{
+    enum RecordStatus
+    {
+        Active = 0,
+        Inactive = 1,
+        Pending = 2,
+        Archived = 3
+    };
+
+    struct Point2D
+    {
+        Single X;
+        Single Y;
+    };
+
+    struct Point3D
+    {
+        Double X;
+        Double Y;
+        Double Z;
+    };
+
+    struct Dimensions
+    {
+        Double Width;
+        Double Height;
+    };
+
+    struct Rect
+    {
+        Single X;
+        Single Y;
+        Single Width;
+        Single Height;
+    };
+
+    struct Color4
+    {
+        Single R;
+        Single G;
+        Single B;
+        Single A;
+    };
+
+    struct ComplexRecord
+    {
+        Int32 Id;
+        UInt32 Flags;
+        Int64 Timestamp;
+        UInt64 Size;
+        Int16 SmallValue;
+        UInt16 MediumValue;
+        UInt8 TinyValue;
+        Single Ratio;
+        Double Precision;
+        Boolean IsValid;
+        String Name;
+        String Description;
+        Guid UniqueId;
+        Point2D Location;
+        Dimensions Bounds;
+        RecordStatus Status;
+    };
+
+    struct NestedStruct
+    {
+        ComplexRecord Record;
+        Point3D Position;
+        Color4 Tint;
+        Rect ClipBounds;
+    };
+}

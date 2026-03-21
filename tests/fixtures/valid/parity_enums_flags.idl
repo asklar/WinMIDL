@@ -1,0 +1,75 @@
+namespace TestApp.Parity
+{
+    enum Color
+    {
+        Red,
+        Green,
+        Blue,
+        Yellow,
+        Cyan,
+        Magenta,
+        White,
+        Black
+    };
+
+    enum Priority
+    {
+        Lowest = 0,
+        Low = 1,
+        Normal = 2,
+        High = 3,
+        Highest = 4,
+        Critical = 5
+    };
+
+    [flags]
+    enum FileAccess
+    {
+        Read = 0x1,
+        Write = 0x2,
+        Execute = 0x4,
+        ReadWrite = 0x3,
+        ReadExecute = 0x5,
+        WriteExecute = 0x6,
+        All = 0x7
+    };
+
+    [flags]
+    enum DayOfWeek
+    {
+        None = 0,
+        Monday = 0x1,
+        Tuesday = 0x2,
+        Wednesday = 0x4,
+        Thursday = 0x8,
+        Friday = 0x10,
+        Saturday = 0x20,
+        Sunday = 0x40,
+        Weekday = 0x1F,
+        Weekend = 0x60,
+        All = 0x7F
+    };
+
+    enum Planet
+    {
+        Mercury = 1,
+        Venus = 2,
+        Earth = 3,
+        Mars = 4,
+        Jupiter = 5,
+        Saturn = 6,
+        Uranus = 7,
+        Neptune = 8
+    };
+
+    [flags]
+    enum RenderOptions
+    {
+        None = 0x0,
+        Antialias = 0x1,
+        HighQuality = 0x2,
+        UseCache = 0x4,
+        Animate = 0x8,
+        AllEffects = 0xF
+    };
+}

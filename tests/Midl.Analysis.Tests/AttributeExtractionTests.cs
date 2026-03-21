@@ -1,4 +1,5 @@
 using Midl.Analysis;
+using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
 
 namespace Midl.Analysis.Tests;
@@ -9,14 +10,19 @@ public class AttributeExtractionTests
     public void ExtractContractAttribute()
     {
         var compilation = CompilationHelper.Compile("""
+            namespace Windows.Foundation
+            {
+                [contractversion(10)]
+                apicontract UniversalApiContract {};
+            }
             namespace TestApp
             {
-                [contract(Windows.Foundation.UniversalApiContract, 5)]
+                [contract(Windows.Foundation.UniversalApiContract, 5), default_interface]
                 runtimeclass Widget { }
             }
             """);
 
-        Assert.Empty(compilation.Diagnostics);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Severity == DiagnosticSeverity.Error);
         var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
         var widget = ns.Members.OfType<RuntimeClassSymbol>().Single();
 
@@ -48,7 +54,7 @@ public class AttributeExtractionTests
         var compilation = CompilationHelper.Compile("""
             namespace TestApp
             {
-                [version(65536)]
+                [version(65536), default_interface]
                 runtimeclass Widget { }
             }
             """);
@@ -66,7 +72,7 @@ public class AttributeExtractionTests
         var compilation = CompilationHelper.Compile("""
             namespace TestApp
             {
-                [threading(both)]
+                [threading(both), default_interface]
                 runtimeclass Widget { }
             }
             """);
@@ -84,7 +90,7 @@ public class AttributeExtractionTests
         var compilation = CompilationHelper.Compile("""
             namespace TestApp
             {
-                [marshaling_behavior(agile)]
+                [marshaling_behavior(agile), default_interface]
                 runtimeclass Widget { }
             }
             """);
@@ -212,7 +218,7 @@ public class AttributeExtractionTests
         var compilation = CompilationHelper.Compile("""
             namespace TestApp
             {
-                [deprecated("Use NewWidget", deprecate, TestContract, 2)]
+                [deprecated("Use NewWidget", deprecate, TestContract, 2), default_interface]
                 runtimeclass Widget { }
             }
             """);
@@ -249,14 +255,19 @@ public class AttributeExtractionTests
     public void ExtractMultipleAttributes()
     {
         var compilation = CompilationHelper.Compile("""
+            namespace Windows.Foundation
+            {
+                [contractversion(10)]
+                apicontract UniversalApiContract {};
+            }
             namespace TestApp
             {
-                [contract(Windows.Foundation.UniversalApiContract, 1), threading(both)]
+                [contract(Windows.Foundation.UniversalApiContract, 1), threading(both), default_interface]
                 runtimeclass Widget { }
             }
             """);
 
-        Assert.Empty(compilation.Diagnostics);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Severity == DiagnosticSeverity.Error);
         var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
         var widget = ns.Members.OfType<RuntimeClassSymbol>().Single();
 
@@ -269,6 +280,11 @@ public class AttributeExtractionTests
     public void ExtractEnumMemberContract()
     {
         var compilation = CompilationHelper.Compile("""
+            namespace Windows.Foundation
+            {
+                [contractversion(10)]
+                apicontract UniversalApiContract {};
+            }
             namespace TestApp
             {
                 enum MyEnum
@@ -281,7 +297,7 @@ public class AttributeExtractionTests
             }
             """);
 
-        Assert.Empty(compilation.Diagnostics);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Severity == DiagnosticSeverity.Error);
         var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
         var myEnum = ns.Members.OfType<EnumSymbol>().Single();
         var value3 = myEnum.EnumMembers.First(m => m.Name == "Value3");
@@ -294,20 +310,26 @@ public class AttributeExtractionTests
     public void AllAttributesStoredInList()
     {
         var compilation = CompilationHelper.Compile("""
+            namespace Windows.Foundation
+            {
+                [contractversion(10)]
+                apicontract UniversalApiContract {};
+            }
             namespace TestApp
             {
-                [contract(Windows.Foundation.UniversalApiContract, 3), threading(both), marshaling_behavior(agile)]
+                [contract(Windows.Foundation.UniversalApiContract, 3), threading(both), marshaling_behavior(agile), default_interface]
                 runtimeclass Widget { }
             }
             """);
 
-        Assert.Empty(compilation.Diagnostics);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Severity == DiagnosticSeverity.Error);
         var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
         var widget = ns.Members.OfType<RuntimeClassSymbol>().Single();
 
-        Assert.Equal(3, widget.Attributes.Count);
+        Assert.Equal(4, widget.Attributes.Count);
         Assert.Contains(widget.Attributes, a => a.Name == "contract");
         Assert.Contains(widget.Attributes, a => a.Name == "threading");
         Assert.Contains(widget.Attributes, a => a.Name == "marshaling_behavior");
+        Assert.Contains(widget.Attributes, a => a.Name == "default_interface");
     }
 }

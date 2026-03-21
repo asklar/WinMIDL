@@ -4,6 +4,7 @@ namespace Midl.Integration.Tests;
 
 public class SyntaxErrorDiagnosticTests
 {
+#if WITH_COMPAT
     [Fact]
     public void InvalidCharactersProduceDiagnostics()
     {
@@ -12,6 +13,7 @@ public class SyntaxErrorDiagnosticTests
         Assert.NotEmpty(errors);
         Assert.Contains(errors, e => e.Code == "MIDL1101"); // Unexpected character
     }
+#endif
 
     [Fact]
     public void ValidMidl3ProducesNoDiagnostics()
@@ -31,6 +33,7 @@ namespace TestApp
         Assert.Empty(errors);
     }
 
+#if WITH_COMPAT
     [Fact]
     public void ErrorTokensHaveCorrectPositions()
     {
@@ -58,6 +61,7 @@ namespace TestApp
         var compilation = CompilationHelper.Compile("$$$", CompilationMode.Compat);
         Assert.NotEmpty(compilation.Diagnostics);
     }
+#endif
 
     [Fact]
     public void TypeWithoutNamespaceProducesError()
@@ -199,6 +203,7 @@ namespace TestApp
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1100");
     }
 
+#if WITH_COMPAT
     [Fact]
     public void MultipleAttributesInOneBracket_ParsesCleanly()
     {
@@ -208,7 +213,7 @@ namespace TestApp
                 [uuid(12345678-1234-1234-1234-123456789abc), webhosthidden]
                 interface IFoo { void Bar(); };
 
-                [activatable(1), threading(both), marshaling_behavior(agile)]
+                [activatable(1), threading(both), marshaling_behavior(agile), default_interface]
                 runtimeclass Widget { Widget(); }
             }
             """, CompilationMode.Compat);
@@ -217,4 +222,5 @@ namespace TestApp
             .Where(d => d.Severity == Analysis.Diagnostics.DiagnosticSeverity.Error).ToList();
         Assert.Empty(errors);
     }
+#endif
 }

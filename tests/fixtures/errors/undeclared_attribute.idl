@@ -1,0 +1,9 @@
+// Undeclared attribute on struct — should warn/error (MIDL1065)
+namespace DemoNamespace
+{
+    [DEMO_STRUCT]
+    struct DemoStruct
+    {
+        Int32 demoInt;
+    };
+}

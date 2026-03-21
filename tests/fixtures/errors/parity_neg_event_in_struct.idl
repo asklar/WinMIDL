@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    struct BadStruct
+    {
+        Int32 Value;
+        event Windows.Foundation.TypedEventHandler<Object, Object> Changed;
+    };
+}

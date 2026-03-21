@@ -66,6 +66,7 @@ public class InterfaceSynthesisTests
         var compilation = CompilationHelper.Compile("""
             namespace TestApp
             {
+                [default_interface]
                 runtimeclass C
                 {
                     C(Int32 x);
@@ -94,6 +95,7 @@ public class InterfaceSynthesisTests
         var compilation = CompilationHelper.Compile("""
             namespace TestApp
             {
+                [default_interface]
                 runtimeclass C
                 {
                     C();

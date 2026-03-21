@@ -1,0 +1,10 @@
+namespace TestApp
+{
+    runtimeclass Widget
+    {
+        [overload("DoWorkA")]
+        void DoWork(Int32 x);
+        [overload("DoWorkB")]
+        void DoWork(String s);
+    }
+}

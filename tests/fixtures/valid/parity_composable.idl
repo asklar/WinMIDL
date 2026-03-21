@@ -1,0 +1,27 @@
+namespace TestApp.Parity
+{
+    unsealed runtimeclass ComposableWidget
+    {
+        protected ComposableWidget();
+        protected ComposableWidget(String label);
+        String Label { get; };
+        overridable void OnActivated();
+        overridable Boolean CanActivate();
+    }
+
+    unsealed runtimeclass MiddleComposable : ComposableWidget
+    {
+        protected MiddleComposable();
+        protected MiddleComposable(String label);
+        Int32 Priority { get; };
+        overridable void OnPriorityChanged();
+    }
+
+    runtimeclass FinalComposable : MiddleComposable
+    {
+        FinalComposable();
+        FinalComposable(String label);
+        FinalComposable(String label, Int32 priority);
+        Boolean IsReady { get; };
+    }
+}

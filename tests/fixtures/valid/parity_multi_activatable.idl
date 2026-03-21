@@ -1,0 +1,24 @@
+namespace TestApp.Parity
+{
+    [contractversion(3)]
+    apicontract FactoryContract {};
+
+    [contract(FactoryContract, 1)]
+    runtimeclass MultiActivatableWidget
+    {
+        MultiActivatableWidget();
+        MultiActivatableWidget(String name);
+        String Name { get; };
+        Int32 Id { get; };
+
+        [contract(FactoryContract, 2)]
+        {
+            MultiActivatableWidget(String name, Int32 id);
+        }
+
+        [contract(FactoryContract, 3)]
+        {
+            MultiActivatableWidget(String name, Int32 id, Boolean active);
+        }
+    }
+}

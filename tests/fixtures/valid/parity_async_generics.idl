@@ -1,0 +1,12 @@
+namespace TestApp.Parity
+{
+    runtimeclass AsyncGenericWidget
+    {
+        AsyncGenericWidget();
+        Windows.Foundation.IAsyncOperation<Windows.Foundation.Collections.IVector<String> > FetchAllNamesAsync();
+        Windows.Foundation.IAsyncOperation<Windows.Foundation.Collections.IMap<String, Int32> > FetchMappingsAsync();
+        Windows.Foundation.IAsyncOperation<Windows.Foundation.Collections.IVectorView<Int32> > FetchIdsAsync();
+        Windows.Foundation.IAsyncAction SyncAllAsync();
+        Windows.Foundation.IAsyncOperation<Boolean> ValidateAllAsync();
+    }
+}

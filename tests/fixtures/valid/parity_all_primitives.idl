@@ -1,0 +1,35 @@
+namespace TestApp.Parity
+{
+    runtimeclass AllPrimitivesWidget
+    {
+        AllPrimitivesWidget();
+        UInt8 GetByte();
+        Int16 GetShort();
+        UInt16 GetUShort();
+        Int32 GetInt();
+        UInt32 GetUInt();
+        Int64 GetLong();
+        UInt64 GetULong();
+        Single GetFloat();
+        Double GetDouble();
+        Boolean GetBool();
+        Char GetChar();
+        String GetString();
+        Guid GetGuid();
+        Object GetObject();
+
+        void SetByte(UInt8 v);
+        void SetShort(Int16 v);
+        void SetUShort(UInt16 v);
+        void SetInt(Int32 v);
+        void SetUInt(UInt32 v);
+        void SetLong(Int64 v);
+        void SetULong(UInt64 v);
+        void SetFloat(Single v);
+        void SetDouble(Double v);
+        void SetBool(Boolean v);
+        void SetChar(Char v);
+        void SetString(String v);
+        void SetGuid(Guid v);
+    }
+}

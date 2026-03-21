@@ -1,0 +1,30 @@
+namespace TestApp.Parity
+{
+    [contractversion(1)]
+    apicontract MarkerContract {};
+
+    [contract(MarkerContract, 1)]
+    [uuid("A1B2C3D4-E5F6-7890-ABCD-EF0123456789")]
+    interface IMarker
+    {
+    }
+
+    [contract(MarkerContract, 1)]
+    [uuid("B2C3D4E5-F6A7-8901-BCDE-F01234567890")]
+    interface ITagged
+    {
+    }
+
+    [contract(MarkerContract, 1)]
+    [uuid("C3D4E5F6-A7B8-9012-CDEF-012345678901")]
+    interface IExtendedMarker requires IMarker
+    {
+    }
+
+    [contract(MarkerContract, 1)]
+    runtimeclass MarkerWidget
+    {
+        MarkerWidget();
+        String Name { get; };
+    }
+}

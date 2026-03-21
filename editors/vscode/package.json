@@ -65,6 +65,18 @@
         "title": "MIDL: Show Language Server Output"
       }
     ],
+    "configurationDefaults": {
+      "editor.semanticTokenColorCustomizations": {
+        "[*]": {
+          "rules": {
+            "decorator:midl": {
+              "foreground": "#C586C0",
+              "fontStyle": "bold"
+            }
+          }
+        }
+      }
+    },
     "configuration": {
       "title": "MIDL",
       "properties": {

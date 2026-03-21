@@ -1,0 +1,7 @@
+{
+    "diagnostics": [
+        {"code": "MIDL1054", "severity": "Error", "messageContains": "duplicate member name"}
+    ],
+    "originalMidlAlsoRejects": true,
+    "originalMidlError": "MIDL4063"
+}

@@ -1,0 +1,15 @@
+namespace TestApp.Parity
+{
+    delegate void SimpleCallback();
+    delegate void MessageHandler(String message);
+    delegate void Transformer(String input, out Int32 output);
+    delegate void Predicate(Object item, out Boolean matched);
+
+    runtimeclass EventSource
+    {
+        EventSource();
+        event Windows.Foundation.TypedEventHandler<EventSource, String> ItemAdded;
+        event Windows.Foundation.EventHandler<Int32> CountChanged;
+        event SimpleCallback Completed;
+    }
+}

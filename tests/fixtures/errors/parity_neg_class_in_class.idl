@@ -1,0 +1,12 @@
+namespace TestApp
+{
+    runtimeclass OuterClass
+    {
+        OuterClass();
+
+        runtimeclass InnerClass
+        {
+            InnerClass();
+        }
+    }
+}

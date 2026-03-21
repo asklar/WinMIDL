@@ -1,0 +1,41 @@
+namespace TestApp.Parity
+{
+    runtimeclass CollectionManager
+    {
+        CollectionManager();
+
+        // IVector
+        Windows.Foundation.Collections.IVector<String> GetNames();
+        Windows.Foundation.Collections.IVector<Int32> GetIds();
+        Windows.Foundation.Collections.IVector<Object> GetItems();
+
+        // IVectorView
+        Windows.Foundation.Collections.IVectorView<String> GetNameView();
+        Windows.Foundation.Collections.IVectorView<Int32> GetIdView();
+
+        // IMap
+        Windows.Foundation.Collections.IMap<String, String> GetStringMap();
+        Windows.Foundation.Collections.IMap<String, Int32> GetCountMap();
+        Windows.Foundation.Collections.IMap<String, Object> GetObjectMap();
+
+        // IMapView
+        Windows.Foundation.Collections.IMapView<String, String> GetReadOnlyMap();
+        Windows.Foundation.Collections.IMapView<String, Int32> GetReadOnlyCounts();
+
+        // IIterable
+        Windows.Foundation.Collections.IIterable<String> EnumerateNames();
+        Windows.Foundation.Collections.IIterable<Int32> EnumerateValues();
+
+        // Async
+        Windows.Foundation.IAsyncOperation<String> FetchNameAsync();
+        Windows.Foundation.IAsyncOperation<Int32> ComputeAsync();
+        Windows.Foundation.IAsyncOperation<Boolean> ValidateAsync();
+        Windows.Foundation.IAsyncAction InitializeAsync();
+        Windows.Foundation.IAsyncAction ResetAsync();
+
+        // Properties with generic types
+        Windows.Foundation.Collections.IVector<String> AllNames { get; };
+        Windows.Foundation.Collections.IMap<String, Object> Metadata { get; };
+        Windows.Foundation.Collections.IVectorView<Int32> ReadOnlyIds { get; };
+    }
+}

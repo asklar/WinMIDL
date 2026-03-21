@@ -1,0 +1,24 @@
+namespace TestApp.Parity
+{
+    delegate void DataChangedHandler(String key, Object data);
+
+    interface IDataSource
+    {
+        String Name { get; };
+        Int32 ItemCount { get; };
+        void Refresh();
+        Object GetItem(Int32 index);
+        event DataChangedHandler DataChanged;
+    }
+
+    interface ICacheable
+    {
+        Boolean IsCached { get; };
+        void Invalidate();
+    }
+
+    interface ICachedDataSource requires IDataSource, ICacheable
+    {
+        void Prefetch(Int32 count);
+    }
+}

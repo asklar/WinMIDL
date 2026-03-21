@@ -6,6 +6,7 @@ namespace Midl.Analysis.Tests;
 
 public class BuiltInTypeTests
 {
+#if WITH_COMPAT
     [Fact]
     public void IInspectableResolves()
     {
@@ -60,6 +61,7 @@ public class BuiltInTypeTests
         Assert.DoesNotContain(compilation.Diagnostics,
             d => d.Code == "MIDL1001" && d.Message.Contains("EventRegistrationToken"));
     }
+#endif
 
     [Fact]
     public void WindowsFoundationIAsyncActionResolves()
@@ -115,6 +117,7 @@ public class BuiltInTypeTests
             d => d.Code == "MIDL1001" && d.Message.Contains("Uri"));
     }
 
+#if WITH_COMPAT
     [Fact]
     public void UINT32AliasResolves()
     {
@@ -190,6 +193,7 @@ public class BuiltInTypeTests
         Assert.DoesNotContain(compilation.Diagnostics,
             d => d.Code == "MIDL2005" && d.Message.Contains("double"));
     }
+#endif
 
     [Fact]
     public void StrictModeDoubleStillWarns()
@@ -213,6 +217,7 @@ public class BuiltInTypeTests
             d => d.Code == "MIDL1001" && d.Message.Contains("double"));
     }
 
+#if WITH_COMPAT
     [Fact]
     public void BuiltInTypesAreExternal()
     {
@@ -242,4 +247,5 @@ public class BuiltInTypeTests
         Assert.True(method.ReturnType.ResolvedSymbol!.IsExternal);
         Assert.Equal("<built-in>", method.ReturnType.ResolvedSymbol.SourceWinMdPath);
     }
+#endif
 }

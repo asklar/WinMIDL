@@ -1,0 +1,28 @@
+namespace TestApp.Parity
+{
+    [contractversion(3)]
+    apicontract MixedAttrContract {};
+
+    [contract(MixedAttrContract, 1)]
+    runtimeclass ContractDeprecatedWidget
+    {
+        ContractDeprecatedWidget();
+        void NewMethod();
+
+        [deprecated("Use NewMethod instead", deprecate, MixedAttrContract, 2)]
+        void OldMethod();
+
+        String CurrentValue { get; };
+
+        [deprecated("Use CurrentValue", deprecate, MixedAttrContract, 3)]
+        String LegacyValue { get; };
+
+        [contract(MixedAttrContract, 2)]
+        {
+            void AddedInV2();
+
+            [deprecated("Replaced in v3", deprecate, MixedAttrContract, 3)]
+            void V2DeprecatedMethod();
+        }
+    }
+}

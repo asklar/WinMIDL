@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    struct BadStruct
+    {
+        Int32 Value;
+        void DoWork();
+    };
+}

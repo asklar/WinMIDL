@@ -883,4 +883,121 @@ public class CustomAttributeTests
     }
 
     #endregion
+
+    #region Contract and Feature validation
+
+    [Fact]
+    public void ContractAttribute_ValidApiContract_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(1)]
+                apicontract TestContract {};
+
+                [contract(TestApp.TestContract, 1)]
+                runtimeclass Widget
+                {
+                    Widget();
+                };
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1075");
+    }
+
+    [Fact]
+    public void ContractAttribute_InvalidName_ProducesError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(1)]
+                apicontract RealContract {};
+
+                [contract(NotAContract, 1)]
+                runtimeclass Widget
+                {
+                    Widget();
+                };
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1075");
+    }
+
+    [Fact]
+    public void ContractAttribute_OnInterface_Validates()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(1)]
+                apicontract RealContract {};
+
+                [contract(FakeContract, 1)]
+                interface IWidget
+                {
+                    void DoWork();
+                };
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1075");
+    }
+
+    [Fact]
+    public void ContractAttribute_OnEnum_Validates()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(1)]
+                apicontract RealContract {};
+
+                [contract(NonExistent, 1)]
+                enum Mode { A, B };
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1075");
+    }
+
+    [Fact]
+    public void ContractAttribute_NoApiContractsDeclared_StillErrors()
+    {
+        // When contract references an unknown apicontract, it's an error
+        // (user needs to add a @ref or winmidl.json reference)
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contract(Windows.Foundation.UniversalApiContract, 1)]
+                runtimeclass Widget
+                {
+                    Widget();
+                };
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1075");
+    }
+
+    [Fact]
+    public void FeatureAttribute_InvalidName_ProducesError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [feature(NotDeclared)]
+                runtimeclass Widget
+                {
+                    Widget();
+                };
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1076");
+    }
+
+    #endregion
 }

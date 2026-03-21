@@ -84,18 +84,24 @@ For lightweight cross-file hints without a project file, you can add `// @ref:` 
 ```idl
 // @ref: Helper.idl
 // @ref: ../shared/Types.idl
+// @ref: ../bin/ExtLib.winmd
 
 namespace MyApp
 {
     runtimeclass Widget
     {
         Widget();
-        Helper GetHelper();  // Helper is defined in Helper.idl
+        Helper GetHelper();       // Helper is defined in Helper.idl
+        ExtLib.IService Service;  // IService is in ExtLib.winmd
     }
 }
 ```
 
-The LSP parses these directives and adds the referenced files' directories to the include path, enabling `import` resolution. This is useful for quick prototyping or small projects that don't need a full `winmidl.json`.
+The LSP parses these directives and:
+- **`.idl` references**: adds the referenced files' directories to the include path, enabling `import` resolution
+- **`.winmd` references**: adds the files as WinMD type references, enabling resolution of external WinRT types
+
+This is useful for quick prototyping or small projects that don't need a full `winmidl.json`.
 
 **Priority order** (highest to lowest):
 1. `winmidl.json` project file

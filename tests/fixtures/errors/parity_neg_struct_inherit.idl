@@ -1,0 +1,12 @@
+namespace TestApp
+{
+    struct BaseStruct
+    {
+        Int32 X;
+    };
+
+    struct DerivedStruct : BaseStruct
+    {
+        Int32 Y;
+    };
+}

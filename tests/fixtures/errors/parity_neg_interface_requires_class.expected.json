@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "messageContains": "runtimeclass",
+      "code": "MIDL1038",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5053",
+  "originalMidlAlsoRejects": true
+}

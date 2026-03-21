@@ -1,0 +1,7 @@
+{
+    "diagnostics": [
+        {"code": "MIDL1003", "severity": "Error", "messageContains": "Namespace required"}
+    ],
+    "originalMidlAlsoRejects": true,
+    "originalMidlError": "MIDL5025"
+}

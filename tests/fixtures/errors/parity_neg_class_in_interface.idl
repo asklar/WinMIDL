@@ -1,0 +1,10 @@
+namespace TestApp
+{
+    interface IBadInterface
+    {
+        runtimeclass BadInner
+        {
+            BadInner();
+        }
+    }
+}

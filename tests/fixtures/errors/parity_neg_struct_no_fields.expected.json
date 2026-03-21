@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "messageContains": "Empty struct",
+      "code": "MIDL1009",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL2025",
+  "originalMidlAlsoRejects": true
+}

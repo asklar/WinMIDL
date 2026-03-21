@@ -1,0 +1,31 @@
+namespace TestApp.Parity
+{
+    runtimeclass ManyMemberWidget
+    {
+        ManyMemberWidget();
+        String Name { get; set; };
+        Int32 Id { get; };
+        Boolean IsActive { get; set; };
+        Double Value { get; set; };
+        Single Ratio { get; };
+        String Description { get; set; };
+        Int32 Priority { get; set; };
+        Boolean IsVisible { get; set; };
+        String Category { get; };
+        Int32 SortOrder { get; set; };
+        void Reset();
+        void Initialize(String name);
+        String GetLabel();
+        Int32 ComputeHash();
+        Boolean Validate();
+        Double Measure();
+        void Enable();
+        void Disable();
+        void Toggle();
+        String Serialize();
+        void Deserialize(String data);
+        Int32 CompareTo(ManyMemberWidget other);
+        event Windows.Foundation.TypedEventHandler<ManyMemberWidget, Object> Changed;
+        event Windows.Foundation.TypedEventHandler<ManyMemberWidget, String> NameChanged;
+    }
+}

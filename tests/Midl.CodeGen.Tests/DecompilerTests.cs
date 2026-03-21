@@ -1,3 +1,5 @@
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using Midl.Analysis;
 using Midl.CodeGen.Decompiler;
 using Midl.CodeGen.WinMd;
@@ -134,5 +136,211 @@ public class DecompilerTests
             .ToList();
 
         Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void DecompileThreadingAttribute()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [threading(both)]
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("[threading(both)]", idl);
+        Assert.Contains("runtimeclass Widget", idl);
+
+        // Verify round-trip: recompile the decompiled IDL
+        var recompilation = CompilationHelper.Compile(idl);
+        var errors = recompilation.Diagnostics
+            .Where(d => d.Severity == Analysis.Diagnostics.DiagnosticSeverity.Error)
+            .ToList();
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void DecompileMarshalingBehaviorAttribute()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [marshaling_behavior(agile), default_interface]
+                runtimeclass Widget
+                {
+                    Widget();
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("[marshaling_behavior(agile)]", idl);
+    }
+
+    [Fact]
+    public void DecompileDeprecatedAttribute()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [deprecated("Use NewWidget instead", deprecate, 1), default_interface]
+                runtimeclass Widget
+                {
+                    Widget();
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("[deprecated(\"Use NewWidget instead\"", idl);
+        Assert.Contains("deprecate", idl);
+    }
+
+    [Fact]
+    public void DecompileExclusiveToAttribute()
+    {
+        // Compile a runtimeclass — the emitter produces a non-public exclusive interface.
+        // Verify that ExclusiveToAttribute is readable by examining the WinMD directly.
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                }
+            }
+            """);
+
+        // Read the WinMD and find the non-public exclusive interface
+        using var peReader = new PEReader(new MemoryStream(bytes));
+        var reader = peReader.GetMetadataReader();
+
+        string? exclusiveToValue = null;
+        foreach (var handle in reader.TypeDefinitions)
+        {
+            var td = reader.GetTypeDefinition(handle);
+            var name = reader.GetString(td.Name);
+            if (name == "IWidget") // synthesized exclusive interface
+            {
+                foreach (var attrHandle in td.GetCustomAttributes())
+                {
+                    var attr = reader.GetCustomAttribute(attrHandle);
+                    if (attr.Constructor.Kind == HandleKind.MemberReference)
+                    {
+                        var memberRef = reader.GetMemberReference((MemberReferenceHandle)attr.Constructor);
+                        if (memberRef.Parent.Kind == HandleKind.TypeReference)
+                        {
+                            var typeRef = reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+                            if (reader.GetString(typeRef.Name) == "ExclusiveToAttribute")
+                            {
+                                var blob = reader.GetBlobReader(attr.Value);
+                                blob.ReadUInt16(); // prolog
+                                exclusiveToValue = blob.ReadSerializedString();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Assert.NotNull(exclusiveToValue);
+        Assert.Contains("Widget", exclusiveToValue);
+    }
+
+    [Fact]
+    public void DecompileComposableAttribute()
+    {
+        // The emitter doesn't currently call AddComposableAttribute, but the decompiler
+        // should handle it for external WinMD files. Verify by checking that an unsealed
+        // runtimeclass with constructors is properly decompiled.
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [default_interface]
+                unsealed runtimeclass BaseWidget
+                {
+                    BaseWidget();
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        // The unsealed keyword should be preserved via TypeAttributes
+        Assert.Contains("unsealed runtimeclass BaseWidget", idl);
+    }
+
+    [Fact]
+    public void DecompileActivatableAttribute()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [default_interface]
+                runtimeclass Widget
+                {
+                    Widget();
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        // The emitter adds ActivatableAttribute for classes with constructors
+        Assert.Contains("[activatable(", idl);
+    }
+
+    [Fact]
+    public void DecompileContractAttribute()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                apicontract TestContract {}
+                [contract(TestContract, 2), default_interface]
+                runtimeclass Widget
+                {
+                    Widget();
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("[contract(TestContract, 2)]", idl);
+    }
+
+    [Fact]
+    public void DecompileApiContract()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [contractversion(3)]
+                apicontract MyContract {}
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("apicontract MyContract", idl);
+        Assert.Contains("[contractversion(", idl);
     }
 }

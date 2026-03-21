@@ -1,0 +1,28 @@
+namespace TestApp.Parity
+{
+    struct InnerPoint
+    {
+        Double X;
+        Double Y;
+    };
+
+    struct MiddleRect
+    {
+        InnerPoint TopLeft;
+        InnerPoint BottomRight;
+    };
+
+    struct OuterRegion
+    {
+        MiddleRect Bounds;
+        String Label;
+        Int32 Id;
+    };
+
+    runtimeclass RegionManager
+    {
+        RegionManager();
+        OuterRegion GetRegion();
+        void SetRegion(OuterRegion region);
+    }
+}

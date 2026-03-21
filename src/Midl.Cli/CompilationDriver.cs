@@ -115,6 +115,22 @@ public class CompilationDriver
             return 2;
         }
 
+        // Dump WinMD mode — canonical metadata dump
+        if (options.DumpWinMd)
+        {
+            try
+            {
+                var dump = WinMdDumper.Dump(options.InputFile);
+                _out.Write(dump);
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                _err.WriteLine($"error MIDL0001: WinMD dump failed: {ex.Message}");
+                return 2;
+            }
+        }
+
         // Decompile mode — WinMD to IDL
         if (options.DecompileMode)
         {
@@ -524,6 +540,7 @@ public class CompilationDriver
         _out.WriteLine("  --lsp                  Start Language Server Protocol mode");
         _out.WriteLine("  --analyze              Rich analysis output with source context");
         _out.WriteLine("  --decompile            Decompile WinMD to IDL");
+        _out.WriteLine("  --dump-winmd           Dump WinMD metadata in canonical sorted format");
         _out.WriteLine("  /debug                 Enable debug trace output (or set MIDL_DEBUG=1)");
         _out.WriteLine("  /no_def_idir           Don't add default SDK include directories");
         _out.WriteLine("  @<file>                Read options from response file");

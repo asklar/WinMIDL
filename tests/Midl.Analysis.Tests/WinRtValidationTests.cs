@@ -6,20 +6,24 @@ public class WinRtValidationTests
 {
     [Fact] public void MIDL1048_COnlyType_Errors() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { void P(wchar_t x); } }", CompilationMode.Strict); Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1048"); }
     [Fact] public void MIDL1048_Normal_NoDiag() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { void P(Int32 x); } }", CompilationMode.Strict); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1048"); }
+#if WITH_COMPAT
     [Fact] public void MIDL1048_Compat_NoDiag() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { void P(wchar_t x); } }", CompilationMode.Compat); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1048"); }
+#endif
     [Fact] public void MIDL1005_Object_Errors() { var c = CompilationHelper.Compile("namespace N { struct S { Object Obj; } }"); Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1005" && d.Message.Contains("Obj")); }
     [Fact] public void MIDL1005_Interface_Errors() { var c = CompilationHelper.Compile("namespace N { interface IFoo { void DoIt(); } struct S { IFoo Foo; } }"); Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1005" && d.Message.Contains("Foo")); }
     [Fact] public void MIDL1005_ValueTypes_NoDiag() { var c = CompilationHelper.Compile("namespace N { enum Color { Red, Green, Blue, } struct Inner { Int32 V; } struct S { Int32 X; String Name; Boolean Flag; Guid Id; Color C; Inner I; } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1005"); }
     [Fact] public void MIDL1049_Nested_Errors() { var c = CompilationHelper.Compile("namespace N { runtimeclass Outer { runtimeclass Inner { } } }"); Assert.True(c.Diagnostics.Any(d => d.Code == "MIDL1049") || c.Diagnostics.Count > 0); }
-    [Fact] public void MIDL1049_Flat_NoDiag() { var c = CompilationHelper.Compile("namespace N { runtimeclass A { } runtimeclass B { } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1049"); Assert.Empty(c.Diagnostics); }
+    [Fact] public void MIDL1049_Flat_NoDiag() { var c = CompilationHelper.Compile("namespace N { [default_interface] runtimeclass A { } [default_interface] runtimeclass B { } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1049"); Assert.Empty(c.Diagnostics); }
     [Fact] public void MIDL1050_Ref_Warns() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { void Update(ref Int32 value); } }"); Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1050" && d.Severity == DiagnosticSeverity.Warning); }
     [Fact] public void MIDL1050_Out_NoDiag() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { void GetValue(out Int32 value); } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1050"); }
     [Fact] public void MIDL1051_SingleArray_NoDiag() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { void P(Int32[] data); } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1051"); }
     [Fact] public void MIDL1052_Match_NoDiag() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { String Name { get; set; }; } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1052"); }
     [Fact] public void MIDL1053_NonVoid_Errors() { var c = CompilationHelper.Compile("namespace N { delegate Int32 MyFunc(String input); }"); Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1053" && d.Message.Contains("MyFunc")); }
     [Fact] public void MIDL1053_Void_NoDiag() { var c = CompilationHelper.Compile("namespace N { delegate void MyHandler(Int32 code); }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1053"); }
+#if WITH_COMPAT
     [Fact] public void MIDL1053_HResult_Compat_NoDiag() { var c = CompilationHelper.Compile("namespace N { delegate HRESULT MyCallback(); }", CompilationMode.Compat); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1053"); }
-    [Fact] public void MIDL1054_Duplicate_Warns() { var c = CompilationHelper.Compile("namespace N { interface IFoo { void DoWork(); void DoWork(); } }"); Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1054" && d.Severity == DiagnosticSeverity.Warning); }
+#endif
+    [Fact] public void MIDL1054_Duplicate_Errors() { var c = CompilationHelper.Compile("namespace N { interface IFoo { void DoWork(); void DoWork(); } }"); Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1054" && d.Severity == DiagnosticSeverity.Error); }
     [Fact] public void MIDL1054_Unique_NoDiag() { var c = CompilationHelper.Compile("namespace N { interface IFoo { void DoA(); void DoB(); String Name { get; }; } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1054"); }
     [Fact] public void MIDL1054_Overloaded_NoDiag() { var c = CompilationHelper.Compile("namespace N { interface IFoo { [overload(\"DoInt\")] void Do(Int32 x); [overload(\"DoStr\")] void Do(String x); } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1054"); }
     [Fact] public void MIDL1055_NoDefault_Warns() { var c = CompilationHelper.Compile("namespace N { interface IFoo { [overload(\"DoInt\")] void Do(Int32 x); [overload(\"DoStr\")] void Do(String x); } }"); Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1055" && d.Severity == DiagnosticSeverity.Warning); }
@@ -38,4 +42,102 @@ public class WinRtValidationTests
     [Fact] public void MIDL1061_StaticOnly_NoDiag() { var c = CompilationHelper.Compile("namespace N { static runtimeclass C { static void Reset(); } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1061"); }
     [Fact] public void MIDL1061_UnsealedOnly_NoDiag() { var c = CompilationHelper.Compile("namespace N { unsealed runtimeclass C { } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1061"); }
     [Fact] public void ValidCode_NoDiag() { var c = CompilationHelper.Compile("namespace TestApp { delegate void StatusHandler(Int32 code, String message); enum Color { Red, Green, Blue, } struct Point { Int32 X; Int32 Y; } interface IGreeter { String Greet(String name); String Greeting { get; }; event StatusHandler OnGreet; } runtimeclass Widget { Widget(); Widget(String name); void DoWork(Int32 count); String Name { get; set; }; event StatusHandler OnChanged; static void Reset(); } }"); Assert.Empty(c.Diagnostics); }
+
+    // MIDL1062: Empty runtimeclass — must have at least one non-constructor member or [default_interface]
+    [Fact] public void MIDL1062_EmptyClass_Errors()
+    {
+        var c = CompilationHelper.Compile("namespace N { runtimeclass C { } }");
+        Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1062");
+    }
+    [Fact] public void MIDL1062_ConstructorOnlyClass_Errors()
+    {
+        // Constructor alone doesn't create a member interface
+        var c = CompilationHelper.Compile("namespace N { runtimeclass C { C(); } }");
+        Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1062");
+    }
+    [Fact] public void MIDL1062_ClassWithMethod_NoDiag()
+    {
+        var c = CompilationHelper.Compile("namespace N { runtimeclass C { C(); void DoWork(); } }");
+        Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1062");
+    }
+    [Fact] public void MIDL1062_DefaultInterface_NoDiag()
+    {
+        var c = CompilationHelper.Compile("namespace N { [default_interface] runtimeclass C { } }");
+        Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1062");
+    }
+    [Fact] public void MIDL1062_DefaultInterface_WithCtor_NoDiag()
+    {
+        var c = CompilationHelper.Compile("namespace N { [default_interface] runtimeclass C { C(); } }");
+        Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1062");
+    }
+    [Fact] public void MIDL1062_StaticClass_NoDiag()
+    {
+        var c = CompilationHelper.Compile("namespace N { static runtimeclass C { static void Foo(); } }");
+        Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1062");
+    }
+
+    // MIDL1063: Optional params not allowed in WinRT
+    [Fact] public void MIDL1063_OptionalParam_Errors()
+    {
+        var c = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass C
+                {
+                    void Foo([optional] String name);
+                };
+            }
+            """);
+        Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1063");
+    }
+    [Fact] public void MIDL1063_NormalParam_NoDiag()
+    {
+        var c = CompilationHelper.Compile("namespace N { runtimeclass C { void Foo(String name); } }");
+        Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1063");
+    }
+
+    // MIDL1077: Runtimeclass param needs default interface
+    [Fact] public void MIDL1077_ClassParamNoInterface_Errors()
+    {
+        var c = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass Empty { };
+                runtimeclass User
+                {
+                    void Use(Empty e);
+                };
+            }
+            """);
+        Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1077");
+    }
+    [Fact] public void MIDL1077_ClassParamWithMembers_NoDiag()
+    {
+        var c = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass HasMembers { HasMembers(); };
+                runtimeclass User
+                {
+                    void Use(HasMembers h);
+                };
+            }
+            """);
+        Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1077");
+    }
+    [Fact] public void MIDL1077_ClassParamWithDefaultInterface_NoDiag()
+    {
+        var c = CompilationHelper.Compile("""
+            namespace N
+            {
+                [default_interface]
+                runtimeclass Tagged { };
+                runtimeclass User
+                {
+                    void Use(Tagged t);
+                };
+            }
+            """);
+        Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1077");
+    }
 }

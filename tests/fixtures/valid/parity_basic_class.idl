@@ -1,0 +1,33 @@
+namespace TestApp.Parity
+{
+    runtimeclass BasicWidget
+    {
+        BasicWidget();
+        BasicWidget(String name);
+
+        // Methods returning various types
+        String GetName();
+        Int32 GetCount();
+        Boolean IsActive();
+        Double GetValue();
+        Single GetRatio();
+        void Reset();
+        void SetName(String name);
+        void Configure(String name, Int32 count, Boolean enabled);
+
+        // Read-only properties
+        String WidgetName { get; };
+        Int32 WidgetId { get; };
+
+        // Read-write properties
+        Boolean IsEnabled { get; set; };
+        Double Factor { get; set; };
+
+        // Shorthand property (auto get+set)
+        Int32 Priority;
+
+        // Events
+        event Windows.Foundation.TypedEventHandler<BasicWidget, Object> Changed;
+        event Windows.Foundation.TypedEventHandler<BasicWidget, String> NameChanged;
+    }
+}
