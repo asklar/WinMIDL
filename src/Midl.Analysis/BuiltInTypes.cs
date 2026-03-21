@@ -117,6 +117,14 @@ public static class BuiltInTypes
             symbolTable.RegisterAlias("BSTR", "String");
             symbolTable.RegisterAlias("VARIANT", "Object");
             symbolTable.RegisterAlias("IID", "Guid");
+            symbolTable.RegisterAlias("TCHAR", "Char16");
+            symbolTable.RegisterAlias("OLECHAR", "Char16");
+            symbolTable.RegisterAlias("LPTSTR", "String");
+            symbolTable.RegisterAlias("LPCTSTR", "String");
+            symbolTable.RegisterAlias("CLSID", "Guid");
+            symbolTable.RegisterAlias("REFIID", "Guid");
+            symbolTable.RegisterAlias("REFCLSID", "Guid");
+            symbolTable.RegisterAlias("REFGUID", "Guid");
         }
 
         // 6. Compat-mode classic C lowercase types
