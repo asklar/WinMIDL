@@ -43,8 +43,8 @@ public class HeaderEmitter
         sb.AppendLine($"#define {guardName}");
         sb.AppendLine();
 
-        // Collect all types
-        var allTypes = compilation.GetAllTypes().ToList();
+        // Collect all types (exclude imported/external types)
+        var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         MidlTrace.CodeGen($"Generating header, {allTypes.Count} types");
 
         // Forward declarations
@@ -87,7 +87,7 @@ public class HeaderEmitter
     private static string BuildGuardName(Compilation compilation)
     {
         // Use the first namespace found, or a generic name
-        var allTypes = compilation.GetAllTypes().ToList();
+        var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         string nsName = "";
         foreach (var t in allTypes)
         {

@@ -3,6 +3,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using Midl.Analysis;
+using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
 using Midl.CodeGen.WinMd;
 
@@ -494,5 +495,58 @@ public class WinMdEmitterTests
         var assembly = reader.GetAssemblyDefinition();
         var assemblyName = reader.GetString(assembly.Name);
         Assert.Equal("MyApp.Widgets", assemblyName);
+    }
+
+    [Fact]
+    public void ImportedTypesNotEmittedToWinMd()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_import_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            File.WriteAllText(Path.Combine(tempDir, "Imported.idl"),
+                "namespace Lib { enum Status { Idle, Active }; }");
+            File.WriteAllText(Path.Combine(tempDir, "Main.idl"),
+                "import \"Imported.idl\";\nnamespace App { runtimeclass Widget { Widget(); Lib.Status GetStatus(); } }");
+
+            var source = File.ReadAllText(Path.Combine(tempDir, "Main.idl"));
+            var compilation = CompilationHelper.Compile(source, null, CompilationMode.Strict,
+                new[] { tempDir }, Path.Combine(tempDir, "Main.idl"));
+            Assert.False(compilation.Diagnostics.Any(d => d.Severity == Midl.Analysis.Diagnostics.DiagnosticSeverity.Error),
+                string.Join("; ", compilation.Diagnostics));
+
+            // Main types should exist and not be external
+            var widget = compilation.GetAllTypes().FirstOrDefault(t => t.Name == "Widget");
+            Assert.NotNull(widget);
+            Assert.False(widget!.IsExternal);
+
+            // Imported types should be marked external
+            var status = compilation.GetAllTypes().FirstOrDefault(t => t.Name == "Status");
+            Assert.NotNull(status);
+            Assert.True(status!.IsExternal, "Imported type 'Status' should be marked IsExternal");
+
+            // WinMD should only contain main file types, not imported types
+            var emitter = new WinMdEmitter();
+            var bytes = emitter.EmitToBytes(compilation);
+            var reader = CreateReader(bytes, out var pe);
+            using (pe)
+            {
+                var typeNames = new List<string>();
+                foreach (var handle in reader.TypeDefinitions)
+                {
+                    var td = reader.GetTypeDefinition(handle);
+                    var name = reader.GetString(td.Name);
+                    if (name != "<Module>")
+                        typeNames.Add(name);
+                }
+
+                Assert.Contains("Widget", typeNames);
+                Assert.DoesNotContain("Status", typeNames);
+            }
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
     }
 }

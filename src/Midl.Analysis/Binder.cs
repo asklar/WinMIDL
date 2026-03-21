@@ -326,6 +326,7 @@ public class Binder
         if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new RuntimeClassSymbol(name, ns);
+        symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -476,6 +477,7 @@ public class Binder
         if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new InterfaceSymbol(name, ns);
+        symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -622,6 +624,7 @@ public class Binder
         if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new DelegateSymbol(name, ns);
+        symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         symbol.ReturnType = ExtractTypeRef(returnTypeNode);
         TrackTypeRef(symbol.ReturnType, ns);
         ns.AddMember(symbol);
@@ -660,6 +663,7 @@ public class Binder
         if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new StructSymbol(name, ns);
+        symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -742,6 +746,7 @@ public class Binder
         if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new AttributeTypeSymbol(name, ns);
+        symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -806,6 +811,7 @@ public class Binder
         if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new EnumSymbol(name, ns);
+        symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -963,6 +969,7 @@ public class Binder
         if (!TryDefineType(ns, name, isForwardDecl)) return;
 
         var symbol = new ApiContractSymbol(name, ns);
+        symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -985,30 +992,80 @@ public class Binder
     /// </summary>
     private void BindTypedefDeclaration(GreenNode node, NamespaceSymbol ns)
     {
-        // Walk children looking for inner type declarations (enum, struct, union)
+        // Walk children: find enum/struct keyword → bind the type
+        // typedef [attrs] enum Name { members } AliasName;
+        // typedef [attrs] struct Name { fields } AliasName;
+        // typedef enum Name AliasName;  (forward decl)
+        
+        string? typeName = null;
+        bool hasBody = false;
+        SyntaxKind typeKind = SyntaxKind.None;
+
         for (int i = 0; i < node.SlotCount; i++)
         {
             var child = node.GetSlot(i);
             if (child == null) continue;
 
-            switch (child.Kind)
+            if (child is SyntaxToken tok)
             {
-                case SyntaxKind.EnumDeclaration:
-                    BindEnumDeclaration(child, ns);
-                    break;
-                case SyntaxKind.StructDeclaration:
-                    BindStructDeclaration(child, ns);
-                    break;
-                case SyntaxKind.UnionDeclaration:
-                    // Union declarations are classic MIDL — just skip in binding
-                    break;
+                if (tok.Kind is SyntaxKind.EnumKeyword or SyntaxKind.StructKeyword or SyntaxKind.UnionKeyword)
+                    typeKind = tok.Kind;
+                else if (tok.Kind == SyntaxKind.IdentifierToken && typeKind != SyntaxKind.None && typeName == null)
+                    typeName = tok.Text;
+                else if (tok.Kind == SyntaxKind.OpenBraceToken)
+                    hasBody = true;
+            }
+            // Also check for inner EnumDeclaration/StructDeclaration nodes (from old parser path)
+            else if (child.Kind == SyntaxKind.EnumDeclaration)
+            {
+                BindEnumDeclaration(child, ns);
+                return;
+            }
+            else if (child.Kind == SyntaxKind.StructDeclaration)
+            {
+                BindStructDeclaration(child, ns);
+                return;
             }
         }
 
-        // Register the typedef alias name (last identifier before semicolon)
-        // typedef Type AliasName; → register AliasName as alias for Type
-        // For typedef enum Name { ... } Name; the inner enum is already bound,
-        // so the alias is redundant but harmless to register.
+        if (typeName == null) return;
+
+        // Register the type
+        bool isForwardDecl = !hasBody;
+        if (!TryDefineType(ns, typeName, isForwardDeclaration: isForwardDecl)) return;
+
+        if (typeKind == SyntaxKind.EnumKeyword)
+        {
+            var symbol = new EnumSymbol(typeName, ns);
+            if (_bindingImportedFile) symbol.IsExternal = true;
+            ns.AddMember(symbol);
+            _symbolTable.Define(symbol);
+
+            // If it has a body, extract enum members
+            if (hasBody)
+            {
+                for (int i = 0; i < node.SlotCount; i++)
+                {
+                    var child = node.GetSlot(i);
+                    if (child?.Kind == SyntaxKind.EnumMemberDeclaration)
+                    {
+                        var memberName = FindFirstIdentifierText(child);
+                        if (!string.IsNullOrEmpty(memberName))
+                        {
+                            var member = new EnumMemberSymbol(memberName, symbol);
+                            symbol.AddMember(member);
+                        }
+                    }
+                }
+            }
+        }
+        else if (typeKind == SyntaxKind.StructKeyword)
+        {
+            var symbol = new StructSymbol(typeName, ns);
+            if (_bindingImportedFile) symbol.IsExternal = true;
+            ns.AddMember(symbol);
+            _symbolTable.Define(symbol);
+        }
     }
 
     #endregion

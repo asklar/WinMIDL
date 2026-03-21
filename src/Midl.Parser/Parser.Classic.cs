@@ -125,17 +125,56 @@ public sealed partial class Parser
         }
 
         // Check for struct/union/enum inline definitions
-        if (At(SyntaxKind.StructKeyword))
+        // For typedef: the inner type may be a forward declaration OR a full definition,
+        // followed by an alias name and semicolon.
+        if (At(SyntaxKind.StructKeyword) || At(SyntaxKind.EnumKeyword) || At(SyntaxKind.UnionKeyword))
         {
-            children.Add(ParseStructDeclaration(null));
-        }
-        else if (At(SyntaxKind.UnionKeyword))
-        {
-            children.Add(ParseUnionDeclaration(null));
-        }
-        else if (At(SyntaxKind.EnumKeyword))
-        {
-            children.Add(ParseEnumDeclaration(null));
+            // Peek ahead to determine the pattern:
+            // typedef enum Name { ... } AliasName;  → full definition + alias
+            // typedef enum Name AliasName;           → forward decl + alias (no body)
+            // typedef struct Name AliasName;          → forward decl + alias
+            var keyword = EatToken(); // enum/struct/union keyword
+            children.Add(keyword);
+            
+            var typeName = EatIdentifierOrKeyword(); // the type name
+            children.Add(typeName);
+
+            if (At(SyntaxKind.OpenBraceToken))
+            {
+                // Full definition: parse the body { ... }
+                children.Add(EatToken()); // {
+                
+                if (keyword.Kind == SyntaxKind.EnumKeyword)
+                {
+                    while (!At(SyntaxKind.CloseBraceToken) && !At(SyntaxKind.EndOfFileToken))
+                    {
+                        var before = _position;
+                        children.Add(ParseEnumMember());
+                        if (_position == before) children.Add(EatToken());
+                    }
+                }
+                else
+                {
+                    // struct/union body — consume until }
+                    int depth = 1;
+                    while (depth > 0 && !At(SyntaxKind.EndOfFileToken))
+                    {
+                        if (At(SyntaxKind.OpenBraceToken)) depth++;
+                        if (At(SyntaxKind.CloseBraceToken)) depth--;
+                        if (depth > 0) children.Add(EatToken());
+                    }
+                }
+                children.Add(Eat(SyntaxKind.CloseBraceToken));
+            }
+            // else: forward declaration — no body, just the type name
+
+            // Now eat the alias name and semicolon
+            if (At(SyntaxKind.IdentifierToken) || IsIdentifierOrKeyword(Current.Kind))
+                children.Add(EatIdentifierOrKeyword());
+            if (At(SyntaxKind.SemicolonToken))
+                children.Add(EatToken());
+
+            return MakeNode(SyntaxKind.TypedefDeclaration, children);
         }
         else
         {
@@ -143,9 +182,13 @@ public sealed partial class Parser
             children.Add(ParseTypeReference());
         }
 
-        // The alias name
-        children.Add(EatIdentifierOrKeyword());
-        children.Add(Eat(SyntaxKind.SemicolonToken));
+        // The alias name + semicolon
+        if (At(SyntaxKind.IdentifierToken) || IsIdentifierOrKeyword(Current.Kind))
+        {
+            children.Add(EatIdentifierOrKeyword());
+            if (At(SyntaxKind.SemicolonToken))
+                children.Add(EatToken());
+        }
 
         return MakeNode(SyntaxKind.TypedefDeclaration, children);
     }

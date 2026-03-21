@@ -88,6 +88,7 @@ public class WinMdEmitter
         _typeDefHandles.Clear();
         _synthInterfaceHandles.Clear();
         _localTypeRefs.Clear();
+        _externalAssemblyRefs.Clear();
         _fieldRow = 1;
         _methodRow = 1;
         _paramRow = 1;
@@ -136,8 +137,8 @@ public class WinMdEmitter
             MetadataTokens.FieldDefinitionHandle(1),
             MetadataTokens.MethodDefinitionHandle(1));
 
-        // 6. Pre-compute TypeDef handles
-        var allTypes = compilation.GetAllTypes().ToList();
+        // 6. Pre-compute TypeDef handles (exclude imported/external types)
+        var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         int typeRow = 2; // row 1 is <Module>
 
         foreach (var type in allTypes)
@@ -183,8 +184,50 @@ public class WinMdEmitter
     {
         if (_typeDefHandles.TryGetValue(symbol.FullName, out var handle))
             return GetTypeRefForTypeDef(symbol.FullName, handle);
+
+        // External/imported types are not emitted as TypeDefs; create a TypeRef
+        // pointing to an AssemblyRef for the type's root namespace.
+        if (symbol.IsExternal)
+            return GetExternalTypeRef(symbol.FullName);
+
         return default;
     }
+
+    /// <summary>
+    /// Creates a TypeRef pointing to an external assembly for an imported type.
+    /// WinRT convention: the assembly name is the root namespace of the type.
+    /// </summary>
+    private TypeReferenceHandle GetExternalTypeRef(string fullName)
+    {
+        if (_localTypeRefs.TryGetValue(fullName, out var existing))
+            return existing;
+
+        var lastDot = fullName.LastIndexOf('.');
+        var ns = lastDot >= 0 ? fullName[..lastDot] : "";
+        var name = lastDot >= 0 ? fullName[(lastDot + 1)..] : fullName;
+
+        var rootNs = ns.Split('.')[0];
+        if (string.IsNullOrEmpty(rootNs)) rootNs = name;
+
+        if (!_externalAssemblyRefs.TryGetValue(rootNs, out var assemblyRef))
+        {
+            assemblyRef = _metadata.AddAssemblyReference(
+                _metadata.GetOrAddString(rootNs),
+                new Version(255, 255, 255, 255),
+                default, default, default, default);
+            _externalAssemblyRefs[rootNs] = assemblyRef;
+        }
+
+        var typeRef = _metadata.AddTypeReference(
+            assemblyRef,
+            _metadata.GetOrAddString(ns),
+            _metadata.GetOrAddString(name));
+        _localTypeRefs[fullName] = typeRef;
+        return typeRef;
+    }
+
+    // Cache for assembly references to external namespaces
+    private readonly Dictionary<string, AssemblyReferenceHandle> _externalAssemblyRefs = new();
 
     /// <summary>
     /// Creates a TypeRef that points to a TypeDef in the same module.
@@ -225,7 +268,7 @@ public class WinMdEmitter
     /// </summary>
     public Dictionary<string, byte[]> EmitPerNamespace(Compilation compilation)
     {
-        var allTypes = compilation.GetAllTypes().ToList();
+        var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
 
         // Collect all distinct namespaces from types
         var namespaces = allTypes
@@ -316,6 +359,7 @@ public class WinMdEmitter
         _typeDefHandles.Clear();
         _synthInterfaceHandles.Clear();
         _localTypeRefs.Clear();
+        _externalAssemblyRefs.Clear();
         _fieldRow = 1;
         _methodRow = 1;
         _paramRow = 1;

@@ -30,7 +30,7 @@ public class TypeResolver
         if (typeRef.IsBuiltIn || typeRef.ResolvedSymbol != null)
             return;
 
-        if (typeRef.Name == "?")
+        if (typeRef.Name == "?" || string.IsNullOrEmpty(typeRef.Name))
             return;
 
         // Resolve type arguments first

@@ -22,7 +22,7 @@ public class IidEmitter
         sb.AppendLine("#endif");
 
         bool emittedAny = false;
-        foreach (var symbol in compilation.GetAllTypes())
+        foreach (var symbol in compilation.GetAllTypes().Where(t => !t.IsExternal))
         {
             if (symbol is InterfaceSymbol iface && iface.Uuid.HasValue)
             {
