@@ -19,6 +19,23 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 | [MIDL1011](#midl1011) | Warning | Same-arity method overload |
 | [MIDL1012](#midl1012) | Error | Write-only property |
 | [MIDL1013](#midl1013) | Warning | Reserved parameter name |
+| [MIDL1014](#midl1014) | Error | Interface version too early |
+| [MIDL1015](#midl1015) | Error | Contract family mismatch |
+| [MIDL1016](#midl1016) | Error | Undefined contract |
+| [MIDL1017](#midl1017) | Error | Enum member version too early |
+| [MIDL1020](#midl1020) | Error | Invalid threading model |
+| [MIDL1021](#midl1021) | Error | Invalid marshaling behavior |
+| [MIDL1022](#midl1022) | Error | Invalid composable access |
+| [MIDL1023](#midl1023) | Error | Activatable factory not \[exclusiveto\] |
+| [MIDL1024](#midl1024) | Error | Static interface not \[exclusiveto\] |
+| [MIDL1025](#midl1025) | Error | Composable and activatable conflict |
+| [MIDL1026](#midl1026) | Error | Invalid deprecation type |
+| [MIDL1027](#midl1027) | Warning | Threading on non-activatable class |
+| [MIDL1028](#midl1028) | Error | \[attributeusage\] on non-attribute |
+| [MIDL1029](#midl1029) | Error | Attribute wrong target |
+| [MIDL1030](#midl1030) | Error | Attribute argument count mismatch |
+| [MIDL1031](#midl1031) | Error | Partial conflicting modifiers |
+| [MIDL1032](#midl1032) | Error | Partial conflicting base class |
 | [MIDL1033](#midl1033) | Error | Protected/overridable on sealed class |
 | [MIDL1034](#midl1034) | Error | Undefined required interface |
 | [MIDL1035](#midl1035) | Error | Base type is not a runtimeclass |
@@ -47,6 +64,8 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 | [MIDL1059](#midl1059) | Error | Multiple [default_overload] on same arity |
 | [MIDL1060](#midl1060) | Error | Constructor arity conflict per version |
 | [MIDL1061](#midl1061) | Error | Static + unsealed conflict |
+| [MIDL1062](#midl1062) | Error | Empty runtimeclass without interface |
+| [MIDL1063](#midl1063) | Error | Optional parameter not allowed |
 | [MIDL1064](#midl1064) | Error | Attribute argument type mismatch |
 | [MIDL1065](#midl1065) | Warning | Unknown attribute |
 | [MIDL1066](#midl1066) | Error | Attribute argument out of range |
@@ -56,23 +75,55 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 | [MIDL1070](#midl1070) | Warning | Missing default interface |
 | [MIDL1071](#midl1071) | Warning | WinMD namespace mismatch |
 | [MIDL1072](#midl1072) | Error | Protected on individual accessor |
-| [MIDL1073](#midl1073) | Error | Protected member on interface || [MIDL1100](#midl1100) | Error | Unexpected code (skipped tokens) |
-| [MIDL1101](#midl1101) | Error | Unexpected character |
-| [MIDL1102](#midl1102) | Error | Expected token missing |
+| [MIDL1073](#midl1073) | Error | Protected member on interface |
+| [MIDL1075](#midl1075) | Error | Contract arg not apicontract |
+| [MIDL1076](#midl1076) | Error | Feature arg not feature\_name |
+| [MIDL1077](#midl1077) | Error | Parameter class needs default interface |
+| [MIDL1078](#midl1078) | Error | Circular interface requires |
+| [MIDL1079](#midl1079) | Error | Duplicate parameter name |
+| [MIDL1080](#midl1080) | Error | Versioned block conflict |
+| [MIDL1081](#midl1081) | Error | UUID wrong format |
+| [MIDL1082](#midl1082) | Error | \[default\_interface\] on non-class |
+| [MIDL1083](#midl1083) | Error | Void property type |
+| [MIDL1084](#midl1084) | Error | Static class instance member |
+| [MIDL1085](#midl1085) | Error | Duplicate property name |
+| [MIDL1086](#midl1086) | Error | Duplicate \[uuid\] attribute |
+| [MIDL1087](#midl1087) | Error | Duplicate \[overload\] name |
+| [MIDL1088](#midl1088) | Error | \[marshaling\_behavior\] on non-class |
+| [MIDL1089](#midl1089) | Error | Field in runtimeclass |
+| [MIDL1090](#midl1090) | Error | \[threading\] on non-class |
+| [MIDL1091](#midl1091) | Error | Constructor with return type |
+| [MIDL1092](#midl1092) | Error | \[exclusiveto\] self-reference |
+| [MIDL1093](#midl1093) | Error | Contract version exceeds max |
+| [MIDL1094](#midl1094) | Error | \[uuid\] on non-interface |
+| [MIDL1095](#midl1095) | Error | \[activatable\] on non-class |
+| [MIDL1096](#midl1096) | Error | \[deprecated\] wrong argument count |
+| [MIDL1097](#midl1097) | Error | \[overload\] on property or event |
+| [MIDL1098](#midl1098) | Error | Empty enum |
+| [MIDL1099](#midl1099) | Error | Member name same as containing type |
+| [MIDL1100](#midl1100) | Error | Static modifier on non-class |
+| [MIDL1101](#midl1101) | Error | Generic type requires arguments |
+| [MIDL1102](#midl1102) | Error | @ref target not found |
+| [MIDL1103](#midl1103) | Error | Invalid feature stage |
+| [MIDL1104](#midl1104) | Error | Non-experimental references experimental |
+| [MIDL1105](#midl1105) | Warning | Cross-feature-gate reference |
 | [MIDL2001](#midl2001) | Error | Classic MIDL construct (strict mode) |
 | [MIDL2002](#midl2002) | Error | HRESULT return type (strict mode) |
 | [MIDL2003](#midl2003) | Error | Classic MIDL attribute (strict mode) |
 | [MIDL2004](#midl2004) | Error | Pointer type (strict mode) |
 | [MIDL2005](#midl2005) | Error | Classic MIDL type name (strict mode) |
+| [MIDL2006](#midl2006) | Warning | #include in strict mode |
 | [MIDL3001](#midl3001) | Info | Interface naming convention |
 | [MIDL3002](#midl3002) | Info | Empty runtimeclass |
 | [MIDL3003](#midl3003) | Info | Empty interface |
 | [MIDL3005](#midl3005) | Info | Runtimeclass has no constructor |
+| [MIDL3006](#midl3006) | Info | Event handler naming convention |
 | [MIDL3007](#midl3007) | Info | Property setter without getter |
 | [MIDL3008](#midl3008) | Info | Method name clashes with type name |
 | [MIDL3009](#midl3009) | Info | Namespace casing convention |
 | [MIDL3010](#midl3010) | Info | Attribute naming convention |
 | [MIDL3011](#midl3011) | Info | Delegate naming convention |
+| [MIDL3012](#midl3012) | Info | Event args naming convention |
 | [MIDL3013](#midl3013) | Info | Async method naming convention |
 | [MIDL3014](#midl3014) | Info | Type name PascalCase |
 | [MIDL3015](#midl3015) | Info | Member name PascalCase |
@@ -122,6 +173,52 @@ This document lists all diagnostics emitted by the MIDL compiler, organized by c
 
 ### MIDL1061
 **Static + unsealed conflict** — A runtimeclass cannot be both `static` and `unsealed`.
+
+---
+
+### MIDL1062
+
+**Empty runtimeclass without interface**
+
+```
+error MIDL1062: Runtimeclass 'Widget' must implement at least one interface or have [default_interface].
+```
+
+A runtimeclass has no interface implementations and no `[default_interface]` attribute.
+
+**Fix:** Add an interface implementation or use `[default_interface]`:
+
+```idl
+// Option 1: implement an interface
+runtimeclass Widget : IWidget { }
+
+// Option 2: use [default_interface] to auto-generate one
+[default_interface]
+runtimeclass Widget
+{
+    void DoWork();
+}
+```
+
+---
+
+### MIDL1063
+
+**Optional parameter not allowed**
+
+```
+error MIDL1063: Parameter 'count' in 'DoWork' cannot be optional. WinRT does not support optional, default, or vararg parameters.
+```
+
+WinRT does not support optional, default-valued, or variadic parameters.
+
+**Fix:** Create method overloads instead:
+
+```idl
+void DoWork();
+[method_name("DoWorkWithCount")]
+void DoWork(Int32 count);
+```
 
 ---
 
@@ -192,6 +289,445 @@ protected String Name { get; set; };
 **Protected member on interface** — Interface members are always public. The `protected` modifier is only valid on `unsealed runtimeclass` members.
 
 ---
+
+### MIDL1075
+
+**Contract arg not apicontract**
+
+```
+error MIDL1075: [contract] on 'Widget': 'NotAContract' is not declared as an apicontract.
+```
+
+The type referenced in a `[contract]` attribute is not declared as an `apicontract`.
+
+**Fix:** Declare the type as an `apicontract`:
+
+```idl
+apicontract MyContract { }
+
+[contract(MyContract, 1.0)]
+runtimeclass Widget { }
+```
+
+---
+
+### MIDL1076
+
+**Feature arg not feature\_name**
+
+```
+error MIDL1076: [feature] on 'Widget': 'NotAFeature' is not declared via feature_name.
+```
+
+The name referenced in a `[feature]` attribute is not declared as a `feature_name`.
+
+**Fix:** Declare the feature with `feature_name` before using it in `[feature]`.
+
+---
+
+### MIDL1077
+
+**Parameter class needs default interface**
+
+```
+error MIDL1077: Parameter 'widget' in 'Process': runtimeclass 'Widget' has no default interface and cannot be used as a parameter type.
+```
+
+A runtimeclass used as a parameter type must have a default interface.
+
+**Fix:** Add a default interface to the runtimeclass:
+
+```idl
+[default_interface]
+runtimeclass Widget { void DoWork(); }
+```
+
+---
+
+### MIDL1078
+
+**Circular interface requires**
+
+```
+error MIDL1078: Interface 'IFoo' has a circular 'requires' dependency: IFoo → IBar → IFoo.
+```
+
+Two or more interfaces form a cycle through their `requires` clauses.
+
+**Fix:** Break the cycle by removing one of the `requires` dependencies:
+
+```idl
+// Wrong:
+interface IFoo requires IBar { }
+interface IBar requires IFoo { }
+
+// Right:
+interface IFoo { }
+interface IBar requires IFoo { }
+```
+
+---
+
+### MIDL1079
+
+**Duplicate parameter name**
+
+```
+error MIDL1079: Duplicate parameter name 'value' in 'SetValues'.
+```
+
+A method has two parameters with the same name.
+
+**Fix:** Rename one of the parameters:
+
+```idl
+void SetValues(Int32 first, Int32 second);
+```
+
+---
+
+### MIDL1080
+
+**Versioned block conflict**
+
+```
+error MIDL1080: Versioned block version 1.0 is lower than containing type's contract version 2.0.
+```
+
+A versioned block specifies a version lower than the enclosing type's contract version.
+
+**Fix:** Ensure the versioned block version is at least as high as the containing type's version.
+
+---
+
+### MIDL1081
+
+**UUID wrong format**
+
+```
+error MIDL1081: Invalid UUID format 'not-a-uuid': expected 8-4-4-4-12 hexadecimal digits.
+```
+
+A `[uuid]` attribute value does not match the expected UUID format.
+
+**Fix:** Use the standard 8-4-4-4-12 hexadecimal format:
+
+```idl
+[uuid(01234567-89ab-cdef-0123-456789abcdef)]
+interface IWidget { }
+```
+
+---
+
+### MIDL1082
+
+**\[default\_interface\] on non-class**
+
+```
+error MIDL1082: [default_interface] is only valid on runtimeclass, not on 'IWidget'.
+```
+
+The `[default_interface]` attribute can only be applied to runtimeclass declarations.
+
+**Fix:** Move `[default_interface]` to a runtimeclass, or remove it from the interface/struct.
+
+---
+
+### MIDL1083
+
+**Void property type**
+
+```
+error MIDL1083: Property 'Value' cannot have void type.
+```
+
+A property is declared with `void` type. Properties must have a non-void type.
+
+**Fix:** Use an actual type for the property:
+
+```idl
+Int32 Value { get; };
+```
+
+---
+
+### MIDL1084
+
+**Static class instance member**
+
+```
+error MIDL1084: Static runtimeclass 'Helpers' cannot have instance member 'DoWork'.
+```
+
+A static runtimeclass contains a non-static member.
+
+**Fix:** Add the `static` keyword to the member, or remove `static` from the class declaration.
+
+---
+
+### MIDL1085
+
+**Duplicate property name**
+
+```
+error MIDL1085: Duplicate property 'Name' in 'Widget'.
+```
+
+A type declares two properties with the same name.
+
+**Fix:** Remove the duplicate property or rename one of them.
+
+---
+
+### MIDL1086
+
+**Duplicate \[uuid\] attribute**
+
+```
+error MIDL1086: Type 'IWidget' has multiple [uuid] attributes.
+```
+
+A type has more than one `[uuid]` attribute applied.
+
+**Fix:** Remove duplicate `[uuid]` attributes, keeping only one.
+
+---
+
+### MIDL1087
+
+**Duplicate \[overload\] name**
+
+```
+error MIDL1087: Duplicate [overload] name 'DoWorkEx' in 'IWidget'.
+```
+
+Two methods in the same interface have the same `[overload]` name.
+
+**Fix:** Use unique `[overload]` names:
+
+```idl
+[overload("DoWorkWithInt")]
+void DoWork(Int32 x);
+[overload("DoWorkWithString")]
+void DoWork(String s);
+```
+
+---
+
+### MIDL1088
+
+**\[marshaling\_behavior\] on non-class**
+
+```
+error MIDL1088: [marshaling_behavior] is only valid on runtimeclass, not on 'IWidget'.
+```
+
+The `[marshaling_behavior]` attribute can only be applied to runtimeclass declarations.
+
+**Fix:** Move `[marshaling_behavior]` to a runtimeclass declaration.
+
+---
+
+### MIDL1089
+
+**Field in runtimeclass**
+
+```
+error MIDL1089: Fields are not allowed in runtimeclass. Use a property for 'Name'.
+```
+
+A runtimeclass contains a field declaration. WinRT runtimeclasses use properties, not fields.
+
+**Fix:** Use a property instead:
+
+```idl
+// Wrong:
+runtimeclass Widget { String Name; }
+
+// Right:
+runtimeclass Widget { String Name { get; set; }; }
+```
+
+---
+
+### MIDL1090
+
+**\[threading\] on non-class**
+
+```
+error MIDL1090: [threading] is only valid on runtimeclass, not on 'IWidget'.
+```
+
+The `[threading]` attribute can only be applied to runtimeclass declarations.
+
+**Fix:** Move `[threading]` to a runtimeclass declaration.
+
+---
+
+### MIDL1091
+
+**Constructor with return type**
+
+```
+error MIDL1091: Constructor 'Widget' cannot have a return type.
+```
+
+A constructor declaration specifies a return type. Constructors implicitly return the class type.
+
+**Fix:** Remove the return type from the constructor:
+
+```idl
+// Wrong:
+runtimeclass Widget { void Widget(); }
+
+// Right:
+runtimeclass Widget { Widget(); }
+```
+
+---
+
+### MIDL1092
+
+**\[exclusiveto\] self-reference**
+
+```
+error MIDL1092: [exclusiveto] on 'IWidget' must reference a runtimeclass, not the interface itself.
+```
+
+An `[exclusiveto]` attribute on an interface points back to the same interface instead of a runtimeclass.
+
+**Fix:** Reference a runtimeclass:
+
+```idl
+[exclusiveto(Widget)]
+interface IWidgetInternal { }
+```
+
+---
+
+### MIDL1093
+
+**Contract version exceeds max**
+
+```
+error MIDL1093: Contract version 5 exceeds 'MyContract' contractversion 3.
+```
+
+A `[contract]` attribute references a version number higher than the declared `contractversion`.
+
+**Fix:** Either increase the `contractversion`, or lower the version number:
+
+```idl
+[contractversion(5)]
+apicontract MyContract { }
+```
+
+---
+
+### MIDL1094
+
+**\[uuid\] on non-interface**
+
+```
+error MIDL1094: [uuid] is only valid on interfaces and delegates, not on 'Widget'.
+```
+
+The `[uuid]` attribute can only be applied to interfaces and delegates.
+
+**Fix:** Remove `[uuid]` from runtimeclass, struct, or enum declarations.
+
+---
+
+### MIDL1095
+
+**\[activatable\] on non-class**
+
+```
+error MIDL1095: [activatable] is only valid on runtimeclass, not on 'IWidget'.
+```
+
+The `[activatable]` attribute can only be applied to runtimeclass declarations.
+
+**Fix:** Move `[activatable]` to a runtimeclass declaration.
+
+---
+
+### MIDL1096
+
+**\[deprecated\] wrong argument count**
+
+```
+error MIDL1096: [deprecated] requires 3 or 4 arguments (message, type, [contract,] version), got 1.
+```
+
+The `[deprecated]` attribute does not have the correct number of arguments.
+
+**Fix:** Provide all required arguments:
+
+```idl
+[deprecated("Use NewMethod instead", deprecate, MyContract, 2.0)]
+void OldMethod();
+```
+
+---
+
+### MIDL1097
+
+**\[overload\] on property or event**
+
+```
+error MIDL1097: [overload] may not be applied to properties or events. Found on 'Name'.
+```
+
+The `[overload]` attribute is only valid on methods, not on properties or events.
+
+**Fix:** Remove `[overload]` from the property or event declaration.
+
+---
+
+### MIDL1098
+
+**Empty enum**
+
+```
+error MIDL1098: Enum 'Status' must have at least one member.
+```
+
+An enum is declared with no members. WinRT enums must have at least one value.
+
+**Fix:** Add at least one member:
+
+```idl
+enum Status { None, Active, Inactive }
+```
+
+---
+
+### MIDL1099
+
+**Member name same as containing type**
+
+```
+error MIDL1099: Method 'Widget' cannot have the same name as containing type 'Widget'. Only constructors can use the type name.
+```
+
+A method or property shares its name with the containing type.
+
+**Fix:** Rename the member, or if it's a constructor, remove the return type:
+
+```idl
+// Wrong:
+runtimeclass Widget { void Widget(); }
+
+// Right (constructor):
+runtimeclass Widget { Widget(); }
+
+// Right (method):
+runtimeclass Widget { void CreateWidget(); }
+```
+
+---
+
 ## Semantic Errors (MIDL1001–MIDL1061)
 
 These errors are emitted during semantic analysis (binding phase).
@@ -402,6 +938,302 @@ The parameter name is reserved by the MIDL compiler for auto-generated ABI param
 | `innerInterface` | Unsealed constructor | No |
 
 **Fix:** Rename the parameter, or use `[return_name("altName")]` to change the auto-generated name.
+
+---
+
+### MIDL1014
+
+**Interface version too early**
+
+```
+error MIDL1014: Interface 'IWidgetFactory' version 1.0 is earlier than containing class version 2.0
+```
+
+An interface's contract version is lower than the contract version of the runtimeclass that implements it.
+
+**Fix:** Update the interface's contract version to match or exceed the containing class version.
+
+---
+
+### MIDL1015
+
+**Contract family mismatch**
+
+```
+error MIDL1015: Interface 'IFoo' uses contract 'OtherContract' which is not in the contract history of runtimeclass 'Widget'
+```
+
+An interface implemented by a runtimeclass uses a different contract family than the runtimeclass itself.
+
+**Fix:** Ensure the interface uses the same contract family as the runtimeclass.
+
+---
+
+### MIDL1016
+
+**Undefined contract**
+
+```
+error MIDL1016: Undefined contract 'MissingContract'
+```
+
+A `[contract]` attribute references a contract name that has not been declared.
+
+**Fix:** Declare the contract with `apicontract`, or check the spelling:
+
+```idl
+namespace MyApp
+{
+    apicontract MyContract { }
+
+    [contract(MyContract, 1.0)]
+    runtimeclass Widget { }
+}
+```
+
+---
+
+### MIDL1017
+
+**Enum member version too early**
+
+```
+error MIDL1017: Enum member 'NewValue' version 1.0 is earlier than containing enum version 2.0
+```
+
+An enum member's contract version is lower than the enum's own contract version.
+
+**Fix:** Update the member's contract version to match or exceed the enum's version.
+
+---
+
+### MIDL1020
+
+**Invalid threading model**
+
+```
+error MIDL1020: Invalid threading model 'free'. Must be 'both', 'sta', or 'mta'.
+```
+
+The `[threading]` attribute value is not one of the allowed values.
+
+**Fix:** Use `both`, `sta`, or `mta`:
+
+```idl
+[threading(both)]
+runtimeclass Widget { }
+```
+
+---
+
+### MIDL1021
+
+**Invalid marshaling behavior**
+
+```
+error MIDL1021: Invalid marshaling behavior 'none'.
+```
+
+The `[marshaling_behavior]` attribute value is not recognized.
+
+**Fix:** Use a valid marshaling behavior value such as `agile`, `standard`, or `none`.
+
+---
+
+### MIDL1022
+
+**Invalid composable access**
+
+```
+error MIDL1022: Invalid composable access 'private'.
+```
+
+The `[composable]` attribute has an invalid access modifier.
+
+**Fix:** Use `public` or `protected`:
+
+```idl
+[composable(IWidgetFactory, public, 1.0)]
+runtimeclass Widget { }
+```
+
+---
+
+### MIDL1023
+
+**Activatable factory not \[exclusiveto\]**
+
+```
+error MIDL1023: Activatable factory interface 'IWidgetFactory' must be [exclusiveto(Widget)].
+```
+
+An interface used as an activatable factory must be marked `[exclusiveto]` to the class that uses it.
+
+**Fix:** Add `[exclusiveto]` to the factory interface:
+
+```idl
+[exclusiveto(Widget)]
+interface IWidgetFactory
+{
+    Widget CreateWithName(String name);
+}
+```
+
+---
+
+### MIDL1024
+
+**Static interface not \[exclusiveto\]**
+
+```
+error MIDL1024: Static interface 'IWidgetStatics' must be [exclusiveto(Widget)].
+```
+
+An interface used as a static interface must be marked `[exclusiveto]` to the class that exposes it.
+
+**Fix:** Add `[exclusiveto]` to the static interface.
+
+---
+
+### MIDL1025
+
+**Composable and activatable conflict**
+
+```
+error MIDL1025: Cannot have both [composable] and [activatable] on the same runtime class.
+```
+
+A runtimeclass has both `[composable]` and `[activatable]` attributes. These are mutually exclusive.
+
+**Fix:** Remove one of the attributes. Use `[activatable]` for direct activation, or `[composable]` for classes designed to be subclassed.
+
+---
+
+### MIDL1026
+
+**Invalid deprecation type**
+
+```
+error MIDL1026: Invalid deprecation type 'obsolete'.
+```
+
+The deprecation type argument in a `[deprecated]` attribute is not valid.
+
+**Fix:** Use a valid deprecation type such as `deprecate` or `remove`:
+
+```idl
+[deprecated("Use NewMethod instead", deprecate, MyContract, 2.0)]
+void OldMethod();
+```
+
+---
+
+### MIDL1027
+
+**Threading on non-activatable class**
+
+```
+warning MIDL1027: [threading] is only meaningful on activatable or composable runtime classes.
+```
+
+The `[threading]` attribute is applied to a class with no `[activatable]` or `[composable]` attribute, making it ineffective.
+
+**Fix:** Add `[activatable]` or `[composable]` to the class, or remove the threading attribute.
+
+---
+
+### MIDL1028
+
+**\[attributeusage\] on non-attribute**
+
+```
+error MIDL1028: [attributeusage] can only appear on attribute declarations, not on 'Widget'.
+```
+
+The `[attributeusage]` attribute can only be applied to custom attribute type declarations.
+
+**Fix:** Move `[attributeusage]` to an `attribute` declaration:
+
+```idl
+[attributeusage(target_runtimeclass)]
+attribute MyCustomAttr
+{
+    Int32 Level;
+}
+```
+
+---
+
+### MIDL1029
+
+**Attribute wrong target**
+
+```
+error MIDL1029: Attribute 'MyAttr' is not valid on method. Valid targets: runtimeclass
+```
+
+A custom attribute is applied to a declaration type not in its valid target list.
+
+**Fix:** Apply the attribute to a valid target, or update its `[attributeusage]` to include the desired target kind.
+
+---
+
+### MIDL1030
+
+**Attribute argument count mismatch**
+
+```
+error MIDL1030: Attribute 'MyAttr' expects 2 arguments but got 1
+```
+
+The number of arguments passed to an attribute does not match its field count.
+
+**Fix:** Pass the correct number of arguments:
+
+```idl
+attribute MyAttr { Int32 Level; String Tag; };
+
+[MyAttr(1, "info")]  // Must provide both arguments
+runtimeclass Widget { }
+```
+
+---
+
+### MIDL1031
+
+**Partial conflicting modifiers**
+
+```
+error MIDL1031: Partial runtimeclass 'Widget' has conflicting modifiers (sealed vs unsealed)
+```
+
+Two partial declarations of the same runtimeclass use conflicting modifiers.
+
+**Fix:** Ensure all partial declarations use the same modifier:
+
+```idl
+unsealed runtimeclass Widget { void A(); }
+unsealed runtimeclass Widget { void B(); }
+```
+
+---
+
+### MIDL1032
+
+**Partial conflicting base class**
+
+```
+error MIDL1032: Partial runtimeclass 'Widget' has conflicting base class ('BaseA' vs 'BaseB')
+```
+
+Two partial declarations of the same runtimeclass specify different base classes.
+
+**Fix:** Ensure all partial declarations specify the same base class, or only specify it on one:
+
+```idl
+unsealed runtimeclass Widget : BaseA { void A(); }
+runtimeclass Widget { void B(); }
+```
 
 ---
 
@@ -677,54 +1509,115 @@ import "types.idl";  // Must exist relative to current file or /I paths
 
 ---
 
-## Syntax Errors (MIDL1100–MIDL1102)
-
-These errors are emitted when the parser encounters invalid or unexpected tokens.
+## Additional Semantic Errors (MIDL1100–MIDL1105)
 
 ### MIDL1100
 
-**Unexpected code (skipped tokens)**
+**Static modifier on non-class**
 
 ```
-error MIDL1100: Unexpected code 'foo bar'. Did you mean to put this inside a namespace or runtimeclass?
+error MIDL1100: The 'static' modifier is not valid on 'interface' declarations. Only runtimeclass supports modifiers.
 ```
 
-The parser found tokens that don't form a valid MIDL construct in this context. The tokens were skipped to allow parsing to continue.
+The `static` modifier is applied to a type that is not a runtimeclass (e.g., an interface or struct).
 
-**Fix:** Check for typos, missing braces, or code that should be inside a declaration block.
+**Fix:** Remove `static` from the declaration, or change it to a `runtimeclass`:
+
+```idl
+// Wrong:
+static interface IWidget { }
+
+// Right:
+static runtimeclass Helpers { }
+```
 
 ---
 
 ### MIDL1101
 
-**Unexpected character**
+**Generic type requires arguments**
 
 ```
-error MIDL1101: Unexpected character '@'. MIDL does not use this character.
+error MIDL1101: Generic type 'IVector' requires type arguments.
 ```
 
-The lexer encountered a character that is not valid in MIDL syntax.
+A generic WinRT type is used without providing the required type arguments.
 
-**Fix:** Remove the invalid character.
+**Fix:** Provide type arguments:
+
+```idl
+// Wrong:
+IVector Items { get; };
+
+// Right:
+IVector<String> Items { get; };
+```
 
 ---
 
 ### MIDL1102
 
-**Expected token missing**
+**@ref target not found**
 
 ```
-error MIDL1102: Expected '}'
-error MIDL1102: Expected ';'
-error MIDL1102: Expected 'identifier'
+error MIDL1102: Referenced path 'missing/folder' not found. Check the file path in the @ref directive.
 ```
 
-The parser expected a specific token but didn't find it. A synthetic "missing" token was inserted to allow parsing to continue.
+A `@ref:` directive references a path that does not exist.
 
-**Fix:** Add the missing token. Common cases:
-- Missing `}` — an unclosed brace block
-- Missing `;` — a statement or declaration without a terminating semicolon
-- Missing identifier — a keyword like `namespace` or `runtimeclass` without a name
+**Fix:** Verify the file or folder path exists and is spelled correctly.
+
+---
+
+### MIDL1103
+
+**Invalid feature stage**
+
+```
+error MIDL1103: feature_name 'Feature_MyFeature': 'Beta' is not a valid FeatureStage. Expected AlwaysDisabled, DisabledByDefault, EnabledByDefault, or AlwaysEnabled.
+```
+
+A `feature_name` declaration uses an unrecognized feature stage value.
+
+**Fix:** Use one of the valid stages: `AlwaysDisabled`, `DisabledByDefault`, `EnabledByDefault`, or `AlwaysEnabled`.
+
+---
+
+### MIDL1104
+
+**Non-experimental references experimental**
+
+```
+error MIDL1104: Type 'Widget' references experimental type 'ExperimentalHelper'. Mark 'Widget' as [experimental] or remove the reference.
+```
+
+A non-experimental type references a type marked as `[experimental]`.
+
+**Fix:** Mark the consuming type as `[experimental]` too, or remove the reference:
+
+```idl
+[experimental]
+runtimeclass Widget { ExperimentalHelper GetHelper(); }
+```
+
+---
+
+### MIDL1105
+
+**Cross-feature-gate reference**
+
+```
+warning MIDL1105: Type 'Widget' references feature-gated type 'GatedHelper' ([feature(Feature_X)]). Consider adding [feature(Feature_X)] to 'Widget'.
+```
+
+A type not behind a feature gate references a feature-gated type.
+
+**Fix:** Add the same `[feature]` attribute to the consuming type:
+
+```idl
+[feature(Feature_X)]
+runtimeclass Widget { GatedHelper GetHelper(); }
+```
 
 ---
 
@@ -864,6 +1757,30 @@ MIDL3 uses capitalized type names that match WinRT naming conventions. The follo
 
 ---
 
+### MIDL2006
+
+**#include in strict mode**
+
+```
+warning MIDL2006: #include pastes file contents into the compilation unit. Consider using 'import "file.idl";' to reference types without inlining.
+```
+
+In strict MIDL3 mode, `#include` is discouraged because it inlines the entire file contents.
+
+**Fix:** Use `import` instead of `#include`:
+
+```idl
+// Not recommended:
+#include "types.idl"
+
+// Preferred:
+import "types.idl";
+```
+
+📖 [MIDL3 documentation](https://learn.microsoft.com/en-us/uwp/midl-3/)
+
+---
+
 ## Code Quality Hints (MIDL3001–MIDL3016)
 
 These Info-level hints are shown in the LSP/editor only (not in CLI by default). Toggle with the `midl.codeQualityHints` VS Code setting.
@@ -880,6 +1797,9 @@ These Info-level hints are shown in the LSP/editor only (not in CLI by default).
 ### MIDL3005 ⚡
 **No constructor** — A runtimeclass has no constructor and no `[activatable]` attribute. It won't be default-activatable. Quick fix inserts `ClassName();`.
 
+### MIDL3006
+**Event handler convention** — Event uses a custom delegate. Consider using `TypedEventHandler<TSender, TArgs>` for new APIs.
+
 ### MIDL3007 ⚡
 **Setter without getter** — A property has a setter but no getter. This is unusual in WinRT. Quick fix adds `get;`.
 
@@ -894,6 +1814,9 @@ These Info-level hints are shown in the LSP/editor only (not in CLI by default).
 
 ### MIDL3011
 **Delegate naming** — Delegates should end with `Handler` or `Callback`.
+
+### MIDL3012
+**Event args naming** — Structs used as event arguments should end with `EventArgs` by convention.
 
 ### MIDL3013 ⚡
 **Async method naming** — Methods returning `IAsyncOperation`/`IAsyncAction` should end with `Async`. `DoWork` → `DoWorkAsync`.
