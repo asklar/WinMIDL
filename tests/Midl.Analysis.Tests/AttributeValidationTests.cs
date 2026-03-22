@@ -343,4 +343,41 @@ public class AttributeValidationTests
         Assert.Contains("activatable", diag.Message);
         Assert.Contains("target_runtimeclass", diag.Message);
     }
+
+    [Fact]
+    public void ContractArgNotApiContract_ProducesMIDL1075()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract RealContract { }
+
+                [contract(NotAnApiContract, 1), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1075");
+        Assert.Equal(DiagnosticSeverity.Error, diag.Severity);
+        Assert.Contains("NotAnApiContract", diag.Message);
+        Assert.Contains("C", diag.Message);
+    }
+
+    [Fact]
+    public void ContractArgIsValidApiContract_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract ValidContract { }
+
+                [contract(ValidContract, 1), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1075");
+    }
 }
