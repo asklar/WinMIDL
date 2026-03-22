@@ -68,6 +68,14 @@ jobs:
         run: >
           dotnet publish src/Midl.Cli -c Release -r ${{ matrix.rid }}
           -p:PublishAot=true
+          -p:StripSymbols=true
+          -p:IlcOptimizationPreference=Speed
+          -p:IlcFoldIdenticalMethodBodies=true
+          -p:InvariantGlobalization=true
+          -p:StackTraceSupport=false
+          -p:UseSystemResourceKeys=true
+          -p:DebugType=none
+          -p:DebugSymbols=false
           -p:Version=${{ steps.version.outputs.VERSION }}
           -p:AssemblyVersion=${{ steps.version.outputs.ASM_VERSION }}
           -p:FileVersion=${{ steps.version.outputs.ASM_VERSION }}
