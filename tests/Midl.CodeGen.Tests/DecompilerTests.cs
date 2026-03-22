@@ -345,6 +345,60 @@ public class DecompilerTests
     }
 
     [Fact]
+    public void DecompileRuntimeClass_StaticMembers_ShowStaticKeyword()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [default_interface]
+                runtimeclass Widget
+                {
+                    Widget();
+                    static void Reset();
+                    static String DefaultName { get; };
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("static void Reset()", idl);
+        Assert.Contains("static String DefaultName", idl);
+    }
+
+    [Fact]
+    public void DecompileRuntimeClass_MixedStaticAndInstance()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [default_interface]
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                    String Name { get; };
+                    static void Reset();
+                    static String DefaultName { get; };
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        // Instance members should NOT have static
+        Assert.Contains("void DoWork()", idl);
+        Assert.DoesNotContain("static void DoWork()", idl);
+        Assert.Contains("String Name", idl);
+
+        // Static members should have static
+        Assert.Contains("static void Reset()", idl);
+        Assert.Contains("static String DefaultName", idl);
+    }
+
+    [Fact]
     public void DecompileDelegate_GenericParamNames()
     {
         // Decompiling a WinMD with generic delegates should show named type params,

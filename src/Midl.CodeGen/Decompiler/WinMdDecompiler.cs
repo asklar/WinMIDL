@@ -342,12 +342,176 @@ public class WinMdDecompiler
             sb.AppendLine($"{indent}    {name}({parameters});");
         }
 
+        // Collect names of static method stubs to skip (handled by EmitStaticMembers)
+        var staticMethodNames = new HashSet<string>();
+        foreach (var methodHandle in td.GetMethods())
+        {
+            var method = reader.GetMethodDefinition(methodHandle);
+            if (method.Attributes.HasFlag(MethodAttributes.Static))
+                staticMethodNames.Add(reader.GetString(method.Name));
+        }
+
         // Detect properties and events by naming convention (runtimeclass TypeDefs may not have PropertyMap)
         var accessorNames = new HashSet<string>();
         var properties = new Dictionary<string, (string Type, bool HasGet, bool HasSet)>();
         var events = new Dictionary<string, string>();
 
         // First: check PropertyMap/EventMap (may be populated)
+        foreach (var propHandle in td.GetProperties())
+        {
+            var prop = reader.GetPropertyDefinition(propHandle);
+            var propName = reader.GetString(prop.Name);
+            if (staticMethodNames.Contains($"get_{propName}") || staticMethodNames.Contains($"put_{propName}"))
+                continue;
+            var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
+            accessorNames.Add($"get_{propName}");
+            accessorNames.Add($"put_{propName}");
+            properties[propName] = (MapToMidlType(propSig.ReturnType), true, false);
+        }
+        foreach (var eventHandle in td.GetEvents())
+        {
+            var evt = reader.GetEventDefinition(eventHandle);
+            var evtName = reader.GetString(evt.Name);
+            if (staticMethodNames.Contains($"add_{evtName}"))
+                continue;
+            var delegateType = GetEntityName(reader, evt.Type);
+            accessorNames.Add($"add_{evtName}");
+            accessorNames.Add($"remove_{evtName}");
+            events[evtName] = GetShortName(delegateType);
+        }
+
+        // Second: detect by naming convention (for methods not covered by PropertyMap)
+        foreach (var methodHandle in td.GetMethods())
+        {
+            var method = reader.GetMethodDefinition(methodHandle);
+            var methodName = reader.GetString(method.Name);
+            if (methodName == ".ctor") continue;
+            if (method.Attributes.HasFlag(MethodAttributes.Static)) continue;
+
+            if (methodName.StartsWith("get_") && !accessorNames.Contains(methodName))
+            {
+                var propName = methodName[4..];
+                accessorNames.Add(methodName);
+                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
+                var propType = MapToMidlType(sig.ReturnType);
+                if (properties.ContainsKey(propName))
+                    properties[propName] = (propType, true, properties[propName].HasSet);
+                else
+                    properties[propName] = (propType, true, false);
+            }
+            else if (methodName.StartsWith("put_") && !accessorNames.Contains(methodName))
+            {
+                var propName = methodName[4..];
+                accessorNames.Add(methodName);
+                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
+                var propType = sig.ParameterTypes.Length > 0 ? MapToMidlType(sig.ParameterTypes[0]) : "Object";
+                if (properties.ContainsKey(propName))
+                    properties[propName] = (properties[propName].Type, properties[propName].HasGet, true);
+                else
+                    properties[propName] = (propType, false, true);
+            }
+            else if (methodName.StartsWith("add_") && !accessorNames.Contains(methodName))
+            {
+                var evtName = methodName[4..];
+                accessorNames.Add(methodName);
+                accessorNames.Add($"remove_{evtName}");
+                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
+                var delegateType = sig.ParameterTypes.Length > 0 ? MapToMidlType(sig.ParameterTypes[0]) : "Object";
+                events.TryAdd(evtName, delegateType);
+            }
+            else if (methodName.StartsWith("remove_") && !accessorNames.Contains(methodName))
+            {
+                accessorNames.Add(methodName);
+                accessorNames.Add($"add_{methodName[7..]}");
+            }
+        }
+
+        // Emit methods (skip constructors, accessors, and static stubs)
+        foreach (var methodHandle in td.GetMethods())
+        {
+            var method = reader.GetMethodDefinition(methodHandle);
+            var methodName = reader.GetString(method.Name);
+            if (methodName == ".ctor") continue;
+            if (accessorNames.Contains(methodName)) continue;
+            if (method.Attributes.HasFlag(MethodAttributes.Static)) continue;
+
+            var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
+            var returnType = MapToMidlType(sig.ReturnType);
+            var parameters = FormatParameters(reader, method, sig);
+            sb.AppendLine($"{indent}    {returnType} {methodName}({parameters});");
+        }
+
+        // Emit properties (idiomatic MIDL3 syntax)
+        foreach (var (propName, (propType, hasGet, hasSet)) in properties)
+        {
+            if (hasGet && hasSet)
+                sb.AppendLine($"{indent}    {propType} {propName};");
+            else if (hasGet)
+                sb.AppendLine($"{indent}    {propType} {propName} {{ get; }};");
+            else
+                sb.AppendLine($"{indent}    {propType} {propName} {{ set; }};");
+        }
+
+        // Emit events (idiomatic MIDL3 syntax)
+        foreach (var (evtName, delegateType) in events)
+        {
+            sb.AppendLine($"{indent}    event {delegateType} {evtName};");
+        }
+
+        // Emit static members from [static()] interfaces
+        EmitStaticMembers(reader, handle, sb, indent);
+
+        sb.AppendLine($"{indent}}};");
+    }
+
+    private void EmitStaticMembers(MetadataReader reader, TypeDefinitionHandle classHandle, StringBuilder sb, string indent)
+    {
+        var td = reader.GetTypeDefinition(classHandle);
+        foreach (var attrHandle in td.GetCustomAttributes())
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            var attrName = GetAttributeTypeName(reader, attr.Constructor);
+            if (attrName != "StaticAttribute") continue;
+
+            try
+            {
+                var blob = reader.GetBlobReader(attr.Value);
+                blob.ReadUInt16(); // prolog
+                var staticInterfaceName = ReadSerializedString(ref blob);
+                if (staticInterfaceName == null) continue;
+
+                var staticsTdHandle = FindTypeDefByFullName(reader, staticInterfaceName);
+                if (staticsTdHandle == null) continue;
+
+                var staticsTypeDef = reader.GetTypeDefinition(staticsTdHandle.Value);
+                EmitMembersFromInterface(reader, staticsTypeDef, sb, indent, isStatic: true);
+            }
+            catch { /* best-effort attribute decoding */ }
+        }
+    }
+
+    private static TypeDefinitionHandle? FindTypeDefByFullName(MetadataReader reader, string fullName)
+    {
+        foreach (var handle in reader.TypeDefinitions)
+        {
+            var td = reader.GetTypeDefinition(handle);
+            var ns = reader.GetString(td.Namespace);
+            var name = reader.GetString(td.Name);
+            var thisFullName = string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
+            if (thisFullName == fullName)
+                return handle;
+        }
+        return null;
+    }
+
+    private void EmitMembersFromInterface(MetadataReader reader, TypeDefinition td, StringBuilder sb, string indent, bool isStatic)
+    {
+        var prefix = isStatic ? "static " : "";
+        var accessorNames = new HashSet<string>();
+        var properties = new Dictionary<string, (string Type, bool HasGet, bool HasSet)>();
+        var events = new Dictionary<string, string>();
+
+        // Collect from PropertyMap/EventMap
         foreach (var propHandle in td.GetProperties())
         {
             var prop = reader.GetPropertyDefinition(propHandle);
@@ -367,7 +531,7 @@ public class WinMdDecompiler
             events[evtName] = GetShortName(delegateType);
         }
 
-        // Second: detect by naming convention (for methods not covered by PropertyMap)
+        // Detect by naming convention
         foreach (var methodHandle in td.GetMethods())
         {
             var method = reader.GetMethodDefinition(methodHandle);
@@ -412,7 +576,7 @@ public class WinMdDecompiler
             }
         }
 
-        // Emit methods (skip constructors and accessors)
+        // Emit methods
         foreach (var methodHandle in td.GetMethods())
         {
             var method = reader.GetMethodDefinition(methodHandle);
@@ -423,27 +587,25 @@ public class WinMdDecompiler
             var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var returnType = MapToMidlType(sig.ReturnType);
             var parameters = FormatParameters(reader, method, sig);
-            sb.AppendLine($"{indent}    {returnType} {methodName}({parameters});");
+            sb.AppendLine($"{indent}    {prefix}{returnType} {methodName}({parameters});");
         }
 
-        // Emit properties (idiomatic MIDL3 syntax)
+        // Emit properties
         foreach (var (propName, (propType, hasGet, hasSet)) in properties)
         {
             if (hasGet && hasSet)
-                sb.AppendLine($"{indent}    {propType} {propName};");
+                sb.AppendLine($"{indent}    {prefix}{propType} {propName};");
             else if (hasGet)
-                sb.AppendLine($"{indent}    {propType} {propName} {{ get; }};");
+                sb.AppendLine($"{indent}    {prefix}{propType} {propName} {{ get; }};");
             else
-                sb.AppendLine($"{indent}    {propType} {propName} {{ set; }};");
+                sb.AppendLine($"{indent}    {prefix}{propType} {propName} {{ set; }};");
         }
 
-        // Emit events (idiomatic MIDL3 syntax)
+        // Emit events
         foreach (var (evtName, delegateType) in events)
         {
-            sb.AppendLine($"{indent}    event {delegateType} {evtName};");
+            sb.AppendLine($"{indent}    {prefix}event {delegateType} {evtName};");
         }
-
-        sb.AppendLine($"{indent}}};");
     }
 
     #endregion
