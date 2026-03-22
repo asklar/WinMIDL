@@ -4,6 +4,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using Midl.Analysis;
 
 namespace Midl.CodeGen.Decompiler;
 
@@ -42,9 +43,17 @@ public class WinMdDecompiler
             // Skip non-WinRT types
             if (((int)attrs & TdWindowsRuntime) == 0) continue;
 
-            // Skip non-public synthesized interfaces (I{ClassName} with ExclusiveTo)
+            // Skip non-public types unless they are CLR-projected WinRT types.
+            // CLR-projected types (e.g. System.TimeSpan → Windows.Foundation.TimeSpan)
+            // appear with TdWindowsRuntime but NotPublic visibility in .NET's MetadataReader.
             if ((attrs & TypeAttributes.VisibilityMask) != TypeAttributes.Public)
-                continue;
+            {
+                var projNs = reader.GetString(td.Namespace);
+                var projName = reader.GetString(td.Name);
+                var projFullName = string.IsNullOrEmpty(projNs) ? projName : $"{projNs}.{projName}";
+                if (!ClrProjectionMap.IsProjectedClrType(projFullName))
+                    continue;
+            }
 
             var ns = reader.GetString(td.Namespace);
             if (namespaceFilter != null && !ns.Equals(namespaceFilter, StringComparison.Ordinal))
@@ -72,6 +81,19 @@ public class WinMdDecompiler
                 DecompileType(reader, types[i], sb, indent: "    ");
             }
 
+            AppendProjectedTypes(ns, sb, "    ");
+
+            sb.AppendLine("}");
+        }
+
+        // Emit projected-only namespaces that had no metadata types
+        if (namespaceFilter != null && !typesByNamespace.ContainsKey(namespaceFilter)
+            && ClrProjectionMap.ProjectedTypeDefinitions.ContainsKey(namespaceFilter))
+        {
+            if (!first) sb.AppendLine();
+            sb.AppendLine($"namespace {namespaceFilter}");
+            sb.AppendLine("{");
+            AppendProjectedTypes(namespaceFilter, sb, "    ");
             sb.AppendLine("}");
         }
 
@@ -903,13 +925,24 @@ public class WinMdDecompiler
         _ => "Object",
     };
 
-    private static string MapToMidlType(string typeName) => typeName switch
+    private static string MapToMidlType(string typeName)
     {
-        "System.Guid" or "Guid" => "Guid",
-        "System.Object" => "Object",
-        _ when typeName.Contains('.') => GetShortName(typeName),
-        _ => typeName,
-    };
+        // Check CLR projection first (e.g. System.TimeSpan → TimeSpan)
+        var mapped = ClrProjectionMap.ToWinRTName(typeName);
+        if (mapped != typeName)
+        {
+            var lastDot = mapped.LastIndexOf('.');
+            return lastDot >= 0 ? mapped[(lastDot + 1)..] : mapped;
+        }
+
+        return typeName switch
+        {
+            "System.Guid" or "Guid" => "Guid",
+            "System.Object" => "Object",
+            _ when typeName.Contains('.') => GetShortName(typeName),
+            _ => typeName,
+        };
+    }
 
     private static string FormatParameters(MetadataReader reader, MethodDefinition method,
         MethodSignature<string> sig)
@@ -985,7 +1018,14 @@ public class WinMdDecompiler
             // Strip generic arity suffix (e.g., IAsyncOperation`1 → IAsyncOperation)
             int backtick = name.IndexOf('`');
             if (backtick >= 0) name = name[..backtick];
-            return string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
+            var fullName = string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
+            var mapped = ClrProjectionMap.ToWinRTName(fullName);
+            if (mapped != fullName)
+            {
+                var lastDot = mapped.LastIndexOf('.');
+                return lastDot >= 0 ? mapped[(lastDot + 1)..] : mapped;
+            }
+            return fullName;
         }
 
         public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
@@ -995,7 +1035,14 @@ public class WinMdDecompiler
             var name = reader.GetString(tr.Name);
             int backtick = name.IndexOf('`');
             if (backtick >= 0) name = name[..backtick];
-            return string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
+            var fullName = string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
+            var mapped = ClrProjectionMap.ToWinRTName(fullName);
+            if (mapped != fullName)
+            {
+                var lastDot = mapped.LastIndexOf('.');
+                return lastDot >= 0 ? mapped[(lastDot + 1)..] : mapped;
+            }
+            return fullName;
         }
 
         public string GetSZArrayType(string elementType) => $"{elementType}[]";
@@ -1021,6 +1068,21 @@ public class WinMdDecompiler
             return spec.DecodeSignature(this, genericContext);
         }
     }
+
+    #region Projected type definitions
+
+    private static void AppendProjectedTypes(string ns, StringBuilder sb, string indent)
+    {
+        if (ClrProjectionMap.ProjectedTypeDefinitions.TryGetValue(ns, out var defs))
+        {
+            sb.AppendLine();
+            sb.AppendLine($"{indent}// CLR-projected WinRT types");
+            foreach (var def in defs)
+                sb.AppendLine($"{indent}{def}");
+        }
+    }
+
+    #endregion
 
     #region Synthesis detection helpers
 
