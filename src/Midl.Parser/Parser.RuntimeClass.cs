@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Midl.Syntax;
 
 namespace Midl.Parser;
@@ -315,6 +316,7 @@ public sealed partial class Parser
     }
 
     /// <summary>Check if kind is an identifier or keyword usable as a name.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsIdentifierOrKeyword(SyntaxKind kind)
     {
         return kind == SyntaxKind.IdentifierToken || IsTypeKeyword(kind) || IsNameableKeyword(kind);

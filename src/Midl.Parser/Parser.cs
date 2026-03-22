@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Midl.Syntax;
 
 namespace Midl.Parser;
@@ -8,7 +10,8 @@ namespace Midl.Parser;
 /// </summary>
 public sealed partial class Parser
 {
-    private readonly IReadOnlyList<SyntaxToken> _tokens;
+    private readonly SyntaxToken[] _tokens;
+    private readonly int _tokenCount;
     private int _position;
     private SyntaxToken? _pendingToken;
     private readonly Stack<List<GreenNode?>> _childListPool = new();
@@ -17,42 +20,57 @@ public sealed partial class Parser
 
     public Parser(IReadOnlyList<SyntaxToken> tokens)
     {
-        _tokens = tokens;
+        // Store as array for fast bounds-checked indexing (avoids interface dispatch)
+        _tokens = tokens switch
+        {
+            SyntaxToken[] arr => arr,
+            List<SyntaxToken> list => CollectionsMarshal.AsSpan(list).ToArray(),
+            _ => [.. tokens]
+        };
+        _tokenCount = _tokens.Length;
         _position = 0;
     }
 
     /// <summary>Returns the current token without consuming it.</summary>
-    private SyntaxToken Current => _pendingToken ?? (_position < _tokens.Count ? _tokens[_position] : s_eof);
+    private SyntaxToken Current
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _pendingToken ?? (_position < _tokenCount ? _tokens[_position] : s_eof);
+    }
 
     /// <summary>Look ahead by offset tokens from the current position.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SyntaxToken Peek(int offset)
     {
         if (offset == 0) return Current;
         int actualOffset = _pendingToken != null ? offset - 1 : offset;
         int index = _position + actualOffset;
-        return index < _tokens.Count ? _tokens[index] : s_eof;
+        return (uint)index < (uint)_tokenCount ? _tokens[index] : s_eof;
     }
 
     /// <summary>Check if the current token has the given kind.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool At(SyntaxKind kind) => Current.Kind == kind;
 
     /// <summary>Check if the current token matches any of the given kinds.</summary>
-    private bool AtAny(params SyntaxKind[] kinds)
+    private bool AtAny(params ReadOnlySpan<SyntaxKind> kinds)
     {
         var current = Current.Kind;
-        foreach (var k in kinds)
+        for (int i = 0; i < kinds.Length; i++)
         {
-            if (current == k) return true;
+            if (current == kinds[i]) return true;
         }
         return false;
     }
 
     /// <summary>Check if current token is an identifier with the given text (for contextual keywords).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool AtContextual(string text)
         => Current.Kind == SyntaxKind.IdentifierToken &&
            string.Equals(Current.Text, text, StringComparison.Ordinal);
 
     /// <summary>Consume and return the current token if it matches the expected kind, else return a missing token.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SyntaxToken Eat(SyntaxKind expected)
     {
         if (Current.Kind == expected)
@@ -63,6 +81,7 @@ public sealed partial class Parser
     }
 
     /// <summary>Consume and return the current token unconditionally.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SyntaxToken EatToken()
     {
         if (_pendingToken != null)
@@ -95,6 +114,7 @@ public sealed partial class Parser
     }
 
     /// <summary>Rent a pooled child list to avoid repeated allocations.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private List<GreenNode?> RentChildren()
     {
         if (_childListPool.Count > 0)
@@ -106,6 +126,13 @@ public sealed partial class Parser
         return new List<GreenNode?>(8);
     }
 
+    /// <summary>Build a single-child green node without array allocation.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static GreenNode MakeNode(SyntaxKind kind, GreenNode? child)
+    {
+        return new SingleChildGreenNode(kind, child);
+    }
+
     /// <summary>Build a green node list from a kind and variable children.</summary>
     private static GreenNodeList MakeNode(SyntaxKind kind, params GreenNode?[] children)
     {
@@ -115,23 +142,27 @@ public sealed partial class Parser
     /// <summary>Build a green node list from a kind and a list of children, returning the list to pool.</summary>
     private GreenNodeList MakeNode(SyntaxKind kind, List<GreenNode?> children)
     {
-        var node = new GreenNodeList(kind, [.. children]);
+        var node = new GreenNodeList(kind, children.ToArray());
         _childListPool.Push(children);
         return node;
     }
 
     /// <summary>Skip tokens until we find one of the stop kinds. Returns collected tokens as a SkippedTokens node, or null.</summary>
-    private GreenNode? SkipTokensUntil(params SyntaxKind[] stopKinds)
+    private GreenNode? SkipTokensUntil(params ReadOnlySpan<SyntaxKind> stopKinds)
     {
         if (MidlTrace.IsEnabled)
             MidlTrace.Parser($"Error recovery: skipping to {stopKinds[0]} at token {_position}");
-        var skipped = new List<GreenNode>();
+        var skipped = RentChildren();
         while (!At(SyntaxKind.EndOfFileToken) && !AtAny(stopKinds))
         {
             skipped.Add(EatToken());
         }
-        if (skipped.Count == 0) return null;
-        return new GreenNodeList(SyntaxKind.SkippedTokens, [.. skipped]);
+        if (skipped.Count == 0)
+        {
+            _childListPool.Push(skipped);
+            return null;
+        }
+        return MakeNode(SyntaxKind.SkippedTokens, skipped);
     }
 
     /// <summary>Skip to the start of the next declaration-level construct.</summary>
@@ -193,6 +224,7 @@ public sealed partial class Parser
     }
 
     /// <summary>Check if a kind is a modifier keyword for class declarations.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsModifier(SyntaxKind kind)
     {
         return kind is SyntaxKind.StaticKeyword
@@ -219,7 +251,7 @@ public sealed partial class Parser
     /// <summary>Entry point: parse a full compilation unit.</summary>
     public GreenNode Parse()
     {
-        MidlTrace.Parser($"Parsing {_tokens.Count} tokens");
+        MidlTrace.Parser($"Parsing {_tokenCount} tokens");
         var tree = ParseCompilationUnit();
         MidlTrace.Parser($"Parse complete: {tree.Kind}, {tree.SlotCount} children");
         return tree;

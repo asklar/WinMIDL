@@ -89,7 +89,11 @@ public sealed partial class Parser
         }
 
         if (parts.Count == 1)
-            return MakeNode(SyntaxKind.TypeReference, parts[0]);
+        {
+            var result = MakeNode(SyntaxKind.TypeReference, parts[0]);
+            _childListPool.Push(parts);
+            return result;
+        }
 
         return MakeNode(SyntaxKind.QualifiedName, parts);
     }

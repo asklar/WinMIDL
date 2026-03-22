@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Midl.Syntax;
 
 namespace Midl.Parser;
@@ -44,7 +45,11 @@ public sealed partial class Parser
         }
 
         if (parts.Count == 1)
-            return parts[0]!;
+        {
+            var single = parts[0]!;
+            _childListPool.Push(parts);
+            return single;
+        }
 
         return MakeNode(SyntaxKind.DottedName, parts);
     }
@@ -53,6 +58,7 @@ public sealed partial class Parser
     /// Eat an identifier token, or if the current token is a keyword that can also be
     /// used as a name (like type keywords), consume it as an identifier.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SyntaxToken EatIdentifierOrKeyword()
     {
         if (At(SyntaxKind.IdentifierToken) || IsTypeKeyword(Current.Kind) || IsNameableKeyword(Current.Kind))
@@ -63,6 +69,7 @@ public sealed partial class Parser
     }
 
     /// <summary>Check if a kind is a built-in type keyword that can appear as a type name.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsTypeKeyword(SyntaxKind kind)
     {
         return kind is SyntaxKind.BooleanKeyword
@@ -97,6 +104,7 @@ public sealed partial class Parser
     }
 
     /// <summary>Keywords that can also appear as identifiers in name positions.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsNameableKeyword(SyntaxKind kind)
     {
         return kind is SyntaxKind.EventKeyword

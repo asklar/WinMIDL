@@ -24,3 +24,21 @@ public sealed class GreenNodeList : GreenNode
     public override int SlotCount => _children.Length;
     public override GreenNode? GetSlot(int index) => _children[index];
 }
+
+/// <summary>
+/// Specialized green node for the common case of exactly one child.
+/// Avoids the GreenNode?[] allocation that GreenNodeList requires.
+/// </summary>
+public sealed class SingleChildGreenNode : GreenNode
+{
+    private readonly GreenNode? _child;
+
+    public SingleChildGreenNode(SyntaxKind kind, GreenNode? child) : base(kind)
+    {
+        _child = child;
+        FullWidth = child?.FullWidth ?? 0;
+    }
+
+    public override int SlotCount => 1;
+    public override GreenNode? GetSlot(int index) => index == 0 ? _child : null;
+}

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Midl.Syntax;
 
 namespace Midl.Parser;
@@ -77,6 +78,7 @@ public sealed partial class Parser
     }
 
     /// <summary>Get the precedence of a binary operator (higher = binds tighter).</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetBinaryPrecedence(SyntaxKind kind)
     {
         return kind switch
