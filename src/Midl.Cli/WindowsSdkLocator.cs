@@ -25,9 +25,18 @@ public static class WindowsSdkLocator
 
     /// <summary>
     /// Find the latest SDK version installed.
+    /// Honors MIDL_SDK_VERSION env var to pin a specific version.
     /// </summary>
     public static string? FindLatestVersion(string sdkRoot)
     {
+        // Allow explicit override via environment variable
+        var pinned = Environment.GetEnvironmentVariable("MIDL_SDK_VERSION");
+        if (!string.IsNullOrEmpty(pinned))
+        {
+            var pinnedDir = Path.Combine(sdkRoot, "Include", pinned);
+            if (Directory.Exists(pinnedDir)) return pinned;
+        }
+
         var includeDir = Path.Combine(sdkRoot, "Include");
         if (!Directory.Exists(includeDir)) return null;
 

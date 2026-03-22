@@ -79,6 +79,7 @@ function Find-OriginalMidl {
         if (-not (Test-Path $root)) { continue }
         $found = Get-ChildItem -Path $root -Recurse -Filter 'midl.exe' -ErrorAction SilentlyContinue |
             Where-Object { $_.FullName -match 'x64[\\/]midl\.exe$' } |
+            Where-Object { $_.Directory.Parent.Name -ne '10.0.26546.0' } |
             Sort-Object { $_.Directory.Parent.Name } -Descending |
             Select-Object -First 1
         if ($found) { return $found.FullName }
