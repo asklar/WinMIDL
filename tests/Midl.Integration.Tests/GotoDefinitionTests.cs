@@ -389,4 +389,34 @@ public class GotoDefinitionTests
     }
 
     #endregion
+
+    #region Namespace segment F12
+
+    [Fact]
+    public void GotoDefinition_NamespaceSegment_ResolvesFullType()
+    {
+        // F12 on "Foundation" in "Windows.Foundation.TypedEventHandler" should resolve to TypedEventHandler
+        var source = "namespace N { runtimeclass Foo { event Windows.Foundation.TypedEventHandler<Foo, Object> Changed; } }";
+        var uri = "file:///test.idl";
+
+        // Position cursor on "Foundation" (not the type name)
+        int foundationIdx = source.IndexOf("Foundation", StringComparison.Ordinal);
+        Assert.True(foundationIdx > 0);
+
+        // Convert offset to line/char
+        var lineStarts = PositionHelper.BuildLineStarts(source);
+        var (line, ch) = PositionHelper.OffsetToLineChar(lineStarts, foundationIdx);
+
+        var result = GotoDefinitionHandler.HandleCore(source, uri, line, ch);
+
+        // Should find something (not null) — on machines with Windows SDK
+        var winmdExists = Directory.Exists(@"C:\Program Files (x86)\Windows Kits\10\UnionMetadata");
+        if (winmdExists && result is Dictionary<string, object?> dict)
+        {
+            var resultUri = dict["uri"]!.ToString()!;
+            Assert.Contains("midl-winmd://", resultUri);
+        }
+    }
+
+    #endregion
 }

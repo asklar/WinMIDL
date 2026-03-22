@@ -1,3 +1,4 @@
+using System.Reflection.Metadata;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
@@ -44,6 +45,10 @@ public static class GotoDefinitionHandler
     {
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
 
+        // For decompiled WinMD views: look up the type in the WinMD and navigate to its namespace
+        if (uri.StartsWith("midl-winmd://"))
+            return HandleWinMdView(sourceText, uri, line, character, lineStarts);
+
         // Check if cursor is on a // @ref: line → navigate to the referenced file/folder
         var refTarget = TryGetRefDirectiveTarget(sourceText, lineStarts, line);
         if (refTarget != null)
@@ -80,6 +85,28 @@ public static class GotoDefinitionHandler
 
         // Search for the symbol in compilation
         var symbol = FindSymbol(compilation, name, sourceText, tokenOffset);
+
+        // If not found by simple name, try the full qualified name the cursor is within
+        // e.g., cursor on "UI" in "Microsoft.UI.Xaml.Controls.Control" → extract full QN
+        if (symbol is null)
+        {
+            var fullQualifiedName = ExtractFullQualifiedNameAtCursor(sourceText, tokenOffset, name);
+            if (fullQualifiedName != null && fullQualifiedName != name)
+            {
+                // Try the last segment as the type name with full context
+                var lastDot = fullQualifiedName.LastIndexOf('.');
+                var typeName = lastDot >= 0 ? fullQualifiedName[(lastDot + 1)..] : fullQualifiedName;
+                symbol = FindSymbol(compilation, typeName, sourceText,
+                    tokenOffset + (fullQualifiedName.Length - typeName.Length));
+
+                // If still null, try the full name directly via SymbolTable
+                if (symbol is null)
+                {
+                    symbol = compilation.SymbolTable?.LookupDefinedType(fullQualifiedName);
+                }
+            }
+        }
+
         if (symbol is null) return null;
 
         // Imported .idl symbol: navigate to definition in the source file
@@ -185,6 +212,102 @@ public static class GotoDefinitionHandler
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Handles F12 within a decompiled WinMD virtual document.
+    /// Finds the identifier under cursor and navigates to the type's namespace decompilation.
+    /// </summary>
+    private static object? HandleWinMdView(string sourceText, string uri, int line, int character, int[] lineStarts)
+    {
+        int offset = PositionHelper.LineCharToOffset(lineStarts, line, character);
+        var lexer = new Lexer.Lexer(sourceText);
+        var tokens = lexer.Lex();
+        var (token, tokenOffset) = FindTokenAtOffset(tokens, offset);
+        if (token is null || token.Kind != SyntaxKind.IdentifierToken)
+            return null;
+
+        string name = token.Text;
+
+        // Extract the WinMD path from the URI: midl-winmd:///path/to/file.winmd/Namespace
+        var uriPath = uri["midl-winmd:///".Length..];
+        // On Windows, path is like C:/Program Files/.../file.winmd/Namespace
+        var winmdIdx = uriPath.IndexOf(".winmd", StringComparison.OrdinalIgnoreCase);
+        if (winmdIdx < 0) return null;
+        var winmdPath = uriPath[..(winmdIdx + 6)];
+        if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            winmdPath = winmdPath.Replace('/', '\\');
+
+        if (!File.Exists(winmdPath)) return null;
+
+        // Try to find the type in the WinMD by looking up all type names
+        var qualifiedName = ExtractQualifiedName(sourceText, tokenOffset, name) ?? name;
+
+        // Search the WinMD for a type matching this name
+        try
+        {
+            using var fs = File.OpenRead(winmdPath);
+            using var peReader = new System.Reflection.PortableExecutable.PEReader(fs);
+            var reader = peReader.GetMetadataReader();
+
+            foreach (var handle in reader.TypeDefinitions)
+            {
+                var td = reader.GetTypeDefinition(handle);
+                var typeName = reader.GetString(td.Name);
+                var typeNs = reader.GetString(td.Namespace);
+
+                // Strip generic arity
+                var backtick = typeName.IndexOf('`');
+                var cleanName = backtick >= 0 ? typeName[..backtick] : typeName;
+
+                if (cleanName.Equals(name, StringComparison.Ordinal) ||
+                    $"{typeNs}.{cleanName}".Equals(qualifiedName, StringComparison.Ordinal))
+                {
+                    // Found — navigate to this type's namespace decompilation
+                    var targetNs = typeNs;
+                    var decompiler = new WinMdDecompiler();
+                    var decompiled = decompiler.Decompile(winmdPath, targetNs);
+                    int defOffset = FindDefinitionOffset(decompiled,
+                        new BuiltInSymbolProxy(
+                            new Analysis.Symbols.InterfaceSymbol(cleanName, null!) { IsExternal = true },
+                            winmdPath)
+                        { });
+
+                    // Try struct/enum/delegate/runtimeclass keywords too
+                    if (defOffset < 0)
+                    {
+                        foreach (var kw in new[] { "struct", "enum", "interface", "runtimeclass", "delegate" })
+                        {
+                            var pattern = kw + " " + cleanName;
+                            defOffset = decompiled.IndexOf(pattern, StringComparison.Ordinal);
+                            if (defOffset >= 0) { defOffset += kw.Length + 1; break; }
+                        }
+                    }
+                    if (defOffset < 0) defOffset = 0;
+
+                    var decompLineStarts = PositionHelper.BuildLineStarts(decompiled);
+                    var (dLine, dChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
+                    var (dEndLine, dEndChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset + cleanName.Length);
+
+                    var targetUri = "midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + targetNs;
+                    return MakeLocation(targetUri, dLine, dChar, dEndLine, dEndChar);
+                }
+            }
+
+            // Also check CLR-projected types
+            var projected = Analysis.ClrProjectionMap.ToWinRTName(qualifiedName);
+            if (projected != qualifiedName)
+            {
+                var lastDot = projected.LastIndexOf('.');
+                var projNs = lastDot >= 0 ? projected[..lastDot] : "";
+                var projName = lastDot >= 0 ? projected[(lastDot + 1)..] : projected;
+                var targetUri = "midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + projNs;
+                return MakeLocation(targetUri, 0, 0, 0, 0);
+            }
+        }
+        catch { }
+
+        return null;
     }
 
     private static Dictionary<string, object?> MakeLocation(string uri, int startLine, int startChar, int endLine, int endChar)
@@ -385,6 +508,42 @@ public static class GotoDefinitionHandler
             else
                 break;
             pos--;
+        }
+
+        return parts.Count > 1 ? string.Join('.', parts) : null;
+    }
+
+    /// <summary>
+    /// Extracts the full qualified name the cursor is within, walking both backward AND forward.
+    /// e.g., cursor on "UI" in "Microsoft.UI.Xaml.Controls.Control" returns the full string.
+    /// </summary>
+    private static string? ExtractFullQualifiedNameAtCursor(string text, int tokenOffset, string name)
+    {
+        var parts = new List<string> { name };
+
+        // Walk backward
+        int pos = tokenOffset - 1;
+        while (pos >= 0)
+        {
+            while (pos >= 0 && char.IsWhiteSpace(text[pos])) pos--;
+            if (pos < 0 || text[pos] != '.') break;
+            pos--;
+            int end = pos + 1;
+            while (pos >= 0 && (char.IsLetterOrDigit(text[pos]) || text[pos] == '_')) pos--;
+            pos++;
+            if (pos < end) parts.Insert(0, text[pos..end]); else break;
+            pos--;
+        }
+
+        // Walk forward
+        pos = tokenOffset + name.Length;
+        while (pos < text.Length)
+        {
+            if (text[pos] != '.') break;
+            pos++; // skip dot
+            int start = pos;
+            while (pos < text.Length && (char.IsLetterOrDigit(text[pos]) || text[pos] == '_')) pos++;
+            if (pos > start) parts.Add(text[start..pos]); else break;
         }
 
         return parts.Count > 1 ? string.Join('.', parts) : null;
