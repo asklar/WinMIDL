@@ -10,6 +10,7 @@ public class Compilation
 {
     public NamespaceSymbol GlobalNamespace { get; }
     public IReadOnlyList<Diagnostic> Diagnostics { get; }
+    public SymbolTable? SymbolTable { get; internal set; }
 
     private readonly IReadOnlyList<LazyWinMdProvider>? _lazyProviders;
 

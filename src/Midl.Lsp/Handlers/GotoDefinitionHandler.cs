@@ -53,7 +53,7 @@ public static class GotoDefinitionHandler
 
         var lexer = new Lexer.Lexer(sourceText);
         var tokens = lexer.Lex();
-        var (token, _) = FindTokenAtOffset(tokens, offset);
+        var (token, tokenOffset) = FindTokenAtOffset(tokens, offset);
         if (token is null || token.Kind != SyntaxKind.IdentifierToken)
             return null;
 
@@ -79,7 +79,7 @@ public static class GotoDefinitionHandler
         }
 
         // Search for the symbol in compilation
-        var symbol = FindSymbol(compilation, name);
+        var symbol = FindSymbol(compilation, name, sourceText, tokenOffset);
         if (symbol is null) return null;
 
         // Imported .idl symbol: navigate to definition in the source file
@@ -102,14 +102,22 @@ public static class GotoDefinitionHandler
         }
 
         // External WinMD symbol: navigate to decompiled view
-        if (symbol.IsExternal && symbol.SourceWinMdPath != null && File.Exists(symbol.SourceWinMdPath))
+        if (symbol.IsExternal && symbol.SourceWinMdPath != null)
         {
-            return CreateWinMdDefinitionLocation(symbol);
-        }
+            if (File.Exists(symbol.SourceWinMdPath))
+            {
+                return CreateWinMdDefinitionLocation(symbol);
+            }
 
-        // External symbols without source info: navigate to the @ref line
-        if (symbol.IsExternal)
-        {
+            // Built-in WinRT types have SourceWinMdPath = "<built-in>" — resolve via Windows.winmd
+            if (symbol.FullName.StartsWith("Windows."))
+            {
+                var winmd = FindWindowsWinMd();
+                if (winmd != null)
+                    return CreateWinMdDefinitionLocation(new BuiltInSymbolProxy(symbol, winmd));
+            }
+
+            // Fall back to @ref line navigation
             var refLine = FindRefLineForExternalSymbol(sourceText, symbol);
             if (refLine >= 0)
             {
@@ -119,17 +127,12 @@ public static class GotoDefinitionHandler
             return null;
         }
 
-        // Built-in WinRT types (TypedEventHandler, IVector, etc.) — not in source text.
-        // Try to find them in Windows.winmd via decompilation.
+        // Non-external built-in WinRT types (shouldn't happen, but handle gracefully)
         if (symbol.FullName.StartsWith("Windows.") && FindDefinitionOffset(sourceText, symbol) < 0)
         {
             var winmd = FindWindowsWinMd();
             if (winmd != null)
-            {
-                // Temporarily set SourceWinMdPath so CreateWinMdDefinitionLocation can use it
-                var tempSymbol = new BuiltInSymbolProxy(symbol, winmd);
-                return CreateWinMdDefinitionLocation(tempSymbol);
-            }
+                return CreateWinMdDefinitionLocation(new BuiltInSymbolProxy(symbol, winmd));
         }
 
         // Find the definition location in source text
@@ -313,7 +316,7 @@ public static class GotoDefinitionHandler
         return sourceText[start..end];
     }
 
-    private static ISymbol? FindSymbol(Compilation compilation, string name)
+    private static ISymbol? FindSymbol(Compilation compilation, string name, string sourceText, int tokenOffset)
     {
         // First try top-level types (includes resolved imports)
         var type = compilation.GetAllTypes().FirstOrDefault(s => s.Name == name);
@@ -322,6 +325,19 @@ public static class GotoDefinitionHandler
         // Search members recursively (methods, properties, etc.)
         var member = FindMemberRecursive(compilation.GlobalNamespace, name);
         if (member is not null) return member;
+
+        // Try to reconstruct fully qualified name from source context
+        // e.g., cursor on "TypedEventHandler" in "Windows.Foundation.TypedEventHandler<...>"
+        var qualifiedName = ExtractQualifiedName(sourceText, tokenOffset, name);
+        if (qualifiedName != null && qualifiedName != name)
+        {
+            // Try symbol table first (includes built-in WinRT types)
+            var defined = compilation.SymbolTable?.LookupDefinedType(qualifiedName);
+            if (defined is not null) return defined;
+
+            var resolved = compilation.GetTypeByName(qualifiedName);
+            if (resolved is not null) return resolved;
+        }
 
         // Try lazy WinMD providers — search by simple name across all known types
         var lazyNames = compilation.GetAllLazyTypeNames();
@@ -336,6 +352,37 @@ public static class GotoDefinitionHandler
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Given a token at offset, walk backward through dots and identifiers to reconstruct
+    /// the fully qualified name (e.g., "Windows.Foundation.TypedEventHandler").
+    /// </summary>
+    private static string? ExtractQualifiedName(string text, int tokenOffset, string name)
+    {
+        // Walk backward from the token to collect dot-separated identifiers
+        var parts = new List<string> { name };
+        int pos = tokenOffset - 1;
+
+        while (pos >= 0)
+        {
+            // Skip whitespace
+            while (pos >= 0 && char.IsWhiteSpace(text[pos])) pos--;
+            if (pos < 0 || text[pos] != '.') break;
+            pos--; // skip the dot
+
+            // Collect the identifier before the dot
+            int end = pos + 1;
+            while (pos >= 0 && (char.IsLetterOrDigit(text[pos]) || text[pos] == '_')) pos--;
+            pos++;
+            if (pos < end)
+                parts.Insert(0, text[pos..end]);
+            else
+                break;
+            pos--;
+        }
+
+        return parts.Count > 1 ? string.Join('.', parts) : null;
     }
 
     private static ISymbol? FindMemberRecursive(NamespaceSymbol ns, string name)

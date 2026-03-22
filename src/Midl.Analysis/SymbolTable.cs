@@ -81,6 +81,10 @@ public class SymbolTable
     /// </summary>
     public IEnumerable<string> GetAllDefinedTypeFullNames() => _allDefinedTypes.Keys;
 
+    /// <summary>Look up a type by its fully qualified name from the defined types dictionary.</summary>
+    public ISymbol? LookupDefinedType(string fullName) =>
+        _allDefinedTypes.TryGetValue(fullName, out var symbol) ? symbol : null;
+
     public void AddLazyProvider(LazyWinMdProvider provider)
     {
         _lazyProviders.Add(provider);

@@ -103,6 +103,7 @@ public class Binder
         }
 
         var compilation = new Compilation(_globalNamespace, _diagnostics, lazyProviders);
+        compilation.SymbolTable = _symbolTable;
 #if WINDOWS_INTERNAL
         foreach (var kvp in _featureNames) compilation.FeatureNames[kvp.Key] = kvp.Value;
 #endif
