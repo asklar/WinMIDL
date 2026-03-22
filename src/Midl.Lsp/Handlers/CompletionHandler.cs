@@ -105,7 +105,9 @@ public static class CompletionHandler
             // Context-aware completion based on cursor position
             var context = DetectCompletionContext(text, offset, line);
             var contextItems = BuildContextualCompletions(context, text, uri, includePaths, fileDir);
-            return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = contextItems.ToArray() };
+            // Use isIncomplete=true for contexts with dynamic user types so VS Code re-queries
+            bool isIncomplete = context != CompletionContext.TopLevel && context != CompletionContext.EnumBody;
+            return new Dictionary<string, object?> { ["isIncomplete"] = isIncomplete, ["items"] = contextItems.ToArray() };
         }
         catch
         {
@@ -213,11 +215,25 @@ public static class CompletionHandler
 
     private static bool ContainsWordBefore(ReadOnlySpan<char> text, string word)
     {
-        // Simple backward scan for keyword in the last ~200 chars
+        // Scan for keyword as a whole word in the last ~200 chars
         int searchLen = Math.Min(text.Length, 200);
         var search = text.Slice(text.Length - searchLen, searchLen);
-        int idx = search.LastIndexOf(word.AsSpan());
-        return idx >= 0;
+        var wordSpan = word.AsSpan();
+        int startIdx = 0;
+        while (startIdx <= search.Length - word.Length)
+        {
+            int idx = search.Slice(startIdx).IndexOf(wordSpan);
+            if (idx < 0) return false;
+            idx += startIdx;
+
+            bool leftOk = idx == 0 || !char.IsLetterOrDigit(search[idx - 1]) && search[idx - 1] != '_';
+            bool rightOk = idx + word.Length >= search.Length ||
+                           !char.IsLetterOrDigit(search[idx + word.Length]) && search[idx + word.Length] != '_';
+            if (leftOk && rightOk) return true;
+
+            startIdx = idx + 1;
+        }
+        return false;
     }
 
     /// <summary>Build context-appropriate attribute completions.</summary>
@@ -947,6 +963,8 @@ public static class CompletionHandler
         TypePosition,       // Expecting a type (param, return, field) → all types
         BaseList,           // After : → interfaces, classes
         RequiresList,       // After requires → interfaces only
+        ParameterType,      // Cursor inside ( ) for a parameter type
+        EventType,          // After "event" keyword, expecting delegate type
     }
 
     private static CompletionContext DetectCompletionContext(string text, int offset, int line)
@@ -996,14 +1014,27 @@ public static class CompletionHandler
             if (c == '{')
             {
                 if (braceDepth > 0) { braceDepth--; continue; }
-                var before = text.AsSpan(0, i).TrimEnd();
 
-                if (ContainsWordBefore(before, "attribute")) return CompletionContext.AttributeBody;
-                if (ContainsWordBefore(before, "struct")) return CompletionContext.StructBody;
-                if (ContainsWordBefore(before, "enum")) return CompletionContext.EnumBody;
-                if (ContainsWordBefore(before, "interface")) return CompletionContext.InterfaceBody;
-                if (ContainsWordBefore(before, "runtimeclass")) return CompletionContext.RuntimeClassBody;
-                if (ContainsWordBefore(before, "namespace")) return CompletionContext.TopLevel;
+                // Narrow search to the declaration text between the previous boundary and this brace
+                int scopeStart = 0;
+                for (int j = i - 1; j >= 0; j--)
+                {
+                    if (text[j] == '{' || text[j] == '}' || text[j] == ';')
+                    {
+                        scopeStart = j + 1;
+                        break;
+                    }
+                }
+                var declText = text.AsSpan(scopeStart, i - scopeStart);
+
+                if (ContainsWordBefore(declText, "attribute")) return CompletionContext.AttributeBody;
+                if (ContainsWordBefore(declText, "struct")) return CompletionContext.StructBody;
+                if (ContainsWordBefore(declText, "enum")) return CompletionContext.EnumBody;
+                if (ContainsWordBefore(declText, "interface"))
+                    return DetectBodySubContext(text, offset, lineText, CompletionContext.InterfaceBody);
+                if (ContainsWordBefore(declText, "runtimeclass"))
+                    return DetectBodySubContext(text, offset, lineText, CompletionContext.RuntimeClassBody);
+                if (ContainsWordBefore(declText, "namespace")) return CompletionContext.TopLevel;
 
                 // Could be inside a property accessor { get; set; } — keep scanning up
                 continue;
@@ -1013,10 +1044,60 @@ public static class CompletionHandler
         return CompletionContext.TopLevel;
     }
 
+    /// <summary>
+    /// Refines an interface/runtimeclass body context into a more specific context
+    /// (ParameterType, EventType) based on the cursor's position within the body.
+    /// </summary>
+    private static CompletionContext DetectBodySubContext(string text, int offset, string lineText, CompletionContext bodyContext)
+    {
+        var trimmed = lineText.TrimStart();
+
+        // After "event " keyword → expecting delegate type
+        if (trimmed.StartsWith("event ", StringComparison.Ordinal) ||
+            trimmed.StartsWith("event\t", StringComparison.Ordinal))
+        {
+            // Only if cursor is after the "event " keyword
+            int eventPos = lineText.IndexOf("event", StringComparison.Ordinal);
+            int lineStart = GetLineStartOffset(text, offset);
+            int cursorInLine = offset - lineStart;
+            if (eventPos >= 0 && cursorInLine > eventPos + 5)
+                return CompletionContext.EventType;
+        }
+
+        // Check if cursor is inside parentheses (parameter position)
+        // Walk backward from cursor to find unmatched '('
+        int parenDepth = 0;
+        for (int i = offset - 1; i >= 0; i--)
+        {
+            char c = text[i];
+            if (c == ')') { parenDepth++; continue; }
+            if (c == '(')
+            {
+                if (parenDepth > 0) { parenDepth--; continue; }
+                // Found unmatched '(' — we're inside a parameter list
+                return CompletionContext.ParameterType;
+            }
+            // Stop at statement/block boundaries
+            if (c == '{' || c == '}' || c == ';') break;
+        }
+
+        return bodyContext;
+    }
+
+    private static int GetLineStartOffset(string text, int offset)
+    {
+        for (int i = offset - 1; i >= 0; i--)
+        {
+            if (text[i] == '\n') return i + 1;
+        }
+        return 0;
+    }
+
     private static bool IsInBaseList(ReadOnlySpan<char> segment)
     {
         // Look for pattern: keyword Name : ... (with no { yet)
         // The colon must come after a type declaration keyword + name
+        // Also handles comma-separated base lists (e.g. "runtimeclass Foo : IBar, ")
         bool foundColon = false;
         for (int i = segment.Length - 1; i >= 0; i--)
         {
@@ -1099,6 +1180,22 @@ public static class CompletionHandler
                     includePaths, currentFilePath);
                 AddItem(items, "IStringable", KindInterface, "Windows.Foundation.IStringable");
                 AddItem(items, "IClosable", KindInterface, "Windows.Foundation.IClosable");
+                break;
+
+            case CompletionContext.ParameterType:
+                // All types are valid as parameter types
+                AddAllTypes(items);
+                AddItem(items, "out", KindKeyword, "Output parameter");
+                AddItem(items, "ref", KindKeyword, "Reference parameter");
+                AddUserTypes(items, text, includePaths: includePaths, currentFilePath: currentFilePath);
+                break;
+
+            case CompletionContext.EventType:
+                // Only delegates + EventHandler/TypedEventHandler
+                AddItem(items, "EventHandler", KindClass, "Windows.Foundation.EventHandler<T>");
+                AddItem(items, "TypedEventHandler", KindClass, "Windows.Foundation.TypedEventHandler<S,A>");
+                AddUserTypes(items, text, t => t is DelegateSymbol,
+                    includePaths, currentFilePath);
                 break;
 
             case CompletionContext.TopLevel:

@@ -164,6 +164,149 @@ public class LspHandlerTests
     }
 
     [Fact]
+    public void CompletionInBaseList_ShowsInterfacesAndClasses()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    interface IFoo { };\n    enum MyEnum { A };\n    struct MyStruct { Int32 x; };\n    runtimeclass Foo : \n    { }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor after ": " on the runtimeclass line
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 4, 23), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include user-defined interfaces and classes
+        Assert.Contains("IFoo", json);
+
+        // Should NOT include enums or structs
+        Assert.DoesNotContain("\"MyEnum\"", json);
+        Assert.DoesNotContain("\"MyStruct\"", json);
+    }
+
+    [Fact]
+    public void CompletionInRequiresList_ShowsOnlyInterfaces()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    interface IFoo { };\n    runtimeclass Bar { };\n    interface IBar\n    requires \n    { }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor after "requires " on line 4
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 4, 13), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include interfaces
+        Assert.Contains("IFoo", json);
+
+        // Should NOT include runtimeclasses, enums, structs, or primitives
+        Assert.DoesNotContain("\"Bar\"", json);
+        Assert.DoesNotContain("\"Int32\"", json);
+        Assert.DoesNotContain("\"void\"", json);
+    }
+
+    [Fact]
+    public void CompletionInParameterType_ShowsAllTypes()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    enum MyEnum { A };\n    interface IFoo {\n        void Bar( );\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor inside parens at the space between ( and ) — line 3, char 17
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 3, 17), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include all types (primitives + user types)
+        Assert.Contains("\"Int32\"", json);
+        Assert.Contains("\"String\"", json);
+        Assert.Contains("MyEnum", json);
+
+        // Should include parameter modifiers
+        Assert.Contains("\"out\"", json);
+        Assert.Contains("\"ref\"", json);
+
+        // Should NOT include body keywords like event, static, void
+        Assert.DoesNotContain("\"event\"", json);
+        Assert.DoesNotContain("\"static\"", json);
+        Assert.DoesNotContain("\"void\"", json);
+    }
+
+    [Fact]
+    public void CompletionInEventDecl_ShowsDelegatesOnly()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    delegate void MyHandler(Object sender);\n    interface IFoo { };\n    runtimeclass Foo {\n        event  ;\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor after "event " on line 4 (col 14)
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 4, 14), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include user-defined delegates
+        Assert.Contains("MyHandler", json);
+        // Should include EventHandler and TypedEventHandler
+        Assert.Contains("EventHandler", json);
+        Assert.Contains("TypedEventHandler", json);
+
+        // Should NOT include non-delegate types
+        Assert.DoesNotContain("\"IFoo\"", json);
+        Assert.DoesNotContain("\"Int32\"", json);
+        Assert.DoesNotContain("\"void\"", json);
+    }
+
+    [Fact]
+    public void CompletionInReturnType_ShowsTypesAndVoid()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    enum MyEnum { A };\n    interface IFoo {\n         \n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor inside the interface body at the blank line
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 3, 8), dm);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // Should include all types + void (interface body context for return types)
+        Assert.Contains("\"Int32\"", json);
+        Assert.Contains("\"String\"", json);
+        Assert.Contains("\"void\"", json);
+        Assert.Contains("MyEnum", json);
+
+        // Should include event keyword (interface body)
+        Assert.Contains("\"event\"", json);
+    }
+
+    [Fact]
+    public void CompletionIsIncomplete_ForContextualTypes()
+    {
+        var uri = "file:///test.midl";
+
+        // Interface body context — should be isIncomplete=true
+        var source1 = "namespace N {\n    interface IFoo {\n         \n    }\n}";
+        var dm1 = CreateDocManager(uri, source1);
+        var result1 = CompletionHandler.Handle(MakePositionParams(uri, 2, 8), dm1);
+        var json1 = JsonSerializer.Serialize(result1);
+        Assert.Contains("\"isIncomplete\":true", json1);
+
+        // BaseList context — should be isIncomplete=true
+        var source2 = "namespace N {\n    runtimeclass Foo : \n    { }\n}";
+        var dm2 = CreateDocManager(uri, source2);
+        var result2 = CompletionHandler.Handle(MakePositionParams(uri, 1, 23), dm2);
+        var json2 = JsonSerializer.Serialize(result2);
+        Assert.Contains("\"isIncomplete\":true", json2);
+
+        // RequiresList context — should be isIncomplete=true
+        var source3 = "namespace N {\n    interface IFoo\n    requires \n    { }\n}";
+        var dm3 = CreateDocManager(uri, source3);
+        var result3 = CompletionHandler.Handle(MakePositionParams(uri, 2, 13), dm3);
+        var json3 = JsonSerializer.Serialize(result3);
+        Assert.Contains("\"isIncomplete\":true", json3);
+
+        // TopLevel context — should be isIncomplete=false
+        var source4 = "namespace N { }";
+        var dm4 = CreateDocManager(uri, source4);
+        var result4 = CompletionHandler.Handle(MakePositionParams(uri, 0, 14), dm4);
+        var json4 = JsonSerializer.Serialize(result4);
+        Assert.Contains("\"isIncomplete\":false", json4);
+    }
+
+    [Fact]
     public void CompletionInAttributeBracket_ShowsOnlyAttributes()
     {
         var uri = "file:///test.midl";
