@@ -5,6 +5,7 @@
     <ProjectReference Include="..\Midl.Lexer\Midl.Lexer.csproj" />
     <ProjectReference Include="..\Midl.Parser\Midl.Parser.csproj" />
     <ProjectReference Include="..\Midl.Analysis\Midl.Analysis.csproj" />
+    <ProjectReference Include="..\Midl.CodeGen\Midl.CodeGen.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

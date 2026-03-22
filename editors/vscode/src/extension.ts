@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { execSync } from 'child_process';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 
 let client: LanguageClient | undefined;
+let serverBinaryPath: string | undefined;
 
 /**
  * Attempt to find the MIDL CLI binary by searching known locations.
@@ -68,6 +70,36 @@ function findServerBinary(context: vscode.ExtensionContext): string | undefined 
     return undefined;
 }
 
+/**
+ * Provides read-only decompiled IDL content for WinMD files.
+ * When go-to-definition targets a WinMD type, the LSP returns a midl-winmd:// URI.
+ * VS Code calls this provider to get the decompiled IDL text.
+ */
+class WinMdContentProvider implements vscode.TextDocumentContentProvider {
+    async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
+        if (!serverBinaryPath) {
+            return '// MIDL server binary not found — cannot decompile WinMD';
+        }
+
+        // The URI path encodes the WinMD file path
+        let winmdPath = uri.path;
+        // On Windows, strip leading slash from /C:/path
+        if (process.platform === 'win32' && winmdPath.startsWith('/')) {
+            winmdPath = winmdPath.substring(1);
+        }
+
+        try {
+            const result = execSync(
+                `"${serverBinaryPath}" --decompile "${winmdPath}"`,
+                { encoding: 'utf-8', timeout: 10000 }
+            );
+            return result;
+        } catch (err: any) {
+            return `// Failed to decompile ${winmdPath}\n// ${err.message || err}`;
+        }
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('MIDL Language Support activated');
 
@@ -102,6 +134,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     try {
         const serverPath = findServerBinary(context);
+        serverBinaryPath = serverPath;
+
+        // Register content provider for decompiled WinMD views
+        const winmdProvider = new WinMdContentProvider();
+        context.subscriptions.push(
+            vscode.workspace.registerTextDocumentContentProvider('midl-winmd', winmdProvider)
+        );
 
         if (serverPath) {
             console.log(`MIDL: Starting language server: ${serverPath}`);
@@ -150,6 +189,18 @@ function startLanguageServer(serverPath: string, context: vscode.ExtensionContex
                 const result = await next(document, position, token);
                 if (result && !Array.isArray(result) && 'uri' in result) {
                     const loc = result as vscode.Location;
+
+                    // WinMD decompiled view: open virtual document with MIDL syntax highlighting
+                    if (loc.uri.scheme === 'midl-winmd') {
+                        const doc = await vscode.workspace.openTextDocument(loc.uri);
+                        await vscode.languages.setTextDocumentLanguage(doc, 'midl');
+                        await vscode.window.showTextDocument(doc, {
+                            selection: loc.range,
+                            preview: true
+                        });
+                        return null;
+                    }
+
                     const targetPath = loc.uri.fsPath;
                     try {
                         const stat = fs.statSync(targetPath);

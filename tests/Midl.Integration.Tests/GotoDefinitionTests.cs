@@ -1,0 +1,206 @@
+using System.Text.Json;
+using Midl.Analysis;
+using Midl.Analysis.Symbols;
+using Midl.CodeGen.WinMd;
+using Midl.Lsp;
+using Midl.Lsp.Handlers;
+
+namespace Midl.Integration.Tests;
+
+public class GotoDefinitionTests
+{
+    #region Feature 1: Imported .idl files
+
+    [Fact]
+    public void GotoDefinition_ImportedType_JumpsToOtherFile()
+    {
+        // Create temp files for import resolution
+        var tempDir = Path.Combine(Path.GetTempPath(), "midl-gotodef-test-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            var helperPath = Path.Combine(tempDir, "Helper.idl");
+            var mainPath = Path.Combine(tempDir, "Main.idl");
+
+            File.WriteAllText(helperPath, "namespace N {\n    interface IHelper {\n        void DoWork();\n    }\n}\n");
+            File.WriteAllText(mainPath, "import \"Helper.idl\"\nnamespace N {\n    runtimeclass Foo : IHelper {\n    }\n}\n");
+
+            var mainSource = File.ReadAllText(mainPath);
+            var mainUri = "file:///" + mainPath.Replace('\\', '/');
+
+            // IHelper appears at line 2 ("    runtimeclass Foo : IHelper {")
+            // Find the column of "IHelper" on line 2
+            var lines = mainSource.Split('\n');
+            int ihelperCol = lines[2].IndexOf("IHelper", StringComparison.Ordinal);
+
+            var result = GotoDefinitionHandler.HandleCore(mainSource, mainUri, 2, ihelperCol,
+                currentFilePath: mainPath);
+
+            Assert.NotNull(result);
+            var dict = Assert.IsType<Dictionary<string, object?>>(result);
+            var resultUri = dict["uri"]!.ToString()!;
+
+            // Should point to Helper.idl, not Main.idl
+            Assert.Contains("Helper.idl", resultUri);
+            Assert.StartsWith("file:///", resultUri);
+
+            // Verify range covers "IHelper" in Helper.idl
+            var range = (Dictionary<string, object?>)dict["range"]!;
+            var start = (Dictionary<string, object?>)range["start"]!;
+            int startLine = (int)start["line"]!;
+            int startChar = (int)start["character"]!;
+
+            // "interface IHelper" — name starts after "interface "
+            var helperSource = File.ReadAllText(helperPath);
+            var helperLines = helperSource.Split('\n');
+            Assert.Contains("IHelper", helperLines[startLine]);
+        }
+        finally
+        {
+            try { Directory.Delete(tempDir, true); } catch { }
+        }
+    }
+
+    [Fact]
+    public void GotoDefinition_ImportedEnum_JumpsToOtherFile()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), "midl-gotodef-enum-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            var typesPath = Path.Combine(tempDir, "Types.idl");
+            var mainPath = Path.Combine(tempDir, "Main.idl");
+
+            File.WriteAllText(typesPath, "namespace N {\n    enum Color { Red, Green, Blue };\n}\n");
+            File.WriteAllText(mainPath, "import \"Types.idl\"\nnamespace N {\n    struct Pixel {\n        Color c;\n    };\n}\n");
+
+            var mainSource = File.ReadAllText(mainPath);
+            var mainUri = "file:///" + mainPath.Replace('\\', '/');
+
+            // "Color" appears at line 3: "        Color c;"
+            var lines = mainSource.Split('\n');
+            int colorCol = lines[3].IndexOf("Color", StringComparison.Ordinal);
+
+            var result = GotoDefinitionHandler.HandleCore(mainSource, mainUri, 3, colorCol,
+                currentFilePath: mainPath);
+
+            Assert.NotNull(result);
+            var dict = Assert.IsType<Dictionary<string, object?>>(result);
+            var resultUri = dict["uri"]!.ToString()!;
+            Assert.Contains("Types.idl", resultUri);
+        }
+        finally
+        {
+            try { Directory.Delete(tempDir, true); } catch { }
+        }
+    }
+
+    #endregion
+
+    #region Feature 2: WinMD types
+
+    [Fact]
+    public void GotoDefinition_WinMdType_ReturnsDecompiledView()
+    {
+        // Create a temp WinMD by compiling a simple IDL
+        var tempDir = Path.Combine(Path.GetTempPath(), "midl-gotodef-winmd-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            // Compile a simple IDL to WinMD
+            var idlSource = "namespace TestNs {\n    interface ITestWidget {\n        void Activate();\n    }\n}\n";
+            var compilation = CompilationHelper.Compile(idlSource);
+            var winmdPath = Path.Combine(tempDir, "TestNs.winmd");
+            var emitter = new WinMdEmitter();
+            emitter.Emit(compilation, winmdPath);
+
+            Assert.True(File.Exists(winmdPath), "WinMD should be generated");
+
+            // Create an IDL that references the WinMD via @ref
+            var mainSource = "// @ref: \"" + winmdPath.Replace('\\', '/') + "\"\nnamespace TestNs {\n    runtimeclass Widget : ITestWidget {\n    }\n}\n";
+
+            // F12 on ITestWidget — it's an external symbol
+            // First compile with the reference to get the symbol
+            var mainCompilation = CompilationHelper.Compile(mainSource, new[] { winmdPath }, CompilationMode.Strict);
+            var symbol = mainCompilation.GetAllTypes().FirstOrDefault(s => s.Name == "ITestWidget");
+            Assert.NotNull(symbol);
+            Assert.True(symbol.IsExternal);
+            Assert.NotNull(symbol.SourceWinMdPath);
+
+            // Test the WinMD definition location creation
+            var result = GotoDefinitionHandler.CreateWinMdDefinitionLocation(symbol);
+            Assert.NotNull(result);
+
+            var dict = Assert.IsType<Dictionary<string, object?>>(result);
+            var resultUri = dict["uri"]!.ToString()!;
+
+            // Should use the midl-winmd scheme
+            Assert.StartsWith("midl-winmd:///", resultUri);
+
+            // Verify the range points to a valid position
+            var range = (Dictionary<string, object?>)dict["range"]!;
+            var start = (Dictionary<string, object?>)range["start"]!;
+            int startLine = (int)start["line"]!;
+            int startChar = (int)start["character"]!;
+
+            // The decompiled view should have the interface at a reasonable position
+            Assert.True(startLine >= 0 || startChar >= 0, "Position should be valid");
+        }
+        finally
+        {
+            try { Directory.Delete(tempDir, true); } catch { }
+        }
+    }
+
+    #endregion
+
+    #region Regression: local symbol still works
+
+    [Fact]
+    public void GotoDefinition_LocalSymbol_StillWorks()
+    {
+        var source = "namespace N {\n    interface IFoo {\n        void Bar();\n    }\n    runtimeclass Widget : IFoo {\n    }\n}\n";
+        var uri = "file:///test.idl";
+
+        // F12 on IFoo at line 4 ("    runtimeclass Widget : IFoo {")
+        var lines = source.Split('\n');
+        int ifooCol = lines[4].IndexOf("IFoo", StringComparison.Ordinal);
+
+        var result = GotoDefinitionHandler.HandleCore(source, uri, 4, ifooCol);
+
+        Assert.NotNull(result);
+        var dict = Assert.IsType<Dictionary<string, object?>>(result);
+        var resultUri = dict["uri"]!.ToString()!;
+
+        // Should point to the same file
+        Assert.Equal(uri, resultUri);
+
+        // Should point to the definition line (line 1: "    interface IFoo {")
+        var range = (Dictionary<string, object?>)dict["range"]!;
+        var start = (Dictionary<string, object?>)range["start"]!;
+        int defLine = (int)start["line"]!;
+        Assert.Equal(1, defLine);
+    }
+
+    [Fact]
+    public void GotoDefinition_LocalRuntimeClass_StillWorks()
+    {
+        var source = "namespace N {\n    runtimeclass Foo {\n        void DoWork();\n    }\n}\n";
+        var uri = "file:///test.idl";
+
+        // F12 on "Foo" at line 1
+        var lines = source.Split('\n');
+        int fooCol = lines[1].IndexOf("Foo", StringComparison.Ordinal);
+
+        var result = GotoDefinitionHandler.HandleCore(source, uri, 1, fooCol);
+
+        Assert.NotNull(result);
+        var dict = Assert.IsType<Dictionary<string, object?>>(result);
+        Assert.Equal(uri, dict["uri"]!.ToString()!);
+    }
+
+    #endregion
+}

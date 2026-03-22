@@ -152,7 +152,7 @@ public static class CompilationHelper
         var importResolver = new ImportResolver(includePaths, currentFilePath);
         if (currentFilePath != null)
             importResolver.MarkImported(Path.GetFullPath(currentFilePath));
-        var importedTrees = new List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)>();
+        var importedTrees = new List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath)>();
         CollectImportedTrees(tree, importResolver, importedTrees, syntaxDiagnostics,
             includePaths: includePaths
 #if WITH_COMPAT
@@ -201,7 +201,7 @@ public static class CompilationHelper
     private static void CollectImportedTrees(
         GreenNode tree,
         ImportResolver importResolver,
-        List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)> importedTrees,
+        List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath)> importedTrees,
         List<Midl.Analysis.Diagnostics.Diagnostic> diagnostics,
         IReadOnlyList<string>? includePaths = null
 #if WITH_COMPAT
@@ -254,7 +254,7 @@ public static class CompilationHelper
             var importedParser = new Midl.Parser.Parser(importedTokens);
             var importedTree = importedParser.Parse();
 
-            importedTrees.Add((importedTree, importedTokens));
+            importedTrees.Add((importedTree, importedTokens, resolved));
 
             // Recursively collect transitive imports
             var childResolver = importResolver.CreateChildResolver(resolved);
