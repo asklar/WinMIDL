@@ -575,6 +575,146 @@ public class LspHandlerTests
         }
     }
 
+    [Fact]
+    public void CompletionOnRefDirective_LocalFilesBeforeIncludePathFiles()
+    {
+        var localDir = Path.Combine(Path.GetTempPath(), $"midl_ref_local_{Guid.NewGuid():N}");
+        var includeDir = Path.Combine(Path.GetTempPath(), $"midl_ref_inc_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(localDir);
+        Directory.CreateDirectory(includeDir);
+        try
+        {
+            File.WriteAllText(Path.Combine(localDir, "local.idl"), "namespace L { }");
+            File.WriteAllText(Path.Combine(localDir, "local.winmd"), "");
+            File.WriteAllText(Path.Combine(includeDir, "sdk.idl"), "namespace S { }");
+            File.WriteAllText(Path.Combine(includeDir, "sdk.winmd"), "");
+
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(localDir, "main.idl")).Replace("\\", "/");
+            var source = "// @ref: \nnamespace N { }";
+            var dm = CreateDocManager(uri, source);
+
+            var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 9), dm,
+                includePaths: new[] { includeDir });
+            var dict = (Dictionary<string, object?>)result;
+            var items = (object[])dict["items"]!;
+
+            // All 4 files should appear
+            var labels = items.Cast<Dictionary<string, object?>>().Select(i => i["label"]!.ToString()).ToList();
+            Assert.Contains("local.idl", labels);
+            Assert.Contains("local.winmd", labels);
+            Assert.Contains("sdk.idl", labels);
+            Assert.Contains("sdk.winmd", labels);
+
+            // Local files should have sortText starting with "0_", include files with "1_"
+            foreach (var item in items.Cast<Dictionary<string, object?>>())
+            {
+                var label = item["label"]!.ToString()!;
+                var sortText = item["sortText"]!.ToString()!;
+                if (label.StartsWith("local"))
+                    Assert.StartsWith("0_", sortText);
+                else if (label.StartsWith("sdk"))
+                    Assert.StartsWith("1_", sortText);
+            }
+
+            // Folders should come after files (sort prefix 2_ or 3_ > 0_ or 1_)
+            var sortTexts = items.Cast<Dictionary<string, object?>>()
+                .Select(i => i["sortText"]!.ToString()!).ToList();
+            var fileSorts = sortTexts.Where(s => s.StartsWith("0_") || s.StartsWith("1_")).ToList();
+            var folderSorts = sortTexts.Where(s => s.StartsWith("2_") || s.StartsWith("3_")).ToList();
+            foreach (var fs in fileSorts)
+                foreach (var ds in folderSorts)
+                    Assert.True(string.Compare(fs, ds, StringComparison.OrdinalIgnoreCase) < 0,
+                        "Files should sort before folders");
+        }
+        finally
+        {
+            Directory.Delete(localDir, true);
+            Directory.Delete(includeDir, true);
+        }
+    }
+
+    [Fact]
+    public void CompletionOnImportLine_LocalFilesBeforeIncludeFiles()
+    {
+        var localDir = Path.Combine(Path.GetTempPath(), $"midl_imp_local_{Guid.NewGuid():N}");
+        var includeDir = Path.Combine(Path.GetTempPath(), $"midl_imp_inc_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(localDir);
+        Directory.CreateDirectory(includeDir);
+        try
+        {
+            File.WriteAllText(Path.Combine(localDir, "Local.idl"), "namespace L { }");
+            File.WriteAllText(Path.Combine(includeDir, "SdkHelper.idl"), "namespace S { }");
+
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(localDir, "Main.idl")).Replace("\\", "/");
+            var source = "import \"\"\nnamespace N { }";
+            var dm = CreateDocManager(uri, source);
+
+            var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 8), dm,
+                includePaths: new[] { includeDir });
+            var dict = (Dictionary<string, object?>)result;
+            var items = (object[])dict["items"]!;
+
+            var localItem = items.Cast<Dictionary<string, object?>>()
+                .First(i => i["label"]!.ToString() == "Local.idl");
+            var sdkItem = items.Cast<Dictionary<string, object?>>()
+                .First(i => i["label"]!.ToString() == "SdkHelper.idl");
+
+            Assert.StartsWith("0_", localItem["sortText"]!.ToString());
+            Assert.StartsWith("1_", sdkItem["sortText"]!.ToString());
+        }
+        finally
+        {
+            Directory.Delete(localDir, true);
+            Directory.Delete(includeDir, true);
+        }
+    }
+
+    [Fact]
+    public void CompletionOnImportLine_IsIncomplete()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_imp_inc_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            File.WriteAllText(Path.Combine(tempDir, "A.idl"), "namespace A { }");
+
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(tempDir, "Main.idl")).Replace("\\", "/");
+            var source = "import \"\"\nnamespace N { }";
+            var dm = CreateDocManager(uri, source);
+
+            var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 8), dm);
+            var dict = (Dictionary<string, object?>)result;
+            Assert.True((bool)dict["isIncomplete"]!);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void CompletionOnRefDirective_IsIncomplete()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_ref_inc_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            File.WriteAllText(Path.Combine(tempDir, "a.idl"), "namespace A { }");
+
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(tempDir, "main.idl")).Replace("\\", "/");
+            var source = "// @ref: \nnamespace N { }";
+            var dm = CreateDocManager(uri, source);
+
+            var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 9), dm);
+            var dict = (Dictionary<string, object?>)result;
+            Assert.True((bool)dict["isIncomplete"]!);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
     #endregion
 
     #region Hover Tests

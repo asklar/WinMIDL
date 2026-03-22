@@ -68,15 +68,15 @@ public static class CompletionHandler
                 if (uri.StartsWith("file:///"))
                     currentFileName = Path.GetFileName(Uri.UnescapeDataString(uri[8..]));
                 var items = BuildImportCompletions(importContext, fileDir, includePaths, projectFile, currentFileName);
-                return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
+                return new Dictionary<string, object?> { ["isIncomplete"] = true, ["items"] = items.ToArray() };
             }
 
             // Check if cursor is on a @ref directive line: // @ref: partial_path
             var refContext = DetectRefDirectiveContext(text, line, character);
             if (refContext != null)
             {
-                var items = BuildRefDirectiveCompletions(refContext, fileDir);
-                return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
+                var items = BuildRefDirectiveCompletions(refContext, fileDir, includePaths);
+                return new Dictionary<string, object?> { ["isIncomplete"] = true, ["items"] = items.ToArray() };
             }
 
             // Check if cursor follows a dot (e.g. "Windows.Foundation." or "MyEnum.")
@@ -505,24 +505,33 @@ public static class CompletionHandler
         if (currentFileName != null)
             seen.Add(currentFileName);
 
-        // Collect all search directories
-        var searchDirs = new List<string>();
-        if (fileDir != null) searchDirs.Add(fileDir);
-        if (includePaths != null) searchDirs.AddRange(includePaths);
-        if (projectFile != null) searchDirs.AddRange(projectFile.GetAbsoluteIncludePaths());
+        // Build search list with local/non-local tracking
+        var searchDirs = new List<(string dir, bool isLocal)>();
+        if (fileDir != null) searchDirs.Add((fileDir, true));
+        if (includePaths != null)
+        {
+            foreach (var ip in includePaths)
+                searchDirs.Add((ip, false));
+        }
+        if (projectFile != null)
+        {
+            foreach (var ip in projectFile.GetAbsoluteIncludePaths())
+                searchDirs.Add((ip, false));
+        }
 
         // Also add project input file directories
         if (projectFile != null)
         {
+            var existingDirs = new HashSet<string>(searchDirs.Select(sd => sd.dir), StringComparer.OrdinalIgnoreCase);
             foreach (var input in projectFile.GetAbsoluteInputPaths())
             {
                 var dir = Path.GetDirectoryName(input);
-                if (dir != null && !searchDirs.Contains(dir))
-                    searchDirs.Add(dir);
+                if (dir != null && existingDirs.Add(dir))
+                    searchDirs.Add((dir, false));
             }
         }
 
-        foreach (var dir in searchDirs)
+        foreach (var (dir, isLocal) in searchDirs)
         {
             if (!Directory.Exists(dir)) continue;
 
@@ -542,13 +551,19 @@ public static class CompletionHandler
                     var isInProject = projectFile?.Inputs.Any(i =>
                         Path.GetFileName(i).Equals(name, StringComparison.OrdinalIgnoreCase)) ?? false;
 
+                    var sortPrefix = isLocal ? "0_" : "1_";
+                    var detail = isLocal
+                        ? (isInProject ? "(project)" : "(local)")
+                        : (isInProject ? "(project)" : dir);
+
                     items.Add(new Dictionary<string, object?>
                     {
                         ["label"] = name,
                         ["kind"] = KindFile,
-                        ["detail"] = isInProject ? "(project)" : Path.GetDirectoryName(file),
+                        ["detail"] = detail,
                         ["insertText"] = name,
                         ["filterText"] = name,
+                        ["sortText"] = sortPrefix + name,
                     });
                 }
             }
@@ -558,17 +573,12 @@ public static class CompletionHandler
             }
         }
 
-        // Sort: project files first, then alphabetical
+        // Sort by sortText: local files first, then include-path files
         items.Sort((a, b) =>
         {
-            var ad = ((Dictionary<string, object?>)a)["detail"]?.ToString() ?? "";
-            var bd = ((Dictionary<string, object?>)b)["detail"]?.ToString() ?? "";
-            bool aProj = ad == "(project)";
-            bool bProj = bd == "(project)";
-            if (aProj != bProj) return aProj ? -1 : 1;
-            var al = ((Dictionary<string, object?>)a)["label"]?.ToString() ?? "";
-            var bl = ((Dictionary<string, object?>)b)["label"]?.ToString() ?? "";
-            return string.Compare(al, bl, StringComparison.OrdinalIgnoreCase);
+            var as_ = ((Dictionary<string, object?>)a)["sortText"]?.ToString() ?? "";
+            var bs_ = ((Dictionary<string, object?>)b)["sortText"]?.ToString() ?? "";
+            return string.Compare(as_, bs_, StringComparison.OrdinalIgnoreCase);
         });
 
         return items;
@@ -824,100 +834,120 @@ public static class CompletionHandler
     }
 
     /// <summary>Build completions for // @ref: — lists .idl and .winmd files + directories.</summary>
-    private static List<object> BuildRefDirectiveCompletions(string partialPath, string? fileDir)
+    private static List<object> BuildRefDirectiveCompletions(string partialPath, string? fileDir,
+        IReadOnlyList<string>? includePaths = null)
     {
-        if (fileDir == null) return new List<object>();
+        if (fileDir == null && (includePaths == null || includePaths.Count == 0))
+            return new List<object>();
 
-        var files = new List<object>();
-        var folders = new List<object>();
+        var seenFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seenFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var items = new List<object>();
 
-        // Determine the base directory and filename filter
-        string searchDir;
+        // Determine the filename filter from the partial path
         string filter;
+        string? subPath = null;
         if (partialPath.Contains('/') || partialPath.Contains('\\'))
         {
             var lastSep = Math.Max(partialPath.LastIndexOf('/'), partialPath.LastIndexOf('\\'));
-            var subPath = partialPath[..(lastSep + 1)];
+            subPath = partialPath[..(lastSep + 1)];
             filter = partialPath[(lastSep + 1)..];
-            searchDir = Path.Combine(fileDir, subPath.Replace('/', Path.DirectorySeparatorChar));
         }
         else
         {
-            searchDir = fileDir;
             filter = partialPath;
         }
 
-        if (!Directory.Exists(searchDir)) return new List<object>();
-
-        try
+        // Build search list: local dir first, then include paths
+        var searchDirs = new List<(string dir, bool isLocal)>();
+        if (fileDir != null)
+            searchDirs.Add((fileDir, true));
+        if (includePaths != null)
         {
-            // Enumerate .idl and .winmd files
-            foreach (var file in Directory.EnumerateFiles(searchDir))
-            {
-                var name = Path.GetFileName(file);
-                var ext = Path.GetExtension(name);
-                if (!ext.Equals(".idl", StringComparison.OrdinalIgnoreCase) &&
-                    !ext.Equals(".winmd", StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                if (filter.Length > 0 &&
-                    !name.StartsWith(filter, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                var kind = ext.Equals(".winmd", StringComparison.OrdinalIgnoreCase) ? KindModule : KindFile;
-                files.Add(new Dictionary<string, object?>
-                {
-                    ["label"] = name,
-                    ["kind"] = kind,
-                    ["detail"] = ext.Equals(".winmd", StringComparison.OrdinalIgnoreCase) ? "WinMD reference" : "IDL file",
-                    ["insertText"] = name,
-                    ["filterText"] = name,
-                });
-            }
-
-            // Enumerate subdirectories
-            foreach (var dir in Directory.EnumerateDirectories(searchDir))
-            {
-                var name = Path.GetFileName(dir);
-                if (name.StartsWith('.')) continue;
-
-                if (filter.Length > 0 &&
-                    !name.StartsWith(filter, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                folders.Add(new Dictionary<string, object?>
-                {
-                    ["label"] = name,
-                    ["kind"] = KindFolder,
-                    ["detail"] = "Directory",
-                    ["insertText"] = name + "/",
-                    ["filterText"] = name,
-                });
-            }
-        }
-        catch
-        {
-            // Ignore directory access errors
+            foreach (var ip in includePaths)
+                searchDirs.Add((ip, false));
         }
 
-        // Files first (alphabetical), then folders (alphabetical)
-        files.Sort((a, b) =>
+        foreach (var (baseDir, isLocal) in searchDirs)
         {
-            var al = ((Dictionary<string, object?>)a)["label"]?.ToString() ?? "";
-            var bl = ((Dictionary<string, object?>)b)["label"]?.ToString() ?? "";
-            return string.Compare(al, bl, StringComparison.OrdinalIgnoreCase);
-        });
-        folders.Sort((a, b) =>
+            var searchDir = subPath != null
+                ? Path.Combine(baseDir, subPath.Replace('/', Path.DirectorySeparatorChar))
+                : baseDir;
+
+            if (!Directory.Exists(searchDir)) continue;
+
+            try
+            {
+                // Enumerate .idl and .winmd files
+                foreach (var file in Directory.EnumerateFiles(searchDir))
+                {
+                    var name = Path.GetFileName(file);
+                    var ext = Path.GetExtension(name);
+                    if (!ext.Equals(".idl", StringComparison.OrdinalIgnoreCase) &&
+                        !ext.Equals(".winmd", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (filter.Length > 0 &&
+                        !name.StartsWith(filter, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (!seenFiles.Add(name)) continue;
+
+                    var kind = ext.Equals(".winmd", StringComparison.OrdinalIgnoreCase) ? KindModule : KindFile;
+                    var sortPrefix = isLocal ? "0_" : "1_";
+                    var detail = isLocal
+                        ? (ext.Equals(".winmd", StringComparison.OrdinalIgnoreCase) ? "WinMD reference" : "IDL file")
+                        : baseDir;
+                    items.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = name,
+                        ["kind"] = kind,
+                        ["detail"] = detail,
+                        ["insertText"] = name,
+                        ["filterText"] = name,
+                        ["sortText"] = sortPrefix + name,
+                    });
+                }
+
+                // Enumerate subdirectories
+                foreach (var dir in Directory.EnumerateDirectories(searchDir))
+                {
+                    var name = Path.GetFileName(dir);
+                    if (name.StartsWith('.')) continue;
+
+                    if (filter.Length > 0 &&
+                        !name.StartsWith(filter, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (!seenFolders.Add(name)) continue;
+
+                    var sortPrefix = isLocal ? "2_" : "3_";
+                    items.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = name,
+                        ["kind"] = KindFolder,
+                        ["detail"] = isLocal ? "Directory" : baseDir,
+                        ["insertText"] = name + "/",
+                        ["filterText"] = name,
+                        ["sortText"] = sortPrefix + name,
+                    });
+                }
+            }
+            catch
+            {
+                // Ignore directory access errors
+            }
+        }
+
+        // Sort by sortText to enforce: local files, include files, local folders, include folders
+        items.Sort((a, b) =>
         {
-            var al = ((Dictionary<string, object?>)a)["label"]?.ToString() ?? "";
-            var bl = ((Dictionary<string, object?>)b)["label"]?.ToString() ?? "";
-            return string.Compare(al, bl, StringComparison.OrdinalIgnoreCase);
+            var as_ = ((Dictionary<string, object?>)a)["sortText"]?.ToString() ?? "";
+            var bs_ = ((Dictionary<string, object?>)b)["sortText"]?.ToString() ?? "";
+            return string.Compare(as_, bs_, StringComparison.OrdinalIgnoreCase);
         });
 
-        var result = new List<object>(files.Count + folders.Count);
-        result.AddRange(files);
-        result.AddRange(folders);
-        return result;
+        return items;
     }
 
     #endregion
