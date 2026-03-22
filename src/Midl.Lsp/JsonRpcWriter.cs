@@ -43,6 +43,21 @@ public sealed class JsonRpcWriter
         await WriteMessageAsync(msg);
     }
 
+    public async Task SendRequestAsync(object id, string method, object? @params)
+    {
+        var msg = new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["id"] = id,
+            ["method"] = method
+        };
+        if (@params is not null)
+        {
+            msg["params"] = @params;
+        }
+        await WriteMessageAsync(msg);
+    }
+
     public async Task SendNotificationAsync(string method, object? @params)
     {
         var msg = new Dictionary<string, object?>
