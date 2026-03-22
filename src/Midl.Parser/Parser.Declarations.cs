@@ -205,7 +205,8 @@ public sealed partial class Parser
         if (decl == null) return skippedMods;
 
         // Prepend SkippedTokens to the declaration children
-        var wrappedChildren = new List<GreenNode?> { skippedMods };
+        var wrappedChildren = RentChildren();
+        wrappedChildren.Add(skippedMods);
         for (int i = 0; i < decl.SlotCount; i++)
             wrappedChildren.Add(decl.GetSlot(i));
         return MakeNode(decl.Kind, wrappedChildren);
