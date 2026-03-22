@@ -136,16 +136,9 @@ public class WinMdEmitter
         SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
 
-        // EventRegistrationToken is in Windows.Foundation, referenced via a Windows assembly
-        var windowsRef = _metadata.AddAssemblyReference(
-            _metadata.GetOrAddString("Windows"),
-            new Version(255, 255, 255, 255),
-            default, default, default, default);
-        _externalAssemblyRefs["Windows"] = windowsRef;
-        EventRegistrationTokenRef = _metadata.AddTypeReference(
-            windowsRef,
-            _metadata.GetOrAddString("Windows.Foundation"),
-            _metadata.GetOrAddString("EventRegistrationToken"));
+        // EventRegistrationToken — original midl references from mscorlib
+        EventRegistrationTokenRef = AddMscorlibTypeRef(
+            "System.Runtime.InteropServices.WindowsRuntime", "EventRegistrationToken");
 
         // 5. <Module> type (required first row)
         _metadata.AddTypeDefinition(
@@ -194,36 +187,73 @@ public class WinMdEmitter
     internal EntityHandle ResolveTypeHandle(TypeRef typeRef)
     {
         if (typeRef.ResolvedSymbol != null)
-            return ResolveSymbolHandle(typeRef.ResolvedSymbol);
+            return ResolveSymbolHandle(typeRef.ResolvedSymbol, typeRef.TypeArguments.Count);
         return default;
     }
 
     /// <summary>Resolve a symbol to its TypeDef handle, wrapped as a local TypeRef for WinMD compliance.</summary>
     internal EntityHandle ResolveSymbolHandle(ISymbol symbol)
     {
+        return ResolveSymbolHandle(symbol, 0);
+    }
+
+    /// <summary>Resolve a symbol to its TypeDef handle with generic arity suffix for WinMD compliance.</summary>
+    internal EntityHandle ResolveSymbolHandle(ISymbol symbol, int genericArity)
+    {
+        var cacheKey = genericArity > 0 ? $"{symbol.FullName}`{genericArity}" : symbol.FullName;
+
         if (_typeDefHandles.TryGetValue(symbol.FullName, out var handle))
-            return GetTypeRefForTypeDef(symbol.FullName, handle);
+        {
+            var typeRefName = genericArity > 0 ? $"{symbol.FullName}`{genericArity}" : symbol.FullName;
+            return GetTypeRefForTypeDef(typeRefName, handle);
+        }
 
         // External/imported types are not emitted as TypeDefs; create a TypeRef
         // pointing to an AssemblyRef for the type's root namespace.
         if (symbol.IsExternal)
-            return GetExternalTypeRef(symbol.FullName);
+            return GetExternalTypeRef(symbol.FullName, genericArity);
 
         return default;
     }
 
     /// <summary>
+    /// WinRT to CLR type projections. When these WinRT types appear in WinMD,
+    /// they must be referenced using their CLR-projected names in mscorlib.
+    /// </summary>
+    private static readonly Dictionary<string, (string clrNamespace, string clrName)> ClrProjections = new()
+    {
+        ["Windows.Foundation.EventHandler"] = ("System", "EventHandler"),
+    };
+
+    /// <summary>
     /// Creates a TypeRef pointing to an external assembly for an imported type.
     /// WinRT convention: the assembly name is the root namespace of the type.
+    /// Applies CLR type projections for known WinRT→CLR mapped types.
     /// </summary>
-    private TypeReferenceHandle GetExternalTypeRef(string fullName)
+    private TypeReferenceHandle GetExternalTypeRef(string fullName, int genericArity = 0)
     {
-        if (_localTypeRefs.TryGetValue(fullName, out var existing))
+        var cacheKey = genericArity > 0 ? $"{fullName}`{genericArity}" : fullName;
+        if (_localTypeRefs.TryGetValue(cacheKey, out var existing))
             return existing;
+
+        // Check for CLR type projection
+        if (ClrProjections.TryGetValue(fullName, out var projection))
+        {
+            var clrName = genericArity > 0 ? $"{projection.clrName}`{genericArity}" : projection.clrName;
+            var typeRef = _metadata.AddTypeReference(
+                MscorlibRef,
+                _metadata.GetOrAddString(projection.clrNamespace),
+                _metadata.GetOrAddString(clrName));
+            _localTypeRefs[cacheKey] = typeRef;
+            return typeRef;
+        }
 
         var lastDot = fullName.LastIndexOf('.');
         var ns = lastDot >= 0 ? fullName[..lastDot] : "";
         var name = lastDot >= 0 ? fullName[(lastDot + 1)..] : fullName;
+
+        if (genericArity > 0)
+            name = $"{name}`{genericArity}";
 
         var rootNs = ns.Split('.')[0];
         if (string.IsNullOrEmpty(rootNs)) rootNs = name;
@@ -237,12 +267,12 @@ public class WinMdEmitter
             _externalAssemblyRefs[rootNs] = assemblyRef;
         }
 
-        var typeRef = _metadata.AddTypeReference(
+        var typeRef2 = _metadata.AddTypeReference(
             assemblyRef,
             _metadata.GetOrAddString(ns),
             _metadata.GetOrAddString(name));
-        _localTypeRefs[fullName] = typeRef;
-        return typeRef;
+        _localTypeRefs[cacheKey] = typeRef2;
+        return typeRef2;
     }
 
     // Cache for assembly references to external namespaces
@@ -432,15 +462,9 @@ public class WinMdEmitter
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
 
         // EventRegistrationToken is in Windows.Foundation, referenced via a Windows assembly
-        var windowsRef2 = _metadata.AddAssemblyReference(
-            _metadata.GetOrAddString("Windows"),
-            new Version(255, 255, 255, 255),
-            default, default, default, default);
-        _externalAssemblyRefs["Windows"] = windowsRef2;
-        EventRegistrationTokenRef = _metadata.AddTypeReference(
-            windowsRef2,
-            _metadata.GetOrAddString("Windows.Foundation"),
-            _metadata.GetOrAddString("EventRegistrationToken"));
+        // EventRegistrationToken — original midl references from mscorlib
+        EventRegistrationTokenRef = AddMscorlibTypeRef(
+            "System.Runtime.InteropServices.WindowsRuntime", "EventRegistrationToken");
 
         // 5. <Module> type (required first row)
         _metadata.AddTypeDefinition(

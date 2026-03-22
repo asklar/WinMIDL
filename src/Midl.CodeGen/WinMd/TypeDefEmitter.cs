@@ -54,8 +54,11 @@ internal class TypeDefEmitter
             fieldList,
             methodList);
 
-        // Add a deterministic GUID based on the interface name
-        var guid = GenerateDeterministicGuid($"{ns}.{ifaceName}");
+        // Add a deterministic GUID based on the interface ABI signature
+        var instanceMembers = rc.Members
+            .Where(m => m is MethodSymbol { IsStatic: false } or PropertySymbol { IsStatic: false } or EventSymbol { IsStatic: false })
+            .ToList();
+        var guid = GenerateDeterministicGuid($"{ns}.{ifaceName}", instanceMembers);
         _attrs.AddGuidAttribute(typeDef, guid);
         _attrs.AddExclusiveToAttribute(typeDef, rc.FullName);
 
@@ -66,18 +69,18 @@ internal class TypeDefEmitter
         // Track interface method handles for MethodImpl table
         var ifaceMethodHandles = new List<(string memberName, MethodDefinitionHandle handle)>();
 
-        // Emit members from the runtime class (excluding constructors)
+        // Emit non-static members from the runtime class (excluding constructors and static members)
         foreach (var member in rc.Members)
         {
             switch (member)
             {
-                case MethodSymbol method:
+                case MethodSymbol { IsStatic: false } method:
                 {
                     var methodHandle = EmitInterfaceMethod(method);
                     ifaceMethodHandles.Add((method.Name, methodHandle));
                     break;
                 }
-                case PropertySymbol prop:
+                case PropertySymbol { IsStatic: false } prop:
                 {
                     var getter = EmitPropertyGetter(prop);
                     ifaceMethodHandles.Add(($"get_{prop.Name}", getter));
@@ -87,7 +90,7 @@ internal class TypeDefEmitter
                     properties.Add((prop, getter, setter));
                     break;
                 }
-                case EventSymbol evt:
+                case EventSymbol { IsStatic: false } evt:
                 {
                     var (adder, remover) = EmitEventAccessors(evt);
                     ifaceMethodHandles.Add(($"add_{evt.Name}", adder));
@@ -276,7 +279,7 @@ internal class TypeDefEmitter
         if (symbol.Uuid.HasValue)
             _attrs.AddGuidAttribute(typeDef, symbol.Uuid.Value);
         else
-            _attrs.AddGuidAttribute(typeDef, GenerateDeterministicGuid(symbol.FullName));
+            _attrs.AddGuidAttribute(typeDef, GenerateDeterministicGuid(symbol.FullName, symbol.Members.ToList()));
 
         // Emit version attribute with the symbol's version if available
         if (symbol.Version.HasValue)
@@ -327,7 +330,10 @@ internal class TypeDefEmitter
         // Invoke method with delegate's signature
         EmitDelegateInvoke(symbol);
 
-        var guid = GenerateDeterministicGuid(symbol.FullName);
+        // GUID for delegates uses the Invoke method signature
+        var invokeMethod = new MethodSymbol("Invoke", null) { ReturnType = symbol.ReturnType };
+        invokeMethod.Parameters.AddRange(symbol.Parameters);
+        var guid = GenerateDeterministicGuid(symbol.FullName, [invokeMethod]);
         _attrs.AddGuidAttribute(typeDef, guid);
 
         // ExperimentalAttribute
@@ -451,6 +457,8 @@ internal class TypeDefEmitter
 
         // Emit runtime method stubs for direct members, tracking handles for MethodImpl
         var classMethodStubs = new List<(string memberName, MethodDefinitionHandle handle)>();
+        var classProperties = new List<(PropertySymbol prop, MethodDefinitionHandle getter, MethodDefinitionHandle? setter)>();
+        var classEvents = new List<(EventSymbol evt, MethodDefinitionHandle adder, MethodDefinitionHandle remover)>();
         if (hasDirectMembers)
         {
             foreach (var member in symbol.Members)
@@ -468,6 +476,7 @@ internal class TypeDefEmitter
                         var (getterStub, setterStub) = EmitRuntimePropertyStubs(prop);
                         if (!getterStub.IsNil) classMethodStubs.Add(($"get_{prop.Name}", getterStub));
                         if (setterStub.HasValue) classMethodStubs.Add(($"put_{prop.Name}", setterStub.Value));
+                        classProperties.Add((prop, getterStub, setterStub));
                         break;
                     }
                     case EventSymbol evt:
@@ -475,11 +484,16 @@ internal class TypeDefEmitter
                         var (adderStub, removerStub) = EmitRuntimeEventStubs(evt);
                         classMethodStubs.Add(($"add_{evt.Name}", adderStub));
                         classMethodStubs.Add(($"remove_{evt.Name}", removerStub));
+                        classEvents.Add((evt, adderStub, removerStub));
                         break;
                     }
                 }
             }
         }
+
+        // Emit Property/Event map tables on the runtimeclass TypeDef
+        EmitPropertyTable(typeDef, classProperties);
+        EmitEventTable(typeDef, classEvents);
 
         // InterfaceImpl for synthesized default interface
         if (hasDirectMembers)
@@ -536,7 +550,7 @@ internal class TypeDefEmitter
         }
 
         // ActivatableAttribute
-        uint attrVersion = symbol.Version != null ? (uint)symbol.Version.Value : 0x00010000;
+        uint attrVersion = symbol.Version != null ? (uint)symbol.Version.Value : 1u;
         if (symbol.Members.Any(m => m is ConstructorSymbol) || symbol.HasDefaultActivation)
             _attrs.AddActivatableAttribute(typeDef, attrVersion);
 
@@ -559,6 +573,10 @@ internal class TypeDefEmitter
             };
             _attrs.AddThreadingAttribute(typeDef, threadingValue);
         }
+        else
+        {
+            _attrs.AddThreadingAttribute(typeDef, 3); // Default: Both
+        }
 
         // MarshalingBehaviorAttribute
         if (symbol.MarshalingBehavior != null)
@@ -571,6 +589,10 @@ internal class TypeDefEmitter
                 _ => 2
             };
             _attrs.AddMarshalingBehaviorAttribute(typeDef, marshalingValue);
+        }
+        else
+        {
+            _attrs.AddMarshalingBehaviorAttribute(typeDef, 2); // Default: Agile
         }
 
         // DeprecatedAttribute
@@ -695,6 +717,9 @@ internal class TypeDefEmitter
                 -1,
                 _emitter.NextParamHandle);
             _emitter.IncrementMethodRow();
+
+            M.AddParameter(ParameterAttributes.None, M.GetOrAddString("value"), 1);
+            _emitter.IncrementParamRow();
         }
 
         return (getter, setter);
@@ -702,7 +727,7 @@ internal class TypeDefEmitter
 
     private (MethodDefinitionHandle adder, MethodDefinitionHandle remover) EmitRuntimeEventStubs(EventSymbol evt)
     {
-        // add_ method: takes EventRegistrationToken handler, returns void (simplified)
+        // add_ method: takes delegate handler, returns EventRegistrationToken
         var addSig = EncodeEventAccessorSig(evt, isAdd: true);
         var adder = M.AddMethodDefinition(
             MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
@@ -712,6 +737,9 @@ internal class TypeDefEmitter
             -1,
             _emitter.NextParamHandle);
         _emitter.IncrementMethodRow();
+
+        M.AddParameter(ParameterAttributes.None, M.GetOrAddString("handler"), 1);
+        _emitter.IncrementParamRow();
 
         // remove_ method
         var removeSig = EncodeEventAccessorSig(evt, isAdd: false);
@@ -723,6 +751,9 @@ internal class TypeDefEmitter
             -1,
             _emitter.NextParamHandle);
         _emitter.IncrementMethodRow();
+
+        M.AddParameter(ParameterAttributes.None, M.GetOrAddString("token"), 1);
+        _emitter.IncrementParamRow();
 
         return (adder, remover);
     }
@@ -989,7 +1020,7 @@ internal class TypeDefEmitter
         if (typeRef.ResolvedSymbol == null)
             return default;
 
-        var genTypeHandle = _emitter.ResolveSymbolHandle(typeRef.ResolvedSymbol);
+        var genTypeHandle = _emitter.ResolveSymbolHandle(typeRef.ResolvedSymbol, typeRef.TypeArguments.Count);
         if (genTypeHandle.IsNil)
             return default;
 
@@ -1178,24 +1209,161 @@ internal class TypeDefEmitter
 
     internal static bool HasDirectMembers(RuntimeClassSymbol rc)
     {
-        return rc.Members.Any(m => m is MethodSymbol or PropertySymbol or EventSymbol);
+        return rc.Members.Any(m => m is MethodSymbol { IsStatic: false }
+            or PropertySymbol { IsStatic: false }
+            or EventSymbol { IsStatic: false });
     }
 
-    private static Guid GenerateDeterministicGuid(string name)
+    /// <summary>
+    /// Well-known namespace UUID for non-parameterized interface GUID generation.
+    /// Different from the pinterface namespace UUID (11f47ad5-...).
+    /// </summary>
+    private static readonly Guid InterfaceNamespaceGuid = new("e72a134c-baf7-4dd3-b542-77848e87b138");
+
+    /// <summary>
+    /// Generates a deterministic GUID for an interface using the ABI signature seed.
+    /// Matches original midl.exe algorithm: UUID v5 with base {e72a134c-...} and
+    /// seed = "{fullName}:{method1Sig};{method2Sig};..."
+    /// </summary>
+    private static Guid GenerateDeterministicGuid(string fullName, IReadOnlyList<ISymbol> members)
     {
-        // WinRT UUID v5 algorithm with base UUID {11f47ad5-7b73-42c0-abae-878b1e16adee}
-        byte[] baseUuid = {
-            0x11, 0xf4, 0x7a, 0xd5,
-            0x7b, 0x73,
-            0x42, 0xc0,
-            0xab, 0xae,
-            0x87, 0x8b, 0x1e, 0x16, 0xad, 0xee
-        };
+        var seed = BuildAbiSignatureSeed(fullName, members);
+        return GenerateUuidV5(InterfaceNamespaceGuid, seed);
+    }
+
+    /// <summary>
+    /// Builds the ABI signature seed string for GUID generation.
+    /// Format: "{fullName}:HRESULT method1(params);HRESULT method2(params);..."
+    /// </summary>
+    internal static string BuildAbiSignatureSeed(string fullName, IReadOnlyList<ISymbol> members)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append(fullName);
+        sb.Append(':');
+
+        foreach (var member in members)
+        {
+            switch (member)
+            {
+                case MethodSymbol method:
+                    AppendMethodSeed(sb, method.Name, method.Parameters, method.ReturnType);
+                    break;
+                case PropertySymbol prop:
+                    // getter: HRESULT get_Name(Type*);
+                    AppendMethodSeed(sb, $"get_{prop.Name}", [], prop.Type);
+                    if (prop.HasSetter)
+                    {
+                        // setter: HRESULT put_Name(Type);
+                        var setterParam = new ParameterSymbol("value", null) { Type = prop.Type };
+                        AppendMethodSeed(sb, $"put_{prop.Name}", [setterParam], TypeRef.Void);
+                    }
+                    break;
+                case EventSymbol evt:
+                    // add_: HRESULT add_Name(DelegateType*,Windows.Foundation.EventRegistrationToken*);
+                    AppendEventAddSeed(sb, evt);
+                    // remove_: HRESULT remove_Name(EventRegistrationToken);
+                    AppendEventRemoveSeed(sb, evt);
+                    break;
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    private static void AppendMethodSeed(System.Text.StringBuilder sb, string name,
+        IReadOnlyList<ParameterSymbol> parameters, TypeRef returnType)
+    {
+        sb.Append("HRESULT ");
+        sb.Append(name);
+        sb.Append('(');
+
+        bool first = true;
+        foreach (var p in parameters)
+        {
+            if (!first) sb.Append(',');
+            first = false;
+            AppendTypeSeed(sb, p.Type);
+            if (IsReferenceType(p.Type))
+                sb.Append('*');
+        }
+
+        if (returnType.Name != "void")
+        {
+            if (!first) sb.Append(',');
+            AppendTypeSeed(sb, returnType);
+            // Reference types get * for pointer, then * for out = **
+            // Value types get * for out
+            sb.Append(IsReferenceType(returnType) ? "**" : "*");
+        }
+
+        sb.Append(");");
+    }
+
+    /// <summary>
+    /// Determines if a TypeRef is a reference type in ABI (passed as pointer).
+    /// Interfaces, delegates, runtime classes, and Object (IInspectable) are reference types.
+    /// </summary>
+    private static bool IsReferenceType(TypeRef typeRef)
+    {
+        if (typeRef.Name == "Object") return true;
+        return typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol or RuntimeClassSymbol;
+    }
+
+    private static void AppendEventAddSeed(System.Text.StringBuilder sb, EventSymbol evt)
+    {
+        sb.Append("HRESULT add_");
+        sb.Append(evt.Name);
+        sb.Append('(');
+        AppendTypeSeed(sb, evt.DelegateType);
+        sb.Append("*,Windows.Foundation.EventRegistrationToken*);");
+    }
+
+    private static void AppendEventRemoveSeed(System.Text.StringBuilder sb, EventSymbol evt)
+    {
+        sb.Append("HRESULT remove_");
+        sb.Append(evt.Name);
+        sb.Append("(EventRegistrationToken);");
+    }
+
+    private static void AppendTypeSeed(System.Text.StringBuilder sb, TypeRef typeRef)
+    {
+        if (typeRef.TypeArguments.Count > 0)
+        {
+            // Generic type: Windows.Foundation.EventHandler`1<Object>
+            var resolvedName = typeRef.ResolvedSymbol?.FullName ?? typeRef.Name;
+            sb.Append(resolvedName);
+            sb.Append('`');
+            sb.Append(typeRef.TypeArguments.Count);
+            sb.Append('<');
+            for (int i = 0; i < typeRef.TypeArguments.Count; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                AppendTypeSeed(sb, typeRef.TypeArguments[i]);
+            }
+            sb.Append('>');
+        }
+        else
+        {
+            sb.Append(typeRef.ResolvedSymbol?.FullName ?? typeRef.Name);
+        }
+    }
+
+    /// <summary>
+    /// Computes a UUID v5 (SHA-1 based) from a namespace UUID and a name string.
+    /// </summary>
+    private static Guid GenerateUuidV5(Guid namespaceId, string name)
+    {
+        var nsBytes = namespaceId.ToByteArray();
+        // Convert to big-endian (network byte order)
+        (nsBytes[0], nsBytes[3]) = (nsBytes[3], nsBytes[0]);
+        (nsBytes[1], nsBytes[2]) = (nsBytes[2], nsBytes[1]);
+        (nsBytes[4], nsBytes[5]) = (nsBytes[5], nsBytes[4]);
+        (nsBytes[6], nsBytes[7]) = (nsBytes[7], nsBytes[6]);
 
         var nameBytes = System.Text.Encoding.UTF8.GetBytes(name);
-        var input = new byte[baseUuid.Length + nameBytes.Length];
-        Array.Copy(baseUuid, input, baseUuid.Length);
-        Array.Copy(nameBytes, 0, input, baseUuid.Length, nameBytes.Length);
+        var input = new byte[nsBytes.Length + nameBytes.Length];
+        Array.Copy(nsBytes, input, nsBytes.Length);
+        Array.Copy(nameBytes, 0, input, nsBytes.Length, nameBytes.Length);
 
         var hash = System.Security.Cryptography.SHA1.HashData(input);
 
@@ -1267,7 +1435,7 @@ internal static class SignatureTypeEncoderExtensions
 
         if (typeRef.ResolvedSymbol != null)
         {
-            genTypeHandle = emitter.ResolveSymbolHandle(typeRef.ResolvedSymbol);
+            genTypeHandle = emitter.ResolveSymbolHandle(typeRef.ResolvedSymbol, typeRef.TypeArguments.Count);
             isValueType = typeRef.ResolvedSymbol is EnumSymbol or StructSymbol;
         }
 

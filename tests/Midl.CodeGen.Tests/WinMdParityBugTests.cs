@@ -197,7 +197,7 @@ public class WinMdParityBugTests
     }
 
     [Fact]
-    public void RuntimeClassDefaultVersion_Is0x10000()
+    public void RuntimeClassDefaultVersion_IsOne()
     {
         var bytes = CompileAndEmit("""
             namespace Test
@@ -216,9 +216,9 @@ public class WinMdParityBugTests
             var handle = FindTypeDef(reader, "Widget");
             var versionValue = GetVersionAttributeValue(reader, handle);
 
-            // Default version (no explicit [version]) → 1 * 0x10000 = 65536
+            // Default version (no explicit [version]) → 1 (matching original midl)
             Assert.NotNull(versionValue);
-            Assert.Equal(0x00010000u, versionValue.Value);
+            Assert.Equal(1u, versionValue.Value);
         }
     }
 
@@ -368,8 +368,9 @@ public class WinMdParityBugTests
             var guid = GetGuidAttributeValue(reader, ifaceHandle);
             Assert.NotNull(guid);
 
-            // Compute expected GUID using the correct WinRT UUID v5 algorithm
-            var expectedGuid = ComputeWinRTUuidV5("Test.IWidget");
+            // Compute expected GUID using the correct ABI signature-based algorithm
+            // Seed: "Test.IWidget:HRESULT DoSomething();"
+            var expectedGuid = ComputeInterfaceGuid("Test.IWidget:HRESULT DoSomething();");
             Assert.Equal(expectedGuid, guid.Value);
         }
     }
@@ -391,7 +392,8 @@ public class WinMdParityBugTests
             var guid = GetGuidAttributeValue(reader, handle);
             Assert.NotNull(guid);
 
-            var expectedGuid = ComputeWinRTUuidV5("Test.IFoo");
+            // Seed: "Test.IFoo:HRESULT Bar();"
+            var expectedGuid = ComputeInterfaceGuid("Test.IFoo:HRESULT Bar();");
             Assert.Equal(expectedGuid, guid.Value);
         }
     }
@@ -421,38 +423,31 @@ public class WinMdParityBugTests
     }
 
     /// <summary>
-    /// Reference implementation of WinRT UUID v5 algorithm.
-    /// Uses base UUID {11f47ad5-7b73-42c0-abae-878b1e16adee} and SHA-1.
+    /// Computes an interface GUID using the correct ABI signature-based algorithm.
+    /// UUID v5 with base {e72a134c-baf7-4dd3-b542-77848e87b138}.
     /// </summary>
-    private static Guid ComputeWinRTUuidV5(string name)
+    private static Guid ComputeInterfaceGuid(string seed)
     {
-        // WinRT base UUID in big-endian (network byte order)
-        byte[] baseUuid = {
-            0x11, 0xf4, 0x7a, 0xd5,
-            0x7b, 0x73,
-            0x42, 0xc0,
-            0xab, 0xae,
-            0x87, 0x8b, 0x1e, 0x16, 0xad, 0xee
-        };
+        var baseGuid = new Guid("e72a134c-baf7-4dd3-b542-77848e87b138");
+        var nsBytes = baseGuid.ToByteArray();
+        (nsBytes[0], nsBytes[3]) = (nsBytes[3], nsBytes[0]);
+        (nsBytes[1], nsBytes[2]) = (nsBytes[2], nsBytes[1]);
+        (nsBytes[4], nsBytes[5]) = (nsBytes[5], nsBytes[4]);
+        (nsBytes[6], nsBytes[7]) = (nsBytes[7], nsBytes[6]);
 
-        var nameBytes = System.Text.Encoding.UTF8.GetBytes(name);
-        var input = new byte[baseUuid.Length + nameBytes.Length];
-        Array.Copy(baseUuid, input, baseUuid.Length);
-        Array.Copy(nameBytes, 0, input, baseUuid.Length, nameBytes.Length);
+        var nameBytes = System.Text.Encoding.UTF8.GetBytes(seed);
+        var input = new byte[nsBytes.Length + nameBytes.Length];
+        Array.Copy(nsBytes, input, nsBytes.Length);
+        Array.Copy(nameBytes, 0, input, nsBytes.Length, nameBytes.Length);
 
         var hash = System.Security.Cryptography.SHA1.HashData(input);
-
-        // Set version 5 (byte 6, high nibble)
         hash[6] = (byte)((hash[6] & 0x0F) | 0x50);
-        // Set variant RFC 4122 (byte 8, high 2 bits)
         hash[8] = (byte)((hash[8] & 0x3F) | 0x80);
 
-        // Convert from big-endian UUID to .NET Guid
         int a = (hash[0] << 24) | (hash[1] << 16) | (hash[2] << 8) | hash[3];
         short b = (short)((hash[4] << 8) | hash[5]);
         short c = (short)((hash[6] << 8) | hash[7]);
         byte[] d = { hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15] };
-
         return new Guid(a, b, c, d);
     }
 

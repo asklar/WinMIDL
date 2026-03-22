@@ -97,7 +97,7 @@ public class InterfaceSynthesizer
                 var factoryMethod = new MethodSymbol(
                     ctor.Parameters.Count == 1 ? "CreateInstance" : $"CreateInstance",
                     null);
-                factoryMethod.ReturnType = new TypeRef(rc.Name);
+                factoryMethod.ReturnType = new TypeRef(rc.Name) { ResolvedSymbol = rc };
                 factoryMethod.Parameters.AddRange(ctor.Parameters);
                 factoryMembers.Add(factoryMethod);
             }
