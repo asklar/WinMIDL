@@ -179,7 +179,10 @@ public class LspHandlerTests
         Assert.Contains("composable", json);
         Assert.Contains("threading", json);
         Assert.Contains("contract", json);
-        Assert.Contains("uuid", json);
+        Assert.Contains("default_interface", json);
+
+        // uuid is only valid on interface/delegate, not runtimeclass
+        Assert.DoesNotContain("\"uuid\"", json);
 
         // Should NOT include keywords/types (those are for non-attribute context)
         Assert.DoesNotContain("\"namespace\"", json);

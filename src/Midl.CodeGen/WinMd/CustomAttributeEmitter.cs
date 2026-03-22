@@ -48,7 +48,7 @@ internal class CustomAttributeEmitter
         Metadata.AddCustomAttribute(parent, _flagsCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
 
-    public void AddActivatableAttribute(EntityHandle parent, uint version = 0x00010000)
+    public void AddActivatableAttribute(EntityHandle parent, uint version = 1)
     {
         _activatableCtorRef ??= CreateWfmCtorRef("ActivatableAttribute",
             new Action<SignatureTypeEncoder>[] { e => e.UInt32(), e => e.String() });
@@ -89,7 +89,7 @@ internal class CustomAttributeEmitter
         Metadata.AddCustomAttribute(parent, _guidCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
 
-    public void AddVersionAttribute(EntityHandle parent, uint version = 0x00010000)
+    public void AddVersionAttribute(EntityHandle parent, uint version = 1)
     {
         _versionCtorRef ??= CreateWfmCtorRef("VersionAttribute",
             new Action<SignatureTypeEncoder>[] { e => e.UInt32() });

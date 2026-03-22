@@ -147,8 +147,7 @@ public class AttributeValidationTests
             }
             """);
 
-        var diag = Assert.Single(compilation.Diagnostics);
-        Assert.Equal("MIDL1028", diag.Code);
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
         Assert.Contains("attributeusage", diag.Message);
     }
 
@@ -167,8 +166,181 @@ public class AttributeValidationTests
             }
             """);
 
-        // No MIDL1028 because the attribute declaration is skipped by the binder;
+        // No MIDL1029 because the attribute declaration is skipped by the binder;
         // the attributeusage attribute is not on a non-attribute type.
-        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1028");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1029");
+    }
+
+    // ─── Attribute target restriction tests ───────────────────────────
+
+    [Fact]
+    public void ContractversionOnRuntimeclass_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("contractversion", diag.Message);
+        Assert.Contains("target_apicontract", diag.Message);
+    }
+
+    [Fact]
+    public void ContractversionOnApicontract_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract MyContract { }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1029");
+    }
+
+    [Fact]
+    public void UuidOnRuntimeclass_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [uuid("12345678-1234-1234-1234-123456789abc"), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("uuid", diag.Message);
+    }
+
+    [Fact]
+    public void UuidOnInterface_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [uuid("12345678-1234-1234-1234-123456789abc")]
+                interface IFoo
+                {
+                    void Bar();
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1029");
+    }
+
+    [Fact]
+    public void ThreadingOnInterface_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [threading(both)]
+                interface IFoo
+                {
+                    void Bar();
+                }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("threading", diag.Message);
+        Assert.Contains("target_runtimeclass", diag.Message);
+    }
+
+    [Fact]
+    public void FlagsOnRuntimeclass_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [flags, default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("flags", diag.Message);
+        Assert.Contains("target_enum", diag.Message);
+    }
+
+    [Fact]
+    public void OverloadOnProperty_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [default_interface]
+                runtimeclass C
+                {
+                    [overload("X")]
+                    String Name { get; };
+                }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("overload", diag.Message);
+        Assert.Contains("target_method", diag.Message);
+    }
+
+    [Fact]
+    public void DefaultInterfaceOnInterface_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [default_interface]
+                interface IFoo
+                {
+                    void Bar();
+                }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("default_interface", diag.Message);
+        Assert.Contains("target_runtimeclass", diag.Message);
+    }
+
+    [Fact]
+    public void ExclusivetoOnRuntimeclass_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [exclusiveto(C), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("exclusiveto", diag.Message);
+        Assert.Contains("target_interface", diag.Message);
+    }
+
+    [Fact]
+    public void ActivatableOnInterface_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [activatable(1)]
+                interface IFoo
+                {
+                    void Bar();
+                }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("activatable", diag.Message);
+        Assert.Contains("target_runtimeclass", diag.Message);
     }
 }

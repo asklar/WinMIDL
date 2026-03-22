@@ -203,7 +203,7 @@ public class VersionEncodingEmissionTests
     [Fact]
     public void DefaultVersion_EmitsCorrectDefault()
     {
-        // No explicit [version], default should be 0x00010000 = 65536
+        // No explicit [version], default should be 1 (matching original midl)
         var bytes = CompileAndEmit("""
             namespace Test
             {
@@ -219,7 +219,7 @@ public class VersionEncodingEmissionTests
             var version = ReadAttributeUInt32(reader, handle,
                 "Windows.Foundation.Metadata.VersionAttribute");
             Assert.NotNull(version);
-            Assert.Equal(0x00010000u, version.Value);
+            Assert.Equal(1u, version.Value);
         }
     }
 

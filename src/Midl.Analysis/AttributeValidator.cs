@@ -24,6 +24,40 @@ public class AttributeValidator
     private static readonly HashSet<string> ValidDeprecationTypes =
         new(StringComparer.OrdinalIgnoreCase) { "deprecate", "remove" };
 
+    /// <summary>
+    /// Centralized map of well-known WinRT attribute names to their valid target kinds.
+    /// Attributes not listed here have no target restriction (valid everywhere).
+    /// Used by both validation and autocomplete.
+    /// </summary>
+    public static readonly Dictionary<string, HashSet<string>> BuiltInAttributeTargets =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["contractversion"] = new() { "target_apicontract" },
+            ["version"] = new() { "target_runtimeclass", "target_interface", "target_delegate", "target_enum", "target_struct", "target_field" },
+            ["contract"] = new() { "target_runtimeclass", "target_interface", "target_delegate", "target_enum", "target_struct", "target_field", "target_interfaceimpl", "target_method", "target_event", "target_parameter" },
+            ["uuid"] = new() { "target_interface", "target_delegate" },
+            ["threading"] = new() { "target_runtimeclass" },
+            ["marshaling_behavior"] = new() { "target_runtimeclass" },
+            ["activatable"] = new() { "target_runtimeclass" },
+            ["composable"] = new() { "target_runtimeclass" },
+            ["static"] = new() { "target_runtimeclass" },
+            ["deprecated"] = new() { "target_runtimeclass", "target_interface", "target_delegate", "target_enum", "target_struct", "target_method", "target_property", "target_event", "target_field" },
+            ["exclusiveto"] = new() { "target_interface" },
+            ["default_interface"] = new() { "target_runtimeclass" },
+            ["webhosthidden"] = new() { "target_runtimeclass", "target_interface", "target_delegate", "target_enum", "target_struct" },
+            ["experimental"] = new() { "target_runtimeclass", "target_interface", "target_delegate", "target_enum", "target_struct" },
+            ["flags"] = new() { "target_enum" },
+            ["overload"] = new() { "target_method" },
+            ["default_overload"] = new() { "target_method" },
+            ["method_name"] = new() { "target_method" },
+            ["return_name"] = new() { "target_method" },
+            ["remote_async"] = new() { "target_method" },
+            ["attributeusage"] = new() { "target_attribute" },
+            ["allowmultiple"] = new() { "target_attribute" },
+            ["attributename"] = new() { "target_attribute" },
+            ["contentproperty"] = new() { "target_runtimeclass" },
+        };
+
     /// <summary>All well-known built-in attribute names recognized by the MIDL compiler.</summary>
     private static readonly HashSet<string> WellKnownAttributes =
         new(StringComparer.OrdinalIgnoreCase)
@@ -104,39 +138,46 @@ public class AttributeValidator
                 case RuntimeClassSymbol rc:
                     ValidateRuntimeClass(rc);
                     ValidateUnknownAttributes(rc.Attributes, attrTypes);
+                    ValidateBuiltInAttributeTargets(rc.Attributes, "target_runtimeclass");
                     ValidateCustomAttributeInstances(rc.Attributes, rc.Name, "target_runtimeclass", attrTypes);
                     ValidateContractAndFeatureArgs(rc.Attributes, rc.Name, apiContracts);
                     ValidateMemberAttributes(rc.Members, attrTypes, apiContracts);
                     break;
                 case InterfaceSymbol iface:
-                    ValidateAttributes(iface.Attributes, iface.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(iface.Attributes, attrTypes);
+                    ValidateBuiltInAttributeTargets(iface.Attributes, "target_interface");
                     ValidateCustomAttributeInstances(iface.Attributes, iface.Name, "target_interface", attrTypes);
                     ValidateContractAndFeatureArgs(iface.Attributes, iface.Name, apiContracts);
-                    ValidateMemberAttributes(iface.Members, attrTypes, apiContracts);
+                    if (!iface.IsSynthesized)
+                        ValidateMemberAttributes(iface.Members, attrTypes, apiContracts);
                     break;
                 case EnumSymbol en:
-                    ValidateAttributes(en.Attributes, en.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(en.Attributes, attrTypes);
+                    ValidateBuiltInAttributeTargets(en.Attributes, "target_enum");
                     ValidateCustomAttributeInstances(en.Attributes, en.Name, "target_enum", attrTypes);
                     ValidateContractAndFeatureArgs(en.Attributes, en.Name, apiContracts);
                     foreach (var m in en.EnumMembers)
                     {
+                        ValidateBuiltInAttributeTargets(m.Attributes, "target_field");
                         ValidateCustomAttributeInstances(m.Attributes, m.Name, "target_field", attrTypes);
                         ValidateContractAndFeatureArgs(m.Attributes, m.Name, apiContracts);
                     }
                     break;
                 case StructSymbol st:
-                    ValidateAttributes(st.Attributes, st.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(st.Attributes, attrTypes);
+                    ValidateBuiltInAttributeTargets(st.Attributes, "target_struct");
                     ValidateCustomAttributeInstances(st.Attributes, st.Name, "target_struct", attrTypes);
                     ValidateContractAndFeatureArgs(st.Attributes, st.Name, apiContracts);
                     break;
                 case DelegateSymbol del:
-                    ValidateAttributes(del.Attributes, del.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(del.Attributes, attrTypes);
+                    ValidateBuiltInAttributeTargets(del.Attributes, "target_delegate");
                     ValidateCustomAttributeInstances(del.Attributes, del.Name, "target_delegate", attrTypes);
                     ValidateContractAndFeatureArgs(del.Attributes, del.Name, apiContracts);
+                    break;
+                case ApiContractSymbol ac:
+                    ValidateUnknownAttributes(ac.Attributes, attrTypes);
+                    ValidateBuiltInAttributeTargets(ac.Attributes, "target_apicontract");
                     break;
                 case AttributeTypeSymbol:
                     break;
@@ -186,10 +227,6 @@ public class AttributeValidator
                 case "static":
                     ValidateStaticInterface(attr, rc);
                     break;
-
-                case "attributeusage":
-                    _diagnostics.Add(DiagnosticDescriptors.AttributeUsageNotOnAttribute(rc.Name, attr.Position));
-                    break;
             }
         }
 
@@ -203,15 +240,18 @@ public class AttributeValidator
         }
     }
 
-    private void ValidateAttributes(List<AttributeData> attributes, string typeName, bool isRuntimeClass)
+    /// <summary>
+    /// Validates that well-known built-in attributes are used on appropriate targets.
+    /// </summary>
+    private void ValidateBuiltInAttributeTargets(List<AttributeData> attributes, string targetKind)
     {
         foreach (var attr in attributes)
         {
-            switch (attr.Name.ToLowerInvariant())
+            if (BuiltInAttributeTargets.TryGetValue(attr.Name, out var validTargets) &&
+                !validTargets.Contains(targetKind))
             {
-                case "attributeusage":
-                    _diagnostics.Add(DiagnosticDescriptors.AttributeUsageNotOnAttribute(typeName, attr.Position));
-                    break;
+                _diagnostics.Add(DiagnosticDescriptors.AttributeWrongTarget(
+                    attr.Name, targetKind, string.Join(", ", validTargets), attr.Position));
             }
         }
     }
@@ -369,6 +409,7 @@ public class AttributeValidator
             if (attrs == null || targetKind == null) continue;
 
             ValidateUnknownAttributes(attrs, attrTypes);
+            ValidateBuiltInAttributeTargets(attrs, targetKind);
             ValidateCustomAttributeInstances(attrs, name!, targetKind, attrTypes);
             ValidateContractAndFeatureArgs(attrs, name!, apiContracts);
         }

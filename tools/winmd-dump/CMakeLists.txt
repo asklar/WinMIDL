@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.14)
+project(winmd-dump)
+add_executable(winmd-dump main.cpp)
+target_include_directories(winmd-dump PRIVATE E:/winmd/src)
+target_compile_features(winmd-dump PRIVATE cxx_std_20)

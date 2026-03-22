@@ -205,11 +205,13 @@ public static class CompletionHandler
         var items = new List<object>();
 
         // Add well-known built-in attributes with their descriptions and target applicability
-        foreach (var (name, detail, targets, snippet) in WellKnownAttributeCompletions)
+        foreach (var (name, detail, snippet) in WellKnownAttributeCompletions)
         {
-            if (targetKind == "target_all" || targets.Length == 0 ||
-                targets.Contains(targetKind) ||
-                (targetKind == "target_method" && targets.Contains("target_member")))
+            // Look up targets from the centralized map; no entry = valid everywhere
+            var hasTargets = AttributeValidator.BuiltInAttributeTargets.TryGetValue(name, out var validTargets);
+            if (targetKind == "target_all" || !hasTargets ||
+                validTargets!.Contains(targetKind) ||
+                (targetKind == "target_method" && validTargets!.Any(t => t.StartsWith("target_method"))))
             {
                 var item = new Dictionary<string, object?>
                 {
@@ -289,64 +291,65 @@ public static class CompletionHandler
     }
 
     /// <summary>
-    /// Well-known attributes with their descriptions, applicable targets, and optional snippets.
-    /// Targets: empty array = applicable everywhere.
+    /// Well-known attributes with their descriptions and optional snippets.
+    /// Target filtering is derived from <see cref="AttributeValidator.BuiltInAttributeTargets"/>.
     /// </summary>
-    private static readonly (string Name, string Detail, string[] Targets, string? Snippet)[] WellKnownAttributeCompletions =
+    private static readonly (string Name, string Detail, string? Snippet)[] WellKnownAttributeCompletions =
     [
         // Type-level attributes
-        ("uuid", "Assigns a GUID to an interface", ["target_interface", "target_runtimeclass"],
+        ("uuid", "Assigns a GUID to an interface",
             "uuid(\"${1:00000000-0000-0000-0000-000000000000}\")"),
-        ("contract", "Associates type with an API contract version", [],
+        ("contract", "Associates type with an API contract version",
             "contract(${1:ContractName}, ${2:version})"),
-        ("version", "Specifies the version number", [],
+        ("version", "Specifies the version number",
             "version(${1:1})"),
-        ("contractversion", "Sets the version of an API contract", ["target_apicontract"],
+        ("contractversion", "Sets the version of an API contract",
             "contractversion(${1:1})"),
-        ("deprecated", "Marks as deprecated", [],
+        ("deprecated", "Marks as deprecated",
             "deprecated(\"${1:Use alternative}\", deprecate, ${2:ContractName}, ${3:version})"),
-        ("experimental", "Marks as experimental", [], null),
+        ("experimental", "Marks as experimental", null),
 
         // Runtimeclass activation/composition
-        ("activatable", "Makes class default-activatable or with factory", ["target_runtimeclass"],
+        ("activatable", "Makes class default-activatable or with factory",
             "activatable(${1:ContractName}, ${2:version})"),
-        ("composable", "Makes class composable (base for derivation)", ["target_runtimeclass"],
+        ("composable", "Makes class composable (base for derivation)",
             "composable(${1:IFactory}, ${2:public}, ${3:ContractName}, ${4:version})"),
-        ("static", "Declares a static interface on the class", ["target_runtimeclass"],
+        ("static", "Declares a static interface on the class",
             "static(${1:IStatics}, ${2:ContractName}, ${3:version})"),
-        ("threading", "Threading model: both, sta, mta", ["target_runtimeclass"],
+        ("threading", "Threading model: both, sta, mta",
             "threading(${1|both,sta,mta|})"),
-        ("marshaling_behavior", "Marshaling: agile, standard, none", ["target_runtimeclass"],
+        ("marshaling_behavior", "Marshaling: agile, standard, none",
             "marshaling_behavior(${1|agile,standard,none|})"),
-        ("webhosthidden", "Hides type from JavaScript projection", ["target_runtimeclass", "target_interface"], null),
-        ("default_interface", "Marks interface as the default", ["target_runtimeclass"], null),
+        ("webhosthidden", "Hides type from JavaScript projection", null),
+        ("default_interface", "Marks interface as the default", null),
+        ("contentproperty", "Specifies the content property for XAML", "contentproperty(\"${1:PropertyName}\")"),
 
         // Interface attributes
-        ("exclusiveto", "Restricts interface to a specific class", ["target_interface"],
+        ("exclusiveto", "Restricts interface to a specific class",
             "exclusiveto(${1:ClassName})"),
-        ("default", "Marks as default interface implementation", ["target_interface"], null),
-        ("overridable", "Interface can be overridden in derived classes", ["target_interface"], null),
-        ("protected", "Interface is accessible only from derived classes", ["target_interface"], null),
+        ("default", "Marks as default interface implementation", null),
+        ("overridable", "Interface can be overridden in derived classes", null),
+        ("protected", "Interface is accessible only from derived classes", null),
 
         // Enum attributes
-        ("flags", "Marks enum as a flags/bitmask enum", ["target_enum"], null),
+        ("flags", "Marks enum as a flags/bitmask enum", null),
 
         // Attribute meta-attributes
-        ("attributeusage", "Specifies where a custom attribute can be applied", ["target_attribute"],
+        ("attributeusage", "Specifies where a custom attribute can be applied",
             "attributeusage(${1|target_runtimeclass,target_interface,target_enum,target_struct,target_delegate,target_method,target_property,target_event,target_parameter|})"),
-        ("attributename", "Overrides the short name of a custom attribute", ["target_attribute"],
+        ("attributename", "Overrides the short name of a custom attribute",
             "attributename(\"${1:ShortName}\")"),
-        ("allowmultiple", "Allows attribute to be applied multiple times", ["target_attribute"], null),
+        ("allowmultiple", "Allows attribute to be applied multiple times", null),
 
         // Member-level attributes
-        ("method_name", "Overrides the projected method name", ["target_member"],
+        ("method_name", "Overrides the projected method name",
             "method_name(\"${1:Name}\")"),
-        ("overload", "Groups overloaded methods", ["target_member"],
+        ("overload", "Groups overloaded methods",
             "overload(\"${1:GroupName}\")"),
-        ("default_overload", "Marks as the default overload in a group", ["target_member"], null),
-        ("return_name", "Overrides the return value parameter name", ["target_member"],
+        ("default_overload", "Marks as the default overload in a group", null),
+        ("return_name", "Overrides the return value parameter name",
             "return_name(\"${1:name}\")"),
-        ("remote_async", "Marks method for remote async projection", ["target_member"], null),
+        ("remote_async", "Marks method for remote async projection", null),
     ];
 
     #region Import Completions
