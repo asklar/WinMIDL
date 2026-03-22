@@ -2294,7 +2294,7 @@ public class Binder
         return false;
     }
 
-    private static bool TryExtractUuidAttribute(GreenNode attrListNode, out Guid uuid)
+    private bool TryExtractUuidAttribute(GreenNode attrListNode, out Guid uuid)
     {
         uuid = default;
         for (int i = 0; i < attrListNode.SlotCount; i++)
@@ -2325,6 +2325,8 @@ public class Binder
                     var guidText = ExtractFirstLiteralText(argList);
                     if (guidText != null && Guid.TryParse(guidText, out uuid))
                         return true;
+                    if (guidText != null)
+                        _diagnostics.Add(DiagnosticDescriptors.UuidWrongFormat(guidText, _posMap.GetPositionOf(guidText)));
                 }
             }
         }
