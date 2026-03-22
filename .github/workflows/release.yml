@@ -39,8 +39,10 @@ jobs:
         include:
           - rid: win-x64
             name: Windows x64
+            ilcInstructionSet: x86-64-v2
           - rid: win-arm64
             name: Windows ARM64
+            ilcInstructionSet: armv8.0-a
     steps:
       - uses: actions/checkout@v4
 
@@ -70,6 +72,7 @@ jobs:
           -p:PublishAot=true
           -p:StripSymbols=true
           -p:IlcOptimizationPreference=Speed
+          -p:IlcInstructionSet=${{ matrix.ilcInstructionSet }}
           -p:IlcFoldIdenticalMethodBodies=true
           -p:InvariantGlobalization=true
           -p:StackTraceSupport=false
