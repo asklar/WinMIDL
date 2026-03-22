@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    [exclusiveto(TestApp.IBad)]
+    interface IBad
+    {
+        void DoWork();
+    }
+}

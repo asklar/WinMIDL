@@ -1,0 +1,9 @@
+namespace TestApp
+{
+    [threading(both)]
+    struct MyPoint
+    {
+        Int32 X;
+        Int32 Y;
+    };
+}

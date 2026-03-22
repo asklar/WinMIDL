@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    runtimeclass Widget
+    {
+        Widget();
+        Widget Widget { get; };
+    }
+}

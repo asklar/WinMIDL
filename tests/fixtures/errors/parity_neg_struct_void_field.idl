@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    struct BadStruct
+    {
+        void NotAType;
+    };
+}

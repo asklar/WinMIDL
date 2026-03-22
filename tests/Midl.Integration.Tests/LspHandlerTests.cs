@@ -607,4 +607,168 @@ public class LspHandlerTests
     }
 
     #endregion
+
+#if WINDOWS_INTERNAL
+    #region FeatureName Completion Tests
+
+    [Fact]
+    public void FeatureNameCompletion_AfterOpenBrace_ShowsStageValues()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N { feature_name Foo = { }";
+        var dm = CreateDocManager(uri, source);
+        // Cursor right after '{'
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 34), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        Assert.Contains("\"AlwaysDisabled\"", json);
+        Assert.Contains("\"DisabledByDefault\"", json);
+        Assert.Contains("\"EnabledByDefault\"", json);
+        Assert.Contains("\"AlwaysEnabled\"", json);
+        // Kind should be EnumMember (20)
+        Assert.Contains("\"kind\":20", json);
+        // Should NOT contain bool values
+        Assert.DoesNotContain("\"TRUE\"", json);
+        Assert.DoesNotContain("\"FALSE\"", json);
+    }
+
+    [Fact]
+    public void FeatureNameCompletion_AfterComma_ShowsBoolValues()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N { feature_name Foo = {AlwaysEnabled, }";
+        var dm = CreateDocManager(uri, source);
+        // Cursor after comma+space
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 49), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        Assert.Contains("\"TRUE\"", json);
+        Assert.Contains("\"FALSE\"", json);
+        // Kind should be Keyword (14)
+        Assert.Contains("\"kind\":14", json);
+        // Should NOT contain stage values
+        Assert.DoesNotContain("\"AlwaysDisabled\"", json);
+        Assert.DoesNotContain("\"AlwaysEnabled\"", json);
+    }
+
+    [Fact]
+    public void FeatureNameCompletion_PartialStageTyping_FiltersCorrectly()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N { feature_name Foo = {Dis }";
+        var dm = CreateDocManager(uri, source);
+        // Cursor after 'Dis' — still in stage position (no comma)
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 37), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should still offer all stage values (filtering is client-side in LSP)
+        Assert.Contains("\"DisabledByDefault\"", json);
+        Assert.Contains("\"AlwaysDisabled\"", json);
+        Assert.Contains("\"EnabledByDefault\"", json);
+        Assert.Contains("\"AlwaysEnabled\"", json);
+    }
+
+    [Fact]
+    public void FeatureNameCompletion_StageValues_HaveEnumMemberKind()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N { feature_name Foo = { }";
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 34), dm);
+
+        var json = JsonSerializer.Serialize(result);
+        // All items should have kind 20 (EnumMember)
+        // Deserialize and check each item
+        var doc = JsonDocument.Parse(json);
+        var items = doc.RootElement.GetProperty("items");
+        foreach (var item in items.EnumerateArray())
+        {
+            Assert.Equal(20, item.GetProperty("kind").GetInt32());
+        }
+    }
+
+    [Fact]
+    public void FeatureAttrCompletion_SingleFeatureName_ShowsIt()
+    {
+        var uri = "file:///test.midl";
+        var source = """
+            namespace N {
+                feature_name Foo = {AlwaysEnabled, TRUE};
+                [feature()]
+                runtimeclass Bar { }
+            }
+            """;
+        // Cursor inside [feature(|)] — line 2, position 13 (between '(' and ')')
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 2, 13), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        Assert.Contains("\"Foo\"", json);
+    }
+
+    [Fact]
+    public void FeatureAttrCompletion_MultipleFeatureNames_ShowsAll()
+    {
+        var uri = "file:///test.midl";
+        var source = """
+            namespace N {
+                feature_name Alpha = {AlwaysEnabled, TRUE};
+                feature_name Beta = {DisabledByDefault, FALSE};
+                feature_name Gamma = {EnabledByDefault, TRUE};
+                [feature()]
+                runtimeclass Bar { }
+            }
+            """;
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 4, 13), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        Assert.Contains("\"Alpha\"", json);
+        Assert.Contains("\"Beta\"", json);
+        Assert.Contains("\"Gamma\"", json);
+    }
+
+    [Fact]
+    public void FeatureAttrCompletion_PartialTyping_StillShowsAll()
+    {
+        var uri = "file:///test.midl";
+        var source = """
+            namespace N {
+                feature_name Foo = {AlwaysEnabled, TRUE};
+                feature_name Bar = {DisabledByDefault, FALSE};
+                [feature(Fo)]
+                runtimeclass Baz { }
+            }
+            """;
+        // Cursor at "Fo|" inside [feature(Fo)] — character = 15
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 3, 15), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        // LSP filtering is client-side, so all feature names should be returned
+        Assert.Contains("\"Foo\"", json);
+        Assert.Contains("\"Bar\"", json);
+    }
+
+    [Fact]
+    public void FeatureAttrCompletion_NoFeatureNames_EmptyItems()
+    {
+        var uri = "file:///test.midl";
+        var source = """
+            namespace N {
+                [feature()]
+                runtimeclass Bar { }
+            }
+            """;
+        var dm = CreateDocManager(uri, source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 1, 13), dm);
+        var json = JsonSerializer.Serialize(result);
+        var doc = JsonDocument.Parse(json);
+        var items = doc.RootElement.GetProperty("items");
+
+        Assert.Equal(0, items.GetArrayLength());
+    }
+
+    #endregion
+#endif
 }

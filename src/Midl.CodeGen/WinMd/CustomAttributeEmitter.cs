@@ -33,6 +33,7 @@ internal class CustomAttributeEmitter
     private MemberReferenceHandle? _defaultOverloadCtorRef;
     private MemberReferenceHandle? _overridableCtorRef;
     private MemberReferenceHandle? _protectedCtorRef;
+    private MemberReferenceHandle? _experimentalCtorRef;
     private TypeReferenceHandle? _systemTypeRef;
 
     public CustomAttributeEmitter(WinMdEmitter emitter)
@@ -269,6 +270,30 @@ internal class CustomAttributeEmitter
         var blob = EncodeParameterlessAttribute();
         Metadata.AddCustomAttribute(parent, _protectedCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
+
+    public void AddExperimentalAttribute(EntityHandle parent)
+    {
+        _experimentalCtorRef ??= CreateWfmCtorRef("ExperimentalAttribute",
+            Array.Empty<Action<SignatureTypeEncoder>>());
+        var blob = EncodeParameterlessAttribute();
+        Metadata.AddCustomAttribute(parent, _experimentalCtorRef.Value, Metadata.GetOrAddBlob(blob));
+    }
+
+#if WINDOWS_INTERNAL
+    private MemberReferenceHandle? _featureCtorRef;
+
+    public void AddFeatureAttribute(EntityHandle parent, int stage, bool validInAllBranches)
+    {
+        _featureCtorRef ??= CreateWfmCtorRef("FeatureAttribute",
+            new Action<SignatureTypeEncoder>[] { e => e.Int32(), e => e.Boolean() });
+        var blob = new BlobBuilder();
+        blob.WriteUInt16(0x0001); // prolog
+        blob.WriteInt32(stage);
+        blob.WriteBoolean(validInAllBranches);
+        blob.WriteUInt16(0x0000); // named args
+        Metadata.AddCustomAttribute(parent, _featureCtorRef.Value, Metadata.GetOrAddBlob(blob));
+    }
+#endif
 
     private TypeReferenceHandle GetSystemTypeRef()
     {

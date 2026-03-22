@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    interface IBad
+    {
+        String Name { get; };
+        void Name();
+    }
+}

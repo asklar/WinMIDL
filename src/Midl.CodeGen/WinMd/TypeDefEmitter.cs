@@ -156,6 +156,16 @@ internal class TypeDefEmitter
         if (isFlags)
             _attrs.AddFlagsAttribute(typeDef);
 
+        // ExperimentalAttribute
+        if (symbol.IsExperimental)
+            _attrs.AddExperimentalAttribute(typeDef);
+
+#if WINDOWS_INTERNAL
+        // FeatureAttribute
+        if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var enumFInfo) == true)
+            _attrs.AddFeatureAttribute(typeDef, (int)enumFInfo.Stage, enumFInfo.ValidInAllBranches);
+#endif
+
         _attrs.AddVersionAttribute(typeDef);
     }
 
@@ -188,6 +198,16 @@ internal class TypeDefEmitter
                 M.GetOrAddBlob(sig));
             _emitter.IncrementFieldRow();
         }
+
+        // ExperimentalAttribute
+        if (symbol.IsExperimental)
+            _attrs.AddExperimentalAttribute(typeDef);
+
+#if WINDOWS_INTERNAL
+        // FeatureAttribute
+        if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var structFInfo) == true)
+            _attrs.AddFeatureAttribute(typeDef, (int)structFInfo.Stage, structFInfo.ValidInAllBranches);
+#endif
 
         _attrs.AddVersionAttribute(typeDef);
     }
@@ -268,6 +288,16 @@ internal class TypeDefEmitter
         if (symbol.DeprecatedMessage != null)
             _attrs.AddDeprecatedAttribute(typeDef, symbol.DeprecatedMessage, 0, (uint)(symbol.Version ?? 0x00010000));
 
+        // Emit [experimental] if present
+        if (symbol.IsExperimental)
+            _attrs.AddExperimentalAttribute(typeDef);
+
+#if WINDOWS_INTERNAL
+        // FeatureAttribute
+        if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var ifaceFInfo) == true)
+            _attrs.AddFeatureAttribute(typeDef, (int)ifaceFInfo.Stage, ifaceFInfo.ValidInAllBranches);
+#endif
+
         if (symbol.IsExclusive && symbol.ExclusiveToClass != null)
             _attrs.AddExclusiveToAttribute(typeDef, symbol.ExclusiveToClass);
     }
@@ -299,6 +329,17 @@ internal class TypeDefEmitter
 
         var guid = GenerateDeterministicGuid(symbol.FullName);
         _attrs.AddGuidAttribute(typeDef, guid);
+
+        // ExperimentalAttribute
+        if (symbol.IsExperimental)
+            _attrs.AddExperimentalAttribute(typeDef);
+
+#if WINDOWS_INTERNAL
+        // FeatureAttribute
+        if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var delFInfo) == true)
+            _attrs.AddFeatureAttribute(typeDef, (int)delFInfo.Stage, delFInfo.ValidInAllBranches);
+#endif
+
         _attrs.AddVersionAttribute(typeDef);
     }
 
@@ -495,7 +536,7 @@ internal class TypeDefEmitter
         }
 
         // ActivatableAttribute
-        uint attrVersion = symbol.Version != null ? (uint)(symbol.Version.Value << 16) : 0x00010000;
+        uint attrVersion = symbol.Version != null ? (uint)symbol.Version.Value : 0x00010000;
         if (symbol.Members.Any(m => m is ConstructorSymbol) || symbol.HasDefaultActivation)
             _attrs.AddActivatableAttribute(typeDef, attrVersion);
 
@@ -535,6 +576,16 @@ internal class TypeDefEmitter
         // DeprecatedAttribute
         if (symbol.DeprecatedMessage != null)
             _attrs.AddDeprecatedAttribute(typeDef, symbol.DeprecatedMessage, 0, attrVersion);
+
+        // ExperimentalAttribute
+        if (symbol.IsExperimental)
+            _attrs.AddExperimentalAttribute(typeDef);
+
+#if WINDOWS_INTERNAL
+        // FeatureAttribute
+        if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var rcFInfo) == true)
+            _attrs.AddFeatureAttribute(typeDef, (int)rcFInfo.Stage, rcFInfo.ValidInAllBranches);
+#endif
 
         // ContractVersionAttribute
         if (symbol.ContractName != null && symbol.ContractVersion != null)
@@ -695,7 +746,7 @@ internal class TypeDefEmitter
             fieldList,
             methodList);
 
-        _attrs.AddContractVersionAttribute(typeDef, (uint)symbol.Version);
+        _attrs.AddContractVersionAttribute(typeDef, (uint)(symbol.ContractVersion ?? 0x00010000));
         _attrs.AddVersionAttribute(typeDef);
     }
 

@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    struct BadStruct
+    {
+        Windows.Foundation.Collections.IVector<Int32> Items;
+    };
+}

@@ -1,0 +1,11 @@
+namespace TestApp
+{
+    struct MyStruct
+    {
+        Int32 X;
+    };
+    interface IFoo requires MyStruct
+    {
+        void DoWork();
+    }
+}

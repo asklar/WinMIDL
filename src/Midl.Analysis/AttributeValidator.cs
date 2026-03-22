@@ -54,7 +54,9 @@ public class AttributeValidator
             // XAML/composition
             "contentproperty", "inputproperty",
             "bindable", "create_instance",
+#if WINDOWS_INTERNAL
             "feature", "feature_name",
+#endif
             "internal",
         };
 
@@ -80,6 +82,9 @@ public class AttributeValidator
             if (type is AttributeTypeSymbol at)
             {
                 attrTypes[at.Name] = at;
+                // Also index by short name (strip "Attribute" suffix) — standard convention
+                if (at.Name.EndsWith("Attribute", StringComparison.Ordinal) && at.Name.Length > 9)
+                    attrTypes[at.Name[..^9]] = at;
                 if (at.AttributeNameOverride != null)
                     attrTypes[at.AttributeNameOverride] = at;
             }
@@ -91,7 +96,6 @@ public class AttributeValidator
         }
 
         // Also use feature_name declarations from the compilation
-        var featureNames = _compilation.FeatureNames;
 
         foreach (var type in _compilation.GetAllTypes())
         {
@@ -101,38 +105,38 @@ public class AttributeValidator
                     ValidateRuntimeClass(rc);
                     ValidateUnknownAttributes(rc.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(rc.Attributes, rc.Name, "target_runtimeclass", attrTypes);
-                    ValidateContractAndFeatureArgs(rc.Attributes, rc.Name, apiContracts, featureNames);
-                    ValidateMemberAttributes(rc.Members, attrTypes, apiContracts, featureNames);
+                    ValidateContractAndFeatureArgs(rc.Attributes, rc.Name, apiContracts);
+                    ValidateMemberAttributes(rc.Members, attrTypes, apiContracts);
                     break;
                 case InterfaceSymbol iface:
                     ValidateAttributes(iface.Attributes, iface.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(iface.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(iface.Attributes, iface.Name, "target_interface", attrTypes);
-                    ValidateContractAndFeatureArgs(iface.Attributes, iface.Name, apiContracts, featureNames);
-                    ValidateMemberAttributes(iface.Members, attrTypes, apiContracts, featureNames);
+                    ValidateContractAndFeatureArgs(iface.Attributes, iface.Name, apiContracts);
+                    ValidateMemberAttributes(iface.Members, attrTypes, apiContracts);
                     break;
                 case EnumSymbol en:
                     ValidateAttributes(en.Attributes, en.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(en.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(en.Attributes, en.Name, "target_enum", attrTypes);
-                    ValidateContractAndFeatureArgs(en.Attributes, en.Name, apiContracts, featureNames);
+                    ValidateContractAndFeatureArgs(en.Attributes, en.Name, apiContracts);
                     foreach (var m in en.EnumMembers)
                     {
                         ValidateCustomAttributeInstances(m.Attributes, m.Name, "target_field", attrTypes);
-                        ValidateContractAndFeatureArgs(m.Attributes, m.Name, apiContracts, featureNames);
+                        ValidateContractAndFeatureArgs(m.Attributes, m.Name, apiContracts);
                     }
                     break;
                 case StructSymbol st:
                     ValidateAttributes(st.Attributes, st.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(st.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(st.Attributes, st.Name, "target_struct", attrTypes);
-                    ValidateContractAndFeatureArgs(st.Attributes, st.Name, apiContracts, featureNames);
+                    ValidateContractAndFeatureArgs(st.Attributes, st.Name, apiContracts);
                     break;
                 case DelegateSymbol del:
                     ValidateAttributes(del.Attributes, del.Name, isRuntimeClass: false);
                     ValidateUnknownAttributes(del.Attributes, attrTypes);
                     ValidateCustomAttributeInstances(del.Attributes, del.Name, "target_delegate", attrTypes);
-                    ValidateContractAndFeatureArgs(del.Attributes, del.Name, apiContracts, featureNames);
+                    ValidateContractAndFeatureArgs(del.Attributes, del.Name, apiContracts);
                     break;
                 case AttributeTypeSymbol:
                     break;
@@ -349,8 +353,7 @@ public class AttributeValidator
     private void ValidateMemberAttributes(
         IReadOnlyList<ISymbol> members,
         Dictionary<string, AttributeTypeSymbol> attrTypes,
-        HashSet<string> apiContracts,
-        HashSet<string> featureNames)
+        HashSet<string> apiContracts)
     {
         foreach (var member in members)
         {
@@ -367,13 +370,13 @@ public class AttributeValidator
 
             ValidateUnknownAttributes(attrs, attrTypes);
             ValidateCustomAttributeInstances(attrs, name!, targetKind, attrTypes);
-            ValidateContractAndFeatureArgs(attrs, name!, apiContracts, featureNames);
+            ValidateContractAndFeatureArgs(attrs, name!, apiContracts);
         }
     }
 
     private void ValidateContractAndFeatureArgs(
         List<AttributeData> attributes, string ownerName,
-        HashSet<string> apiContracts, HashSet<string> featureNames)
+        HashSet<string> apiContracts)
     {
         foreach (var attr in attributes)
         {
@@ -388,15 +391,17 @@ public class AttributeValidator
                         ownerName, contractRef, attr.Position));
                 }
             }
+#if WINDOWS_INTERNAL
             else if (lowerName == "feature")
             {
                 var featureRef = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
-                if (featureRef != null && !featureNames.Contains(featureRef))
+                if (featureRef != null && !_compilation.FeatureNames.ContainsKey(featureRef))
                 {
                     _diagnostics.Add(DiagnosticDescriptors.FeatureArgNotFeatureName(
                         ownerName, featureRef, attr.Position));
                 }
             }
+#endif
         }
     }
 

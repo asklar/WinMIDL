@@ -29,7 +29,7 @@ public class VersionPropagationTests
 
         Assert.NotNull(widget.DefaultInterface);
         Assert.Equal("TestContract", widget.DefaultInterface.ContractName);
-        Assert.Equal(1, widget.DefaultInterface.ContractVersion);
+        Assert.Equal((1 << 16), widget.DefaultInterface.ContractVersion);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class VersionPropagationTests
 
         var method = widget.Members.OfType<MethodSymbol>().Single();
         Assert.Equal("TestContract", method.ContractName);
-        Assert.Equal(1, method.ContractVersion);
+        Assert.Equal((1 << 16), method.ContractVersion);
     }
 
     [Fact]
@@ -85,11 +85,11 @@ public class VersionPropagationTests
 
         var methodA = widget.Members.OfType<MethodSymbol>().First(m => m.Name == "MethodA");
         Assert.Equal("TestContract", methodA.ContractName);
-        Assert.Equal(1, methodA.ContractVersion);
+        Assert.Equal((1 << 16), methodA.ContractVersion);
 
         var methodB = widget.Members.OfType<MethodSymbol>().First(m => m.Name == "MethodB");
         Assert.Equal("TestContract", methodB.ContractName);
-        Assert.Equal(2, methodB.ContractVersion);
+        Assert.Equal((2 << 16), methodB.ContractVersion);
     }
 
     [Fact]

@@ -1,0 +1,13 @@
+namespace TestApp
+{
+    runtimeclass NotAContract
+    {
+        NotAContract();
+    }
+
+    [contract(NotAContract, 1)]
+    runtimeclass BadClass
+    {
+        BadClass();
+    }
+}

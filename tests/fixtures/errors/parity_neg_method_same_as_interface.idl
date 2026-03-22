@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    interface IWidget
+    {
+        void IWidget();
+    }
+}

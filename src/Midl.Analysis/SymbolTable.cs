@@ -252,25 +252,28 @@ public class SymbolTable
         if (_allDefinedTypes.TryGetValue(dottedName, out var cached))
             return cached;
 
-        var parts = dottedName.Split('.');
         NamespaceSymbol current = _globalNamespace;
-
-        for (int i = 0; i < parts.Length; i++)
+        int start = 0;
+        while (start <= dottedName.Length)
         {
-            bool isLast = i == parts.Length - 1;
+            int dot = dottedName.IndexOf('.', start);
+            bool isLast = dot < 0;
+            string part = isLast ? dottedName.Substring(start) : dottedName.Substring(start, dot - start);
 
-            if (current.ChildNamespaces.TryGetValue(parts[i], out var childNs))
+            if (current.ChildNamespaces.TryGetValue(part, out var childNs))
             {
                 if (isLast) return childNs;
                 current = childNs;
-                continue;
+            }
+            else
+            {
+                var member = FindMemberByName(current, part);
+                if (member != null && isLast) return member;
+                return TryResolveLazy(dottedName);
             }
 
-            var member = FindMemberByName(current, parts[i]);
-            if (member != null && isLast) return member;
-
-            // Not found locally — try lazy providers
-            return TryResolveLazy(dottedName);
+            if (isLast) break;
+            start = dot + 1;
         }
 
         return current;
@@ -321,10 +324,19 @@ public class SymbolTable
             NamespaceSymbol ns => ns.ChildNamespaces.TryGetValue(name, out var child)
                 ? child
                 : FindMemberByName(ns, name),
-            RuntimeClassSymbol rc => rc.Members.FirstOrDefault(m => m.Name == name),
-            InterfaceSymbol iface => iface.Members.FirstOrDefault(m => m.Name == name),
+            RuntimeClassSymbol rc => FindMemberByNameLinear(rc.Members, name),
+            InterfaceSymbol iface => FindMemberByNameLinear(iface.Members, name),
             _ => null,
         };
+    }
+
+    private static ISymbol? FindMemberByNameLinear(IReadOnlyList<ISymbol> members, string name)
+    {
+        for (int i = 0; i < members.Count; i++)
+        {
+            if (members[i].Name == name) return members[i];
+        }
+        return null;
     }
 
     private static ISymbol? FindMemberByName(NamespaceSymbol ns, string name)
@@ -440,10 +452,10 @@ public class SymbolTable
     internal ISymbol? ImportSingleType(ISymbol type)
     {
         var fullName = type.FullName;
-        if (_allDefinedTypes.ContainsKey(fullName))
+        if (_allDefinedTypes.TryGetValue(fullName, out var existing))
         {
             MidlTrace.Binder($"ImportSingleType: {fullName} already defined");
-            return _allDefinedTypes[fullName];
+            return existing;
         }
 
         MidlTrace.Binder($"ImportSingleType: importing {fullName} ({type.Kind})");

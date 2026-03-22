@@ -1,0 +1,9 @@
+namespace TestApp
+{
+    [marshaling_behavior(agile)]
+    enum BadEnum
+    {
+        First = 0,
+        Second = 1
+    };
+}

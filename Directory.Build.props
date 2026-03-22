@@ -6,5 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DefineConstants>$(DefineConstants);WITH_COMPAT</DefineConstants>
+    <!-- Uncomment to enable Windows-internal features (feature_name, etc.) -->
+    <DefineConstants>$(DefineConstants);WINDOWS_INTERNAL</DefineConstants>
   </PropertyGroup>
 </Project>

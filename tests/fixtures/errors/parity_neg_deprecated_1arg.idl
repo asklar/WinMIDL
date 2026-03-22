@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    interface IWidget
+    {
+        [deprecated("use something else")]
+        void DoWork();
+    }
+}

@@ -1,0 +1,17 @@
+namespace TestApp
+{
+    interface IFirst
+    {
+        void DoWork();
+    }
+
+    interface ISecond
+    {
+        void Process();
+    }
+
+    runtimeclass BadClass : [default] IFirst, [default] ISecond
+    {
+        BadClass();
+    }
+}

@@ -1,0 +1,10 @@
+namespace TestApp
+{
+    runtimeclass NotExist;
+
+    [exclusiveto(NotExist)]
+    interface IBadExclusive
+    {
+        void DoWork();
+    }
+}

@@ -13,8 +13,10 @@ public class Compilation
 
     private readonly IReadOnlyList<LazyWinMdProvider>? _lazyProviders;
 
-    /// <summary>Set of feature_name declarations encountered during binding.</summary>
-    public HashSet<string> FeatureNames { get; } = new(StringComparer.OrdinalIgnoreCase);
+#if WINDOWS_INTERNAL
+    /// <summary>Feature_name declarations encountered during binding, keyed by name.</summary>
+    public Dictionary<string, FeatureNameInfo> FeatureNames { get; } = new(StringComparer.OrdinalIgnoreCase);
+#endif
 
     public Compilation(NamespaceSymbol globalNamespace, IReadOnlyList<Diagnostic> diagnostics,
         IReadOnlyList<LazyWinMdProvider>? lazyProviders = null)
@@ -31,7 +33,9 @@ public class Compilation
         merged.AddRange(additional);
         merged.AddRange(Diagnostics);
         var result = new Compilation(GlobalNamespace, merged, _lazyProviders);
-        foreach (var fn in FeatureNames) result.FeatureNames.Add(fn);
+#if WINDOWS_INTERNAL
+        foreach (var kvp in FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
+#endif
         return result;
     }
 

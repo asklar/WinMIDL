@@ -16,6 +16,7 @@ public class AttributeTypeSymbol : ISymbol
 
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public int SourcePosition { get; set; } = -1;
 
     // Extracted attribute data (attributes on the attribute declaration itself)
     public List<AttributeData> Attributes { get; } = new();

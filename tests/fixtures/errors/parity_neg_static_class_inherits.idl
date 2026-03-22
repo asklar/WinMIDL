@@ -1,0 +1,11 @@
+namespace TestApp
+{
+    unsealed runtimeclass Base
+    {
+        Base();
+    }
+
+    static runtimeclass BadStatic : Base
+    {
+    }
+}

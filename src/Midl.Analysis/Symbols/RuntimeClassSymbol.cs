@@ -14,8 +14,9 @@ public class RuntimeClassSymbol : ISymbol
     public Guid? Uuid { get; set; }
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public int SourcePosition { get; set; } = -1;
 
-    public TypeRef? BaseClass { get; set; }
+    public TypeRef? BaseClass{ get; set; }
     public List<TypeRef> Interfaces { get; } = [];
 
     private readonly List<ISymbol> _members = [];
@@ -42,6 +43,10 @@ public class RuntimeClassSymbol : ISymbol
     public string? ThreadingModel { get; set; }
     public string? MarshalingBehavior { get; set; }
     public string? DeprecatedMessage { get; set; }
+    public bool IsExperimental { get; set; }
+#if WINDOWS_INTERNAL
+    public string? FeatureName { get; set; }
+#endif
     public bool IsDefaultInterface { get; set; }
 
     public RuntimeClassSymbol(string name, ISymbol? containingSymbol)

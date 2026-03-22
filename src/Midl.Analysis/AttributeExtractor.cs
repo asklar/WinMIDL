@@ -136,7 +136,8 @@ public static class AttributeExtractor
                     SyntaxKind.NumericLiteralToken => new AttributeArgValue
                     {
                         Kind = ArgKind.Integer,
-                        IntValue = ParseNumeric(token.Text)
+                        IntValue = ParseNumeric(token.Text),
+                        StringValue = token.Text
                     },
                     SyntaxKind.FloatLiteralToken => new AttributeArgValue
                     {
@@ -229,13 +230,18 @@ public static class AttributeExtractor
 
         if (node.Kind == SyntaxKind.DottedName || node.Kind == SyntaxKind.QualifiedName)
         {
-            var parts = new List<string>();
+            System.Text.StringBuilder? sb = null;
             for (int i = 0; i < node.SlotCount; i += 2)
             {
                 if (node.GetSlot(i) is SyntaxToken tok)
-                    parts.Add(tok.Text);
+                {
+                    if (sb == null)
+                        sb = new System.Text.StringBuilder(tok.Text);
+                    else
+                        sb.Append('.').Append(tok.Text);
+                }
             }
-            return string.Join(".", parts);
+            return sb?.ToString() ?? "";
         }
 
         if (node.Kind == SyntaxKind.SimpleName)
@@ -290,13 +296,21 @@ public static class AttributeExtractor
     private static string CollectText(GreenNode node)
     {
         if (node is SyntaxToken t) return t.Text;
-        var parts = new List<string>();
+        var sb = new System.Text.StringBuilder();
+        CollectTextCore(node, sb);
+        return sb.ToString();
+    }
+
+    private static void CollectTextCore(GreenNode node, System.Text.StringBuilder sb)
+    {
         for (int i = 0; i < node.SlotCount; i++)
         {
             var slot = node.GetSlot(i);
-            if (slot != null)
-                parts.Add(CollectText(slot));
+            if (slot == null) continue;
+            if (slot is SyntaxToken t)
+                sb.Append(t.Text);
+            else
+                CollectTextCore(slot, sb);
         }
-        return string.Join("", parts);
     }
 }

@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    static interface IFoo
+    {
+        void DoWork();
+    }
+}

@@ -586,7 +586,10 @@ public class WinMdDecompiler
         blob.ReadUInt16(); // prolog
         var version = blob.ReadUInt32();
         if (version != 0x00010000) // skip default version to keep output clean
-            sb.AppendLine($"{indent}[version({version})]");
+        {
+            var display = Midl.Analysis.VersionEncoding.Display(version);
+            sb.AppendLine($"{indent}[version({display})]");
+        }
     }
 
     private void EmitContractVersionAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
@@ -605,7 +608,8 @@ public class WinMdDecompiler
                 if (contractName != null && blob.RemainingBytes >= 4)
                 {
                     var version = blob.ReadUInt32();
-                    sb.AppendLine($"{indent}[contract({contractName}, {version})]");
+                    var display = Midl.Analysis.VersionEncoding.Display(version);
+                    sb.AppendLine($"{indent}[contract({contractName}, {display})]");
                 }
             }
             else
@@ -614,7 +618,8 @@ public class WinMdDecompiler
                 if (blob.RemainingBytes >= 4)
                 {
                     var version = blob.ReadUInt32();
-                    sb.AppendLine($"{indent}[contractversion({version})]");
+                    var display = Midl.Analysis.VersionEncoding.Display(version);
+                    sb.AppendLine($"{indent}[contractversion({display})]");
                 }
             }
         }

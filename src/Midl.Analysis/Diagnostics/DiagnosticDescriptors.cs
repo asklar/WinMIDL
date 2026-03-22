@@ -131,7 +131,7 @@ public static class DiagnosticDescriptors
     // Version/contract propagation diagnostics
     public static Diagnostic InterfaceVersionTooEarly(string ifaceName, int ifaceVersion, int classVersion, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1014",
-            $"Interface '{ifaceName}' version {ifaceVersion} is earlier than containing class version {classVersion}",
+            $"Interface '{ifaceName}' version {VersionEncoding.Display((uint)ifaceVersion)} is earlier than containing class version {VersionEncoding.Display((uint)classVersion)}",
             position, ifaceName.Length);
 
     public static Diagnostic ContractFamilyMismatch(string ifaceName, string ifaceContract, string className, int position) =>
@@ -145,7 +145,7 @@ public static class DiagnosticDescriptors
 
     public static Diagnostic EnumMemberVersionTooEarly(string memberName, int memberVersion, int enumVersion, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1017",
-            $"Enum member '{memberName}' version {memberVersion} is earlier than containing enum version {enumVersion}",
+            $"Enum member '{memberName}' version {VersionEncoding.Display((uint)memberVersion)} is earlier than containing enum version {VersionEncoding.Display((uint)enumVersion)}",
             position, memberName.Length);
 
     // Attribute semantic validation diagnostics (MIDL1020–MIDL1028)
@@ -340,7 +340,7 @@ public static class DiagnosticDescriptors
 
     // Unknown attribute (MIDL1065)
     public static Diagnostic UnknownAttribute(string attrName, int position) =>
-        new(DiagnosticSeverity.Warning, "MIDL1065",
+        new(DiagnosticSeverity.Error, "MIDL1065",
             $"Unknown attribute '{attrName}'. If this is a custom attribute, declare it with 'attribute {attrName} {{ ... }};'.",
             position, Math.Max(attrName.Length, 1));
 
@@ -399,10 +399,12 @@ public static class DiagnosticDescriptors
             position, Math.Max(contractName.Length, 1));
 
     // [feature] argument not a feature_name (MIDL1076)
+#if WINDOWS_INTERNAL
     public static Diagnostic FeatureArgNotFeatureName(string attrTarget, string featureName, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1076",
             $"[feature] on '{attrTarget}': '{featureName}' is not declared via feature_name.",
             position, Math.Max(featureName.Length, 1));
+#endif
 
     // Circular interface requires (MIDL1078)
     public static Diagnostic CircularRequires(string interfaceName, string cycle, int position) =>
@@ -419,7 +421,7 @@ public static class DiagnosticDescriptors
 
     public static Diagnostic VersionedBlockConflict(int innerVersion, int outerVersion, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1080",
-            $"Versioned block version {innerVersion} is lower than containing type's contract version {outerVersion}.",
+            $"Versioned block version {VersionEncoding.Display((uint)innerVersion)} is lower than containing type's contract version {VersionEncoding.Display((uint)outerVersion)}.",
             position, 1);
 
     public static Diagnostic UuidWrongFormat(string value, int position) =>
@@ -626,4 +628,26 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1102",
             $"Referenced path '{path}' not found. Check the file path in the @ref directive.",
             position, length);
+
+    // feature_name with invalid stage (MIDL1103)
+#if WINDOWS_INTERNAL
+    public static Diagnostic InvalidFeatureStage(string featureName, string stage, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1103",
+            $"feature_name '{featureName}': '{stage}' is not a valid FeatureStage. Expected AlwaysDisabled, DisabledByDefault, EnabledByDefault, or AlwaysEnabled.",
+            position, Math.Max(stage.Length, 1));
+#endif
+
+    // Non-experimental type references experimental type (MIDL1104)
+    public static Diagnostic ExperimentalTypeReference(string typeName, string experimentalTypeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1104",
+            $"Type '{typeName}' references experimental type '{experimentalTypeName}'. Mark '{typeName}' as [experimental] or remove the reference.",
+            position, Math.Max(experimentalTypeName.Length, 1));
+
+#if WINDOWS_INTERNAL
+    // Non-feature-gated type references feature-gated type (MIDL1105)
+    public static Diagnostic FeatureGatedTypeReference(string typeName, string featureGatedType, string featureName, int position) =>
+        new(DiagnosticSeverity.Warning, "MIDL1105",
+            $"Type '{typeName}' references feature-gated type '{featureGatedType}' ([feature({featureName})]). Consider adding [feature({featureName})] to '{typeName}'.",
+            position, Math.Max(featureGatedType.Length, 1));
+#endif
 }

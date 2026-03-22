@@ -550,4 +550,140 @@ public class WinMdEmitterTests
             Directory.Delete(tempDir, true);
         }
     }
+
+    [Fact]
+    public void EmitExperimentalAttribute_OnRuntimeClass()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [experimental, default_interface]
+                runtimeclass Preview
+                {
+                    void DoStuff();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var handle = FindTypeDef(reader, "Preview");
+            Assert.True(HasCustomAttribute(reader, handle,
+                "Windows.Foundation.Metadata.ExperimentalAttribute"));
+        }
+    }
+
+    [Fact]
+    public void EmitExperimentalAttribute_OnInterface()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [experimental]
+                interface IPreview
+                {
+                    void DoStuff();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var handle = FindTypeDef(reader, "IPreview");
+            Assert.True(HasCustomAttribute(reader, handle,
+                "Windows.Foundation.Metadata.ExperimentalAttribute"));
+        }
+    }
+
+    [Fact]
+    public void EmitExperimentalAttribute_OnEnum()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [experimental]
+                enum PreviewOptions
+                {
+                    None,
+                    Option1
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var handle = FindTypeDef(reader, "PreviewOptions");
+            Assert.True(HasCustomAttribute(reader, handle,
+                "Windows.Foundation.Metadata.ExperimentalAttribute"));
+        }
+    }
+
+    [Fact]
+    public void EmitExperimentalAttribute_OnDelegate()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [experimental]
+                delegate void PreviewHandler();
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var handle = FindTypeDef(reader, "PreviewHandler");
+            Assert.True(HasCustomAttribute(reader, handle,
+                "Windows.Foundation.Metadata.ExperimentalAttribute"));
+        }
+    }
+
+    [Fact]
+    public void EmitExperimentalAttribute_OnStruct()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [experimental]
+                struct PreviewData
+                {
+                    Int32 Value;
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var handle = FindTypeDef(reader, "PreviewData");
+            Assert.True(HasCustomAttribute(reader, handle,
+                "Windows.Foundation.Metadata.ExperimentalAttribute"));
+        }
+    }
+
+    [Fact]
+    public void NoExperimentalAttribute_WhenNotMarked()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [default_interface]
+                runtimeclass Stable
+                {
+                    void DoStuff();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var handle = FindTypeDef(reader, "Stable");
+            Assert.False(HasCustomAttribute(reader, handle,
+                "Windows.Foundation.Metadata.ExperimentalAttribute"));
+        }
+    }
 }

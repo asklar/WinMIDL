@@ -22,6 +22,7 @@ public static class CompletionHandler
     private const int KindProperty = 10; // for attributes
     private const int KindFile = 17; // for import file completions
     private const int KindConstructor = 4; // for constructor suggestions
+    private const int KindEnumMember = 20; // for enum member values
 
     private static readonly object[] s_staticCompletionItems = BuildCompletionItems();
 
@@ -50,6 +51,12 @@ public static class CompletionHandler
             if (uri.StartsWith("file:///"))
                 fileDir = Path.GetDirectoryName(Uri.UnescapeDataString(uri[8..]));
 
+#if WINDOWS_INTERNAL
+            var featureItems = DetectFeatureNameContext(text, line, character);
+            if (featureItems != null)
+                return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = featureItems.ToArray() };
+#endif
+
             var importContext = DetectImportContext(text, line);
             if (importContext != null)
             {
@@ -65,6 +72,11 @@ public static class CompletionHandler
 
             if (attrContext != null)
             {
+#if WINDOWS_INTERNAL
+                var featureAttrItems = DetectFeatureAttributeArgContext(text, offset);
+                if (featureAttrItems != null)
+                    return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = featureAttrItems.ToArray() };
+#endif
                 var items = BuildAttributeCompletions(text, attrContext);
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
             }
@@ -338,6 +350,98 @@ public static class CompletionHandler
     ];
 
     #region Import Completions
+
+#if WINDOWS_INTERNAL
+    /// <summary>
+    /// Detects if the cursor is inside a feature_name body: feature_name Name = {Stage, Bool}
+    /// Returns completion items for stage (first position) or bool (after comma), or null if not in context.
+    /// </summary>
+    private static List<object>? DetectFeatureNameContext(string text, int line, int character)
+    {
+        var lines = text.Split('\n');
+        if (line < 0 || line >= lines.Length) return null;
+
+        var currentLine = lines[line];
+        // Find "feature_name" keyword on this line
+        int fnIdx = currentLine.IndexOf("feature_name", StringComparison.Ordinal);
+        if (fnIdx < 0) return null;
+
+        // Find the opening brace on this line after feature_name
+        int braceIdx = currentLine.IndexOf('{', fnIdx);
+        if (braceIdx < 0 || character <= braceIdx) return null;
+
+        // Cursor is after '{'. Check if there's a comma between '{' and cursor.
+        var insideBrace = currentLine.Substring(braceIdx + 1, character - braceIdx - 1);
+        var items = new List<object>();
+
+        if (insideBrace.Contains(','))
+        {
+            // After comma → bool completions
+            AddItem(items, "TRUE", KindKeyword, "Valid in all branches");
+            AddItem(items, "FALSE", KindKeyword, "Not valid in all branches");
+        }
+        else
+        {
+            // Before comma → stage completions
+            AddItem(items, "AlwaysDisabled", KindEnumMember, "Feature is always disabled");
+            AddItem(items, "DisabledByDefault", KindEnumMember, "Feature is disabled by default");
+            AddItem(items, "EnabledByDefault", KindEnumMember, "Feature is enabled by default");
+            AddItem(items, "AlwaysEnabled", KindEnumMember, "Feature is always enabled");
+        }
+
+        return items;
+    }
+
+    /// <summary>
+    /// Detects if the cursor is inside [feature(|)] and returns completion items
+    /// for all declared feature_name identifiers in the source.
+    /// </summary>
+    private static List<object>? DetectFeatureAttributeArgContext(string text, int offset)
+    {
+        // Walk backward from cursor to find an unmatched '('
+        int parenDepth = 0;
+        int openParen = -1;
+        for (int i = offset - 1; i >= 0; i--)
+        {
+            char c = text[i];
+            if (c == ')') parenDepth++;
+            else if (c == '(')
+            {
+                if (parenDepth > 0) parenDepth--;
+                else { openParen = i; break; }
+            }
+            else if (c == '[' || c == ']') break; // left the attribute bracket
+        }
+        if (openParen < 0) return null;
+
+        // Extract the attribute name before '('
+        int nameEnd = openParen;
+        int nameStart = nameEnd - 1;
+        while (nameStart >= 0 && (char.IsLetterOrDigit(text[nameStart]) || text[nameStart] == '_'))
+            nameStart--;
+        nameStart++;
+
+        var attrName = text[nameStart..nameEnd];
+        if (!attrName.Equals("feature", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        // Compile the source and collect all feature_name declarations
+        var items = new List<object>();
+        try
+        {
+            var compilation = CompilationHelper.Compile(text);
+            foreach (var name in compilation.FeatureNames.Keys)
+            {
+                AddItem(items, name, KindEnumMember, "feature_name declaration");
+            }
+        }
+        catch
+        {
+            // Partial file — return empty
+        }
+        return items;
+    }
+#endif
 
     /// <summary>
     /// Detects if the cursor is on an import line: import "..."
@@ -635,6 +739,9 @@ public static class CompletionHandler
                 AddItem(items, "static", KindKeyword, "Static runtimeclass modifier");
                 AddItem(items, "partial", KindKeyword, "Partial runtimeclass modifier");
                 AddItem(items, "unsealed", KindKeyword, "Unsealed runtimeclass modifier");
+#if WINDOWS_INTERNAL
+                AddItem(items, "feature_name", KindKeyword, "Velocity feature staging declaration");
+#endif
                 AddItem(items, "}", KindKeyword, "Close scope");
                 break;
         }

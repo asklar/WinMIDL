@@ -982,6 +982,7 @@ public class CustomAttributeTests
         Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1075");
     }
 
+#if WINDOWS_INTERNAL
     [Fact]
     public void FeatureAttribute_InvalidName_ProducesError()
     {
@@ -998,6 +999,7 @@ public class CustomAttributeTests
 
         Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1076");
     }
+#endif
 
     #endregion
 }

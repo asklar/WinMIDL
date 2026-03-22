@@ -737,6 +737,23 @@ public class WinMdReader
                             rc6.MarshalingBehavior = marshalingBehavior;
                     }
                     break;
+
+#if WINDOWS_INTERNAL
+                case "FeatureAttribute":
+                    // FeatureAttribute(FeatureStage stage, bool validInAllBranches)
+                    if (blob.RemainingBytes >= 5)
+                    {
+                        var stageValue = blob.ReadInt32();
+                        var validInAllBranches = blob.ReadBoolean();
+                        var featureLabel = $"__feature_{stageValue}_{(validInAllBranches ? "1" : "0")}";
+                        if (symbol is RuntimeClassSymbol rcF) rcF.FeatureName = featureLabel;
+                        else if (symbol is InterfaceSymbol ifaceF) ifaceF.FeatureName = featureLabel;
+                        else if (symbol is EnumSymbol enF) enF.FeatureName = featureLabel;
+                        else if (symbol is StructSymbol stF) stF.FeatureName = featureLabel;
+                        else if (symbol is DelegateSymbol delF) delF.FeatureName = featureLabel;
+                    }
+                    break;
+#endif
             }
         }
     }

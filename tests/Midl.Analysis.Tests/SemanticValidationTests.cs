@@ -298,23 +298,19 @@ public class SemanticValidationTests
     }
 
     [Fact]
-    public void EnumValue_NegativeInFlagsUInt32_OutOfRange()
+    public void EnumValue_NegativeInFlagsUInt32_Allowed()
     {
+        // Original midl.exe accepts this — value wraps in UInt32
         var compilation = CompilationHelper.Compile("namespace N { [flags] enum E { A = -1, B = 2 }; }");
-        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1068");
-        Assert.NotNull(error);
-        Assert.Contains("-1", error.Message);
-        Assert.Contains("UInt32", error.Message);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1068");
     }
 
     [Fact]
-    public void EnumValue_ExceedsInt32Max_OutOfRange()
+    public void EnumValue_ExceedsInt32Max_Allowed()
     {
+        // Original midl.exe accepts values exceeding Int32.MaxValue
         var compilation = CompilationHelper.Compile("namespace N { enum E { A = 3000000000 }; }");
-        var error = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1068");
-        Assert.NotNull(error);
-        Assert.Contains("3000000000", error.Message);
-        Assert.Contains("Int32", error.Message);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1068");
     }
 
     [Fact]

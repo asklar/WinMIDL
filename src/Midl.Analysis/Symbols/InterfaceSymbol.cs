@@ -14,6 +14,7 @@ public class InterfaceSymbol : ISymbol
     public Guid? Uuid { get; set; }
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public int SourcePosition { get; set; } = -1;
 
     public bool IsExclusive { get; set; }
     public string? ExclusiveToClass { get; set; }
@@ -30,6 +31,10 @@ public class InterfaceSymbol : ISymbol
     public int? ContractVersion { get; set; }
     public int? Version { get; set; }
     public string? DeprecatedMessage { get; set; }
+    public bool IsExperimental { get; set; }
+#if WINDOWS_INTERNAL
+    public string? FeatureName { get; set; }
+#endif
 
     public InterfaceSymbol(string name, ISymbol? containingSymbol)
     {

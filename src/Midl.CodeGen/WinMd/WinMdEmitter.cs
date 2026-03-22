@@ -36,6 +36,10 @@ public class WinMdEmitter
     internal IReadOnlyDictionary<string, TypeDefinitionHandle> TypeDefHandles => _typeDefHandles;
     internal IReadOnlyDictionary<string, TypeDefinitionHandle> SynthInterfaceHandles => _synthInterfaceHandles;
 
+#if WINDOWS_INTERNAL
+    internal IReadOnlyDictionary<string, FeatureNameInfo>? FeatureNames { get; private set; }
+#endif
+
     /// <summary>Resolve a synthesized interface handle, creating a local TypeRef for WinMD compliance.</summary>
     internal EntityHandle ResolveSynthInterfaceHandle(string rcFullName)
     {
@@ -93,6 +97,9 @@ public class WinMdEmitter
         _fieldRow = 1;
         _methodRow = 1;
         _paramRow = 1;
+#if WINDOWS_INTERNAL
+        FeatureNames = compilation.FeatureNames;
+#endif
 
         // 1. Module
         _metadata.AddModule(
@@ -375,6 +382,9 @@ public class WinMdEmitter
         _fieldRow = 1;
         _methodRow = 1;
         _paramRow = 1;
+#if WINDOWS_INTERNAL
+        FeatureNames = compilation.FeatureNames;
+#endif
 
         // 1. Module
         _metadata.AddModule(

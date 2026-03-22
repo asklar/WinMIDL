@@ -27,7 +27,7 @@ public class AttributeExtractionTests
         var widget = ns.Members.OfType<RuntimeClassSymbol>().Single();
 
         Assert.Equal("Windows.Foundation.UniversalApiContract", widget.ContractName);
-        Assert.Equal(5, widget.ContractVersion);
+        Assert.Equal((5 << 16), widget.ContractVersion);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class AttributeExtractionTests
         var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
         var contract = ns.Members.OfType<ApiContractSymbol>().Single();
 
-        Assert.Equal(4, contract.ContractVersion);
+        Assert.Equal((4 << 16), contract.ContractVersion);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class AttributeExtractionTests
         var compilation = CompilationHelper.Compile("""
             namespace TestApp
             {
-                [version(65536), default_interface]
+                [version(1), default_interface]
                 runtimeclass Widget { }
             }
             """);
@@ -63,7 +63,7 @@ public class AttributeExtractionTests
         var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
         var widget = ns.Members.OfType<RuntimeClassSymbol>().Single();
 
-        Assert.Equal(65536, widget.Version);
+        Assert.Equal(65536, widget.Version); // (1 << 16) = 65536
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public class AttributeExtractionTests
         var widget = ns.Members.OfType<RuntimeClassSymbol>().Single();
 
         Assert.Equal("Windows.Foundation.UniversalApiContract", widget.ContractName);
-        Assert.Equal(1, widget.ContractVersion);
+        Assert.Equal((1 << 16), widget.ContractVersion);
         Assert.Equal("both", widget.ThreadingModel);
     }
 
@@ -303,7 +303,7 @@ public class AttributeExtractionTests
         var value3 = myEnum.EnumMembers.First(m => m.Name == "Value3");
 
         Assert.Equal("Windows.Foundation.UniversalApiContract", value3.ContractName);
-        Assert.Equal(2, value3.ContractVersion);
+        Assert.Equal((2 << 16), value3.ContractVersion);
     }
 
     [Fact]

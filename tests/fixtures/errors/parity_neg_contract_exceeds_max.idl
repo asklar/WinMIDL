@@ -1,0 +1,16 @@
+namespace TestApp
+{
+    [contractversion(1)]
+    apicontract TestContract {};
+
+    [contract(TestContract, 1)]
+    runtimeclass BadClass
+    {
+        BadClass();
+
+        [contract(TestContract, 3)]
+        {
+            void NewMethod();
+        }
+    }
+}

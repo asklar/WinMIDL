@@ -1,0 +1,13 @@
+namespace TestApp
+{
+    interface INotExclusive
+    {
+        void DoWork();
+    }
+
+    [static(INotExclusive, 1)]
+    runtimeclass BadClass
+    {
+        BadClass();
+    }
+}

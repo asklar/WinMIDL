@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    [contractversion(1)]
+    runtimeclass BadClass
+    {
+        BadClass();
+    }
+}

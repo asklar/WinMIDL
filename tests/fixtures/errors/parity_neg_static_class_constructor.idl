@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    static runtimeclass BadStatic
+    {
+        BadStatic();
+    }
+}

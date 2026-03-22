@@ -1,0 +1,14 @@
+namespace TestApp
+{
+    [exclusiveto(BadClass)]
+    interface IBadClassFactory
+    {
+        BadClass CreateInstance();
+    }
+
+    [composable(IBadClassFactory, public, 1)]
+    runtimeclass BadClass
+    {
+        BadClass();
+    }
+}

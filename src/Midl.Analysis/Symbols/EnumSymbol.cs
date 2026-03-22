@@ -15,6 +15,7 @@ public class EnumSymbol : ISymbol
     public string UnderlyingType { get; set; } = "Int32";
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public int SourcePosition { get; set; } = -1;
 
     private readonly List<EnumMemberSymbol> _members = [];
     public IReadOnlyList<EnumMemberSymbol> EnumMembers => _members;
@@ -23,6 +24,10 @@ public class EnumSymbol : ISymbol
     public List<AttributeData> Attributes { get; } = new();
     public string? ContractName { get; set; }
     public int? ContractVersion { get; set; }
+    public bool IsExperimental { get; set; }
+#if WINDOWS_INTERNAL
+    public string? FeatureName { get; set; }
+#endif
 
     public EnumSymbol(string name, ISymbol? containingSymbol)
     {

@@ -1,0 +1,4 @@
+namespace TestApp
+{
+    delegate Int32 BadDelegate(void bad);
+}

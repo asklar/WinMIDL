@@ -1,0 +1,12 @@
+namespace TestApp
+{
+    struct Outer
+    {
+        Int32 X;
+    };
+
+    struct Outer
+    {
+        Int32 Y;
+    };
+}

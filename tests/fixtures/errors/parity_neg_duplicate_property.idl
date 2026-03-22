@@ -1,0 +1,9 @@
+namespace TestApp
+{
+    runtimeclass BadClass
+    {
+        BadClass();
+        String Name { get; set; };
+        String Name { get; };
+    }
+}

@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    [threading(both)]
+    [contractversion(1)]
+    apicontract MyContract
+    {
+    }
+}

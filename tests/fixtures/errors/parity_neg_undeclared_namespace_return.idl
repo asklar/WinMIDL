@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    interface IFoo
+    {
+        Nonexistent.Types.Widget GetWidget();
+    }
+}

@@ -15,7 +15,9 @@ public class Binder
     private readonly HashSet<string> _definedTypes = new(StringComparer.Ordinal);
     private readonly HashSet<string> _forwardDeclaredTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _definedTypesCaseInsensitive = new(StringComparer.OrdinalIgnoreCase);
-    private readonly HashSet<string> _featureNames = new(StringComparer.OrdinalIgnoreCase);
+#if WINDOWS_INTERNAL
+    private readonly Dictionary<string, FeatureNameInfo> _featureNames = new(StringComparer.OrdinalIgnoreCase);
+#endif
     private readonly CompilationMode _mode;
     private readonly bool _emitQualityHints;
     private bool _bindingImportedFile;
@@ -98,7 +100,9 @@ public class Binder
         }
 
         var compilation = new Compilation(_globalNamespace, _diagnostics, lazyProviders);
-        foreach (var fn in _featureNames) compilation.FeatureNames.Add(fn);
+#if WINDOWS_INTERNAL
+        foreach (var kvp in _featureNames) compilation.FeatureNames[kvp.Key] = kvp.Value;
+#endif
         return compilation;
     }
 
@@ -285,7 +289,7 @@ public class Binder
                 // Validate matching modifiers
                 if (existing.IsUnsealed != isUnsealed)
                 {
-                    int pos = _posMap.GetPositionOf(name);
+                    int pos = nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name);
                     _diagnostics.Add(new Diagnostics.Diagnostic(
                         Diagnostics.DiagnosticSeverity.Error, "MIDL1031",
                         $"Partial runtimeclass '{name}' has conflicting modifiers (sealed vs unsealed)",
@@ -312,7 +316,7 @@ public class Binder
                         {
                             if (existing.BaseClass != null && existing.BaseClass.Name != typeRef.Name)
                             {
-                                int pos = _posMap.GetPositionOf(name);
+                                int pos = nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name);
                                 _diagnostics.Add(new Diagnostics.Diagnostic(
                                     Diagnostics.DiagnosticSeverity.Error, "MIDL1032",
                                     $"Partial runtimeclass '{name}' has conflicting base class ('{existing.BaseClass.Name}' vs '{typeRef.Name}')",
@@ -418,10 +422,11 @@ public class Binder
             }
         }
 
-        if (!TryDefineType(ns, name, isForwardDeclaration: isForwardDecl)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: isForwardDecl)) return;
 
         var symbol = new RuntimeClassSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -538,7 +543,7 @@ public class Binder
             {
                 if (ba.Name.Equals("contract", StringComparison.OrdinalIgnoreCase))
                 {
-                    var innerVer = (int?)ba.GetInt(1);
+                    var innerVer = (int?)ba.GetVersion(1);
                     if (innerVer is int iv && iv < outerVer)
                     {
                         _diagnostics.Add(DiagnosticDescriptors.VersionedBlockConflict(iv, outerVer, ba.Position));
@@ -594,10 +599,11 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new InterfaceSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -677,7 +683,7 @@ public class Binder
                     var method = BindMethod(child, ifaceSymbol, ns);
                     // MIDL1040: Static members are not allowed in interfaces
                     if (method.IsStatic && !string.IsNullOrEmpty(method.Name))
-                        _diagnostics.Add(DiagnosticDescriptors.StaticMemberInInterface(method.Name, _posMap.GetPositionOf(method.Name)));
+                        _diagnostics.Add(DiagnosticDescriptors.StaticMemberInInterface(method.Name, GetSymbolPosition(method)));
                     ifaceSymbol.AddMember(method);
                     break;
                 }
@@ -685,7 +691,7 @@ public class Binder
                 {
                     var prop = BindProperty(child, ifaceSymbol, ns);
                     if (prop.IsStatic && !string.IsNullOrEmpty(prop.Name))
-                        _diagnostics.Add(DiagnosticDescriptors.StaticMemberInInterface(prop.Name, _posMap.GetPositionOf(prop.Name)));
+                        _diagnostics.Add(DiagnosticDescriptors.StaticMemberInInterface(prop.Name, GetSymbolPosition(prop)));
                     ifaceSymbol.AddMember(prop);
                     break;
                 }
@@ -693,7 +699,7 @@ public class Binder
                 {
                     var evt = BindEvent(child, ifaceSymbol, ns);
                     if (evt.IsStatic && !string.IsNullOrEmpty(evt.Name))
-                        _diagnostics.Add(DiagnosticDescriptors.StaticMemberInInterface(evt.Name, _posMap.GetPositionOf(evt.Name)));
+                        _diagnostics.Add(DiagnosticDescriptors.StaticMemberInInterface(evt.Name, GetSymbolPosition(evt)));
                     ifaceSymbol.AddMember(evt);
                     break;
                 }
@@ -741,10 +747,11 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new DelegateSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         symbol.ReturnType = ExtractTypeRef(returnTypeNode);
         TrackTypeRef(symbol.ReturnType, ns);
         ns.AddMember(symbol);
@@ -780,10 +787,11 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new StructSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -826,7 +834,7 @@ public class Binder
         // MIDL1009: Empty struct
         if (symbol.Fields.Count == 0)
         {
-            _diagnostics.Add(DiagnosticDescriptors.EmptyStruct(name, _posMap.GetPositionOf(name)));
+            _diagnostics.Add(DiagnosticDescriptors.EmptyStruct(name, GetSymbolPosition(symbol)));
         }
     }
 
@@ -839,9 +847,11 @@ public class Binder
             ?? FindChild(node, SyntaxKind.ArrayType);
 
         // Find name: last identifier token before semicolon
-        var name = FindNameIdentifier(node);
+        var fieldNameToken = FindNameIdentifierToken(node);
+        var name = fieldNameToken?.Text ?? "";
 
         var field = new FieldSymbol(name, containingSymbol);
+        if (fieldNameToken != null) field.SourcePosition = GetNodePosition(fieldNameToken);
         if (typeNode != null)
         {
             field.Type = ExtractTypeRef(typeNode);
@@ -863,10 +873,11 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new AttributeTypeSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -928,10 +939,11 @@ public class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new EnumSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -974,6 +986,8 @@ public class Binder
                     }
 
                     var member = new EnumMemberSymbol(memberName, symbol);
+                    var memberNameToken = FindFirstIdentifierToken(child);
+                    if (memberNameToken != null) member.SourcePosition = GetNodePosition(memberNameToken);
 
                     // Extract explicit value (Name = expr)
                     ExtractEnumMemberValue(child, member, symbol);
@@ -1074,10 +1088,11 @@ public class Binder
         if (string.IsNullOrEmpty(name)) return;
 
         bool isForwardDecl = FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0;
-        if (!TryDefineType(ns, name, isForwardDecl)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDecl)) return;
 
         var symbol = new ApiContractSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -1182,25 +1197,31 @@ public class Binder
 
     #region DeclareBlock / feature_name
 
+#if WINDOWS_INTERNAL
+    private static readonly Dictionary<string, FeatureStage> ValidFeatureStages = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["AlwaysDisabled"] = FeatureStage.AlwaysDisabled,
+        ["DisabledByDefault"] = FeatureStage.DisabledByDefault,
+        ["EnabledByDefault"] = FeatureStage.EnabledByDefault,
+        ["AlwaysEnabled"] = FeatureStage.AlwaysEnabled,
+    };
+#endif
+
     private void BindDeclareBlock(GreenNode node, NamespaceSymbol ns)
     {
+#if WINDOWS_INTERNAL
         // Check for feature_name declarations:
-        //   feature_name MyFeature = { "Enabled", "1.0" };
+        //   feature_name MyFeature = {AlwaysEnabled, TRUE};
         if (node.SlotCount >= 2)
         {
             var firstToken = node.GetSlot(0) as SyntaxToken;
             if (firstToken?.Text == "feature_name")
             {
-                var nameToken = node.GetSlot(1) as SyntaxToken;
-                var name = nameToken?.Text;
-                if (!string.IsNullOrEmpty(name))
-                {
-                    _featureNames.Add(name);
-                    MidlTrace.Binder($"Registered feature_name '{name}'");
-                }
+                BindFeatureNameDeclaration(node);
                 return;
             }
         }
+#endif
 
         // General declare block: declare { ... }
         int openBraceIdx = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
@@ -1215,14 +1236,76 @@ public class Binder
         }
     }
 
+#if WINDOWS_INTERNAL
+    /// <summary>Bind a feature_name declaration, extracting stage and valid-in-all-branches flag.</summary>
+    private void BindFeatureNameDeclaration(GreenNode node)
+    {
+        // Slots: 0=feature_name, 1=Name, 2==, 3={, 4=Stage, 5=comma, 6=Bool, 7=}, 8=;
+        var nameToken = node.GetSlot(1) as SyntaxToken;
+        var name = nameToken?.Text;
+        if (string.IsNullOrEmpty(name)) return;
+
+        var stage = FeatureStage.AlwaysDisabled;
+        var validInAllBranches = false;
+
+        // Find open brace to locate stage and bool
+        int openBrace = FindSlotIndex(node, SyntaxKind.OpenBraceToken);
+        if (openBrace >= 0)
+        {
+            // Stage identifier is the first identifier after '{'
+            var stageToken = FindNextIdentifier(node, openBrace + 1);
+            if (stageToken != null)
+            {
+                if (ValidFeatureStages.TryGetValue(stageToken.Text, out var parsedStage))
+                {
+                    stage = parsedStage;
+                }
+                else
+                {
+                    int pos = _posMap.GetPositionOf(stageToken.Text);
+                    _diagnostics.Add(DiagnosticDescriptors.InvalidFeatureStage(
+                        name, stageToken.Text, pos));
+                }
+            }
+
+            // Bool identifier is the next identifier after comma
+            int commaIdx = FindSlotIndex(node, SyntaxKind.CommaToken, openBrace + 1);
+            if (commaIdx >= 0)
+            {
+                var boolToken = FindNextIdentifier(node, commaIdx + 1);
+                if (boolToken != null)
+                    validInAllBranches = boolToken.Text.Equals("TRUE", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        var info = new FeatureNameInfo(name, stage, validInAllBranches);
+        _featureNames[name] = info;
+        MidlTrace.Binder($"Registered feature_name '{name}' stage={stage} validInAllBranches={validInAllBranches}");
+    }
+
+    /// <summary>Find the next identifier or TRUE/FALSE keyword starting at the given slot index.</summary>
+    private static SyntaxToken? FindNextIdentifier(GreenNode node, int startSlot)
+    {
+        for (int i = startSlot; i < node.SlotCount; i++)
+        {
+            if (node.GetSlot(i) is SyntaxToken tok &&
+                tok.Kind is SyntaxKind.IdentifierToken or SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword)
+                return tok;
+        }
+        return null;
+    }
+#endif
+
     #endregion
 
     #region Members
 
     private ConstructorSymbol BindConstructor(GreenNode node, ISymbol containingSymbol, NamespaceSymbol ns)
     {
-        var name = FindNameIdentifier(node);
+        var ctorNameToken = FindNameIdentifierToken(node);
+        var name = ctorNameToken?.Text ?? "";
         var symbol = new ConstructorSymbol(name, containingSymbol);
+        if (ctorNameToken != null) symbol.SourcePosition = GetNodePosition(ctorNameToken);
 
         // Extract all attributes
         var ctorAttrList = FindChild(node, SyntaxKind.AttributeList);
@@ -1246,9 +1329,10 @@ public class Binder
     {
         // Slots: [AttributeList], [ModifierList], TypeReference, IdentifierToken, ParameterList, SemicolonToken
         // Find the TypeReference, then the next identifier after it
-        var (returnTypeNode, nameText) = ExtractReturnTypeAndName(node);
+        var (returnTypeNode, nameText, methodNameToken) = ExtractReturnTypeAndName(node);
 
         var symbol = new MethodSymbol(nameText, containingSymbol);
+        if (methodNameToken != null) symbol.SourcePosition = GetNodePosition(methodNameToken);
         symbol.ReturnType = ExtractTypeRef(returnTypeNode);
         TrackTypeRef(symbol.ReturnType, ns);
 
@@ -1287,9 +1371,10 @@ public class Binder
 
     private PropertySymbol BindProperty(GreenNode node, ISymbol containingSymbol, NamespaceSymbol ns)
     {
-        var (typeNode, nameText) = ExtractReturnTypeAndName(node);
+        var (typeNode, nameText, propNameToken) = ExtractReturnTypeAndName(node);
 
         var symbol = new PropertySymbol(nameText, containingSymbol);
+        if (propNameToken != null) symbol.SourcePosition = GetNodePosition(propNameToken);
         symbol.Type = ExtractTypeRef(typeNode);
         TrackTypeRef(symbol.Type, ns);
 
@@ -1367,6 +1452,7 @@ public class Binder
         var name = nameToken?.Text ?? "";
 
         var symbol = new EventSymbol(name, containingSymbol);
+        if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         symbol.DelegateType = ExtractTypeRef(typeNode);
         TrackTypeRef(symbol.DelegateType, ns);
 
@@ -1420,6 +1506,7 @@ public class Binder
         GreenNode? typeNode = null;
         GreenNode? paramAttrList = null;
         string name = "";
+        SyntaxToken? paramNameToken = null;
 
         for (int i = 0; i < node.SlotCount; i++)
         {
@@ -1440,6 +1527,7 @@ public class Binder
                     case var k when IsTypeKeywordOrNameable(k):
                         // Last identifier-like token is the name
                         name = token.Text;
+                        paramNameToken = token;
                         break;
                 }
             }
@@ -1455,6 +1543,7 @@ public class Binder
         }
 
         var param = new ParameterSymbol(name, containingSymbol) { Direction = direction };
+        if (paramNameToken != null) param.SourcePosition = GetNodePosition(paramNameToken);
 
         // Extract parameter attributes
         if (paramAttrList != null)
@@ -1622,6 +1711,10 @@ public class Binder
         return token != null ? _posMap.GetPositionOf(token.Text) : 0;
     }
 
+    /// <summary>Get the source position for a symbol, using its stored SourcePosition if available.</summary>
+    private int GetSymbolPosition(ISymbol symbol) =>
+        symbol.SourcePosition >= 0 ? symbol.SourcePosition : _posMap.GetPositionOf(symbol.Name);
+
     /// <summary>Precompute offsets for all nodes in the tree in a single O(n) pass.</summary>
     private void BuildNodeOffsetMap(GreenNode node, int currentOffset)
     {
@@ -1678,10 +1771,11 @@ public class Binder
     /// Extract return type node and name from a method/property declaration.
     /// Pattern: [attrs], [mods], TypeReference, IdentifierToken, ...
     /// </summary>
-    private static (GreenNode? TypeNode, string Name) ExtractReturnTypeAndName(GreenNode node)
+    private static (GreenNode? TypeNode, string Name, SyntaxToken? NameToken) ExtractReturnTypeAndName(GreenNode node)
     {
         GreenNode? typeNode = null;
         string name = "";
+        SyntaxToken? nameToken = null;
 
         for (int i = 0; i < node.SlotCount; i++)
         {
@@ -1694,26 +1788,34 @@ public class Binder
                 // Next slot should be the name
                 var next = node.GetSlot(i + 1);
                 if (next is SyntaxToken nt)
+                {
                     name = nt.Text;
+                    nameToken = nt;
+                }
                 break;
             }
         }
 
-        return (typeNode, name);
+        return (typeNode, name, nameToken);
     }
 
     private static string FindNameIdentifier(GreenNode node)
     {
+        return FindNameIdentifierToken(node)?.Text ?? "";
+    }
+
+    private static SyntaxToken? FindNameIdentifierToken(GreenNode node)
+    {
         // Find the last identifier-like token that isn't followed by another identifier
         // For constructors: [attrs], [mods], IdentifierToken, ParameterList, Semicolon
         // For fields: [attrs], TypeReference, IdentifierToken, Semicolon
-        string lastIdent = "";
+        SyntaxToken? lastIdent = null;
         for (int i = 0; i < node.SlotCount; i++)
         {
             var slot = node.GetSlot(i);
             if (slot is SyntaxToken t && IsIdentifierLike(t.Kind))
             {
-                lastIdent = t.Text;
+                lastIdent = t;
             }
             else if (slot?.Kind == SyntaxKind.ParameterList
                      || slot?.Kind == SyntaxKind.SemicolonToken)
@@ -1726,13 +1828,18 @@ public class Binder
 
     private static string FindFirstIdentifierText(GreenNode node)
     {
+        return FindFirstIdentifierToken(node)?.Text ?? "";
+    }
+
+    private static SyntaxToken? FindFirstIdentifierToken(GreenNode node)
+    {
         for (int i = 0; i < node.SlotCount; i++)
         {
             var slot = node.GetSlot(i);
             if (slot is SyntaxToken t && IsIdentifierLike(t.Kind))
-                return t.Text;
+                return t;
         }
-        return "";
+        return null;
     }
 
     #endregion
@@ -1958,7 +2065,7 @@ public class Binder
             {
                 case "contract":
                     var contractName = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
-                    var contractVersion = (int?)attr.GetInt(1);
+                    var contractVersion = (int?)attr.GetVersion(1);
                     if (symbol is RuntimeClassSymbol rc) { rc.ContractName = contractName; rc.ContractVersion = contractVersion; }
                     if (symbol is InterfaceSymbol intf) { intf.ContractName = contractName; intf.ContractVersion = contractVersion; }
                     if (symbol is EnumSymbol en) { en.ContractName = contractName; en.ContractVersion = contractVersion; }
@@ -1969,11 +2076,11 @@ public class Binder
                     if (symbol is ConstructorSymbol cc) { cc.ContractName = contractName; cc.ContractVersion = contractVersion; }
                     break;
                 case "contractversion":
-                    if (symbol is ApiContractSymbol ac) ac.ContractVersion = (int?)attr.GetInt(0);
+                    if (symbol is ApiContractSymbol ac) ac.ContractVersion = (int?)attr.GetVersion(0);
                     break;
                 case "version":
-                    if (symbol is RuntimeClassSymbol rc2) rc2.Version = (int?)attr.GetInt(0);
-                    if (symbol is InterfaceSymbol intf2) intf2.Version = (int?)attr.GetInt(0);
+                    if (symbol is RuntimeClassSymbol rc2) rc2.Version = (int?)attr.GetVersion(0);
+                    if (symbol is InterfaceSymbol intf2) intf2.Version = (int?)attr.GetVersion(0);
                     break;
                 case "threading":
                     if (symbol is RuntimeClassSymbol rc3) rc3.ThreadingModel = attr.GetIdentifier(0);
@@ -2008,6 +2115,28 @@ public class Binder
                     if (symbol is RuntimeClassSymbol rc7) rc7.IsInternal = true;
                     if (symbol is InterfaceSymbol intf4) intf4.IsExclusive = true; // internal interfaces are private
                     break;
+                case "experimental":
+                    if (symbol is RuntimeClassSymbol rc8) rc8.IsExperimental = true;
+                    if (symbol is InterfaceSymbol intf5) intf5.IsExperimental = true;
+                    if (symbol is EnumSymbol en2) en2.IsExperimental = true;
+                    if (symbol is StructSymbol st2) st2.IsExperimental = true;
+                    if (symbol is DelegateSymbol del3) del3.IsExperimental = true;
+                    break;
+#if WINDOWS_INTERNAL
+                case "feature":
+                {
+                    var featureRef = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
+                    if (featureRef != null)
+                    {
+                        if (symbol is RuntimeClassSymbol rc9) rc9.FeatureName = featureRef;
+                        if (symbol is InterfaceSymbol intf6) intf6.FeatureName = featureRef;
+                        if (symbol is EnumSymbol en3) en3.FeatureName = featureRef;
+                        if (symbol is StructSymbol st3) st3.FeatureName = featureRef;
+                        if (symbol is DelegateSymbol del4) del4.FeatureName = featureRef;
+                    }
+                    break;
+                }
+#endif
             }
         }
     }
@@ -2024,9 +2153,12 @@ public class Binder
         }
     }
 
-    private bool TryDefineType(NamespaceSymbol ns, string name, bool isForwardDeclaration = false)
+    private bool TryDefineType(NamespaceSymbol ns, string name, bool isForwardDeclaration = false) =>
+        TryDefineType(ns, name, _posMap.GetPositionOf(name), isForwardDeclaration);
+
+    private bool TryDefineType(NamespaceSymbol ns, string name, int namePosition, bool isForwardDeclaration = false)
     {
-        int pos = _posMap.GetPositionOf(name);
+        int pos = namePosition;
         var fullName = ns.FullName.Length > 0 ? string.Concat(ns.FullName, ".", name) : name;
         if (isForwardDeclaration)
             _forwardDeclaredTypes.Add(fullName);
@@ -2070,7 +2202,12 @@ public class Binder
 
     private static int FindSlotIndex(GreenNode node, SyntaxKind kind)
     {
-        for (int i = 0; i < node.SlotCount; i++)
+        return FindSlotIndex(node, kind, 0);
+    }
+
+    private static int FindSlotIndex(GreenNode node, SyntaxKind kind, int startIndex)
+    {
+        for (int i = startIndex; i < node.SlotCount; i++)
         {
             var slot = node.GetSlot(i);
             if (slot != null && slot.Kind == kind) return i;
@@ -2238,7 +2375,7 @@ public class Binder
                 existing.Name == newMethod.Name &&
                 existing.Parameters.Count == newMethod.Parameters.Count)
             {
-                _diagnostics.Add(DiagnosticDescriptors.SameArityOverload(newMethod.Name, existing.Name, _posMap.GetPositionOf(newMethod.Name)));
+                _diagnostics.Add(DiagnosticDescriptors.SameArityOverload(newMethod.Name, existing.Name, GetSymbolPosition(newMethod)));
                 return;
             }
         }
@@ -2248,7 +2385,7 @@ public class Binder
     {
         if (prop.HasSetter && !prop.HasGetter && !string.IsNullOrEmpty(prop.Name))
         {
-            _diagnostics.Add(DiagnosticDescriptors.WriteOnlyProperty(prop.Name, _posMap.GetPositionOf(prop.Name)));
+            _diagnostics.Add(DiagnosticDescriptors.WriteOnlyProperty(prop.Name, GetSymbolPosition(prop)));
         }
     }
 
@@ -2326,21 +2463,21 @@ public class Binder
                 case EnumSymbol en when !en.IsExternal:
                     if (en.IsFlags && en.UnderlyingType != "UInt32")
                         _diagnostics.Add(DiagnosticDescriptors.FlagsEnumMustBeUInt32(
-                            en.Name, _posMap.GetPositionOf(en.Name)));
+                            en.Name, GetSymbolPosition(en)));
                     if (en.EnumMembers.Count == 0)
                         _diagnostics.Add(DiagnosticDescriptors.EmptyEnum(
-                            en.Name, _posMap.GetPositionOf(en.Name)));
+                            en.Name, GetSymbolPosition(en)));
                     break;
                 case DelegateSymbol d when !d.IsExternal:
                     ValidateDelegateReturnType(d);
                     ValidateMethodParametersForDelegate(d);
                     if (_emitQualityHints && !d.Name.EndsWith("Handler") && !d.Name.EndsWith("Callback") && !d.Name.EndsWith("EventHandler"))
-                        _diagnostics.Add(DiagnosticDescriptors.DelegateNamingConvention(d.Name, _posMap.GetPositionOf(d.Name)));
+                        _diagnostics.Add(DiagnosticDescriptors.DelegateNamingConvention(d.Name, GetSymbolPosition(d)));
                     break;
                 case AttributeTypeSymbol at when !at.IsExternal && _emitQualityHints:
                     if (!at.Name.EndsWith("Attribute", StringComparison.Ordinal))
                         _diagnostics.Add(DiagnosticDescriptors.AttributeNamingConvention(
-                            at.Name, _posMap.GetPositionOf(at.Name)));
+                            at.Name, GetSymbolPosition(at)));
                     break;
             }
 
@@ -2350,11 +2487,19 @@ public class Binder
                 (member.Name.Contains('_') || char.IsLower(member.Name[0])))
             {
                 _diagnostics.Add(DiagnosticDescriptors.TypeNamePascalCase(
-                    member.Name, _posMap.GetPositionOf(member.Name)));
+                    member.Name, GetSymbolPosition(member)));
             }
         }
 
         ValidateCircularStructReferences(ns);
+
+        // Validate experimental type references across all types
+        ValidateExperimentalReferences(ns);
+
+#if WINDOWS_INTERNAL
+        // Validate feature-gated type references
+        ValidateFeatureReferences(ns);
+#endif
 
         foreach (var child in ns.ChildNamespaces.Values)
         {
@@ -2551,6 +2696,166 @@ public class Binder
     }
 
     /// <summary>MIDL1045: Detect circular references between struct field types.</summary>
+    private void ValidateExperimentalReferences(NamespaceSymbol ns)
+    {
+        foreach (var member in ns.Members)
+        {
+            switch (member)
+            {
+                case RuntimeClassSymbol rc when !rc.IsExternal && !rc.IsExperimental:
+                    CheckExperimentalTypeRef(rc.Name, rc.BaseClass);
+                    foreach (var iface in rc.Interfaces)
+                        CheckExperimentalTypeRef(rc.Name, iface);
+                    CheckExperimentalMembers(rc.Name, rc.Members);
+                    break;
+                case InterfaceSymbol iface when !iface.IsExternal && !iface.IsSynthesized && !iface.IsExperimental:
+                    foreach (var req in iface.RequiredInterfaces)
+                        CheckExperimentalTypeRef(iface.Name, req);
+                    CheckExperimentalMembers(iface.Name, iface.Members);
+                    break;
+                case StructSymbol s when !s.IsExternal && !s.IsExperimental:
+                    foreach (var field in s.Fields)
+                        CheckExperimentalTypeRef(s.Name, field.Type);
+                    break;
+                case DelegateSymbol d when !d.IsExternal && !d.IsExperimental:
+                    CheckExperimentalTypeRef(d.Name, d.ReturnType);
+                    foreach (var param in d.Parameters)
+                        CheckExperimentalTypeRef(d.Name, param.Type);
+                    break;
+            }
+        }
+    }
+
+    private void CheckExperimentalMembers(string ownerName, IReadOnlyList<ISymbol> members)
+    {
+        foreach (var member in members)
+        {
+            switch (member)
+            {
+                case MethodSymbol m:
+                    CheckExperimentalTypeRef(ownerName, m.ReturnType);
+                    foreach (var p in m.Parameters)
+                        CheckExperimentalTypeRef(ownerName, p.Type);
+                    break;
+                case PropertySymbol p:
+                    CheckExperimentalTypeRef(ownerName, p.Type);
+                    break;
+                case EventSymbol e:
+                    CheckExperimentalTypeRef(ownerName, e.DelegateType);
+                    break;
+                case ConstructorSymbol c:
+                    foreach (var p in c.Parameters)
+                        CheckExperimentalTypeRef(ownerName, p.Type);
+                    break;
+            }
+        }
+    }
+
+    private void CheckExperimentalTypeRef(string ownerName, TypeRef? typeRef)
+    {
+        if (typeRef == null || typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return;
+        if (IsExperimentalSymbol(typeRef.ResolvedSymbol))
+        {
+            _diagnostics.Add(DiagnosticDescriptors.ExperimentalTypeReference(
+                ownerName, typeRef.Name, typeRef.Position));
+        }
+        foreach (var arg in typeRef.TypeArguments)
+            CheckExperimentalTypeRef(ownerName, arg);
+    }
+
+    private static bool IsExperimentalSymbol(ISymbol? symbol) =>
+        symbol switch
+        {
+            RuntimeClassSymbol rc => rc.IsExperimental,
+            InterfaceSymbol iface => iface.IsExperimental,
+            EnumSymbol en => en.IsExperimental,
+            StructSymbol s => s.IsExperimental,
+            DelegateSymbol d => d.IsExperimental,
+            _ => false
+        };
+
+#if WINDOWS_INTERNAL
+    private void ValidateFeatureReferences(NamespaceSymbol ns)
+    {
+        foreach (var member in ns.Members)
+        {
+            var ownerFeature = GetFeatureName(member);
+            switch (member)
+            {
+                case RuntimeClassSymbol rc when !rc.IsExternal:
+                    CheckFeatureTypeRef(rc.Name, ownerFeature, rc.BaseClass);
+                    foreach (var iface in rc.Interfaces)
+                        CheckFeatureTypeRef(rc.Name, ownerFeature, iface);
+                    CheckFeatureMembers(rc.Name, ownerFeature, rc.Members);
+                    break;
+                case InterfaceSymbol iface when !iface.IsExternal && !iface.IsSynthesized:
+                    foreach (var req in iface.RequiredInterfaces)
+                        CheckFeatureTypeRef(iface.Name, ownerFeature, req);
+                    CheckFeatureMembers(iface.Name, ownerFeature, iface.Members);
+                    break;
+                case StructSymbol s when !s.IsExternal:
+                    foreach (var field in s.Fields)
+                        CheckFeatureTypeRef(s.Name, ownerFeature, field.Type);
+                    break;
+                case DelegateSymbol d when !d.IsExternal:
+                    CheckFeatureTypeRef(d.Name, ownerFeature, d.ReturnType);
+                    foreach (var param in d.Parameters)
+                        CheckFeatureTypeRef(d.Name, ownerFeature, param.Type);
+                    break;
+            }
+        }
+    }
+
+    private void CheckFeatureMembers(string ownerName, string? ownerFeature, IReadOnlyList<ISymbol> members)
+    {
+        foreach (var member in members)
+        {
+            switch (member)
+            {
+                case MethodSymbol m:
+                    CheckFeatureTypeRef(ownerName, ownerFeature, m.ReturnType);
+                    foreach (var p in m.Parameters)
+                        CheckFeatureTypeRef(ownerName, ownerFeature, p.Type);
+                    break;
+                case PropertySymbol p:
+                    CheckFeatureTypeRef(ownerName, ownerFeature, p.Type);
+                    break;
+                case EventSymbol e:
+                    CheckFeatureTypeRef(ownerName, ownerFeature, e.DelegateType);
+                    break;
+                case ConstructorSymbol c:
+                    foreach (var p in c.Parameters)
+                        CheckFeatureTypeRef(ownerName, ownerFeature, p.Type);
+                    break;
+            }
+        }
+    }
+
+    private void CheckFeatureTypeRef(string ownerName, string? ownerFeature, TypeRef? typeRef)
+    {
+        if (typeRef == null || typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return;
+        var refFeature = GetFeatureName(typeRef.ResolvedSymbol);
+        if (refFeature != null && !string.Equals(ownerFeature, refFeature, StringComparison.OrdinalIgnoreCase))
+        {
+            _diagnostics.Add(DiagnosticDescriptors.FeatureGatedTypeReference(
+                ownerName, typeRef.Name, refFeature, _posMap.GetPositionOf(typeRef.Name)));
+        }
+        foreach (var arg in typeRef.TypeArguments)
+            CheckFeatureTypeRef(ownerName, ownerFeature, arg);
+    }
+
+    private static string? GetFeatureName(ISymbol? symbol) =>
+        symbol switch
+        {
+            RuntimeClassSymbol rc => rc.FeatureName,
+            InterfaceSymbol iface => iface.FeatureName,
+            EnumSymbol en => en.FeatureName,
+            StructSymbol s => s.FeatureName,
+            DelegateSymbol d => d.FeatureName,
+            _ => null
+        };
+#endif
+
     private void ValidateCircularStructReferences(NamespaceSymbol ns)
     {
         var visiting = new HashSet<string>();
@@ -2588,7 +2893,7 @@ public class Binder
                     if (reported.Add(key))
                     {
                         _diagnostics.Add(DiagnosticDescriptors.CircularStructReference(
-                            current.Name, fieldStruct.Name, _posMap.GetPositionOf(current.Name)));
+                            current.Name, fieldStruct.Name, GetSymbolPosition(current)));
                     }
                 }
                 else
@@ -2604,20 +2909,20 @@ public class Binder
 
 
     private static readonly HashSet<string> AllowedStructFieldBuiltIns = new(StringComparer.Ordinal) { "Boolean","Char","Int16","Int32","Int64","UInt8","UInt16","UInt32","UInt64","Single","Double","String","Guid" };
-    private void ValidateStructFieldTypes(StructSymbol s) { foreach (var field in s.Fields) if (!IsAllowedStructFieldType(field.Type)) _diagnostics.Add(DiagnosticDescriptors.StructFieldNotValueType(field.Name, _posMap.GetPositionOf(field.Name))); }
+    private void ValidateStructFieldTypes(StructSymbol s) { foreach (var field in s.Fields) if (!IsAllowedStructFieldType(field.Type)) _diagnostics.Add(DiagnosticDescriptors.StructFieldNotValueType(field.Name, GetSymbolPosition(field))); }
     private static bool IsAllowedStructFieldType(TypeRef typeRef) { if (AllowedStructFieldBuiltIns.Contains(typeRef.Name)) return true; if (typeRef.Name == "IReference" && typeRef.TypeArguments.Count > 0) return true; if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol) return true; return false; }
     private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; string methodName = ""; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; methodName = m.Name; } else if (member is ConstructorSymbol c) { p = c.Parameters; methodName = c.Name; } if (p != null) { foreach (var param in p) ValidateParameter(param); ValidateDuplicateParameterNames(p, methodName); } if (_mode == CompilationMode.Strict && rt != null) CheckWinRtTypeCompatibility(rt); } }
     private void ValidateMethodParametersForDelegate(DelegateSymbol d) { foreach (var param in d.Parameters) ValidateParameter(param); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(d.ReturnType); }
-    private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, _posMap.GetPositionOf(param.Name))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, _posMap.GetPositionOf(param.Name))); } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
+    private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, GetSymbolPosition(param))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, GetSymbolPosition(param))); } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
     private static readonly HashSet<string> COnlyTypes = new(StringComparer.Ordinal) { "wchar_t","handle_t","error_status_t" };
     private void CheckWinRtTypeCompatibility(TypeRef typeRef) { if (typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return; if (COnlyTypes.Contains(typeRef.Name)) _diagnostics.Add(DiagnosticDescriptors.WinRtTypeNotAllowed(typeRef.Name, typeRef.Position)); }
     private void ValidateDelegateReturnType(DelegateSymbol d) { /* WinRT delegates can return any type */ }
-    private void ValidateInterfaceMemberNameUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal); foreach (var member in iface.Members) { var name = member.Name; if (string.IsNullOrEmpty(name)) continue; if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup)) continue; if (seen.TryGetValue(name, out var existing)) { if (existing is MethodSymbol em && !string.IsNullOrEmpty(em.OverloadGroup)) continue; _diagnostics.Add(DiagnosticDescriptors.InterfaceMemberNameCollision(name, iface.Name, _posMap.GetPositionOf(name))); } else seen[name] = member; } }
+    private void ValidateInterfaceMemberNameUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal); foreach (var member in iface.Members) { var name = member.Name; if (string.IsNullOrEmpty(name)) continue; if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup)) continue; if (seen.TryGetValue(name, out var existing)) { if (existing is MethodSymbol em && !string.IsNullOrEmpty(em.OverloadGroup)) continue; _diagnostics.Add(DiagnosticDescriptors.InterfaceMemberNameCollision(name, iface.Name, GetSymbolPosition(member))); } else seen[name] = member; } }
     private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; int dc = 0; foreach (var m in ms) { if (m.IsDefaultOverload) dc++; } if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOf(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOf(k.Item1))); } }
-    private void ValidateDeprecatedInheritance(RuntimeClassSymbol rc) { if (rc.BaseClass?.ResolvedSymbol is not RuntimeClassSymbol baseRc) return; if (string.IsNullOrEmpty(baseRc.DeprecatedMessage)) return; if (!string.IsNullOrEmpty(rc.DeprecatedMessage)) return; _diagnostics.Add(DiagnosticDescriptors.DeprecatedBaseClassInheritance(rc.Name, baseRc.Name, _posMap.GetPositionOf(rc.Name))); }
-    private void ValidateMethodNameOverrideUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, string>(StringComparer.Ordinal); foreach (var member in iface.Members) { if (member is not MethodSymbol m || string.IsNullOrEmpty(m.MethodNameOverride)) continue; if (!seen.TryAdd(m.MethodNameOverride, m.Name)) _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameOverride(m.MethodNameOverride, iface.Name, _posMap.GetPositionOf(m.Name))); } }
-    private void ValidateConstructorArityPerVersion(RuntimeClassSymbol rc) { List<ConstructorSymbol>? ctors = null; foreach (var member in rc.Members) { if (member is ConstructorSymbol ctor) { ctors ??= new List<ConstructorSymbol>(); ctors.Add(ctor); } } if (ctors == null || ctors.Count < 2) return; var g = new Dictionary<(int,int?), List<ConstructorSymbol>>(); foreach (var ctor in ctors) { var k = (ctor.Parameters.Count, ctor.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(ctor); } foreach (var (k, l) in g) if (l.Count > 1) _diagnostics.Add(DiagnosticDescriptors.ConstructorArityConflict(rc.Name, k.Item1, _posMap.GetPositionOf(rc.Name))); }
-    private void ValidateStaticUnsealedConflict(RuntimeClassSymbol rc) { if (rc.IsStatic && rc.IsUnsealed) _diagnostics.Add(DiagnosticDescriptors.StaticUnsealedConflict(rc.Name, _posMap.GetPositionOf(rc.Name))); }
+    private void ValidateDeprecatedInheritance(RuntimeClassSymbol rc) { if (rc.BaseClass?.ResolvedSymbol is not RuntimeClassSymbol baseRc) return; if (string.IsNullOrEmpty(baseRc.DeprecatedMessage)) return; if (!string.IsNullOrEmpty(rc.DeprecatedMessage)) return; _diagnostics.Add(DiagnosticDescriptors.DeprecatedBaseClassInheritance(rc.Name, baseRc.Name, GetSymbolPosition(rc))); }
+    private void ValidateMethodNameOverrideUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, string>(StringComparer.Ordinal); foreach (var member in iface.Members) { if (member is not MethodSymbol m || string.IsNullOrEmpty(m.MethodNameOverride)) continue; if (!seen.TryAdd(m.MethodNameOverride, m.Name)) _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameOverride(m.MethodNameOverride, iface.Name, GetSymbolPosition(m))); } }
+    private void ValidateConstructorArityPerVersion(RuntimeClassSymbol rc) { List<ConstructorSymbol>? ctors = null; foreach (var member in rc.Members) { if (member is ConstructorSymbol ctor) { ctors ??= new List<ConstructorSymbol>(); ctors.Add(ctor); } } if (ctors == null || ctors.Count < 2) return; var g = new Dictionary<(int,int?), List<ConstructorSymbol>>(); foreach (var ctor in ctors) { var k = (ctor.Parameters.Count, ctor.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(ctor); } foreach (var (k, l) in g) if (l.Count > 1) _diagnostics.Add(DiagnosticDescriptors.ConstructorArityConflict(rc.Name, k.Item1, GetSymbolPosition(rc))); }
+    private void ValidateStaticUnsealedConflict(RuntimeClassSymbol rc) { if (rc.IsStatic && rc.IsUnsealed) _diagnostics.Add(DiagnosticDescriptors.StaticUnsealedConflict(rc.Name, GetSymbolPosition(rc))); }
 
     private void ValidateDuplicateParameterNames(List<ParameterSymbol> parameters, string methodName)
     {
@@ -2625,7 +2930,7 @@ public class Binder
         foreach (var param in parameters)
         {
             if (!string.IsNullOrEmpty(param.Name) && !seen.Add(param.Name))
-                _diagnostics.Add(DiagnosticDescriptors.DuplicateParameterName(param.Name, methodName, _posMap.GetPositionOf(param.Name)));
+                _diagnostics.Add(DiagnosticDescriptors.DuplicateParameterName(param.Name, methodName, GetSymbolPosition(param)));
         }
     }
 
@@ -2637,16 +2942,16 @@ public class Binder
             switch (member)
             {
                 case MethodSymbol m when !m.IsStatic:
-                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(m.Name, rc.Name, _posMap.GetPositionOf(m.Name)));
+                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(m.Name, rc.Name, GetSymbolPosition(m)));
                     break;
                 case ConstructorSymbol c:
-                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(c.Name, rc.Name, _posMap.GetPositionOf(c.Name)));
+                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(c.Name, rc.Name, GetSymbolPosition(c)));
                     break;
                 case PropertySymbol p when !p.IsStatic:
-                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(p.Name, rc.Name, _posMap.GetPositionOf(p.Name)));
+                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(p.Name, rc.Name, GetSymbolPosition(p)));
                     break;
                 case EventSymbol e when !e.IsStatic:
-                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(e.Name, rc.Name, _posMap.GetPositionOf(e.Name)));
+                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(e.Name, rc.Name, GetSymbolPosition(e)));
                     break;
             }
         }
@@ -2657,7 +2962,7 @@ public class Binder
         foreach (var member in members)
         {
             if (member is PropertySymbol prop && prop.Type.Name is "void" or "Void")
-                _diagnostics.Add(DiagnosticDescriptors.PropertyVoidType(prop.Name, _posMap.GetPositionOf(prop.Name)));
+                _diagnostics.Add(DiagnosticDescriptors.PropertyVoidType(prop.Name, GetSymbolPosition(prop)));
         }
     }
 
@@ -2667,7 +2972,7 @@ public class Binder
         foreach (var member in members)
         {
             if (member is PropertySymbol prop && !string.IsNullOrEmpty(prop.Name) && !seen.Add(prop.Name))
-                _diagnostics.Add(DiagnosticDescriptors.DuplicatePropertyName(prop.Name, typeName, _posMap.GetPositionOf(prop.Name)));
+                _diagnostics.Add(DiagnosticDescriptors.DuplicatePropertyName(prop.Name, typeName, GetSymbolPosition(prop)));
         }
     }
 
@@ -2676,7 +2981,7 @@ public class Binder
         foreach (var member in rc.Members)
         {
             if (member is MethodSymbol m && string.Equals(m.Name, rc.Name, StringComparison.Ordinal))
-                _diagnostics.Add(DiagnosticDescriptors.ConstructorWithReturnType(m.Name, _posMap.GetPositionOf(m.Name)));
+                _diagnostics.Add(DiagnosticDescriptors.ConstructorWithReturnType(m.Name, GetSymbolPosition(m)));
         }
     }
 
@@ -2690,7 +2995,7 @@ public class Binder
                 if (seen.TryGetValue(m.OverloadGroup, out _))
                 {
                     // Always flag: ContainsKey is always true inside TryGetValue success branch
-                    _diagnostics.Add(DiagnosticDescriptors.DuplicateOverloadName(m.OverloadGroup, iface.Name, _posMap.GetPositionOf(m.Name)));
+                    _diagnostics.Add(DiagnosticDescriptors.DuplicateOverloadName(m.OverloadGroup, iface.Name, GetSymbolPosition(m)));
                 }
                 else
                 {
@@ -2745,7 +3050,7 @@ public class Binder
             if (isProtected)
             {
                 _diagnostics.Add(DiagnosticDescriptors.ProtectedMemberOnInterface(
-                    m.Name, iface.Name, _posMap.GetPositionOf(m.Name)));
+                    m.Name, iface.Name, GetSymbolPosition(m)));
             }
         }
     }
@@ -2763,7 +3068,7 @@ public class Binder
             {
                 _diagnostics.Add(DiagnosticDescriptors.ExclusiveToViolation(
                     iface.Name, iface.ExclusiveToClass, rc.Name,
-                    _posMap.GetPositionOf(iface.Name)));
+                    GetSymbolPosition(iface)));
             }
         }
     }
@@ -2784,7 +3089,7 @@ public class Binder
         {
             _diagnostics.Add(DiagnosticDescriptors.MissingDefaultInterface(
                 rc.Name, nonSynthCount,
-                _posMap.GetPositionOf(rc.Name)));
+                GetSymbolPosition(rc)));
         }
     }
 
@@ -2804,10 +3109,10 @@ public class Binder
         if (hasNonConstructorMember) return;
 
         _diagnostics.Add(DiagnosticDescriptors.EmptyRuntimeClassNoInterface(
-            rc.Name, _posMap.GetPositionOf(rc.Name)));
+            rc.Name, GetSymbolPosition(rc)));
 
         _diagnostics.Add(DiagnosticDescriptors.EmptyRuntimeClassNoInterface(
-            rc.Name, _posMap.GetPositionOf(rc.Name)));
+            rc.Name, GetSymbolPosition(rc)));
     }
 
     private void ValidateParameterConstraints(IReadOnlyList<ISymbol> members, string ownerName)
@@ -2828,7 +3133,7 @@ public class Binder
                 if (hasOptional)
                 {
                     _diagnostics.Add(DiagnosticDescriptors.OptionalParamNotAllowed(
-                        param.Name, methodName, _posMap.GetPositionOf(param.Name)));
+                        param.Name, methodName, GetSymbolPosition(param)));
                 }
 
                 // Check parameter class has default interface
@@ -2844,7 +3149,7 @@ public class Binder
                     if (!hasDefault && !paramRc.IsStatic)
                     {
                         _diagnostics.Add(DiagnosticDescriptors.ParamClassNeedsDefaultInterface(
-                            param.Name, paramRc.Name, methodName, _posMap.GetPositionOf(param.Name)));
+                            param.Name, paramRc.Name, methodName, GetSymbolPosition(param)));
                     }
                 }
             }
@@ -2879,21 +3184,21 @@ public class Binder
         {
             // Missing I prefix: Foo → IFoo
             _diagnostics.Add(DiagnosticDescriptors.InterfaceNamingConvention(
-                iface.Name, $"I{iface.Name}", _posMap.GetPositionOf(iface.Name)));
+                iface.Name, $"I{iface.Name}", GetSymbolPosition(iface)));
         }
         else if (iface.Name.Length > 1 && iface.Name[0] == 'I' && char.IsLower(iface.Name[1]))
         {
             // Has I but next char is lowercase: Ibar → IBar
             var suggestion = "I" + char.ToUpperInvariant(iface.Name[1]) + iface.Name[2..];
             _diagnostics.Add(DiagnosticDescriptors.InterfaceNamingConvention(
-                iface.Name, suggestion, _posMap.GetPositionOf(iface.Name)));
+                iface.Name, suggestion, GetSymbolPosition(iface)));
         }
 
         // MIDL3003: Empty interface
         if (iface.Members.Count == 0)
         {
             _diagnostics.Add(DiagnosticDescriptors.EmptyInterface(
-                iface.Name, _posMap.GetPositionOf(iface.Name)));
+                iface.Name, GetSymbolPosition(iface)));
         }
 
         // MIDL3016: Get+set property can use shorthand (skip if already shorthand)
@@ -2903,7 +3208,7 @@ public class Binder
                 !prop.IsGetterProtected && !prop.IsSetterProtected)
             {
                 _diagnostics.Add(DiagnosticDescriptors.PropertyCanUseShorthand(
-                    prop.Name, iface.Name, _posMap.GetPositionOf(prop.Name)));
+                    prop.Name, iface.Name, GetSymbolPosition(prop)));
             }
         }
 
@@ -2913,7 +3218,7 @@ public class Binder
             if (method.ReturnType.Name.Contains("IAsync") && !method.Name.EndsWith("Async"))
             {
                 _diagnostics.Add(DiagnosticDescriptors.AsyncMethodNamingConvention(
-                    method.Name, iface.Name, _posMap.GetPositionOf(method.Name)));
+                    method.Name, iface.Name, GetSymbolPosition(method)));
             }
         }
 
@@ -2946,14 +3251,14 @@ public class Binder
         if (!hasMembers && !rc.IsStatic)
         {
             _diagnostics.Add(DiagnosticDescriptors.EmptyRuntimeClass(
-                rc.Name, _posMap.GetPositionOf(rc.Name)));
+                rc.Name, GetSymbolPosition(rc)));
         }
 
         // MIDL3005: No constructor and not activatable
         if (!hasConstructors && !hasActivatable && !rc.IsStatic && hasMembers)
         {
             _diagnostics.Add(DiagnosticDescriptors.RuntimeClassNoConstructor(
-                rc.Name, _posMap.GetPositionOf(rc.Name)));
+                rc.Name, GetSymbolPosition(rc)));
         }
 
         // MIDL3007: Setter-only property
@@ -2963,14 +3268,14 @@ public class Binder
             if (prop.HasSetter && !prop.HasGetter)
             {
                 _diagnostics.Add(DiagnosticDescriptors.PropertySetterOnly(
-                    prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));
+                    prop.Name, rc.Name, GetSymbolPosition(prop)));
             }
             else if (prop.HasGetter && prop.HasSetter && !prop.IsShorthand &&
                      !prop.IsProtected && !prop.IsOverridable &&
                      !prop.IsGetterProtected && !prop.IsSetterProtected)
             {
                 _diagnostics.Add(DiagnosticDescriptors.PropertyCanUseShorthand(
-                    prop.Name, rc.Name, _posMap.GetPositionOf(prop.Name)));
+                    prop.Name, rc.Name, GetSymbolPosition(prop)));
             }
         }
 
@@ -2980,7 +3285,7 @@ public class Binder
             if (string.Equals(method.Name, rc.Name, StringComparison.OrdinalIgnoreCase))
             {
                 _diagnostics.Add(DiagnosticDescriptors.MethodNameClash(
-                    method.Name, rc.Name, _posMap.GetPositionOf(method.Name)));
+                    method.Name, rc.Name, GetSymbolPosition(method)));
             }
         }
 
@@ -2990,7 +3295,7 @@ public class Binder
             if (method.ReturnType.Name.Contains("IAsync") && !method.Name.EndsWith("Async"))
             {
                 _diagnostics.Add(DiagnosticDescriptors.AsyncMethodNamingConvention(
-                    method.Name, rc.Name, _posMap.GetPositionOf(method.Name)));
+                    method.Name, rc.Name, GetSymbolPosition(method)));
             }
         }
 

@@ -14,6 +14,7 @@ public class ApiContractSymbol : ISymbol
     public int Version { get; set; }
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public int SourcePosition { get; set; } = -1;
 
     // Extracted attribute data
     public List<AttributeData> Attributes { get; } = new();

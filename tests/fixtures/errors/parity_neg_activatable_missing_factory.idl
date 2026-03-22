@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    runtimeclass BadClass
+    {
+        BadClass(Int32 x);
+        BadClass(Int32 y);
+    }
+}

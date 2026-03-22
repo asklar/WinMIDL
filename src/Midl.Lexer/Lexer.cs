@@ -10,6 +10,7 @@ public sealed class Lexer
     private readonly SlidingTextWindow _window;
     private readonly int _sourceLength;
     private SyntaxKind _lastTokenKind = SyntaxKind.None;
+    private readonly List<GreenNode> _triviaBuffer = new();
 
     public Lexer(string sourceText)
     {
@@ -30,8 +31,8 @@ public sealed class Lexer
 
             var token = new SyntaxToken(
                 kind, text, value,
-                leading.Count > 0 ? leading.ToArray() : null,
-                trailing.Count > 0 ? trailing.ToArray() : null);
+                leading.Length > 0 ? leading : null,
+                trailing.Length > 0 ? trailing : null);
 
             tokens.Add(token);
             _lastTokenKind = kind;
@@ -49,36 +50,38 @@ public sealed class Lexer
         return tokens;
     }
 
-    // ── Trivia ───────────────────────────────────────────────────────────
+    // -- Trivia ---------------------------------------------------------------
 
-    private List<GreenNode> ScanLeadingTrivia()
+    private static readonly GreenNode[] s_emptyTrivia = [];
+
+    private GreenNode[] ScanLeadingTrivia()
     {
-        var trivia = new List<GreenNode>();
+        _triviaBuffer.Clear();
 
         while (!_window.IsAtEnd)
         {
             char ch = _window.PeekChar();
 
             if (ch == ' ' || ch == '\t')
-                trivia.Add(ScanWhitespace());
+                _triviaBuffer.Add(ScanWhitespace());
             else if (ch == '\r' || ch == '\n')
-                trivia.Add(ScanEndOfLine());
+                _triviaBuffer.Add(ScanEndOfLine());
             else if (ch == '/' && _window.PeekChar(1) == '/')
-                trivia.Add(ScanSingleLineComment());
+                _triviaBuffer.Add(ScanSingleLineComment());
             else if (ch == '/' && _window.PeekChar(1) == '*')
-                trivia.Add(ScanMultiLineComment());
+                _triviaBuffer.Add(ScanMultiLineComment());
             else if (ch == '#')
-                trivia.Add(ScanPreprocessorDirective());
+                _triviaBuffer.Add(ScanPreprocessorDirective());
             else
                 break;
         }
 
-        return trivia;
+        return _triviaBuffer.Count > 0 ? _triviaBuffer.ToArray() : s_emptyTrivia;
     }
 
-    private List<GreenNode> ScanTrailingTrivia()
+    private GreenNode[] ScanTrailingTrivia()
     {
-        var trivia = new List<GreenNode>();
+        _triviaBuffer.Clear();
 
         while (!_window.IsAtEnd)
         {
@@ -86,23 +89,23 @@ public sealed class Lexer
 
             if (ch == ' ' || ch == '\t')
             {
-                trivia.Add(ScanWhitespace());
+                _triviaBuffer.Add(ScanWhitespace());
             }
             else if (ch == '/' && _window.PeekChar(1) == '/')
             {
-                trivia.Add(ScanSingleLineComment());
+                _triviaBuffer.Add(ScanSingleLineComment());
                 // Consume the end-of-line after a single-line comment
                 if (!_window.IsAtEnd && (_window.PeekChar() == '\r' || _window.PeekChar() == '\n'))
-                    trivia.Add(ScanEndOfLine());
+                    _triviaBuffer.Add(ScanEndOfLine());
                 break;
             }
             else if (ch == '/' && _window.PeekChar(1) == '*')
             {
-                trivia.Add(ScanMultiLineComment());
+                _triviaBuffer.Add(ScanMultiLineComment());
             }
             else if (ch == '\r' || ch == '\n')
             {
-                trivia.Add(ScanEndOfLine());
+                _triviaBuffer.Add(ScanEndOfLine());
                 break;
             }
             else
@@ -111,7 +114,7 @@ public sealed class Lexer
             }
         }
 
-        return trivia;
+        return _triviaBuffer.Count > 0 ? _triviaBuffer.ToArray() : s_emptyTrivia;
     }
 
     private SyntaxTrivia ScanWhitespace()
@@ -178,7 +181,7 @@ public sealed class Lexer
             _window.GetText(start, _window.Position - start));
     }
 
-    // ── Token scanning ──────────────────────────────────────────────────
+    // -- Token scanning -------------------------------------------------------
 
     private (SyntaxKind Kind, string Text, object? Value) ScanToken()
     {
@@ -218,7 +221,7 @@ public sealed class Lexer
                 if (_window.PeekChar() == '-') { _window.AdvanceChar(); return (SyntaxKind.MinusMinusToken, "--", null); }
                 if (_window.PeekChar() == '>') { _window.AdvanceChar(); return (SyntaxKind.ArrowToken, "->", null); }
                 // Negative numeric literal only when previous token is a value-preceding operator
-                if (char.IsDigit(_window.PeekChar()) && IsValuePrecedingToken(_lastTokenKind))
+                if (IsAsciiDigit(_window.PeekChar()) && IsValuePrecedingToken(_lastTokenKind))
                 {
                     var (numKind, numText, numVal) = ScanNumericLiteral();
                     return (numKind, "-" + numText, "-" + numText);
@@ -264,13 +267,13 @@ public sealed class Lexer
                 return ScanStringLiteral();
         }
 
-        if (char.IsDigit(ch))
+        if (IsAsciiDigit(ch))
             return ScanNumericLiteral();
 
-        if (char.IsLetter(ch) || ch == '_')
+        if (IsAsciiIdentStart(ch))
             return ScanIdentifierOrKeyword();
 
-        // Unrecognized character → error token
+        // Unrecognized character -> error token
         _window.AdvanceChar();
         return (SyntaxKind.ErrorToken, ch.ToString(), null);
     }
@@ -304,7 +307,7 @@ public sealed class Lexer
             }
         }
 
-        // Unterminated string → error token
+        // Unterminated string -> error token
         string errorText = _window.GetText(start, _window.Position - start);
         return (SyntaxKind.ErrorToken, errorText, null);
     }
@@ -321,14 +324,14 @@ public sealed class Lexer
         }
         else
         {
-            while (!_window.IsAtEnd && char.IsDigit(_window.PeekChar()))
+            while (!_window.IsAtEnd && IsAsciiDigit(_window.PeekChar()))
                 _window.AdvanceChar();
 
             // Float literal: digits followed by '.' and more digits (e.g. 1.1, 3.14)
-            if (!_window.IsAtEnd && _window.PeekChar() == '.' && char.IsDigit(_window.PeekChar(1)))
+            if (!_window.IsAtEnd && _window.PeekChar() == '.' && IsAsciiDigit(_window.PeekChar(1)))
             {
                 _window.AdvanceChar(); // '.'
-                while (!_window.IsAtEnd && char.IsDigit(_window.PeekChar()))
+                while (!_window.IsAtEnd && IsAsciiDigit(_window.PeekChar()))
                     _window.AdvanceChar();
 
                 // Optional f/F suffix
@@ -362,7 +365,7 @@ public sealed class Lexer
         while (!_window.IsAtEnd)
         {
             char ch = _window.PeekChar();
-            if (char.IsLetterOrDigit(ch) || ch == '_')
+            if (IsAsciiIdentPart(ch))
                 _window.AdvanceChar();
             else
                 break;
@@ -378,14 +381,23 @@ public sealed class Lexer
             return (SyntaxKind.StringLiteralToken, fullText, strValue);
         }
 
-        if (KeywordTable.TryGetKeywordKind(text, out var kind))
-            return (kind, text, text);
+        if (KeywordTable.TryGetKeyword(text, out var kind, out var canonicalText))
+            return (kind, canonicalText, canonicalText);
 
         return (SyntaxKind.IdentifierToken, text, text);
     }
 
     private static bool IsHexDigit(char ch) =>
-        char.IsDigit(ch) || ch is (>= 'a' and <= 'f') or (>= 'A' and <= 'F');
+        (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+
+    private static bool IsAsciiDigit(char ch) =>
+        (uint)(ch - '0') <= 9;
+
+    private static bool IsAsciiIdentStart(char ch) =>
+        (uint)(ch - 'a') <= 25 || (uint)(ch - 'A') <= 25 || ch == '_';
+
+    private static bool IsAsciiIdentPart(char ch) =>
+        (uint)(ch - 'a') <= 25 || (uint)(ch - 'A') <= 25 || (uint)(ch - '0') <= 9 || ch == '_';
 
     /// <summary>
     /// Returns true if the previous token kind can precede a negative numeric literal.

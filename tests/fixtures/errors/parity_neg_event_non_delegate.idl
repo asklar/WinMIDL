@@ -1,0 +1,7 @@
+namespace TestApp
+{
+    interface IBad
+    {
+        event Int32 BadEvent;
+    }
+}

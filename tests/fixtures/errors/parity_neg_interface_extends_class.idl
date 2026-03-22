@@ -1,0 +1,13 @@
+namespace TestApp
+{
+    runtimeclass SomeClass
+    {
+        SomeClass();
+        String Name { get; };
+    }
+
+    interface IBad : SomeClass
+    {
+        void DoWork();
+    }
+}

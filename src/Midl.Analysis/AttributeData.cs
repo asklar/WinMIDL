@@ -28,6 +28,19 @@ public class AttributeData
     /// <summary>Get argument at index as GUID, or null.</summary>
     public Guid? GetGuid(int index) =>
         index < Arguments.Count && Arguments[index].Kind == ArgKind.Guid ? Arguments[index].GuidValue : null;
+
+    /// <summary>
+    /// Get argument at index as an encoded MIDL version (major &lt;&lt; 16 | minor).
+    /// Handles integer, float ("1.0"), and hex ("0x00010000") forms.
+    /// </summary>
+    public uint? GetVersion(int index)
+    {
+        if (index >= Arguments.Count) return null;
+        var arg = Arguments[index];
+        if (arg.Kind is ArgKind.Integer or ArgKind.Float)
+            return VersionEncoding.FromAttributeArg(arg);
+        return null;
+    }
 }
 
 public enum ArgKind { String, Integer, Float, Identifier, TypeName, Guid, Expression }

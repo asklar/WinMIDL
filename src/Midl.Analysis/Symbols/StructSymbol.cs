@@ -13,12 +13,17 @@ public class StructSymbol : ISymbol
 
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public int SourcePosition { get; set; } = -1;
 
     private readonly List<FieldSymbol> _fields = [];
     public IReadOnlyList<FieldSymbol> Fields => _fields;
 
     // Extracted attribute data
     public List<AttributeData> Attributes { get; } = new();
+    public bool IsExperimental { get; set; }
+#if WINDOWS_INTERNAL
+    public string? FeatureName { get; set; }
+#endif
 
     public StructSymbol(string name, ISymbol? containingSymbol)
     {

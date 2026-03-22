@@ -99,9 +99,11 @@ public sealed partial class Parser
             SyntaxKind.CppQuoteKeyword => ParseCppQuoteDirective(attrNode),
             SyntaxKind.UnionKeyword => ParseUnionDeclaration(attrNode),
             SyntaxKind.DispinterfaceKeyword => ParseDispinterfaceDeclaration(attrNode),
+#if WINDOWS_INTERNAL
             // feature_name is a Velocity/Feature staging declaration (not a keyword)
             _ when Current.Kind == SyntaxKind.IdentifierToken && Current.Text == "feature_name"
                 => ParseFeatureNameDeclaration(),
+#endif
 #endif
             _ => HandleUnexpectedDeclaration(attrNode, modNode)
         };
@@ -123,8 +125,8 @@ public sealed partial class Parser
         return null;
     }
 
-#if WITH_COMPAT
-    /// <summary>Parse: feature_name Name = {State, Value}; — Velocity/Feature staging declaration.</summary>
+#if WITH_COMPAT && WINDOWS_INTERNAL
+    /// <summary>Parse: feature_name Name = {Stage, ValidInAllBranches}; — Velocity/Feature staging declaration.</summary>
     private GreenNode ParseFeatureNameDeclaration()
     {
         var children = RentChildren();
@@ -137,9 +139,14 @@ public sealed partial class Parser
             if (At(SyntaxKind.OpenBraceToken))
             {
                 children.Add(EatToken()); // {
-                while (!At(SyntaxKind.CloseBraceToken) && !At(SyntaxKind.EndOfFileToken))
+                children.Add(EatIdentifierOrKeyword()); // Stage (e.g. AlwaysEnabled)
+                children.Add(Eat(SyntaxKind.CommaToken)); // ,
+                // TRUE/FALSE are lexed as TrueKeyword/FalseKeyword, not identifiers
+                if (At(SyntaxKind.TrueKeyword) || At(SyntaxKind.FalseKeyword))
                     children.Add(EatToken());
-                children.Add(Eat(SyntaxKind.CloseBraceToken));
+                else
+                    children.Add(EatIdentifierOrKeyword());
+                children.Add(Eat(SyntaxKind.CloseBraceToken)); // }
             }
         }
 

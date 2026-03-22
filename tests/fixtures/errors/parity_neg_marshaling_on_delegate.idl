@@ -1,0 +1,5 @@
+namespace TestApp
+{
+    [marshaling_behavior(agile)]
+    delegate void MyHandler();
+}

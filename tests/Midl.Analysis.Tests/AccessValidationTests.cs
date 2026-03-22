@@ -7,8 +7,9 @@ namespace Midl.Analysis.Tests;
 public class AccessValidationTests
 {
     [Fact]
-    public void ProtectedOnSealedClassErrors()
+    public void ProtectedOnSealedClassAllowed()
     {
+        // Original midl.exe allows protected on sealed classes — we match that behavior
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
@@ -19,15 +20,13 @@ public class AccessValidationTests
             }
             """);
 
-        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1033");
-        Assert.Contains("M", diag.Message);
-        Assert.Contains("protected", diag.Message);
-        Assert.Contains("C", diag.Message);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1033");
     }
 
     [Fact]
-    public void OverridableOnSealedClassErrors()
+    public void OverridableOnSealedClassAllowed()
     {
+        // Original midl.exe allows overridable on sealed classes — we match that behavior
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
@@ -38,10 +37,7 @@ public class AccessValidationTests
             }
             """);
 
-        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1033");
-        Assert.Contains("M", diag.Message);
-        Assert.Contains("overridable", diag.Message);
-        Assert.Contains("C", diag.Message);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1033");
     }
 
     [Fact]
@@ -194,7 +190,7 @@ public class AccessValidationTests
     }
 
     [Fact]
-    public void ProtectedPropertyOnSealedErrors()
+    public void ProtectedPropertyOnSealedAllowed()
     {
         var compilation = CompilationHelper.Compile("""
             namespace N
@@ -206,13 +202,11 @@ public class AccessValidationTests
             }
             """);
 
-        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1033");
-        Assert.Contains("Name", diag.Message);
-        Assert.Contains("protected", diag.Message);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1033");
     }
 
     [Fact]
-    public void OverridableEventOnSealedErrors()
+    public void OverridableEventOnSealedAllowed()
     {
         var compilation = CompilationHelper.Compile("""
             namespace N
@@ -225,8 +219,6 @@ public class AccessValidationTests
             }
             """);
 
-        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1033");
-        Assert.Contains("E", diag.Message);
-        Assert.Contains("overridable", diag.Message);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1033");
     }
 }

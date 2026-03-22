@@ -1,0 +1,11 @@
+namespace TestApp
+{
+    interface IBad
+    {
+        [overload("DoWorkWithX")]
+        void DoWork(Int32 x);
+
+        [overload("DoWorkWithX")]
+        void DoWork(String y);
+    }
+}

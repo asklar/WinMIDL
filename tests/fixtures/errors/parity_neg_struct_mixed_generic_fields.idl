@@ -1,0 +1,8 @@
+namespace TestApp
+{
+    struct Wrapper
+    {
+        Windows.Foundation.IReference<Int32> Value;
+        Windows.Foundation.Collections.IVector<String> Items;
+    };
+}
