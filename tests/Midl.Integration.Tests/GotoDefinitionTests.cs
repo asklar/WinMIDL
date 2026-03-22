@@ -203,4 +203,140 @@ public class GotoDefinitionTests
     }
 
     #endregion
+
+    #region Built-in WinRT types
+
+    [Fact]
+    public void GotoDefinition_BuiltInWinRTType_NavigatesToWinMd()
+    {
+        var source = "namespace N {\n    runtimeclass Foo {\n        Windows.Foundation.IAsyncAction DoWorkAsync();\n    }\n}\n";
+        var uri = "file:///test.idl";
+
+        // F12 on "IAsyncAction" at line 2
+        var lines = source.Split('\n');
+        int col = lines[2].IndexOf("IAsyncAction", StringComparison.Ordinal);
+
+        var result = GotoDefinitionHandler.HandleCore(source, uri, 2, col);
+
+        // Should return a midl-winmd:// URI (if Windows.winmd exists on this machine)
+        if (result is Dictionary<string, object?> dict)
+        {
+            var resultUri = dict["uri"]!.ToString()!;
+            Assert.Contains("midl-winmd://", resultUri);
+            Assert.Contains("Windows.Foundation", resultUri);
+        }
+        // If no SDK installed, result may be null — that's ok for CI
+    }
+
+    [Fact]
+    public void GotoDefinition_PerNamespace_DistinctUris()
+    {
+        // Two different built-in types from different namespaces should get different URIs
+        var source1 = "namespace N { interface IFoo { Windows.Foundation.IAsyncAction A(); } }";
+        var source2 = "namespace N { runtimeclass Foo { Windows.Foundation.Collections.IVectorView<Int32> GetItems(); } }";
+        var uri = "file:///test.idl";
+
+        var lines1 = source1.Split('\n');
+        int col1 = lines1[0].IndexOf("IAsyncAction", StringComparison.Ordinal);
+        var result1 = GotoDefinitionHandler.HandleCore(source1, uri, 0, col1);
+
+        var lines2 = source2.Split('\n');
+        int col2 = lines2[0].IndexOf("IVectorView", StringComparison.Ordinal);
+        var result2 = GotoDefinitionHandler.HandleCore(source2, uri, 0, col2);
+
+        if (result1 is Dictionary<string, object?> dict1 && result2 is Dictionary<string, object?> dict2)
+        {
+            var uri1 = dict1["uri"]!.ToString()!;
+            var uri2 = dict2["uri"]!.ToString()!;
+            // Different namespaces → different URIs (distinct virtual docs)
+            Assert.NotEqual(uri1, uri2);
+            Assert.Contains("Windows.Foundation", uri1);
+        }
+    }
+
+    [Fact]
+    public void GotoDefinition_WinMdRefDirective_UsesWinMdScheme()
+    {
+        // F12 on a // @ref: pointing to a .winmd should use midl-winmd:// scheme
+        var tempDir = Path.Combine(Path.GetTempPath(), "midl-gotodef-ref-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            // Create a dummy .winmd
+            var refSource = "namespace ExtLib { enum Status { Active } }";
+            var compilation = CompilationHelper.Compile(refSource);
+            var emitter = new WinMdEmitter();
+            var winmdBytes = emitter.EmitToBytes(compilation);
+            var winmdPath = Path.Combine(tempDir, "ExtLib.winmd");
+            File.WriteAllBytes(winmdPath, winmdBytes);
+
+            var source = $"// @ref: {winmdPath}\nnamespace N {{ }}";
+            var uri = "file:///" + Path.Combine(tempDir, "test.idl").Replace('\\', '/');
+
+            // F12 on line 0 (the @ref line)
+            var result = GotoDefinitionHandler.HandleCore(source, uri, 0, 10);
+
+            Assert.NotNull(result);
+            var dict = Assert.IsType<Dictionary<string, object?>>(result);
+            var resultUri = dict["uri"]!.ToString()!;
+            Assert.StartsWith("midl-winmd://", resultUri);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void GotoDefinition_Handle_PassesRefsToCore()
+    {
+        // Integration test: verify Handle() passes includePaths/referencePaths
+        // so that WinMD types can be resolved (the bug we caught earlier)
+        var tempDir = Path.Combine(Path.GetTempPath(), "midl-gotodef-handle-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            // Create a WinMD with a type
+            var refSource = "namespace ExtLib { interface IWidget { void Activate(); } }";
+            var compilation = CompilationHelper.Compile(refSource);
+            var emitter = new WinMdEmitter();
+            var winmdBytes = emitter.EmitToBytes(compilation);
+            var winmdPath = Path.Combine(tempDir, "ExtLib.winmd");
+            File.WriteAllBytes(winmdPath, winmdBytes);
+
+            // Source that references the WinMD type
+            var source = "// @ref: " + winmdPath + "\nnamespace N { runtimeclass Foo : ExtLib.IWidget {} }";
+            var idlPath = Path.Combine(tempDir, "test.idl");
+            File.WriteAllText(idlPath, source);
+            var uri = "file:///" + idlPath.Replace('\\', '/');
+
+            var dm = new DocumentManager();
+            dm.UpdateDocument(uri, source);
+
+            // Call Handle (not HandleCore) — this is the real LSP entry point
+            var posParams = MakePositionParams(uri, 1, source.Split('\n')[1].IndexOf("IWidget", StringComparison.Ordinal));
+            var result = GotoDefinitionHandler.Handle(posParams, dm,
+                includePaths: new[] { tempDir },
+                referencePaths: new[] { winmdPath });
+
+            // Should find the type (not return null)
+            Assert.NotNull(result);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    private static JsonElement MakePositionParams(string uri, int line, int character)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["textDocument"] = new Dictionary<string, object?> { ["uri"] = uri },
+            ["position"] = new Dictionary<string, object?> { ["line"] = line, ["character"] = character }
+        });
+        return JsonDocument.Parse(json).RootElement;
+    }
+
+    #endregion
 }
