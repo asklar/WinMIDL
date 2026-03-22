@@ -2,9 +2,13 @@ namespace Midl.Analysis.Diagnostics;
 
 public static class DiagnosticDescriptors
 {
-    public static Diagnostic UndefinedType(string typeName, int position) =>
+    public static Diagnostic UndefinedType(string typeName, int position, string? suggestion = null) =>
         new(DiagnosticSeverity.Error, "MIDL1001",
-            $"Undefined type '{typeName}'", position, typeName.Length);
+            suggestion != null
+                ? $"Undefined type '{typeName}'. Did you mean '{suggestion}'?"
+                : $"Undefined type '{typeName}'",
+            position, typeName.Length,
+            Data: suggestion != null ? new() { ["suggestion"] = suggestion, ["replacement"] = suggestion } : null);
 
     public static Diagnostic DuplicateDefinition(string name, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1002",
@@ -238,6 +242,11 @@ public static class DiagnosticDescriptors
             $"'{name}' is a runtimeclass. Only interfaces are allowed in 'requires' clauses.",
             position, name.Length);
 
+    public static Diagnostic NonInterfaceOnRequiresList(string name, string kind, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1038",
+            $"'{name}' is a {kind}. Only interfaces are allowed in 'requires' clauses.",
+            position, name.Length);
+
     // MIDL3 construct validation (MIDL1039–MIDL1047)
 
     public static Diagnostic ConstructorInInterface(string name, int position) =>
@@ -401,6 +410,103 @@ public static class DiagnosticDescriptors
             $"Interface '{interfaceName}' has a circular 'requires' dependency: {cycle}.",
             position, Math.Max(interfaceName.Length, 1));
 
+    // ─── Parity diagnostics (MIDL1079–MIDL1094) ────────────────────
+
+    public static Diagnostic DuplicateParameterName(string paramName, string methodName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1079",
+            $"Duplicate parameter name '{paramName}' in '{methodName}'.",
+            position, Math.Max(paramName.Length, 1));
+
+    public static Diagnostic VersionedBlockConflict(int innerVersion, int outerVersion, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1080",
+            $"Versioned block version {innerVersion} is lower than containing type's contract version {outerVersion}.",
+            position, 1);
+
+    public static Diagnostic UuidWrongFormat(string value, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1081",
+            $"Invalid UUID format '{value}': expected 8-4-4-4-12 hexadecimal digits.",
+            position, Math.Max(value.Length, 1));
+
+    public static Diagnostic DefaultInterfaceOnNonClass(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1082",
+            $"[default_interface] is only valid on runtimeclass, not on '{typeName}'.",
+            position, Math.Max(typeName.Length, 1));
+
+    public static Diagnostic PropertyVoidType(string propName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1083",
+            $"Property '{propName}' cannot have void type.",
+            position, Math.Max(propName.Length, 1));
+
+    public static Diagnostic StaticClassInstanceMethod(string memberName, string className, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1084",
+            $"Static runtimeclass '{className}' cannot have instance member '{memberName}'.",
+            position, Math.Max(memberName.Length, 1));
+
+    public static Diagnostic DuplicatePropertyName(string propName, string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1085",
+            $"Duplicate property '{propName}' in '{typeName}'.",
+            position, Math.Max(propName.Length, 1));
+
+    public static Diagnostic DuplicateUuidAttribute(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1086",
+            $"Type '{typeName}' has multiple [uuid] attributes.",
+            position, Math.Max(typeName.Length, 1));
+
+    public static Diagnostic DuplicateOverloadName(string overloadName, string interfaceName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1087",
+            $"Duplicate [overload] name '{overloadName}' in '{interfaceName}'.",
+            position, Math.Max(overloadName.Length, 1));
+
+    public static Diagnostic MarshalingBehaviorOnNonClass(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1088",
+            $"[marshaling_behavior] is only valid on runtimeclass, not on '{typeName}'.",
+            position, Math.Max(typeName.Length, 1));
+
+    public static Diagnostic FieldInRuntimeClass(string fieldName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1089",
+            $"Fields are not allowed in runtimeclass. Use a property for '{fieldName}'.",
+            position, Math.Max(fieldName.Length, 1));
+
+    public static Diagnostic ThreadingOnNonClass(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1090",
+            $"[threading] is only valid on runtimeclass, not on '{typeName}'.",
+            position, Math.Max(typeName.Length, 1));
+
+    public static Diagnostic ConstructorWithReturnType(string name, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1091",
+            $"Constructor '{name}' cannot have a return type.",
+            position, Math.Max(name.Length, 1));
+
+    public static Diagnostic ExclusiveToSelf(string interfaceName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1092",
+            $"[exclusiveto] on '{interfaceName}' must reference a runtimeclass, not the interface itself.",
+            position, Math.Max(interfaceName.Length, 1));
+
+    public static Diagnostic ContractExceedsMax(string contractName, int version, int maxVersion, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1093",
+            $"Contract version {version} exceeds '{contractName}' contractversion {maxVersion}.",
+            position, Math.Max(contractName.Length, 1));
+
+    public static Diagnostic UuidOnNonInterface(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1094",
+            $"[uuid] is only valid on interfaces and delegates, not on '{typeName}'.",
+            position, Math.Max(typeName.Length, 1));
+
+    public static Diagnostic ActivatableOnNonClass(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1095",
+            $"[activatable] is only valid on runtimeclass, not on '{typeName}'.",
+            position, Math.Max(typeName.Length, 1));
+
+    public static Diagnostic DeprecatedWrongArgCount(int actual, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1096",
+            $"[deprecated] requires 3 or 4 arguments (message, type, [contract,] version), got {actual}.",
+            position, "deprecated".Length);
+
+    public static Diagnostic OverloadOnPropertyOrEvent(string memberName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1097",
+            $"[overload] may not be applied to properties or events. Found on '{memberName}'.",
+            position, Math.Max(memberName.Length, 1));
+
     // ─── Code Quality Hints (MIDL3001+) ─────────────────────────────
 
     public static Diagnostic InterfaceNamingConvention(string name, string suggestion, int position) =>
@@ -490,4 +596,34 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Info, "MIDL3016",
             $"Property '{propName}' on '{typeName}' has both get and set. Consider using shorthand: '{propName};' instead of '{{ get; set; }}'.",
             position, Math.Max(propName.Length, 1));
+
+    // Empty enum (MIDL1098)
+    public static Diagnostic EmptyEnum(string enumName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1098",
+            $"Enum '{enumName}' must have at least one member.",
+            position, Math.Max(enumName.Length, 1));
+
+    // Member name same as containing type (MIDL1099)
+    public static Diagnostic MemberNameSameAsType(string memberName, string typeName, string memberKind, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1099",
+            $"{memberKind} '{memberName}' cannot have the same name as containing type '{typeName}'. Only constructors can use the type name.",
+            position, Math.Max(memberName.Length, 1));
+
+    // Static modifier on non-runtimeclass (MIDL1100)
+    public static Diagnostic StaticModifierOnNonClass(string keyword, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1100",
+            $"The 'static' modifier is not valid on '{keyword}' declarations. Only runtimeclass supports modifiers.",
+            position, "static".Length);
+
+    // Generic WinRT type used without type arguments (MIDL1101)
+    public static Diagnostic GenericTypeRequiresArguments(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1101",
+            $"Generic type '{typeName}' requires type arguments.",
+            position, Math.Max(typeName.Length, 1));
+
+    // @ref: directive points to a file or folder that doesn't exist (MIDL1102)
+    public static Diagnostic RefTargetNotFound(string path, int position, int length) =>
+        new(DiagnosticSeverity.Error, "MIDL1102",
+            $"Referenced path '{path}' not found. Check the file path in the @ref directive.",
+            position, length);
 }

@@ -167,6 +167,78 @@ public static class RefDirectiveParser
     }
 
     /// <summary>
+    /// Validate // @ref: directives in source text.
+    /// Returns diagnostics for paths that don't resolve to existing files or directories.
+    /// Positions cover the path portion only (not the // @ref: prefix).
+    /// </summary>
+    public static List<Diagnostics.Diagnostic> ValidateRefDirectives(string source, string? baseDir)
+    {
+        var diagnostics = new List<Diagnostics.Diagnostic>();
+        int lineStart = 0;
+        using var reader = new StringReader(source);
+        string? line;
+        while ((line = reader.ReadLine()) != null)
+        {
+            var trimmed = line.TrimStart();
+            var leadingSpaces = line.Length - trimmed.Length;
+
+            if (!trimmed.StartsWith("//"))
+            {
+                // Stop scanning after the first non-comment, non-blank line
+                if (trimmed.Length > 0)
+                    break;
+                lineStart += line.Length + 1; // +1 for newline
+                continue;
+            }
+
+            var comment = trimmed[2..].TrimStart();
+            var spacesAfterSlashes = trimmed.Length - 2 - comment.Length;
+
+            if (comment.StartsWith("@ref:", StringComparison.OrdinalIgnoreCase))
+            {
+                var afterRef = comment[5..];
+                var spacesAfterColon = afterRef.Length - afterRef.TrimStart().Length;
+                var rawPath = afterRef.TrimStart();
+
+                // Strip surrounding quotes for resolution, but track original text for position
+                string path;
+                int pathOffset;
+                int pathDisplayLength;
+
+                if (rawPath.Length >= 2 && rawPath[0] == '"' && rawPath[^1] == '"')
+                {
+                    path = rawPath[1..^1].Trim();
+                    // Position covers the quoted content (without quotes)
+                    pathOffset = lineStart + leadingSpaces + 2 + spacesAfterSlashes + 5 + spacesAfterColon + 1; // +1 for opening quote
+                    pathDisplayLength = rawPath.Length - 2; // content without quotes
+                }
+                else
+                {
+                    path = rawPath.TrimEnd();
+                    pathOffset = lineStart + leadingSpaces + 2 + spacesAfterSlashes + 5 + spacesAfterColon;
+                    pathDisplayLength = path.Length;
+                }
+
+                if (!string.IsNullOrEmpty(path))
+                {
+                    var resolvedPath = path;
+                    if (baseDir != null && !Path.IsPathRooted(path))
+                        resolvedPath = Path.GetFullPath(Path.Combine(baseDir, path));
+
+                    if (!File.Exists(resolvedPath) && !Directory.Exists(resolvedPath))
+                    {
+                        diagnostics.Add(Diagnostics.DiagnosticDescriptors.RefTargetNotFound(
+                            path, pathOffset, pathDisplayLength));
+                    }
+                }
+            }
+
+            lineStart += line.Length + 1; // +1 for newline
+        }
+        return diagnostics;
+    }
+
+    /// <summary>
     /// Given a directory path, find .winmd files that could contain a given namespace.
     /// Tries: "Namespace.winmd", "Namespace.SubNs.winmd", walking up the namespace chain.
     /// Also returns all .winmd files in the directory as fallback.

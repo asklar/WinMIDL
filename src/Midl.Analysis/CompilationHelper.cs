@@ -25,6 +25,29 @@ public static class CompilationHelper
         return Compile(source, referencePaths, mode, includePaths: null, currentFilePath: null);
     }
 
+    /// <summary>
+    /// Compile with pre-built LazyWinMdProviders (avoids re-reading .winmd files from disk).
+    /// </summary>
+    public static Compilation Compile(string source, IReadOnlyList<LazyWinMdProvider> lazyProviders,
+                                       CompilationMode mode = CompilationMode.Strict,
+                                       IReadOnlyList<string>? includePaths = null,
+                                       string? currentFilePath = null,
+                                       IReadOnlyList<string>? defines = null,
+                                       bool emitQualityHints = false,
+                                       IReadOnlyList<string>? refDirectories = null
+#if WITH_COMPAT
+                                       , string? cppCmd = null
+#endif
+                                       )
+    {
+        return CompileCore(source, lazyProviders, mode, includePaths, currentFilePath,
+            defines, emitQualityHints, refDirectories
+#if WITH_COMPAT
+            , cppCmd
+#endif
+            );
+    }
+
     public static Compilation Compile(string source, IReadOnlyList<string>? referencePaths,
                                        CompilationMode mode,
                                        IReadOnlyList<string>? includePaths,
@@ -37,27 +60,7 @@ public static class CompilationHelper
 #endif
                                         )
     {
-        MidlTrace.Write("COMPILE", $"Compiling {source.Length} chars, mode={mode}, {referencePaths?.Count ?? 0} references");
-
-        // Run preprocessor before lexing
-        var preprocessor = new Midl.Lexer.Preprocessor(defines, includePaths, currentFilePath);
-        source = preprocessor.Process(source);
-
-        // Collect preprocessor-level diagnostics
-        var syntaxDiagnostics = new List<Midl.Analysis.Diagnostics.Diagnostic>();
-        if (mode == CompilationMode.Strict && preprocessor.HasIncludeDirectives)
-        {
-            syntaxDiagnostics.Add(DiagnosticDescriptors.IncludeDirectiveInStrictMode(0));
-        }
-
-        // Report preprocessor errors as diagnostics
-        foreach (var err in preprocessor.Errors)
-        {
-            syntaxDiagnostics.Add(new Diagnostics.Diagnostic(
-                Diagnostics.DiagnosticSeverity.Error, "MIDL1074", err, 0, 1));
-        }
-
-        // Lazily index external types from referenced .winmd files
+        // Build providers from paths (non-cached path)
         List<LazyWinMdProvider>? lazyProviders = null;
         if (referencePaths is { Count: > 0 })
         {
@@ -71,6 +74,57 @@ public static class CompilationHelper
                     MidlTrace.Write("COMPILE", $"Lazy-indexed {Path.GetFileName(path)}: {provider.TypeCount} types");
                 }
             }
+        }
+
+        return CompileCore(source, lazyProviders, mode, includePaths, currentFilePath,
+            defines, emitQualityHints, refDirectories
+#if WITH_COMPAT
+            , cppCmd
+#endif
+            );
+    }
+
+    private static Compilation CompileCore(string source, IReadOnlyList<LazyWinMdProvider>? lazyProviders,
+                                       CompilationMode mode,
+                                       IReadOnlyList<string>? includePaths,
+                                       string? currentFilePath,
+                                       IReadOnlyList<string>? defines = null,
+                                        bool emitQualityHints = false,
+                                        IReadOnlyList<string>? refDirectories = null
+#if WITH_COMPAT
+                                        , string? cppCmd = null
+#endif
+                                        )
+    {
+        MidlTrace.Write("COMPILE", $"Compiling {source.Length} chars, mode={mode}, {lazyProviders?.Count ?? 0} providers");
+
+        // Validate @ref directives before preprocessing (uses original source for accurate positions)
+        string? baseDir = currentFilePath != null ? Path.GetDirectoryName(Path.GetFullPath(currentFilePath)) : null;
+        var refDiagnostics = RefDirectiveParser.ValidateRefDirectives(source, baseDir);
+
+        // Run preprocessor before lexing
+        var preprocessor = new Midl.Lexer.Preprocessor(defines, includePaths, currentFilePath);
+        source = preprocessor.Process(source);
+
+        // Collect preprocessor-level diagnostics
+        var syntaxDiagnostics = new List<Midl.Analysis.Diagnostics.Diagnostic>(refDiagnostics);
+        if (mode == CompilationMode.Strict && preprocessor.HasIncludeDirectives)
+        {
+            syntaxDiagnostics.Add(DiagnosticDescriptors.IncludeDirectiveInStrictMode(0));
+        }
+
+        // Report preprocessor errors as diagnostics
+        foreach (var err in preprocessor.Errors)
+        {
+            syntaxDiagnostics.Add(new Diagnostics.Diagnostic(
+                Diagnostics.DiagnosticSeverity.Error, "MIDL1074", err, 0, 1));
+        }
+
+        // Report preprocessor warnings as diagnostics
+        foreach (var warn in preprocessor.Warnings)
+        {
+            syntaxDiagnostics.Add(new Diagnostics.Diagnostic(
+                Diagnostics.DiagnosticSeverity.Warning, "MIDL1074", warn, 0, 1));
         }
 
         var lexer = new Midl.Lexer.Lexer(source);
