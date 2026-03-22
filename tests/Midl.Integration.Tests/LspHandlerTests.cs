@@ -1194,6 +1194,11 @@ public class LspHandlerTests
         foreach (var edit in fileEdits.EnumerateArray())
         {
             Assert.Equal("IBar", edit.GetProperty("newText").GetString());
+        }
+    }
+
+    #endregion
+
     #region Workspace Diagnostics Tests
 
     [Fact]
@@ -1459,6 +1464,9 @@ public class LspHandlerTests
 
         var result = RenameHandler.HandlePrepareCore(source, targetLine, targetChar);
         Assert.Null(result);
+    }
+
+    [Fact]
     public async Task WorkspaceFileDelete_ClearsDiagnostics()
     {
         var serverInput = new MemoryStream();
