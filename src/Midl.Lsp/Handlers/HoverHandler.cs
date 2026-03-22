@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Midl.Analysis;
+using Midl.Lsp.Protocol;
 using Midl.Syntax;
 
 namespace Midl.Lsp.Handlers;
@@ -112,20 +113,16 @@ public static class HoverHandler
         return null;
     }
 
-    private static object MakeHover(string markdown, int tokenStart, int tokenLength, int[] lineStarts)
+    private static HoverResult MakeHover(string markdown, int tokenStart, int tokenLength, int[] lineStarts)
     {
         var (startLine, startChar) = PositionHelper.OffsetToLineChar(lineStarts, tokenStart);
         var (endLine, endChar) = PositionHelper.OffsetToLineChar(lineStarts, tokenStart + tokenLength);
 
-        return new Dictionary<string, object?>
-        {
-            ["contents"] = new Dictionary<string, object?> { ["kind"] = "markdown", ["value"] = markdown },
-            ["range"] = new Dictionary<string, object?>
-            {
-                ["start"] = new Dictionary<string, object?> { ["line"] = startLine, ["character"] = startChar },
-                ["end"] = new Dictionary<string, object?> { ["line"] = endLine, ["character"] = endChar }
-            }
-        };
+        return new HoverResult(
+            new MarkupContent("markdown", markdown),
+            new LspRange(
+                new LspPosition(startLine, startChar),
+                new LspPosition(endLine, endChar)));
     }
 
     /// <summary>

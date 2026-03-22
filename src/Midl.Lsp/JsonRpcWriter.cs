@@ -1,5 +1,7 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+using Midl.Lsp.Protocol;
 
 namespace Midl.Lsp;
 
@@ -122,9 +124,42 @@ public sealed class JsonRpcWriter
                 writer.WriteEndArray();
                 break;
             default:
+                // Try source-generated serialization for known LSP Protocol types
+                if (TryWriteProtocolType(writer, value))
+                    break;
                 throw new NotSupportedException(
                     $"JsonRpcWriter cannot serialize type '{value.GetType().FullName}'. " +
-                    "Use Dictionary<string, object?> instead of anonymous types for AOT compatibility.");
+                    "Use Dictionary<string, object?> or Protocol record types for AOT compatibility.");
         }
+    }
+
+    /// <summary>
+    /// Attempts to serialize a value using the source-generated <see cref="LspJsonContext"/>.
+    /// Returns true if the type was recognized and serialized.
+    /// </summary>
+    private static bool TryWriteProtocolType(Utf8JsonWriter writer, object value)
+    {
+        JsonTypeInfo? typeInfo = value switch
+        {
+            HoverResult => LspJsonContext.Default.HoverResult,
+            CompletionList => LspJsonContext.Default.CompletionList,
+            CompletionItem => LspJsonContext.Default.CompletionItem,
+            LspDiagnostic => LspJsonContext.Default.LspDiagnostic,
+            DocumentSymbolResult => LspJsonContext.Default.DocumentSymbolResult,
+            CodeAction => LspJsonContext.Default.CodeAction,
+            WorkspaceEdit => LspJsonContext.Default.WorkspaceEdit,
+            LspLocation => LspJsonContext.Default.LspLocation,
+            TextEdit => LspJsonContext.Default.TextEdit,
+            LspRange => LspJsonContext.Default.LspRange,
+            LspPosition => LspJsonContext.Default.LspPosition,
+            MarkupContent => LspJsonContext.Default.MarkupContent,
+            _ => null
+        };
+
+        if (typeInfo is null)
+            return false;
+
+        JsonSerializer.Serialize(writer, value, typeInfo);
+        return true;
     }
 }
