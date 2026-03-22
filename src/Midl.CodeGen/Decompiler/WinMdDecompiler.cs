@@ -78,10 +78,31 @@ public class WinMdDecompiler
         return sb.ToString();
     }
 
+    // Stores generic type parameter names for the currently decompiling type
+    private string[]? _currentGenericParamNames;
+
     private void DecompileType(MetadataReader reader, TypeDefinitionHandle handle, StringBuilder sb, string indent)
     {
         var td = reader.GetTypeDefinition(handle);
-        var name = reader.GetString(td.Name);
+        var rawName = reader.GetString(td.Name);
+
+        // Clean up generic type names: TypedEventHandler`2 → TypedEventHandler<TSender, TResult>
+        string name;
+        var genericParams = td.GetGenericParameters();
+        int backtickIdx = rawName.IndexOf('`');
+        if (backtickIdx >= 0 && genericParams.Count > 0)
+        {
+            var baseName = rawName[..backtickIdx];
+            _currentGenericParamNames = genericParams
+                .Select(gp => reader.GetString(reader.GetGenericParameter(gp).Name)).ToArray();
+            name = baseName + "<" + string.Join(", ", _currentGenericParamNames) + ">";
+        }
+        else
+        {
+            _currentGenericParamNames = null;
+            name = rawName;
+        }
+
         var baseTypeName = GetBaseTypeName(reader, td.BaseType);
 
         switch (baseTypeName)
@@ -212,7 +233,7 @@ public class WinMdDecompiler
             var methodName = reader.GetString(method.Name);
             if (accessorNames.Contains(methodName)) continue;
 
-            var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+            var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var returnType = MapToMidlType(sig.ReturnType);
             var parameters = FormatParameters(reader, method, sig);
             sb.AppendLine($"{indent}    {returnType} {methodName}({parameters});");
@@ -223,7 +244,7 @@ public class WinMdDecompiler
         {
             var prop = reader.GetPropertyDefinition(propHandle);
             var propName = reader.GetString(prop.Name);
-            var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+            var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var propType = MapToMidlType(propSig.ReturnType);
             sb.AppendLine($"{indent}    {propType} {propName};");
         }
@@ -256,7 +277,7 @@ public class WinMdDecompiler
             var methodName = reader.GetString(method.Name);
             if (methodName != "Invoke") continue;
 
-            var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+            var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var returnType = MapToMidlType(sig.ReturnType);
             var parameters = FormatParameters(reader, method, sig);
             sb.AppendLine($"{indent}delegate {returnType} {name}({parameters});");
@@ -294,7 +315,7 @@ public class WinMdDecompiler
             var methodName = reader.GetString(method.Name);
             if (methodName != ".ctor") continue;
 
-            var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+            var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var parameters = FormatParameters(reader, method, sig);
             sb.AppendLine($"{indent}    {name}({parameters});");
         }
@@ -309,7 +330,7 @@ public class WinMdDecompiler
         {
             var prop = reader.GetPropertyDefinition(propHandle);
             var propName = reader.GetString(prop.Name);
-            var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+            var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             accessorNames.Add($"get_{propName}");
             accessorNames.Add($"put_{propName}");
             properties[propName] = (MapToMidlType(propSig.ReturnType), true, false);
@@ -335,7 +356,7 @@ public class WinMdDecompiler
             {
                 var propName = methodName[4..];
                 accessorNames.Add(methodName);
-                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
                 var propType = MapToMidlType(sig.ReturnType);
                 if (properties.ContainsKey(propName))
                     properties[propName] = (propType, true, properties[propName].HasSet);
@@ -346,7 +367,7 @@ public class WinMdDecompiler
             {
                 var propName = methodName[4..];
                 accessorNames.Add(methodName);
-                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
                 var propType = sig.ParameterTypes.Length > 0 ? MapToMidlType(sig.ParameterTypes[0]) : "Object";
                 if (properties.ContainsKey(propName))
                     properties[propName] = (properties[propName].Type, properties[propName].HasGet, true);
@@ -358,7 +379,7 @@ public class WinMdDecompiler
                 var evtName = methodName[4..];
                 accessorNames.Add(methodName);
                 accessorNames.Add($"remove_{evtName}");
-                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+                var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
                 var delegateType = sig.ParameterTypes.Length > 0 ? MapToMidlType(sig.ParameterTypes[0]) : "Object";
                 events.TryAdd(evtName, delegateType);
             }
@@ -377,7 +398,7 @@ public class WinMdDecompiler
             if (methodName == ".ctor") continue;
             if (accessorNames.Contains(methodName)) continue;
 
-            var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+            var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var returnType = MapToMidlType(sig.ReturnType);
             var parameters = FormatParameters(reader, method, sig);
             sb.AppendLine($"{indent}    {returnType} {methodName}({parameters});");
@@ -982,7 +1003,12 @@ public class WinMdDecompiler
         public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired) => unmodifiedType;
         public string GetFunctionPointerType(MethodSignature<string> signature) => "Object";
         public string GetGenericMethodParameter(object? genericContext, int index) => $"!!{index}";
-        public string GetGenericTypeParameter(object? genericContext, int index) => $"!{index}";
+        public string GetGenericTypeParameter(object? genericContext, int index)
+        {
+            if (genericContext is string[] names && index < names.Length)
+                return names[index];
+            return index switch { 0 => "T", 1 => "U", 2 => "V", 3 => "W", _ => $"T{index}" };
+        }
         public string GetTypeFromSpecification(MetadataReader reader, object? genericContext,
             TypeSpecificationHandle handle, byte rawTypeKind)
         {

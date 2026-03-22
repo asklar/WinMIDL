@@ -428,7 +428,7 @@ public static class GotoDefinitionHandler
             SymbolKind.Interface => "interface",
             SymbolKind.Struct => "struct",
             SymbolKind.Enum => "enum",
-            SymbolKind.Delegate => "delegate",
+            SymbolKind.Delegate => null, // delegate has return type between keyword and name
             SymbolKind.ApiContract => "apicontract",
             SymbolKind.Namespace => "namespace",
             _ => null
@@ -442,9 +442,38 @@ public static class GotoDefinitionHandler
                 return idx + keyword.Length + 1;
         }
 
-        // For members (methods, properties, etc.), find the name in context
-        int nameIdx = sourceText.IndexOf(symbol.Name, StringComparison.Ordinal);
-        return nameIdx;
+        // For delegates: search for "delegate <returntype> <name>" pattern
+        if (symbol.Kind == SymbolKind.Delegate)
+        {
+            // Try matching "delegate void Name" or "delegate <type> Name"
+            int searchFrom = 0;
+            while (true)
+            {
+                int delegateIdx = sourceText.IndexOf("delegate ", searchFrom, StringComparison.Ordinal);
+                if (delegateIdx < 0) break;
+                // Find the symbol name after "delegate <returntype> "
+                int afterDelegate = delegateIdx + 9; // past "delegate "
+                int nameIdx = sourceText.IndexOf(symbol.Name, afterDelegate, StringComparison.Ordinal);
+                // The name should be within ~30 chars of "delegate " (return type + space)
+                if (nameIdx >= 0 && nameIdx - afterDelegate < 40)
+                    return nameIdx;
+                searchFrom = afterDelegate;
+            }
+        }
+
+        // Fallback: find the name preceded by a space/newline (definition context, not usage)
+        // This avoids matching property types or parameter types
+        for (int i = sourceText.IndexOf(symbol.Name, StringComparison.Ordinal);
+             i >= 0;
+             i = sourceText.IndexOf(symbol.Name, i + 1, StringComparison.Ordinal))
+        {
+            // Check the char after the name is not a letter/digit (word boundary)
+            int afterName = i + symbol.Name.Length;
+            if (afterName < sourceText.Length && char.IsLetterOrDigit(sourceText[afterName]))
+                continue;
+            return i;
+        }
+        return -1;
     }
 
     private static (SyntaxToken? Token, int TextStart) FindTokenAtOffset(IReadOnlyList<SyntaxToken> tokens, int offset)

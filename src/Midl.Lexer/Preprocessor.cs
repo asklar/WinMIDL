@@ -913,7 +913,9 @@ public class Preprocessor
         {
             var line = lines[i];
             var trimmedEnd = line.TrimEnd();
-            if (trimmedEnd.EndsWith('\\'))
+            // Don't apply line continuation inside comments (// @ref: D:\path)
+            var trimmedStart = trimmedEnd.TrimStart();
+            if (trimmedEnd.EndsWith('\\') && !trimmedStart.StartsWith("//"))
             {
                 // Strip the backslash and join with next line
                 sb.Append(trimmedEnd[..^1]);
