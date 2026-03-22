@@ -1,13 +1,27 @@
 .vscode/**
 src/**
 tsconfig.json
-node_modules/**/**/README.md
-node_modules/**/**/CHANGELOG.md
-node_modules/**/**/LICENSE
+**/*.ts
+**/*.map
+.gitignore
+
+# Exclude all node_modules except vscode-languageclient runtime
+node_modules/**
+!node_modules/vscode-languageclient/**
+!node_modules/vscode-languageserver-protocol/**
+!node_modules/vscode-languageserver-types/**
+!node_modules/vscode-jsonrpc/**
+
+# Exclude unnecessary files from kept modules
+node_modules/**/README.md
+node_modules/**/CHANGELOG.md
+node_modules/**/LICENSE
 node_modules/**/test/**
 node_modules/**/tests/**
 node_modules/**/.github/**
-**/*.ts
-!server/**
-**/*.map
-.gitignore
+node_modules/**/*.ts
+node_modules/**/*.map
+
+# Exclude variant SVGs (only icon.png ships)
+images/icon-variant-*
+images/social-variant-*
