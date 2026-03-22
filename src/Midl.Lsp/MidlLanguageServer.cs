@@ -281,7 +281,7 @@ public sealed class MidlLanguageServer
                 },
                 ["completionProvider"] = new Dictionary<string, object?>
                 {
-                    ["triggerCharacters"] = new[] { ".", " ", "[", "\"", "/" },
+                    ["triggerCharacters"] = new[] { ".", " ", "[", "\"", "/", "\\", ":" },
                     ["resolveProvider"] = false
                 },
                 ["hoverProvider"] = true,
