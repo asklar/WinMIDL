@@ -139,7 +139,6 @@ jobs:
         working-directory: editors/vscode
         run: |
           npm ci
-          npx tsc -p .
           mkdir -p ../../publish
           npx @vscode/vsce package -o ../../publish/midl-language.vsix
 
