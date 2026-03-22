@@ -211,13 +211,13 @@
 - [ ] **`[fastabi]`** — parsed but not semantically processed
 
 ### Nice to Have
-- [ ] **WinMD inspection** — go-to-def into imported `.winmd` types
+- [x] ~~**WinMD inspection**~~ — F12 into `.winmd` types (decompiled read-only view via `midl-winmd:` URI scheme)
 - [ ] **Code lens** — show interface synthesis results inline
 - [x] ~~**Extension icon**~~ — UML lollipop icon in `editors/vscode/images/icon.png`
 - [x] ~~**Golden-file comparison**~~ — `scripts/golden-compare.ps1` + `WinMdParityTests.cs` (81 positive + 101 negative parity fixtures)
 - [ ] **Drop-in replacement** test in razzle build (T4 testing)
-- [ ] **Rename symbol** refinement (cross-file rename)
-- [ ] **Incremental parsing** — deferred; full reparse is <10ms, debounce handles perf
+- [x] ~~**Rename symbol**~~ — F2 rename with prepareRename validation (within-file scope)
+- [x] ~~**Incremental parsing**~~ — deferred; full reparse is <10ms, debounce handles perf
 
 ---
 
