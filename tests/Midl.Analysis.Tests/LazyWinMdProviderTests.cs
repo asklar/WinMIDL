@@ -189,6 +189,75 @@ public class LazyWinMdProviderTests
     }
 
     [Fact]
+    public void LazyProviderReusableAcrossCompilations()
+    {
+        var winmd = EmitWinMd(@"
+            namespace External
+            {
+                enum StatusCode { Ok, Error };
+            }");
+
+        using var provider = new LazyWinMdProvider(winmd);
+
+        var source = @"
+            namespace MyApp
+            {
+                runtimeclass Widget
+                {
+                    External.StatusCode GetStatus();
+                };
+            }";
+
+        // Compile twice with the same provider instance
+        var comp1 = CompilationHelper.Compile(source, new LazyWinMdProvider[] { provider });
+        var comp2 = CompilationHelper.Compile(source, new LazyWinMdProvider[] { provider });
+
+        Assert.False(comp1.Diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error),
+            "First compilation should succeed: " +
+            string.Join("; ", comp1.Diagnostics.Select(d => d.ToString())));
+        Assert.False(comp2.Diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error),
+            "Second compilation should succeed: " +
+            string.Join("; ", comp2.Diagnostics.Select(d => d.ToString())));
+
+        // Both should resolve the external type
+        Assert.NotNull(comp1.GetTypeByName("External.StatusCode"));
+        Assert.NotNull(comp2.GetTypeByName("External.StatusCode"));
+    }
+
+    [Fact]
+    public void CachedCompilationHasSameDiagnosticsAsFresh()
+    {
+        var winmd = EmitWinMd(@"
+            namespace External
+            {
+                enum StatusCode { Ok, Error };
+            }");
+
+        using var provider = new LazyWinMdProvider(winmd);
+
+        // Source that produces both successful resolution and an error
+        var source = @"
+            namespace MyApp
+            {
+                runtimeclass Widget
+                {
+                    External.StatusCode GetStatus();
+                    External.Bogus GetBogus();
+                };
+            }";
+
+        var comp1 = CompilationHelper.Compile(source, new LazyWinMdProvider[] { provider });
+        var comp2 = CompilationHelper.Compile(source, new LazyWinMdProvider[] { provider });
+
+        Assert.Equal(comp1.Diagnostics.Count, comp2.Diagnostics.Count);
+        for (int i = 0; i < comp1.Diagnostics.Count; i++)
+        {
+            Assert.Equal(comp1.Diagnostics[i].Code, comp2.Diagnostics[i].Code);
+            Assert.Equal(comp1.Diagnostics[i].Message, comp2.Diagnostics[i].Message);
+        }
+    }
+
+    [Fact]
     public void LazyProviderIndexIsFasterThanEagerLoad()
     {
         // Create a WinMD with many types to measure the difference

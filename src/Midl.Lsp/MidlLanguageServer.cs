@@ -32,6 +32,12 @@ public sealed class MidlLanguageServer
     // Content cache: skip recompilation if text hasn't changed
     private readonly ConcurrentDictionary<string, int> _lastAnalyzedHash = new();
 
+    // WinMD provider cache: reuse providers across compilations to avoid re-reading .winmd files
+    private readonly ConcurrentDictionary<string, LazyWinMdProvider> _winmdProviderCache = new();
+
+    // Compilation cache: reuse last compilation result for code actions / completions
+    private readonly ConcurrentDictionary<string, Compilation> _lastCompilation = new();
+
     // Suppress CS0649 — _referencePaths can be set via SetReferencePaths for testing/config
     public void SetReferencePaths(List<string> paths) => _referencePaths = paths;
     public void SetSdkIncludePaths(List<string> paths) => _sdkIncludePaths = paths;
@@ -153,8 +159,20 @@ public sealed class MidlLanguageServer
                 break;
 
             case "textDocument/codeAction":
-                await _writer.SendResponseAsync(id, CodeActionHandler.Handle(@params, _docManager));
+            {
+                string? caFilePath = null;
+                if (@params is not null)
+                {
+                    var caTd = @params.Value.GetProperty("textDocument");
+                    var caUri = caTd.GetProperty("uri").GetString()!;
+                    if (caUri.StartsWith("file:///"))
+                        caFilePath = Uri.UnescapeDataString(caUri[8..]);
+                }
+                var caRefs = caFilePath != null ? GetReferencePaths(@params!.Value.GetProperty("textDocument").GetProperty("uri").GetString()!) : _referencePaths;
+                var caIncludes = GetIncludePaths(caFilePath);
+                await _writer.SendResponseAsync(id, CodeActionHandler.Handle(@params, _docManager, caRefs, caIncludes, caFilePath));
                 break;
+            }
 
             default:
                 if (hasId)
@@ -339,6 +357,7 @@ public sealed class MidlLanguageServer
         var uri = td.GetProperty("uri").GetString()!;
         _docManager.CloseDocument(uri);
         _lastAnalyzedHash.TryRemove(uri, out _);
+        _lastCompilation.TryRemove(uri, out _);
         if (_debounceTokens.TryRemove(uri, out var cts))
             cts.Cancel();
     }
@@ -366,13 +385,29 @@ public sealed class MidlLanguageServer
             var references = GetReferencePaths(uri);
             var includePaths = GetIncludePaths(filePath);
             var defines = _projectFile?.Defines;
+            var cachedProviders = GetCachedProviders(references);
 
-            // CompilationHelper handles preprocessing internally — pass raw source text
-            var compilation = CompilationHelper.Compile(text, references, _compilationMode,
-                includePaths, filePath,
-                defines: defines,
-                emitQualityHints: _enableQualityHints,
-                refDirectories: _refDirectories);
+            // Use cached providers when available to skip disk I/O
+            Compilation compilation;
+            if (cachedProviders != null)
+            {
+                compilation = CompilationHelper.Compile(text, cachedProviders, _compilationMode,
+                    includePaths, filePath,
+                    defines: defines,
+                    emitQualityHints: _enableQualityHints,
+                    refDirectories: _refDirectories);
+            }
+            else
+            {
+                compilation = CompilationHelper.Compile(text, references, _compilationMode,
+                    includePaths, filePath,
+                    defines: defines,
+                    emitQualityHints: _enableQualityHints,
+                    refDirectories: _refDirectories);
+            }
+
+            // Cache compilation for reuse by code action / completion handlers
+            _lastCompilation[uri] = compilation;
 
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
@@ -388,6 +423,18 @@ public sealed class MidlLanguageServer
                 0, 0);
             await _diagnostics.PublishDiagnosticsAsync(uri, text, [errorDiag]);
         }
+    }
+
+    private List<LazyWinMdProvider>? GetCachedProviders(IReadOnlyList<string>? referencePaths)
+    {
+        if (referencePaths is null or { Count: 0 }) return null;
+        var providers = new List<LazyWinMdProvider>();
+        foreach (var path in referencePaths)
+        {
+            var provider = _winmdProviderCache.GetOrAdd(path, p => new LazyWinMdProvider(p));
+            providers.Add(provider);
+        }
+        return providers;
     }
 
     private List<string>? GetReferencePaths(string uri)
