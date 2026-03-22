@@ -357,6 +357,224 @@ public class LspHandlerTests
         }
     }
 
+    [Fact]
+    public void CompletionAfterDot_WindowsNamespace_ShowsChildNamespaces()
+    {
+        var uri = "file:///test.midl";
+        var source = """
+            namespace Windows.Foundation
+            {
+                interface IStringable { }
+            }
+            namespace TestApp
+            {
+                runtimeclass Foo
+                {
+                    Windows.
+                }
+            }
+            """;
+        var dm = CreateDocManager(uri, source);
+        // Cursor after "Windows." — line 8 (0-indexed), find the char position
+        var lines = source.Split('\n');
+        int dotLine = -1, dotChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("Windows.");
+            if (idx >= 0)
+            {
+                dotLine = i;
+                dotChar = idx + "Windows.".Length;
+                break;
+            }
+        }
+        Assert.True(dotLine >= 0, "Could not find 'Windows.' in source");
+
+        var result = CompletionHandler.Handle(MakePositionParams(uri, dotLine, dotChar), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should show "Foundation" child namespace
+        Assert.Contains("Foundation", json);
+        Assert.Contains($"\"kind\":{9}", json); // KindModule = 9
+    }
+
+    [Fact]
+    public void CompletionAfterDot_LocalTypes_ShowsDeclaredTypes()
+    {
+        var uri = "file:///test.midl";
+        var source = """
+            namespace TestApp
+            {
+                enum Status { Idle, Active }
+                runtimeclass Widget { }
+                interface IHelper { }
+                runtimeclass Foo
+                {
+                    TestApp.
+                }
+            }
+            """;
+        var dm = CreateDocManager(uri, source);
+        var lines = source.Split('\n');
+        int dotLine = -1, dotChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("TestApp.");
+            if (idx >= 0 && !lines[i].TrimStart().StartsWith("namespace"))
+            {
+                dotLine = i;
+                dotChar = idx + "TestApp.".Length;
+                break;
+            }
+        }
+        Assert.True(dotLine >= 0, "Could not find 'TestApp.' usage in source");
+
+        var result = CompletionHandler.Handle(MakePositionParams(uri, dotLine, dotChar), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should show locally declared types
+        Assert.Contains("Status", json);
+        Assert.Contains("Widget", json);
+        Assert.Contains("IHelper", json);
+    }
+
+    [Fact]
+    public void CompletionAfterDot_EnumType_ShowsEnumMembers()
+    {
+        var uri = "file:///test.midl";
+        var source = """
+            namespace TestApp
+            {
+                enum MyEnum { Alpha, Beta, Gamma }
+                runtimeclass Foo
+                {
+                    MyEnum.
+                }
+            }
+            """;
+        var dm = CreateDocManager(uri, source);
+        var lines = source.Split('\n');
+        int dotLine = -1, dotChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("MyEnum.");
+            if (idx >= 0)
+            {
+                dotLine = i;
+                dotChar = idx + "MyEnum.".Length;
+                break;
+            }
+        }
+        Assert.True(dotLine >= 0, "Could not find 'MyEnum.' in source");
+
+        var result = CompletionHandler.Handle(MakePositionParams(uri, dotLine, dotChar), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should show enum members
+        Assert.Contains("Alpha", json);
+        Assert.Contains("Beta", json);
+        Assert.Contains("Gamma", json);
+        Assert.Contains($"\"kind\":{20}", json); // KindEnumMember = 20
+    }
+
+    [Fact]
+    public void CompletionOnRefDirective_ShowsFilesAndFolders()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_ref_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        var subDir = Path.Combine(tempDir, "refs");
+        Directory.CreateDirectory(subDir);
+        try
+        {
+            File.WriteAllText(Path.Combine(tempDir, "types.idl"), "namespace T { }");
+            File.WriteAllText(Path.Combine(tempDir, "lib.winmd"), ""); // placeholder
+            File.WriteAllText(Path.Combine(tempDir, "readme.txt"), "hello");
+
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(tempDir, "main.idl")).Replace("\\", "/");
+            var source = "// @ref: \nnamespace N { }";
+            var dm = CreateDocManager(uri, source);
+
+            // Cursor at line 0, char 9 — after "// @ref: "
+            var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 9), dm);
+            var json = JsonSerializer.Serialize(result);
+
+            // Should include .idl and .winmd files
+            Assert.Contains("types.idl", json);
+            Assert.Contains("lib.winmd", json);
+
+            // Should include subdirectory
+            Assert.Contains("refs", json);
+
+            // Should NOT include non-matching files
+            Assert.DoesNotContain("readme.txt", json);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void CompletionOnRefDirective_Subdirectory_ShowsSubdirFiles()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_ref_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        var subDir = Path.Combine(tempDir, "sub");
+        Directory.CreateDirectory(subDir);
+        try
+        {
+            File.WriteAllText(Path.Combine(subDir, "inner.idl"), "namespace I { }");
+            File.WriteAllText(Path.Combine(subDir, "inner.winmd"), ""); // placeholder
+
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(tempDir, "main.idl")).Replace("\\", "/");
+            var source = "// @ref: sub/\nnamespace N { }";
+            var dm = CreateDocManager(uri, source);
+
+            // Cursor at line 0, char 13 — after "// @ref: sub/"
+            var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 13), dm);
+            var json = JsonSerializer.Serialize(result);
+
+            Assert.Contains("inner.idl", json);
+            Assert.Contains("inner.winmd", json);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
+    public void CompletionOnRefDirective_FilesSortBeforeFolders()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_ref_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        Directory.CreateDirectory(Path.Combine(tempDir, "aaa_folder"));
+        try
+        {
+            File.WriteAllText(Path.Combine(tempDir, "zzz.idl"), "namespace Z { }");
+
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(tempDir, "main.idl")).Replace("\\", "/");
+            var source = "// @ref: \nnamespace N { }";
+            var dm = CreateDocManager(uri, source);
+
+            var result = CompletionHandler.Handle(MakePositionParams(uri, 0, 9), dm);
+            var json = JsonSerializer.Serialize(result);
+
+            // Both should be present
+            Assert.Contains("zzz.idl", json);
+            Assert.Contains("aaa_folder", json);
+
+            // File should come before folder even though folder sorts alphabetically first
+            int fileIdx = json.IndexOf("zzz.idl");
+            int folderIdx = json.IndexOf("aaa_folder");
+            Assert.True(fileIdx < folderIdx, "Files should sort before folders in @ref completions");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
     #endregion
 
     #region Hover Tests
