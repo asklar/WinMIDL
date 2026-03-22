@@ -11,7 +11,8 @@ namespace Midl.Lsp.Handlers;
 /// </summary>
 public static class GotoDefinitionHandler
 {
-    public static object? Handle(JsonElement? @params, DocumentManager docManager)
+    public static object? Handle(JsonElement? @params, DocumentManager docManager,
+        IReadOnlyList<string>? includePaths = null, IReadOnlyList<string>? referencePaths = null)
     {
         if (@params is null) return null;
 
@@ -29,7 +30,7 @@ public static class GotoDefinitionHandler
         if (uri.StartsWith("file:///"))
             filePath = Uri.UnescapeDataString(uri[8..]);
 
-        return HandleCore(text, uri, line, character, filePath);
+        return HandleCore(text, uri, line, character, filePath, includePaths, referencePaths);
     }
 
     /// <summary>
@@ -217,6 +218,12 @@ public static class GotoDefinitionHandler
 
         if (File.Exists(resolvedPath))
         {
+            // For .winmd files, use the decompiled view URI scheme
+            if (resolvedPath.EndsWith(".winmd", StringComparison.OrdinalIgnoreCase))
+            {
+                var winmdUri = "midl-winmd:///" + resolvedPath.Replace('\\', '/');
+                return MakeLocation(winmdUri, 0, 0, 0, 0);
+            }
             var fileUri = "file:///" + resolvedPath.Replace('\\', '/');
             return MakeLocation(fileUri, 0, 0, 0, 0);
         }

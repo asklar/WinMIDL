@@ -143,7 +143,7 @@ public sealed class MidlLanguageServer
                 break;
 
             case "textDocument/definition":
-                await _writer.SendResponseAsync(id, GotoDefinitionHandler.Handle(@params, _docManager));
+                await _writer.SendResponseAsync(id, GotoDefinitionHandler.Handle(@params, _docManager, _sdkIncludePaths, _referencePaths));
                 break;
 
             case "textDocument/references":
