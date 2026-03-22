@@ -11,6 +11,7 @@ public sealed partial class Parser
     private readonly IReadOnlyList<SyntaxToken> _tokens;
     private int _position;
     private SyntaxToken? _pendingToken;
+    private readonly Stack<List<GreenNode?>> _childListPool = new();
 
     private static readonly SyntaxToken s_eof = new(SyntaxKind.EndOfFileToken, "");
 
@@ -93,16 +94,30 @@ public sealed partial class Parser
         return new SyntaxToken(SyntaxKind.MissingToken, "", value: expectedName);
     }
 
+    /// <summary>Rent a pooled child list to avoid repeated allocations.</summary>
+    private List<GreenNode?> RentChildren()
+    {
+        if (_childListPool.Count > 0)
+        {
+            var list = _childListPool.Pop();
+            list.Clear();
+            return list;
+        }
+        return new List<GreenNode?>(8);
+    }
+
     /// <summary>Build a green node list from a kind and variable children.</summary>
     private static GreenNodeList MakeNode(SyntaxKind kind, params GreenNode?[] children)
     {
         return new GreenNodeList(kind, children);
     }
 
-    /// <summary>Build a green node list from a kind and a list of children.</summary>
-    private static GreenNodeList MakeNode(SyntaxKind kind, List<GreenNode?> children)
+    /// <summary>Build a green node list from a kind and a list of children, returning the list to pool.</summary>
+    private GreenNodeList MakeNode(SyntaxKind kind, List<GreenNode?> children)
     {
-        return new GreenNodeList(kind, [.. children]);
+        var node = new GreenNodeList(kind, [.. children]);
+        _childListPool.Push(children);
+        return node;
     }
 
     /// <summary>Skip tokens until we find one of the stop kinds. Returns collected tokens as a SkippedTokens node, or null.</summary>

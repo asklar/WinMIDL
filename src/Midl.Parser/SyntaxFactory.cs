@@ -12,7 +12,13 @@ public sealed class GreenNodeList : GreenNode
     public GreenNodeList(SyntaxKind kind, GreenNode?[] children) : base(kind)
     {
         _children = children;
-        FullWidth = children.Where(c => c != null).Sum(c => c!.FullWidth);
+        int width = 0;
+        for (int i = 0; i < children.Length; i++)
+        {
+            var c = children[i];
+            if (c != null) width += c.FullWidth;
+        }
+        FullWidth = width;
     }
 
     public override int SlotCount => _children.Length;

@@ -43,6 +43,44 @@ public class SymbolTable
 
     public ISymbol CurrentScope => _scopeStack.Peek();
 
+    /// <summary>
+    /// Returns all candidate simple type names for "did you mean" suggestions.
+    /// Includes shorthand mapping keys and simple names of all defined types.
+    /// </summary>
+    public IEnumerable<string> GetAllCandidateTypeNames()
+    {
+        foreach (var key in ShorthandMappings.Keys)
+            yield return key;
+
+        foreach (var kvp in _allDefinedTypes)
+        {
+            // Return simple name (last segment after '.') for defined types
+            var fullName = kvp.Key;
+            var dotIdx = fullName.LastIndexOf('.');
+            yield return dotIdx >= 0 ? fullName.Substring(dotIdx + 1) : fullName;
+        }
+
+        foreach (var alias in _typeAliases.Keys)
+            yield return alias;
+    }
+
+    /// <summary>
+    /// Returns all fully-qualified type names from lazy WinMD providers
+    /// (for "did you mean" suggestions).
+    /// </summary>
+    public IEnumerable<string> GetAllLazyTypeNames()
+    {
+        foreach (var provider in _lazyProviders)
+            foreach (var name in provider.GetAllTypeNames())
+                yield return name;
+    }
+
+    /// <summary>
+    /// Returns all fully-qualified type names from the defined types table
+    /// (for "did you mean" suggestions with qualified names).
+    /// </summary>
+    public IEnumerable<string> GetAllDefinedTypeFullNames() => _allDefinedTypes.Keys;
+
     public void AddLazyProvider(LazyWinMdProvider provider)
     {
         _lazyProviders.Add(provider);
@@ -384,7 +422,7 @@ public class SymbolTable
         {
             var fullName = string.IsNullOrEmpty(current.FullName)
                 ? simpleName
-                : $"{current.FullName}.{simpleName}";
+                : string.Concat(current.FullName, ".", simpleName);
 
             var result = TryResolveLazy(fullName);
             if (result != null) return result;

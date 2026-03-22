@@ -7,7 +7,7 @@ public sealed partial class Parser
     /// <summary>Parse a full compilation unit: imports, declarations, EOF.</summary>
     private GreenNode ParseCompilationUnit()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
 
         // Parse import directives
         while (At(SyntaxKind.ImportKeyword))
@@ -55,14 +55,14 @@ public sealed partial class Parser
     private GreenNode? ParseDeclaration()
     {
         // Parse any leading attribute lists
-        var attributes = new List<GreenNode?>();
+        var attributes = RentChildren();
         while (At(SyntaxKind.OpenBracketToken))
         {
             attributes.Add(ParseAttributeList());
         }
 
         // Parse modifiers
-        var modifiers = new List<GreenNode?>();
+        var modifiers = RentChildren();
         while (IsModifier(Current.Kind))
         {
             modifiers.Add(EatToken());
@@ -80,9 +80,13 @@ public sealed partial class Parser
         {
             SyntaxKind.NamespaceKeyword => ParseNamespaceDeclaration(attrNode),
             SyntaxKind.RuntimeclassKeyword => ParseRuntimeClassDeclaration(attrNode, modNode),
+            SyntaxKind.InterfaceKeyword when modNode != null => ReportModifiersOnNonClass(attrNode, modNode, "interface"),
             SyntaxKind.InterfaceKeyword => ParseInterfaceDeclaration(attrNode),
+            SyntaxKind.DelegateKeyword when modNode != null => ReportModifiersOnNonClass(attrNode, modNode, "delegate"),
             SyntaxKind.DelegateKeyword => ParseDelegateDeclaration(attrNode),
+            SyntaxKind.StructKeyword when modNode != null => ReportModifiersOnNonClass(attrNode, modNode, "struct"),
             SyntaxKind.StructKeyword => ParseStructDeclaration(attrNode),
+            SyntaxKind.EnumKeyword when modNode != null => ReportModifiersOnNonClass(attrNode, modNode, "enum"),
             SyntaxKind.EnumKeyword => ParseEnumDeclaration(attrNode),
             SyntaxKind.ApicontractKeyword => ParseApiContractDeclaration(attrNode),
             SyntaxKind.AttributeKeyword => ParseAttributeDeclaration(attrNode),
@@ -106,7 +110,7 @@ public sealed partial class Parser
     /// <summary>Handle tokens that don't start a recognized declaration.</summary>
     private GreenNode? HandleUnexpectedDeclaration(GreenNode? attrNode, GreenNode? modNode)
     {
-        var parts = new List<GreenNode?>();
+        var parts = RentChildren();
         if (attrNode != null) parts.Add(attrNode);
         if (modNode != null) parts.Add(modNode);
 
@@ -123,7 +127,7 @@ public sealed partial class Parser
     /// <summary>Parse: feature_name Name = {State, Value}; — Velocity/Feature staging declaration.</summary>
     private GreenNode ParseFeatureNameDeclaration()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(EatToken()); // feature_name (identifier)
         children.Add(EatIdentifierOrKeyword()); // Name
 
@@ -149,7 +153,7 @@ public sealed partial class Parser
     /// <summary>Parse: declare { declarations... }</summary>
     private GreenNode ParseDeclareBlock(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.DeclareKeyword));
@@ -170,5 +174,33 @@ public sealed partial class Parser
 
         children.Add(Eat(SyntaxKind.CloseBraceToken));
         return MakeNode(SyntaxKind.DeclareBlock, children);
+    }
+
+    /// <summary>Report an error when modifiers (static, unsealed) are used on non-runtimeclass declarations.</summary>
+    private GreenNode? ReportModifiersOnNonClass(GreenNode? attrNode, GreenNode modNode, string keyword)
+    {
+        // Convert modifiers to SkippedTokens so SyntaxErrorCollector reports MIDL1100
+        var modChildren = RentChildren();
+        for (int i = 0; i < modNode.SlotCount; i++)
+            modChildren.Add(modNode.GetSlot(i));
+        var skippedMods = MakeNode(SyntaxKind.SkippedTokens, modChildren);
+
+        // Parse the declaration normally
+        var decl = keyword switch
+        {
+            "interface" => ParseInterfaceDeclaration(attrNode),
+            "delegate" => ParseDelegateDeclaration(attrNode),
+            "struct" => ParseStructDeclaration(attrNode),
+            "enum" => ParseEnumDeclaration(attrNode),
+            _ => HandleUnexpectedDeclaration(attrNode, modNode)
+        };
+
+        if (decl == null) return skippedMods;
+
+        // Prepend SkippedTokens to the declaration children
+        var wrappedChildren = new List<GreenNode?> { skippedMods };
+        for (int i = 0; i < decl.SlotCount; i++)
+            wrappedChildren.Add(decl.GetSlot(i));
+        return MakeNode(decl.Kind, wrappedChildren);
     }
 }

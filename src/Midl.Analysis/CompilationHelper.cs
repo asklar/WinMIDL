@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
 using Midl.Syntax;
@@ -41,7 +42,7 @@ public static class CompilationHelper
                                        )
     {
         return CompileCore(source, lazyProviders, mode, includePaths, currentFilePath,
-            defines, emitQualityHints, refDirectories
+            defines, emitQualityHints, refDirectories, profile: null
 #if WITH_COMPAT
             , cppCmd
 #endif
@@ -54,7 +55,8 @@ public static class CompilationHelper
                                        string? currentFilePath,
                                        IReadOnlyList<string>? defines = null,
                                         bool emitQualityHints = false,
-                                        IReadOnlyList<string>? refDirectories = null
+                                        IReadOnlyList<string>? refDirectories = null,
+                                        CompilationProfile? profile = null
 #if WITH_COMPAT
                                         , string? cppCmd = null
 #endif
@@ -77,7 +79,7 @@ public static class CompilationHelper
         }
 
         return CompileCore(source, lazyProviders, mode, includePaths, currentFilePath,
-            defines, emitQualityHints, refDirectories
+            defines, emitQualityHints, refDirectories, profile
 #if WITH_COMPAT
             , cppCmd
 #endif
@@ -90,13 +92,15 @@ public static class CompilationHelper
                                        string? currentFilePath,
                                        IReadOnlyList<string>? defines = null,
                                         bool emitQualityHints = false,
-                                        IReadOnlyList<string>? refDirectories = null
+                                        IReadOnlyList<string>? refDirectories = null,
+                                        CompilationProfile? profile = null
 #if WITH_COMPAT
                                         , string? cppCmd = null
 #endif
                                         )
     {
         MidlTrace.Write("COMPILE", $"Compiling {source.Length} chars, mode={mode}, {lazyProviders?.Count ?? 0} providers");
+        var sw = profile != null ? Stopwatch.StartNew() : null;
 
         // Validate @ref directives before preprocessing (uses original source for accurate positions)
         string? baseDir = currentFilePath != null ? Path.GetDirectoryName(Path.GetFullPath(currentFilePath)) : null;
@@ -127,13 +131,22 @@ public static class CompilationHelper
                 Diagnostics.DiagnosticSeverity.Warning, "MIDL1074", warn, 0, 1));
         }
 
+        if (profile != null) { profile.Preprocess = sw!.Elapsed; sw.Restart(); }
+
         var lexer = new Midl.Lexer.Lexer(source);
         var tokens = lexer.Lex();
+
+        if (profile != null) { profile.Lex = sw!.Elapsed; sw.Restart(); }
+
         var parser = new Midl.Parser.Parser(tokens);
         var tree = parser.Parse();
 
+        if (profile != null) { profile.Parse = sw!.Elapsed; sw.Restart(); }
+
         // Collect syntax errors from the error-recovering parser's tree
         SyntaxErrorCollector.CollectErrors(tree, tokens, syntaxDiagnostics);
+
+        if (profile != null) { profile.SyntaxErrors = sw!.Elapsed; sw.Restart(); }
 
         // Process import directives before binding
         var importResolver = new ImportResolver(includePaths, currentFilePath);
@@ -147,20 +160,30 @@ public static class CompilationHelper
 #endif
             );
 
+        if (profile != null) { profile.ImportResolve = sw!.Elapsed; sw.Restart(); }
+
         var binder = new Binder(mode, emitQualityHints);
         var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders, refDirectories);
+
+        if (profile != null) { profile.Bind = sw!.Elapsed; sw.Restart(); }
 
         // Synthesize exclusive interfaces for runtime classes
         var synthesizer = new InterfaceSynthesizer();
         synthesizer.Synthesize(compilation);
 
+        if (profile != null) { profile.Synthesize = sw!.Elapsed; sw.Restart(); }
+
         // Propagate version/contract info and validate constraints
         var propagator = new VersionPropagator(syntaxDiagnostics);
         propagator.Propagate(compilation);
 
+        if (profile != null) { profile.VersionPropagate = sw!.Elapsed; sw.Restart(); }
+
         // Validate attribute semantics
         var validator = new AttributeValidator(compilation, syntaxDiagnostics);
         validator.Validate();
+
+        if (profile != null) { profile.Validate = sw!.Elapsed; sw.Stop(); profile.Total = profile.Preprocess + profile.Lex + profile.Parse + profile.SyntaxErrors + profile.ImportResolve + profile.Bind + profile.Synthesize + profile.VersionPropagate + profile.Validate; }
 
         // Merge syntax diagnostics with semantic diagnostics
         if (syntaxDiagnostics.Count > 0)

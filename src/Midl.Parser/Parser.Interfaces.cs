@@ -9,7 +9,7 @@ public sealed partial class Parser
     /// </summary>
     private GreenNode ParseInterfaceDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.InterfaceKeyword));
@@ -62,7 +62,7 @@ public sealed partial class Parser
     /// <summary>Parse: requires Type, Type, ...</summary>
     private GreenNode ParseRequiresClause()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         // Eat "requires" — it might be RequiresKeyword or an identifier
         children.Add(EatToken());
 
@@ -80,7 +80,7 @@ public sealed partial class Parser
     private GreenNode? ParseInterfaceMember()
     {
         // Leading attributes
-        var attributes = new List<GreenNode?>();
+        var attributes = RentChildren();
         while (At(SyntaxKind.OpenBracketToken))
         {
             attributes.Add(ParseAttributeList());
@@ -109,7 +109,7 @@ public sealed partial class Parser
     /// <summary>Parse a versioned block inside an interface.</summary>
     private GreenNode ParseInterfaceVersionedBlock(List<GreenNode?> attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         foreach (var attr in attributes) children.Add(attr);
 
         children.Add(Eat(SyntaxKind.OpenBraceToken));

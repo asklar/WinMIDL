@@ -61,7 +61,7 @@ public sealed partial class Parser
     /// <summary>Parse a qualified type reference: A.B.C or A.B.C&lt;T&gt;</summary>
     private GreenNode ParseQualifiedTypeReference(SyntaxToken firstName)
     {
-        var parts = new List<GreenNode?>();
+        var parts = RentChildren();
         parts.Add(firstName);
 
         while (At(SyntaxKind.DotToken))
@@ -97,7 +97,7 @@ public sealed partial class Parser
     /// <summary>Parse a generic name: Name&lt;T1, T2, ...&gt;</summary>
     private GreenNode ParseGenericName(SyntaxToken name)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(name);
         children.Add(ParseTypeArgumentList());
         return MakeNode(SyntaxKind.GenericName, children);
@@ -106,7 +106,7 @@ public sealed partial class Parser
     /// <summary>Parse a type argument list: &lt;Type, Type, ...&gt;</summary>
     private GreenNode ParseTypeArgumentList()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(Eat(SyntaxKind.LessThanToken));
 
         children.Add(ParseTypeReference());

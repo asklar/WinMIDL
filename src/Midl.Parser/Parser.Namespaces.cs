@@ -7,7 +7,7 @@ public sealed partial class Parser
     /// <summary>Parse: namespace A.B.C { declarations... }</summary>
     private GreenNode ParseNamespaceDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.NamespaceKeyword));
@@ -34,7 +34,7 @@ public sealed partial class Parser
     /// <summary>Parse a dotted name like A.B.C (identifier separated by dots).</summary>
     private GreenNode ParseDottedName()
     {
-        var parts = new List<GreenNode?>();
+        var parts = RentChildren();
         parts.Add(EatIdentifierOrKeyword());
 
         while (At(SyntaxKind.DotToken))

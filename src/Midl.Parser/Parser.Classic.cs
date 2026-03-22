@@ -8,7 +8,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] coclass Name { [attrs] interface IFoo; ... };</summary>
     private GreenNode ParseCoclassDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.CoclassKeyword));
@@ -39,7 +39,7 @@ public sealed partial class Parser
     /// <summary>Parse a coclass member: [attrs] interface Name;</summary>
     private GreenNode ParseCoclassMember()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
 
         // Optional attributes like [default]
         while (At(SyntaxKind.OpenBracketToken))
@@ -61,7 +61,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] library Name { ... };</summary>
     private GreenNode ParseLibraryDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.LibraryKeyword));
@@ -102,7 +102,7 @@ public sealed partial class Parser
     /// <summary>Parse: importlib("file.tlb");</summary>
     private GreenNode ParseImportlibDirective()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(Eat(SyntaxKind.ImportlibKeyword));
         children.Add(Eat(SyntaxKind.OpenParenToken));
         children.Add(Eat(SyntaxKind.StringLiteralToken));
@@ -114,7 +114,7 @@ public sealed partial class Parser
     /// <summary>Parse: typedef [attrs] Type Name; or typedef struct/union/enum { ... } Name;</summary>
     private GreenNode ParseTypedefDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.TypedefKeyword));
@@ -197,7 +197,7 @@ public sealed partial class Parser
     /// <summary>Parse: cpp_quote("string")</summary>
     private GreenNode ParseCppQuoteDirective(GreenNode? attributes = null)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
         children.Add(Eat(SyntaxKind.CppQuoteKeyword));
         children.Add(Eat(SyntaxKind.OpenParenToken));
@@ -209,7 +209,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] dispinterface Name { properties: methods: };</summary>
     private GreenNode ParseDispinterfaceDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.DispinterfaceKeyword));

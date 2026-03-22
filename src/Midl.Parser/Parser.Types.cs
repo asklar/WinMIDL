@@ -7,7 +7,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] struct Name { fields... } or forward declaration: struct Name;</summary>
     private GreenNode ParseStructDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.StructKeyword));
@@ -46,7 +46,7 @@ public sealed partial class Parser
     /// <summary>Parse a struct field: Type Name;</summary>
     private GreenNode ParseFieldDeclaration()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
 
         // Optional attributes
         while (At(SyntaxKind.OpenBracketToken))
@@ -64,7 +64,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] enum Name { member, member, ... } or forward declaration: enum Name;</summary>
     private GreenNode ParseEnumDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.EnumKeyword));
@@ -103,7 +103,7 @@ public sealed partial class Parser
     /// <summary>Parse an enum member: [attrs] Name [= expr] [,]</summary>
     private GreenNode ParseEnumMember()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
 
         // Optional attributes
         while (At(SyntaxKind.OpenBracketToken))
@@ -132,7 +132,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] delegate ReturnType Name(params);</summary>
     private GreenNode ParseDelegateDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.DelegateKeyword));
@@ -147,7 +147,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] apicontract Name { }</summary>
     private GreenNode ParseApiContractDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.ApicontractKeyword));
@@ -167,7 +167,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] attribute Name { fields... }; or forward declaration: attribute Name;</summary>
     private GreenNode ParseAttributeDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.AttributeKeyword));
@@ -206,7 +206,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] union Name { arms... }; or union Name switch(type) { ... };</summary>
     private GreenNode ParseUnionDeclaration(GreenNode? attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.UnionKeyword));
@@ -246,7 +246,7 @@ public sealed partial class Parser
     /// <summary>Parse a union arm: [case(N)] type name; or [default] type name;</summary>
     private GreenNode ParseUnionArm()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
 
         // Optional attributes like [case(1)] or [default]
         while (At(SyntaxKind.OpenBracketToken))
@@ -264,7 +264,7 @@ public sealed partial class Parser
     /// <summary>Parse: switch(type varName) { case N: type name; ... default: type name; }</summary>
     private GreenNode ParseSwitchBody()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(Eat(SyntaxKind.SwitchKeyword));
         children.Add(Eat(SyntaxKind.OpenParenToken));
         children.Add(ParseTypeReference());
@@ -278,7 +278,7 @@ public sealed partial class Parser
 
             if (At(SyntaxKind.CaseKeyword))
             {
-                var caseChildren = new List<GreenNode?>();
+                var caseChildren = RentChildren();
                 caseChildren.Add(EatToken()); // case
                 caseChildren.Add(ParseExpression());
                 caseChildren.Add(Eat(SyntaxKind.ColonToken));
@@ -289,7 +289,7 @@ public sealed partial class Parser
             }
             else if (At(SyntaxKind.DefaultKeyword))
             {
-                var defChildren = new List<GreenNode?>();
+                var defChildren = RentChildren();
                 defChildren.Add(EatToken()); // default
                 defChildren.Add(Eat(SyntaxKind.ColonToken));
                 defChildren.Add(ParseTypeReference());

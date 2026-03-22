@@ -9,7 +9,7 @@ public sealed partial class Parser
     /// </summary>
     private GreenNode ParseRuntimeClassDeclaration(GreenNode? attributes, GreenNode? modifiers)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
         if (modifiers != null) children.Add(modifiers);
 
@@ -52,7 +52,7 @@ public sealed partial class Parser
     /// <summary>Parse a base list: : Type, Type, ...</summary>
     private GreenNode ParseBaseList()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(Eat(SyntaxKind.ColonToken));
         children.Add(ParseTypeReference());
 
@@ -69,7 +69,7 @@ public sealed partial class Parser
     private GreenNode? ParseClassMember()
     {
         // Leading attributes
-        var attributes = new List<GreenNode?>();
+        var attributes = RentChildren();
         while (At(SyntaxKind.OpenBracketToken))
         {
             attributes.Add(ParseAttributeList());
@@ -86,7 +86,7 @@ public sealed partial class Parser
             : null;
 
         // Member modifiers
-        var modifiers = new List<GreenNode?>();
+        var modifiers = RentChildren();
         while (IsModifier(Current.Kind))
         {
             modifiers.Add(EatToken());
@@ -112,7 +112,7 @@ public sealed partial class Parser
     /// <summary>Parse a versioned block: [contract(Name, Version)] { members... }</summary>
     private GreenNode ParseVersionedBlock(List<GreenNode?> attributes)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         foreach (var attr in attributes) children.Add(attr);
 
         children.Add(Eat(SyntaxKind.OpenBraceToken));
@@ -157,7 +157,7 @@ public sealed partial class Parser
         if (!IsIdentifierOrKeyword(Current.Kind))
         {
             // Error recovery: maybe this is a constructor after all, or malformed
-            var parts = new List<GreenNode?>();
+            var parts = RentChildren();
             if (attributes != null) parts.Add(attributes);
             if (modifiers != null) parts.Add(modifiers);
             parts.Add(returnType);
@@ -179,7 +179,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attrs] Name(params);</summary>
     private GreenNode ParseConstructorDeclaration(GreenNode? attributes, GreenNode? modifiers)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
         if (modifiers != null) children.Add(modifiers);
 
@@ -194,7 +194,7 @@ public sealed partial class Parser
     private GreenNode ParseMethodDeclaration(GreenNode? attributes, GreenNode? modifiers,
         GreenNode returnType, SyntaxToken name)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
         if (modifiers != null) children.Add(modifiers);
         children.Add(returnType);
@@ -209,7 +209,7 @@ public sealed partial class Parser
     private GreenNode ParsePropertyDeclaration(GreenNode? attributes, GreenNode? modifiers,
         GreenNode type, SyntaxToken name)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
         if (modifiers != null) children.Add(modifiers);
         children.Add(type);
@@ -227,7 +227,7 @@ public sealed partial class Parser
     /// <summary>Parse: { get; set; }</summary>
     private GreenNode ParsePropertyAccessors()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(Eat(SyntaxKind.OpenBraceToken));
 
         while (!At(SyntaxKind.CloseBraceToken) && !At(SyntaxKind.EndOfFileToken))
@@ -259,7 +259,7 @@ public sealed partial class Parser
     /// <summary>Parse: event DelegateType Name;</summary>
     private GreenNode ParseEventDeclaration(GreenNode? attributes, GreenNode? modifiers = null)
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         if (attributes != null) children.Add(attributes);
         if (modifiers != null) children.Add(modifiers);
 
@@ -274,7 +274,7 @@ public sealed partial class Parser
     /// <summary>Parse a parameter list: (param1, param2, ...)</summary>
     private GreenNode ParseParameterList()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(Eat(SyntaxKind.OpenParenToken));
 
         if (!At(SyntaxKind.CloseParenToken))
@@ -294,7 +294,7 @@ public sealed partial class Parser
     /// <summary>Parse a single parameter: [attrs] [out/ref] Type name</summary>
     private GreenNode ParseParameter()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
 
         // Optional attributes
         while (At(SyntaxKind.OpenBracketToken))

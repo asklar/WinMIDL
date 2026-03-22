@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 using Midl.CodeGen.Decompiler;
@@ -56,8 +57,9 @@ public class CompilationDriver
                 }
 
                 // Add Windows.winmd reference
-                if (sdk.WindowsWinMdPath != null && !options.References.Any(r =>
-                    Path.GetFileName(r).Equals("Windows.winmd", StringComparison.OrdinalIgnoreCase)))
+                bool hasWindowsWinMd = false;
+                foreach (var r in options.References) { if (Path.GetFileName(r).Equals("Windows.winmd", StringComparison.OrdinalIgnoreCase)) { hasWindowsWinMd = true; break; } }
+                if (sdk.WindowsWinMdPath != null && !hasWindowsWinMd)
                 {
                     options.References.Add(sdk.WindowsWinMdPath);
                     MidlTrace.Cli($"Auto-referenced {sdk.WindowsWinMdPath}");
@@ -161,6 +163,8 @@ public class CompilationDriver
     {
         // Lex → Parse → Bind
         Compilation compilation;
+        CompilationProfile? profile = options.Profile ? new CompilationProfile() : null;
+        Stopwatch? totalSw = options.Profile ? Stopwatch.StartNew() : null;
         try
         {
             compilation = CompilationHelper.Compile(
@@ -169,7 +173,8 @@ public class CompilationDriver
                 options.Mode,
                 options.IncludePaths.Count > 0 ? options.IncludePaths : null,
                 options.InputFile,
-                options.Defines.Count > 0 ? options.Defines : null);
+                options.Defines.Count > 0 ? options.Defines : null,
+                profile: profile);
         }
         catch (Exception ex)
         {
@@ -223,12 +228,14 @@ public class CompilationDriver
         if (options.SyntaxCheckOnly)
         {
             PrintSummary(errorCount, warningCount);
+            PrintProfile(profile, totalSw);
             return errorCount > 0 ? 2 : 0;
         }
 
         if (errorCount > 0)
         {
             PrintSummary(errorCount, warningCount);
+            PrintProfile(profile, totalSw);
             return 2;
         }
 
@@ -278,12 +285,17 @@ public class CompilationDriver
                 var winmdBaseName = Path.GetFileNameWithoutExtension(winmdPath);
 
                 // Check for namespace mismatch
-                var allTypes = compilation.GetAllTypes().ToList();
-                var typeNamespaces = allTypes
-                    .Select(t => { var fn = t.FullName; var d = fn.LastIndexOf('.'); return d >= 0 ? fn[..d] : ""; })
-                    .Where(ns => !string.IsNullOrEmpty(ns))
-                    .Distinct()
-                    .ToList();
+                var typeNamespaces = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var t in compilation.GetAllTypes())
+                {
+                    var fn = t.FullName;
+                    var d = fn.LastIndexOf('.');
+                    if (d >= 0)
+                    {
+                        var ns = fn[..d];
+                        if (ns.Length > 0) typeNamespaces.Add(ns);
+                    }
+                }
                 var commonNs = WinMdEmitter.GetCommonNamespacePrefix(typeNamespaces);
 
                 if (!string.IsNullOrEmpty(commonNs) &&
@@ -344,6 +356,7 @@ public class CompilationDriver
         }
 
         PrintSummary(errorCount, warningCount);
+        PrintProfile(profile, totalSw);
         return warningCount > 0 ? 1 : 0;
     }
 
@@ -353,7 +366,9 @@ public class CompilationDriver
     public static string? CompileToHeader(string source)
     {
         var compilation = CompilationHelper.Compile(source);
-        if (compilation.Diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
+        bool hasErrors = false;
+        foreach (var d in compilation.Diagnostics) { if (d.Severity == DiagnosticSeverity.Error) { hasErrors = true; break; } }
+        if (hasErrors)
             return null;
         var emitter = new HeaderEmitter();
         return emitter.Emit(compilation);
@@ -362,6 +377,14 @@ public class CompilationDriver
     private void PrintSummary(int errors, int warnings)
     {
         _out.WriteLine($"MIDL: {errors} error(s), {warnings} warning(s)");
+    }
+
+    private void PrintProfile(CompilationProfile? profile, Stopwatch? totalSw)
+    {
+        if (profile == null || totalSw == null) return;
+        totalSw.Stop();
+        profile.Total = totalSw.Elapsed;
+        profile.Print(_out);
     }
 
     private static int[] BuildLineStarts(string text)
@@ -469,7 +492,8 @@ public class CompilationDriver
 
     private void PrintSymbolSummary(Compilation compilation)
     {
-        var types = compilation.GetAllTypes().ToList();
+        var types = new List<Midl.Analysis.Symbols.ISymbol>();
+        foreach (var t in compilation.GetAllTypes()) types.Add(t);
         if (types.Count > 0)
         {
             _out.WriteLine();
@@ -542,6 +566,7 @@ public class CompilationDriver
         _out.WriteLine("  --decompile            Decompile WinMD to IDL");
         _out.WriteLine("  --dump-winmd           Dump WinMD metadata in canonical sorted format");
         _out.WriteLine("  /debug                 Enable debug trace output (or set MIDL_DEBUG=1)");
+        _out.WriteLine("  --profile              Print compilation phase timing breakdown");
         _out.WriteLine("  /no_def_idir           Don't add default SDK include directories");
         _out.WriteLine("  @<file>                Read options from response file");
     }

@@ -7,7 +7,7 @@ public sealed partial class Parser
     /// <summary>Parse: [attr1, attr2(args), ...]</summary>
     private GreenNode ParseAttributeList()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(Eat(SyntaxKind.OpenBracketToken));
 
         // Error recovery: if we're already at ], produce an empty attribute list
@@ -36,7 +36,7 @@ public sealed partial class Parser
     /// <summary>Parse a single attribute: name or name(args)</summary>
     private GreenNode ParseAttribute()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
 
         // Attribute name may be dotted (e.g. Windows.Foundation.Metadata.GuidAttribute)
         children.Add(ParseDottedName());
@@ -53,7 +53,7 @@ public sealed partial class Parser
     /// <summary>Parse attribute arguments: (arg1, arg2, ...)</summary>
     private GreenNode ParseAttributeArgumentList()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(Eat(SyntaxKind.OpenParenToken));
 
         if (!At(SyntaxKind.CloseParenToken))
@@ -84,7 +84,7 @@ public sealed partial class Parser
     /// <summary>Parse a single attribute argument: literal, identifier, dotted name, or nested expression.</summary>
     private GreenNode ParseAttributeArgument()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
 
         // Handle various argument forms
         switch (Current.Kind)
@@ -167,7 +167,7 @@ public sealed partial class Parser
     private GreenNode ParseUnquotedGuid()
     {
         var parts = new List<string>();
-        var consumed = new List<GreenNode?>();
+        var consumed = RentChildren();
         // Consume until we hit comma, close paren, close bracket, or non-guid token
         while (!At(SyntaxKind.CloseParenToken) && !At(SyntaxKind.CloseBracketToken) &&
                !At(SyntaxKind.CommaToken) && !At(SyntaxKind.EndOfFileToken))
@@ -188,7 +188,7 @@ public sealed partial class Parser
     /// <summary>Parse a parenthesized attribute argument: (expr)</summary>
     private GreenNode ParseParenthesizedAttrArg()
     {
-        var children = new List<GreenNode?>();
+        var children = RentChildren();
         children.Add(Eat(SyntaxKind.OpenParenToken));
 
         // Consume everything until matching close paren, handling nesting

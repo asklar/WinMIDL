@@ -8,27 +8,40 @@ namespace Midl.Analysis;
 /// </summary>
 public sealed class TokenPositionMap
 {
-    private readonly int[] _tokenTextStarts;
+    private int[]? _tokenTextStarts;
     private readonly IReadOnlyList<SyntaxToken> _tokens;
 
     public TokenPositionMap(IReadOnlyList<SyntaxToken> tokens)
     {
         _tokens = tokens;
-        _tokenTextStarts = new int[tokens.Count];
+    }
+
+    private int[] EnsureBuilt()
+    {
+        if (_tokenTextStarts != null) return _tokenTextStarts;
+        var starts = new int[_tokens.Count];
         int pos = 0;
-        for (int i = 0; i < tokens.Count; i++)
+        for (int i = 0; i < _tokens.Count; i++)
         {
-            int leadingWidth = tokens[i].LeadingTrivia.Sum(t => t.FullWidth);
-            _tokenTextStarts[i] = pos + leadingWidth;
-            pos += leadingWidth + tokens[i].Text.Length;
-            int trailingWidth = tokens[i].TrailingTrivia.Sum(t => t.FullWidth);
+            var token = _tokens[i];
+            int leadingWidth = 0;
+            foreach (var t in token.LeadingTrivia) leadingWidth += t.FullWidth;
+            starts[i] = pos + leadingWidth;
+            pos += leadingWidth + token.Text.Length;
+            int trailingWidth = 0;
+            foreach (var t in token.TrailingTrivia) trailingWidth += t.FullWidth;
             pos += trailingWidth;
         }
+        _tokenTextStarts = starts;
+        return starts;
     }
 
     /// <summary>Get the absolute source position where the token text starts.</summary>
-    public int GetPosition(int tokenIndex) =>
-        tokenIndex >= 0 && tokenIndex < _tokenTextStarts.Length ? _tokenTextStarts[tokenIndex] : 0;
+    public int GetPosition(int tokenIndex)
+    {
+        var starts = EnsureBuilt();
+        return tokenIndex >= 0 && tokenIndex < starts.Length ? starts[tokenIndex] : 0;
+    }
 
     /// <summary>Find the token index whose text contains or matches the given text, starting from startIndex.</summary>
     public int FindToken(string text, int startIndex = 0)
@@ -56,13 +69,13 @@ public sealed class TokenPositionMap
     public int GetPositionOf(string text, int startFromIndex = 0)
     {
         int idx = FindToken(text, startFromIndex);
-        return idx >= 0 ? _tokenTextStarts[idx] : 0;
+        return idx >= 0 ? EnsureBuilt()[idx] : 0;
     }
 
     /// <summary>Get absolute position of first token of given kind.</summary>
     public int GetPositionOfKind(SyntaxKind kind, int startFromIndex = 0)
     {
         int idx = FindTokenByKind(kind, startFromIndex);
-        return idx >= 0 ? _tokenTextStarts[idx] : 0;
+        return idx >= 0 ? EnsureBuilt()[idx] : 0;
     }
 }

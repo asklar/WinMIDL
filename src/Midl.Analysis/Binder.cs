@@ -87,8 +87,9 @@ public class Binder
 
         if (MidlTrace.IsEnabled)
         {
-            var types = new Compilation(_globalNamespace, _diagnostics).GetAllTypes().Count();
-            MidlTrace.Binder($"Binding complete: {types} types, {_diagnostics.Count} diagnostics");
+            int typeCount = 0;
+            foreach (var _ in new Compilation(_globalNamespace, _diagnostics).GetAllTypes()) typeCount++;
+            MidlTrace.Binder($"Binding complete: {typeCount} types, {_diagnostics.Count} diagnostics");
         }
 
         var compilation = new Compilation(_globalNamespace, _diagnostics, lazyProviders);
@@ -269,7 +270,11 @@ public class Binder
         // Partial merging: if partial and an existing symbol with the same name exists, merge into it
         if (isPartial)
         {
-            var existing = ns.Members.FirstOrDefault(m => m.Name == name && m is RuntimeClassSymbol) as RuntimeClassSymbol;
+            RuntimeClassSymbol? existing = null;
+            foreach (var m in ns.Members)
+            {
+                if (m.Name == name && m is RuntimeClassSymbol rcs) { existing = rcs; break; }
+            }
             if (existing != null)
             {
                 // Validate matching modifiers
@@ -429,6 +434,13 @@ public class Binder
                 case SyntaxKind.VersionedBlock:
                     BindVersionedBlockMembers(child, classSymbol, ns);
                     break;
+                case SyntaxKind.FieldDeclaration:
+                {
+                    var fieldName = FindNameIdentifier(child);
+                    if (!string.IsNullOrEmpty(fieldName))
+                        _diagnostics.Add(DiagnosticDescriptors.FieldInRuntimeClass(fieldName, _posMap.GetPositionOf(fieldName)));
+                    break;
+                }
             }
         }
     }
@@ -441,6 +453,22 @@ public class Binder
         if (blockAttrList != null)
         {
             blockAttrs = ExtractAttributes(blockAttrList);
+        }
+
+        // Validate versioned block version vs class contract version
+        if (blockAttrs != null && classSymbol.ContractVersion is int outerVer)
+        {
+            foreach (var ba in blockAttrs)
+            {
+                if (ba.Name.Equals("contract", StringComparison.OrdinalIgnoreCase))
+                {
+                    var innerVer = (int?)ba.GetInt(1);
+                    if (innerVer is int iv && iv < outerVer)
+                    {
+                        _diagnostics.Add(DiagnosticDescriptors.VersionedBlockConflict(iv, outerVer, ba.Position));
+                    }
+                }
+            }
         }
 
         for (int i = 0; i < node.SlotCount; i++)
@@ -949,25 +977,11 @@ public class Binder
 
     private void ValidateEnumValueRange(long value, string valueText, string memberName, EnumSymbol parentEnum)
     {
-        // In compat mode, classic MIDL allows large enum values (e.g. 0x80000000 in COM enums)
+        // Original MIDL does not reject enum values that exceed Int32/UInt32 range;
+        // it silently truncates them.  Match that behaviour by skipping the check.
 #if WITH_COMPAT
         if (_mode == CompilationMode.Compat) return;
 #endif
-
-        if (parentEnum.UnderlyingType == "UInt32")
-        {
-            if (value < 0 || value > uint.MaxValue)
-                _diagnostics.Add(DiagnosticDescriptors.EnumValueOutOfRange(
-                    memberName, parentEnum.Name, valueText, "UInt32", $"0..{uint.MaxValue}",
-                    _posMap.GetPositionOf(valueText)));
-        }
-        else
-        {
-            if (value < int.MinValue || value > int.MaxValue)
-                _diagnostics.Add(DiagnosticDescriptors.EnumValueOutOfRange(
-                    memberName, parentEnum.Name, valueText, "Int32", $"{int.MinValue}..{int.MaxValue}",
-                    _posMap.GetPositionOf(valueText)));
-        }
     }
 
     #endregion
@@ -1478,7 +1492,7 @@ public class Binder
             // Skip leading trivia to get to the actual text
             var firstToken = FindFirstToken(node);
             if (firstToken != null)
-                return offset.Value + firstToken.LeadingTrivia.Sum(t => t.FullWidth);
+                return offset.Value + SumTriviaWidth(firstToken.LeadingTrivia);
             return offset.Value;
         }
         // Fallback to text-based lookup
@@ -1672,7 +1686,7 @@ public class Binder
                     int ptrPos = AttributeExtractor.FindNodeOffset(_root, slot) ?? 0;
                     var firstToken = FindFirstToken(slot);
                     if (firstToken != null)
-                        ptrPos += firstToken.LeadingTrivia.Sum(t => t.FullWidth);
+                        ptrPos += SumTriviaWidth(firstToken.LeadingTrivia);
                     _diagnostics.Add(DiagnosticDescriptors.PointerType(typeName, ptrPos));
                     // Don't recurse into pointer children — already reported
                     continue;
@@ -1877,7 +1891,7 @@ public class Binder
     private bool TryDefineType(NamespaceSymbol ns, string name, bool isForwardDeclaration = false)
     {
         int pos = _posMap.GetPositionOf(name);
-        var fullName = ns.FullName.Length > 0 ? $"{ns.FullName}.{name}" : name;
+        var fullName = ns.FullName.Length > 0 ? string.Concat(ns.FullName, ".", name) : name;
         if (!_definedTypes.Add(fullName))
         {
             // Forward declaration of an already-defined type → silently skip
@@ -2141,6 +2155,11 @@ public class Binder
                     ValidateNonEmptyRuntimeClass(rc);
                     ValidateNoOptionalParams(rc.Members, rc.Name);
                     ValidateParamClassHasDefaultInterface(rc.Members, rc.Name);
+                    ValidateStaticClassMembers(rc);
+                    ValidatePropertyTypes(rc.Members);
+                    ValidateDuplicateProperties(rc.Members, rc.Name);
+                    ValidateConstructorReturnTypes(rc);
+                    ValidateMemberNameNotTypeName(rc);
                     // Code quality hints
                     if (_emitQualityHints) ValidateRuntimeClassQuality(rc);
                     break;
@@ -2154,6 +2173,10 @@ public class Binder
                     ValidateNoProtectedOnInterface(iface);
                     ValidateNoOptionalParams(iface.Members, iface.Name);
                     ValidateParamClassHasDefaultInterface(iface.Members, iface.Name);
+                    ValidatePropertyTypes(iface.Members);
+                    ValidateDuplicateProperties(iface.Members, iface.Name);
+                    ValidateDuplicateOverloadNames(iface);
+                    ValidateInterfaceMemberNameNotTypeName(iface);
                     // Code quality hints
                     if (_emitQualityHints) ValidateInterfaceQuality(iface);
                     break;
@@ -2163,6 +2186,9 @@ public class Binder
                 case EnumSymbol en when !en.IsExternal:
                     if (en.IsFlags && en.UnderlyingType != "UInt32")
                         _diagnostics.Add(DiagnosticDescriptors.FlagsEnumMustBeUInt32(
+                            en.Name, _posMap.GetPositionOf(en.Name)));
+                    if (en.EnumMembers.Count == 0)
+                        _diagnostics.Add(DiagnosticDescriptors.EmptyEnum(
                             en.Name, _posMap.GetPositionOf(en.Name)));
                     break;
                 case DelegateSymbol d when !d.IsExternal:
@@ -2198,38 +2224,9 @@ public class Binder
 
     private void ValidateAccessModifiers(RuntimeClassSymbol rc)
     {
-        if (rc.IsUnsealed) return;
-
-        foreach (var member in rc.Members)
-        {
-            switch (member)
-            {
-                case MethodSymbol m:
-                    if (m.IsProtected)
-                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
-                            m.Name, "protected", rc.Name, _posMap.GetPositionOf(m.Name)));
-                    if (m.IsOverridable)
-                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
-                            m.Name, "overridable", rc.Name, _posMap.GetPositionOf(m.Name)));
-                    break;
-                case PropertySymbol p:
-                    if (p.IsProtected)
-                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
-                            p.Name, "protected", rc.Name, _posMap.GetPositionOf(p.Name)));
-                    if (p.IsOverridable)
-                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
-                            p.Name, "overridable", rc.Name, _posMap.GetPositionOf(p.Name)));
-                    break;
-                case EventSymbol e:
-                    if (e.IsProtected)
-                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
-                            e.Name, "protected", rc.Name, _posMap.GetPositionOf(e.Name)));
-                    if (e.IsOverridable)
-                        _diagnostics.Add(DiagnosticDescriptors.ProtectedOrOverridableOnSealedClass(
-                            e.Name, "overridable", rc.Name, _posMap.GetPositionOf(e.Name)));
-                    break;
-            }
-        }
+        // Original MIDL allows protected/overridable members on sealed classes
+        // (the modifiers are simply ignored at runtime). Only validate on unsealed
+        // classes where the modifiers actually matter for the type system.
     }
 
     private void ValidateBaseClass(RuntimeClassSymbol rc)
@@ -2251,6 +2248,52 @@ public class Binder
         }
     }
 
+    private void ValidateMemberNameNotTypeName(RuntimeClassSymbol rc)
+    {
+        foreach (var member in rc.Members)
+        {
+            var name = member.Name;
+            if (string.IsNullOrEmpty(name)) continue;
+            if (!string.Equals(name, rc.Name, StringComparison.Ordinal)) continue;
+
+            var kind = member switch
+            {
+                PropertySymbol => "Property",
+                MethodSymbol => "Method",
+                EventSymbol => "Event",
+                _ => null
+            };
+            if (kind != null)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.MemberNameSameAsType(
+                    name, rc.Name, kind, _posMap.GetPositionOf(name)));
+            }
+        }
+    }
+
+    private void ValidateInterfaceMemberNameNotTypeName(InterfaceSymbol iface)
+    {
+        foreach (var member in iface.Members)
+        {
+            var name = member.Name;
+            if (string.IsNullOrEmpty(name)) continue;
+            if (!string.Equals(name, iface.Name, StringComparison.Ordinal)) continue;
+
+            var kind = member switch
+            {
+                PropertySymbol => "Property",
+                MethodSymbol => "Method",
+                EventSymbol => "Event",
+                _ => null
+            };
+            if (kind != null)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.MemberNameSameAsType(
+                    name, iface.Name, kind, _posMap.GetPositionOf(name)));
+            }
+        }
+    }
+
     private void ValidateRequiredInterfaces(InterfaceSymbol iface)
     {
         foreach (var req in iface.RequiredInterfaces)
@@ -2267,6 +2310,19 @@ public class Binder
             {
                 _diagnostics.Add(DiagnosticDescriptors.RuntimeClassOnRequiresList(
                     req.Name, req.Position));
+            }
+            else if (req.ResolvedSymbol is not InterfaceSymbol)
+            {
+                var kind = req.ResolvedSymbol switch
+                {
+                    StructSymbol => "struct",
+                    DelegateSymbol => "delegate",
+                    EnumSymbol => "enum",
+                    ApiContractSymbol => "apicontract",
+                    _ => "type"
+                };
+                _diagnostics.Add(DiagnosticDescriptors.NonInterfaceOnRequiresList(
+                    req.Name, kind, req.Position));
             }
         }
 
@@ -2357,17 +2413,20 @@ public class Binder
     /// <summary>MIDL1045: Detect circular references between struct field types.</summary>
     private void ValidateCircularStructReferences(NamespaceSymbol ns)
     {
-        var structs = ns.Members.OfType<StructSymbol>().Where(s => !s.IsExternal).ToList();
-        if (structs.Count == 0) return;
-
         var visiting = new HashSet<string>();
         var visited = new HashSet<string>();
         var reported = new HashSet<string>();
+        bool hasStructs = false;
 
-        foreach (var s in structs)
+        foreach (var member in ns.Members)
         {
-            DetectStructCycle(s, visiting, visited, reported);
+            if (member is StructSymbol s && !s.IsExternal)
+            {
+                hasStructs = true;
+                DetectStructCycle(s, visiting, visited, reported);
+            }
         }
+        if (!hasStructs) return;
     }
 
     private void DetectStructCycle(StructSymbol current, HashSet<string> visiting,
@@ -2384,8 +2443,8 @@ public class Binder
                 {
                     // Cycle detected
                     var key = string.Compare(current.FullName, fieldStruct.FullName, StringComparison.Ordinal) < 0
-                        ? $"{current.FullName}<>{fieldStruct.FullName}"
-                        : $"{fieldStruct.FullName}<>{current.FullName}";
+                        ? string.Concat(current.FullName, "<>", fieldStruct.FullName)
+                        : string.Concat(fieldStruct.FullName, "<>", current.FullName);
                     if (reported.Add(key))
                     {
                         _diagnostics.Add(DiagnosticDescriptors.CircularStructReference(
@@ -2407,9 +2466,9 @@ public class Binder
     private static readonly HashSet<string> AllowedStructFieldBuiltIns = new(StringComparer.Ordinal) { "Boolean","Char","Int16","Int32","Int64","UInt8","UInt16","UInt32","UInt64","Single","Double","String","Guid" };
     private void ValidateStructFieldTypes(StructSymbol s) { foreach (var field in s.Fields) if (!IsAllowedStructFieldType(field.Type)) _diagnostics.Add(DiagnosticDescriptors.StructFieldNotValueType(field.Name, _posMap.GetPositionOf(field.Name))); }
     private static bool IsAllowedStructFieldType(TypeRef typeRef) { if (AllowedStructFieldBuiltIns.Contains(typeRef.Name)) return true; if (typeRef.Name == "IReference" && typeRef.TypeArguments.Count > 0) return true; if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol) return true; return false; }
-    private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; } else if (member is ConstructorSymbol c) { p = c.Parameters; } if (p != null) foreach (var param in p) ValidateParameter(param); if (_mode == CompilationMode.Strict && rt != null) CheckWinRtTypeCompatibility(rt); } }
+    private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; string methodName = ""; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; methodName = m.Name; } else if (member is ConstructorSymbol c) { p = c.Parameters; methodName = c.Name; } if (p != null) { foreach (var param in p) ValidateParameter(param); ValidateDuplicateParameterNames(p, methodName); } if (_mode == CompilationMode.Strict && rt != null) CheckWinRtTypeCompatibility(rt); } }
     private void ValidateMethodParametersForDelegate(DelegateSymbol d) { foreach (var param in d.Parameters) ValidateParameter(param); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(d.ReturnType); }
-    private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, _posMap.GetPositionOf(param.Name))); if (param.IsArray && param.Type.TypeArguments.Count > 0 && param.Type.TypeArguments.Any(a => a.IsArray)) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, _posMap.GetPositionOf(param.Name))); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
+    private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, _posMap.GetPositionOf(param.Name))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, _posMap.GetPositionOf(param.Name))); } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
     private static readonly HashSet<string> COnlyTypes = new(StringComparer.Ordinal) { "wchar_t","handle_t","error_status_t" };
     private void CheckWinRtTypeCompatibility(TypeRef typeRef) { if (typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return; if (COnlyTypes.Contains(typeRef.Name)) _diagnostics.Add(DiagnosticDescriptors.WinRtTypeNotAllowed(typeRef.Name, typeRef.Position)); }
     private void ValidateDelegateReturnType(DelegateSymbol d) { if (d.ReturnType.Name is "void" or "Void") return;
@@ -2418,11 +2477,93 @@ public class Binder
 #endif
         _diagnostics.Add(DiagnosticDescriptors.DelegateReturnMustBeVoid(d.Name, d.ReturnType.DisplayName, _posMap.GetPositionOf(d.Name))); }
     private void ValidateInterfaceMemberNameUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal); foreach (var member in iface.Members) { var name = member.Name; if (string.IsNullOrEmpty(name)) continue; if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup)) continue; if (seen.TryGetValue(name, out var existing)) { if (existing is MethodSymbol em && !string.IsNullOrEmpty(em.OverloadGroup)) continue; _diagnostics.Add(DiagnosticDescriptors.InterfaceMemberNameCollision(name, iface.Name, _posMap.GetPositionOf(name))); } else seen[name] = member; } }
-    private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; var dc = ms.Count(m => m.IsDefaultOverload); if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOf(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOf(k.Item1))); } }
+    private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; int dc = 0; foreach (var m in ms) { if (m.IsDefaultOverload) dc++; } if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOf(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOf(k.Item1))); } }
     private void ValidateDeprecatedInheritance(RuntimeClassSymbol rc) { if (rc.BaseClass?.ResolvedSymbol is not RuntimeClassSymbol baseRc) return; if (string.IsNullOrEmpty(baseRc.DeprecatedMessage)) return; if (!string.IsNullOrEmpty(rc.DeprecatedMessage)) return; _diagnostics.Add(DiagnosticDescriptors.DeprecatedBaseClassInheritance(rc.Name, baseRc.Name, _posMap.GetPositionOf(rc.Name))); }
     private void ValidateMethodNameOverrideUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, string>(StringComparer.Ordinal); foreach (var member in iface.Members) { if (member is not MethodSymbol m || string.IsNullOrEmpty(m.MethodNameOverride)) continue; if (seen.ContainsKey(m.MethodNameOverride)) _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameOverride(m.MethodNameOverride, iface.Name, _posMap.GetPositionOf(m.Name))); else seen[m.MethodNameOverride] = m.Name; } }
-    private void ValidateConstructorArityPerVersion(RuntimeClassSymbol rc) { var ctors = rc.Members.OfType<ConstructorSymbol>().ToList(); if (ctors.Count < 2) return; var g = new Dictionary<(int,int?), List<ConstructorSymbol>>(); foreach (var ctor in ctors) { var k = (ctor.Parameters.Count, ctor.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(ctor); } foreach (var (k, l) in g) if (l.Count > 1) _diagnostics.Add(DiagnosticDescriptors.ConstructorArityConflict(rc.Name, k.Item1, _posMap.GetPositionOf(rc.Name))); }
+    private void ValidateConstructorArityPerVersion(RuntimeClassSymbol rc) { List<ConstructorSymbol>? ctors = null; foreach (var member in rc.Members) { if (member is ConstructorSymbol ctor) { ctors ??= new List<ConstructorSymbol>(); ctors.Add(ctor); } } if (ctors == null || ctors.Count < 2) return; var g = new Dictionary<(int,int?), List<ConstructorSymbol>>(); foreach (var ctor in ctors) { var k = (ctor.Parameters.Count, ctor.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(ctor); } foreach (var (k, l) in g) if (l.Count > 1) _diagnostics.Add(DiagnosticDescriptors.ConstructorArityConflict(rc.Name, k.Item1, _posMap.GetPositionOf(rc.Name))); }
     private void ValidateStaticUnsealedConflict(RuntimeClassSymbol rc) { if (rc.IsStatic && rc.IsUnsealed) _diagnostics.Add(DiagnosticDescriptors.StaticUnsealedConflict(rc.Name, _posMap.GetPositionOf(rc.Name))); }
+
+    private void ValidateDuplicateParameterNames(List<ParameterSymbol> parameters, string methodName)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var param in parameters)
+        {
+            if (!string.IsNullOrEmpty(param.Name) && !seen.Add(param.Name))
+                _diagnostics.Add(DiagnosticDescriptors.DuplicateParameterName(param.Name, methodName, _posMap.GetPositionOf(param.Name)));
+        }
+    }
+
+    private void ValidateStaticClassMembers(RuntimeClassSymbol rc)
+    {
+        if (!rc.IsStatic) return;
+        foreach (var member in rc.Members)
+        {
+            switch (member)
+            {
+                case MethodSymbol m when !m.IsStatic:
+                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(m.Name, rc.Name, _posMap.GetPositionOf(m.Name)));
+                    break;
+                case ConstructorSymbol c:
+                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(c.Name, rc.Name, _posMap.GetPositionOf(c.Name)));
+                    break;
+                case PropertySymbol p when !p.IsStatic:
+                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(p.Name, rc.Name, _posMap.GetPositionOf(p.Name)));
+                    break;
+                case EventSymbol e when !e.IsStatic:
+                    _diagnostics.Add(DiagnosticDescriptors.StaticClassInstanceMethod(e.Name, rc.Name, _posMap.GetPositionOf(e.Name)));
+                    break;
+            }
+        }
+    }
+
+    private void ValidatePropertyTypes(IReadOnlyList<ISymbol> members)
+    {
+        foreach (var member in members)
+        {
+            if (member is PropertySymbol prop && prop.Type.Name is "void" or "Void")
+                _diagnostics.Add(DiagnosticDescriptors.PropertyVoidType(prop.Name, _posMap.GetPositionOf(prop.Name)));
+        }
+    }
+
+    private void ValidateDuplicateProperties(IReadOnlyList<ISymbol> members, string typeName)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var member in members)
+        {
+            if (member is PropertySymbol prop && !string.IsNullOrEmpty(prop.Name) && !seen.Add(prop.Name))
+                _diagnostics.Add(DiagnosticDescriptors.DuplicatePropertyName(prop.Name, typeName, _posMap.GetPositionOf(prop.Name)));
+        }
+    }
+
+    private void ValidateConstructorReturnTypes(RuntimeClassSymbol rc)
+    {
+        foreach (var member in rc.Members)
+        {
+            if (member is MethodSymbol m && string.Equals(m.Name, rc.Name, StringComparison.Ordinal))
+                _diagnostics.Add(DiagnosticDescriptors.ConstructorWithReturnType(m.Name, _posMap.GetPositionOf(m.Name)));
+        }
+    }
+
+    private void ValidateDuplicateOverloadNames(InterfaceSymbol iface)
+    {
+        var seen = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var member in iface.Members)
+        {
+            if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup))
+            {
+                if (seen.TryGetValue(m.OverloadGroup, out var existingMethod))
+                {
+                    // Only flag if different methods share the same overload name
+                    if (existingMethod != m.Name || seen.ContainsKey(m.OverloadGroup))
+                        _diagnostics.Add(DiagnosticDescriptors.DuplicateOverloadName(m.OverloadGroup, iface.Name, _posMap.GetPositionOf(m.Name)));
+                }
+                else
+                {
+                    seen[m.OverloadGroup] = m.Name;
+                }
+            }
+        }
+    }
 
         private static bool IsTypeDeclaration(SyntaxKind kind) => kind is
         SyntaxKind.RuntimeClassDeclaration or SyntaxKind.InterfaceDeclaration
@@ -2495,17 +2636,19 @@ public class Binder
     private void ValidateDefaultInterface(RuntimeClassSymbol rc)
     {
         // Count non-synthesized member interfaces
-        var memberInterfaces = rc.ImplementedInterfaces
-            .Where(i => !i.IsSynthesized)
-            .ToList();
+        int nonSynthCount = 0;
+        foreach (var iface in rc.ImplementedInterfaces)
+        {
+            if (!iface.IsSynthesized) nonSynthCount++;
+        }
 
-        if (memberInterfaces.Count <= 1) return;
+        if (nonSynthCount <= 1) return;
 
         // InterfaceSynthesizer auto-picks a default, but warn if none was explicitly marked
         if (rc.DefaultInterface == null)
         {
             _diagnostics.Add(DiagnosticDescriptors.MissingDefaultInterface(
-                rc.Name, memberInterfaces.Count,
+                rc.Name, nonSynthCount,
                 _posMap.GetPositionOf(rc.Name)));
         }
     }
@@ -2521,7 +2664,8 @@ public class Binder
         // Classes with explicit interfaces are fine
         if (rc.Interfaces.Count > 0) return;
         // Classes with non-constructor members get a synthesized default interface
-        bool hasNonConstructorMember = rc.Members.Any(m => m is not ConstructorSymbol);
+        bool hasNonConstructorMember = false;
+        foreach (var m in rc.Members) { if (m is not ConstructorSymbol) { hasNonConstructorMember = true; break; } }
         if (hasNonConstructorMember) return;
 
         _diagnostics.Add(DiagnosticDescriptors.EmptyRuntimeClassNoInterface(
@@ -2544,7 +2688,9 @@ public class Binder
             foreach (var param in parameters)
             {
                 // Check for [optional] attribute on parameters
-                if (param.Attributes.Any(a => a.Name.Equals("optional", StringComparison.OrdinalIgnoreCase)))
+                bool hasOptional = false;
+                foreach (var a in param.Attributes) { if (a.Name.Equals("optional", StringComparison.OrdinalIgnoreCase)) { hasOptional = true; break; } }
+                if (hasOptional)
                 {
                     _diagnostics.Add(DiagnosticDescriptors.OptionalParamNotAllowed(
                         param.Name, methodName, _posMap.GetPositionOf(param.Name)));
@@ -2570,8 +2716,11 @@ public class Binder
                     // Check if the class has a default interface (explicit or synthesized)
                     bool hasDefault = paramRc.IsDefaultInterface
                         || paramRc.DefaultInterface != null
-                        || paramRc.Interfaces.Any(i => i.IsDefaultInterface)
                         || paramRc.Members.Count > 0; // members get synthesized into a default interface
+                    if (!hasDefault)
+                    {
+                        foreach (var i in paramRc.Interfaces) { if (i.IsDefaultInterface) { hasDefault = true; break; } }
+                    }
                     if (!hasDefault && !paramRc.IsStatic)
                     {
                         _diagnostics.Add(DiagnosticDescriptors.ParamClassNeedsDefaultInterface(
@@ -2668,9 +2817,10 @@ public class Binder
     private void ValidateRuntimeClassQuality(RuntimeClassSymbol rc)
     {
         bool hasMembers = rc.Members.Count > 0;
-        bool hasConstructors = rc.Members.OfType<ConstructorSymbol>().Any();
-        bool hasActivatable = rc.Attributes.Any(a =>
-            a.Name.Equals("activatable", StringComparison.OrdinalIgnoreCase));
+        bool hasConstructors = false;
+        foreach (var m in rc.Members) { if (m is ConstructorSymbol) { hasConstructors = true; break; } }
+        bool hasActivatable = false;
+        foreach (var a in rc.Attributes) { if (a.Name.Equals("activatable", StringComparison.OrdinalIgnoreCase)) { hasActivatable = true; break; } }
 
         // MIDL3002: Empty runtimeclass
         if (!hasMembers && !rc.IsStatic)
@@ -2742,4 +2892,11 @@ public class Binder
     }
 
     #endregion
+
+    private static int SumTriviaWidth(GreenNode[] trivia)
+    {
+        int width = 0;
+        foreach (var t in trivia) width += t.FullWidth;
+        return width;
+    }
 }
