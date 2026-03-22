@@ -475,4 +475,91 @@ public class DecompilerTests
         Assert.DoesNotContain("System.DateTimeOffset", idl);
         Assert.DoesNotContain("System.Uri", idl);
     }
+
+    #region Namespace-scoped type names
+
+    [Fact]
+    public void Decompile_CrossNamespaceTypes_FullyQualified()
+    {
+        // Types from other namespaces should keep their fully qualified name
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+
+        // UIElement is in Windows.UI.Xaml, not Windows.UI.Xaml.Controls — should be fully qualified
+        Assert.Contains("Windows.UI.Xaml.UIElement", idl);
+        // DateTime is in Windows.Foundation — should be fully qualified  
+        Assert.Contains("Windows.Foundation.DateTime", idl);
+        // IVector is in Windows.Foundation.Collections — should be fully qualified
+        Assert.Contains("Windows.Foundation.Collections.IVector", idl);
+    }
+
+    [Fact]
+    public void Decompile_SameNamespaceTypes_ShortName()
+    {
+        // Types in the same namespace should use short names
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+
+        // UIElementCollection is in Windows.UI.Xaml.Controls — should be short
+        Assert.Contains("UIElementCollection", idl);
+        // Should NOT have Windows.UI.Xaml.Controls.UIElementCollection (that would be redundant)
+        Assert.DoesNotContain("Windows.UI.Xaml.Controls.UIElementCollection", idl);
+    }
+
+    [Fact]
+    public void Decompile_ProjectedCollectionTypes_FullyQualified()
+    {
+        // CLR-projected collection types should show WinRT names, fully qualified
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+
+        // Should NOT contain CLR collection names
+        Assert.DoesNotContain("System.Collections.Generic.IList", idl);
+        Assert.DoesNotContain("System.Collections.Generic.IReadOnlyList", idl);
+    }
+
+    [Fact]
+    public void Decompile_GenericArgsAlsoFullyQualified()
+    {
+        // Generic type arguments from other namespaces should also be fully qualified
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+
+        // IVector<Windows.UI.Xaml.UIElement> — the generic arg should be fully qualified
+        Assert.Contains("Windows.UI.Xaml.UIElement>", idl);
+        // No spurious > without type name
+        Assert.DoesNotContain(" UIElement>", idl.Replace("Windows.UI.Xaml.UIElement>", ""));
+    }
+
+    [Fact]
+    public void Decompile_SameNamespaceGenericArgs_Short()
+    {
+        // When decompiling Windows.Foundation, types like IAsyncOperation<IPropertyValue> 
+        // should use short name for IPropertyValue (same namespace)
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
+
+        // TypedEventHandler uses same-namespace type params
+        Assert.Contains("TypedEventHandler<TSender, TResult>", idl);
+        // No backtick or !0 notation
+        Assert.DoesNotContain("`", idl);
+        Assert.DoesNotContain("!0", idl);
+    }
+
+    #endregion
 }

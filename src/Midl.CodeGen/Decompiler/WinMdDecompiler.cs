@@ -1067,6 +1067,7 @@ public class WinMdDecompiler
     /// <summary>
     /// Only strip namespace prefix if the type is in the current namespace.
     /// Types from other namespaces keep their fully qualified name.
+    /// CLR-projected types are mapped to WinRT names first.
     /// </summary>
     private string ShortenIfCurrentNamespace(string fullName)
     {
@@ -1074,57 +1075,36 @@ public class WinMdDecompiler
         var angleBracket = fullName.IndexOf('<');
         var basePart = angleBracket >= 0 ? fullName[..angleBracket] : fullName;
 
-        // Check CLR projection for the base type (e.g., System.Collections.Generic.IList → IVector)
-        var projectedBase = ClrProjectionMap.ToWinRTName(basePart + (angleBracket >= 0 ? "`" + SplitGenericArgs(fullName[(angleBracket + 1)..^1]).Count : ""));
-        if (projectedBase != basePart + (angleBracket >= 0 ? "`" + SplitGenericArgs(fullName[(angleBracket + 1)..^1]).Count : ""))
+        // Check CLR projection (e.g., System.Collections.Generic.IList → Windows.Foundation.Collections.IVector)
+        var arityStr = angleBracket >= 0 ? "`" + SplitGenericArgs(fullName[(angleBracket + 1)..^1]).Count : "";
+        var projected = ClrProjectionMap.ToWinRTName(basePart + arityStr);
+        if (projected != basePart + arityStr)
         {
-            // Use the projected WinRT name
-            var projLastDot = projectedBase.LastIndexOf('.');
-            var projShort = projLastDot >= 0 ? projectedBase[(projLastDot + 1)..] : projectedBase;
-            // Strip arity from projected name
-            var projBacktick = projShort.IndexOf('`');
-            if (projBacktick >= 0) projShort = projShort[..projBacktick];
-            basePart = projShort;
-
-            // Check if projected namespace matches current
-            var projNs = projLastDot >= 0 ? projectedBase[..projLastDot] : "";
-            bool inCurrentNs = _currentNamespace != null && projNs.Equals(_currentNamespace, StringComparison.Ordinal);
-            var displayBase = inCurrentNs ? projShort : (projLastDot >= 0 ? projectedBase[..(projBacktick >= 0 ? projLastDot + 1 + projBacktick : projectedBase.Length)] : projShort);
-            // Simplify: just use projShort since WinRT collection types are well-known
-            displayBase = projShort;
-
-            if (angleBracket >= 0)
-            {
-                var argsStr = fullName[(angleBracket + 1)..^1];
-                var args = SplitGenericArgs(argsStr);
-                var displayArgs = string.Join(", ", args.Select(a =>
-                    a.Contains('.') ? ShortenIfCurrentNamespace(a) : a));
-                return $"{displayBase}<{displayArgs}>";
-            }
-            return displayBase;
+            // Strip arity from projected WinRT name
+            var bt = projected.IndexOf('`');
+            if (bt >= 0) projected = projected[..bt];
+            basePart = projected;
         }
 
+        // Now basePart is the WinRT fully qualified name (no arity, no generic args)
         var lastDot = basePart.LastIndexOf('.');
-        if (lastDot < 0) return fullName;
+        if (lastDot < 0) return angleBracket >= 0 ? FormatWithArgs(basePart, fullName, angleBracket) : fullName;
 
         var typeNs = basePart[..lastDot];
-        var shortBase = basePart[(lastDot + 1)..];
+        var shortName = basePart[(lastDot + 1)..];
+        bool inCurrentNs = _currentNamespace != null && typeNs.Equals(_currentNamespace, StringComparison.Ordinal);
+        var displayBase = inCurrentNs ? shortName : basePart;
 
-        bool inCurrent = _currentNamespace != null &&
-            typeNs.Equals(_currentNamespace, StringComparison.Ordinal);
+        return angleBracket >= 0 ? FormatWithArgs(displayBase, fullName, angleBracket) : displayBase;
+    }
 
-        var display = inCurrent ? shortBase : fullName[..(angleBracket >= 0 ? angleBracket : fullName.Length)];
-
-        if (angleBracket >= 0)
-        {
-            var argsStr = fullName[(angleBracket + 1)..^1];
-            var args = SplitGenericArgs(argsStr);
-            var displayArgs = string.Join(", ", args.Select(a =>
-                a.Contains('.') ? ShortenIfCurrentNamespace(a) : a));
-            return $"{display}<{displayArgs}>";
-        }
-
-        return display;
+    private string FormatWithArgs(string displayBase, string fullName, int angleBracket)
+    {
+        var argsStr = fullName[(angleBracket + 1)..^1];
+        var args = SplitGenericArgs(argsStr);
+        var displayArgs = string.Join(", ", args.Select(a =>
+            a.Contains('.') ? ShortenIfCurrentNamespace(a) : a));
+        return $"{displayBase}<{displayArgs}>";
     }
 
     private static string FormatGuid(Guid guid)
@@ -1281,8 +1261,9 @@ public class WinMdDecompiler
             var mapped = ClrProjectionMap.ToWinRTName(fullName);
             if (mapped != fullName)
             {
-                var lastDot = mapped.LastIndexOf('.');
-                return lastDot >= 0 ? mapped[(lastDot + 1)..] : mapped;
+                // Strip arity from projected name but keep fully qualified
+                var bt = mapped.IndexOf('`');
+                return bt >= 0 ? mapped[..bt] : mapped;
             }
             return fullName;
         }
@@ -1298,8 +1279,8 @@ public class WinMdDecompiler
             var mapped = ClrProjectionMap.ToWinRTName(fullName);
             if (mapped != fullName)
             {
-                var lastDot = mapped.LastIndexOf('.');
-                return lastDot >= 0 ? mapped[(lastDot + 1)..] : mapped;
+                var bt = mapped.IndexOf('`');
+                return bt >= 0 ? mapped[..bt] : mapped;
             }
             return fullName;
         }
