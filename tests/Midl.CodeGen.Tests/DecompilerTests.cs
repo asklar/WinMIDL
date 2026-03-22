@@ -380,4 +380,45 @@ public class DecompilerTests
         Assert.DoesNotContain("namespace Windows.UI", idl);
         Assert.DoesNotContain("namespace Windows.Storage", idl);
     }
+
+    [Fact]
+    public void DecompileWindowsFoundation_IncludesTimeSpan()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
+
+        Assert.Contains("struct TimeSpan", idl);
+        Assert.Contains("Int64 Duration", idl);
+    }
+
+    [Fact]
+    public void DecompileWindowsFoundation_IncludesDateTime()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
+
+        Assert.Contains("struct DateTime", idl);
+        Assert.Contains("Int64 UniversalTime", idl);
+    }
+
+    [Fact]
+    public void DecompileWindowsFoundation_TypeRefsUseWinRTNames()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
+
+        // Projected CLR names should not appear in decompiled output
+        Assert.DoesNotContain("System.TimeSpan", idl);
+        Assert.DoesNotContain("System.DateTimeOffset", idl);
+        Assert.DoesNotContain("System.Uri", idl);
+    }
 }
