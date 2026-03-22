@@ -26,13 +26,6 @@ public class T1ValidationTests
             if (sdk != null)
             {
                 paths.AddRange(sdk.IncludePaths);
-                Console.WriteLine($"SDK discovered: {sdk.Root} v{sdk.Version}, {sdk.IncludePaths.Count} include paths");
-                foreach (var p in sdk.IncludePaths)
-                    Console.WriteLine($"  SDK include: {p}");
-            }
-            else
-            {
-                Console.WriteLine("SDK not discovered!");
             }
         }
 
