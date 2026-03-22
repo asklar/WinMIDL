@@ -39,14 +39,12 @@ public class WinMdReader
         {
             var typeDef = mdReader.GetTypeDefinition(typeDefHandle);
 
-            // Skip <Module> and non-public types
+            // Skip <Module>
             var name = mdReader.GetString(typeDef.Name);
             if (name == "<Module>") continue;
 
+            // Index all WinRT-flagged types regardless of CLR visibility
             var attrs = typeDef.Attributes;
-            if ((attrs & TypeAttributes.VisibilityMask) != TypeAttributes.Public) continue;
-
-            // Only process WinRT types
             if (((int)attrs & TdWindowsRuntime) == 0) continue;
 
             var ns = mdReader.GetString(typeDef.Namespace);
@@ -65,8 +63,8 @@ public class WinMdReader
         var name = mdReader.GetString(typeDef.Name);
         if (name == "<Module>") return null;
 
+        // Process all WinRT-flagged types regardless of CLR visibility
         var attrs = typeDef.Attributes;
-        if ((attrs & TypeAttributes.VisibilityMask) != TypeAttributes.Public) return null;
         if (((int)attrs & TdWindowsRuntime) == 0) return null;
 
         var ns = mdReader.GetString(typeDef.Namespace);
