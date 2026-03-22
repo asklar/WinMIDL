@@ -42,7 +42,7 @@ jobs:
             ilcInstructionSet: x86-64-v2
           - rid: win-arm64
             name: Windows ARM64
-            ilcInstructionSet: armv8.0-a
+            ilcInstructionSet: ""
     steps:
       - uses: actions/checkout@v4
 
@@ -72,7 +72,7 @@ jobs:
           -p:PublishAot=true
           -p:StripSymbols=true
           -p:IlcOptimizationPreference=Speed
-          -p:IlcInstructionSet=${{ matrix.ilcInstructionSet }}
+          ${{ matrix.ilcInstructionSet && format('-p:IlcInstructionSet={0}', matrix.ilcInstructionSet) || '' }}
           -p:IlcFoldIdenticalMethodBodies=true
           -p:InvariantGlobalization=true
           -p:StackTraceSupport=false
