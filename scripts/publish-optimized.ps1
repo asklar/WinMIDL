@@ -55,23 +55,35 @@ if (-not $SkipTests) {
 $outDir = Join-Path $repoRoot $OutputDir $Runtime
 $cliProject = Join-Path $repoRoot "src" "Midl.Cli"
 
-# Ensure Windows SDK lib path is available for native linker
-if (-not $env:LIB -or -not ($env:LIB -match "Windows Kits")) {
-    try {
-        $sdkRoot = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots" -ErrorAction SilentlyContinue).KitsRoot10
-        if ($sdkRoot) {
-            $sdkVer = Get-ChildItem "$sdkRoot\Lib" -Directory -ErrorAction SilentlyContinue | 
-                Where-Object { $_.Name -match '^\d+\.' } |
-                Sort-Object Name -Descending | Select-Object -First 1
-            if ($sdkVer) {
-                $v = $sdkVer.Name
-                $libPaths = @("$sdkRoot\Lib\$v\um\x64", "$sdkRoot\Lib\$v\ucrt\x64") -join ";"
-                $env:LIB = if ($env:LIB) { "$libPaths;$env:LIB" } else { $libPaths }
-                Write-Host "  SDK lib path: $libPaths" -ForegroundColor DarkGray
+# Find a working Windows SDK version for the native linker
+# Some SDK versions may be broken; probe for advapi32.lib to verify
+$sdkVersion = $null
+try {
+    $sdkRoot = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots" -ErrorAction SilentlyContinue).KitsRoot10
+    if ($sdkRoot) {
+        $sdkVersions = Get-ChildItem "$sdkRoot\Lib" -Directory -ErrorAction SilentlyContinue | 
+            Where-Object { $_.Name -match '^\d+\.' } |
+            Sort-Object Name -Descending
+        foreach ($sv in $sdkVersions) {
+            $v = $sv.Name
+            $umPath = "$sdkRoot\Lib\$v\um\x64"
+            $ucrtPath = "$sdkRoot\Lib\$v\ucrt\x64"
+            if ((Test-Path "$umPath\advapi32.lib") -and (Test-Path "$ucrtPath\ucrt.lib")) {
+                $sdkVersion = $v
+                # Ensure both paths are in LIB
+                $missing = @()
+                if (-not $env:LIB -or $env:LIB -notmatch [regex]::Escape($umPath)) { $missing += $umPath }
+                if (-not $env:LIB -or $env:LIB -notmatch [regex]::Escape($ucrtPath)) { $missing += $ucrtPath }
+                if ($missing.Count -gt 0) {
+                    $addPaths = $missing -join ";"
+                    $env:LIB = if ($env:LIB) { "$addPaths;$env:LIB" } else { $addPaths }
+                }
+                Write-Host "  Using SDK $v" -ForegroundColor DarkGray
+                break
             }
         }
-    } catch { }
-}
+    }
+} catch { }
 
 Write-Host "Attempting NativeAOT publish..." -ForegroundColor Yellow
 $aotArgs = @(
@@ -82,17 +94,13 @@ $aotArgs = @(
     "--self-contained"
     "-o", $outDir
     "/p:PublishAot=true"
-    "/p:StripSymbols=true"
-    "/p:OptimizationPreference=Speed"
     "/p:IlcInstructionSet=native"
-    "/p:IlcOptimizationPreference=Speed"
-    "/p:IlcFoldIdenticalMethodBodies=true"
-    "/p:InvariantGlobalization=true"
-    "/p:StackTraceSupport=false"
-    "/p:UseSystemResourceKeys=true"
-    "/p:DebugType=none"
-    "/p:DebugSymbols=false"
 )
+# Pass the verified SDK um\x64 path so the linker can find advapi32.lib etc.
+if ($sdkVersion -and $sdkRoot) {
+    $umPath = "$sdkRoot\Lib\$sdkVersion\um\x64"
+    $aotArgs += "/p:LinkerArg=/LIBPATH:`"$umPath`""
+}
 
 $aotResult = & dotnet @aotArgs 2>&1
 $aotExitCode = $LASTEXITCODE

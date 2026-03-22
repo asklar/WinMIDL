@@ -31,6 +31,10 @@
     <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
     <OptimizationPreference>Speed</OptimizationPreference>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <StackTraceSupport>false</StackTraceSupport>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <!-- SelfContained + SingleFile only during publish, not during build -->

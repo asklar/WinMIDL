@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 using Midl.CodeGen.Decompiler;
@@ -17,8 +18,12 @@ namespace Midl.Cli;
 /// </summary>
 public class CompilationDriver
 {
-    public const string Version = "4.0.0";
-    public const string Banner = $"Microsoft (R) MIDL Compiler Version {Version} (.NET 10 Rewrite)\nCopyright (c) Microsoft Corporation. All rights reserved.";
+    public static string Version { get; } =
+        typeof(CompilationDriver).Assembly
+            .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? typeof(CompilationDriver).Assembly.GetName().Version?.ToString(3)
+        ?? "0.0.0";
+    public static string Banner { get; } = $"Microsoft (R) MIDL Compiler Version {Version} (.NET 10 Rewrite)\nCopyright (c) Microsoft Corporation. All rights reserved.";
 
     private readonly TextWriter _out;
     private readonly TextWriter _err;
