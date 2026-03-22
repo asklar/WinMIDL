@@ -1,6 +1,6 @@
 # TODO — MIDL Compiler Rewrite Status
 
-> **Last updated**: 2026-03-20T11:30Z
+> **Last updated**: 2026-03-22T18:15Z
 > This file tracks implementation status. Keep it current with every feature change.
 
 ## ✅ Implemented
@@ -103,7 +103,7 @@
 - [x] `[flags]` enum → UInt32 underlying type (auto-set)
 - [x] Enum values must be integer literals (MIDL1067: rejects float/string)
 - [x] Enum values range-checked (MIDL1068: Int32 or UInt32 range)
-- [x] Delegate return type must be void (MIDL1053)
+- [x] Delegate return type validation (MIDL1053 — non-void returns allowed per WinRT spec)
 - [x] Interface member name uniqueness (MIDL1054)
 - [x] Overload arity + `[default_overload]` (MIDL1055, MIDL1059)
 - [x] Constructor arity per version (MIDL1060)
@@ -122,16 +122,22 @@
 - [x] Classic constructs in strict mode: coclass, library, typedef, etc. (MIDL2001)
 - [x] Classic `[in]`/`[out]`/`[retval]` attributes in strict mode (MIDL2003)
 
-### Diagnostics (91 codes)
+### Diagnostics (105+ codes)
 - [x] MIDL1001–MIDL1013: Semantic errors (undefined type, duplicate, namespace required, empty struct, case collision, write-only property, reserved param name, etc.)
 - [x] MIDL1014–MIDL1017: Version/contract errors
 - [x] MIDL1020–MIDL1030: Attribute validation (threading, marshaling, composable, exclusiveto, deprecated, attributeusage, custom attribute target/arg count)
 - [x] MIDL1031–MIDL1032: Partial runtimeclass conflicts
 - [x] MIDL1033–MIDL1038: Access/inheritance validation
 - [x] MIDL1039–MIDL1061: WinRT validation rules (15 rules)
+- [x] MIDL1062–MIDL1063: Empty runtimeclass, optional parameter validation
 - [x] MIDL1064–MIDL1073: Attribute arg types/ranges, unknown attrs, exclusiveto, default interface, enum values, per-namespace WinMD, protected accessor errors
-- [x] MIDL1100–MIDL1102: Syntax errors (skipped tokens, error chars, missing tokens)
-- [x] MIDL2001–MIDL2005: Strict mode **errors** (classic constructs, lowercase types, HRESULT, pointers, classic attrs)
+- [x] MIDL1075–MIDL1078: Contract/feature arg validation, parameter class default interface, circular requires
+- [x] MIDL1079–MIDL1099: Duplicate params, versioned block conflicts, UUID format, void properties, static class validation, duplicate methods, duplicate members, etc.
+- [x] MIDL1101: Generic type requires type arguments
+- [x] MIDL1102: @ref directive target not found
+- [x] MIDL1103–MIDL1105: Invalid feature stage, experimental reference, cross-feature-gate reference
+- [x] MIDL1100: Syntax errors (skipped tokens, error chars, missing tokens)
+- [x] MIDL2001–MIDL2006: Strict mode **errors** (classic constructs, lowercase types, HRESULT, pointers, classic attrs, #include)
 - [x] MIDL3001–MIDL3016: Code quality hints (interface naming, empty types, constructors, setter-only, method name clash, namespace casing, attribute naming, delegate naming, async naming, PascalCase, property shorthand)
 - [x] All diagnostic positions tracked via green tree FullWidth accumulation — accurate to the usage site
 - [x] Code action fixers for all fixable diagnostics (type corrections, naming, property shorthand)
@@ -150,7 +156,7 @@
   - Inside `[...]`: applicable attributes filtered by `[attributeusage]`
   - Inside `import "..."`: `.idl` files from project/SDK (excludes current file)
 - [x] Hover (keyword docs, symbol info, external type markers)
-- [x] Go-to-definition (within file + cross-file)
+- [x] Go-to-definition (within file + `// @ref:` directive navigation)
 - [x] Find all references
 - [x] Signature help
 - [x] Semantic tokens (including float literals)
@@ -162,15 +168,22 @@
 - [x] Command palette: Toggle Strict Mode, Restart Server, Show Server Log
 - [x] Cross-file context via `winmidl.json` project file
 - [x] Cross-file hints via `// @ref: file.idl` directives
+- [x] `// @ref:` autocomplete (files/folders, local → include paths, subdirectory navigation)
+- [x] Dot-triggered autocomplete (namespace children, enum members, imported WinMD types)
+- [x] "Did you mean?" suggestions for undefined types (Levenshtein edit distance, scaled threshold)
+- [x] Quick fix code actions for did-you-mean type corrections
+- [x] `@ref` F12 navigation (opens file/folder)
+- [x] `@ref` semantic highlighting (decorator token type)
+- [x] WinMD provider caching + compilation caching (avoids redundant work)
 - [x] Debounce (300ms) — avoids recompilation on every keystroke
 - [x] Content-hash caching — skips recompilation if text unchanged
 
-### Testing (651 tests)
-- [x] Lexer: 57 tests (tokens, trivia, edge cases, preprocessor, float/negative literals)
-- [x] Parser: 62 tests (structures, error recovery, completeness, classic MIDL, generic disambiguation, forward declarations)
-- [x] Analysis: 258 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, hex literals, naming conventions, custom attribute types/ranges, protected accessor validation)
-- [x] CodeGen: 77 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes, per-namespace output)
-- [x] Integration: 197 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete)
+### Testing (1,345 tests)
+- [x] Lexer: 85 tests (tokens, trivia, edge cases, preprocessor, float/negative literals)
+- [x] Parser: 74 tests (structures, error recovery, completeness, classic MIDL, generic disambiguation, forward declarations)
+- [x] Analysis: 420 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, hex literals, naming conventions, custom attribute types/ranges, protected accessor validation, feature gates, experimental refs)
+- [x] CodeGen: 160 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes, per-namespace output, parity fixtures)
+- [x] Integration: 606 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete, LSP handlers, WinMD parity)
 - [x] IDL fixture suite (18 files with `.expected.json` + `.expected.tree` sidecars)
 - [x] OS fixture test script (`scripts/test-os-fixtures.ps1` — 1186 files, 0 crashes)
 
@@ -192,7 +205,7 @@
 - [ ] **Type library (.tlb) generation** — requires COM `ICreateTypeLib2`
 - [ ] **ACF grammar** — placeholder only
 - [ ] **~84 more CLI switches** — accept-and-ignore for drop-in compatibility
-- [ ] **Velocity/Feature API staging** — `[feature(Name)]` → `[experimental]` transform
+- [x] ~~**Velocity/Feature API staging**~~ — `[feature(Name)]` + `[experimental]` validation (MIDL1104/1105), WinMD emission, `feature_name` declarations (WINDOWS_INTERNAL only)
 - [ ] **`[contentproperty]`** — parsed but not semantically processed
 - [ ] **`[allowforweb]`** — parsed but not semantically processed
 - [ ] **`[fastabi]`** — parsed but not semantically processed
@@ -200,8 +213,8 @@
 ### Nice to Have
 - [ ] **WinMD inspection** — go-to-def into imported `.winmd` types
 - [ ] **Code lens** — show interface synthesis results inline
-- [ ] **Extension icon** — custom icon for the VS Code extension
-- [ ] **Golden-file comparison** against original midl.exe output (T3 testing)
+- [x] ~~**Extension icon**~~ — UML lollipop icon in `editors/vscode/images/icon.png`
+- [x] ~~**Golden-file comparison**~~ — `scripts/golden-compare.ps1` + `WinMdParityTests.cs` (81 positive + 101 negative parity fixtures)
 - [ ] **Drop-in replacement** test in razzle build (T4 testing)
 - [ ] **Rename symbol** refinement (cross-file rename)
 - [ ] **Incremental parsing** — deferred; full reparse is <10ms, debounce handles perf
