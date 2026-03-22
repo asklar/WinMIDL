@@ -72,6 +72,7 @@ public class WinMdDecompiler
             if (!first) sb.AppendLine();
             first = false;
 
+            _currentNamespace = ns;
             sb.AppendLine($"namespace {ns}");
             sb.AppendLine("{");
 
@@ -102,6 +103,7 @@ public class WinMdDecompiler
 
     // Stores generic type parameter names for the currently decompiling type
     private string[]? _currentGenericParamNames;
+    private string? _currentNamespace;
 
     private void DecompileType(MetadataReader reader, TypeDefinitionHandle handle, StringBuilder sb, string indent)
     {
@@ -1062,6 +1064,69 @@ public class WinMdDecompiler
         return result;
     }
 
+    /// <summary>
+    /// Only strip namespace prefix if the type is in the current namespace.
+    /// Types from other namespaces keep their fully qualified name.
+    /// </summary>
+    private string ShortenIfCurrentNamespace(string fullName)
+    {
+        // Handle generic types: extract base name before <
+        var angleBracket = fullName.IndexOf('<');
+        var basePart = angleBracket >= 0 ? fullName[..angleBracket] : fullName;
+
+        // Check CLR projection for the base type (e.g., System.Collections.Generic.IList → IVector)
+        var projectedBase = ClrProjectionMap.ToWinRTName(basePart + (angleBracket >= 0 ? "`" + SplitGenericArgs(fullName[(angleBracket + 1)..^1]).Count : ""));
+        if (projectedBase != basePart + (angleBracket >= 0 ? "`" + SplitGenericArgs(fullName[(angleBracket + 1)..^1]).Count : ""))
+        {
+            // Use the projected WinRT name
+            var projLastDot = projectedBase.LastIndexOf('.');
+            var projShort = projLastDot >= 0 ? projectedBase[(projLastDot + 1)..] : projectedBase;
+            // Strip arity from projected name
+            var projBacktick = projShort.IndexOf('`');
+            if (projBacktick >= 0) projShort = projShort[..projBacktick];
+            basePart = projShort;
+
+            // Check if projected namespace matches current
+            var projNs = projLastDot >= 0 ? projectedBase[..projLastDot] : "";
+            bool inCurrentNs = _currentNamespace != null && projNs.Equals(_currentNamespace, StringComparison.Ordinal);
+            var displayBase = inCurrentNs ? projShort : (projLastDot >= 0 ? projectedBase[..(projBacktick >= 0 ? projLastDot + 1 + projBacktick : projectedBase.Length)] : projShort);
+            // Simplify: just use projShort since WinRT collection types are well-known
+            displayBase = projShort;
+
+            if (angleBracket >= 0)
+            {
+                var argsStr = fullName[(angleBracket + 1)..^1];
+                var args = SplitGenericArgs(argsStr);
+                var displayArgs = string.Join(", ", args.Select(a =>
+                    a.Contains('.') ? ShortenIfCurrentNamespace(a) : a));
+                return $"{displayBase}<{displayArgs}>";
+            }
+            return displayBase;
+        }
+
+        var lastDot = basePart.LastIndexOf('.');
+        if (lastDot < 0) return fullName;
+
+        var typeNs = basePart[..lastDot];
+        var shortBase = basePart[(lastDot + 1)..];
+
+        bool inCurrent = _currentNamespace != null &&
+            typeNs.Equals(_currentNamespace, StringComparison.Ordinal);
+
+        var display = inCurrent ? shortBase : fullName[..(angleBracket >= 0 ? angleBracket : fullName.Length)];
+
+        if (angleBracket >= 0)
+        {
+            var argsStr = fullName[(angleBracket + 1)..^1];
+            var args = SplitGenericArgs(argsStr);
+            var displayArgs = string.Join(", ", args.Select(a =>
+                a.Contains('.') ? ShortenIfCurrentNamespace(a) : a));
+            return $"{display}<{displayArgs}>";
+        }
+
+        return display;
+    }
+
     private static string FormatGuid(Guid guid)
     {
         return guid.ToString("D");
@@ -1122,26 +1187,23 @@ public class WinMdDecompiler
         _ => "Object",
     };
 
-    private static string MapToMidlType(string typeName)
+    private string MapToMidlType(string typeName)
     {
-        // Check CLR projection first (e.g. System.TimeSpan → TimeSpan)
+        // Check CLR projection first (e.g. System.TimeSpan → Windows.Foundation.TimeSpan)
         var mapped = ClrProjectionMap.ToWinRTName(typeName);
         if (mapped != typeName)
-        {
-            var lastDot = mapped.LastIndexOf('.');
-            return lastDot >= 0 ? mapped[(lastDot + 1)..] : mapped;
-        }
+            typeName = mapped;
 
         return typeName switch
         {
             "System.Guid" or "Guid" => "Guid",
             "System.Object" => "Object",
-            _ when typeName.Contains('.') => GetShortName(typeName),
+            _ when typeName.Contains('.') => ShortenIfCurrentNamespace(typeName),
             _ => typeName,
         };
     }
 
-    private static string FormatParameters(MetadataReader reader, MethodDefinition method,
+    private string FormatParameters(MetadataReader reader, MethodDefinition method,
         MethodSignature<string> sig)
     {
         var parts = new List<string>();
