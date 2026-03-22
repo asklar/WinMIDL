@@ -118,29 +118,29 @@ public class Compilation
         switch (source)
         {
             case InterfaceSymbol iface:
-                var newIface = new InterfaceSymbol(iface.Name, ns) { Uuid = iface.Uuid, IsExternal = true, SourceWinMdPath = iface.SourceWinMdPath };
+                var newIface = new InterfaceSymbol(iface.Name, ns) { Uuid = iface.Uuid, IsExternal = true, SourceWinMdPath = iface.SourceWinMdPath, SourceFile = iface.SourceFile };
                 foreach (var m in iface.Members) newIface.AddMember(m);
                 foreach (var r in iface.RequiredInterfaces) newIface.RequiredInterfaces.Add(r);
                 return newIface;
             case EnumSymbol e:
-                var newEnum = new EnumSymbol(e.Name, ns) { IsFlags = e.IsFlags, UnderlyingType = e.UnderlyingType, IsExternal = true, SourceWinMdPath = e.SourceWinMdPath };
+                var newEnum = new EnumSymbol(e.Name, ns) { IsFlags = e.IsFlags, UnderlyingType = e.UnderlyingType, IsExternal = true, SourceWinMdPath = e.SourceWinMdPath, SourceFile = e.SourceFile };
                 foreach (var m in e.EnumMembers) newEnum.AddMember(m);
                 return newEnum;
             case StructSymbol s:
-                var newStruct = new StructSymbol(s.Name, ns) { IsExternal = true, SourceWinMdPath = s.SourceWinMdPath };
+                var newStruct = new StructSymbol(s.Name, ns) { IsExternal = true, SourceWinMdPath = s.SourceWinMdPath, SourceFile = s.SourceFile };
                 foreach (var f in s.Fields) newStruct.AddField(f);
                 return newStruct;
             case DelegateSymbol d:
-                var newDel = new DelegateSymbol(d.Name, ns) { ReturnType = d.ReturnType, IsExternal = true, SourceWinMdPath = d.SourceWinMdPath };
+                var newDel = new DelegateSymbol(d.Name, ns) { ReturnType = d.ReturnType, IsExternal = true, SourceWinMdPath = d.SourceWinMdPath, SourceFile = d.SourceFile };
                 newDel.Parameters.AddRange(d.Parameters);
                 return newDel;
             case RuntimeClassSymbol rc:
-                var newRc = new RuntimeClassSymbol(rc.Name, ns) { Uuid = rc.Uuid, BaseClass = rc.BaseClass, IsStatic = rc.IsStatic, IsExternal = true, SourceWinMdPath = rc.SourceWinMdPath };
+                var newRc = new RuntimeClassSymbol(rc.Name, ns) { Uuid = rc.Uuid, BaseClass = rc.BaseClass, IsStatic = rc.IsStatic, IsExternal = true, SourceWinMdPath = rc.SourceWinMdPath, SourceFile = rc.SourceFile };
                 foreach (var i in rc.Interfaces) newRc.Interfaces.Add(i);
                 foreach (var m in rc.Members) newRc.AddMember(m);
                 return newRc;
             case ApiContractSymbol ac:
-                return new ApiContractSymbol(ac.Name, ns) { Version = ac.Version, IsExternal = true, SourceWinMdPath = ac.SourceWinMdPath };
+                return new ApiContractSymbol(ac.Name, ns) { Version = ac.Version, IsExternal = true, SourceWinMdPath = ac.SourceWinMdPath, SourceFile = ac.SourceFile };
             default:
                 return source;
         }

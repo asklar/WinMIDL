@@ -14,6 +14,7 @@ public class RuntimeClassSymbol : ISymbol
     public Guid? Uuid { get; set; }
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public string? SourceFile { get; set; }
     public int SourcePosition { get; set; } = -1;
 
     public TypeRef? BaseClass{ get; set; }

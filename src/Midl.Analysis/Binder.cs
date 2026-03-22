@@ -21,6 +21,7 @@ public class Binder
     private readonly CompilationMode _mode;
     private readonly bool _emitQualityHints;
     private bool _bindingImportedFile;
+    private string? _currentImportedFilePath;
     private TokenPositionMap _posMap = null!;
     private GreenNode _root = null!;
     private Dictionary<GreenNode, int>? _nodeOffsetMap;
@@ -35,7 +36,7 @@ public class Binder
 
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
         IReadOnlyList<ISymbol>? externalTypes = null,
-        IReadOnlyList<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens)>? importedTrees = null,
+        IReadOnlyList<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath)>? importedTrees = null,
         IReadOnlyList<LazyWinMdProvider>? lazyProviders = null,
         IReadOnlyList<string>? refDirectories = null)
     {
@@ -66,7 +67,7 @@ public class Binder
         if (importedTrees is { Count: > 0 })
         {
             _bindingImportedFile = true;
-            foreach (var (importedTree, importedTokens) in importedTrees)
+            foreach (var (importedTree, importedTokens, importedFilePath) in importedTrees)
             {
                 var savedPosMap = _posMap;
                 var savedRoot = _root;
@@ -74,11 +75,13 @@ public class Binder
                 _posMap = new TokenPositionMap(importedTokens);
                 _root = importedTree;
                 _nodeOffsetMap = null;
+                _currentImportedFilePath = importedFilePath;
                 BindCompilationUnit(importedTree, _globalNamespace);
                 _posMap = savedPosMap;
                 _root = savedRoot;
                 _nodeOffsetMap = savedOffsetMap;
             }
+            _currentImportedFilePath = null;
             _bindingImportedFile = false;
         }
 
@@ -426,6 +429,7 @@ public class Binder
 
         var symbol = new RuntimeClassSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
@@ -603,6 +607,7 @@ public class Binder
 
         var symbol = new InterfaceSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
@@ -751,6 +756,7 @@ public class Binder
 
         var symbol = new DelegateSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         symbol.ReturnType = ExtractTypeRef(returnTypeNode);
         TrackTypeRef(symbol.ReturnType, ns);
@@ -791,6 +797,7 @@ public class Binder
 
         var symbol = new StructSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
@@ -877,6 +884,7 @@ public class Binder
 
         var symbol = new AttributeTypeSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
@@ -943,6 +951,7 @@ public class Binder
 
         var symbol = new EnumSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
@@ -1092,6 +1101,7 @@ public class Binder
 
         var symbol = new ApiContractSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
+        if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
@@ -1162,6 +1172,7 @@ public class Binder
         {
             var symbol = new EnumSymbol(typeName, ns);
             if (_bindingImportedFile) symbol.IsExternal = true;
+            if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
             ns.AddMember(symbol);
             _symbolTable.Define(symbol);
 
@@ -1187,6 +1198,7 @@ public class Binder
         {
             var symbol = new StructSymbol(typeName, ns);
             if (_bindingImportedFile) symbol.IsExternal = true;
+            if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
             ns.AddMember(symbol);
             _symbolTable.Define(symbol);
         }

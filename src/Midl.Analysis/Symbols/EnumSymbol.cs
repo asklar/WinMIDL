@@ -15,6 +15,7 @@ public class EnumSymbol : ISymbol
     public string UnderlyingType { get; set; } = "Int32";
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public string? SourceFile { get; set; }
     public int SourcePosition { get; set; } = -1;
 
     private readonly List<EnumMemberSymbol> _members = [];

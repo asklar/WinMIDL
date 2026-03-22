@@ -13,6 +13,7 @@ public class EnumMemberSymbol : ISymbol
 
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public string? SourceFile { get; set; }
     public int SourcePosition { get; set; } = -1;
 
     // Extracted attribute data

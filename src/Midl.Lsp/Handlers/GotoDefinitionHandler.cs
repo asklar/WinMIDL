@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
+using Midl.CodeGen.Decompiler;
 using Midl.Syntax;
 
 namespace Midl.Lsp.Handlers;
@@ -23,14 +24,22 @@ public static class GotoDefinitionHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return null;
 
-        return HandleCore(text, uri, line, character);
+        // Extract file path from URI for import resolution
+        string? filePath = null;
+        if (uri.StartsWith("file:///"))
+            filePath = Uri.UnescapeDataString(uri[8..]);
+
+        return HandleCore(text, uri, line, character, filePath);
     }
 
     /// <summary>
     /// Core logic, testable without LSP JSON plumbing.
     /// Returns an LSP Location object, a command response, or null.
     /// </summary>
-    public static object? HandleCore(string sourceText, string uri, int line, int character)
+    public static object? HandleCore(string sourceText, string uri, int line, int character,
+        string? currentFilePath = null,
+        IReadOnlyList<string>? includePaths = null,
+        IReadOnlyList<string>? referencePaths = null)
     {
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
 
@@ -52,7 +61,16 @@ public static class GotoDefinitionHandler
         Compilation compilation;
         try
         {
-            compilation = CompilationHelper.Compile(sourceText);
+            // Use the overload that supports import resolution when file path is available
+            if (currentFilePath != null)
+            {
+                compilation = CompilationHelper.Compile(sourceText, referencePaths,
+                    CompilationMode.Strict, includePaths, currentFilePath);
+            }
+            else
+            {
+                compilation = CompilationHelper.Compile(sourceText);
+            }
         }
         catch
         {
@@ -63,42 +81,90 @@ public static class GotoDefinitionHandler
         var symbol = FindSymbol(compilation, name);
         if (symbol is null) return null;
 
-        // External symbols: navigate to the @ref line that provides them
+        // Imported .idl symbol: navigate to definition in the source file
+        if (symbol.SourceFile != null)
+        {
+            var resolvedSourceFile = symbol.SourceFile;
+            if (File.Exists(resolvedSourceFile))
+            {
+                var otherText = File.ReadAllText(resolvedSourceFile);
+                int defOffset = FindDefinitionOffset(otherText, symbol);
+                if (defOffset >= 0)
+                {
+                    var otherLineStarts = PositionHelper.BuildLineStarts(otherText);
+                    var (defLine, defChar) = PositionHelper.OffsetToLineChar(otherLineStarts, defOffset);
+                    var (defEndLine, defEndChar) = PositionHelper.OffsetToLineChar(otherLineStarts, defOffset + symbol.Name.Length);
+                    var otherUri = "file:///" + resolvedSourceFile.Replace('\\', '/');
+                    return MakeLocation(otherUri, defLine, defChar, defEndLine, defEndChar);
+                }
+            }
+        }
+
+        // External WinMD symbol: navigate to decompiled view
+        if (symbol.IsExternal && symbol.SourceWinMdPath != null && File.Exists(symbol.SourceWinMdPath))
+        {
+            return CreateWinMdDefinitionLocation(symbol);
+        }
+
+        // External symbols without source info: navigate to the @ref line
         if (symbol.IsExternal)
         {
             var refLine = FindRefLineForExternalSymbol(sourceText, symbol);
             if (refLine >= 0)
             {
-                var (rl, rc) = PositionHelper.OffsetToLineChar(lineStarts,
-                    PositionHelper.LineCharToOffset(lineStarts, refLine, 0));
                 var lineText = GetLineText(sourceText, lineStarts, refLine);
-                return new Dictionary<string, object?>
-                {
-                    ["uri"] = uri,
-                    ["range"] = new Dictionary<string, object?>
-                    {
-                        ["start"] = new Dictionary<string, object?> { ["line"] = refLine, ["character"] = 0 },
-                        ["end"] = new Dictionary<string, object?> { ["line"] = refLine, ["character"] = lineText.Length }
-                    }
-                };
+                return MakeLocation(uri, refLine, 0, refLine, lineText.Length);
             }
             return null;
         }
 
         // Find the definition location in source text
-        int defOffset = FindDefinitionOffset(sourceText, symbol);
-        if (defOffset < 0) return null;
+        int localDefOffset = FindDefinitionOffset(sourceText, symbol);
+        if (localDefOffset < 0) return null;
 
-        var (defLine, defChar) = PositionHelper.OffsetToLineChar(lineStarts, defOffset);
-        var (defEndLine, defEndChar) = PositionHelper.OffsetToLineChar(lineStarts, defOffset + symbol.Name.Length);
+        var (localDefLine, localDefChar) = PositionHelper.OffsetToLineChar(lineStarts, localDefOffset);
+        var (localDefEndLine, localDefEndChar) = PositionHelper.OffsetToLineChar(lineStarts, localDefOffset + symbol.Name.Length);
 
+        return MakeLocation(uri, localDefLine, localDefChar, localDefEndLine, localDefEndChar);
+    }
+
+    /// <summary>
+    /// Creates a definition location for a WinMD external symbol by decompiling the WinMD
+    /// and returning a location with the midl-winmd URI scheme.
+    /// </summary>
+    public static object? CreateWinMdDefinitionLocation(ISymbol symbol)
+    {
+        try
+        {
+            var decompiler = new WinMdDecompiler();
+            var decompiled = decompiler.Decompile(symbol.SourceWinMdPath!);
+
+            // Find the symbol in decompiled text using keyword + name pattern
+            int defOffset = FindDefinitionOffset(decompiled, symbol);
+            if (defOffset < 0) defOffset = 0;
+
+            var decompLineStarts = PositionHelper.BuildLineStarts(decompiled);
+            var (dLine, dChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
+            var (dEndLine, dEndChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset + symbol.Name.Length);
+
+            var winmdUri = "midl-winmd:///" + symbol.SourceWinMdPath!.Replace('\\', '/');
+            return MakeLocation(winmdUri, dLine, dChar, dEndLine, dEndChar);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static Dictionary<string, object?> MakeLocation(string uri, int startLine, int startChar, int endLine, int endChar)
+    {
         return new Dictionary<string, object?>
         {
             ["uri"] = uri,
             ["range"] = new Dictionary<string, object?>
             {
-                ["start"] = new Dictionary<string, object?> { ["line"] = defLine, ["character"] = defChar },
-                ["end"] = new Dictionary<string, object?> { ["line"] = defEndLine, ["character"] = defEndChar }
+                ["start"] = new Dictionary<string, object?> { ["line"] = startLine, ["character"] = startChar },
+                ["end"] = new Dictionary<string, object?> { ["line"] = endLine, ["character"] = endChar }
             }
         };
     }
@@ -145,31 +211,14 @@ public static class GotoDefinitionHandler
 
         if (Directory.Exists(resolvedPath))
         {
-            // For directories, return a file URI to the directory (VS Code will open it in explorer)
             var dirUri = "file:///" + resolvedPath.Replace('\\', '/');
-            return new Dictionary<string, object?>
-            {
-                ["uri"] = dirUri,
-                ["range"] = new Dictionary<string, object?>
-                {
-                    ["start"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 },
-                    ["end"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 }
-                }
-            };
+            return MakeLocation(dirUri, 0, 0, 0, 0);
         }
 
         if (File.Exists(resolvedPath))
         {
             var fileUri = "file:///" + resolvedPath.Replace('\\', '/');
-            return new Dictionary<string, object?>
-            {
-                ["uri"] = fileUri,
-                ["range"] = new Dictionary<string, object?>
-                {
-                    ["start"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 },
-                    ["end"] = new Dictionary<string, object?> { ["line"] = 0, ["character"] = 0 }
-                }
-            };
+            return MakeLocation(fileUri, 0, 0, 0, 0);
         }
 
         return null;
@@ -280,7 +329,7 @@ public static class GotoDefinitionHandler
     /// Finds the offset of the symbol's defining identifier in source text.
     /// Uses keyword + name pattern matching (same approach as DocumentSymbolHandler).
     /// </summary>
-    private static int FindDefinitionOffset(string sourceText, ISymbol symbol)
+    internal static int FindDefinitionOffset(string sourceText, ISymbol symbol)
     {
         string? keyword = symbol.Kind switch
         {

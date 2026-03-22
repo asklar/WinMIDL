@@ -18,6 +18,7 @@ public class ParameterSymbol : ISymbol
     public bool IsArray { get; set; }
     public bool IsExternal { get; set; }
     public string? SourceWinMdPath { get; set; }
+    public string? SourceFile { get; set; }
     public int SourcePosition { get; set; } = -1;
 
     // Extracted attribute data
