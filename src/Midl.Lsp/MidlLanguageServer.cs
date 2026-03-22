@@ -158,6 +158,14 @@ public sealed class MidlLanguageServer
                 await _writer.SendResponseAsync(id, FormattingHandler.Handle(@params, _docManager));
                 break;
 
+            case "textDocument/rename":
+                await _writer.SendResponseAsync(id, RenameHandler.Handle(@params, _docManager));
+                break;
+
+            case "textDocument/prepareRename":
+                await _writer.SendResponseAsync(id, RenameHandler.HandlePrepare(@params, _docManager));
+                break;
+
             case "textDocument/codeAction":
             {
                 string? caFilePath = null;
@@ -290,6 +298,10 @@ public sealed class MidlLanguageServer
                     }
                 },
                 ["documentFormattingProvider"] = true,
+                ["renameProvider"] = new Dictionary<string, object?>
+                {
+                    ["prepareProvider"] = true
+                },
                 ["codeActionProvider"] = new Dictionary<string, object?>
                 {
                     ["codeActionKinds"] = new[] { "quickfix" }

@@ -1112,6 +1112,192 @@ public class LspHandlerTests
 
     #endregion
 
+    #region Rename Tests
+
+    [Fact]
+    public void Rename_TypeName_RenamesAllOccurrences()
+    {
+        var source = """
+            namespace TestApp
+            {
+                interface IFoo
+                {
+                    void DoWork();
+                }
+                runtimeclass Bar : IFoo
+                {
+                }
+            }
+            """;
+        var uri = "file:///test.midl";
+
+        // Find "IFoo" in the interface declaration
+        var lines = source.Split('\n');
+        int targetLine = -1, targetChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("interface IFoo");
+            if (idx >= 0)
+            {
+                targetLine = i;
+                targetChar = idx + "interface ".Length;
+                break;
+            }
+        }
+        Assert.True(targetLine >= 0, "Could not find IFoo declaration");
+
+        var result = RenameHandler.HandleCore(source, uri, targetLine, targetChar, "IBar");
+        Assert.NotNull(result);
+
+        var json = JsonSerializer.Serialize(result);
+        var doc = JsonDocument.Parse(json);
+
+        // Should have a "changes" property with the uri key
+        var changes = doc.RootElement.GetProperty("changes");
+        var fileEdits = changes.GetProperty(uri);
+
+        // Should rename both the declaration and usage in requires
+        Assert.True(fileEdits.GetArrayLength() >= 2, $"Expected at least 2 edits, got {fileEdits.GetArrayLength()}");
+
+        // All edits should have the new name
+        foreach (var edit in fileEdits.EnumerateArray())
+        {
+            Assert.Equal("IBar", edit.GetProperty("newText").GetString());
+        }
+    }
+
+    [Fact]
+    public void Rename_OnKeyword_ReturnsNull()
+    {
+        var source = """
+            namespace TestApp
+            {
+                runtimeclass Foo { }
+            }
+            """;
+        var uri = "file:///test.midl";
+
+        // Position cursor on "runtimeclass" keyword
+        var lines = source.Split('\n');
+        int targetLine = -1, targetChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("runtimeclass");
+            if (idx >= 0)
+            {
+                targetLine = i;
+                targetChar = idx + 2; // inside the keyword
+                break;
+            }
+        }
+        Assert.True(targetLine >= 0);
+
+        var result = RenameHandler.HandleCore(source, uri, targetLine, targetChar, "NewName");
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void Rename_ExternalType_ReturnsNull()
+    {
+        var source = """
+            namespace TestApp
+            {
+                runtimeclass Foo
+                {
+                    String Name { get; };
+                }
+            }
+            """;
+        var uri = "file:///test.midl";
+
+        // Position cursor on "String" (built-in / external type)
+        var lines = source.Split('\n');
+        int targetLine = -1, targetChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("String");
+            if (idx >= 0)
+            {
+                targetLine = i;
+                targetChar = idx + 1;
+                break;
+            }
+        }
+        Assert.True(targetLine >= 0);
+
+        var result = RenameHandler.HandleCore(source, uri, targetLine, targetChar, "MyString");
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void PrepareRename_OnIdentifier_ReturnsRange()
+    {
+        var source = """
+            namespace TestApp
+            {
+                interface IFoo
+                {
+                    void DoWork();
+                }
+            }
+            """;
+
+        // Position on "IFoo"
+        var lines = source.Split('\n');
+        int targetLine = -1, targetChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("interface IFoo");
+            if (idx >= 0)
+            {
+                targetLine = i;
+                targetChar = idx + "interface ".Length;
+                break;
+            }
+        }
+        Assert.True(targetLine >= 0);
+
+        var result = RenameHandler.HandlePrepareCore(source, targetLine, targetChar);
+        Assert.NotNull(result);
+
+        var json = JsonSerializer.Serialize(result);
+        var doc = JsonDocument.Parse(json);
+
+        // Should contain a range and placeholder
+        Assert.True(doc.RootElement.TryGetProperty("range", out _));
+        Assert.Equal("IFoo", doc.RootElement.GetProperty("placeholder").GetString());
+    }
+
+    [Fact]
+    public void PrepareRename_OnKeyword_ReturnsNull()
+    {
+        var source = """
+            namespace TestApp
+            {
+                runtimeclass Foo { }
+            }
+            """;
+
+        var lines = source.Split('\n');
+        int targetLine = -1, targetChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("runtimeclass");
+            if (idx >= 0)
+            {
+                targetLine = i;
+                targetChar = idx + 2;
+                break;
+            }
+        }
+        Assert.True(targetLine >= 0);
+
+        var result = RenameHandler.HandlePrepareCore(source, targetLine, targetChar);
+        Assert.Null(result);
+    }
+
+    #endregion
+
 #if WINDOWS_INTERNAL
     #region FeatureName Completion Tests
 
