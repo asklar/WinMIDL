@@ -41,9 +41,9 @@ public class LazyWinMdProvider : IDisposable
             var name = _mdReader.GetString(td.Name);
             if (name == "<Module>") continue;
 
-            // Only index public WinRT types
+            // Index all WinRT-flagged types regardless of CLR visibility.
+            // Synthesized exclusive interfaces are non-public but must still be indexed.
             var attrs = td.Attributes;
-            if ((attrs & TypeAttributes.VisibilityMask) != TypeAttributes.Public) continue;
             if (((int)attrs & TdWindowsRuntime) == 0) continue;
 
             var ns = _mdReader.GetString(td.Namespace);
@@ -66,7 +66,6 @@ public class LazyWinMdProvider : IDisposable
             if (name == "<Module>") continue;
 
             var attrs = td.Attributes;
-            if ((attrs & TypeAttributes.VisibilityMask) != TypeAttributes.Public) continue;
             if (((int)attrs & TdWindowsRuntime) == 0) continue;
 
             var ns = _mdReader.GetString(td.Namespace);

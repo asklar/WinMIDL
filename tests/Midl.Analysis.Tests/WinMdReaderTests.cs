@@ -230,4 +230,52 @@ public class WinMdReaderTests
             File.Delete(tempPath);
         }
     }
+
+    [Fact]
+    public void ReadTypes_IndexesNonPublicWinRTTypes()
+    {
+        // Synthesized exclusive interfaces are emitted as non-public WinRT types.
+        // The reader must index ALL WinRT-flagged types regardless of CLR visibility.
+        var winmd = EmitWinMd(@"
+            namespace TestNs
+            {
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                };
+            }");
+
+        var reader = new WinMdReader();
+        var types = reader.ReadTypes(winmd);
+
+        // The synthesized IWidget interface is non-public but WinRT-flagged
+        var iface = types.OfType<InterfaceSymbol>().FirstOrDefault(i => i.Name == "IWidget");
+        Assert.NotNull(iface);
+        Assert.Equal("TestNs.IWidget", iface!.FullName);
+    }
+
+    [Fact]
+    public void ReadSingleType_ReadsNonPublicWinRTType()
+    {
+        // ReadSingleType should not filter out non-public WinRT types
+        var winmd = EmitWinMd(@"
+            namespace TestNs
+            {
+                runtimeclass Gadget
+                {
+                    Gadget();
+                    void Activate();
+                };
+            }");
+
+        using var provider = new LazyWinMdProvider(winmd);
+
+        // The non-public synthesized IGadget should be indexed and resolvable
+        Assert.True(provider.HasType("TestNs.IGadget"),
+            "Non-public WinRT-flagged synthesized interface should be indexed");
+        var resolved = provider.TryResolve("TestNs.IGadget");
+        Assert.NotNull(resolved);
+        Assert.IsType<InterfaceSymbol>(resolved);
+    }
 }
