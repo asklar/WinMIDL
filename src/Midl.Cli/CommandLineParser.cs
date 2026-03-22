@@ -44,6 +44,7 @@ public class CommandLineOptions
     public Midl.Analysis.CompilationMode Mode { get; set; } = Midl.Analysis.CompilationMode.Strict;
     public bool AnalyzeMode { get; set; }              // --analyze (rich console output)
     public bool DecompileMode { get; set; }             // --decompile (WinMD to IDL)
+    public string? DecompileNamespace { get; set; }      // --namespace (filter decompile to one namespace)
     public bool DumpWinMd { get; set; }                 // --dump-winmd (dump WinMD metadata)
     public bool DebugTrace { get; set; }               // /debug (enable trace output)
     public bool NoDefIdir { get; set; }                // /no_def_idir — don't add default include dirs
@@ -86,6 +87,13 @@ public static class CommandLineParser
             {
                 options.DecompileMode = true;
                 i++;
+                continue;
+            }
+
+            if (arg is "--namespace" && i + 1 < args.Length)
+            {
+                options.DecompileNamespace = args[i + 1];
+                i += 2;
                 continue;
             }
 

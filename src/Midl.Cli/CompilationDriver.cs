@@ -144,7 +144,7 @@ public class CompilationDriver
             try
             {
                 var decompiler = new WinMdDecompiler();
-                var idl = decompiler.Decompile(options.InputFile);
+                var idl = decompiler.Decompile(options.InputFile, options.DecompileNamespace);
                 _out.Write(idl);
                 return 0;
             }

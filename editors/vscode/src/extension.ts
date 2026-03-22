@@ -81,17 +81,21 @@ class WinMdContentProvider implements vscode.TextDocumentContentProvider {
             return '// MIDL server binary not found — cannot decompile WinMD';
         }
 
-        // The URI path encodes the WinMD file path
+        // The URI path encodes the WinMD file path, query may have ns= for namespace filter
         let winmdPath = uri.path;
         // On Windows, strip leading slash from /C:/path
         if (process.platform === 'win32' && winmdPath.startsWith('/')) {
             winmdPath = winmdPath.substring(1);
         }
 
+        // Extract namespace filter from query string
+        const nsParam = new URLSearchParams(uri.query).get('ns');
+        const nsArgs = nsParam ? ` --namespace "${nsParam}"` : '';
+
         try {
             const result = execSync(
-                `"${serverBinaryPath}" --decompile "${winmdPath}"`,
-                { encoding: 'utf-8', timeout: 10000 }
+                `"${serverBinaryPath}" --decompile "${winmdPath}"${nsArgs}`,
+                { encoding: 'utf-8', timeout: 30000, maxBuffer: 50 * 1024 * 1024 }
             );
             return result;
         } catch (err: any) {

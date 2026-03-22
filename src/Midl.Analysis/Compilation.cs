@@ -152,6 +152,17 @@ public class Compilation
         return GetAllTypesRecursive(GlobalNamespace);
     }
 
+    /// <summary>Get all type names from lazy WinMD providers (for symbol lookup by simple name).</summary>
+    public IEnumerable<string> GetAllLazyTypeNames()
+    {
+        if (_lazyProviders == null) yield break;
+        foreach (var provider in _lazyProviders)
+        {
+            foreach (var name in provider.GetAllTypeNames())
+                yield return name;
+        }
+    }
+
     private static IEnumerable<ISymbol> GetAllTypesRecursive(NamespaceSymbol ns)
     {
         foreach (var m in ns.Members)

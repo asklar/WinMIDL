@@ -14,20 +14,20 @@ public class WinMdDecompiler
 {
     private const int TdWindowsRuntime = 0x4000;
 
-    public string Decompile(string winmdPath)
+    public string Decompile(string winmdPath, string? namespaceFilter = null)
     {
         var bytes = File.ReadAllBytes(winmdPath);
-        return Decompile(bytes);
+        return Decompile(bytes, namespaceFilter);
     }
 
-    public string Decompile(byte[] winmdBytes)
+    public string Decompile(byte[] winmdBytes, string? namespaceFilter = null)
     {
         using var peReader = new PEReader(new MemoryStream(winmdBytes));
         var reader = peReader.GetMetadataReader();
-        return DecompileFromReader(reader);
+        return DecompileFromReader(reader, namespaceFilter);
     }
 
-    private string DecompileFromReader(MetadataReader reader)
+    private string DecompileFromReader(MetadataReader reader, string? namespaceFilter = null)
     {
         var sb = new StringBuilder();
         var typesByNamespace = new Dictionary<string, List<TypeDefinitionHandle>>();
@@ -47,6 +47,8 @@ public class WinMdDecompiler
                 continue;
 
             var ns = reader.GetString(td.Namespace);
+            if (namespaceFilter != null && !ns.Equals(namespaceFilter, StringComparison.Ordinal))
+                continue;
             if (!typesByNamespace.TryGetValue(ns, out var list))
             {
                 list = new List<TypeDefinitionHandle>();

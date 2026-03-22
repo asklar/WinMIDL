@@ -137,8 +137,13 @@ public static class GotoDefinitionHandler
     {
         try
         {
+            // Extract the namespace to filter decompilation (avoids decompiling all of Windows.winmd)
+            var ns = symbol.FullName;
+            var lastDot = ns.LastIndexOf('.');
+            var nsFilter = lastDot > 0 ? ns[..lastDot] : null;
+
             var decompiler = new WinMdDecompiler();
-            var decompiled = decompiler.Decompile(symbol.SourceWinMdPath!);
+            var decompiled = decompiler.Decompile(symbol.SourceWinMdPath!, nsFilter);
 
             // Find the symbol in decompiled text using keyword + name pattern
             int defOffset = FindDefinitionOffset(decompiled, symbol);
@@ -148,7 +153,10 @@ public static class GotoDefinitionHandler
             var (dLine, dChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
             var (dEndLine, dEndChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset + symbol.Name.Length);
 
+            // Encode namespace filter as query parameter in the URI
             var winmdUri = "midl-winmd:///" + symbol.SourceWinMdPath!.Replace('\\', '/');
+            if (nsFilter != null)
+                winmdUri += "?ns=" + Uri.EscapeDataString(nsFilter);
             return MakeLocation(winmdUri, dLine, dChar, dEndLine, dEndChar);
         }
         catch
@@ -293,12 +301,27 @@ public static class GotoDefinitionHandler
 
     private static ISymbol? FindSymbol(Compilation compilation, string name)
     {
-        // First try top-level types
+        // First try top-level types (includes resolved imports)
         var type = compilation.GetAllTypes().FirstOrDefault(s => s.Name == name);
         if (type is not null) return type;
 
-        // Then search members recursively
-        return FindMemberRecursive(compilation.GlobalNamespace, name);
+        // Search members recursively (methods, properties, etc.)
+        var member = FindMemberRecursive(compilation.GlobalNamespace, name);
+        if (member is not null) return member;
+
+        // Try lazy WinMD providers — search by simple name across all known types
+        var lazyNames = compilation.GetAllLazyTypeNames();
+        foreach (var fullName in lazyNames)
+        {
+            var simpleName = fullName.Contains('.') ? fullName[(fullName.LastIndexOf('.') + 1)..] : fullName;
+            if (simpleName.Equals(name, StringComparison.Ordinal))
+            {
+                var resolved = compilation.GetTypeByName(fullName);
+                if (resolved is not null) return resolved;
+            }
+        }
+
+        return null;
     }
 
     private static ISymbol? FindMemberRecursive(NamespaceSymbol ns, string name)
