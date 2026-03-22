@@ -1163,6 +1163,140 @@ public class LspHandlerTests
         foreach (var edit in fileEdits.EnumerateArray())
         {
             Assert.Equal("IBar", edit.GetProperty("newText").GetString());
+    #region Workspace Diagnostics Tests
+
+    [Fact]
+    public async Task WorkspaceFileChange_RepublishesDiagnostics()
+    {
+        // Set up a pipe-based server to simulate LSP communication
+        var serverInput = new MemoryStream();
+        var serverOutput = new MemoryStream();
+        var server = new MidlLanguageServer(serverInput, serverOutput);
+
+        // Pre-open a document so the server has something to re-analyze
+        var openUri = "file:///workspace/main.idl";
+        var openSource = "namespace N { runtimeclass Foo { } }";
+
+        // Simulate workspace/didChangeWatchedFiles by calling HandleMessageAsync via reflection
+        // Instead, test the public AnalyzeAndPublish path by exercising the server's document flow.
+
+        // 1. Write an initialize request + initialized notification + didOpen + didChangeWatchedFiles
+        var initId = 1;
+        var initRequest = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["id"] = initId,
+            ["method"] = "initialize",
+            ["params"] = new Dictionary<string, object?>
+            {
+                ["processId"] = 1234,
+                ["rootUri"] = "file:///workspace",
+                ["capabilities"] = new Dictionary<string, object?> { }
+            }
+        });
+        WriteJsonRpcMessage(serverInput, initRequest);
+
+        var initializedNotif = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["method"] = "initialized",
+            ["params"] = new Dictionary<string, object?> { }
+        });
+        WriteJsonRpcMessage(serverInput, initializedNotif);
+
+        var didOpenNotif = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["method"] = "textDocument/didOpen",
+            ["params"] = new Dictionary<string, object?>
+            {
+                ["textDocument"] = new Dictionary<string, object?>
+                {
+                    ["uri"] = openUri,
+                    ["languageId"] = "midl",
+                    ["version"] = 1,
+                    ["text"] = openSource,
+                }
+            }
+        });
+        WriteJsonRpcMessage(serverInput, didOpenNotif);
+
+        // Create a temp .idl file on disk for the changed-file notification
+        var tempDir = Path.Combine(Path.GetTempPath(), "midl_test_" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDir);
+        var tempFile = Path.Combine(tempDir, "helper.idl");
+        File.WriteAllText(tempFile, "namespace N { struct Point { Int32 X; Int32 Y; }; }");
+        var tempFileUri = "file:///" + tempFile.Replace('\\', '/');
+
+        try
+        {
+            var watchedFilesNotif = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+            {
+                ["jsonrpc"] = "2.0",
+                ["method"] = "workspace/didChangeWatchedFiles",
+                ["params"] = new Dictionary<string, object?>
+                {
+                    ["changes"] = new[]
+                    {
+                        new Dictionary<string, object?>
+                        {
+                            ["uri"] = tempFileUri,
+                            ["type"] = 2 // Changed
+                        }
+                    }
+                }
+            });
+            WriteJsonRpcMessage(serverInput, watchedFilesNotif);
+
+            var shutdownRequest = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+            {
+                ["jsonrpc"] = "2.0",
+                ["id"] = 99,
+                ["method"] = "shutdown",
+                ["params"] = (object?)null
+            });
+            WriteJsonRpcMessage(serverInput, shutdownRequest);
+
+            var exitNotif = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+            {
+                ["jsonrpc"] = "2.0",
+                ["method"] = "exit"
+            });
+            WriteJsonRpcMessage(serverInput, exitNotif);
+
+            // Reset input stream position so server can read from it
+            serverInput.Position = 0;
+
+            // Run the server — it will process all queued messages then exit
+            await server.RunAsync();
+
+            // Parse the output to find publishDiagnostics notifications
+            serverOutput.Position = 0;
+            var outputText = System.Text.Encoding.UTF8.GetString(serverOutput.ToArray());
+            var messages = ParseJsonRpcMessages(outputText);
+
+            // Find publishDiagnostics notifications
+            var diagNotifications = messages
+                .Where(m => m.RootElement.TryGetProperty("method", out var meth) &&
+                            meth.GetString() == "textDocument/publishDiagnostics")
+                .ToList();
+
+            // We should have at least 2 publishDiagnostics:
+            // 1. For the didOpen on main.idl
+            // 2. For the re-analysis triggered by didChangeWatchedFiles (for the changed file and/or open files)
+            Assert.True(diagNotifications.Count >= 2,
+                $"Expected at least 2 publishDiagnostics notifications, got {diagNotifications.Count}. Messages: {string.Join(", ", messages.Select(m => m.RootElement.TryGetProperty("method", out var me) ? me.GetString() : "response"))}");
+
+            // Verify diagnostics were published for the open document (re-analyzed after file change)
+            var mainDiags = diagNotifications
+                .Where(m => m.RootElement.GetProperty("params").GetProperty("uri").GetString() == openUri)
+                .ToList();
+            Assert.True(mainDiags.Count >= 1,
+                $"Expected at least 1 publishDiagnostics for {openUri}");
+        }
+        finally
+        {
+            try { Directory.Delete(tempDir, recursive: true); } catch { }
         }
     }
 
@@ -1294,6 +1428,118 @@ public class LspHandlerTests
 
         var result = RenameHandler.HandlePrepareCore(source, targetLine, targetChar);
         Assert.Null(result);
+    public async Task WorkspaceFileDelete_ClearsDiagnostics()
+    {
+        var serverInput = new MemoryStream();
+        var serverOutput = new MemoryStream();
+        var server = new MidlLanguageServer(serverInput, serverOutput);
+
+        var initRequest = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["id"] = 1,
+            ["method"] = "initialize",
+            ["params"] = new Dictionary<string, object?>
+            {
+                ["processId"] = 1234,
+                ["rootUri"] = "file:///workspace",
+                ["capabilities"] = new Dictionary<string, object?> { }
+            }
+        });
+        WriteJsonRpcMessage(serverInput, initRequest);
+
+        var initializedNotif = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["method"] = "initialized",
+            ["params"] = new Dictionary<string, object?> { }
+        });
+        WriteJsonRpcMessage(serverInput, initializedNotif);
+
+        var deletedFileUri = "file:///workspace/deleted.idl";
+        var watchedFilesNotif = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["method"] = "workspace/didChangeWatchedFiles",
+            ["params"] = new Dictionary<string, object?>
+            {
+                ["changes"] = new[]
+                {
+                    new Dictionary<string, object?>
+                    {
+                        ["uri"] = deletedFileUri,
+                        ["type"] = 3 // Deleted
+                    }
+                }
+            }
+        });
+        WriteJsonRpcMessage(serverInput, watchedFilesNotif);
+
+        var shutdownRequest = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["id"] = 99,
+            ["method"] = "shutdown",
+            ["params"] = (object?)null
+        });
+        WriteJsonRpcMessage(serverInput, shutdownRequest);
+
+        var exitNotif = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["method"] = "exit"
+        });
+        WriteJsonRpcMessage(serverInput, exitNotif);
+
+        serverInput.Position = 0;
+        await server.RunAsync();
+
+        serverOutput.Position = 0;
+        var outputText = System.Text.Encoding.UTF8.GetString(serverOutput.ToArray());
+        var messages = ParseJsonRpcMessages(outputText);
+
+        // Find publishDiagnostics for the deleted file — should have empty diagnostics array
+        var deletedDiags = messages
+            .Where(m => m.RootElement.TryGetProperty("method", out var meth) &&
+                        meth.GetString() == "textDocument/publishDiagnostics" &&
+                        m.RootElement.GetProperty("params").GetProperty("uri").GetString() == deletedFileUri)
+            .ToList();
+
+        Assert.Single(deletedDiags);
+        var diagArray = deletedDiags[0].RootElement.GetProperty("params").GetProperty("diagnostics");
+        Assert.Equal(0, diagArray.GetArrayLength());
+    }
+
+    private static void WriteJsonRpcMessage(MemoryStream stream, string json)
+    {
+        var body = System.Text.Encoding.UTF8.GetBytes(json);
+        var header = System.Text.Encoding.ASCII.GetBytes($"Content-Length: {body.Length}\r\n\r\n");
+        stream.Write(header);
+        stream.Write(body);
+    }
+
+    private static List<JsonDocument> ParseJsonRpcMessages(string raw)
+    {
+        var results = new List<JsonDocument>();
+        int pos = 0;
+        while (pos < raw.Length)
+        {
+            var headerEnd = raw.IndexOf("\r\n\r\n", pos, StringComparison.Ordinal);
+            if (headerEnd < 0) break;
+
+            var headerSection = raw[pos..headerEnd];
+            var contentLengthMatch = System.Text.RegularExpressions.Regex.Match(headerSection, @"Content-Length:\s*(\d+)");
+            if (!contentLengthMatch.Success) break;
+
+            var contentLength = int.Parse(contentLengthMatch.Groups[1].Value);
+            var bodyStart = headerEnd + 4;
+            if (bodyStart + contentLength > raw.Length) break;
+
+            var body = raw.Substring(bodyStart, contentLength);
+            results.Add(JsonDocument.Parse(body));
+            pos = bodyStart + contentLength;
+        }
+        return results;
     }
 
     #endregion
