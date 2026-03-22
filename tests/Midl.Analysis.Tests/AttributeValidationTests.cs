@@ -118,7 +118,7 @@ public class AttributeValidationTests
         Assert.Equal("IE", rc.DefaultInterface!.Name);
         Assert.True(rc.DefaultInterface.IsExclusive);
         Assert.True(rc.DefaultInterface.IsSynthesized);
-        Assert.Equal("E", rc.DefaultInterface.ExclusiveToClass);
+        Assert.Equal("N.E", rc.DefaultInterface.ExclusiveToClass);
         Assert.Empty(rc.DefaultInterface.Members);
     }
 

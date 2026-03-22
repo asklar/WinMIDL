@@ -27,7 +27,7 @@ public class InterfaceSynthesisTests
         Assert.Equal("IC", rc.DefaultInterface!.Name);
         Assert.True(rc.DefaultInterface.IsExclusive);
         Assert.True(rc.DefaultInterface.IsSynthesized);
-        Assert.Equal("C", rc.DefaultInterface.ExclusiveToClass);
+        Assert.Equal("TestApp.C", rc.DefaultInterface.ExclusiveToClass);
 
         var method = rc.DefaultInterface.Members.OfType<MethodSymbol>().Single();
         Assert.Equal("M", method.Name);
@@ -237,11 +237,11 @@ public class InterfaceSynthesisTests
         // All synthesized interfaces should have ExclusiveToClass set
         Assert.NotNull(rc.DefaultInterface);
         Assert.True(rc.DefaultInterface!.IsExclusive);
-        Assert.Equal("Widget", rc.DefaultInterface.ExclusiveToClass);
+        Assert.Equal("TestApp.Widget", rc.DefaultInterface.ExclusiveToClass);
 
         Assert.NotNull(rc.StaticsInterface);
         Assert.True(rc.StaticsInterface!.IsExclusive);
-        Assert.Equal("Widget", rc.StaticsInterface.ExclusiveToClass);
+        Assert.Equal("TestApp.Widget", rc.StaticsInterface.ExclusiveToClass);
     }
 
     [Fact]

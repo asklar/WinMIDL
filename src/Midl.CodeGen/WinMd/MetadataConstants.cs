@@ -6,7 +6,7 @@ namespace Midl.CodeGen.WinMd;
 public static class MetadataConstants
 {
     public const string MscorlibAssembly = "mscorlib";
-    public const string WindowsFoundationAssembly = "Windows.Foundation.FoundationContract";
+    public const string WindowsFoundationAssembly = "Windows.Foundation";
     public const string VersionString = "Windows Runtime 1.2";
 
     // Base type names (in mscorlib)

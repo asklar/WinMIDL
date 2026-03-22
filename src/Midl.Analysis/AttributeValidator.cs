@@ -305,7 +305,7 @@ public class AttributeValidator
         if (factorySymbol == null) return;
 
         if (!factorySymbol.IsExclusive ||
-            !string.Equals(factorySymbol.ExclusiveToClass, rc.Name, StringComparison.Ordinal))
+            !string.Equals(factorySymbol.ExclusiveToClass, rc.FullName, StringComparison.Ordinal))
         {
             _diagnostics.Add(DiagnosticDescriptors.ActivatableFactoryNotExclusiveTo(
                 factoryName, rc.Name, attr.Position));
@@ -322,7 +322,7 @@ public class AttributeValidator
         if (ifaceSymbol == null) return;
 
         if (!ifaceSymbol.IsExclusive ||
-            !string.Equals(ifaceSymbol.ExclusiveToClass, rc.Name, StringComparison.Ordinal))
+            !string.Equals(ifaceSymbol.ExclusiveToClass, rc.FullName, StringComparison.Ordinal))
         {
             _diagnostics.Add(DiagnosticDescriptors.StaticInterfaceNotExclusiveTo(
                 ifaceName, rc.Name, attr.Position));

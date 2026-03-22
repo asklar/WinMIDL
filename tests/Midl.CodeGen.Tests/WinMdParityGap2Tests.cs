@@ -240,7 +240,7 @@ public class WinMdParityGap2Tests
     #region Gap 2: EventHandler TypeRef projection
 
     [Fact]
-    public void EventHandler_TypeRef_UsesSystemNamespace()
+    public void EventHandler_TypeRef_UsesWindowsFoundationNamespace()
     {
         var bytes = CompileAndEmit("""
             namespace Test
@@ -264,24 +264,25 @@ public class WinMdParityGap2Tests
                 if (name == "EventHandler`1")
                 {
                     var ns = reader.GetString(typeRef.Namespace);
-                    Assert.Equal("System", ns);
+                    // C++ dumper confirms original midl uses WinRT names, not CLR projections
+                    Assert.Equal("Windows.Foundation", ns);
 
-                    // Should be scoped to mscorlib
+                    // Should be scoped to Windows.Foundation assembly ref
                     Assert.Equal(HandleKind.AssemblyReference, typeRef.ResolutionScope.Kind);
                     var assemblyRef = reader.GetAssemblyReference((AssemblyReferenceHandle)typeRef.ResolutionScope);
-                    Assert.Equal("mscorlib", reader.GetString(assemblyRef.Name));
+                    Assert.Equal("Windows.Foundation", reader.GetString(assemblyRef.Name));
                     found = true;
                     break;
                 }
             }
-            Assert.True(found, "EventHandler`1 TypeRef should exist with System namespace");
+            Assert.True(found, "EventHandler`1 TypeRef should exist with Windows.Foundation namespace");
         }
     }
 
     [Fact]
-    public void EventHandler_NonGeneric_UsesSystemNamespace()
+    public void EventHandler_UsesWinRTNames_NotClrProjection()
     {
-        // Even non-generic usage should project to System namespace
+        // C++ dumper confirms: original midl uses Windows.Foundation.EventHandler, not System.EventHandler
         var bytes = CompileAndEmit("""
             namespace Test
             {
@@ -296,17 +297,17 @@ public class WinMdParityGap2Tests
         var reader = CreateReader(bytes, out var pe);
         using (pe)
         {
-            // Verify no TypeRef with Windows.Foundation.EventHandler exists
+            // Verify EventHandler IS in Windows.Foundation namespace
+            bool foundWinRT = false;
             foreach (var handle in reader.TypeReferences)
             {
                 var typeRef = reader.GetTypeReference(handle);
                 var name = reader.GetString(typeRef.Name);
                 var ns = reader.GetString(typeRef.Namespace);
                 if (name.StartsWith("EventHandler") && ns == "Windows.Foundation")
-                {
-                    Assert.Fail($"EventHandler should not be in Windows.Foundation namespace, found {ns}.{name}");
-                }
+                    foundWinRT = true;
             }
+            Assert.True(foundWinRT, "EventHandler should be in Windows.Foundation namespace");
         }
     }
 

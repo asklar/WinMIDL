@@ -463,10 +463,10 @@ public class WinMdParityFixTests
 
     #endregion
 
-    #region Gap 6: EventRegistrationToken should be from mscorlib
+    #region Gap 6: EventRegistrationToken should be from Windows.Foundation
 
     [Fact]
-    public void EventRegistrationToken_ReferencedFromMscorlib()
+    public void EventRegistrationToken_ReferencedFromWindowsFoundation()
     {
         var bytes = CompileAndEmit(BasicClassSource);
         var reader = CreateReader(bytes, out var pe);
@@ -480,7 +480,8 @@ public class WinMdParityFixTests
                 if (reader.GetString(typeRef.Name) == "EventRegistrationToken")
                 {
                     var ns = reader.GetString(typeRef.Namespace);
-                    Assert.Equal("System.Runtime.InteropServices.WindowsRuntime", ns);
+                    // C++ dumper confirms: original midl uses Windows.Foundation namespace
+                    Assert.Equal("Windows.Foundation", ns);
                     found = true;
                     break;
                 }

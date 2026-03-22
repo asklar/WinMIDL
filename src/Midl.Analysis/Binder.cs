@@ -3064,7 +3064,7 @@ public class Binder
         foreach (var iface in rc.ImplementedInterfaces)
         {
             if (iface.IsExclusive && iface.ExclusiveToClass != null &&
-                !string.Equals(iface.ExclusiveToClass, rc.Name, StringComparison.Ordinal))
+                !string.Equals(iface.ExclusiveToClass, rc.FullName, StringComparison.Ordinal))
             {
                 _diagnostics.Add(DiagnosticDescriptors.ExclusiveToViolation(
                     iface.Name, iface.ExclusiveToClass, rc.Name,

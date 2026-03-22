@@ -74,19 +74,19 @@ public class WinMdEmitter
     public void Emit(Compilation compilation, string outputPath)
     {
         MidlTrace.CodeGen($"Emitting WinMD to '{outputPath}'");
-        var bytes = EmitToBytes(compilation);
+        var bytes = EmitToBytes(compilation, outputPath);
         File.WriteAllBytes(outputPath, bytes);
     }
 
     /// <summary>Write WinMD to a stream.</summary>
     public void Emit(Compilation compilation, Stream stream)
     {
-        var bytes = EmitToBytes(compilation);
+        var bytes = EmitToBytes(compilation, null);
         stream.Write(bytes);
     }
 
     /// <summary>Emit and return the raw WinMD PE bytes.</summary>
-    public byte[] EmitToBytes(Compilation compilation)
+    public byte[] EmitToBytes(Compilation compilation, string? outputPath = null)
     {
         _metadata = new MetadataBuilder();
         _ilStream = new BlobBuilder();
@@ -101,18 +101,25 @@ public class WinMdEmitter
         FeatureNames = compilation.FeatureNames;
 #endif
 
+        // Derive assembly/module name from output path, fallback to root namespace
+        var assemblyName = !string.IsNullOrEmpty(outputPath)
+            ? Path.GetFileNameWithoutExtension(outputPath)
+            : GetRootNamespace(compilation);
+        var moduleName = !string.IsNullOrEmpty(outputPath)
+            ? Path.GetFileName(outputPath)
+            : $"{assemblyName}.winmd";
+
         // 1. Module
         _metadata.AddModule(
             0,
-            _metadata.GetOrAddString("<Module>"),
+            _metadata.GetOrAddString(moduleName),
             _metadata.GetOrAddGuid(Guid.NewGuid()),
             default, default);
 
-        // 2. Assembly (name = root namespace, WindowsRuntime flag)
-        var rootNs = GetRootNamespace(compilation);
+        // 2. Assembly (name = output filename or root namespace, WindowsRuntime flag)
         _metadata.AddAssembly(
-            _metadata.GetOrAddString(rootNs),
-            new Version(1, 0, 0, 0),
+            _metadata.GetOrAddString(assemblyName),
+            new Version(255, 255, 255, 255),
             default, default,
             (AssemblyFlags)0x0200, // WindowsRuntime
             default);
@@ -136,9 +143,11 @@ public class WinMdEmitter
         SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
 
-        // EventRegistrationToken — original midl references from mscorlib
-        EventRegistrationTokenRef = AddMscorlibTypeRef(
-            "System.Runtime.InteropServices.WindowsRuntime", "EventRegistrationToken");
+        // EventRegistrationToken — original midl references from Windows.Foundation
+        EventRegistrationTokenRef = _metadata.AddTypeReference(
+            WfmRef,
+            _metadata.GetOrAddString("Windows.Foundation"),
+            _metadata.GetOrAddString("EventRegistrationToken"));
 
         // 5. <Module> type (required first row)
         _metadata.AddTypeDefinition(
@@ -153,8 +162,23 @@ public class WinMdEmitter
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         int typeRow = 2; // row 1 is <Module>
 
+        // Identify synthesized default interfaces that are handled via EmitSynthesizedInterface
+        var synthDefaultInterfaces = new HashSet<ISymbol>();
         foreach (var type in allTypes)
         {
+            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc)
+                && rc.DefaultInterface != null && rc.DefaultInterface.IsSynthesized)
+            {
+                synthDefaultInterfaces.Add(rc.DefaultInterface);
+            }
+        }
+
+        foreach (var type in allTypes)
+        {
+            // Skip synthesized default interfaces (handled by EmitSynthesizedInterface)
+            if (synthDefaultInterfaces.Contains(type))
+                continue;
+
             // Synthesized default interfaces come before their runtime class
             if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
             {
@@ -169,6 +193,10 @@ public class WinMdEmitter
 
         foreach (var type in allTypes)
         {
+            // Skip synthesized default interfaces (handled by EmitSynthesizedInterface)
+            if (synthDefaultInterfaces.Contains(type))
+                continue;
+
             // Emit synthesized interface first
             if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
             {
@@ -217,36 +245,15 @@ public class WinMdEmitter
     }
 
     /// <summary>
-    /// WinRT to CLR type projections. When these WinRT types appear in WinMD,
-    /// they must be referenced using their CLR-projected names in mscorlib.
-    /// </summary>
-    private static readonly Dictionary<string, (string clrNamespace, string clrName)> ClrProjections = new()
-    {
-        ["Windows.Foundation.EventHandler"] = ("System", "EventHandler"),
-    };
-
-    /// <summary>
     /// Creates a TypeRef pointing to an external assembly for an imported type.
-    /// WinRT convention: the assembly name is the root namespace of the type.
-    /// Applies CLR type projections for known WinRT→CLR mapped types.
+    /// WinRT convention: types in Windows.* namespaces use the Windows.Foundation assembly ref.
+    /// Other external types use the first namespace segment as assembly name.
     /// </summary>
     private TypeReferenceHandle GetExternalTypeRef(string fullName, int genericArity = 0)
     {
         var cacheKey = genericArity > 0 ? $"{fullName}`{genericArity}" : fullName;
         if (_localTypeRefs.TryGetValue(cacheKey, out var existing))
             return existing;
-
-        // Check for CLR type projection
-        if (ClrProjections.TryGetValue(fullName, out var projection))
-        {
-            var clrName = genericArity > 0 ? $"{projection.clrName}`{genericArity}" : projection.clrName;
-            var typeRef = _metadata.AddTypeReference(
-                MscorlibRef,
-                _metadata.GetOrAddString(projection.clrNamespace),
-                _metadata.GetOrAddString(clrName));
-            _localTypeRefs[cacheKey] = typeRef;
-            return typeRef;
-        }
 
         var lastDot = fullName.LastIndexOf('.');
         var ns = lastDot >= 0 ? fullName[..lastDot] : "";
@@ -255,16 +262,25 @@ public class WinMdEmitter
         if (genericArity > 0)
             name = $"{name}`{genericArity}";
 
-        var rootNs = ns.Split('.')[0];
-        if (string.IsNullOrEmpty(rootNs)) rootNs = name;
-
-        if (!_externalAssemblyRefs.TryGetValue(rootNs, out var assemblyRef))
+        // For Windows.* types, use the Windows.Foundation assembly ref
+        AssemblyReferenceHandle assemblyRef;
+        if (ns.StartsWith("Windows."))
         {
-            assemblyRef = _metadata.AddAssemblyReference(
-                _metadata.GetOrAddString(rootNs),
-                new Version(255, 255, 255, 255),
-                default, default, default, default);
-            _externalAssemblyRefs[rootNs] = assemblyRef;
+            assemblyRef = WfmRef;
+        }
+        else
+        {
+            var rootNs = ns.Split('.')[0];
+            if (string.IsNullOrEmpty(rootNs)) rootNs = name;
+
+            if (!_externalAssemblyRefs.TryGetValue(rootNs, out assemblyRef))
+            {
+                assemblyRef = _metadata.AddAssemblyReference(
+                    _metadata.GetOrAddString(rootNs),
+                    new Version(255, 255, 255, 255),
+                    default, default, default, default);
+                _externalAssemblyRefs[rootNs] = assemblyRef;
+            }
         }
 
         var typeRef2 = _metadata.AddTypeReference(
@@ -416,14 +432,7 @@ public class WinMdEmitter
         FeatureNames = compilation.FeatureNames;
 #endif
 
-        // 1. Module
-        _metadata.AddModule(
-            0,
-            _metadata.GetOrAddString("<Module>"),
-            _metadata.GetOrAddGuid(Guid.NewGuid()),
-            default, default);
-
-        // 2. Assembly — name derived from the types' common namespace
+        // Derive assembly name from the types' common namespace
         var typeNamespaces = types
             .Select(t => GetTypeNamespace(t))
             .Where(ns => !string.IsNullOrEmpty(ns))
@@ -435,9 +444,17 @@ public class WinMdEmitter
         if (string.IsNullOrEmpty(rootNs) && typeNamespaces.Count > 0)
             rootNs = typeNamespaces[0].Split('.')[0];
 
+        // 1. Module
+        _metadata.AddModule(
+            0,
+            _metadata.GetOrAddString($"{rootNs}.winmd"),
+            _metadata.GetOrAddGuid(Guid.NewGuid()),
+            default, default);
+
+        // 2. Assembly
         _metadata.AddAssembly(
             _metadata.GetOrAddString(rootNs),
-            new Version(1, 0, 0, 0),
+            new Version(255, 255, 255, 255),
             default, default,
             (AssemblyFlags)0x0200, // WindowsRuntime
             default);
@@ -461,10 +478,11 @@ public class WinMdEmitter
         SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
 
-        // EventRegistrationToken is in Windows.Foundation, referenced via a Windows assembly
-        // EventRegistrationToken — original midl references from mscorlib
-        EventRegistrationTokenRef = AddMscorlibTypeRef(
-            "System.Runtime.InteropServices.WindowsRuntime", "EventRegistrationToken");
+        // EventRegistrationToken — original midl references from Windows.Foundation
+        EventRegistrationTokenRef = _metadata.AddTypeReference(
+            WfmRef,
+            _metadata.GetOrAddString("Windows.Foundation"),
+            _metadata.GetOrAddString("EventRegistrationToken"));
 
         // 5. <Module> type (required first row)
         _metadata.AddTypeDefinition(
@@ -476,9 +494,21 @@ public class WinMdEmitter
             MetadataTokens.MethodDefinitionHandle(1));
 
         // 6. Pre-compute TypeDef handles
+        var synthDefaultInterfaces2 = new HashSet<ISymbol>();
+        foreach (var type in types)
+        {
+            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc)
+                && rc.DefaultInterface != null && rc.DefaultInterface.IsSynthesized)
+            {
+                synthDefaultInterfaces2.Add(rc.DefaultInterface);
+            }
+        }
+
         int typeRow = 2;
         foreach (var type in types)
         {
+            if (synthDefaultInterfaces2.Contains(type))
+                continue;
             if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
             {
                 _synthInterfaceHandles[rc.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
@@ -492,6 +522,8 @@ public class WinMdEmitter
 
         foreach (var type in types)
         {
+            if (synthDefaultInterfaces2.Contains(type))
+                continue;
             if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
             {
                 typeDefEmitter.EmitSynthesizedInterface(rc);

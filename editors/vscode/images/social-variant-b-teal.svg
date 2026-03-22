@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+
+  <!-- Subtle code texture -->
+  <text x="700" y="180" font-family="Cascadia Code, Consolas, monospace" font-size="14" fill="#0EA5E9" opacity="0.08">namespace Windows.Foundation {</text>
+  <text x="700" y="200" font-family="Cascadia Code, Consolas, monospace" font-size="14" fill="#0EA5E9" opacity="0.08">    runtimeclass Widget {</text>
+  <text x="700" y="220" font-family="Cascadia Code, Consolas, monospace" font-size="14" fill="#0EA5E9" opacity="0.08">        Widget();</text>
+  <text x="700" y="240" font-family="Cascadia Code, Consolas, monospace" font-size="14" fill="#0EA5E9" opacity="0.08">        String Name { get; set; };</text>
+  <text x="700" y="260" font-family="Cascadia Code, Consolas, monospace" font-size="14" fill="#0EA5E9" opacity="0.08">        IAsyncOperation&lt;Boolean&gt; SaveAsync();</text>
+  <text x="700" y="280" font-family="Cascadia Code, Consolas, monospace" font-size="14" fill="#0EA5E9" opacity="0.08">        event TypedEventHandler&lt;Widget, Object&gt; Changed;</text>
+  <text x="700" y="300" font-family="Cascadia Code, Consolas, monospace" font-size="14" fill="#0EA5E9" opacity="0.08">    };</text>
+  <text x="700" y="320" font-family="Cascadia Code, Consolas, monospace" font-size="14" fill="#0EA5E9" opacity="0.08">}</text>
+
+  <!-- Braces decoration -->
+  <text x="60" y="380" font-family="Cascadia Code, Consolas, monospace" font-size="280" font-weight="200" fill="#0EA5E9" opacity="0.06">{</text>
+  <text x="1050" y="380" font-family="Cascadia Code, Consolas, monospace" font-size="280" font-weight="200" fill="#0EA5E9" opacity="0.06">}</text>
+
+  <!-- MIDL title -->
+  <text x="120" y="240" font-family="Segoe UI, Arial, sans-serif" font-size="96" font-weight="700" fill="#ffffff" letter-spacing="4">MIDL</text>
+
+  <!-- Tagline -->
+  <text x="120" y="300" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="400" fill="#94a3b8">A modern compiler for WinRT Interface Definition Language</text>
+
+  <!-- Accent line -->
+  <rect x="120" y="320" width="200" height="4" rx="2" fill="#0EA5E9"/>
+
+  <!-- Feature bullets -->
+  <text x="120" y="380" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#0EA5E9">⚡</text>
+  <text x="150" y="380" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#cbd5e1">115+ diagnostics with real-time squiggles</text>
+
+  <text x="120" y="420" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#0EA5E9">🔍</text>
+  <text x="150" y="420" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#cbd5e1">Smart autocomplete with type-aware suggestions</text>
+
+  <text x="120" y="460" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#0EA5E9">📦</text>
+  <text x="150" y="460" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#cbd5e1">WinMD metadata output with midl.exe parity</text>
+
+  <text x="120" y="500" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#0EA5E9">🎨</text>
+  <text x="150" y="500" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#cbd5e1">Semantic highlighting, formatting, code actions</text>
+
+  <!-- VS Code badge -->
+  <rect x="120" y="550" width="180" height="36" rx="18" fill="#0EA5E9" opacity="0.2"/>
+  <text x="210" y="574" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#0EA5E9" text-anchor="middle">VS Code Extension</text>
+</svg>

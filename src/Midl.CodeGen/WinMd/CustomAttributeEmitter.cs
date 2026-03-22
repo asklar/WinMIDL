@@ -51,12 +51,11 @@ internal class CustomAttributeEmitter
     public void AddActivatableAttribute(EntityHandle parent, uint version = 1)
     {
         _activatableCtorRef ??= CreateWfmCtorRef("ActivatableAttribute",
-            new Action<SignatureTypeEncoder>[] { e => e.UInt32(), e => e.String() });
+            new Action<SignatureTypeEncoder>[] { e => e.UInt32() });
 
         var blob = new BlobBuilder();
         blob.WriteUInt16(0x0001); // prolog
         blob.WriteUInt32(version);
-        blob.WriteSerializedString("");
         blob.WriteUInt16(0x0000); // named args
         Metadata.AddCustomAttribute(parent, _activatableCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
@@ -144,15 +143,13 @@ internal class CustomAttributeEmitter
             new Action<SignatureTypeEncoder>[]
             {
                 e => e.Type(GetSystemTypeRef(), isValueType: false),
-                e => e.UInt32(),
-                e => e.String()
+                e => e.UInt32()
             });
 
         var blob = new BlobBuilder();
         blob.WriteUInt16(0x0001); // prolog
         blob.WriteSerializedString(factoryTypeName);
         blob.WriteUInt32(version);
-        blob.WriteSerializedString("");
         blob.WriteUInt16(0x0000); // named args
         Metadata.AddCustomAttribute(parent, _activatableFactoryCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
@@ -163,15 +160,13 @@ internal class CustomAttributeEmitter
             new Action<SignatureTypeEncoder>[]
             {
                 e => e.Type(GetSystemTypeRef(), isValueType: false),
-                e => e.UInt32(),
-                e => e.String()
+                e => e.UInt32()
             });
 
         var blob = new BlobBuilder();
         blob.WriteUInt16(0x0001); // prolog
         blob.WriteSerializedString(staticTypeName);
         blob.WriteUInt32(version);
-        blob.WriteSerializedString("");
         blob.WriteUInt16(0x0000); // named args
         Metadata.AddCustomAttribute(parent, _staticCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }

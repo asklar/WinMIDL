@@ -130,10 +130,10 @@ internal class TypeDefEmitter
             fieldList,
             methodList);
 
-        // value__ field
+        // value__ field (Private per original midl convention)
         var valueSig = EncodeFieldSig(underlyingTypeName);
         M.AddFieldDefinition(
-            FieldAttributes.Public | FieldAttributes.SpecialName | FieldAttributes.RTSpecialName,
+            FieldAttributes.Private | FieldAttributes.SpecialName | FieldAttributes.RTSpecialName,
             M.GetOrAddString("value__"),
             M.GetOrAddBlob(valueSig));
         _emitter.IncrementFieldRow();
@@ -156,6 +156,9 @@ internal class TypeDefEmitter
             _emitter.IncrementFieldRow();
         }
 
+        // VersionAttribute before FlagsAttribute (matches original midl ordering)
+        _attrs.AddVersionAttribute(typeDef);
+
         if (isFlags)
             _attrs.AddFlagsAttribute(typeDef);
 
@@ -168,8 +171,6 @@ internal class TypeDefEmitter
         if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var enumFInfo) == true)
             _attrs.AddFeatureAttribute(typeDef, (int)enumFInfo.Stage, enumFInfo.ValidInAllBranches);
 #endif
-
-        _attrs.AddVersionAttribute(typeDef);
     }
 
     #endregion
@@ -275,17 +276,17 @@ internal class TypeDefEmitter
                 M.AddInterfaceImplementation(typeDef, handle);
         }
 
+        // Emit version attribute before GUID (matches original midl ordering)
+        if (symbol.Version.HasValue)
+            _attrs.AddVersionAttribute(typeDef, (uint)symbol.Version.Value);
+        else
+            _attrs.AddVersionAttribute(typeDef);
+
         // Emit [Guid] if the interface has a UUID
         if (symbol.Uuid.HasValue)
             _attrs.AddGuidAttribute(typeDef, symbol.Uuid.Value);
         else
             _attrs.AddGuidAttribute(typeDef, GenerateDeterministicGuid(symbol.FullName, symbol.Members.ToList()));
-
-        // Emit version attribute with the symbol's version if available
-        if (symbol.Version.HasValue)
-            _attrs.AddVersionAttribute(typeDef, (uint)symbol.Version.Value);
-        else
-            _attrs.AddVersionAttribute(typeDef);
 
         // Emit [deprecated] if present
         if (symbol.DeprecatedMessage != null)
@@ -363,7 +364,7 @@ internal class TypeDefEmitter
                 });
 
         M.AddMethodDefinition(
-            MethodAttributes.Public | MethodAttributes.HideBySig
+            MethodAttributes.Private | MethodAttributes.HideBySig
                 | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
             MethodImplAttributes.Runtime,
             M.GetOrAddString(".ctor"),
@@ -400,7 +401,8 @@ internal class TypeDefEmitter
 
         var paramList = _emitter.NextParamHandle;
         M.AddMethodDefinition(
-            MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
+            MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig
+                | MethodAttributes.NewSlot | MethodAttributes.SpecialName,
             MethodImplAttributes.Runtime,
             M.GetOrAddString("Invoke"),
             M.GetOrAddBlob(sig),
@@ -410,7 +412,7 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < symbol.Parameters.Count; i++)
         {
-            M.AddParameter(ParameterAttributes.None,
+            M.AddParameter(ParameterAttributes.In,
                 M.GetOrAddString(symbol.Parameters[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
@@ -549,17 +551,8 @@ internal class TypeDefEmitter
             }
         }
 
-        // ActivatableAttribute
+        // Reorder attributes to match original midl: Threading → Marshaling → Version → Activatable → Static
         uint attrVersion = symbol.Version != null ? (uint)symbol.Version.Value : 1u;
-        if (symbol.Members.Any(m => m is ConstructorSymbol) || symbol.HasDefaultActivation)
-            _attrs.AddActivatableAttribute(typeDef, attrVersion);
-
-        if (symbol.FactoryInterface != null)
-            _attrs.AddActivatableAttribute(typeDef, symbol.FactoryInterface.FullName, attrVersion);
-
-        // StaticAttribute
-        if (symbol.StaticsInterface != null)
-            _attrs.AddStaticAttribute(typeDef, symbol.StaticsInterface.FullName, attrVersion);
 
         // ThreadingAttribute
         if (symbol.ThreadingModel != null)
@@ -595,6 +588,20 @@ internal class TypeDefEmitter
             _attrs.AddMarshalingBehaviorAttribute(typeDef, 2); // Default: Agile
         }
 
+        // VersionAttribute
+        _attrs.AddVersionAttribute(typeDef, attrVersion);
+
+        // ActivatableAttribute
+        if (symbol.FactoryInterface != null)
+            _attrs.AddActivatableAttribute(typeDef, symbol.FactoryInterface.FullName, attrVersion);
+
+        if (symbol.Members.Any(m => m is ConstructorSymbol) || symbol.HasDefaultActivation)
+            _attrs.AddActivatableAttribute(typeDef, attrVersion);
+
+        // StaticAttribute
+        if (symbol.StaticsInterface != null)
+            _attrs.AddStaticAttribute(typeDef, symbol.StaticsInterface.FullName, attrVersion);
+
         // DeprecatedAttribute
         if (symbol.DeprecatedMessage != null)
             _attrs.AddDeprecatedAttribute(typeDef, symbol.DeprecatedMessage, 0, attrVersion);
@@ -612,8 +619,6 @@ internal class TypeDefEmitter
         // ContractVersionAttribute
         if (symbol.ContractName != null && symbol.ContractVersion != null)
             _attrs.AddContractVersionAttribute(typeDef, symbol.ContractName, (uint)symbol.ContractVersion.Value);
-
-        _attrs.AddVersionAttribute(typeDef, attrVersion);
     }
 
     private void EmitConstructor(ConstructorSymbol ctor, bool isUnsealed)
@@ -650,7 +655,7 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < winmdParamCount; i++)
         {
-            M.AddParameter(ParameterAttributes.None,
+            M.AddParameter(ParameterAttributes.In,
                 M.GetOrAddString(ctorParams[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
@@ -661,8 +666,16 @@ internal class TypeDefEmitter
     {
         var sig = EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: false);
         var paramList = _emitter.NextParamHandle;
+
+        // Static methods: Public | Static | HideBySig
+        // Non-static methods: Public | Final | Virtual | HideBySig | NewSlot
+        var methodFlags = method.IsStatic
+            ? MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig
+            : MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual
+                | MethodAttributes.HideBySig | MethodAttributes.NewSlot;
+
         var handle = M.AddMethodDefinition(
-            MethodAttributes.Public | MethodAttributes.HideBySig,
+            methodFlags,
             MethodImplAttributes.Runtime,
             M.GetOrAddString(method.Name),
             M.GetOrAddBlob(sig),
@@ -680,7 +693,7 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < method.Parameters.Count; i++)
         {
-            M.AddParameter(ParameterAttributes.None,
+            M.AddParameter(ParameterAttributes.In,
                 M.GetOrAddString(method.Parameters[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
@@ -694,11 +707,18 @@ internal class TypeDefEmitter
         MethodDefinitionHandle getter = default;
         MethodDefinitionHandle? setter = null;
 
+        // Static properties: Public | Static | HideBySig | SpecialName
+        // Non-static properties: Public | Final | Virtual | HideBySig | NewSlot | SpecialName
+        var baseFlags = prop.IsStatic
+            ? MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig | MethodAttributes.SpecialName
+            : MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual
+                | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.SpecialName;
+
         if (prop.HasGetter)
         {
             var sig = EncodeMethodSig(prop.Type, Array.Empty<ParameterSymbol>(), hasThis: false);
             getter = M.AddMethodDefinition(
-                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
+                baseFlags,
                 MethodImplAttributes.Runtime,
                 M.GetOrAddString($"get_{prop.Name}"),
                 M.GetOrAddBlob(sig),
@@ -710,7 +730,7 @@ internal class TypeDefEmitter
         {
             var sig = EncodeSetterSig(prop.Type);
             setter = M.AddMethodDefinition(
-                MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
+                baseFlags,
                 MethodImplAttributes.Runtime,
                 M.GetOrAddString($"put_{prop.Name}"),
                 M.GetOrAddBlob(sig),
@@ -718,7 +738,7 @@ internal class TypeDefEmitter
                 _emitter.NextParamHandle);
             _emitter.IncrementMethodRow();
 
-            M.AddParameter(ParameterAttributes.None, M.GetOrAddString("value"), 1);
+            M.AddParameter(ParameterAttributes.In, M.GetOrAddString("value"), 1);
             _emitter.IncrementParamRow();
         }
 
@@ -727,10 +747,17 @@ internal class TypeDefEmitter
 
     private (MethodDefinitionHandle adder, MethodDefinitionHandle remover) EmitRuntimeEventStubs(EventSymbol evt)
     {
+        // Static events: Public | Static | HideBySig | SpecialName
+        // Non-static events: Public | Final | Virtual | HideBySig | NewSlot | SpecialName
+        var baseFlags = evt.IsStatic
+            ? MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig | MethodAttributes.SpecialName
+            : MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual
+                | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.SpecialName;
+
         // add_ method: takes delegate handler, returns EventRegistrationToken
         var addSig = EncodeEventAccessorSig(evt, isAdd: true);
         var adder = M.AddMethodDefinition(
-            MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
+            baseFlags,
             MethodImplAttributes.Runtime,
             M.GetOrAddString($"add_{evt.Name}"),
             M.GetOrAddBlob(addSig),
@@ -738,13 +765,13 @@ internal class TypeDefEmitter
             _emitter.NextParamHandle);
         _emitter.IncrementMethodRow();
 
-        M.AddParameter(ParameterAttributes.None, M.GetOrAddString("handler"), 1);
+        M.AddParameter(ParameterAttributes.In, M.GetOrAddString("handler"), 1);
         _emitter.IncrementParamRow();
 
         // remove_ method
         var removeSig = EncodeEventAccessorSig(evt, isAdd: false);
         var remover = M.AddMethodDefinition(
-            MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
+            baseFlags,
             MethodImplAttributes.Runtime,
             M.GetOrAddString($"remove_{evt.Name}"),
             M.GetOrAddBlob(removeSig),
@@ -752,7 +779,7 @@ internal class TypeDefEmitter
             _emitter.NextParamHandle);
         _emitter.IncrementMethodRow();
 
-        M.AddParameter(ParameterAttributes.None, M.GetOrAddString("token"), 1);
+        M.AddParameter(ParameterAttributes.In, M.GetOrAddString("token"), 1);
         _emitter.IncrementParamRow();
 
         return (adder, remover);
@@ -863,7 +890,7 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < method.Parameters.Count; i++)
         {
-            M.AddParameter(ParameterAttributes.None,
+            M.AddParameter(ParameterAttributes.In,
                 M.GetOrAddString(method.Parameters[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
@@ -909,7 +936,7 @@ internal class TypeDefEmitter
             paramList);
         _emitter.IncrementMethodRow();
 
-        M.AddParameter(ParameterAttributes.None, M.GetOrAddString("value"), 1);
+        M.AddParameter(ParameterAttributes.In, M.GetOrAddString("value"), 1);
         _emitter.IncrementParamRow();
 
         return handle;
@@ -929,7 +956,7 @@ internal class TypeDefEmitter
             _emitter.NextParamHandle);
         _emitter.IncrementMethodRow();
 
-        M.AddParameter(ParameterAttributes.None, M.GetOrAddString("handler"), 1);
+        M.AddParameter(ParameterAttributes.In, M.GetOrAddString("handler"), 1);
         _emitter.IncrementParamRow();
 
         // remove_ method
@@ -944,7 +971,7 @@ internal class TypeDefEmitter
             _emitter.NextParamHandle);
         _emitter.IncrementMethodRow();
 
-        M.AddParameter(ParameterAttributes.None, M.GetOrAddString("token"), 1);
+        M.AddParameter(ParameterAttributes.In, M.GetOrAddString("token"), 1);
         _emitter.IncrementParamRow();
 
         return (addHandle, removeHandle);

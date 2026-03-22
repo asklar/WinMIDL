@@ -162,7 +162,9 @@ public class InterfaceSynthesizer
     {
         var iface = new InterfaceSymbol(name, ns);
         iface.IsExclusive = true;
-        iface.ExclusiveToClass = className;
+        // Store the FQN for ExclusiveTo attribute (original midl uses FQN)
+        var fqn = ns != null && ns.FullName.Length > 0 ? $"{ns.FullName}.{className}" : className;
+        iface.ExclusiveToClass = fqn;
         iface.IsSynthesized = true;
 
         foreach (var member in members)
