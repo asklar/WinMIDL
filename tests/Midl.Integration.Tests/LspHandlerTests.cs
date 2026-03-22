@@ -5,6 +5,7 @@ using Midl.Analysis.Symbols;
 using Midl.CodeGen.WinMd;
 using Midl.Lsp;
 using Midl.Lsp.Handlers;
+using Midl.Lsp.Protocol;
 
 namespace Midl.Integration.Tests;
 
@@ -873,7 +874,7 @@ public class LspHandlerTests
         var result = HoverHandler.Handle(MakePositionParams(uri, 0, 0), dm);
         Assert.NotNull(result);
 
-        var json = JsonSerializer.Serialize(result);
+        var json = JsonSerializer.Serialize(result, LspJsonContext.Default.HoverResult);
         Assert.Contains("runtimeclass", json);
         Assert.Contains("Windows Runtime class", json);
     }
@@ -910,9 +911,39 @@ public class LspHandlerTests
         var result = HoverHandler.Handle(MakePositionParams(uri, fooLine, fooChar), dm);
         Assert.NotNull(result);
 
-        var json = JsonSerializer.Serialize(result);
+        var json = JsonSerializer.Serialize(result, LspJsonContext.Default.HoverResult);
         Assert.Contains("N.Foo", json);
         Assert.Contains("RuntimeClass", json);
+    }
+
+    [Fact]
+    public void HoverReturnsCorrectJsonStructureViaSourceGen()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace Ns { }";
+        var dm = CreateDocManager(uri, source);
+
+        var result = HoverHandler.Handle(MakePositionParams(uri, 0, 0), dm);
+        Assert.NotNull(result);
+        Assert.IsType<HoverResult>(result);
+
+        var hover = (HoverResult)result;
+        Assert.Equal("markdown", hover.Contents.Kind);
+        Assert.Contains("namespace", hover.Contents.Value);
+        Assert.NotNull(hover.Range);
+        Assert.Equal(0, hover.Range!.Start.Line);
+
+        // Verify source-gen JSON matches expected LSP shape
+        var json = JsonSerializer.Serialize(hover, LspJsonContext.Default.HoverResult);
+        var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        Assert.True(root.TryGetProperty("contents", out var contents));
+        Assert.Equal("markdown", contents.GetProperty("kind").GetString());
+        Assert.True(root.TryGetProperty("range", out var range));
+        Assert.True(range.TryGetProperty("start", out var start));
+        Assert.Equal(0, start.GetProperty("line").GetInt32());
+        Assert.Equal(0, start.GetProperty("character").GetInt32());
     }
 
     #endregion
