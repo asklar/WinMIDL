@@ -472,7 +472,9 @@ public static class GotoDefinitionHandler
         var unionMeta = Path.Combine(sdkRoot, "UnionMetadata");
         if (!Directory.Exists(unionMeta)) return null;
 
+        // Look for versioned directories (10.0.XXXXX.0), skip Facade (it's a type-forwarder stub)
         return Directory.GetDirectories(unionMeta)
+            .Where(d => !Path.GetFileName(d).Equals("Facade", StringComparison.OrdinalIgnoreCase))
             .Select(d => Path.Combine(d, "Windows.winmd"))
             .Where(File.Exists)
             .OrderByDescending(f => Path.GetFileName(Path.GetDirectoryName(f)))

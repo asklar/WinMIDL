@@ -72,8 +72,8 @@ public class CompilationDriver
             }
         }
 
-        // Banner
-        if (!options.NoLogo)
+        // Banner (suppress for decompile/dump modes — output goes to stdout)
+        if (!options.NoLogo && !options.DecompileMode && !options.DumpWinMd)
             _out.WriteLine(Banner);
 
         // Help
