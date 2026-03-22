@@ -84,4 +84,19 @@ namespace TestNs
         var diag = compilation.Diagnostics.First(d => d.Code == "MIDL2005" && d.Data is not null);
         Assert.Equal("int", source.Substring(diag.Position, diag.Length));
     }
+
+    [Fact]
+    public void CodeAction_DidYouMean_OffersReplacement()
+    {
+        // A misspelled type should produce MIDL1001 with a "replacement" data key
+        // so the code action handler can offer a quick fix
+        var source = WrapInClass("Strng GetName();");
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL1001");
+        Assert.NotNull(diag.Data);
+        Assert.True(diag.Data!.ContainsKey("replacement"));
+        Assert.Equal("String", diag.Data["replacement"]);
+        // Verify the span covers the misspelled type
+        Assert.Equal("Strng", source.Substring(diag.Position, diag.Length));
+    }
 }
