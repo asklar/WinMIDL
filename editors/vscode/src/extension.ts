@@ -81,16 +81,29 @@ class WinMdContentProvider implements vscode.TextDocumentContentProvider {
             return '// MIDL server binary not found — cannot decompile WinMD';
         }
 
-        // The URI path encodes the WinMD file path, query may have ns= for namespace filter
-        let winmdPath = uri.path;
+        // URI format: midl-winmd:///path/to/file.winmd/Namespace.Name
+        // or: midl-winmd:///path/to/file.winmd (no namespace filter)
+        let fullPath = uri.path;
         // On Windows, strip leading slash from /C:/path
-        if (process.platform === 'win32' && winmdPath.startsWith('/')) {
-            winmdPath = winmdPath.substring(1);
+        if (process.platform === 'win32' && fullPath.startsWith('/')) {
+            fullPath = fullPath.substring(1);
         }
 
-        // Extract namespace filter from query string
-        const nsParam = new URLSearchParams(uri.query).get('ns');
-        const nsArgs = nsParam ? ` --namespace "${nsParam}"` : '';
+        // Split path at .winmd boundary to extract namespace
+        let winmdPath: string;
+        let nsFilter: string | undefined;
+        const winmdIdx = fullPath.toLowerCase().indexOf('.winmd');
+        if (winmdIdx >= 0) {
+            winmdPath = fullPath.substring(0, winmdIdx + 6); // include .winmd
+            const remainder = fullPath.substring(winmdIdx + 6);
+            if (remainder.startsWith('/') && remainder.length > 1) {
+                nsFilter = remainder.substring(1); // strip leading /
+            }
+        } else {
+            winmdPath = fullPath;
+        }
+
+        const nsArgs = nsFilter ? ` --namespace "${nsFilter}"` : '';
 
         try {
             const result = execSync(

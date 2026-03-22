@@ -119,6 +119,19 @@ public static class GotoDefinitionHandler
             return null;
         }
 
+        // Built-in WinRT types (TypedEventHandler, IVector, etc.) — not in source text.
+        // Try to find them in Windows.winmd via decompilation.
+        if (symbol.FullName.StartsWith("Windows.") && FindDefinitionOffset(sourceText, symbol) < 0)
+        {
+            var winmd = FindWindowsWinMd();
+            if (winmd != null)
+            {
+                // Temporarily set SourceWinMdPath so CreateWinMdDefinitionLocation can use it
+                var tempSymbol = new BuiltInSymbolProxy(symbol, winmd);
+                return CreateWinMdDefinitionLocation(tempSymbol);
+            }
+        }
+
         // Find the definition location in source text
         int localDefOffset = FindDefinitionOffset(sourceText, symbol);
         if (localDefOffset < 0) return null;
@@ -153,10 +166,11 @@ public static class GotoDefinitionHandler
             var (dLine, dChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
             var (dEndLine, dEndChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset + symbol.Name.Length);
 
-            // Encode namespace filter as query parameter in the URI
+            // Encode namespace as part of the URI path so each namespace gets a distinct virtual document
+            // Format: midl-winmd:///path/to/file.winmd/Namespace.Name
             var winmdUri = "midl-winmd:///" + symbol.SourceWinMdPath!.Replace('\\', '/');
             if (nsFilter != null)
-                winmdUri += "?ns=" + Uri.EscapeDataString(nsFilter);
+                winmdUri += "/" + nsFilter;
             return MakeLocation(winmdUri, dLine, dChar, dEndLine, dEndChar);
         }
         catch
@@ -402,5 +416,41 @@ public static class GotoDefinitionHandler
             pos = textEnd + trailingWidth;
         }
         return (null, 0);
+    }
+
+    /// <summary>Find Windows.winmd from the SDK.</summary>
+    private static string? FindWindowsWinMd()
+    {
+        var sdkRoot = @"C:\Program Files (x86)\Windows Kits\10";
+        var unionMeta = Path.Combine(sdkRoot, "UnionMetadata");
+        if (!Directory.Exists(unionMeta)) return null;
+
+        return Directory.GetDirectories(unionMeta)
+            .Select(d => Path.Combine(d, "Windows.winmd"))
+            .Where(File.Exists)
+            .OrderByDescending(f => Path.GetFileName(Path.GetDirectoryName(f)))
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Lightweight proxy that wraps a built-in symbol with a SourceWinMdPath,
+    /// allowing CreateWinMdDefinitionLocation to decompile it.
+    /// </summary>
+    private sealed class BuiltInSymbolProxy : ISymbol
+    {
+        private readonly ISymbol _inner;
+        public BuiltInSymbolProxy(ISymbol inner, string winmdPath)
+        {
+            _inner = inner;
+            SourceWinMdPath = winmdPath;
+        }
+        public string Name => _inner.Name;
+        public string FullName => _inner.FullName;
+        public SymbolKind Kind => _inner.Kind;
+        public ISymbol? ContainingSymbol => _inner.ContainingSymbol;
+        public bool IsExternal => true;
+        public string? SourceWinMdPath { get; }
+        public string? SourceFile => null;
+        public int SourcePosition { get => _inner.SourcePosition; set { } }
     }
 }
