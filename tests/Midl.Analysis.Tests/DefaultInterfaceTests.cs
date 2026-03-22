@@ -81,4 +81,37 @@ public class DefaultInterfaceTests
         Assert.Equal("IFoo", rc.BaseClass!.Name);
         Assert.True(rc.BaseClass.IsDefaultInterface);
     }
+
+    [Fact]
+    public void DefaultInterface_InBaseList_SetsFlag()
+    {
+        var source = @"
+            namespace N {
+                interface IFoo { void DoWork(); }
+                interface IBar { void Other(); }
+                runtimeclass Foo : [default] IFoo, IBar {}
+            }";
+        var compilation = CompilationHelper.Compile(source);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Severity == DiagnosticSeverity.Error);
+        var ns = compilation.GlobalNamespace.ChildNamespaces["N"];
+        var rc = ns.Members.OfType<RuntimeClassSymbol>().Single();
+        Assert.NotNull(rc.BaseClass);
+        Assert.Equal("IFoo", rc.BaseClass!.Name);
+        Assert.True(rc.BaseClass.IsDefaultInterface);
+    }
+
+    [Fact]
+    public void DefaultInterface_WithoutAttribute_FirstIsDefault()
+    {
+        var source = "namespace N { interface IFoo {} interface IBar {} runtimeclass Foo : IFoo, IBar {} }";
+        var compilation = CompilationHelper.Compile(source);
+        var ns = compilation.GlobalNamespace.ChildNamespaces["N"];
+        var rc = ns.Members.OfType<RuntimeClassSymbol>().Single();
+
+        // Without [default], the first interface is still the base class
+        Assert.NotNull(rc.BaseClass);
+        Assert.Equal("IFoo", rc.BaseClass!.Name);
+        // But IsDefaultInterface flag is not set (no explicit [default] attribute)
+        Assert.False(rc.BaseClass.IsDefaultInterface);
+    }
 }

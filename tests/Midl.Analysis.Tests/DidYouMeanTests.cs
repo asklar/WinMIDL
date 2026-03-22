@@ -492,4 +492,63 @@ public class DidYouMeanTests
         // This mainly checks we don't crash or suggest garbage
         Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1001");
     }
+
+    [Fact]
+    public void DidYouMean_CloseTypo_SuggestsCorrection()
+    {
+        var source = "namespace N { interface IFoo { Strng GetName(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL1001");
+        Assert.Contains("String", diag.Message);
+    }
+
+    [Fact]
+    public void DidYouMean_CaseInsensitive()
+    {
+        // "string" (lowercase) is not a keyword — should suggest "String"
+        var source = "namespace N { interface IFoo { string GetName(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL1001");
+        Assert.Contains("Did you mean", diag.Message);
+        Assert.Contains("String", diag.Message);
+    }
+
+    [Fact]
+    public void DidYouMean_UserDefinedType()
+    {
+        var source = @"
+            namespace N {
+                runtimeclass MyWidget { }
+                runtimeclass Container { MyWidgt GetWidget(); }
+            }";
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL1001");
+        Assert.Contains("Did you mean", diag.Message);
+        Assert.Contains("MyWidget", diag.Message);
+    }
+
+    [Fact]
+    public void DidYouMean_NoSuggestion_TotallyWrong()
+    {
+        var source = "namespace N { interface IFoo { Xyzzy GetThing(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL1001");
+        Assert.DoesNotContain("Did you mean", diag.Message);
+    }
+
+    [Fact]
+    public void DidYouMean_ScaledThreshold_LongName()
+    {
+        // "INotifyPropertyChangd" (missing 'e') is edit distance 1 from
+        // "INotifyPropertyChanged" — long names allow more tolerance
+        var source = @"
+            namespace N {
+                interface INotifyPropertyChanged { void OnChanged(); }
+                runtimeclass C { INotifyPropertyChangd Handler { get; }; }
+            }";
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL1001");
+        Assert.Contains("Did you mean", diag.Message);
+        Assert.Contains("INotifyPropertyChanged", diag.Message);
+    }
 }

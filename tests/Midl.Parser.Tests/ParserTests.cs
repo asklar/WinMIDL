@@ -82,6 +82,43 @@ public class ParserTests
         return parser.Parse();
     }
 
+    [Fact]
+    public void ParseBaseList_WithDefaultAttribute()
+    {
+        // runtimeclass Foo : [default] IFoo, IBar {}
+        var tokens = new TokenBuilder()
+            .Keyword(SyntaxKind.RuntimeclassKeyword)
+            .Identifier("Foo")
+            .Colon
+            .OpenBracket
+            .Token(SyntaxKind.DefaultKeyword, "default")
+            .CloseBracket
+            .Identifier("IFoo")
+            .Comma
+            .Identifier("IBar")
+            .OpenBrace
+            .CloseBrace
+            .EOF
+            .Build();
+
+        var tree = Parse(tokens);
+        Assert.Equal(SyntaxKind.CompilationUnit, tree.Kind);
+
+        var rc = FindChild(tree, SyntaxKind.RuntimeClassDeclaration);
+        Assert.NotNull(rc);
+
+        var baseList = FindChild(rc!, SyntaxKind.BaseList);
+        Assert.NotNull(baseList);
+
+        // First entry should be a BaseType node wrapping [default] IFoo
+        var baseType = FindChild(baseList!, SyntaxKind.BaseType);
+        Assert.NotNull(baseType);
+
+        // The BaseType should contain an AttributeList
+        var attrList = FindChild(baseType!, SyntaxKind.AttributeList);
+        Assert.NotNull(attrList);
+    }
+
     private static GreenNode? GetSlot(GreenNode node, int index)
         => node.GetSlot(index);
 
