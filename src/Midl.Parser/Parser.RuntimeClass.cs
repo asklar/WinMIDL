@@ -50,20 +50,33 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.RuntimeClassDeclaration, children);
     }
 
-    /// <summary>Parse a base list: : Type, Type, ...</summary>
+    /// <summary>Parse a base list: : [default] Type, [default] Type, ...</summary>
     private GreenNode ParseBaseList()
     {
         var children = RentChildren();
         children.Add(Eat(SyntaxKind.ColonToken));
-        children.Add(ParseTypeReference());
+        children.Add(ParseBaseTypeEntry());
 
         while (At(SyntaxKind.CommaToken))
         {
             children.Add(EatToken()); // comma
-            children.Add(ParseTypeReference());
+            children.Add(ParseBaseTypeEntry());
         }
 
         return MakeNode(SyntaxKind.BaseList, children);
+    }
+
+    /// <summary>Parse a single base type entry, with optional leading [default] attribute.</summary>
+    private GreenNode ParseBaseTypeEntry()
+    {
+        if (At(SyntaxKind.OpenBracketToken))
+        {
+            var inner = RentChildren();
+            inner.Add(ParseAttributeList());
+            inner.Add(ParseTypeReference());
+            return MakeNode(SyntaxKind.BaseType, inner);
+        }
+        return ParseTypeReference();
     }
 
     /// <summary>Parse a single member inside a runtimeclass body.</summary>

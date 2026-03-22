@@ -1,0 +1,10 @@
+{
+    "diagnostics": [
+        {
+            "code": "MIDL1085",
+            "severity": "Error",
+            "messageContains": "Duplicate property",
+            "tokenText": "Value"
+        }
+    ]
+}

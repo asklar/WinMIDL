@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1062",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL4035",
+  "description": "Constructor with ref parameter (WinRT only supports in/out)"
+}

@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1028",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5053",
+  "description": "[attributeusage] on a runtimeclass (only valid on attribute types)"
+}

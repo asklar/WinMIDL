@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1002",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL2003",
+  "description": "Duplicate struct definition with same name"
+}

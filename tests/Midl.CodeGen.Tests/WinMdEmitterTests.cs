@@ -511,7 +511,7 @@ public class WinMdEmitterTests
                 "import \"Imported.idl\";\nnamespace App { runtimeclass Widget { Widget(); Lib.Status GetStatus(); } }");
 
             var source = File.ReadAllText(Path.Combine(tempDir, "Main.idl"));
-            var compilation = CompilationHelper.Compile(source, null, CompilationMode.Strict,
+            var compilation = CompilationHelper.Compile(source, referencePaths: null, CompilationMode.Strict,
                 new[] { tempDir }, Path.Combine(tempDir, "Main.idl"));
             Assert.False(compilation.Diagnostics.Any(d => d.Severity == Midl.Analysis.Diagnostics.DiagnosticSeverity.Error),
                 string.Join("; ", compilation.Diagnostics));

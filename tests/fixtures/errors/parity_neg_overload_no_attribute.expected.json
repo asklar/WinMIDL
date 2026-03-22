@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1054",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL4015",
+  "description": "Overloaded methods without [overload] attribute to disambiguate"
+}

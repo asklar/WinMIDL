@@ -1,0 +1,10 @@
+{
+    "diagnostics": [
+        {
+            "code": "MIDL1084",
+            "severity": "Error",
+            "messageContains": "cannot have instance member",
+            "tokenText": "BadStatic"
+        }
+    ]
+}

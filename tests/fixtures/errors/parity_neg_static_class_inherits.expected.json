@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1062",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5158",
+  "description": "Static class inheriting from another class"
+}

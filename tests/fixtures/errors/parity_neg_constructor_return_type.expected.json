@@ -1,0 +1,10 @@
+{
+    "diagnostics": [
+        {
+            "code": "MIDL1091",
+            "severity": "Error",
+            "messageContains": "Constructor",
+            "tokenText": "BadClass"
+        }
+    ]
+}

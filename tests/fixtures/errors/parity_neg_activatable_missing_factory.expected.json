@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1060",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5056",
+  "description": "Duplicate constructor signatures with same parameter count"
+}

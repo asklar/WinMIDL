@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1062",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5053",
+  "description": "Runtimeclass with constructor but no interfaces"
+}

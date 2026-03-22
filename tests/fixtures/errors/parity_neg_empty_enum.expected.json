@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1098",
+      "severity": "Error",
+      "messageContains": "at least one member"
+    }
+  ],
+  "originalMidlAlsoRejects": true,
+  "originalMidlError": "MIDL2025"
+}

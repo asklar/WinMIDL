@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1102",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5054",
+  "description": "Static method in an interface (only allowed on runtimeclass)"
+}

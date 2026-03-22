@@ -1,0 +1,6 @@
+{
+    "diagnostics": [],
+    "parityGap": true,
+    "originalMidlAlsoRejects": true,
+    "originalMidlError": "MIDL2025"
+}

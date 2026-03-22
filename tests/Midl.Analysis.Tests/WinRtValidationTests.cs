@@ -18,7 +18,7 @@ public class WinRtValidationTests
     [Fact] public void MIDL1050_Out_NoDiag() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { void GetValue(out Int32 value); } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1050"); }
     [Fact] public void MIDL1051_SingleArray_NoDiag() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { void P(Int32[] data); } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1051"); }
     [Fact] public void MIDL1052_Match_NoDiag() { var c = CompilationHelper.Compile("namespace N { runtimeclass C { String Name { get; set; }; } }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1052"); }
-    [Fact] public void MIDL1053_NonVoid_Errors() { var c = CompilationHelper.Compile("namespace N { delegate Int32 MyFunc(String input); }"); Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1053" && d.Message.Contains("MyFunc")); }
+    [Fact] public void MIDL1053_NonVoid_NoErrors() { var c = CompilationHelper.Compile("namespace N { delegate Int32 MyFunc(String input); }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1053"); }
     [Fact] public void MIDL1053_Void_NoDiag() { var c = CompilationHelper.Compile("namespace N { delegate void MyHandler(Int32 code); }"); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1053"); }
 #if WITH_COMPAT
     [Fact] public void MIDL1053_HResult_Compat_NoDiag() { var c = CompilationHelper.Compile("namespace N { delegate HRESULT MyCallback(); }", CompilationMode.Compat); Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL1053"); }

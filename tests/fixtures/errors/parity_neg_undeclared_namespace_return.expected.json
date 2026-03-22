@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1001",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL2011",
+  "description": "Method returning type from undeclared namespace"
+}

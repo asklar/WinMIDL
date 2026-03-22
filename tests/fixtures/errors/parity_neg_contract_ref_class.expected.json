@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1075",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5110",
+  "description": "[contract] referencing a runtimeclass instead of apicontract"
+}

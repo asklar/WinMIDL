@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1100",
+      "severity": "Error",
+      "messageContains": "static"
+    }
+  ],
+  "originalMidlAlsoRejects": true,
+  "originalMidlError": "MIDL2025"
+}

@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1005",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL4004",
+  "description": "Struct with void-typed field"
+}

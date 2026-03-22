@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1038",
+      "severity": "Error",
+      "messageContains": "delegate"
+    }
+  ],
+  "originalMidlAlsoRejects": true,
+  "originalMidlError": "MIDL4027"
+}

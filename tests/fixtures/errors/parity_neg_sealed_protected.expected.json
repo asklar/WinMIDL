@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1062",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5100",
+  "description": "Sealed class with protected constructor (no interface generated)"
+}

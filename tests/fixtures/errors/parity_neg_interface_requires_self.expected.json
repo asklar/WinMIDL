@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1078",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL2256",
+  "description": "Interface requires itself (circular dependency)"
+}

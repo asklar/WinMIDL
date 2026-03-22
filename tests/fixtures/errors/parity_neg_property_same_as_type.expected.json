@@ -1,0 +1,11 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1099",
+      "severity": "Error",
+      "messageContains": "same name as containing type"
+    }
+  ],
+  "originalMidlAlsoRejects": true,
+  "originalMidlError": "MIDL5156"
+}

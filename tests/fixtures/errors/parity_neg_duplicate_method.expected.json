@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1011",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL4063",
+  "description": "Two methods with same name and signature without [overload]"
+}

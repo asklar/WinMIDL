@@ -1,0 +1,9 @@
+{
+    "diagnostics": [
+        {
+            "code": "MIDL1080",
+            "severity": "Error",
+            "messageContains": "Versioned block version"
+        }
+    ]
+}

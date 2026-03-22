@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1005",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5104",
+  "description": "Struct field with IVector<T> (generic non-value type)"
+}

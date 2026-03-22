@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1054",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL2003",
+  "description": "Method with same name as property in same interface"
+}

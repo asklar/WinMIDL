@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1062",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL2011",
+  "description": "[exclusiveto] referencing forward-declared but undefined class"
+}

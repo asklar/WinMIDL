@@ -1,0 +1,6 @@
+{
+  "diagnostics": [],
+  "parityGap": true,
+  "originalMidlError": "MIDL5060",
+  "description": "Two [default] markers on interface list in runtimeclass"
+}

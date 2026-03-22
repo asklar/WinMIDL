@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1043",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5146",
+  "description": "Delegate with void parameter type"
+}

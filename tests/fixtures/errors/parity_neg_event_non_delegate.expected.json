@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1042",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL4012",
+  "description": "Event with non-delegate type (Int32)"
+}

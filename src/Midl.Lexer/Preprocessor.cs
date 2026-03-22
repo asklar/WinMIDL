@@ -16,12 +16,19 @@ public class Preprocessor
     private readonly string? _currentFilePath;
     private readonly HashSet<string> _pragmaOnceFiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _includeStack = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Regex> _macroRegexCache = new(StringComparer.Ordinal);
+
+    private static readonly Regex s_definedParenRegex = new(@"defined\s*\(\s*(\w+)\s*\)", RegexOptions.Compiled);
+    private static readonly Regex s_definedSpaceRegex = new(@"defined\s+(\w+)", RegexOptions.Compiled);
 
     /// <summary>True if any #include directive was encountered during processing.</summary>
     public bool HasIncludeDirectives { get; private set; }
 
-    /// <summary>Errors and warnings from preprocessing.</summary>
+    /// <summary>Errors from preprocessing (#error, unresolved includes, etc.).</summary>
     public List<string> Errors { get; } = new();
+
+    /// <summary>Warnings from preprocessing (#warning directives).</summary>
+    public List<string> Warnings { get; } = new();
 
     private record FunctionMacro(string[] Params, string Body);
 
@@ -154,7 +161,7 @@ public class Preprocessor
         // Join backslash-continuation lines: lines ending with \ are joined with the next line
         lines = JoinContinuationLines(lines);
 
-        var output = new StringBuilder();
+        var output = new StringBuilder(source.Length);
         var ifStack = new Stack<IfState>();
 
         for (int i = 0; i < lines.Count; i++)
@@ -503,6 +510,16 @@ public class Preprocessor
         return null;
     }
 
+    private Regex GetMacroRegex(string name)
+    {
+        if (!_macroRegexCache.TryGetValue(name, out var regex))
+        {
+            regex = new Regex(@"(?<!\w)" + Regex.Escape(name) + @"(?!\w)", RegexOptions.Compiled);
+            _macroRegexCache[name] = regex;
+        }
+        return regex;
+    }
+
     private string SubstituteMacros(string line)
     {
         if (_defines.Count == 0 && _functionMacros.Count == 0) return line;
@@ -514,7 +531,7 @@ public class Preprocessor
             while ((idx = line.IndexOf(name + "(", StringComparison.Ordinal)) >= 0)
             {
                 // Verify it's a whole-word match
-                if (idx > 0 && char.IsLetterOrDigit(line[idx - 1])) break;
+                if (idx > 0 && IsIdentChar(line[idx - 1])) break;
 
                 var argsStart = idx + name.Length + 1;
                 var argsEnd = FindMatchingParen(line, argsStart - 1);
@@ -527,9 +544,7 @@ public class Preprocessor
                 var expanded = macro.Body;
                 for (int p = 0; p < macro.Params.Length && p < args.Length; p++)
                 {
-                    expanded = Regex.Replace(expanded,
-                        @"(?<!\w)" + Regex.Escape(macro.Params[p]) + @"(?!\w)",
-                        args[p].Trim());
+                    expanded = GetMacroRegex(macro.Params[p]).Replace(expanded, args[p].Trim());
                 }
 
                 line = line[..idx] + expanded + line[(argsEnd + 1)..];
@@ -543,9 +558,9 @@ public class Preprocessor
             var prev = line;
             foreach (var (name, value) in _defines)
             {
-                if (line.Contains(name))
+                if (line.Contains(name, StringComparison.Ordinal))
                 {
-                    line = Regex.Replace(line, @"(?<!\w)" + Regex.Escape(name) + @"(?!\w)", value);
+                    line = GetMacroRegex(name).Replace(line, value);
                 }
             }
             if (line == prev) break; // No more substitutions
@@ -598,9 +613,9 @@ public class Preprocessor
         if (commentIdx >= 0) expr = expr[..commentIdx].Trim();
 
         // Handle defined(NAME) / defined NAME
-        expr = Regex.Replace(expr, @"defined\s*\(\s*(\w+)\s*\)", m =>
+        expr = s_definedParenRegex.Replace(expr, m =>
             (_defines.ContainsKey(m.Groups[1].Value) || _functionMacros.ContainsKey(m.Groups[1].Value)) ? "1" : "0");
-        expr = Regex.Replace(expr, @"defined\s+(\w+)", m =>
+        expr = s_definedSpaceRegex.Replace(expr, m =>
             (_defines.ContainsKey(m.Groups[1].Value) || _functionMacros.ContainsKey(m.Groups[1].Value)) ? "1" : "0");
 
         // Substitute macros in the expression
@@ -820,10 +835,10 @@ public class Preprocessor
         }
 
         // Decimal literal
-        if (char.IsDigit(expr[pos]))
+        if (expr[pos] >= '0' && expr[pos] <= '9')
         {
             var start = pos;
-            while (pos < expr.Length && char.IsDigit(expr[pos]))
+            while (pos < expr.Length && expr[pos] >= '0' && expr[pos] <= '9')
                 pos++;
             // Skip trailing L/U suffixes
             while (pos < expr.Length && (expr[pos] == 'L' || expr[pos] == 'l' ||
@@ -833,10 +848,10 @@ public class Preprocessor
         }
 
         // Identifier — treat undefined identifiers as 0
-        if (char.IsLetter(expr[pos]) || expr[pos] == '_')
+        if (IsIdentChar(expr[pos]) && !(expr[pos] >= '0' && expr[pos] <= '9'))
         {
             var start = pos;
-            while (pos < expr.Length && (char.IsLetterOrDigit(expr[pos]) || expr[pos] == '_'))
+            while (pos < expr.Length && IsIdentChar(expr[pos]))
                 pos++;
             var ident = expr[start..pos];
             if (_defines.TryGetValue(ident, out var val))
@@ -859,6 +874,9 @@ public class Preprocessor
 
     private static bool IsHexDigit(char c) =>
         (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+
+    private static bool IsIdentChar(char c) =>
+        (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
 
     private static bool IsActive(Stack<IfState> ifStack) =>
         ifStack.Count == 0 || ifStack.Peek().Active;

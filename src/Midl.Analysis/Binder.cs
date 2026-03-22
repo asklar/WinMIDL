@@ -13,6 +13,7 @@ public class Binder
     private readonly NamespaceSymbol _globalNamespace = new("");
     private readonly List<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace)> _unresolvedRefs = [];
     private readonly HashSet<string> _definedTypes = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _forwardDeclaredTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _definedTypesCaseInsensitive = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _featureNames = new(StringComparer.OrdinalIgnoreCase);
     private readonly CompilationMode _mode;
@@ -20,6 +21,7 @@ public class Binder
     private bool _bindingImportedFile;
     private TokenPositionMap _posMap = null!;
     private GreenNode _root = null!;
+    private Dictionary<GreenNode, int>? _nodeOffsetMap;
 
     private SymbolTable _symbolTable = null!;
 
@@ -66,11 +68,14 @@ public class Binder
             {
                 var savedPosMap = _posMap;
                 var savedRoot = _root;
+                var savedOffsetMap = _nodeOffsetMap;
                 _posMap = new TokenPositionMap(importedTokens);
                 _root = importedTree;
+                _nodeOffsetMap = null;
                 BindCompilationUnit(importedTree, _globalNamespace);
                 _posMap = savedPosMap;
                 _root = savedRoot;
+                _nodeOffsetMap = savedOffsetMap;
             }
             _bindingImportedFile = false;
         }
@@ -298,8 +303,10 @@ public class Binder
                         if (slot == null || slot.Kind == SyntaxKind.CommaToken || slot.Kind == SyntaxKind.ColonToken)
                             continue;
 
-                        var typeRef = ExtractTypeRef(slot);
+                        var typeRef = ExtractBaseTypeRef(slot, out bool isDefault);
                         TrackTypeRef(typeRef, ns);
+                        if (isDefault)
+                            typeRef.IsDefaultInterface = true;
 
                         if (first)
                         {
@@ -344,7 +351,74 @@ public class Binder
             }
         }
 
-        if (!TryDefineType(ns, name, isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        bool isFullDefinition = FindSlotIndex(node, SyntaxKind.OpenBraceToken) >= 0;
+        bool isForwardDecl = !isFullDefinition;
+
+        // Check for existing forward-declared symbol to merge into
+        if (isFullDefinition && !isPartial)
+        {
+            RuntimeClassSymbol? fwdExisting = null;
+            foreach (var m in ns.Members)
+            {
+                if (m.Name == name && m is RuntimeClassSymbol rcs) { fwdExisting = rcs; break; }
+            }
+            if (fwdExisting != null)
+            {
+                var fullName = ns.FullName.Length > 0 ? string.Concat(ns.FullName, ".", name) : name;
+                if (_forwardDeclaredTypes.Contains(fullName))
+                {
+                    _forwardDeclaredTypes.Remove(fullName);
+
+                    var fwdAttrList = FindChild(node, SyntaxKind.AttributeList);
+                    if (fwdAttrList != null)
+                    {
+                        if (TryExtractUuidAttribute(fwdAttrList, out var fwdUuid))
+                            fwdExisting.Uuid ??= fwdUuid;
+                        var attrs = ExtractAttributes(fwdAttrList);
+                        fwdExisting.Attributes.AddRange(attrs);
+                        ApplyWellKnownAttributes(fwdExisting, attrs);
+                    }
+
+                    fwdExisting.IsStatic = isStatic;
+                    fwdExisting.IsPartial = isPartial;
+                    fwdExisting.IsUnsealed = isUnsealed;
+
+                    var fwdBaseList = FindChild(node, SyntaxKind.BaseList);
+                    if (fwdBaseList != null)
+                    {
+                        bool first = true;
+                        for (int i = 1; i < fwdBaseList.SlotCount; i++)
+                        {
+                            var slot = fwdBaseList.GetSlot(i);
+                            if (slot == null || slot.Kind == SyntaxKind.CommaToken || slot.Kind == SyntaxKind.ColonToken)
+                                continue;
+
+                            var typeRef = ExtractBaseTypeRef(slot, out bool isDefault);
+                            TrackTypeRef(typeRef, ns);
+                            if (isDefault)
+                                typeRef.IsDefaultInterface = true;
+
+                            if (first)
+                            {
+                                fwdExisting.BaseClass = typeRef;
+                                first = false;
+                            }
+                            else
+                            {
+                                fwdExisting.Interfaces.Add(typeRef);
+                            }
+                        }
+                    }
+
+                    _symbolTable.EnterScope(fwdExisting);
+                    BindClassMembers(node, fwdExisting, ns);
+                    _symbolTable.ExitScope();
+                    return;
+                }
+            }
+        }
+
+        if (!TryDefineType(ns, name, isForwardDeclaration: isForwardDecl)) return;
 
         var symbol = new RuntimeClassSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
@@ -381,8 +455,10 @@ public class Binder
                 if (slot == null || slot.Kind == SyntaxKind.CommaToken || slot.Kind == SyntaxKind.ColonToken)
                     continue;
 
-                var typeRef = ExtractTypeRef(slot);
+                var typeRef = ExtractBaseTypeRef(slot, out bool isDefault);
                 TrackTypeRef(typeRef, ns);
+                if (isDefault)
+                    typeRef.IsDefaultInterface = true;
 
                 if (first)
                 {
@@ -1415,6 +1491,40 @@ public class Binder
 
     #region Type Reference Extraction
 
+    /// <summary>
+    /// Extract a type reference from a base list entry, handling optional [default] attribute.
+    /// BaseType nodes contain an attribute list followed by a type reference.
+    /// </summary>
+    private TypeRef ExtractBaseTypeRef(GreenNode slot, out bool isDefault)
+    {
+        isDefault = false;
+        if (slot.Kind == SyntaxKind.BaseType)
+        {
+            // BaseType node: slot[0] = AttributeList, slot[1] = TypeReference
+            for (int j = 0; j < slot.SlotCount; j++)
+            {
+                var child = slot.GetSlot(j);
+                if (child == null) continue;
+                if (child.Kind == SyntaxKind.AttributeList)
+                {
+                    isDefault = HasAttribute(child, "default");
+                }
+            }
+            // Extract the type reference from the last non-attribute child
+            for (int j = slot.SlotCount - 1; j >= 0; j--)
+            {
+                var child = slot.GetSlot(j);
+                if (child != null && child.Kind != SyntaxKind.AttributeList)
+                    return ExtractTypeRef(child);
+            }
+            return TypeRef.Unknown;
+        }
+        return ExtractTypeRef(slot);
+    }
+
+    /// <summary>Check if an attribute list node contains a specific attribute name.</summary>
+    // Note: Uses existing HasAttribute method defined elsewhere in this class
+
     private TypeRef ExtractTypeRef(GreenNode? node)
     {
         if (node == null) return TypeRef.Unknown;
@@ -1462,7 +1572,7 @@ public class Binder
 
     private TypeRef ExtractQualifiedTypeRef(GreenNode node)
     {
-        var parts = new List<string>();
+        System.Text.StringBuilder? sb = null;
         List<TypeRef>? typeArgs = null;
 
         for (int i = 0; i < node.SlotCount; i += 2)
@@ -1470,34 +1580,60 @@ public class Binder
             var slot = node.GetSlot(i);
             if (slot is SyntaxToken tok)
             {
-                parts.Add(tok.Text);
+                if (sb == null)
+                    sb = new System.Text.StringBuilder(tok.Text);
+                else
+                    sb.Append('.').Append(tok.Text);
             }
             else if (slot?.Kind == SyntaxKind.GenericName)
             {
                 var gName = slot.GetSlot(0) as SyntaxToken;
-                parts.Add(gName?.Text ?? "");
+                var text = gName?.Text ?? "";
+                if (sb == null)
+                    sb = new System.Text.StringBuilder(text);
+                else
+                    sb.Append('.').Append(text);
                 typeArgs = ExtractTypeArguments(slot.GetSlot(1));
             }
         }
 
-        return new TypeRef(string.Join(".", parts), typeArgs ?? []) { Position = GetNodePosition(node) };
+        return new TypeRef(sb?.ToString() ?? "", typeArgs ?? []) { Position = GetNodePosition(node) };
     }
 
     /// <summary>Get accurate source position for a green node using tree offset.</summary>
     private int GetNodePosition(GreenNode node)
     {
-        var offset = AttributeExtractor.FindNodeOffset(_root, node);
-        if (offset.HasValue)
+        // Build offset map lazily in a single O(n) pass instead of per-call O(n) tree search
+        if (_nodeOffsetMap == null)
         {
-            // Skip leading trivia to get to the actual text
+            _nodeOffsetMap = new Dictionary<GreenNode, int>(ReferenceEqualityComparer.Instance);
+            BuildNodeOffsetMap(_root, 0);
+        }
+
+        if (_nodeOffsetMap.TryGetValue(node, out var offset))
+        {
             var firstToken = FindFirstToken(node);
-            if (firstToken != null)
-                return offset.Value + SumTriviaWidth(firstToken.LeadingTrivia);
-            return offset.Value;
+            return firstToken != null
+                ? offset + SumTriviaWidth(firstToken.LeadingTrivia)
+                : offset;
         }
         // Fallback to text-based lookup
         var token = FindFirstToken(node);
         return token != null ? _posMap.GetPositionOf(token.Text) : 0;
+    }
+
+    /// <summary>Precompute offsets for all nodes in the tree in a single O(n) pass.</summary>
+    private void BuildNodeOffsetMap(GreenNode node, int currentOffset)
+    {
+        _nodeOffsetMap![node] = currentOffset;
+        int childOffset = currentOffset;
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot == null) continue;
+            BuildNodeOffsetMap(slot, childOffset);
+            childOffset += slot.FullWidth;
+        }
     }
 
     private List<TypeRef> ExtractTypeArguments(GreenNode? typeArgList)
@@ -1892,6 +2028,8 @@ public class Binder
     {
         int pos = _posMap.GetPositionOf(name);
         var fullName = ns.FullName.Length > 0 ? string.Concat(ns.FullName, ".", name) : name;
+        if (isForwardDeclaration)
+            _forwardDeclaredTypes.Add(fullName);
         if (!_definedTypes.Add(fullName))
         {
             // Forward declaration of an already-defined type → silently skip
@@ -1903,6 +2041,10 @@ public class Binder
             // Full definition of an already-defined external/built-in → allow override
             var existingSymbol = _symbolTable.LookupQualified(fullName);
             if (existingSymbol is { IsExternal: true })
+                return true;
+
+            // Full definition of a previously forward-declared type → allow
+            if (_forwardDeclaredTypes.Remove(fullName))
                 return true;
 
             _diagnostics.Add(DiagnosticDescriptors.DuplicateDefinition(name, pos));
@@ -2153,8 +2295,7 @@ public class Binder
                     ValidateExclusiveToConstraints(rc);
                     ValidateDefaultInterface(rc);
                     ValidateNonEmptyRuntimeClass(rc);
-                    ValidateNoOptionalParams(rc.Members, rc.Name);
-                    ValidateParamClassHasDefaultInterface(rc.Members, rc.Name);
+                    ValidateParameterConstraints(rc.Members, rc.Name);
                     ValidateStaticClassMembers(rc);
                     ValidatePropertyTypes(rc.Members);
                     ValidateDuplicateProperties(rc.Members, rc.Name);
@@ -2171,8 +2312,7 @@ public class Binder
                     ValidateDefaultOverloadExactlyOne(iface.Members, iface.Name);
                     ValidateMethodParameters(iface.Members);
                     ValidateNoProtectedOnInterface(iface);
-                    ValidateNoOptionalParams(iface.Members, iface.Name);
-                    ValidateParamClassHasDefaultInterface(iface.Members, iface.Name);
+                    ValidateParameterConstraints(iface.Members, iface.Name);
                     ValidatePropertyTypes(iface.Members);
                     ValidateDuplicateProperties(iface.Members, iface.Name);
                     ValidateDuplicateOverloadNames(iface);
@@ -2471,15 +2611,11 @@ public class Binder
     private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, _posMap.GetPositionOf(param.Name))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, _posMap.GetPositionOf(param.Name))); } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
     private static readonly HashSet<string> COnlyTypes = new(StringComparer.Ordinal) { "wchar_t","handle_t","error_status_t" };
     private void CheckWinRtTypeCompatibility(TypeRef typeRef) { if (typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return; if (COnlyTypes.Contains(typeRef.Name)) _diagnostics.Add(DiagnosticDescriptors.WinRtTypeNotAllowed(typeRef.Name, typeRef.Position)); }
-    private void ValidateDelegateReturnType(DelegateSymbol d) { if (d.ReturnType.Name is "void" or "Void") return;
-#if WITH_COMPAT
-        if (_mode == CompilationMode.Compat && d.ReturnType.Name is "HRESULT") return;
-#endif
-        _diagnostics.Add(DiagnosticDescriptors.DelegateReturnMustBeVoid(d.Name, d.ReturnType.DisplayName, _posMap.GetPositionOf(d.Name))); }
+    private void ValidateDelegateReturnType(DelegateSymbol d) { /* WinRT delegates can return any type */ }
     private void ValidateInterfaceMemberNameUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal); foreach (var member in iface.Members) { var name = member.Name; if (string.IsNullOrEmpty(name)) continue; if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup)) continue; if (seen.TryGetValue(name, out var existing)) { if (existing is MethodSymbol em && !string.IsNullOrEmpty(em.OverloadGroup)) continue; _diagnostics.Add(DiagnosticDescriptors.InterfaceMemberNameCollision(name, iface.Name, _posMap.GetPositionOf(name))); } else seen[name] = member; } }
     private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; int dc = 0; foreach (var m in ms) { if (m.IsDefaultOverload) dc++; } if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOf(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOf(k.Item1))); } }
     private void ValidateDeprecatedInheritance(RuntimeClassSymbol rc) { if (rc.BaseClass?.ResolvedSymbol is not RuntimeClassSymbol baseRc) return; if (string.IsNullOrEmpty(baseRc.DeprecatedMessage)) return; if (!string.IsNullOrEmpty(rc.DeprecatedMessage)) return; _diagnostics.Add(DiagnosticDescriptors.DeprecatedBaseClassInheritance(rc.Name, baseRc.Name, _posMap.GetPositionOf(rc.Name))); }
-    private void ValidateMethodNameOverrideUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, string>(StringComparer.Ordinal); foreach (var member in iface.Members) { if (member is not MethodSymbol m || string.IsNullOrEmpty(m.MethodNameOverride)) continue; if (seen.ContainsKey(m.MethodNameOverride)) _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameOverride(m.MethodNameOverride, iface.Name, _posMap.GetPositionOf(m.Name))); else seen[m.MethodNameOverride] = m.Name; } }
+    private void ValidateMethodNameOverrideUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, string>(StringComparer.Ordinal); foreach (var member in iface.Members) { if (member is not MethodSymbol m || string.IsNullOrEmpty(m.MethodNameOverride)) continue; if (!seen.TryAdd(m.MethodNameOverride, m.Name)) _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameOverride(m.MethodNameOverride, iface.Name, _posMap.GetPositionOf(m.Name))); } }
     private void ValidateConstructorArityPerVersion(RuntimeClassSymbol rc) { List<ConstructorSymbol>? ctors = null; foreach (var member in rc.Members) { if (member is ConstructorSymbol ctor) { ctors ??= new List<ConstructorSymbol>(); ctors.Add(ctor); } } if (ctors == null || ctors.Count < 2) return; var g = new Dictionary<(int,int?), List<ConstructorSymbol>>(); foreach (var ctor in ctors) { var k = (ctor.Parameters.Count, ctor.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(ctor); } foreach (var (k, l) in g) if (l.Count > 1) _diagnostics.Add(DiagnosticDescriptors.ConstructorArityConflict(rc.Name, k.Item1, _posMap.GetPositionOf(rc.Name))); }
     private void ValidateStaticUnsealedConflict(RuntimeClassSymbol rc) { if (rc.IsStatic && rc.IsUnsealed) _diagnostics.Add(DiagnosticDescriptors.StaticUnsealedConflict(rc.Name, _posMap.GetPositionOf(rc.Name))); }
 
@@ -2551,11 +2687,10 @@ public class Binder
         {
             if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup))
             {
-                if (seen.TryGetValue(m.OverloadGroup, out var existingMethod))
+                if (seen.TryGetValue(m.OverloadGroup, out _))
                 {
-                    // Only flag if different methods share the same overload name
-                    if (existingMethod != m.Name || seen.ContainsKey(m.OverloadGroup))
-                        _diagnostics.Add(DiagnosticDescriptors.DuplicateOverloadName(m.OverloadGroup, iface.Name, _posMap.GetPositionOf(m.Name)));
+                    // Always flag: ContainsKey is always true inside TryGetValue success branch
+                    _diagnostics.Add(DiagnosticDescriptors.DuplicateOverloadName(m.OverloadGroup, iface.Name, _posMap.GetPositionOf(m.Name)));
                 }
                 else
                 {
@@ -2675,7 +2810,7 @@ public class Binder
             rc.Name, _posMap.GetPositionOf(rc.Name)));
     }
 
-    private void ValidateNoOptionalParams(IReadOnlyList<ISymbol> members, string ownerName)
+    private void ValidateParameterConstraints(IReadOnlyList<ISymbol> members, string ownerName)
     {
         foreach (var member in members)
         {
@@ -2695,28 +2830,13 @@ public class Binder
                     _diagnostics.Add(DiagnosticDescriptors.OptionalParamNotAllowed(
                         param.Name, methodName, _posMap.GetPositionOf(param.Name)));
                 }
-            }
-        }
-    }
 
-    private void ValidateParamClassHasDefaultInterface(IReadOnlyList<ISymbol> members, string ownerName)
-    {
-        foreach (var member in members)
-        {
-            List<ParameterSymbol>? parameters = null;
-            string methodName = ownerName;
-            if (member is MethodSymbol m) { parameters = m.Parameters; methodName = m.Name; }
-            else if (member is ConstructorSymbol c) { parameters = c.Parameters; methodName = c.Name; }
-            if (parameters == null) continue;
-
-            foreach (var param in parameters)
-            {
+                // Check parameter class has default interface
                 if (param.Type.ResolvedSymbol is RuntimeClassSymbol paramRc && !paramRc.IsExternal)
                 {
-                    // Check if the class has a default interface (explicit or synthesized)
                     bool hasDefault = paramRc.IsDefaultInterface
                         || paramRc.DefaultInterface != null
-                        || paramRc.Members.Count > 0; // members get synthesized into a default interface
+                        || paramRc.Members.Count > 0;
                     if (!hasDefault)
                     {
                         foreach (var i in paramRc.Interfaces) { if (i.IsDefaultInterface) { hasDefault = true; break; } }

@@ -107,6 +107,9 @@ public class LazyWinMdProvider : IDisposable
         return symbol;
     }
 
+    /// <summary>Returns all fully-qualified type names in this provider.</summary>
+    public IEnumerable<string> GetAllTypeNames() => _typeIndex.Keys;
+
     /// <summary>Find all types in a namespace (for completion suggestions).</summary>
     public IEnumerable<string> GetTypesInNamespace(string ns)
     {

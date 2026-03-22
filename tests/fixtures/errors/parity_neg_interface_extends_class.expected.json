@@ -1,0 +1,10 @@
+{
+  "diagnostics": [
+    {
+      "code": "MIDL1038",
+      "severity": "Error"
+    }
+  ],
+  "originalMidlError": "MIDL5004",
+  "description": "Interface extending a runtimeclass (must extend IInspectable)"
+}

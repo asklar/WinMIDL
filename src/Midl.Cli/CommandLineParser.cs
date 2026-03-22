@@ -47,6 +47,7 @@ public class CommandLineOptions
     public bool DumpWinMd { get; set; }                 // --dump-winmd (dump WinMD metadata)
     public bool DebugTrace { get; set; }               // /debug (enable trace output)
     public bool NoDefIdir { get; set; }                // /no_def_idir — don't add default include dirs
+    public bool Profile { get; set; }                  // /profile (emit timing data)
     public List<string> UnknownSwitches { get; } = new();
     public List<string> Errors { get; } = new();
 }
@@ -371,6 +372,10 @@ public static class CommandLineParser
 
             case "debug":
                 options.DebugTrace = true;
+                i++;
+                return true;
+            case "profile":
+                options.Profile = true;
                 i++;
                 return true;
 

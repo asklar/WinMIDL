@@ -1,0 +1,9 @@
+{
+    "diagnostics": [
+        {
+            "code": "MIDL1087",
+            "severity": "Error",
+            "messageContains": "Duplicate [overload] name"
+        }
+    ]
+}
