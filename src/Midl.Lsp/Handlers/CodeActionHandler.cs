@@ -8,7 +8,10 @@ namespace Midl.Lsp.Handlers;
 /// </summary>
 public static class CodeActionHandler
 {
-    public static object? Handle(JsonElement? @params, DocumentManager docManager)
+    public static object? Handle(JsonElement? @params, DocumentManager docManager,
+        IReadOnlyList<string>? referencePaths = null,
+        IReadOnlyList<string>? includePaths = null,
+        string? currentFilePath = null)
     {
         if (@params is null) return null;
 
@@ -25,8 +28,8 @@ public static class CodeActionHandler
 
         // Recompile to get our diagnostics with Data (replacement info).
         // Use quality hints so MIDL3xxx diagnostics are available for code actions.
-        var compilation = CompilationHelper.Compile(text, referencePaths: null,
-            mode: CompilationMode.Strict, includePaths: null, currentFilePath: null,
+        var compilation = CompilationHelper.Compile(text, referencePaths: referencePaths,
+            mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: currentFilePath,
             defines: null, emitQualityHints: true);
 
         foreach (var lspDiag in diagnostics.EnumerateArray())
