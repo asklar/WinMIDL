@@ -23,6 +23,7 @@ public static class CompletionHandler
     private const int KindFile = 17; // for import file completions
     private const int KindConstructor = 4; // for constructor suggestions
     private const int KindEnumMember = 20; // for enum member values
+    private const int KindFolder = 19; // for directory completions
 
     private static readonly object[] s_staticCompletionItems = BuildCompletionItems();
 
@@ -49,7 +50,10 @@ public static class CompletionHandler
             // Check if cursor is inside an import "..." string
             string? fileDir = null;
             if (uri.StartsWith("file:///"))
-                fileDir = Path.GetDirectoryName(Uri.UnescapeDataString(uri[8..]));
+            {
+                var dir = Path.GetDirectoryName(Uri.UnescapeDataString(uri[8..]));
+                fileDir = string.IsNullOrEmpty(dir) ? null : dir;
+            }
 
 #if WINDOWS_INTERNAL
             var featureItems = DetectFeatureNameContext(text, line, character);
@@ -67,6 +71,23 @@ public static class CompletionHandler
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
             }
 
+            // Check if cursor is on a @ref directive line: // @ref: partial_path
+            var refContext = DetectRefDirectiveContext(text, line, character);
+            if (refContext != null)
+            {
+                var items = BuildRefDirectiveCompletions(refContext, fileDir);
+                return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
+            }
+
+            // Check if cursor follows a dot (e.g. "Windows.Foundation." or "MyEnum.")
+            var dotPrefix = ExtractDotPrefix(text, offset);
+            if (dotPrefix != null)
+            {
+                var items = BuildDotCompletions(dotPrefix, text, includePaths, fileDir);
+                if (items.Count > 0)
+                    return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
+            }
+
             // Check if cursor is inside an attribute context [...]
             var attrContext = DetectAttributeContext(text, offset);
 
@@ -77,13 +98,13 @@ public static class CompletionHandler
                 if (featureAttrItems != null)
                     return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = featureAttrItems.ToArray() };
 #endif
-                var items = BuildAttributeCompletions(text, attrContext);
+                var items = BuildAttributeCompletions(text, attrContext, includePaths, fileDir);
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
             }
 
             // Context-aware completion based on cursor position
             var context = DetectCompletionContext(text, offset, line);
-            var contextItems = BuildContextualCompletions(context, text, uri);
+            var contextItems = BuildContextualCompletions(context, text, uri, includePaths, fileDir);
             return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = contextItems.ToArray() };
         }
         catch
@@ -200,7 +221,8 @@ public static class CompletionHandler
     }
 
     /// <summary>Build context-appropriate attribute completions.</summary>
-    private static List<object> BuildAttributeCompletions(string text, string targetKind)
+    private static List<object> BuildAttributeCompletions(string text, string targetKind,
+        IReadOnlyList<string>? includePaths = null, string? currentFilePath = null)
     {
         var items = new List<object>();
 
@@ -235,7 +257,8 @@ public static class CompletionHandler
         // Add user-defined custom attributes from the compilation
         try
         {
-            var compilation = CompilationHelper.Compile(text);
+            var compilation = CompilationHelper.Compile(text, referencePaths: null,
+                mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: currentFilePath);
             foreach (var type in compilation.GetAllTypes())
             {
                 if (type is AttributeTypeSymbol attr)
@@ -553,6 +576,352 @@ public static class CompletionHandler
 
     #endregion
 
+    #region Dot-triggered Completion
+
+    /// <summary>
+    /// Extracts the dotted prefix before the cursor, e.g. "Windows.Foundation" from "Windows.Foundation.|".
+    /// Returns null if cursor is not immediately after a dot.
+    /// </summary>
+    private static string? ExtractDotPrefix(string text, int offset)
+    {
+        if (offset <= 0 || text[offset - 1] != '.') return null;
+
+        // Walk backward from the character before the dot to collect the prefix
+        int end = offset - 1; // position of the dot
+        int start = end - 1;
+        while (start >= 0 && (char.IsLetterOrDigit(text[start]) || text[start] == '_' || text[start] == '.'))
+            start--;
+        start++;
+
+        if (start >= end) return null;
+        var prefix = text[start..end];
+        // Must contain at least one valid identifier character
+        if (prefix.Length == 0 || prefix.EndsWith(".")) return null;
+        return prefix;
+    }
+
+    /// <summary>
+    /// Build completions for dot-triggered context: child namespaces, types, or enum members.
+    /// </summary>
+    private static List<object> BuildDotCompletions(string prefix, string text,
+        IReadOnlyList<string>? includePaths, string? fileDir)
+    {
+        var items = new List<object>();
+
+        try
+        {
+            var compilation = CompilationHelper.Compile(text, referencePaths: null,
+                mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: fileDir);
+
+            // First try: resolve prefix as a namespace in the compilation tree
+            var ns = ResolveNamespace(compilation.GlobalNamespace, prefix);
+            if (ns != null)
+            {
+                // Add child namespaces
+                foreach (var child in ns.ChildNamespaces.Values.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    items.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = child.Name,
+                        ["kind"] = KindModule,
+                        ["detail"] = child.FullName,
+                        ["insertText"] = child.Name,
+                    });
+                }
+
+                // Add types in this namespace
+                foreach (var member in ns.Members.Where(m => m.Kind != SymbolKind.Namespace)
+                    .OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase))
+                {
+                    var kind = member.Kind switch
+                    {
+                        SymbolKind.Interface => KindInterface,
+                        SymbolKind.RuntimeClass => KindClass,
+                        SymbolKind.Enum => KindEnum,
+                        SymbolKind.Struct => KindStruct,
+                        SymbolKind.Delegate => KindClass,
+                        _ => KindClass,
+                    };
+                    items.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = member.Name,
+                        ["kind"] = kind,
+                        ["detail"] = member.FullName,
+                        ["insertText"] = member.Name,
+                    });
+                }
+
+                // Also check lazy providers for types in this namespace
+                AddLazyProviderNamespaceMembers(items, compilation, prefix);
+
+                return items;
+            }
+
+            // Second try: resolve as a type name (e.g. "MyEnum" → show enum members)
+            var typeSymbol = ResolveTypeByShortOrFullName(compilation, prefix);
+            if (typeSymbol is EnumSymbol enumSym)
+            {
+                foreach (var member in enumSym.EnumMembers)
+                {
+                    items.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = member.Name,
+                        ["kind"] = KindEnumMember,
+                        ["detail"] = $"{enumSym.FullName}.{member.Name}",
+                        ["insertText"] = member.Name,
+                    });
+                }
+                return items;
+            }
+
+            // Third try: prefix might be a namespace only known to lazy providers
+            AddLazyProviderNamespaceMembers(items, compilation, prefix);
+        }
+        catch
+        {
+            // Partial file — return empty
+        }
+
+        return items;
+    }
+
+    private static NamespaceSymbol? ResolveNamespace(NamespaceSymbol root, string dottedName)
+    {
+        var parts = dottedName.Split('.');
+        var current = root;
+        foreach (var part in parts)
+        {
+            if (!current.ChildNamespaces.TryGetValue(part, out var child))
+                return null;
+            current = child;
+        }
+        return current;
+    }
+
+    private static ISymbol? ResolveTypeByShortOrFullName(Compilation compilation, string name)
+    {
+        // Try fully qualified first
+        var symbol = compilation.GetTypeByName(name);
+        if (symbol != null) return symbol;
+
+        // Try short name match in all types
+        foreach (var t in compilation.GetAllTypes())
+        {
+            if (t.Name.Equals(name, StringComparison.Ordinal))
+                return t;
+        }
+        return null;
+    }
+
+    private static void AddLazyProviderNamespaceMembers(List<object> items, Compilation compilation, string ns)
+    {
+        // Use reflection-free approach: the compilation exposes lazy providers indirectly
+        // through GetTypesInNamespace-like queries by checking all type names
+        var existingLabels = new HashSet<string>(
+            items.Select(i => ((Dictionary<string, object?>)i)["label"]?.ToString() ?? ""),
+            StringComparer.Ordinal);
+
+        // Walk all types looking for ones in this namespace (lazy providers are queried through compilation)
+        // We trigger lazy resolution by looking at the namespace prefix
+        try
+        {
+            // Try resolving a dummy type to trigger namespace population from providers
+            compilation.GetTypeByName(ns + ".__probe__");
+        }
+        catch { }
+
+        // Re-check the namespace tree after probing
+        var resolvedNs = ResolveNamespace(compilation.GlobalNamespace, ns);
+        if (resolvedNs != null)
+        {
+            foreach (var child in resolvedNs.ChildNamespaces.Values)
+            {
+                if (existingLabels.Add(child.Name))
+                {
+                    items.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = child.Name,
+                        ["kind"] = KindModule,
+                        ["detail"] = child.FullName,
+                        ["insertText"] = child.Name,
+                    });
+                }
+            }
+            foreach (var member in resolvedNs.Members.Where(m => m.Kind != SymbolKind.Namespace))
+            {
+                if (existingLabels.Add(member.Name))
+                {
+                    var kind = member.Kind switch
+                    {
+                        SymbolKind.Interface => KindInterface,
+                        SymbolKind.RuntimeClass => KindClass,
+                        SymbolKind.Enum => KindEnum,
+                        SymbolKind.Struct => KindStruct,
+                        SymbolKind.Delegate => KindClass,
+                        _ => KindClass,
+                    };
+                    items.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = member.Name,
+                        ["kind"] = kind,
+                        ["detail"] = member.FullName,
+                        ["insertText"] = member.Name,
+                    });
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region @ref Directive Completion
+
+    /// <summary>
+    /// Detects if the cursor is on a @ref directive line: // @ref: path
+    /// Returns the partial path typed so far, or "" if just after "// @ref: ".
+    /// </summary>
+    private static string? DetectRefDirectiveContext(string text, int line, int character)
+    {
+        var lines = text.Split('\n');
+        if (line < 0 || line >= lines.Length) return null;
+
+        var currentLine = lines[line].TrimEnd('\r');
+        // Match: // @ref: partial_path (with or without quotes)
+        var trimmed = currentLine.TrimStart();
+        if (!trimmed.StartsWith("// @ref:", StringComparison.Ordinal) &&
+            !trimmed.StartsWith("//@ref:", StringComparison.Ordinal))
+            return null;
+
+        int colonIdx = currentLine.IndexOf(':', currentLine.IndexOf("@ref", StringComparison.Ordinal));
+        if (colonIdx < 0) return null;
+
+        var afterColon = currentLine[(colonIdx + 1)..];
+        // Strip leading whitespace after colon
+        var pathPart = afterColon.TrimStart();
+        int trimmedChars = afterColon.Length - pathPart.Length;
+
+        // Handle quoted path
+        if (pathPart.StartsWith('"'))
+        {
+            pathPart = pathPart[1..];
+            int endQuote = pathPart.IndexOf('"');
+            if (endQuote >= 0)
+                pathPart = pathPart[..endQuote];
+        }
+
+        // Only return if cursor is positioned within the path area
+        int pathStartInLine = colonIdx + 1 + trimmedChars;
+        if (pathPart.StartsWith('"')) pathStartInLine++;
+        if (character < pathStartInLine) return null;
+
+        // Trim to what the user has typed up to cursor
+        int charsTyped = character - pathStartInLine;
+        if (charsTyped < 0) charsTyped = 0;
+        if (charsTyped < pathPart.Length)
+            pathPart = pathPart[..charsTyped];
+
+        return pathPart;
+    }
+
+    /// <summary>Build completions for // @ref: — lists .idl and .winmd files + directories.</summary>
+    private static List<object> BuildRefDirectiveCompletions(string partialPath, string? fileDir)
+    {
+        if (fileDir == null) return new List<object>();
+
+        var files = new List<object>();
+        var folders = new List<object>();
+
+        // Determine the base directory and filename filter
+        string searchDir;
+        string filter;
+        if (partialPath.Contains('/') || partialPath.Contains('\\'))
+        {
+            var lastSep = Math.Max(partialPath.LastIndexOf('/'), partialPath.LastIndexOf('\\'));
+            var subPath = partialPath[..(lastSep + 1)];
+            filter = partialPath[(lastSep + 1)..];
+            searchDir = Path.Combine(fileDir, subPath.Replace('/', Path.DirectorySeparatorChar));
+        }
+        else
+        {
+            searchDir = fileDir;
+            filter = partialPath;
+        }
+
+        if (!Directory.Exists(searchDir)) return new List<object>();
+
+        try
+        {
+            // Enumerate .idl and .winmd files
+            foreach (var file in Directory.EnumerateFiles(searchDir))
+            {
+                var name = Path.GetFileName(file);
+                var ext = Path.GetExtension(name);
+                if (!ext.Equals(".idl", StringComparison.OrdinalIgnoreCase) &&
+                    !ext.Equals(".winmd", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (filter.Length > 0 &&
+                    !name.StartsWith(filter, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var kind = ext.Equals(".winmd", StringComparison.OrdinalIgnoreCase) ? KindModule : KindFile;
+                files.Add(new Dictionary<string, object?>
+                {
+                    ["label"] = name,
+                    ["kind"] = kind,
+                    ["detail"] = ext.Equals(".winmd", StringComparison.OrdinalIgnoreCase) ? "WinMD reference" : "IDL file",
+                    ["insertText"] = name,
+                    ["filterText"] = name,
+                });
+            }
+
+            // Enumerate subdirectories
+            foreach (var dir in Directory.EnumerateDirectories(searchDir))
+            {
+                var name = Path.GetFileName(dir);
+                if (name.StartsWith('.')) continue;
+
+                if (filter.Length > 0 &&
+                    !name.StartsWith(filter, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                folders.Add(new Dictionary<string, object?>
+                {
+                    ["label"] = name,
+                    ["kind"] = KindFolder,
+                    ["detail"] = "Directory",
+                    ["insertText"] = name + "/",
+                    ["filterText"] = name,
+                });
+            }
+        }
+        catch
+        {
+            // Ignore directory access errors
+        }
+
+        // Files first (alphabetical), then folders (alphabetical)
+        files.Sort((a, b) =>
+        {
+            var al = ((Dictionary<string, object?>)a)["label"]?.ToString() ?? "";
+            var bl = ((Dictionary<string, object?>)b)["label"]?.ToString() ?? "";
+            return string.Compare(al, bl, StringComparison.OrdinalIgnoreCase);
+        });
+        folders.Sort((a, b) =>
+        {
+            var al = ((Dictionary<string, object?>)a)["label"]?.ToString() ?? "";
+            var bl = ((Dictionary<string, object?>)b)["label"]?.ToString() ?? "";
+            return string.Compare(al, bl, StringComparison.OrdinalIgnoreCase);
+        });
+
+        var result = new List<object>(files.Count + folders.Count);
+        result.AddRange(files);
+        result.AddRange(folders);
+        return result;
+    }
+
+    #endregion
+
     private static int GetOffset(string text, int line, int character)
     {
         int offset = 0;
@@ -667,7 +1036,8 @@ public static class CompletionHandler
         return line >= 0 && line < lines.Length ? lines[line] : "";
     }
 
-    private static List<object> BuildContextualCompletions(CompletionContext context, string text, string uri)
+    private static List<object> BuildContextualCompletions(CompletionContext context, string text, string uri,
+        IReadOnlyList<string>? includePaths = null, string? currentFilePath = null)
     {
         var items = new List<object>();
 
@@ -677,14 +1047,16 @@ public static class CompletionHandler
                 // Structs: only value types (primitives, enums, other structs, String, IReference<T>)
                 AddValueTypes(items);
                 AddItem(items, "}", KindKeyword, "Close struct");
-                AddUserTypes(items, text, t => t is StructSymbol or EnumSymbol);
+                AddUserTypes(items, text, t => t is StructSymbol or EnumSymbol,
+                    includePaths, currentFilePath);
                 break;
 
             case CompletionContext.AttributeBody:
                 // Attribute fields: value types + String + enums (same as struct fields)
                 AddValueTypes(items);
                 AddItem(items, "}", KindKeyword, "Close attribute");
-                AddUserTypes(items, text, t => t is EnumSymbol);
+                AddUserTypes(items, text, t => t is EnumSymbol,
+                    includePaths, currentFilePath);
                 break;
 
             case CompletionContext.EnumBody:
@@ -698,7 +1070,7 @@ public static class CompletionHandler
                 AddItem(items, "event", KindEvent, "Declares an event");
                 AddItem(items, "}", KindKeyword, "Close interface");
                 AddItem(items, "requires", KindKeyword, "Requires clause");
-                AddUserTypes(items, text);
+                AddUserTypes(items, text, includePaths: includePaths, currentFilePath: currentFilePath);
                 break;
 
             case CompletionContext.RuntimeClassBody:
@@ -710,19 +1082,21 @@ public static class CompletionHandler
                 AddItem(items, "overridable", KindKeyword, "Allows override in derived classes");
                 AddItem(items, "}", KindKeyword, "Close runtimeclass");
                 AddConstructorName(items, text);
-                AddUserTypes(items, text);
+                AddUserTypes(items, text, includePaths: includePaths, currentFilePath: currentFilePath);
                 break;
 
             case CompletionContext.BaseList:
                 // After : in runtimeclass/interface declaration → interfaces and classes
-                AddUserTypes(items, text, t => t is InterfaceSymbol or RuntimeClassSymbol);
+                AddUserTypes(items, text, t => t is InterfaceSymbol or RuntimeClassSymbol,
+                    includePaths, currentFilePath);
                 AddItem(items, "IStringable", KindInterface, "Windows.Foundation.IStringable");
                 AddItem(items, "IClosable", KindInterface, "Windows.Foundation.IClosable");
                 break;
 
             case CompletionContext.RequiresList:
                 // After requires → only interfaces
-                AddUserTypes(items, text, t => t is InterfaceSymbol);
+                AddUserTypes(items, text, t => t is InterfaceSymbol,
+                    includePaths, currentFilePath);
                 AddItem(items, "IStringable", KindInterface, "Windows.Foundation.IStringable");
                 AddItem(items, "IClosable", KindInterface, "Windows.Foundation.IClosable");
                 break;
@@ -790,11 +1164,13 @@ public static class CompletionHandler
 
     /// <summary>Add user-defined types from the compilation.</summary>
     private static void AddUserTypes(List<object> items, string text,
-        Func<ISymbol, bool>? filter = null)
+        Func<ISymbol, bool>? filter = null,
+        IReadOnlyList<string>? includePaths = null, string? currentFilePath = null)
     {
         try
         {
-            var compilation = CompilationHelper.Compile(text);
+            var compilation = CompilationHelper.Compile(text, referencePaths: null,
+                mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: currentFilePath);
             foreach (var type in compilation.GetAllTypes())
             {
                 if (string.IsNullOrEmpty(type.Name)) continue;
