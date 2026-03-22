@@ -15,4 +15,8 @@
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Midl.Integration.Tests" />
+  </ItemGroup>
+
 </Project>

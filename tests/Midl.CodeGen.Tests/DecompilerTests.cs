@@ -343,4 +343,41 @@ public class DecompilerTests
         Assert.Contains("apicontract MyContract", idl);
         Assert.Contains("[contractversion(", idl);
     }
+
+    [Fact]
+    public void DecompileDelegate_GenericParamNames()
+    {
+        // Decompiling a WinMD with generic delegates should show named type params,
+        // not !0/!1 or backtick notation
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return; // skip on machines without SDK
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
+
+        // TypedEventHandler should show named generic params
+        Assert.Contains("TypedEventHandler<TSender, TResult>", idl);
+        // Params should use the named params, not !0/!1
+        Assert.DoesNotContain("!0", idl);
+        Assert.DoesNotContain("!1", idl);
+        // Should not have backtick notation
+        Assert.DoesNotContain("`", idl);
+    }
+
+    [Fact]
+    public void DecompileNamespaceFilter_OnlyShowsRequestedNamespace()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
+
+        // Should contain Windows.Foundation types
+        Assert.Contains("namespace Windows.Foundation", idl);
+        Assert.Contains("TypedEventHandler", idl);
+        // Should NOT contain other namespaces
+        Assert.DoesNotContain("namespace Windows.UI", idl);
+        Assert.DoesNotContain("namespace Windows.Storage", idl);
+    }
 }

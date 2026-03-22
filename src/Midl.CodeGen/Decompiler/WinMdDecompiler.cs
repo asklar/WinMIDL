@@ -982,6 +982,9 @@ public class WinMdDecompiler
             var td = reader.GetTypeDefinition(handle);
             var ns = reader.GetString(td.Namespace);
             var name = reader.GetString(td.Name);
+            // Strip generic arity suffix (e.g., IAsyncOperation`1 → IAsyncOperation)
+            int backtick = name.IndexOf('`');
+            if (backtick >= 0) name = name[..backtick];
             return string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
         }
 
@@ -990,6 +993,8 @@ public class WinMdDecompiler
             var tr = reader.GetTypeReference(handle);
             var ns = reader.GetString(tr.Namespace);
             var name = reader.GetString(tr.Name);
+            int backtick = name.IndexOf('`');
+            if (backtick >= 0) name = name[..backtick];
             return string.IsNullOrEmpty(ns) ? name : $"{ns}.{name}";
         }
 

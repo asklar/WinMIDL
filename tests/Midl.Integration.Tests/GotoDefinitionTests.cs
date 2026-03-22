@@ -339,4 +339,54 @@ public class GotoDefinitionTests
     }
 
     #endregion
+
+    #region FindDefinitionOffset edge cases
+
+    [Fact]
+    public void FindDefinitionOffset_Delegate_SkipsReturnType()
+    {
+        // Delegate definitions have return type between keyword and name:
+        // "delegate void MyHandler(String arg);"
+        var source = "namespace N {\n    delegate void MyHandler(String arg);\n}\n";
+        var symbol = new Midl.Analysis.Symbols.DelegateSymbol("MyHandler", null!);
+        int offset = GotoDefinitionHandler.FindDefinitionOffset(source, symbol);
+        Assert.True(offset >= 0, "Should find delegate definition");
+        Assert.Equal("MyHandler", source.Substring(offset, "MyHandler".Length));
+    }
+
+    [Fact]
+    public void FindDefinitionOffset_Struct_FindsDefinitionNotPropertyType()
+    {
+        // "struct TimeSpan" should be found, not "TimeSpan" in a property type
+        var source = "namespace N {\n    interface IFoo {\n        TimeSpan GetTime();\n    }\n    struct TimeSpan { Int64 Duration; }\n}\n";
+        var symbol = new Midl.Analysis.Symbols.StructSymbol("TimeSpan", null!);
+        int offset = GotoDefinitionHandler.FindDefinitionOffset(source, symbol);
+        Assert.True(offset >= 0);
+        // Should point to the struct definition, not the property usage
+        var before = source[..offset];
+        Assert.Contains("struct", before.Substring(Math.Max(0, before.Length - 10)));
+    }
+
+    #endregion
+
+    #region Squiggle position with @ref backslash
+
+    [Fact]
+    public void Diagnostics_WithRefBackslash_CorrectPosition()
+    {
+        // @ref with backslash path should not shift squiggle positions
+        var source = "// @ref: D:\\path\\to\\ref\nnamespace N { runtimeclass Foo { Strng X { get; }; } }";
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1001");
+        Assert.NotNull(diag);
+        // "Strng" starts at a specific offset on line 2
+        var lines = source.Split('\n');
+        int strngCol = lines[1].IndexOf("Strng", StringComparison.Ordinal);
+        Assert.True(strngCol >= 0);
+        // The diagnostic position should be on line 2 content, not shifted by @ref line joining
+        Assert.True(diag.Position >= source.IndexOf("Strng", StringComparison.Ordinal),
+            $"Diagnostic position {diag.Position} should be at or after 'Strng' at {source.IndexOf("Strng")}");
+    }
+
+    #endregion
 }

@@ -258,4 +258,28 @@ public class PreprocessorTests
         }
         return count;
     }
+
+    [Fact]
+    public void LineContinuation_InComment_NotJoined()
+    {
+        // Backslash at end of a // comment line should NOT join with next line
+        var pp = new Preprocessor();
+        var source = "// @ref: D:\\path\\to\\file\nnamespace N { }";
+        var result = pp.Process(source);
+        // Both lines should be preserved separately
+        var lines = result.Split('\n');
+        Assert.True(lines.Length >= 2, $"Expected 2+ lines, got {lines.Length}: '{result}'");
+        Assert.Contains("namespace N", result);
+    }
+
+    [Fact]
+    public void LineContinuation_InCode_StillJoined()
+    {
+        // Backslash at end of a code line SHOULD join with next line (with space)
+        var pp = new Preprocessor();
+        var source = "#define FOO ba\\\nr\nFOO";
+        var result = pp.Process(source);
+        // Continuation joins "ba" + " " + "r" = "ba r"
+        Assert.Contains("ba r", result);
+    }
 }
