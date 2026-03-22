@@ -839,8 +839,43 @@ public class WinMdDecompiler
 
     private static string GetShortName(string fullName)
     {
-        var dot = fullName.LastIndexOf('.');
-        return dot >= 0 ? fullName[(dot + 1)..] : fullName;
+        // For generic types like "Windows.Foundation.Collections.IVector<Windows.UI.Xaml.UIElement>",
+        // only strip the namespace prefix before the type name, not inside generic args.
+        var angleBracket = fullName.IndexOf('<');
+        var namePartEnd = angleBracket >= 0 ? angleBracket : fullName.Length;
+        var dot = fullName.LastIndexOf('.', namePartEnd - 1);
+        if (dot < 0) return fullName;
+
+        var shortBase = fullName[(dot + 1)..namePartEnd];
+        if (angleBracket >= 0)
+        {
+            // Recursively shorten generic type arguments
+            var argsStr = fullName[(angleBracket + 1)..^1]; // strip < >
+            var args = SplitGenericArgs(argsStr);
+            var shortArgs = string.Join(", ", args.Select(GetShortName));
+            return $"{shortBase}<{shortArgs}>";
+        }
+        return shortBase;
+    }
+
+    /// <summary>Split generic type arguments respecting nested angle brackets.</summary>
+    private static List<string> SplitGenericArgs(string argsStr)
+    {
+        var result = new List<string>();
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < argsStr.Length; i++)
+        {
+            if (argsStr[i] == '<') depth++;
+            else if (argsStr[i] == '>') depth--;
+            else if (argsStr[i] == ',' && depth == 0)
+            {
+                result.Add(argsStr[start..i].Trim());
+                start = i + 1;
+            }
+        }
+        result.Add(argsStr[start..].Trim());
+        return result;
     }
 
     private static string FormatGuid(Guid guid)

@@ -163,7 +163,12 @@ public static class GotoDefinitionHandler
 
             // Find the symbol in decompiled text using keyword + name pattern
             int defOffset = FindDefinitionOffset(decompiled, symbol);
-            if (defOffset < 0) defOffset = 0;
+            if (defOffset < 0)
+            {
+                // Symbol not found in decompiled text (e.g., CLR-projected type like TimeSpan).
+                // Still open the namespace view but position at top.
+                defOffset = 0;
+            }
 
             var decompLineStarts = PositionHelper.BuildLineStarts(decompiled);
             var (dLine, dChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
@@ -442,32 +447,33 @@ public static class GotoDefinitionHandler
                 return idx + keyword.Length + 1;
         }
 
+        // For type-level symbols, if the keyword pattern wasn't found, the type isn't defined here.
+        // Don't fall back to usage-site matching (would find property types, method return types, etc.)
+        if (keyword is not null)
+            return -1;
+
         // For delegates: search for "delegate <returntype> <name>" pattern
         if (symbol.Kind == SymbolKind.Delegate)
         {
-            // Try matching "delegate void Name" or "delegate <type> Name"
             int searchFrom = 0;
             while (true)
             {
                 int delegateIdx = sourceText.IndexOf("delegate ", searchFrom, StringComparison.Ordinal);
                 if (delegateIdx < 0) break;
-                // Find the symbol name after "delegate <returntype> "
-                int afterDelegate = delegateIdx + 9; // past "delegate "
+                int afterDelegate = delegateIdx + 9;
                 int nameIdx = sourceText.IndexOf(symbol.Name, afterDelegate, StringComparison.Ordinal);
-                // The name should be within ~30 chars of "delegate " (return type + space)
                 if (nameIdx >= 0 && nameIdx - afterDelegate < 40)
                     return nameIdx;
                 searchFrom = afterDelegate;
             }
+            return -1; // delegate not found either
         }
 
-        // Fallback: find the name preceded by a space/newline (definition context, not usage)
-        // This avoids matching property types or parameter types
+        // Fallback for members only (methods, properties, etc.): find with word boundary
         for (int i = sourceText.IndexOf(symbol.Name, StringComparison.Ordinal);
              i >= 0;
              i = sourceText.IndexOf(symbol.Name, i + 1, StringComparison.Ordinal))
         {
-            // Check the char after the name is not a letter/digit (word boundary)
             int afterName = i + symbol.Name.Length;
             if (afterName < sourceText.Length && char.IsLetterOrDigit(sourceText[afterName]))
                 continue;
