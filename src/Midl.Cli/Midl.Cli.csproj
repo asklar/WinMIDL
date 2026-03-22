@@ -18,10 +18,10 @@
     <Product>WinMIDL</Product>
     <Description>Microsoft Interface Definition Language Compiler</Description>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
-    <!-- Version set via /p:Version= from CI/CD or defaults to 0.0.1-dev -->
-    <Version Condition="'$(Version)' == ''">0.0.1-dev</Version>
-    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">0.0.1.0</AssemblyVersion>
-    <FileVersion Condition="'$(FileVersion)' == ''">0.0.1.0</FileVersion>
+    <!-- Version set via /p:Version= from CI/CD or defaults to dev version -->
+    <Version Condition="'$(Version)' == ''">0.1.0-dev</Version>
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">0.1.0.0</AssemblyVersion>
+    <FileVersion Condition="'$(FileVersion)' == ''">0.1.0.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(PublishAot)' == 'true'">

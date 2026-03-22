@@ -1,25 +1,30 @@
 {
-  "name": "midl-language",
+  "name": "midl3-language-server",
   "displayName": "MIDL Language Support",
-  "description": "Language support for Microsoft Interface Definition Language (MIDL/MIDL3) — syntax highlighting, snippets, and language server integration for .idl files",
-  "version": "0.0.1",
-  "publisher": "microsoft",
+  "description": "Full-featured IDE for WinRT Interface Definition Language — real-time diagnostics, smart autocomplete, go-to-definition, code actions, WinMD output, and more.",
+  "version": "0.1.0",
+  "publisher": "AlexanderSklarMSFT",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Linters",
+    "Formatters"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/midl"
+    "url": "https://github.com/asklar/WinMIDL"
   },
+  "icon": "images/icon.png",
   "keywords": [
     "MIDL",
     "IDL",
     "WinRT",
     "MIDL3",
-    "Windows Runtime"
+    "Windows Runtime",
+    "WinMD",
+    "Language Server"
   ],
   "contributes": {
     "languages": [
