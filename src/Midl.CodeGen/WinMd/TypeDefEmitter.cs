@@ -101,6 +101,10 @@ internal class TypeDefEmitter
         _attrs.AddGuidAttribute(typeDef, guid);
         _attrs.AddExclusiveToAttribute(typeDef, rc.FullName);
 
+        // VersionAttribute — match original midl which adds [Version(N)] to synthesized interfaces
+        uint attrVersion = rc.Version != null ? (uint)rc.Version.Value : 1u;
+        _attrs.AddVersionAttribute(typeDef, attrVersion);
+
         // Track properties and events for map tables
         var properties = new List<(PropertySymbol prop, MethodDefinitionHandle getter, MethodDefinitionHandle? setter)>();
         var events = new List<(EventSymbol evt, MethodDefinitionHandle adder, MethodDefinitionHandle remover)>();
@@ -734,10 +738,16 @@ internal class TypeDefEmitter
         var paramList = _emitter.NextParamHandle;
 
         // Static methods: Public | Static | HideBySig
+        // Protected methods: Family | Final | Virtual | HideBySig | NewSlot
         // Non-static methods: Public | Final | Virtual | HideBySig | NewSlot
-        var methodFlags = method.IsStatic
-            ? MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig
-            : MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual
+        MethodAttributes methodFlags;
+        if (method.IsStatic)
+            methodFlags = MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig;
+        else if (method.IsProtected)
+            methodFlags = MethodAttributes.Family | MethodAttributes.Final | MethodAttributes.Virtual
+                | MethodAttributes.HideBySig | MethodAttributes.NewSlot;
+        else
+            methodFlags = MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual
                 | MethodAttributes.HideBySig | MethodAttributes.NewSlot;
 
         var handle = M.AddMethodDefinition(
@@ -774,10 +784,16 @@ internal class TypeDefEmitter
         MethodDefinitionHandle? setter = null;
 
         // Static properties: Public | Static | HideBySig | SpecialName
+        // Protected properties: Family | Final | Virtual | HideBySig | NewSlot | SpecialName
         // Non-static properties: Public | Final | Virtual | HideBySig | NewSlot | SpecialName
-        var baseFlags = prop.IsStatic
-            ? MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig | MethodAttributes.SpecialName
-            : MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual
+        MethodAttributes baseFlags;
+        if (prop.IsStatic)
+            baseFlags = MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
+        else if (prop.IsProtected)
+            baseFlags = MethodAttributes.Family | MethodAttributes.Final | MethodAttributes.Virtual
+                | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.SpecialName;
+        else
+            baseFlags = MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual
                 | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.SpecialName;
 
         if (prop.HasGetter)
@@ -814,10 +830,16 @@ internal class TypeDefEmitter
     private (MethodDefinitionHandle adder, MethodDefinitionHandle remover) EmitRuntimeEventStubs(EventSymbol evt)
     {
         // Static events: Public | Static | HideBySig | SpecialName
+        // Protected events: Family | Final | Virtual | HideBySig | NewSlot | SpecialName
         // Non-static events: Public | Final | Virtual | HideBySig | NewSlot | SpecialName
-        var baseFlags = evt.IsStatic
-            ? MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig | MethodAttributes.SpecialName
-            : MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual
+        MethodAttributes baseFlags;
+        if (evt.IsStatic)
+            baseFlags = MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
+        else if (evt.IsProtected)
+            baseFlags = MethodAttributes.Family | MethodAttributes.Final | MethodAttributes.Virtual
+                | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.SpecialName;
+        else
+            baseFlags = MethodAttributes.Public | MethodAttributes.Final | MethodAttributes.Virtual
                 | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.SpecialName;
 
         // add_ method: takes delegate handler, returns EventRegistrationToken
