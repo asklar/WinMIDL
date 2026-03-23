@@ -160,39 +160,77 @@ export function activate(context: vscode.ExtensionContext) {
         );
 
         // Register a DefinitionProvider for midl-winmd scheme documents
-        // (VS Code's LSP client doesn't forward definition requests for virtual documents)
+        // (VS Code's LSP client doesn't forward definition requests for virtual documents,
+        // and client.sendRequest hangs. Handle F12 entirely client-side using the CLI.)
         context.subscriptions.push(
             vscode.languages.registerDefinitionProvider(
                 { scheme: 'midl-winmd', language: 'midl' },
                 {
                     async provideDefinition(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.Location | null> {
-                        console.log(`[MIDL] WinMD DefinitionProvider called: ${document.uri.toString().substring(0, 60)}, line=${position.line}`);
-                        if (!client) {
-                            console.log('[MIDL] WinMD DefinitionProvider: no client');
-                            return null;
-                        }
-                        try {
-                            const result = await client.sendRequest('textDocument/definition', {
-                                textDocument: { uri: document.uri.toString() },
-                                position: { line: position.line, character: position.character }
-                            }) as { uri: string; range: { start: { line: number; character: number }; end: { line: number; character: number } } } | null;
-                            console.log(`[MIDL] WinMD DefinitionProvider result: ${result ? 'found' : 'null'}`);
-                            if (!result) return null;
-                            const targetUri = vscode.Uri.parse(result.uri);
-                            if (targetUri.scheme === 'midl-winmd') {
-                                const doc = await vscode.workspace.openTextDocument(targetUri);
-                                await vscode.languages.setTextDocumentLanguage(doc, 'midl');
+                        if (!serverBinaryPath) return null;
+
+                        // Get the word under cursor
+                        const wordRange = document.getWordRangeAtPosition(position);
+                        if (!wordRange) return null;
+                        const word = document.getText(wordRange);
+
+                        // Extract FQN: walk backward and forward through dots
+                        const line = document.lineAt(position.line).text;
+                        let start = wordRange.start.character;
+                        let end = wordRange.end.character;
+                        while (start > 0 && (line[start - 1] === '.' || /\w/.test(line[start - 1]))) start--;
+                        while (end < line.length && (line[end] === '.' || /\w/.test(line[end]))) end++;
+                        const fqn = line.substring(start, end);
+
+                        // Extract WinMD path from URI
+                        const uriStr = document.uri.toString();
+                        const schemeEnd = uriStr.indexOf('midl-winmd:');
+                        let uriPath = decodeURIComponent(uriStr.substring(schemeEnd + 'midl-winmd:'.length)).replace(/^\/+/, '');
+                        const winmdIdx = uriPath.toLowerCase().indexOf('.winmd');
+                        if (winmdIdx < 0) return null;
+                        const winmdPath = uriPath.substring(0, winmdIdx + 6);
+                        const currentNs = uriPath.length > winmdIdx + 7 ? uriPath.substring(winmdIdx + 7) : null;
+
+                        // Try to decompile the target namespace using the CLI
+                        // Search candidates: FQN, currentNs.word, word
+                        const candidates: string[] = [];
+                        if (fqn !== word && fqn.includes('.')) candidates.push(fqn);
+                        if (currentNs) candidates.push(`${currentNs}.${word}`);
+
+                        for (const candidate of candidates) {
+                            const lastDot = candidate.lastIndexOf('.');
+                            const targetNs = lastDot >= 0 ? candidate.substring(0, lastDot) : '';
+                            const targetName = lastDot >= 0 ? candidate.substring(lastDot + 1) : candidate;
+
+                            try {
+                                const { execSync: exec } = require('child_process');
+                                const decompiled = exec(
+                                    `"${serverBinaryPath}" --decompile "${winmdPath}" --namespace "${targetNs}"`,
+                                    { encoding: 'utf-8', timeout: 10000, maxBuffer: 50 * 1024 * 1024 }
+                                ) as string;
+
+                                // Find the type definition in decompiled text
+                                for (const kw of ['runtimeclass', 'interface', 'struct', 'enum', 'delegate']) {
+                                    const pattern = `${kw} ${targetName}`;
+                                    const idx = decompiled.indexOf(pattern);
+                                    if (idx >= 0) {
+                                        const defOffset = idx + kw.length + 1;
+                                        const lines = decompiled.substring(0, defOffset).split('\n');
+                                        const defLine = lines.length - 1;
+                                        const defChar = lines[lines.length - 1].length;
+
+                                        const targetUri = vscode.Uri.parse(`midl-winmd:///${winmdPath.replace(/\\/g, '/')}/${targetNs}`);
+                                        const doc2 = await vscode.workspace.openTextDocument(targetUri);
+                                        await vscode.languages.setTextDocumentLanguage(doc2, 'midl');
+                                        return new vscode.Location(targetUri, new vscode.Position(defLine, defChar));
+                                    }
+                                }
+                            } catch {
+                                // decompile failed for this namespace — try next candidate
                             }
-                            return new vscode.Location(
-                                targetUri,
-                                new vscode.Range(
-                                    result.range.start.line, result.range.start.character,
-                                    result.range.end.line, result.range.end.character
-                                )
-                            );
-                        } catch {
-                            return null;
                         }
+
+                        return null;
                     }
                 }
             )
