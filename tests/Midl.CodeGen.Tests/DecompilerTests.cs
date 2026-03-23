@@ -662,4 +662,70 @@ public class DecompilerTests
     }
 
     #endregion
+
+    #region Versioned blocks
+
+    [Fact]
+    public void Decompile_VersionedBlocks_GroupedByVersion()
+    {
+        var source = @"
+            namespace N {
+                [contractversion(1)]
+                apicontract MyContract {}
+
+                [contract(MyContract, 1)]
+                runtimeclass Widget {
+                    void MethodV1();
+
+                    [contract(MyContract, 2)]
+                    {
+                        void MethodV2();
+                    }
+                }
+            }";
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        // Both methods should appear
+        Assert.Contains("MethodV1", idl);
+        Assert.Contains("MethodV2", idl);
+        // V2 members should be inside a [contract(..., 2)] block
+        Assert.Matches(@"\[contract\(.*MyContract.*, 2\)\]\s*\{", idl);
+        // V1 members should NOT be in a versioned block (they're at base level)
+        Assert.DoesNotMatch(@"\[contract\(.*MyContract.*, 1\)\]\s*\{", idl);
+    }
+
+    [Fact]
+    public void Decompile_WindowsWinmd_HasVersionedBlocks()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+        // ContentControl has members added in different API contract versions
+        // There should be at least one versioned block
+        var contractBlockPattern = System.Text.RegularExpressions.Regex.IsMatch(
+            idl, @"\[contract\(.+?, \d+\)\]\s*\{");
+        Assert.True(contractBlockPattern, "Should have at least one versioned block");
+    }
+
+    [Fact]
+    public void Decompile_SingleVersion_NoVersionedBlock()
+    {
+        var source = @"
+            namespace N {
+                runtimeclass Widget {
+                    void DoWork();
+                    String Name;
+                }
+            }";
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        // Single-version class should NOT have versioned blocks
+        Assert.DoesNotMatch(@"\[contract\(.+?\)\]\s*\{", idl);
+    }
+
+    #endregion
 }

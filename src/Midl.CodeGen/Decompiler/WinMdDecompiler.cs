@@ -343,7 +343,10 @@ public class WinMdDecompiler
             sb.AppendLine($"{indent}{keyword} {name}");
         sb.AppendLine($"{indent}{{");
 
-        // Constructors
+        // Read class's ContractVersionAttribute for base version and contract name
+        var (contractName, baseVersion) = GetClassContractInfo(reader, td);
+
+        // Constructors (always at base level)
         foreach (var methodHandle in td.GetMethods())
         {
             var method = reader.GetMethodDefinition(methodHandle);
@@ -366,8 +369,26 @@ public class WinMdDecompiler
 
         // Detect properties and events by naming convention (runtimeclass TypeDefs may not have PropertyMap)
         var accessorNames = new HashSet<string>();
-        var properties = new Dictionary<string, (string Type, bool HasGet, bool HasSet)>();
-        var events = new Dictionary<string, string>();
+        var properties = new Dictionary<string, (string Type, bool HasGet, bool HasSet, uint? Version)>();
+        var events = new Dictionary<string, (string DelegateType, uint? Version)>();
+        // Map method names to their version for accessor lookup
+        var methodVersions = new Dictionary<string, uint?>();
+
+        // Pre-scan all methods for VersionAttribute
+        foreach (var methodHandle in td.GetMethods())
+        {
+            var method = reader.GetMethodDefinition(methodHandle);
+            var methodName = reader.GetString(method.Name);
+            methodVersions[methodName] = GetMemberVersion(reader, methodHandle);
+        }
+
+        // Fallback: if no methods have VersionAttribute, derive from InterfaceImpl
+        if (methodVersions.Values.All(v => v == null))
+        {
+            var ifaceVersions = GetMethodVersionsFromInterfaces(reader, td, baseVersion);
+            foreach (var (methodName, version) in ifaceVersions)
+                methodVersions[methodName] = version;
+        }
 
         // First: check PropertyMap/EventMap (may be populated)
         foreach (var propHandle in td.GetProperties())
@@ -379,7 +400,10 @@ public class WinMdDecompiler
             var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             accessorNames.Add($"get_{propName}");
             accessorNames.Add($"put_{propName}");
-            properties[propName] = (MapToMidlType(propSig.ReturnType), true, false);
+            // Get version from getter or setter method
+            methodVersions.TryGetValue($"get_{propName}", out var propVer);
+            if (propVer == null) methodVersions.TryGetValue($"put_{propName}", out propVer);
+            properties[propName] = (MapToMidlType(propSig.ReturnType), true, false, propVer);
         }
         foreach (var eventHandle in td.GetEvents())
         {
@@ -390,7 +414,8 @@ public class WinMdDecompiler
             var delegateType = GetEntityName(reader, evt.Type);
             accessorNames.Add($"add_{evtName}");
             accessorNames.Add($"remove_{evtName}");
-            events[evtName] = GetShortName(delegateType);
+            methodVersions.TryGetValue($"add_{evtName}", out var evtVer);
+            events[evtName] = (GetShortName(delegateType), evtVer);
         }
 
         // Second: detect by naming convention (for methods not covered by PropertyMap)
@@ -407,10 +432,11 @@ public class WinMdDecompiler
                 accessorNames.Add(methodName);
                 var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
                 var propType = MapToMidlType(sig.ReturnType);
-                if (properties.ContainsKey(propName))
-                    properties[propName] = (propType, true, properties[propName].HasSet);
+                var ver = methodVersions.GetValueOrDefault(methodName);
+                if (properties.TryGetValue(propName, out var existing))
+                    properties[propName] = (propType, true, existing.HasSet, ver ?? existing.Version);
                 else
-                    properties[propName] = (propType, true, false);
+                    properties[propName] = (propType, true, false, ver);
             }
             else if (methodName.StartsWith("put_") && !accessorNames.Contains(methodName))
             {
@@ -418,10 +444,11 @@ public class WinMdDecompiler
                 accessorNames.Add(methodName);
                 var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
                 var propType = sig.ParameterTypes.Length > 0 ? MapToMidlType(sig.ParameterTypes[0]) : "Object";
-                if (properties.ContainsKey(propName))
-                    properties[propName] = (properties[propName].Type, properties[propName].HasGet, true);
+                var ver = methodVersions.GetValueOrDefault(methodName);
+                if (properties.TryGetValue(propName, out var existing))
+                    properties[propName] = (existing.Type, existing.HasGet, true, ver ?? existing.Version);
                 else
-                    properties[propName] = (propType, false, true);
+                    properties[propName] = (propType, false, true, ver);
             }
             else if (methodName.StartsWith("add_") && !accessorNames.Contains(methodName))
             {
@@ -430,7 +457,8 @@ public class WinMdDecompiler
                 accessorNames.Add($"remove_{evtName}");
                 var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
                 var delegateType = sig.ParameterTypes.Length > 0 ? MapToMidlType(sig.ParameterTypes[0]) : "Object";
-                events.TryAdd(evtName, delegateType);
+                var ver = methodVersions.GetValueOrDefault(methodName);
+                events.TryAdd(evtName, (delegateType, ver));
             }
             else if (methodName.StartsWith("remove_") && !accessorNames.Contains(methodName))
             {
@@ -439,7 +467,10 @@ public class WinMdDecompiler
             }
         }
 
-        // Emit methods (skip constructors, accessors, and static stubs)
+        // Collect all members with their version and formatted text
+        var members = new List<(uint? Version, string Text)>();
+
+        // Methods (skip constructors, accessors, and static stubs)
         foreach (var methodHandle in td.GetMethods())
         {
             var method = reader.GetMethodDefinition(methodHandle);
@@ -451,25 +482,30 @@ public class WinMdDecompiler
             var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var returnType = MapToMidlType(sig.ReturnType);
             var parameters = FormatParameters(reader, method, sig);
-            sb.AppendLine($"{indent}    {returnType} {methodName}({parameters});");
+            members.Add((methodVersions.GetValueOrDefault(methodName), $"{returnType} {methodName}({parameters});"));
         }
 
-        // Emit properties (idiomatic MIDL3 syntax)
-        foreach (var (propName, (propType, hasGet, hasSet)) in properties)
+        // Properties (idiomatic MIDL3 syntax)
+        foreach (var (propName, (propType, hasGet, hasSet, ver)) in properties)
         {
+            string text;
             if (hasGet && hasSet)
-                sb.AppendLine($"{indent}    {propType} {propName};");
+                text = $"{propType} {propName};";
             else if (hasGet)
-                sb.AppendLine($"{indent}    {propType} {propName} {{ get; }};");
+                text = $"{propType} {propName} {{ get; }};";
             else
-                sb.AppendLine($"{indent}    {propType} {propName} {{ set; }};");
+                text = $"{propType} {propName} {{ set; }};";
+            members.Add((ver, text));
         }
 
-        // Emit events (idiomatic MIDL3 syntax)
-        foreach (var (evtName, delegateType) in events)
+        // Events (idiomatic MIDL3 syntax)
+        foreach (var (evtName, (delegateType, ver)) in events)
         {
-            sb.AppendLine($"{indent}    event {delegateType} {evtName};");
+            members.Add((ver, $"event {delegateType} {evtName};"));
         }
+
+        // Group members by version and emit
+        EmitVersionedMembers(members, contractName, baseVersion, sb, indent);
 
         // Emit static members from [static()] interfaces
         EmitStaticMembers(reader, handle, sb, indent);
@@ -478,6 +514,221 @@ public class WinMdDecompiler
         EmitModifiedMembers(reader, handle, sb, indent);
 
         sb.AppendLine($"{indent}}};");
+    }
+
+    /// <summary>
+    /// Reads the ContractVersionAttribute from a type to get the contract name and base version.
+    /// Falls back to InterfaceImpl ContractVersionAttributes for the contract name.
+    /// </summary>
+    private static (string? ContractName, uint BaseVersion) GetClassContractInfo(MetadataReader reader, TypeDefinition td)
+    {
+        string? contractName = null;
+        uint baseVersion = 0;
+        foreach (var attrHandle in td.GetCustomAttributes())
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            var attrName = GetAttributeTypeName(reader, attr.Constructor);
+            if (attrName != "ContractVersionAttribute") continue;
+            try
+            {
+                int paramCount = GetCtorParameterCount(reader, attr.Constructor);
+                var blob = reader.GetBlobReader(attr.Value);
+                if (blob.Length < 2) continue;
+                blob.ReadUInt16(); // prolog
+                if (paramCount >= 2)
+                {
+                    contractName = ReadSerializedString(ref blob);
+                    if (blob.RemainingBytes >= 4)
+                        baseVersion = blob.ReadUInt32();
+                }
+                else if (blob.RemainingBytes >= 4)
+                {
+                    baseVersion = blob.ReadUInt32();
+                }
+            }
+            catch { /* best-effort */ }
+        }
+
+        // Fallback: read contract name from InterfaceImpl ContractVersionAttribute
+        if (contractName == null)
+        {
+            foreach (var ifaceImplHandle in td.GetInterfaceImplementations())
+            {
+                var impl = reader.GetInterfaceImplementation(ifaceImplHandle);
+                foreach (var attrHandle in impl.GetCustomAttributes())
+                {
+                    var attr = reader.GetCustomAttribute(attrHandle);
+                    var attrName = GetAttributeTypeName(reader, attr.Constructor);
+                    if (attrName != "ContractVersionAttribute") continue;
+                    try
+                    {
+                        int paramCount = GetCtorParameterCount(reader, attr.Constructor);
+                        if (paramCount < 2) continue;
+                        var blob = reader.GetBlobReader(attr.Value);
+                        blob.ReadUInt16(); // prolog
+                        contractName = ReadSerializedString(ref blob);
+                        if (contractName != null) goto done;
+                    }
+                    catch { /* best-effort */ }
+                }
+            }
+        }
+        done:
+        return (contractName, baseVersion);
+    }
+
+    /// <summary>
+    /// Reads the VersionAttribute from a method or property to determine its version.
+    /// </summary>
+    private static uint? GetMemberVersion(MetadataReader reader, MethodDefinitionHandle methodHandle)
+    {
+        var method = reader.GetMethodDefinition(methodHandle);
+        foreach (var attrHandle in method.GetCustomAttributes())
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            var attrName = GetAttributeTypeName(reader, attr.Constructor);
+            if (attrName != "VersionAttribute") continue;
+            var blob = reader.GetBlobReader(attr.Value);
+            if (blob.Length < 6) continue;
+            blob.ReadUInt16(); // prolog
+            return blob.ReadUInt32();
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Builds a method name → version map by examining InterfaceImpl records.
+    /// Each InterfaceImpl may have ContractVersionAttribute giving the version of that interface's members.
+    /// Used as a fallback when methods don't have direct VersionAttribute.
+    /// </summary>
+    private Dictionary<string, uint?> GetMethodVersionsFromInterfaces(
+        MetadataReader reader, TypeDefinition td, uint baseVersion)
+    {
+        var result = new Dictionary<string, uint?>();
+
+        foreach (var ifaceImplHandle in td.GetInterfaceImplementations())
+        {
+            var impl = reader.GetInterfaceImplementation(ifaceImplHandle);
+
+            // Read ContractVersionAttribute from the InterfaceImpl
+            uint? ifaceVersion = null;
+            bool isOverridable = false;
+            bool isProtected = false;
+            foreach (var attrHandle in impl.GetCustomAttributes())
+            {
+                var attr = reader.GetCustomAttribute(attrHandle);
+                var attrName = GetAttributeTypeName(reader, attr.Constructor);
+                if (attrName == "ContractVersionAttribute")
+                {
+                    try
+                    {
+                        int paramCount = GetCtorParameterCount(reader, attr.Constructor);
+                        var blob = reader.GetBlobReader(attr.Value);
+                        blob.ReadUInt16(); // prolog
+                        if (paramCount >= 2)
+                        {
+                            ReadSerializedString(ref blob); // contract name
+                            if (blob.RemainingBytes >= 4)
+                                ifaceVersion = blob.ReadUInt32();
+                        }
+                        else if (blob.RemainingBytes >= 4)
+                        {
+                            ifaceVersion = blob.ReadUInt32();
+                        }
+                    }
+                    catch { /* best-effort */ }
+                }
+                else if (attrName == "OverridableAttribute") isOverridable = true;
+                else if (attrName == "ProtectedAttribute") isProtected = true;
+            }
+
+            // Skip overridable/protected interfaces (handled separately by EmitModifiedMembers)
+            if (isOverridable || isProtected) continue;
+
+            // Default interface has no ContractVersionAttribute — it's at base version
+            uint version = ifaceVersion ?? baseVersion;
+
+            // Resolve the interface TypeDef to get its methods
+            TypeDefinitionHandle? ifaceTdHandle = null;
+            if (impl.Interface.Kind == HandleKind.TypeDefinition)
+            {
+                ifaceTdHandle = (TypeDefinitionHandle)impl.Interface;
+            }
+            else if (impl.Interface.Kind == HandleKind.TypeReference)
+            {
+                var tr = reader.GetTypeReference((TypeReferenceHandle)impl.Interface);
+                var ifaceFullName = $"{reader.GetString(tr.Namespace)}.{reader.GetString(tr.Name)}";
+                ifaceTdHandle = FindTypeDefByFullName(reader, ifaceFullName);
+            }
+
+            if (ifaceTdHandle == null) continue;
+            var ifaceTd = reader.GetTypeDefinition(ifaceTdHandle.Value);
+
+            // Map each interface method name to the interface's version
+            foreach (var methodHandle in ifaceTd.GetMethods())
+            {
+                var method = reader.GetMethodDefinition(methodHandle);
+                var methodName = reader.GetString(method.Name);
+                result[methodName] = version;
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Groups members by version and emits them. Base-version members are emitted directly;
+    /// higher-version members are emitted inside [contract(Name, Version)] { } blocks.
+    /// </summary>
+    private static void EmitVersionedMembers(
+        List<(uint? Version, string Text)> members,
+        string? contractName,
+        uint baseVersion,
+        StringBuilder sb,
+        string indent)
+    {
+        // Determine if we need versioned blocks
+        var distinctVersions = members
+            .Select(m => m.Version ?? baseVersion)
+            .Where(v => v != 0)
+            .Distinct()
+            .OrderBy(v => v)
+            .ToList();
+
+        bool hasMultipleVersions = distinctVersions.Count > 1 ||
+            (distinctVersions.Count == 1 && distinctVersions[0] != baseVersion && baseVersion != 0);
+
+        if (!hasMultipleVersions || contractName == null)
+        {
+            // Single version or no contract info — emit all members flat
+            foreach (var (_, text) in members)
+                sb.AppendLine($"{indent}    {text}");
+            return;
+        }
+
+        var grouped = members
+            .GroupBy(m => m.Version ?? baseVersion)
+            .OrderBy(g => g.Key);
+
+        foreach (var group in grouped)
+        {
+            if (group.Key == baseVersion || group.Key == 0)
+            {
+                // Base version members — emit directly
+                foreach (var (_, text) in group)
+                    sb.AppendLine($"{indent}    {text}");
+            }
+            else
+            {
+                // Higher version — emit versioned block
+                var display = VersionEncoding.Display(group.Key);
+                sb.AppendLine($"{indent}    [contract({GetShortName(contractName)}, {display})]");
+                sb.AppendLine($"{indent}    {{");
+                foreach (var (_, text) in group)
+                    sb.AppendLine($"{indent}        {text}");
+                sb.AppendLine($"{indent}    }}");
+            }
+        }
     }
 
     private void EmitStaticMembers(MetadataReader reader, TypeDefinitionHandle classHandle, StringBuilder sb, string indent)
