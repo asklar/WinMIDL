@@ -181,11 +181,11 @@ export function activate(context: vscode.ExtensionContext) {
                         if (!wordRange) return null;
                         const word = document.getText(wordRange);
 
-                        // Skip built-in/primitive types — they have no navigable definition
+                        // Skip true language primitives — they have no navigable definition
                         const primitives = new Set([
-                            'Object', 'String', 'Boolean', 'Int16', 'Int32', 'Int64',
-                            'UInt8', 'UInt16', 'UInt32', 'UInt64', 'Single', 'Double',
-                            'Char16', 'Guid', 'void', 'true', 'false',
+                            'Object', 'String', 'Boolean', 'Char16', 'Guid',
+                            'Int16', 'Int32', 'Int64', 'UInt8', 'UInt16', 'UInt32', 'UInt64',
+                            'Single', 'Double', 'void',
                         ]);
                         if (primitives.has(word)) return null;
 
