@@ -315,7 +315,22 @@ public sealed partial class MidlLanguageServer
         // Auto-discover Windows.winmd from SDK if enabled
         if (_useWindowsSdk)
         {
-            var winmd = Handlers.WinMdNavigator.FindWindowsWinMd();
+            string? sdkVersion = null;
+            if (@params is not null)
+            {
+                try
+                {
+                    if (@params.Value.TryGetProperty("initializationOptions", out var initOpts2))
+                    {
+                        if (initOpts2.TryGetProperty("midl.windowsSdkVersion", out var verProp))
+                            sdkVersion = verProp.GetString();
+                        else if (initOpts2.TryGetProperty("windowsSdkVersion", out var verProp2))
+                            sdkVersion = verProp2.GetString();
+                    }
+                }
+                catch { }
+            }
+            var winmd = Handlers.WinMdNavigator.FindWindowsWinMd(sdkVersion);
             if (winmd != null)
             {
                 _referencePaths ??= new List<string>();

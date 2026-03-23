@@ -336,7 +336,39 @@ internal static class ContextualCompletionProvider
             }
         }
         catch { /* partial file — skip user types */ }
+
+        // Also add types from lazy WinMD providers (SDK types)
+        if (compilation != null)
+        {
+            foreach (var fullName in compilation.GetAllLazyTypeNames())
+            {
+                if (string.IsNullOrEmpty(fullName)) continue;
+                var lastDot = fullName.LastIndexOf('.');
+                var shortName = lastDot >= 0 ? fullName[(lastDot + 1)..] : fullName;
+                // Skip generic arity suffix (IVector`1 → IVector)
+                var backtick = shortName.IndexOf('`');
+                if (backtick >= 0) shortName = shortName[..backtick];
+                if (filter != null)
+                {
+                    // Simple kind inference from WinRT naming conventions
+                    bool isInterface = shortName.StartsWith('I') && shortName.Length > 1 && char.IsUpper(shortName[1]);
+                    if (filter == IsInterfaceFilter && !isInterface) continue;
+                    if (filter == IsDelegateFilter) continue; // can't distinguish delegates from lazy names
+                }
+                items.Add(new Dictionary<string, object?>
+                {
+                    ["label"] = shortName,
+                    ["kind"] = CompletionHandler.KindClass,
+                    ["detail"] = $"(SDK) {fullName}",
+                    ["insertText"] = fullName,
+                    ["filterText"] = shortName,
+                });
+            }
+        }
     }
+
+    private static readonly Func<ISymbol, bool> IsInterfaceFilter = t => t is InterfaceSymbol;
+    private static readonly Func<ISymbol, bool> IsDelegateFilter = t => t is DelegateSymbol;
 
     /// <summary>Suggest the enclosing runtimeclass name as a constructor.</summary>
     private static void AddConstructorName(List<object> items, string text)

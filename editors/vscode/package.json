@@ -104,6 +104,12 @@
           "type": "boolean",
           "default": true,
           "description": "Automatically reference Windows.winmd from the installed Windows SDK for type completion and F12 navigation."
+        },
+        "midl.windowsSdkVersion": {
+          "type": "string",
+          "default": "latest",
+          "description": "Windows SDK version to use (e.g. '10.0.26100.0'). Set to 'latest' to auto-detect the newest installed version.",
+          "examples": ["latest", "10.0.26100.0", "10.0.22621.0"]
         }
       }
     }

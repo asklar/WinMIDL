@@ -208,11 +208,20 @@ internal static class WinMdNavigator
     }
 
     /// <summary>Find Windows.winmd from the SDK.</summary>
-    internal static string? FindWindowsWinMd()
+    /// <param name="preferredVersion">Specific SDK version like "10.0.26100.0", or null/empty/"latest" for newest.</param>
+    internal static string? FindWindowsWinMd(string? preferredVersion = null)
     {
         var sdkRoot = @"C:\Program Files (x86)\Windows Kits\10";
         var unionMeta = Path.Combine(sdkRoot, "UnionMetadata");
         if (!Directory.Exists(unionMeta)) return null;
+
+        // If a specific version is requested, try it directly
+        if (!string.IsNullOrEmpty(preferredVersion) &&
+            !preferredVersion.Equals("latest", StringComparison.OrdinalIgnoreCase))
+        {
+            var specific = Path.Combine(unionMeta, preferredVersion, "Windows.winmd");
+            if (File.Exists(specific)) return specific;
+        }
 
         // Look for versioned directories (10.0.XXXXX.0), skip Facade (it's a type-forwarder stub)
         return Directory.GetDirectories(unionMeta)
@@ -221,6 +230,21 @@ internal static class WinMdNavigator
             .Where(File.Exists)
             .OrderByDescending(f => Path.GetFileName(Path.GetDirectoryName(f)))
             .FirstOrDefault();
+    }
+
+    /// <summary>Get all available SDK versions that have Windows.winmd.</summary>
+    internal static List<string> GetAvailableSdkVersions()
+    {
+        var sdkRoot = @"C:\Program Files (x86)\Windows Kits\10";
+        var unionMeta = Path.Combine(sdkRoot, "UnionMetadata");
+        if (!Directory.Exists(unionMeta)) return new List<string>();
+
+        return Directory.GetDirectories(unionMeta)
+            .Where(d => !Path.GetFileName(d).Equals("Facade", StringComparison.OrdinalIgnoreCase))
+            .Where(d => File.Exists(Path.Combine(d, "Windows.winmd")))
+            .Select(d => Path.GetFileName(d)!)
+            .OrderByDescending(v => v)
+            .ToList();
     }
 
     /// <summary>
