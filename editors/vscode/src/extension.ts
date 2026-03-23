@@ -31,6 +31,57 @@ export function activate(context: vscode.ExtensionContext) {
 
         vscode.commands.registerCommand('midl.showServerLog', () => {
             outputChannel.show();
+        }),
+
+        vscode.commands.registerCommand('midl.selectSdkVersion', async () => {
+            // Discover installed SDK versions by scanning UnionMetadata
+            const sdkRoot = 'C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata';
+            const fs = await import('fs');
+            const path = await import('path');
+            let versions: string[] = [];
+            try {
+                const dirs = fs.readdirSync(sdkRoot, { withFileTypes: true });
+                versions = dirs
+                    .filter(d => d.isDirectory() && d.name !== 'Facade')
+                    .filter(d => fs.existsSync(path.join(sdkRoot, d.name, 'Windows.winmd')))
+                    .map(d => d.name)
+                    .sort()
+                    .reverse();
+            } catch { }
+
+            if (versions.length === 0) {
+                vscode.window.showWarningMessage('MIDL: No Windows SDK installations found.');
+                return;
+            }
+
+            const items: vscode.QuickPickItem[] = [
+                { label: 'latest', description: `Auto-detect newest (${versions[0]})` },
+                ...versions.map(v => ({ label: v, description: `Windows SDK ${v}` })),
+                { label: 'none', description: 'Do not reference any Windows SDK' }
+            ];
+
+            const selected = await vscode.window.showQuickPick(items, {
+                title: 'Select Windows SDK Version',
+                placeHolder: 'Choose which SDK version to use for type completion and F12'
+            });
+
+            if (selected) {
+                const config = vscode.workspace.getConfiguration('midl');
+                if (selected.label === 'none') {
+                    await config.update('useWindowsSdk', false, vscode.ConfigurationTarget.Global);
+                } else {
+                    await config.update('useWindowsSdk', true, vscode.ConfigurationTarget.Global);
+                    await config.update('windowsSdkVersion', selected.label, vscode.ConfigurationTarget.Global);
+                }
+                vscode.window.showInformationMessage(
+                    `MIDL: SDK set to ${selected.label}. Restart the language server to apply.`,
+                    'Restart Server'
+                ).then(choice => {
+                    if (choice === 'Restart Server') {
+                        vscode.commands.executeCommand('midl.restartServer');
+                    }
+                });
+            }
         })
     );
 

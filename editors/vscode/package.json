@@ -68,6 +68,10 @@
       {
         "command": "midl.showServerLog",
         "title": "MIDL: Show Language Server Output"
+      },
+      {
+        "command": "midl.selectSdkVersion",
+        "title": "MIDL: Select Windows SDK Version"
       }
     ],
     "configurationDefaults": {
@@ -103,13 +107,14 @@
         "midl.useWindowsSdk": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically reference Windows.winmd from the installed Windows SDK for type completion and F12 navigation."
+          "description": "Automatically reference Windows.winmd from the installed Windows SDK for type completion and F12 navigation.",
+          "order": 3
         },
         "midl.windowsSdkVersion": {
           "type": "string",
           "default": "latest",
-          "description": "Windows SDK version to use (e.g. '10.0.26100.0'). Set to 'latest' to auto-detect the newest installed version.",
-          "examples": ["latest", "10.0.26100.0", "10.0.22621.0"]
+          "markdownDescription": "Windows SDK version to use. Use the **MIDL: Select Windows SDK Version** command to pick from installed versions.",
+          "order": 4
         },
         "midl.flatSdkTypeCompletions": {
           "type": "boolean",
