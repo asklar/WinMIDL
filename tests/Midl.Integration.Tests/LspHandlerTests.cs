@@ -1201,7 +1201,7 @@ public class LspHandlerTests
 
     #region Workspace Diagnostics Tests
 
-    [Fact(Skip = "Requires mock LSP client — hangs with MemoryStream")]
+    [Fact]
     public async Task WorkspaceFileChange_RepublishesDiagnostics()
     {
         // Set up a pipe-based server to simulate LSP communication
@@ -1466,7 +1466,7 @@ public class LspHandlerTests
         Assert.Null(result);
     }
 
-    [Fact(Skip = "Requires mock LSP client — hangs with MemoryStream")]
+    [Fact]
     public async Task WorkspaceFileDelete_ClearsDiagnostics()
     {
         var serverInput = new MemoryStream();
