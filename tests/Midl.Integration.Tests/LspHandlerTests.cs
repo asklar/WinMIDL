@@ -702,6 +702,88 @@ public class LspHandlerTests
     }
 
     [Fact]
+    public void ExtractDotPrefix_ImmediatelyAfterDot()
+    {
+        // "Windows.|" → prefix = "Windows"
+        var text = "Windows.";
+        var prefix = DotCompletionProvider.ExtractDotPrefix(text, text.Length);
+        Assert.Equal("Windows", prefix);
+    }
+
+    [Fact]
+    public void ExtractDotPrefix_MidTypingAfterDot()
+    {
+        // "Windows.Fo|" → prefix = "Windows" (VS Code filters by "Fo")
+        var text = "Windows.Fo";
+        var prefix = DotCompletionProvider.ExtractDotPrefix(text, text.Length);
+        Assert.Equal("Windows", prefix);
+    }
+
+    [Fact]
+    public void ExtractDotPrefix_MultiLevel()
+    {
+        // "Windows.Foundation.|" → prefix = "Windows.Foundation"
+        var text = "Windows.Foundation.";
+        var prefix = DotCompletionProvider.ExtractDotPrefix(text, text.Length);
+        Assert.Equal("Windows.Foundation", prefix);
+    }
+
+    [Fact]
+    public void ExtractDotPrefix_MultiLevelMidTyping()
+    {
+        // "Windows.Foundation.C|" → prefix = "Windows.Foundation"
+        var text = "Windows.Foundation.C";
+        var prefix = DotCompletionProvider.ExtractDotPrefix(text, text.Length);
+        Assert.Equal("Windows.Foundation", prefix);
+    }
+
+    [Fact]
+    public void ExtractDotPrefix_NoDot_ReturnsNull()
+    {
+        var text = "Windows";
+        Assert.Null(DotCompletionProvider.ExtractDotPrefix(text, text.Length));
+    }
+
+    [Fact]
+    public void DotCompletion_MidTypingAfterDot_StillShowsChildren()
+    {
+        // When typing "TestApp.S|", should still show children of TestApp
+        var uri = "file:///test.midl";
+        var source = """
+            namespace TestApp
+            {
+                enum Status { Idle }
+                runtimeclass Widget { }
+                runtimeclass Foo
+                {
+                    TestApp.S
+                }
+            }
+            """;
+        var dm = CreateDocManager(uri, source);
+        var lines = source.Split('\n');
+        int line = -1, col = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("TestApp.S");
+            if (idx >= 0 && !lines[i].TrimStart().StartsWith("namespace"))
+            {
+                line = i;
+                col = idx + "TestApp.S".Length; // cursor after 'S'
+                break;
+            }
+        }
+        Assert.True(line >= 0);
+
+        var result = CompletionHandler.Handle(MakePositionParams(uri, line, col), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should still show TestApp children (VS Code filters by "S")
+        Assert.Contains("Status", json);
+        Assert.Contains("Widget", json);
+    }
+
+    [Fact]
     public void CompletionOnRefDirective_ShowsFilesAndFolders()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), $"midl_ref_test_{Guid.NewGuid():N}");

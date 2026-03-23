@@ -10,22 +10,29 @@ internal static class DotCompletionProvider
 {
     /// <summary>
     /// Extracts the dotted prefix before the cursor, e.g. "Windows.Foundation" from "Windows.Foundation.|".
-    /// Returns null if cursor is not immediately after a dot.
+    /// Also handles mid-typing after a dot: "Windows.Fo|" → returns "Windows".
+    /// Returns null if cursor is not in a dotted context.
     /// </summary>
     internal static string? ExtractDotPrefix(string text, int offset)
     {
-        if (offset <= 0 || text[offset - 1] != '.') return null;
+        // Walk backward from cursor to find the start of the current token
+        int tokenEnd = offset;
+        int pos = offset - 1;
+        while (pos >= 0 && (char.IsLetterOrDigit(text[pos]) || text[pos] == '_'))
+            pos--;
 
-        // Walk backward from the character before the dot to collect the prefix
-        int end = offset - 1; // position of the dot
-        int start = end - 1;
+        // Check if we hit a dot
+        if (pos < 0 || text[pos] != '.') return null;
+
+        // Walk backward from before the dot to collect the prefix (e.g. "Windows" or "Windows.Foundation")
+        int dotPos = pos;
+        int start = dotPos - 1;
         while (start >= 0 && (char.IsLetterOrDigit(text[start]) || text[start] == '_' || text[start] == '.'))
             start--;
         start++;
 
-        if (start >= end) return null;
-        var prefix = text[start..end];
-        // Must contain at least one valid identifier character
+        if (start >= dotPos) return null;
+        var prefix = text[start..dotPos];
         if (prefix.Length == 0 || prefix.EndsWith(".")) return null;
         return prefix;
     }
