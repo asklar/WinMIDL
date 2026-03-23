@@ -166,12 +166,17 @@ export function activate(context: vscode.ExtensionContext) {
                 { scheme: 'midl-winmd', language: 'midl' },
                 {
                     async provideDefinition(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.Location | null> {
-                        if (!client) return null;
+                        console.log(`[MIDL] WinMD DefinitionProvider called: ${document.uri.toString().substring(0, 60)}, line=${position.line}`);
+                        if (!client) {
+                            console.log('[MIDL] WinMD DefinitionProvider: no client');
+                            return null;
+                        }
                         try {
                             const result = await client.sendRequest('textDocument/definition', {
                                 textDocument: { uri: document.uri.toString() },
                                 position: { line: position.line, character: position.character }
                             }) as { uri: string; range: { start: { line: number; character: number }; end: { line: number; character: number } } } | null;
+                            console.log(`[MIDL] WinMD DefinitionProvider result: ${result ? 'found' : 'null'}`);
                             if (!result) return null;
                             const targetUri = vscode.Uri.parse(result.uri);
                             if (targetUri.scheme === 'midl-winmd') {
