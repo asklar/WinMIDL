@@ -168,7 +168,7 @@ public class GotoDefinitionTests
         var source = "// @ref: \"Some Path.winmd\"\nnamespace N { }\n";
         var lineStarts = Midl.Lsp.PositionHelper.BuildLineStarts(source);
 
-        var target = GotoDefinitionHandler.TryGetRefDirectiveTarget(source, lineStarts, 0);
+        var target = RefDirectiveNavigator.TryGetRefDirectiveTarget(source, lineStarts, 0);
         Assert.NotNull(target);
         Assert.Equal("Some Path.winmd", target);
     }
@@ -207,7 +207,7 @@ public class GotoDefinitionTests
             SourceWinMdPath = @"C:\some\path\ExtLib.winmd"
         };
 
-        var lineNum = GotoDefinitionHandler.FindRefLineForExternalSymbol(source, symbol);
+        var lineNum = RefDirectiveNavigator.FindRefLineForExternalSymbol(source, symbol);
         Assert.Equal(0, lineNum);
     }
 
@@ -224,7 +224,7 @@ public class GotoDefinitionTests
             SourceWinMdPath = @"D:\Build\Microsoft.UI.Xaml.winmd"
         };
 
-        var lineNum = GotoDefinitionHandler.FindRefLineForExternalSymbol(source, symbol);
+        var lineNum = RefDirectiveNavigator.FindRefLineForExternalSymbol(source, symbol);
         Assert.Equal(1, lineNum);
     }
 
@@ -234,7 +234,7 @@ public class GotoDefinitionTests
         var source = "// This is a regular comment\nnamespace N { }\n";
         var lineStarts = Midl.Lsp.PositionHelper.BuildLineStarts(source);
 
-        var target = GotoDefinitionHandler.TryGetRefDirectiveTarget(source, lineStarts, 0);
+        var target = RefDirectiveNavigator.TryGetRefDirectiveTarget(source, lineStarts, 0);
         Assert.Null(target);
     }
 }
