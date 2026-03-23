@@ -361,6 +361,15 @@ public sealed class MidlLanguageServer
         var td = @params.Value.GetProperty("textDocument");
         var uri = td.GetProperty("uri").GetString()!;
 
+        // Skip analysis for virtual documents
+        if (uri.StartsWith("midl-winmd://"))
+        {
+            var changes2 = @params.Value.GetProperty("contentChanges");
+            if (changes2.GetArrayLength() > 0)
+                _docManager.UpdateDocument(uri, changes2[0].GetProperty("text").GetString()!);
+            return;
+        }
+
         var changes = @params.Value.GetProperty("contentChanges");
         if (changes.GetArrayLength() > 0)
         {
@@ -532,6 +541,9 @@ public sealed class MidlLanguageServer
 
     private async Task AnalyzeAndPublishAsync(string uri, string text)
     {
+        // Never analyze virtual documents (decompiled WinMD views)
+        if (uri.StartsWith("midl-winmd://")) return;
+
         // Skip recompilation if the text hasn't changed since last analysis
         var hash = text.GetHashCode();
         if (_lastAnalyzedHash.TryGetValue(uri, out var lastHash) && lastHash == hash)
