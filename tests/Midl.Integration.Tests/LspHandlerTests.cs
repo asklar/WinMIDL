@@ -1088,7 +1088,7 @@ public class LspHandlerTests
     public void FormattingFixesIndentation()
     {
         var input = "namespace MyLib{\nruntimeclass Widget{\nvoid DoWork();\n}\n}";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
 
         Assert.Contains("namespace MyLib", formatted);
         Assert.Contains("    runtimeclass Widget", formatted);

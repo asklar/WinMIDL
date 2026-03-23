@@ -331,7 +331,7 @@ int keywordIdx = Array.IndexOf(tokenTypes, "keyword");
 Assert.Equal(keywordIdx, data[3]); // first token type
 
 // Formatting
-var formatted = FormattingHandler.Format(input);
+var formatted = DocumentFormatter.Format(input);
 Assert.Contains("    runtimeclass Widget", formatted);
 
 // Go-to-definition

@@ -16,7 +16,7 @@ public class FormattingTests
             }
             """;
 
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
 
         Assert.Contains("namespace TestApp", formatted);
         Assert.Contains("    runtimeclass Widget", formatted);
@@ -28,7 +28,7 @@ public class FormattingTests
     {
         var input = "namespace TestApp\n{\n    runtimeclass Widget\n    {\n        void DoWork();\n    }\n}\n";
 
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
 
         Assert.Contains("namespace TestApp", formatted);
         Assert.Contains("    runtimeclass Widget", formatted);
@@ -39,7 +39,7 @@ public class FormattingTests
     public void SpaceAfterComma()
     {
         var input = "namespace TestApp\n{\n    runtimeclass Widget\n    {\n        void DoWork(Int32 a,String b);\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("Int32 a, String b", formatted);
     }
 
@@ -47,7 +47,7 @@ public class FormattingTests
     public void SpaceAroundColon()
     {
         var input = "namespace TestApp\n{\n    runtimeclass Widget:Base\n    {\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("Widget : Base", formatted);
     }
 
@@ -55,7 +55,7 @@ public class FormattingTests
     public void NoSpaceBeforeSemicolon()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        void Foo() ;\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("void Foo();", formatted);
         Assert.DoesNotContain("() ;", formatted);
     }
@@ -64,7 +64,7 @@ public class FormattingTests
     public void CollapseMultipleBlankLines()
     {
         var input = "namespace N\n{\n\n\n\n    runtimeclass C\n    {\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         // Should have at most one blank line between namespace { and runtimeclass
         Assert.DoesNotContain("\n\n\n", formatted);
     }
@@ -73,7 +73,7 @@ public class FormattingTests
     public void NoBlankLineAfterOpenBrace()
     {
         var input = "namespace N\n{\n\n    runtimeclass C\n    {\n\n        void Foo();\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         // No blank line immediately after {
         Assert.DoesNotContain("{\n\n", formatted);
     }
@@ -82,7 +82,7 @@ public class FormattingTests
     public void NoBlankLineBeforeCloseBrace()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        void Foo();\n\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.DoesNotContain("\n\n    }", formatted);
     }
 
@@ -90,7 +90,7 @@ public class FormattingTests
     public void TightGenericSpacing()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        IVector < String > Foo();\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("IVector<String>", formatted);
         Assert.DoesNotContain("< String >", formatted);
     }
@@ -99,7 +99,7 @@ public class FormattingTests
     public void NoSpaceInsideParentheses()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        void Foo( Int32 x , String y );\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("Foo(Int32 x, String y)", formatted);
     }
 
@@ -107,7 +107,7 @@ public class FormattingTests
     public void PropertyAccessorSpacing()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        String Name{get; set;};\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("Name { get; set; };", formatted);
     }
 
@@ -115,7 +115,7 @@ public class FormattingTests
     public void CommentPreserved()
     {
         var input = "// header comment\nnamespace N\n{\n    // type comment\n    runtimeclass C\n    {\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("// header comment", formatted);
         Assert.Contains("// type comment", formatted);
     }
@@ -124,7 +124,7 @@ public class FormattingTests
     public void TrailingNewline()
     {
         var input = "namespace N\n{\n}";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.EndsWith("\n", formatted);
     }
 
@@ -132,7 +132,7 @@ public class FormattingTests
     public void MultipleSpacesCollapsed()
     {
         var input = "namespace N\n{\n    runtimeclass   C\n    {\n        void    Foo();\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("runtimeclass C", formatted);
         Assert.Contains("void Foo()", formatted);
         Assert.DoesNotContain("  C", formatted);
@@ -142,7 +142,7 @@ public class FormattingTests
     public void BraceOnSameLineAsDeclration_MovesToOwnLine()
     {
         var input = "namespace Foo{\n    runtimeclass Widget{\n        void DoWork();\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         // { should be on its own line, not same line as namespace/runtimeclass
         Assert.Contains("namespace Foo\n{", formatted);
         Assert.Contains("runtimeclass Widget\n    {", formatted);
@@ -152,7 +152,7 @@ public class FormattingTests
     public void ClosingBraceOnSameLineAsContent_MovesToOwnLine()
     {
         var input = "namespace hello{\n\n    interface Ibar{\n        Single x { set; get;};     }\n\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         // The closing } of the interface should be on its own line
         Assert.DoesNotContain("};     }", formatted);
         Assert.DoesNotContain(";}", formatted.Replace("};", "##").Replace("; }", "##"));
@@ -166,7 +166,7 @@ public class FormattingTests
     public void PropertyAccessorInline_GetOnly()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        Int32 Value{get;};\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("Int32 Value { get; };", formatted);
     }
 
@@ -174,7 +174,7 @@ public class FormattingTests
     public void PropertyAccessorInline_GetSet()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        String Name{get;set;};\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("String Name { get; set; };", formatted);
     }
 
@@ -182,7 +182,7 @@ public class FormattingTests
     public void MultiLinePropertyAccessor_JoinedInline()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        String Name\n        {\n            get;\n            set;\n        };\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("String Name { get; set; };", formatted);
         // Should NOT have get; or set; on their own indented lines
         var lines = formatted.Split('\n');
@@ -194,7 +194,7 @@ public class FormattingTests
     public void AttributeGroupBlankLine()
     {
         var input = "namespace N\n{\n    runtimeclass A\n    {\n    }\n    [contract(C, 1)]\n    [activatable(1)]\n    runtimeclass B\n    {\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         // Blank line before first attribute of a group
         Assert.Contains("}\n\n    [contract(C, 1)]", formatted);
         // No blank line between consecutive attributes
@@ -205,7 +205,7 @@ public class FormattingTests
     public void CommentReindented()
     {
         var input = "namespace N\n{\n// misindented comment\n    runtimeclass C\n    {\n// another comment\n        void Foo();\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         // Comments should be indented to match their context
         Assert.Contains("    // misindented comment", formatted);
         Assert.Contains("        // another comment", formatted);
@@ -215,7 +215,7 @@ public class FormattingTests
     public void GenericCommaSpacing()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        event TypedEventHandler<Widget,Object> Changed;\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         Assert.Contains("TypedEventHandler<Widget, Object>", formatted);
     }
 
@@ -223,7 +223,7 @@ public class FormattingTests
     public void SemicolonSpacingInsideAccessors()
     {
         var input = "namespace N\n{\n    runtimeclass C\n    {\n        String X{get;set;};\n    }\n}\n";
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
         // Space after ; between accessors
         Assert.Contains("{ get; set; }", formatted);
         // No space before ;
@@ -251,7 +251,7 @@ public class FormattingTests
             }
             """;
 
-        var formatted = FormattingHandler.Format(input);
+        var formatted = DocumentFormatter.Format(input);
 
         Assert.Contains("// My widget", formatted);
         Assert.Contains("namespace MyApp", formatted);
