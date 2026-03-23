@@ -64,13 +64,7 @@ internal static class DotCompletionProvider
                 // Add child namespaces
                 foreach (var child in ns.ChildNamespaces.Values.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
                 {
-                    items.Add(new Dictionary<string, object?>
-                    {
-                        ["label"] = child.Name,
-                        ["kind"] = CompletionHandler.KindModule,
-                        ["detail"] = child.FullName,
-                        ["insertText"] = child.Name,
-                    });
+                    AddDotItem(items, child.Name, CompletionHandler.KindModule, child.FullName, prefix);
                 }
 
                 // Add types in this namespace
@@ -86,13 +80,7 @@ internal static class DotCompletionProvider
                         SymbolKind.Delegate => CompletionHandler.KindClass,
                         _ => CompletionHandler.KindClass,
                     };
-                    items.Add(new Dictionary<string, object?>
-                    {
-                        ["label"] = member.Name,
-                        ["kind"] = kind,
-                        ["detail"] = member.FullName,
-                        ["insertText"] = member.Name,
-                    });
+                    AddDotItem(items, member.Name, kind, member.FullName, prefix);
                 }
 
                 // Also check lazy providers for types in this namespace
@@ -157,6 +145,22 @@ internal static class DotCompletionProvider
         return null;
     }
 
+    /// <summary>
+    /// Add a completion item with filterText set to "prefix.name" so VS Code
+    /// can match it against the full dotted text the user is typing.
+    /// </summary>
+    private static void AddDotItem(List<object> items, string name, int kind, string detail, string prefix)
+    {
+        items.Add(new Dictionary<string, object?>
+        {
+            ["label"] = name,
+            ["kind"] = kind,
+            ["detail"] = detail,
+            ["insertText"] = name,
+            ["filterText"] = prefix + "." + name,
+        });
+    }
+
     private static void AddLazyProviderNamespaceMembers(List<object> items, Compilation compilation, string ns)
     {
         var existingLabels = new HashSet<string>(
@@ -178,13 +182,7 @@ internal static class DotCompletionProvider
                 var childNs = remainder[..dotIdx];
                 if (childNamespaces.Add(childNs) && existingLabels.Add(childNs))
                 {
-                    items.Add(new Dictionary<string, object?>
-                    {
-                        ["label"] = childNs,
-                        ["kind"] = CompletionHandler.KindModule,
-                        ["detail"] = prefix + childNs,
-                        ["insertText"] = childNs,
-                    });
+                    AddDotItem(items, childNs, CompletionHandler.KindModule, prefix + childNs, ns);
                 }
             }
             else
@@ -195,13 +193,7 @@ internal static class DotCompletionProvider
                 if (backtick >= 0) typeName = typeName[..backtick];
                 if (existingLabels.Add(typeName))
                 {
-                    items.Add(new Dictionary<string, object?>
-                    {
-                        ["label"] = typeName,
-                        ["kind"] = CompletionHandler.KindClass,
-                        ["detail"] = fullName,
-                        ["insertText"] = typeName,
-                    });
+                    AddDotItem(items, typeName, CompletionHandler.KindClass, fullName, ns);
                 }
             }
         }

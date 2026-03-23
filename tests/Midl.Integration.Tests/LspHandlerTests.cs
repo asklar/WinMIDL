@@ -784,6 +784,27 @@ public class LspHandlerTests
     }
 
     [Fact]
+    public void DotCompletion_SdkNamespace_MidTyping_WithCachedCompilation()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace X {\n    runtimeclass F {\n        Windows.F\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+
+        // Cached compilation WITH SDK refs
+        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        if (winmd == null) return; // skip on machines without SDK
+        var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
+
+        // Cursor at end of "Windows.F" — line 2 col 17
+        var result = CompletionHandler.Handle(
+            MakePositionParams(uri, 2, 17), dm, cachedCompilation: compilation);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should still show Windows namespace children (Foundation starts with F)
+        Assert.Contains("Foundation", json);
+    }
+
+    [Fact]
     public void CompletionOnRefDirective_ShowsFilesAndFolders()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), $"midl_ref_test_{Guid.NewGuid():N}");
