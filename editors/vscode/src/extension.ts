@@ -82,6 +82,16 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                 });
             }
+        }),
+
+        vscode.commands.registerCommand('midl.openDocs', (url: string) => {
+            const config = vscode.workspace.getConfiguration('midl');
+            const inline = config.get<boolean>('inlineDocsBrowser', true);
+            if (inline) {
+                vscode.commands.executeCommand('simpleBrowser.show', vscode.Uri.parse(url));
+            } else {
+                vscode.env.openExternal(vscode.Uri.parse(url));
+            }
         })
     );
 
