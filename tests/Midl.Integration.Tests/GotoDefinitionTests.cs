@@ -131,7 +131,7 @@ public partial class GotoDefinitionTests
             Assert.NotNull(symbol.SourceWinMdPath);
 
             // Test the WinMD definition location creation
-            var result = GotoDefinitionHandler.CreateWinMdDefinitionLocation(symbol);
+            var result = WinMdNavigator.CreateWinMdDefinitionLocation(symbol);
             Assert.NotNull(result);
 
             var dict = Assert.IsType<Dictionary<string, object?>>(result);

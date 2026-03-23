@@ -64,7 +64,7 @@ public sealed class MidlLanguageServer
             {
                 break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 break;
             }
@@ -72,6 +72,7 @@ public sealed class MidlLanguageServer
 
             using (msg)
             {
+                if (msg is null) break;
                 var method = msg.RootElement.TryGetProperty("method", out var m) ? m.GetString() : "(response)";
                 MidlTrace.Lsp($"Received: {method}");
                 await HandleMessageAsync(msg.RootElement);
@@ -290,7 +291,7 @@ public sealed class MidlLanguageServer
                     _projectFile = ProjectFile.Load(projectPath);
                     MidlTrace.Lsp($"Loaded winmidl.json: {_projectFile.Inputs.Count} inputs, {_projectFile.References.Count} references");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
@@ -481,12 +482,12 @@ public sealed class MidlLanguageServer
                     var text = await File.ReadAllTextAsync(filePath);
                     await AnalyzeAndPublishAsync(uri, text);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
     }
@@ -533,7 +534,7 @@ public sealed class MidlLanguageServer
                         var text = await File.ReadAllTextAsync(filePath);
                         await AnalyzeAndPublishAsync(uri, text);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                     }
                 }

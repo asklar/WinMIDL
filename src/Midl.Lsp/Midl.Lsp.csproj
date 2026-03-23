@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Midl.Integration.Tests" />
+    <InternalsVisibleTo Include="Midl.Analysis.Tests" />
   </ItemGroup>
 
 </Project>
