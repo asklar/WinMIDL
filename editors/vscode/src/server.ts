@@ -102,10 +102,23 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
         middleware: {
             provideHover: async (document, position, token, next) => {
                 const result = await next(document, position, token);
-                if (result && result.contents) {
-                    // Enable command URIs in hover markdown (needed for midl.openDocs)
-                    if (result.contents instanceof vscode.MarkdownString) {
-                        result.contents.isTrusted = true;
+                if (result) {
+                    // Rebuild contents as trusted MarkdownString to enable command: URIs
+                    const raw = result.contents;
+                    let mdText = '';
+                    if (raw instanceof vscode.MarkdownString) {
+                        mdText = raw.value;
+                    } else if (typeof raw === 'string') {
+                        mdText = raw;
+                    } else if (Array.isArray(raw)) {
+                        mdText = raw.map(c => typeof c === 'string' ? c : (c as any).value || '').join('\n\n');
+                    } else if (raw && typeof raw === 'object' && 'value' in raw) {
+                        mdText = (raw as any).value;
+                    }
+                    if (mdText) {
+                        const md = new vscode.MarkdownString(mdText);
+                        md.isTrusted = true;
+                        (result as any).contents = md;
                     }
                 }
                 return result;
