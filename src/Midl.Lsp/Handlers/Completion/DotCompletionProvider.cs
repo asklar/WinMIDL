@@ -151,13 +151,14 @@ internal static class DotCompletionProvider
     /// </summary>
     private static void AddDotItem(List<object> items, string name, int kind, string detail, string prefix)
     {
+        var fullInsert = prefix + "." + name;
         items.Add(new Dictionary<string, object?>
         {
             ["label"] = name,
             ["kind"] = kind,
             ["detail"] = detail,
-            ["insertText"] = name,
-            ["filterText"] = prefix + "." + name,
+            ["insertText"] = fullInsert,
+            ["filterText"] = fullInsert,
         });
     }
 
