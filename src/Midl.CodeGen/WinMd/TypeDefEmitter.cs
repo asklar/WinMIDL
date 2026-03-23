@@ -73,11 +73,14 @@ internal class TypeDefEmitter
         }
     }
 
-    /// <summary>Emit the synthesized default interface for a runtime class.</summary>
-    public TypeDefinitionHandle EmitSynthesizedInterface(RuntimeClassSymbol rc)
+    /// <summary>Emit a synthesized exclusive interface for a runtime class.</summary>
+    /// <param name="rc">The owning runtime class.</param>
+    /// <param name="iface">The synthesized interface symbol (default, protected, or overridable).</param>
+    /// <param name="trackMethodHandles">Key to store method handles under for MethodImpl linking.</param>
+    public TypeDefinitionHandle EmitSynthesizedInterface(RuntimeClassSymbol rc, InterfaceSymbol iface, string trackMethodHandles)
     {
         var ns = GetNamespace(rc);
-        var ifaceName = $"I{rc.Name}";
+        var ifaceName = iface.Name;
         var fieldList = _emitter.NextFieldHandle;
         var methodList = _emitter.NextMethodHandle;
 
@@ -91,10 +94,10 @@ internal class TypeDefEmitter
             methodList);
 
         // Add a deterministic GUID based on the interface ABI signature
-        var instanceMembers = rc.Members
-            .Where(m => m is MethodSymbol { IsStatic: false } or PropertySymbol { IsStatic: false } or EventSymbol { IsStatic: false })
+        var members = iface.Members
+            .Where(m => m is MethodSymbol or PropertySymbol or EventSymbol)
             .ToList();
-        var guid = GenerateDeterministicGuid($"{ns}.{ifaceName}", instanceMembers);
+        var guid = GenerateDeterministicGuid($"{ns}.{ifaceName}", members);
         _attrs.AddGuidAttribute(typeDef, guid);
         _attrs.AddExclusiveToAttribute(typeDef, rc.FullName);
 
@@ -105,18 +108,17 @@ internal class TypeDefEmitter
         // Track interface method handles for MethodImpl table
         var ifaceMethodHandles = new List<(string memberName, MethodDefinitionHandle handle)>();
 
-        // Emit non-static members from the runtime class (excluding constructors and static members)
-        foreach (var member in rc.Members)
+        foreach (var member in iface.Members)
         {
             switch (member)
             {
-                case MethodSymbol { IsStatic: false } method:
+                case MethodSymbol method:
                 {
                     var methodHandle = EmitInterfaceMethod(method);
                     ifaceMethodHandles.Add((method.Name, methodHandle));
                     break;
                 }
-                case PropertySymbol { IsStatic: false } prop:
+                case PropertySymbol prop:
                 {
                     var getter = EmitPropertyGetter(prop);
                     ifaceMethodHandles.Add(($"get_{prop.Name}", getter));
@@ -126,7 +128,7 @@ internal class TypeDefEmitter
                     properties.Add((prop, getter, setter));
                     break;
                 }
-                case EventSymbol { IsStatic: false } evt:
+                case EventSymbol evt:
                 {
                     var (adder, remover) = EmitEventAccessors(evt);
                     ifaceMethodHandles.Add(($"add_{evt.Name}", adder));
@@ -137,7 +139,10 @@ internal class TypeDefEmitter
             }
         }
 
-        _synthMethodHandles[rc.FullName] = ifaceMethodHandles;
+        if (!_synthMethodHandles.ContainsKey(trackMethodHandles))
+            _synthMethodHandles[trackMethodHandles] = ifaceMethodHandles;
+        else
+            _synthMethodHandles[trackMethodHandles].AddRange(ifaceMethodHandles);
 
         EmitPropertyTable(typeDef, properties);
         EmitEventTable(typeDef, events);
@@ -554,13 +559,16 @@ internal class TypeDefEmitter
         EmitEventTable(typeDef, classEvents);
 
         // InterfaceImpl for synthesized default interface
-        if (hasDirectMembers)
+        if (symbol.DefaultInterface is { IsSynthesized: true })
         {
-            var synthRef = _emitter.ResolveSynthInterfaceHandle(symbol.FullName);
+            var synthRef = _emitter.ResolveSynthInterfaceHandle(symbol.DefaultInterface.FullName);
             if (!synthRef.IsNil)
             {
                 var ifaceImpl = M.AddInterfaceImplementation(typeDef, synthRef);
                 _attrs.AddDefaultAttribute(ifaceImpl);
+                // Also add Protected if the default IS the protected interface
+                if (symbol.DefaultInterface == symbol.ProtectedInterface)
+                    _attrs.AddProtectedAttribute(ifaceImpl);
             }
         }
 
@@ -572,10 +580,10 @@ internal class TypeDefEmitter
                 M.AddInterfaceImplementation(typeDef, h);
         }
 
-        // InterfaceImpl for protected interface
-        if (symbol.ProtectedInterface != null)
+        // InterfaceImpl for protected interface (if separate from default)
+        if (symbol.ProtectedInterface != null && symbol.ProtectedInterface != symbol.DefaultInterface)
         {
-            var h = _emitter.ResolveSymbolHandle(symbol.ProtectedInterface);
+            var h = _emitter.ResolveSynthInterfaceHandle(symbol.ProtectedInterface.FullName);
             if (!h.IsNil)
             {
                 var ifaceImpl = M.AddInterfaceImplementation(typeDef, h);
@@ -584,9 +592,9 @@ internal class TypeDefEmitter
         }
 
         // InterfaceImpl for overridable interface
-        if (symbol.OverridesInterface != null)
+        if (symbol.OverridesInterface != null && symbol.OverridesInterface != symbol.DefaultInterface)
         {
-            var h = _emitter.ResolveSymbolHandle(symbol.OverridesInterface);
+            var h = _emitter.ResolveSynthInterfaceHandle(symbol.OverridesInterface.FullName);
             if (!h.IsNil)
             {
                 var ifaceImpl = M.AddInterfaceImplementation(typeDef, h);

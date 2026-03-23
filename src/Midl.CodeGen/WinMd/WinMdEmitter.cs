@@ -41,16 +41,11 @@ public class WinMdEmitter
 #endif
 
     /// <summary>Resolve a synthesized interface handle, creating a local TypeRef for WinMD compliance.</summary>
-    internal EntityHandle ResolveSynthInterfaceHandle(string rcFullName)
+    internal EntityHandle ResolveSynthInterfaceHandle(string ifaceFullName)
     {
-        if (_synthInterfaceHandles.TryGetValue(rcFullName, out var handle))
+        if (_synthInterfaceHandles.TryGetValue(ifaceFullName, out var handle))
         {
-            // Derive synth interface name: "Ns.MyClass" → "Ns.IMyClass"
-            var lastDot = rcFullName.LastIndexOf('.');
-            var synthFullName = lastDot >= 0
-                ? $"{rcFullName[..lastDot]}.I{rcFullName[(lastDot + 1)..]}"
-                : $"I{rcFullName}";
-            return GetTypeRefForTypeDef(synthFullName, handle);
+            return GetTypeRefForTypeDef(ifaceFullName, handle);
         }
         return default;
     }
@@ -162,27 +157,36 @@ public class WinMdEmitter
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         int typeRow = 2; // row 1 is <Module>
 
-        // Identify synthesized default interfaces that are handled via EmitSynthesizedInterface
-        var synthDefaultInterfaces = new HashSet<ISymbol>();
+        // Collect ALL synthesized interfaces (default, protected, overridable) to skip from allTypes
+        var synthInterfaces = new HashSet<ISymbol>();
         foreach (var type in allTypes)
         {
-            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc)
-                && rc.DefaultInterface != null && rc.DefaultInterface.IsSynthesized)
+            if (type is RuntimeClassSymbol rc)
             {
-                synthDefaultInterfaces.Add(rc.DefaultInterface);
+                if (rc.DefaultInterface is { IsSynthesized: true })
+                    synthInterfaces.Add(rc.DefaultInterface);
+                if (rc.ProtectedInterface is { IsSynthesized: true })
+                    synthInterfaces.Add(rc.ProtectedInterface);
+                if (rc.OverridesInterface is { IsSynthesized: true })
+                    synthInterfaces.Add(rc.OverridesInterface);
             }
         }
 
         foreach (var type in allTypes)
         {
-            // Skip synthesized default interfaces (handled by EmitSynthesizedInterface)
-            if (synthDefaultInterfaces.Contains(type))
+            // Skip synthesized interfaces (handled inline before their runtime class)
+            if (synthInterfaces.Contains(type))
                 continue;
 
-            // Synthesized default interfaces come before their runtime class
-            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
+            // Reserve TypeDef handles for synthesized interfaces before the runtime class
+            if (type is RuntimeClassSymbol rc)
             {
-                _synthInterfaceHandles[rc.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+                if (rc.DefaultInterface is { IsSynthesized: true })
+                    _synthInterfaceHandles[rc.DefaultInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+                if (rc.ProtectedInterface is { IsSynthesized: true } && rc.ProtectedInterface != rc.DefaultInterface)
+                    _synthInterfaceHandles[rc.ProtectedInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+                if (rc.OverridesInterface is { IsSynthesized: true } && rc.OverridesInterface != rc.DefaultInterface)
+                    _synthInterfaceHandles[rc.OverridesInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
             }
             _typeDefHandles[type.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
         }
@@ -193,14 +197,19 @@ public class WinMdEmitter
 
         foreach (var type in allTypes)
         {
-            // Skip synthesized default interfaces (handled by EmitSynthesizedInterface)
-            if (synthDefaultInterfaces.Contains(type))
+            // Skip synthesized interfaces (handled inline before their runtime class)
+            if (synthInterfaces.Contains(type))
                 continue;
 
-            // Emit synthesized interface first
-            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
+            // Emit synthesized interfaces before the runtime class
+            if (type is RuntimeClassSymbol rc)
             {
-                typeDefEmitter.EmitSynthesizedInterface(rc);
+                if (rc.DefaultInterface is { IsSynthesized: true })
+                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.DefaultInterface, rc.FullName);
+                if (rc.ProtectedInterface is { IsSynthesized: true } && rc.ProtectedInterface != rc.DefaultInterface)
+                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.ProtectedInterface, rc.FullName);
+                if (rc.OverridesInterface is { IsSynthesized: true } && rc.OverridesInterface != rc.DefaultInterface)
+                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.OverridesInterface, rc.FullName);
             }
             typeDefEmitter.Emit(type);
         }
@@ -494,24 +503,33 @@ public class WinMdEmitter
             MetadataTokens.MethodDefinitionHandle(1));
 
         // 6. Pre-compute TypeDef handles
-        var synthDefaultInterfaces2 = new HashSet<ISymbol>();
+        var synthInterfaces2 = new HashSet<ISymbol>();
         foreach (var type in types)
         {
-            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc)
-                && rc.DefaultInterface != null && rc.DefaultInterface.IsSynthesized)
+            if (type is RuntimeClassSymbol rc)
             {
-                synthDefaultInterfaces2.Add(rc.DefaultInterface);
+                if (rc.DefaultInterface is { IsSynthesized: true })
+                    synthInterfaces2.Add(rc.DefaultInterface);
+                if (rc.ProtectedInterface is { IsSynthesized: true })
+                    synthInterfaces2.Add(rc.ProtectedInterface);
+                if (rc.OverridesInterface is { IsSynthesized: true })
+                    synthInterfaces2.Add(rc.OverridesInterface);
             }
         }
 
         int typeRow = 2;
         foreach (var type in types)
         {
-            if (synthDefaultInterfaces2.Contains(type))
+            if (synthInterfaces2.Contains(type))
                 continue;
-            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
+            if (type is RuntimeClassSymbol rc)
             {
-                _synthInterfaceHandles[rc.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+                if (rc.DefaultInterface is { IsSynthesized: true })
+                    _synthInterfaceHandles[rc.DefaultInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+                if (rc.ProtectedInterface is { IsSynthesized: true } && rc.ProtectedInterface != rc.DefaultInterface)
+                    _synthInterfaceHandles[rc.ProtectedInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+                if (rc.OverridesInterface is { IsSynthesized: true } && rc.OverridesInterface != rc.DefaultInterface)
+                    _synthInterfaceHandles[rc.OverridesInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
             }
             _typeDefHandles[type.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
         }
@@ -522,11 +540,16 @@ public class WinMdEmitter
 
         foreach (var type in types)
         {
-            if (synthDefaultInterfaces2.Contains(type))
+            if (synthInterfaces2.Contains(type))
                 continue;
-            if (type is RuntimeClassSymbol rc && TypeDefEmitter.HasDirectMembers(rc))
+            if (type is RuntimeClassSymbol rc)
             {
-                typeDefEmitter.EmitSynthesizedInterface(rc);
+                if (rc.DefaultInterface is { IsSynthesized: true })
+                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.DefaultInterface, rc.FullName);
+                if (rc.ProtectedInterface is { IsSynthesized: true } && rc.ProtectedInterface != rc.DefaultInterface)
+                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.ProtectedInterface, rc.FullName);
+                if (rc.OverridesInterface is { IsSynthesized: true } && rc.OverridesInterface != rc.DefaultInterface)
+                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.OverridesInterface, rc.FullName);
             }
             typeDefEmitter.Emit(type);
         }

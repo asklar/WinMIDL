@@ -121,8 +121,9 @@ public class InterfaceSynthesizer
             rc.ImplementedInterfaces.Add(iface);
         }
 
-        // Rule E: Protected interface (only on unsealed classes)
-        if (protectedMembers.Count > 0 && rc.IsUnsealed)
+        // Rule E: Protected interface
+        // Original midl emits IClassProtected with ProtectedAttribute even on sealed classes
+        if (protectedMembers.Count > 0)
         {
             var ifaceName = GetUniqueName($"I{rc.Name}Protected", ns);
             var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, protectedMembers);
@@ -130,8 +131,9 @@ public class InterfaceSynthesizer
             rc.ImplementedInterfaces.Add(iface);
         }
 
-        // Rule F: Overridable interface (only on unsealed classes)
-        if (overridableMembers.Count > 0 && rc.IsUnsealed)
+        // Rule F: Overridable interface
+        // Original midl emits IClassOverrides with OverridableAttribute even on sealed classes
+        if (overridableMembers.Count > 0)
         {
             var ifaceName = GetUniqueName($"I{rc.Name}Overrides", ns);
             var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, overridableMembers);
