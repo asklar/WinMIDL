@@ -28,7 +28,8 @@ public static class CompletionHandler
     private static readonly object[] s_staticCompletionItems = BuildCompletionItems();
 
     public static object Handle(JsonElement? @params, DocumentManager docManager,
-        IReadOnlyList<string>? includePaths = null, ProjectFile? projectFile = null)
+        IReadOnlyList<string>? includePaths = null, ProjectFile? projectFile = null,
+        Compilation? cachedCompilation = null)
     {
         if (@params == null)
             return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = s_staticCompletionItems };
@@ -85,7 +86,7 @@ public static class CompletionHandler
             {
                 var items = DotCompletionProvider.BuildDotCompletions(dotPrefix, text, includePaths, fileDir);
                 if (items.Count > 0)
-                    return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
+                    return new Dictionary<string, object?> { ["isIncomplete"] = true, ["items"] = items.ToArray() };
             }
 
             // Check if cursor is inside an attribute context [...]
@@ -104,7 +105,7 @@ public static class CompletionHandler
 
             // Context-aware completion based on cursor position
             var context = ContextualCompletionProvider.DetectCompletionContext(text, offset, line);
-            var contextItems = ContextualCompletionProvider.BuildContextualCompletions(context, text, uri, includePaths, fileDir);
+            var contextItems = ContextualCompletionProvider.BuildContextualCompletions(context, text, uri, includePaths, fileDir, cachedCompilation);
             // Use isIncomplete=true for contexts with dynamic user types so VS Code re-queries
             bool isIncomplete = context != ContextualCompletionProvider.CompletionContext.TopLevel &&
                                 context != ContextualCompletionProvider.CompletionContext.EnumBody;

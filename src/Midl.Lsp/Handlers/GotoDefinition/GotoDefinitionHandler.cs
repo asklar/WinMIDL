@@ -209,9 +209,21 @@ public static class GotoDefinitionHandler
         if (keyword is not null)
         {
             string pattern = keyword + " " + symbol.Name;
-            int idx = sourceText.IndexOf(pattern, StringComparison.Ordinal);
-            if (idx >= 0)
+            int searchFrom = 0;
+            while (true)
+            {
+                int idx = sourceText.IndexOf(pattern, searchFrom, StringComparison.Ordinal);
+                if (idx < 0) break;
+                int afterName = idx + pattern.Length;
+                // Verify word boundary: next char must not be alphanumeric/underscore
+                if (afterName < sourceText.Length &&
+                    (char.IsLetterOrDigit(sourceText[afterName]) || sourceText[afterName] == '_'))
+                {
+                    searchFrom = idx + 1;
+                    continue;
+                }
                 return idx + keyword.Length + 1;
+            }
         }
 
         // For type-level symbols, if the keyword pattern wasn't found, the type isn't defined here.

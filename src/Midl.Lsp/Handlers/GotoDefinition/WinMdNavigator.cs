@@ -152,7 +152,7 @@ internal static class WinMdNavigator
                 foreach (var kw in new[] { "runtimeclass", "interface", "struct", "enum", "delegate" })
                 {
                     var pattern = kw + " " + matchedName;
-                    int idx2 = sourceText.IndexOf(pattern, StringComparison.Ordinal);
+                    int idx2 = FindWordBoundaryMatch(sourceText, pattern);
                     if (idx2 >= 0)
                     {
                         idx2 += kw.Length + 1;
@@ -170,7 +170,7 @@ internal static class WinMdNavigator
             foreach (var kw in new[] { "runtimeclass", "interface", "struct", "enum", "delegate" })
             {
                 var pattern = kw + " " + matchedName;
-                defOffset = decompiled.IndexOf(pattern, StringComparison.Ordinal);
+                defOffset = FindWordBoundaryMatch(decompiled, pattern);
                 if (defOffset >= 0) { defOffset += kw.Length + 1; break; }
             }
             if (defOffset < 0) defOffset = 0;
@@ -182,6 +182,29 @@ internal static class WinMdNavigator
         catch { }
 
         return null;
+    }
+
+    /// <summary>
+    /// Find a pattern in text with word boundary enforcement.
+    /// Returns the index of the match, or -1 if not found.
+    /// </summary>
+    private static int FindWordBoundaryMatch(string text, string pattern)
+    {
+        int searchFrom = 0;
+        while (true)
+        {
+            int idx = text.IndexOf(pattern, searchFrom, StringComparison.Ordinal);
+            if (idx < 0) return -1;
+            int afterPattern = idx + pattern.Length;
+            // Verify word boundary: next char must not be alphanumeric/underscore
+            if (afterPattern < text.Length &&
+                (char.IsLetterOrDigit(text[afterPattern]) || text[afterPattern] == '_'))
+            {
+                searchFrom = idx + 1;
+                continue;
+            }
+            return idx;
+        }
     }
 
     /// <summary>Find Windows.winmd from the SDK.</summary>

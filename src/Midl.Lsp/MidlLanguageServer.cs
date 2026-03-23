@@ -144,7 +144,12 @@ public sealed partial class MidlLanguageServer
                 break;
 
             case "textDocument/completion":
-                await _writer.SendResponseAsync(id, CompletionHandler.Handle(@params, _docManager, _sdkIncludePaths, _projectFile));
+                {
+                    var compUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? cachedComp = null;
+                    if (compUri != null) _lastCompilation.TryGetValue(compUri, out cachedComp);
+                    await _writer.SendResponseAsync(id, CompletionHandler.Handle(@params, _docManager, _sdkIncludePaths, _projectFile, cachedComp));
+                }
                 break;
 
             case "textDocument/hover":

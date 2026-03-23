@@ -543,6 +543,87 @@ public class LspHandlerTests
     }
 
     [Fact]
+    public void CompletionAfterDot_IsIncomplete_ForRetrigger()
+    {
+        // Bug fix: dot completions must return isIncomplete=true so VS Code retriggers
+        var uri = "file:///test.midl";
+        var source = """
+            namespace Windows.Foundation
+            {
+                interface IStringable { }
+            }
+            namespace TestApp
+            {
+                runtimeclass Foo
+                {
+                    Windows.
+                }
+            }
+            """;
+        var dm = CreateDocManager(uri, source);
+        var lines = source.Split('\n');
+        int dotLine = -1, dotChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("Windows.");
+            if (idx >= 0) { dotLine = i; dotChar = idx + "Windows.".Length; break; }
+        }
+        var result = CompletionHandler.Handle(MakePositionParams(uri, dotLine, dotChar), dm);
+        var json = JsonSerializer.Serialize(result);
+
+        Assert.Contains("\"isIncomplete\":true", json);
+    }
+
+    [Fact]
+    public void CompletionInReturnTypePosition_ShowsUserTypes()
+    {
+        // Bug fix: typing a return type should show all types including user-defined
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    enum MyEnum { A };\n    runtimeclass Foo {\n        My\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor on line 3 after "My" (partial type name)
+        var compilation = CompilationHelper.Compile(source);
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 3, 10), dm, cachedCompilation: compilation);
+
+        var json = JsonSerializer.Serialize(result);
+
+        // ParameterType context should include all types + user types
+        Assert.Contains("\"Int32\"", json);
+        Assert.Contains("MyEnum", json);
+        Assert.Contains("\"out\"", json);
+    }
+
+    [Fact]
+    public void FindDefinitionOffset_WordBoundary_DoesNotMatchSubstring()
+    {
+        // Bug fix: "interface IVector" must not match "interface IVectorChangedEventArgs"
+        var sourceText = """
+            namespace Windows.Foundation.Collections
+            {
+                interface IVectorChangedEventArgs
+                {
+                }
+                interface IVector
+                {
+                }
+            }
+            """;
+        var symbol = new Midl.Analysis.Symbols.InterfaceSymbol("IVector", null);
+        int offset = GotoDefinitionHandler.FindDefinitionOffset(sourceText, symbol);
+        Assert.True(offset >= 0, "Should find IVector");
+
+        // The offset should point to "IVector" (the standalone one), not "IVectorChangedEventArgs"
+        var nameAtOffset = sourceText.Substring(offset, "IVector".Length);
+        Assert.Equal("IVector", nameAtOffset);
+
+        // Verify the character AFTER is NOT alphanumeric (word boundary)
+        int afterOffset = offset + "IVector".Length;
+        Assert.True(afterOffset < sourceText.Length);
+        Assert.False(char.IsLetterOrDigit(sourceText[afterOffset]),
+            $"Character after IVector should not be alphanumeric, got '{sourceText[afterOffset]}'");
+    }
+
+    [Fact]
     public void CompletionAfterDot_LocalTypes_ShowsDeclaredTypes()
     {
         var uri = "file:///test.midl";

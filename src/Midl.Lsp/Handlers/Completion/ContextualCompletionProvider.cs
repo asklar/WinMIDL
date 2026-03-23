@@ -137,6 +137,23 @@ internal static class ContextualCompletionProvider
             if (c == '{' || c == '}' || c == ';') break;
         }
 
+        // If no '(' found on this statement, and the user has started typing a token
+        // (not a keyword/modifier), we may be typing a return type.
+        if ((bodyContext == CompletionContext.InterfaceBody ||
+             bodyContext == CompletionContext.RuntimeClassBody) &&
+            trimmed.Length > 0 &&
+            !trimmed.Contains('(') && !trimmed.Contains(';') &&
+            !trimmed.StartsWith("event ", StringComparison.Ordinal) &&
+            !trimmed.StartsWith("event\t", StringComparison.Ordinal) &&
+            !trimmed.StartsWith("static ", StringComparison.Ordinal) &&
+            !trimmed.StartsWith("protected ", StringComparison.Ordinal) &&
+            !trimmed.StartsWith("overridable ", StringComparison.Ordinal) &&
+            !trimmed.StartsWith("}", StringComparison.Ordinal) &&
+            !trimmed.StartsWith("requires", StringComparison.Ordinal))
+        {
+            return CompletionContext.ParameterType; // reuse ParameterType — same type set
+        }
+
         return bodyContext;
     }
 
@@ -159,9 +176,18 @@ internal static class ContextualCompletionProvider
     }
 
     internal static List<object> BuildContextualCompletions(CompletionContext context, string text, string uri,
-        IReadOnlyList<string>? includePaths = null, string? currentFilePath = null)
+        IReadOnlyList<string>? includePaths = null, string? currentFilePath = null,
+        Compilation? cachedCompilation = null)
     {
         var items = new List<object>();
+
+        // Fall back to ad-hoc compile if no cached compilation (e.g. in tests)
+        var compilation = cachedCompilation;
+        if (compilation == null)
+        {
+            try { compilation = CompilationHelper.Compile(text, referencePaths: null, mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: currentFilePath); }
+            catch { /* partial file — skip user types */ }
+        }
 
         switch (context)
         {
@@ -169,16 +195,14 @@ internal static class ContextualCompletionProvider
                 // Structs: only value types (primitives, enums, other structs, String, IReference<T>)
                 AddValueTypes(items);
                 CompletionHandler.AddItem(items, "}", CompletionHandler.KindKeyword, "Close struct");
-                AddUserTypes(items, text, t => t is StructSymbol or EnumSymbol,
-                    includePaths, currentFilePath);
+                AddUserTypes(items, compilation, t => t is StructSymbol or EnumSymbol);
                 break;
 
             case CompletionContext.AttributeBody:
                 // Attribute fields: value types + String + enums (same as struct fields)
                 AddValueTypes(items);
                 CompletionHandler.AddItem(items, "}", CompletionHandler.KindKeyword, "Close attribute");
-                AddUserTypes(items, text, t => t is EnumSymbol,
-                    includePaths, currentFilePath);
+                AddUserTypes(items, compilation, t => t is EnumSymbol);
                 break;
 
             case CompletionContext.EnumBody:
@@ -192,7 +216,7 @@ internal static class ContextualCompletionProvider
                 CompletionHandler.AddItem(items, "event", CompletionHandler.KindEvent, "Declares an event");
                 CompletionHandler.AddItem(items, "}", CompletionHandler.KindKeyword, "Close interface");
                 CompletionHandler.AddItem(items, "requires", CompletionHandler.KindKeyword, "Requires clause");
-                AddUserTypes(items, text, includePaths: includePaths, currentFilePath: currentFilePath);
+                AddUserTypes(items, compilation);
                 break;
 
             case CompletionContext.RuntimeClassBody:
@@ -204,39 +228,36 @@ internal static class ContextualCompletionProvider
                 CompletionHandler.AddItem(items, "overridable", CompletionHandler.KindKeyword, "Allows override in derived classes");
                 CompletionHandler.AddItem(items, "}", CompletionHandler.KindKeyword, "Close runtimeclass");
                 AddConstructorName(items, text);
-                AddUserTypes(items, text, includePaths: includePaths, currentFilePath: currentFilePath);
+                AddUserTypes(items, compilation);
                 break;
 
             case CompletionContext.BaseList:
                 // After : in runtimeclass/interface declaration → interfaces and classes
-                AddUserTypes(items, text, t => t is InterfaceSymbol or RuntimeClassSymbol,
-                    includePaths, currentFilePath);
+                AddUserTypes(items, compilation, t => t is InterfaceSymbol or RuntimeClassSymbol);
                 CompletionHandler.AddItem(items, "IStringable", CompletionHandler.KindInterface, "Windows.Foundation.IStringable");
                 CompletionHandler.AddItem(items, "IClosable", CompletionHandler.KindInterface, "Windows.Foundation.IClosable");
                 break;
 
             case CompletionContext.RequiresList:
                 // After requires → only interfaces
-                AddUserTypes(items, text, t => t is InterfaceSymbol,
-                    includePaths, currentFilePath);
+                AddUserTypes(items, compilation, t => t is InterfaceSymbol);
                 CompletionHandler.AddItem(items, "IStringable", CompletionHandler.KindInterface, "Windows.Foundation.IStringable");
                 CompletionHandler.AddItem(items, "IClosable", CompletionHandler.KindInterface, "Windows.Foundation.IClosable");
                 break;
 
             case CompletionContext.ParameterType:
-                // All types are valid as parameter types
+                // All types are valid as parameter/return types
                 AddAllTypes(items);
                 CompletionHandler.AddItem(items, "out", CompletionHandler.KindKeyword, "Output parameter");
                 CompletionHandler.AddItem(items, "ref", CompletionHandler.KindKeyword, "Reference parameter");
-                AddUserTypes(items, text, includePaths: includePaths, currentFilePath: currentFilePath);
+                AddUserTypes(items, compilation);
                 break;
 
             case CompletionContext.EventType:
                 // Only delegates + EventHandler/TypedEventHandler
                 CompletionHandler.AddItem(items, "EventHandler", CompletionHandler.KindClass, "Windows.Foundation.EventHandler<T>");
                 CompletionHandler.AddItem(items, "TypedEventHandler", CompletionHandler.KindClass, "Windows.Foundation.TypedEventHandler<S,A>");
-                AddUserTypes(items, text, t => t is DelegateSymbol,
-                    includePaths, currentFilePath);
+                AddUserTypes(items, compilation, t => t is DelegateSymbol);
                 break;
 
             case CompletionContext.TopLevel:
@@ -300,15 +321,13 @@ internal static class ContextualCompletionProvider
         CompletionHandler.AddItem(items, "TypedEventHandler", CompletionHandler.KindClass, "Windows.Foundation.TypedEventHandler<S,A>");
     }
 
-    /// <summary>Add user-defined types from the compilation.</summary>
-    private static void AddUserTypes(List<object> items, string text,
-        Func<ISymbol, bool>? filter = null,
-        IReadOnlyList<string>? includePaths = null, string? currentFilePath = null)
+    /// <summary>Add user-defined and external types from the cached compilation (or fall back to ad-hoc compile).</summary>
+    private static void AddUserTypes(List<object> items, Compilation? compilation,
+        Func<ISymbol, bool>? filter = null)
     {
+        if (compilation == null) return;
         try
         {
-            var compilation = CompilationHelper.Compile(text, referencePaths: null,
-                mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: currentFilePath);
             foreach (var type in compilation.GetAllTypes())
             {
                 if (string.IsNullOrEmpty(type.Name)) continue;
