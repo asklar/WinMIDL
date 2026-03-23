@@ -352,20 +352,24 @@ internal static class ContextualCompletionProvider
 
                 if (flatSdkTypes)
                 {
-                    // Flat mode: also add every type by short name
+                    // Flat mode: also add every type by short name (deduplicated)
                     var lastDot = fullName.LastIndexOf('.');
                     var shortName = lastDot >= 0 ? fullName[(lastDot + 1)..] : fullName;
                     var backtick = shortName.IndexOf('`');
                     if (backtick >= 0) shortName = shortName[..backtick];
-                    items.Add(new Dictionary<string, object?>
+                    // Skip internal types (starting with I + lowercase = not interface convention)
+                    if (!shortName.StartsWith("__", StringComparison.Ordinal))
                     {
-                        ["label"] = shortName,
-                        ["kind"] = CompletionHandler.KindClass,
-                        ["detail"] = $"(SDK) {fullName}",
-                        ["insertText"] = fullName,
-                        ["filterText"] = shortName,
-                        ["sortText"] = "2_" + shortName, // types sort after namespaces
-                    });
+                        items.Add(new Dictionary<string, object?>
+                        {
+                            ["label"] = shortName,
+                            ["kind"] = CompletionHandler.KindClass,
+                            ["detail"] = $"(SDK) {fullName}",
+                            ["insertText"] = fullName,
+                            ["filterText"] = shortName,
+                            ["sortText"] = "2_" + shortName,
+                        });
+                    }
                 }
             }
 

@@ -119,8 +119,8 @@ public static class HoverHandler
                         var learnUrl = GetMsLearnUrl(symbol.FullName, symbol.SourceWinMdPath);
                         if (learnUrl != null)
                         {
-                            info += $"\n\n[📖 View on Microsoft Learn]({learnUrl})";
-                            // Trigger background fetch if not cached yet
+                            var cmdArgs = Uri.EscapeDataString("[\"" + learnUrl + "\"]");
+                            info += $"\n\n[📖 View on Microsoft Learn](command:midl.openDocs?{cmdArgs})";
                             if (desc == null && FetchSdkDocs)
                                 _ = FetchDescriptionAsync(symbol.FullName, learnUrl);
                         }
@@ -159,7 +159,8 @@ public static class HoverHandler
                         var learnUrl = GetMsLearnUrl(cleanName, null);
                         if (learnUrl != null)
                         {
-                            info += $"\n\n[📖 View on Microsoft Learn]({learnUrl})";
+                            var cmdArgs = Uri.EscapeDataString("[\"" + learnUrl + "\"]");
+                            info += $"\n\n[📖 View on Microsoft Learn](command:midl.openDocs?{cmdArgs})";
                             if (desc == null && FetchSdkDocs)
                                 _ = FetchDescriptionAsync(cleanName, learnUrl);
                         }

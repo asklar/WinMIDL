@@ -100,6 +100,16 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
             "midl.fetchSdkDocs": config.get<boolean>('fetchSdkDocs', true)
         },
         middleware: {
+            provideHover: async (document, position, token, next) => {
+                const result = await next(document, position, token);
+                if (result && result.contents) {
+                    // Enable command URIs in hover markdown (needed for midl.openDocs)
+                    if (result.contents instanceof vscode.MarkdownString) {
+                        result.contents.isTrusted = true;
+                    }
+                }
+                return result;
+            },
             provideDefinition: async (document, position, token, next) => {
                 const result = await next(document, position, token);
                 if (result && !Array.isArray(result) && 'uri' in result) {
