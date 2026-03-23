@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
 
-        vscode.commands.registerCommand('midl.openDocs', (...args: any[]) => {
+        vscode.commands.registerCommand('midl.openDocs', async (...args: any[]) => {
             // Args come from command URI: may be a single URL string or parsed from JSON array
             let url: string | undefined;
             if (args.length > 0) {
@@ -101,7 +101,10 @@ export function activate(context: vscode.ExtensionContext) {
             const config = vscode.workspace.getConfiguration('midl');
             const inline = config.get<boolean>('inlineDocsBrowser', true);
             if (inline) {
-                vscode.commands.executeCommand('simpleBrowser.show', url);
+                // Open in a side column so the IDL editor stays visible
+                await vscode.commands.executeCommand('simpleBrowser.show', url);
+                // Move the browser tab to the side
+                await vscode.commands.executeCommand('workbench.action.moveEditorToNextGroup');
             } else {
                 vscode.env.openExternal(vscode.Uri.parse(url));
             }
