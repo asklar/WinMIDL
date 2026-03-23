@@ -956,7 +956,7 @@ h3 {
 <div class="slide active" data-slide="0">
   <div class="title-logo">⚡</div>
   <h1><span class="accent">WinMIDL</span>: A Modern MIDL Compiler</h1>
-  <div class="subtitle">Built with AI at the Speed of Light</div>
+  <div class="subtitle">Built with AI · 2.5× faster than the original</div>
   <div class="author">Alexander Sklar</div>
 </div>
 
@@ -1012,7 +1012,7 @@ h3 {
     </div>
     <div class="principle-card">
       <div class="principle-title">NativeAOT</div>
-      <div class="principle-desc">3.6 MB single-file binary. 14 ms warm compile. No .NET runtime required at deployment.</div>
+      <div class="principle-desc">Single-file native binary. 27 ms per-file (2.5× faster than midl.exe). No .NET runtime required at deployment.</div>
     </div>
     <div class="principle-card">
       <div class="principle-title">.NET 10 / C#</div>
@@ -1436,21 +1436,21 @@ h3 {
     <tbody>
       <tr>
         <td class="metric">Avg per-file compile</td>
-        <td class="old">23.8 ms</td>
-        <td class="new">22.5 ms <span style="color:var(--success);font-weight:400;">✓</span></td>
-        <td class="new" style="color:var(--success);">10% faster</td>
+        <td class="old">67.7 ms</td>
+        <td class="new">27.4 ms <span style="color:var(--success);font-weight:400;">✓</span></td>
+        <td class="new" style="color:var(--success);">2.5× faster</td>
       </tr>
       <tr>
         <td class="metric">Batch (215 files)</td>
-        <td class="old">691 ms</td>
-        <td class="new">628 ms <span style="color:var(--success);font-weight:400;">✓</span></td>
-        <td class="new" style="color:var(--success);">10% faster</td>
+        <td class="old">14,787 ms</td>
+        <td class="new">5,525 ms <span style="color:var(--success);font-weight:400;">✓</span></td>
+        <td class="new" style="color:var(--success);">2.7× faster</td>
       </tr>
       <tr>
         <td class="metric">Error file overhead</td>
         <td class="old">—</td>
-        <td class="new">+3%</td>
-        <td class="new">negligible</td>
+        <td class="new">−9%</td>
+        <td class="new" style="color:var(--success);">faster on errors</td>
       </tr>
       <tr>
         <td class="metric">Error recovery</td>
@@ -1473,7 +1473,7 @@ h3 {
     </tbody>
   </table>
   <div class="note" style="font-size:15px;margin-top:24px;font-style:normal;">
-    <strong style="color:var(--success);">10% faster</strong> than the original across 215 fixture files, with 122 diagnostics, full LSP, and graceful error recovery
+    <strong style="color:var(--success);">2.5× faster</strong> than the original across 215 fixture files, with 122 diagnostics, full LSP, and graceful error recovery
   </div>
 </div>
 
