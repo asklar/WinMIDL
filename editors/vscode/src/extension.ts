@@ -191,7 +191,8 @@ function startLanguageServer(serverPath: string, context: vscode.ExtensionContex
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
             { scheme: 'file', language: 'midl' },
-            { scheme: 'untitled', language: 'midl' }
+            { scheme: 'untitled', language: 'midl' },
+            { scheme: 'midl-winmd', language: 'midl' }
         ],
         synchronize: {
             fileEvents: vscode.workspace.createFileSystemWatcher('**/*.idl')
