@@ -245,13 +245,16 @@ export function activate(context: vscode.ExtensionContext) {
                                         console.log(`[MIDL-F12] found! ${kw} ${targetName} at line ${defLine}`);
                                         const doc2 = await vscode.workspace.openTextDocument(targetUri);
                                         await vscode.languages.setTextDocumentLanguage(doc2, 'midl');
-                                        // Explicitly show the document and scroll to the definition
+                                        // Show document and DON'T return a Location — handle navigation ourselves
                                         const targetPos = new vscode.Position(defLine, defChar);
                                         await vscode.window.showTextDocument(doc2, {
                                             selection: new vscode.Range(targetPos, targetPos),
-                                            preview: true
+                                            preview: false,
+                                            viewColumn: vscode.ViewColumn.Active
                                         });
-                                        return new vscode.Location(targetUri, targetPos);
+                                        console.log(`[MIDL-F12] navigated to ${targetUri.toString().substring(0, 60)} line ${defLine}`);
+                                        // Return undefined — we handled navigation ourselves
+                                        return undefined as any;
                                     }
                                 }
                                 console.log(`[MIDL-F12] type '${targetName}' not found in decompiled text`);
