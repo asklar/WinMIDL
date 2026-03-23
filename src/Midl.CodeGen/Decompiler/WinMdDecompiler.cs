@@ -366,9 +366,12 @@ public class WinMdDecompiler
             if (staticMethodNames.Contains($"get_{propName}") || staticMethodNames.Contains($"put_{propName}"))
                 continue;
             var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
+            var accessors = prop.GetAccessors();
+            bool hasGetter = !accessors.Getter.IsNil;
+            bool hasSetter = !accessors.Setter.IsNil;
             accessorNames.Add($"get_{propName}");
             accessorNames.Add($"put_{propName}");
-            properties[propName] = (MapToMidlType(propSig.ReturnType), true, false);
+            properties[propName] = (MapToMidlType(propSig.ReturnType), hasGetter, hasSetter);
         }
         foreach (var eventHandle in td.GetEvents())
         {
@@ -519,9 +522,12 @@ public class WinMdDecompiler
             var prop = reader.GetPropertyDefinition(propHandle);
             var propName = reader.GetString(prop.Name);
             var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
+            var accessors = prop.GetAccessors();
+            bool hasGetter = !accessors.Getter.IsNil;
+            bool hasSetter = !accessors.Setter.IsNil;
             accessorNames.Add($"get_{propName}");
             accessorNames.Add($"put_{propName}");
-            properties[propName] = (MapToMidlType(propSig.ReturnType), true, false);
+            properties[propName] = (MapToMidlType(propSig.ReturnType), hasGetter, hasSetter);
         }
         foreach (var eventHandle in td.GetEvents())
         {
