@@ -183,7 +183,7 @@ export function activate(context: vscode.ExtensionContext) {
 
                         // Get the word under cursor
                         const wordRange = document.getWordRangeAtPosition(position);
-                        if (!wordRange) return null;
+                        if (!wordRange) { console.log('[MIDL-F12] no word at position'); return null; }
                         const word = document.getText(wordRange);
 
                         // Extract FQN: walk backward and forward through dots
@@ -199,15 +199,17 @@ export function activate(context: vscode.ExtensionContext) {
                         const schemeEnd = uriStr.indexOf('midl-winmd:');
                         let uriPath = decodeURIComponent(uriStr.substring(schemeEnd + 'midl-winmd:'.length)).replace(/^\/+/, '');
                         const winmdIdx = uriPath.toLowerCase().indexOf('.winmd');
-                        if (winmdIdx < 0) return null;
+                        if (winmdIdx < 0) { console.log('[MIDL-F12] no .winmd in URI'); return null; }
                         const winmdPath = uriPath.substring(0, winmdIdx + 6);
                         const currentNs = uriPath.length > winmdIdx + 7 ? uriPath.substring(winmdIdx + 7) : null;
 
-                        // Try to decompile the target namespace using the CLI
-                        // Search candidates: FQN, currentNs.word, word
+                        console.log(`[MIDL-F12] word='${word}' fqn='${fqn}' winmd='${winmdPath}' ns='${currentNs}'`);
+
+                        // Search candidates: FQN, currentNs.word
                         const candidates: string[] = [];
                         if (fqn !== word && fqn.includes('.')) candidates.push(fqn);
                         if (currentNs) candidates.push(`${currentNs}.${word}`);
+                        console.log(`[MIDL-F12] candidates: ${JSON.stringify(candidates)}`);
 
                         for (const candidate of candidates) {
                             const lastDot = candidate.lastIndexOf('.');
@@ -215,11 +217,14 @@ export function activate(context: vscode.ExtensionContext) {
                             const targetName = lastDot >= 0 ? candidate.substring(lastDot + 1) : candidate;
 
                             try {
+                                console.log(`[MIDL-F12] trying candidate='${candidate}' ns='${targetNs}' name='${targetName}'`);
+                                console.log(`[MIDL-F12] cmd: "${serverBinaryPath}" --decompile "${winmdPath}" --namespace "${targetNs}"`);
                                 const { execSync: exec } = require('child_process');
                                 const decompiled = exec(
                                     `"${serverBinaryPath}" --decompile "${winmdPath}" --namespace "${targetNs}"`,
                                     { encoding: 'utf-8', timeout: 10000, maxBuffer: 50 * 1024 * 1024 }
                                 ) as string;
+                                console.log(`[MIDL-F12] decompiled ${decompiled.length} chars`);
 
                                 // Find the type definition in decompiled text
                                 for (const kw of ['runtimeclass', 'interface', 'struct', 'enum', 'delegate']) {
@@ -232,13 +237,15 @@ export function activate(context: vscode.ExtensionContext) {
                                         const defChar = lines[lines.length - 1].length;
 
                                         const targetUri = vscode.Uri.parse(`midl-winmd:///${winmdPath.replace(/\\/g, '/')}/${targetNs}`);
+                                        console.log(`[MIDL-F12] found! ${kw} ${targetName} at line ${defLine}`);
                                         const doc2 = await vscode.workspace.openTextDocument(targetUri);
                                         await vscode.languages.setTextDocumentLanguage(doc2, 'midl');
                                         return new vscode.Location(targetUri, new vscode.Position(defLine, defChar));
                                     }
                                 }
-                            } catch {
-                                // decompile failed for this namespace — try next candidate
+                                console.log(`[MIDL-F12] type '${targetName}' not found in decompiled text`);
+                            } catch (e: any) {
+                                console.log(`[MIDL-F12] decompile failed: ${e.message?.substring(0, 100)}`);
                             }
                         }
 
