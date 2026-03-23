@@ -12,7 +12,7 @@ env:
 
 jobs:
   publish:
-    runs-on: windows-latest
+    runs-on: self-hosted
     strategy:
       matrix:
         include:
@@ -25,11 +25,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-          dotnet-quality: 'preview'
+      - name: Discover MSVC
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -prerelease -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vsPath) { Write-Error "No Visual Studio with C++ found"; exit 1 }
+          $vcVersion = (Get-ChildItem "$vsPath\VC\Tools\MSVC" -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name
+          echo "VSINSTALLDIR=$vsPath\" >> $env:GITHUB_ENV
+          echo "VCToolsInstallDir=$vsPath\VC\Tools\MSVC\$vcVersion\" >> $env:GITHUB_ENV
+          Write-Host "Using MSVC $vcVersion from $vsPath"
 
       - name: Test
         run: dotnet test --configuration Release --verbosity normal
@@ -89,15 +94,10 @@ jobs:
           path: publish/winmidl-${{ matrix.rid }}.zip
 
   vscode-extension:
-    runs-on: windows-latest
+    runs-on: self-hosted
     needs: publish
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
 
       - name: Extract version from tag
         id: version

@@ -57,6 +57,6 @@
   CustomAttribute[1]: Windows.Foundation.Metadata.ActivatableAttribute
     Arg[0]: (UInt32) 1
   CustomAttribute[2]: Windows.Foundation.Metadata.MarshalingBehaviorAttribute
-    <failed to decode attribute value>
+    Arg[0]: (Int32) 2
   CustomAttribute[3]: Windows.Foundation.Metadata.ThreadingAttribute
-    <failed to decode attribute value>
+    Arg[0]: (Int32) 3

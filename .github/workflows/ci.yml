@@ -8,15 +8,9 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: windows-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-          dotnet-quality: 'preview'
 
       - name: Restore
         run: dotnet restore
@@ -34,16 +28,21 @@ jobs:
           npx tsc -p .
 
   native-aot:
-    runs-on: windows-latest
+    runs-on: self-hosted
     needs: build-and-test
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-          dotnet-quality: 'preview'
+      - name: Discover MSVC
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -prerelease -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vsPath) { Write-Error "No Visual Studio with C++ found"; exit 1 }
+          $vcVersion = (Get-ChildItem "$vsPath\VC\Tools\MSVC" -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name
+          echo "VSINSTALLDIR=$vsPath\" >> $env:GITHUB_ENV
+          echo "VCToolsInstallDir=$vsPath\VC\Tools\MSVC\$vcVersion\" >> $env:GITHUB_ENV
+          Write-Host "Using MSVC $vcVersion from $vsPath"
 
       - name: Publish NativeAOT
         run: dotnet publish src/Midl.Cli -c Release -r win-x64 --self-contained -o publish/win-x64
