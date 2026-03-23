@@ -66,14 +66,18 @@ public static class CodeLensHandler
 
     private static int CountTypesForRef(Compilation compilation, string refValue, string? dir)
     {
+        // Normalize forward slashes to backslashes (Windows)
+        var normalizedRefValue = refValue.Replace('/', '\\');
+
         // Resolve the ref path
-        string resolvedPath = refValue;
-        if (dir != null && !Path.IsPathRooted(refValue))
-            resolvedPath = Path.GetFullPath(Path.Combine(dir, refValue));
+        string resolvedPath = normalizedRefValue;
+        if (dir != null && !Path.IsPathRooted(normalizedRefValue))
+            resolvedPath = Path.GetFullPath(Path.Combine(dir, normalizedRefValue));
+        else if (Path.IsPathRooted(normalizedRefValue))
+            resolvedPath = Path.GetFullPath(normalizedRefValue);
 
         int total = 0;
-        var normalizedRef = resolvedPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-            + Path.DirectorySeparatorChar;
+        var normalizedRef = resolvedPath.TrimEnd('\\') + '\\';
 
         foreach (var provider in compilation.LazyProviders!)
         {
@@ -83,7 +87,6 @@ public static class CodeLensHandler
 
             if (Directory.Exists(resolvedPath))
             {
-                // @ref points to a directory — match any WinMD whose path is inside it
                 if (normalizedSource.StartsWith(normalizedRef, StringComparison.OrdinalIgnoreCase))
                 {
                     total += provider.TypeCount;
