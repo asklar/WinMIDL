@@ -205,10 +205,15 @@ export function activate(context: vscode.ExtensionContext) {
 
                         console.log(`[MIDL-F12] word='${word}' fqn='${fqn}' winmd='${winmdPath}' ns='${currentNs}'`);
 
-                        // Search candidates: FQN, currentNs.word
+                        // Search candidates: FQN first, then currentNs.word for short names
                         const candidates: string[] = [];
-                        if (fqn !== word && fqn.includes('.')) candidates.push(fqn);
-                        if (currentNs) candidates.push(`${currentNs}.${word}`);
+                        if (fqn.includes('.')) {
+                            // Already qualified — use as-is
+                            candidates.push(fqn);
+                        } else if (currentNs) {
+                            // Short name — try current namespace
+                            candidates.push(`${currentNs}.${word}`);
+                        }
                         console.log(`[MIDL-F12] candidates: ${JSON.stringify(candidates)}`);
 
                         for (const candidate of candidates) {
