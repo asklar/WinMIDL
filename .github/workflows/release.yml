@@ -28,6 +28,9 @@ jobs:
       - name: Discover MSVC and Windows SDK
         shell: pwsh
         run: |
+          $rid = "${{ matrix.rid }}"
+          $arch = if ($rid -match 'arm64') { 'arm64' } else { 'x64' }
+
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
           $vsPath = & $vswhere -prerelease -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
           if (-not $vsPath) { Write-Error "No Visual Studio with C++ found"; exit 1 }
@@ -36,17 +39,16 @@ jobs:
 
           $sdkRoot = "${env:ProgramFiles(x86)}\Windows Kits\10"
           $sdkVer = Get-ChildItem "$sdkRoot\Lib" -Directory |
-            Where-Object { $_.Name -ne '10.0.26546.0' -and (Test-Path "$($_.FullName)\um\x64\advapi32.lib") } |
+            Where-Object { $_.Name -ne '10.0.26546.0' -and (Test-Path "$($_.FullName)\um\$arch\advapi32.lib") } |
             Sort-Object Name -Descending | Select-Object -First 1
-          if (-not $sdkVer) { Write-Error "No Windows SDK with libs found"; exit 1 }
+          if (-not $sdkVer) { Write-Error "No Windows SDK with $arch libs found"; exit 1 }
           $sv = $sdkVer.Name
 
-          # Set LIB and PATH so NativeAOT can skip vcvarsall (which picks the wrong SDK)
-          $lib = "$vcTools\lib\x64;$sdkRoot\Lib\$sv\um\x64;$sdkRoot\Lib\$sv\ucrt\x64"
+          $lib = "$vcTools\lib\$arch;$sdkRoot\Lib\$sv\um\$arch;$sdkRoot\Lib\$sv\ucrt\$arch"
           echo "LIB=$lib" >> $env:GITHUB_ENV
-          echo "PATH=$vcTools\bin\Hostx64\x64;$env:PATH" >> $env:GITHUB_ENV
+          echo "PATH=$vcTools\bin\Hostx64\$arch;$vcTools\bin\Hostx64\x64;$env:PATH" >> $env:GITHUB_ENV
           echo "IlcUseEnvironmentalTools=true" >> $env:GITHUB_ENV
-          Write-Host "Using MSVC $vcVersion from $vsPath, SDK $sv"
+          Write-Host "Using MSVC $vcVersion, SDK $sv, target $arch"
 
       - name: Test
         run: dotnet test --configuration Release --verbosity normal
