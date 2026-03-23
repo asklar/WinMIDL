@@ -236,21 +236,27 @@ public static class GotoDefinitionHandler
 
         string name = token.Text;
 
-        // Extract the WinMD path from the URI: midl-winmd:///path/to/file.winmd/Namespace
+        // Extract WinMD path and current namespace from URI
         var uriPath = uri["midl-winmd:///".Length..];
-        // On Windows, path is like C:/Program Files/.../file.winmd/Namespace
         var winmdIdx = uriPath.IndexOf(".winmd", StringComparison.OrdinalIgnoreCase);
         if (winmdIdx < 0) return null;
         var winmdPath = uriPath[..(winmdIdx + 6)];
         if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
             winmdPath = winmdPath.Replace('/', '\\');
-
         if (!File.Exists(winmdPath)) return null;
 
-        // Try to find the type in the WinMD by looking up all type names
-        var qualifiedName = ExtractQualifiedName(sourceText, tokenOffset, name) ?? name;
+        // Current namespace from URI path (after .winmd/)
+        string? currentNs = null;
+        if (uriPath.Length > winmdIdx + 7)
+            currentNs = uriPath[(winmdIdx + 7)..].Replace('/', '.');
 
-        // Search the WinMD for a type matching this name
+        // Build search candidates: FQN, currentNs.shortName, shortName
+        var fqn = ExtractFullQualifiedNameAtCursor(sourceText, tokenOffset, name);
+        var candidates = new List<string>();
+        if (fqn != null && fqn != name) candidates.Add(fqn);
+        if (currentNs != null) candidates.Add($"{currentNs}.{name}");
+        candidates.Add(name);
+
         try
         {
             using var fs = File.OpenRead(winmdPath);
@@ -262,54 +268,44 @@ public static class GotoDefinitionHandler
                 var td = reader.GetTypeDefinition(handle);
                 var typeName = reader.GetString(td.Name);
                 var typeNs = reader.GetString(td.Namespace);
-
-                // Strip generic arity
                 var backtick = typeName.IndexOf('`');
                 var cleanName = backtick >= 0 ? typeName[..backtick] : typeName;
+                var typeFullName = string.IsNullOrEmpty(typeNs) ? cleanName : $"{typeNs}.{cleanName}";
 
-                if (cleanName.Equals(name, StringComparison.Ordinal) ||
-                    $"{typeNs}.{cleanName}".Equals(qualifiedName, StringComparison.Ordinal))
+                bool matched = candidates.Any(c =>
+                    typeFullName.Equals(c, StringComparison.Ordinal) ||
+                    cleanName.Equals(c, StringComparison.Ordinal));
+                if (!matched) continue;
+
+                // Found — decompile the target namespace and navigate
+                var decompiler = new WinMdDecompiler();
+                var decompiled = decompiler.Decompile(winmdPath, typeNs);
+                int defOffset = -1;
+                foreach (var kw in new[] { "runtimeclass", "interface", "struct", "enum", "delegate" })
                 {
-                    // Found — navigate to this type's namespace decompilation
-                    var targetNs = typeNs;
-                    var decompiler = new WinMdDecompiler();
-                    var decompiled = decompiler.Decompile(winmdPath, targetNs);
-                    int defOffset = FindDefinitionOffset(decompiled,
-                        new BuiltInSymbolProxy(
-                            new Analysis.Symbols.InterfaceSymbol(cleanName, null!) { IsExternal = true },
-                            winmdPath)
-                        { });
-
-                    // Try struct/enum/delegate/runtimeclass keywords too
-                    if (defOffset < 0)
-                    {
-                        foreach (var kw in new[] { "struct", "enum", "interface", "runtimeclass", "delegate" })
-                        {
-                            var pattern = kw + " " + cleanName;
-                            defOffset = decompiled.IndexOf(pattern, StringComparison.Ordinal);
-                            if (defOffset >= 0) { defOffset += kw.Length + 1; break; }
-                        }
-                    }
-                    if (defOffset < 0) defOffset = 0;
-
-                    var decompLineStarts = PositionHelper.BuildLineStarts(decompiled);
-                    var (dLine, dChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
-                    var (dEndLine, dEndChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset + cleanName.Length);
-
-                    var targetUri = "midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + targetNs;
-                    return MakeLocation(targetUri, dLine, dChar, dEndLine, dEndChar);
+                    var pattern = kw + " " + cleanName;
+                    defOffset = decompiled.IndexOf(pattern, StringComparison.Ordinal);
+                    if (defOffset >= 0) { defOffset += kw.Length + 1; break; }
                 }
+                if (defOffset < 0) defOffset = 0;
+
+                var decompLineStarts = PositionHelper.BuildLineStarts(decompiled);
+                var (dLine, dChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
+                var (dEndLine, dEndChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset + cleanName.Length);
+                var targetUri = "midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + typeNs;
+                return MakeLocation(targetUri, dLine, dChar, dEndLine, dEndChar);
             }
 
-            // Also check CLR-projected types
-            var projected = Analysis.ClrProjectionMap.ToWinRTName(qualifiedName);
-            if (projected != qualifiedName)
+            // Check CLR-projected types
+            foreach (var c in candidates)
             {
-                var lastDot = projected.LastIndexOf('.');
-                var projNs = lastDot >= 0 ? projected[..lastDot] : "";
-                var projName = lastDot >= 0 ? projected[(lastDot + 1)..] : projected;
-                var targetUri = "midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + projNs;
-                return MakeLocation(targetUri, 0, 0, 0, 0);
+                var projected = Analysis.ClrProjectionMap.ToWinRTName(c);
+                if (projected != c)
+                {
+                    var lastDot = projected.LastIndexOf('.');
+                    var projNs = lastDot >= 0 ? projected[..lastDot] : "";
+                    return MakeLocation("midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + projNs, 0, 0, 0, 0);
+                }
             }
         }
         catch { }

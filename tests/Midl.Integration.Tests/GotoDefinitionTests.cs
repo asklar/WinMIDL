@@ -7,7 +7,7 @@ using Midl.Lsp.Handlers;
 
 namespace Midl.Integration.Tests;
 
-public class GotoDefinitionTests
+public partial class GotoDefinitionTests
 {
     #region Feature 1: Imported .idl files
 
