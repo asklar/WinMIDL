@@ -168,102 +168,71 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.workspace.registerTextDocumentContentProvider('midl-winmd', winmdProvider)
         );
 
-        // Register a DefinitionProvider for midl-winmd scheme documents
-        // Use scheme-only selector (language may not be set when F12 is first pressed)
+        // Register a DefinitionProvider for midl-winmd scheme documents.
+        // Uses a custom LSP request (midl/decompileDefinition) — no CLI spawning.
         context.subscriptions.push(
             vscode.languages.registerDefinitionProvider(
                 { scheme: 'midl-winmd' },
                 {
                     async provideDefinition(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.Location | null> {
-                        console.log(`[MIDL-F12] provideDefinition called! scheme=${document.uri.scheme} lang=${document.languageId} line=${position.line}`);
-                        if (!serverBinaryPath) {
-                            console.log('[MIDL-F12] no server binary');
-                            return null;
-                        }
+                        if (!client) return null;
 
-                        // Get the word under cursor
+                        // Get the word/FQN under cursor
                         const wordRange = document.getWordRangeAtPosition(position);
-                        if (!wordRange) { console.log('[MIDL-F12] no word at position'); return null; }
+                        if (!wordRange) return null;
                         const word = document.getText(wordRange);
-
-                        // Extract FQN: walk backward and forward through dots
-                        const line = document.lineAt(position.line).text;
+                        const lineText = document.lineAt(position.line).text;
                         let start = wordRange.start.character;
                         let end = wordRange.end.character;
-                        while (start > 0 && (line[start - 1] === '.' || /\w/.test(line[start - 1]))) start--;
-                        while (end < line.length && (line[end] === '.' || /\w/.test(line[end]))) end++;
-                        const fqn = line.substring(start, end);
+                        while (start > 0 && (lineText[start - 1] === '.' || /\w/.test(lineText[start - 1]))) start--;
+                        while (end < lineText.length && (lineText[end] === '.' || /\w/.test(lineText[end]))) end++;
+                        const fqn = lineText.substring(start, end);
+                        const typeName = fqn.includes('.') ? fqn : word;
 
-                        // Extract WinMD path from URI
+                        // Extract WinMD path and current namespace from URI
                         const uriStr = document.uri.toString();
-                        const schemeEnd = uriStr.indexOf('midl-winmd:');
-                        let uriPath = decodeURIComponent(uriStr.substring(schemeEnd + 'midl-winmd:'.length)).replace(/^\/+/, '');
+                        const schemeIdx = uriStr.indexOf('midl-winmd:');
+                        let uriPath = decodeURIComponent(uriStr.substring(schemeIdx + 'midl-winmd:'.length)).replace(/^\/+/, '');
                         const winmdIdx = uriPath.toLowerCase().indexOf('.winmd');
-                        if (winmdIdx < 0) { console.log('[MIDL-F12] no .winmd in URI'); return null; }
+                        if (winmdIdx < 0) return null;
                         const winmdPath = uriPath.substring(0, winmdIdx + 6);
                         const currentNs = uriPath.length > winmdIdx + 7 ? uriPath.substring(winmdIdx + 7) : null;
 
-                        console.log(`[MIDL-F12] word='${word}' fqn='${fqn}' winmd='${winmdPath}' ns='${currentNs}'`);
-
-                        // Search candidates: FQN first, then currentNs.word for short names
-                        const candidates: string[] = [];
-                        if (fqn.includes('.')) {
-                            // Already qualified — use as-is
-                            candidates.push(fqn);
-                        } else if (currentNs) {
-                            // Short name — try current namespace
-                            candidates.push(`${currentNs}.${word}`);
-                        }
-                        console.log(`[MIDL-F12] candidates: ${JSON.stringify(candidates)}`);
-
-                        for (const candidate of candidates) {
-                            const lastDot = candidate.lastIndexOf('.');
-                            const targetNs = lastDot >= 0 ? candidate.substring(0, lastDot) : '';
-                            const targetName = lastDot >= 0 ? candidate.substring(lastDot + 1) : candidate;
-
-                            try {
-                                console.log(`[MIDL-F12] trying candidate='${candidate}' ns='${targetNs}' name='${targetName}'`);
-                                console.log(`[MIDL-F12] cmd: "${serverBinaryPath}" --decompile "${winmdPath}" --namespace "${targetNs}"`);
-                                const { execSync: exec } = require('child_process');
-                                const decompiled = exec(
-                                    `"${serverBinaryPath}" --decompile "${winmdPath}" --namespace "${targetNs}"`,
-                                    { encoding: 'utf-8', timeout: 10000, maxBuffer: 50 * 1024 * 1024 }
-                                ) as string;
-                                console.log(`[MIDL-F12] decompiled ${decompiled.length} chars`);
-
-                                // Find the type definition in decompiled text
-                                for (const kw of ['runtimeclass', 'interface', 'struct', 'enum', 'delegate']) {
-                                    const pattern = `${kw} ${targetName}`;
-                                    const idx = decompiled.indexOf(pattern);
-                                    if (idx >= 0) {
-                                        const defOffset = idx + kw.length + 1;
-                                        const lines = decompiled.substring(0, defOffset).split('\n');
-                                        const defLine = lines.length - 1;
-                                        const defChar = lines[lines.length - 1].length;
-
-                                        const targetUri = vscode.Uri.parse(`midl-winmd:///${winmdPath.replace(/\\/g, '/')}/${targetNs}`);
-                                        console.log(`[MIDL-F12] found! ${kw} ${targetName} at line ${defLine}`);
-                                        const doc2 = await vscode.workspace.openTextDocument(targetUri);
-                                        await vscode.languages.setTextDocumentLanguage(doc2, 'midl');
-                                        // Show document and DON'T return a Location — handle navigation ourselves
-                                        const targetPos = new vscode.Position(defLine, defChar);
-                                        await vscode.window.showTextDocument(doc2, {
-                                            selection: new vscode.Range(targetPos, targetPos),
-                                            preview: false,
-                                            viewColumn: vscode.ViewColumn.Active
-                                        });
-                                        console.log(`[MIDL-F12] navigated to ${targetUri.toString().substring(0, 60)} line ${defLine}`);
-                                        // Return undefined — we handled navigation ourselves
-                                        return undefined as any;
-                                    }
+                        // Same namespace? Search current document text directly
+                        if (!fqn.includes('.') && currentNs) {
+                            const text = document.getText();
+                            for (const kw of ['runtimeclass', 'interface', 'struct', 'enum', 'delegate']) {
+                                const idx = text.indexOf(`${kw} ${word}`);
+                                if (idx >= 0) {
+                                    const pos = document.positionAt(idx + kw.length + 1);
+                                    return new vscode.Location(document.uri, pos);
                                 }
-                                console.log(`[MIDL-F12] type '${targetName}' not found in decompiled text`);
-                            } catch (e: any) {
-                                console.log(`[MIDL-F12] decompile failed: ${e.message?.substring(0, 100)}`);
                             }
                         }
 
-                        return null;
+                        // Cross-namespace: ask the LSP server
+                        try {
+                            const result = await client.sendRequest('midl/decompileDefinition', {
+                                winmdPath,
+                                typeName,
+                                currentNamespace: currentNs
+                            }) as { namespace: string; text: string; line: number; character: number } | null;
+
+                            if (!result) return null;
+
+                            const targetUri = vscode.Uri.parse(`midl-winmd:///${winmdPath.replace(/\\/g, '/')}/${result.namespace}`);
+                            const doc2 = await vscode.workspace.openTextDocument(targetUri);
+                            await vscode.languages.setTextDocumentLanguage(doc2, 'midl');
+                            const targetPos = new vscode.Position(result.line, result.character);
+                            await vscode.window.showTextDocument(doc2, {
+                                selection: new vscode.Range(targetPos, targetPos),
+                                preview: false,
+                                viewColumn: vscode.ViewColumn.Active
+                            });
+                            return undefined as any;
+                        } catch {
+                            return null;
+                        }
                     }
                 }
             )
