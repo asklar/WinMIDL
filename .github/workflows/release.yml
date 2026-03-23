@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Discover MSVC
+      - name: Discover MSVC and Windows SDK
         shell: pwsh
         run: |
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -34,7 +34,14 @@ jobs:
           $vcVersion = (Get-ChildItem "$vsPath\VC\Tools\MSVC" -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name
           echo "VSINSTALLDIR=$vsPath\" >> $env:GITHUB_ENV
           echo "VCToolsInstallDir=$vsPath\VC\Tools\MSVC\$vcVersion\" >> $env:GITHUB_ENV
-          Write-Host "Using MSVC $vcVersion from $vsPath"
+
+          $sdkRoot = "${env:ProgramFiles(x86)}\Windows Kits\10"
+          $sdkVer = Get-ChildItem "$sdkRoot\Lib" -Directory | Where-Object { Test-Path "$($_.FullName)\um\x64\advapi32.lib" } | Sort-Object Name -Descending | Select-Object -First 1
+          if (-not $sdkVer) { Write-Error "No Windows SDK with libs found"; exit 1 }
+          echo "WindowsSdkDir=$sdkRoot\" >> $env:GITHUB_ENV
+          echo "WindowsSDKLibVersion=$($sdkVer.Name)\" >> $env:GITHUB_ENV
+          echo "UCRTVersion=$($sdkVer.Name)" >> $env:GITHUB_ENV
+          Write-Host "Using MSVC $vcVersion from $vsPath, SDK $($sdkVer.Name)"
 
       - name: Test
         run: dotnet test --configuration Release --verbosity normal
