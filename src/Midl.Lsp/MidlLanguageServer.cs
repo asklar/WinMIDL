@@ -94,6 +94,22 @@ public sealed class MidlLanguageServer
             return; // Response messages are ignored (we don't make requests)
 
         Console.Error.WriteLine($"[MIDL:LSP] << {method} (id={id})");
+
+        // Skip all textDocument/* requests for virtual decompiled documents
+        // (they would try to compile the decompiled IDL text and hang)
+        if (method.StartsWith("textDocument/") && method != "textDocument/didOpen" && method != "textDocument/didChange" && method != "textDocument/didClose")
+        {
+            var docUri = @params?.TryGetProperty("textDocument", out var td) == true
+                ? (td.TryGetProperty("uri", out var u) ? u.GetString() : null)
+                : null;
+            if (docUri != null && docUri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase))
+            {
+                if (id != null)
+                    await _writer.SendResponseAsync(id, (object?)null);
+                return;
+            }
+        }
+
         switch (method)
         {
             case "initialize":
