@@ -344,6 +344,10 @@ public sealed class MidlLanguageServer
         var text = td.GetProperty("text").GetString()!;
 
         _docManager.OpenDocument(uri, text);
+
+        // Skip analysis for virtual documents (decompiled WinMD views)
+        if (uri.StartsWith("midl-winmd://")) return;
+
         await AnalyzeAndPublishAsync(uri, text);
     }
 

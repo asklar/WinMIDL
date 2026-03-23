@@ -263,6 +263,9 @@ public static class GotoDefinitionHandler
             using var peReader = new System.Reflection.PortableExecutable.PEReader(fs);
             var reader = peReader.GetMetadataReader();
 
+            // First pass: prefer FQN or namespace-qualified match
+            string? matchedName = null;
+            string? matchedNs = null;
             foreach (var handle in reader.TypeDefinitions)
             {
                 var td = reader.GetTypeDefinition(handle);
@@ -272,28 +275,23 @@ public static class GotoDefinitionHandler
                 var cleanName = backtick >= 0 ? typeName[..backtick] : typeName;
                 var typeFullName = string.IsNullOrEmpty(typeNs) ? cleanName : $"{typeNs}.{cleanName}";
 
-                bool matched = candidates.Any(c =>
-                    typeFullName.Equals(c, StringComparison.Ordinal) ||
-                    cleanName.Equals(c, StringComparison.Ordinal));
-                if (!matched) continue;
-
-                // Found — decompile the target namespace and navigate
-                var decompiler = new WinMdDecompiler();
-                var decompiled = decompiler.Decompile(winmdPath, typeNs);
-                int defOffset = -1;
-                foreach (var kw in new[] { "runtimeclass", "interface", "struct", "enum", "delegate" })
+                // Check FQN and namespace-qualified candidates (not bare simple name)
+                for (int ci = 0; ci < candidates.Count - 1; ci++)
                 {
-                    var pattern = kw + " " + cleanName;
-                    defOffset = decompiled.IndexOf(pattern, StringComparison.Ordinal);
-                    if (defOffset >= 0) { defOffset += kw.Length + 1; break; }
+                    if (typeFullName.Equals(candidates[ci], StringComparison.Ordinal))
+                    { matchedName = cleanName; matchedNs = typeNs; goto found; }
                 }
-                if (defOffset < 0) defOffset = 0;
+            }
 
-                var decompLineStarts = PositionHelper.BuildLineStarts(decompiled);
-                var (dLine, dChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
-                var (dEndLine, dEndChar) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset + cleanName.Length);
-                var targetUri = "midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + typeNs;
-                return MakeLocation(targetUri, dLine, dChar, dEndLine, dEndChar);
+            // Second pass: bare simple name (last candidate)
+            foreach (var handle in reader.TypeDefinitions)
+            {
+                var td = reader.GetTypeDefinition(handle);
+                var typeName = reader.GetString(td.Name);
+                var backtick = typeName.IndexOf('`');
+                var cleanName = backtick >= 0 ? typeName[..backtick] : typeName;
+                if (cleanName.Equals(name, StringComparison.Ordinal))
+                { matchedName = cleanName; matchedNs = reader.GetString(td.Namespace); goto found; }
             }
 
             // Check CLR-projected types
@@ -307,6 +305,41 @@ public static class GotoDefinitionHandler
                     return MakeLocation("midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + projNs, 0, 0, 0, 0);
                 }
             }
+            return null;
+
+        found:
+            // Same namespace as current view? Just search in the existing sourceText
+            if (matchedNs == currentNs)
+            {
+                foreach (var kw in new[] { "runtimeclass", "interface", "struct", "enum", "delegate" })
+                {
+                    var pattern = kw + " " + matchedName;
+                    int idx2 = sourceText.IndexOf(pattern, StringComparison.Ordinal);
+                    if (idx2 >= 0)
+                    {
+                        idx2 += kw.Length + 1;
+                        var (dl, dc) = PositionHelper.OffsetToLineChar(lineStarts, idx2);
+                        var (del, dec) = PositionHelper.OffsetToLineChar(lineStarts, idx2 + matchedName!.Length);
+                        return MakeLocation(uri, dl, dc, del, dec);
+                    }
+                }
+            }
+
+            // Different namespace — decompile and navigate
+            var decompiler = new WinMdDecompiler();
+            var decompiled = decompiler.Decompile(winmdPath, matchedNs);
+            int defOffset = -1;
+            foreach (var kw in new[] { "runtimeclass", "interface", "struct", "enum", "delegate" })
+            {
+                var pattern = kw + " " + matchedName;
+                defOffset = decompiled.IndexOf(pattern, StringComparison.Ordinal);
+                if (defOffset >= 0) { defOffset += kw.Length + 1; break; }
+            }
+            if (defOffset < 0) defOffset = 0;
+            var decompLineStarts = PositionHelper.BuildLineStarts(decompiled);
+            var (dLine2, dChar2) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
+            var (dEndLine2, dEndChar2) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset + matchedName!.Length);
+            return MakeLocation("midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + matchedNs, dLine2, dChar2, dEndLine2, dEndChar2);
         }
         catch { }
 
