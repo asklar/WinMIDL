@@ -59,6 +59,9 @@ internal static class RefDirectiveCompletionProvider
         if (fileDir == null && (includePaths == null || includePaths.Count == 0))
             return new List<object>();
 
+        // Detect which separator the user prefers based on what they've already typed
+        var dirSep = partialPath.Contains('/') ? "/" : "\\";
+
         var seenFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var seenFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var items = new List<object>();
@@ -146,7 +149,7 @@ internal static class RefDirectiveCompletionProvider
                         ["label"] = name,
                         ["kind"] = CompletionHandler.KindFolder,
                         ["detail"] = isLocal ? "Directory" : baseDir,
-                        ["insertText"] = name + "/",
+                        ["insertText"] = name + dirSep,
                         ["filterText"] = name,
                         ["sortText"] = sortPrefix + name,
                     });
