@@ -1,6 +1,6 @@
 # TODO — MIDL Compiler Rewrite Status
 
-> **Last updated**: 2026-03-22T18:15Z
+> **Last updated**: 2026-03-23T00:26Z
 > This file tracks implementation status. Keep it current with every feature change.
 
 ## ✅ Implemented
@@ -143,7 +143,7 @@
 - [x] Code action fixers for all fixable diagnostics (type corrections, naming, property shorthand)
 
 ### LSP Features
-- [x] Real-time diagnostics (syntax + semantic, all 91 codes)
+- [x] Real-time diagnostics (syntax + semantic, 105+ codes)
 - [x] **Context-aware autocomplete**:
   - Top-level: declaration keywords
   - Runtimeclass body: types + void + event + modifiers + constructor name
@@ -153,39 +153,62 @@
   - Enum body: empty (member names only)
   - After `requires`: interfaces only
   - After `:` in base list: interfaces + classes only
+  - After `event`: delegates only
+  - Inside `(...)` params: all types + `out`/`ref`
   - Inside `[...]`: applicable attributes filtered by `[attributeusage]`
-  - Inside `import "..."`: `.idl` files from project/SDK (excludes current file)
-- [x] Hover (keyword docs, symbol info, external type markers)
-- [x] Go-to-definition (within file + `// @ref:` directive navigation)
+  - Inside `import "..."`: `.idl` files from project/SDK (excludes current file), local first
+  - Inside `// @ref:`: `.idl`/`.winmd` files + directories, local → include/SDK, supports `\` and subdirs
+- [x] Hover (keyword docs, symbol info, external type markers, WinMD source path)
+- [x] Go-to-definition:
+  - Within file: jumps to type/member definition
+  - `// @ref:` directives: opens referenced file; `.winmd` refs open decompiled view
+  - Imported `.idl` types: jumps to definition in the source file
+  - WinMD/built-in WinRT types: opens per-namespace decompiled virtual doc (`midl-winmd:` scheme)
+  - F12 on namespace segments: resolves full qualified name, navigates to type
+  - F12 within decompiled views: cross-namespace navigation
 - [x] Find all references
-- [x] Signature help
-- [x] Semantic tokens (including float literals)
+- [x] Rename symbol (F2) with prepareRename validation
+- [x] Signature help (constructors, methods, delegates)
+- [x] Semantic tokens (including float literals, `@ref` decorator highlighting)
 - [x] Document formatting (blank line normalization, brace splitting, tight generics, property accessor inline, comment preservation)
 - [x] Document symbols / outline (filters external/synthesized)
-- [x] Code actions / quick fixes (type name corrections, naming conventions, property shorthand, constructor insertion)
+- [x] Code actions / quick fixes (type name corrections, naming conventions, property shorthand, constructor insertion, did-you-mean replacements)
 - [x] `midl.strictMode` setting
 - [x] `midl.codeQualityHints` setting (toggle code quality hints)
 - [x] Command palette: Toggle Strict Mode, Restart Server, Show Server Log
 - [x] Cross-file context via `winmidl.json` project file
 - [x] Cross-file hints via `// @ref: file.idl` directives
-- [x] `// @ref:` autocomplete (files/folders, local → include paths, subdirectory navigation)
-- [x] Dot-triggered autocomplete (namespace children, enum members, imported WinMD types)
-- [x] "Did you mean?" suggestions for undefined types (Levenshtein edit distance, scaled threshold)
-- [x] Quick fix code actions for did-you-mean type corrections
-- [x] `@ref` F12 navigation (opens file/folder)
-- [x] `@ref` semantic highlighting (decorator token type)
+- [x] Workspace diagnostics (scans `.idl` files on open, file watcher for changes/deletes)
 - [x] WinMD provider caching + compilation caching (avoids redundant work)
 - [x] Debounce (300ms) — avoids recompilation on every keystroke
 - [x] Content-hash caching — skips recompilation if text unchanged
+- [x] Source-generated JSON types (Protocol/LspTypes.cs, AOT-compatible)
 
-### Testing (1,345 tests)
-- [x] Lexer: 85 tests (tokens, trivia, edge cases, preprocessor, float/negative literals)
-- [x] Parser: 74 tests (structures, error recovery, completeness, classic MIDL, generic disambiguation, forward declarations)
-- [x] Analysis: 420 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, hex literals, naming conventions, custom attribute types/ranges, protected accessor validation, feature gates, experimental refs)
-- [x] CodeGen: 160 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes, per-namespace output, parity fixtures)
-- [x] Integration: 606 tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete, LSP handlers, WinMD parity)
+### Testing (1,400+ tests)
+- [x] Lexer: 87 tests (tokens, trivia, edge cases, preprocessor, float/negative literals, line continuation)
+- [x] Parser: 75 tests (structures, error recovery, completeness, classic MIDL, generic disambiguation, forward declarations, [default] base list)
+- [x] Analysis: 459 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, naming conventions, custom attribute types/ranges, protected accessor, feature gates, experimental refs, did-you-mean, default interface, CLR projection, circular requires, UUID format, void properties, static class)
+- [x] CodeGen: 182 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes, per-namespace output, parity fixtures, generic decompilation, namespace scoping, CLR projection, static members, overridable/protected, base class, version decoding, events, property shorthand)
+- [x] Integration: 620+ tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete, LSP handlers, WinMD parity, goto-definition, rename, workspace diagnostics)
 - [x] IDL fixture suite (18 files with `.expected.json` + `.expected.tree` sidecars)
 - [x] OS fixture test script (`scripts/test-os-fixtures.ps1` — 1186 files, 0 crashes)
+
+### WinMD Decompiler (`--decompile`)
+- [x] Idiomatic MIDL3 property syntax (shorthand for read-write, `{ get; }` for read-only)
+- [x] Event syntax with delegate types
+- [x] Skip synthesized exclusive interfaces (re-synthesized at compile time)
+- [x] Generic type decompilation with named type parameters (TSender, TResult — not `!0`/backtick)
+- [x] CLR→WinRT type projection (40+ mappings: TimeSpan, DateTime, IVector, INotifyPropertyChanged, etc.)
+- [x] Projected struct definitions appended per namespace (DateTime, TimeSpan, HResult, etc.)
+- [x] Namespace-scoped type names: short names for same-namespace, fully qualified for cross-namespace
+- [x] Namespace-filtered decompilation (`--namespace` flag, avoids decompiling all of Windows.winmd)
+- [x] Per-namespace virtual documents (distinct URIs for each namespace)
+- [x] Base class shown on runtimeclass (`: Control`)
+- [x] `unsealed` / `static` class modifiers
+- [x] `static` members from `[static()]` interfaces folded into parent class
+- [x] `overridable` / `protected` member modifiers from InterfaceImpl attributes
+- [x] Version numbers decoded (`65536` → `1`)
+- [x] Attributes: `[webhosthidden]`, `[contract()]`, `[composable()]`, `[activatable()]`, `[static()]`, `[deprecated()]`, `[exclusiveto()]`, `[version()]`, `[marshaling_behavior()]`, `[threading()]`
 
 ### Infrastructure & Documentation
 - [x] GitHub Actions CI (build + test + NativeAOT + VS Code extension)
@@ -206,9 +229,8 @@
 - [ ] **ACF grammar** — placeholder only
 - [ ] **~84 more CLI switches** — accept-and-ignore for drop-in compatibility
 - [x] ~~**Velocity/Feature API staging**~~ — `[feature(Name)]` + `[experimental]` validation (MIDL1104/1105), WinMD emission, `feature_name` declarations (WINDOWS_INTERNAL only)
-- [ ] **`[contentproperty]`** — parsed but not semantically processed
-- [ ] **`[allowforweb]`** — parsed but not semantically processed
-- [ ] **`[fastabi]`** — parsed but not semantically processed
+- [ ] **Generic custom attribute WinMD emission** — emitter uses whitelist; non-whitelisted attributes silently dropped (in progress)
+- [ ] **Versioned blocks in decompilation** — group members by version into `[contract(N)] { }` blocks (in progress)
 
 ### Nice to Have
 - [x] ~~**WinMD inspection**~~ — F12 into `.winmd` types (decompiled read-only view via `midl-winmd:` URI scheme)
@@ -218,6 +240,9 @@
 - [ ] **Drop-in replacement** test in razzle build (T4 testing)
 - [x] ~~**Rename symbol**~~ — F2 rename with prepareRename validation (within-file scope)
 - [x] ~~**Incremental parsing**~~ — deferred; full reparse is <10ms, debounce handles perf
+- [ ] **Code folding** — `textDocument/foldingRange` for namespace/class/interface blocks
+- [ ] **Negative parity gaps** — 21 negative fixtures still marked `parityGap:true`
+- [ ] **Publish VSIX** to VS Code marketplace
 
 ---
 
