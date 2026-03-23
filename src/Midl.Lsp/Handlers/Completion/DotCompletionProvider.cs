@@ -61,10 +61,12 @@ internal static class DotCompletionProvider
             var ns = ResolveNamespace(compilation.GlobalNamespace, prefix);
             if (ns != null)
             {
+                var canonicalPrefix = ns.FullName; // use correctly-cased name
+
                 // Add child namespaces
                 foreach (var child in ns.ChildNamespaces.Values.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
                 {
-                    AddDotItem(items, child.Name, CompletionHandler.KindModule, child.FullName, prefix);
+                    AddDotItem(items, child.Name, CompletionHandler.KindModule, child.FullName, canonicalPrefix);
                 }
 
                 // Add types in this namespace
@@ -80,11 +82,11 @@ internal static class DotCompletionProvider
                         SymbolKind.Delegate => CompletionHandler.KindClass,
                         _ => CompletionHandler.KindClass,
                     };
-                    AddDotItem(items, member.Name, kind, member.FullName, prefix);
+                    AddDotItem(items, member.Name, kind, member.FullName, canonicalPrefix);
                 }
 
                 // Also check lazy providers for types in this namespace
-                AddLazyProviderNamespaceMembers(items, compilation, prefix);
+                AddLazyProviderNamespaceMembers(items, compilation, canonicalPrefix);
 
                 return items;
             }
@@ -169,14 +171,17 @@ internal static class DotCompletionProvider
             items.Select(i => ((Dictionary<string, object?>)i)["label"]?.ToString() ?? ""),
             StringComparer.Ordinal);
 
-        var prefix = ns + ".";
         var childNamespaces = new HashSet<string>(StringComparer.Ordinal);
+        string? canonicalPrefix = null;
 
         foreach (var fullName in compilation.GetAllLazyTypeNames())
         {
-            if (!fullName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!fullName.StartsWith(ns + ".", StringComparison.OrdinalIgnoreCase)) continue;
 
-            var remainder = fullName[prefix.Length..];
+            // Extract the correctly-cased prefix from the first matching type name
+            canonicalPrefix ??= fullName[..ns.Length];
+
+            var remainder = fullName[(ns.Length + 1)..];
             var dotIdx = remainder.IndexOf('.');
             if (dotIdx >= 0)
             {
@@ -184,7 +189,8 @@ internal static class DotCompletionProvider
                 var childNs = remainder[..dotIdx];
                 if (childNamespaces.Add(childNs) && existingLabels.Add(childNs))
                 {
-                    AddDotItem(items, childNs, CompletionHandler.KindModule, prefix + childNs, ns);
+                    AddDotItem(items, childNs, CompletionHandler.KindModule,
+                        canonicalPrefix + "." + childNs, canonicalPrefix);
                 }
             }
             else
@@ -195,7 +201,8 @@ internal static class DotCompletionProvider
                 if (backtick >= 0) typeName = typeName[..backtick];
                 if (existingLabels.Add(typeName))
                 {
-                    AddDotItem(items, typeName, CompletionHandler.KindClass, fullName, ns);
+                    AddDotItem(items, typeName, CompletionHandler.KindClass,
+                        fullName, canonicalPrefix);
                 }
             }
         }
