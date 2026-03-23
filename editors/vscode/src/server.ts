@@ -104,19 +104,28 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
                 const result = await next(document, position, token);
                 try {
                     if (result) {
-                        // Make a trusted copy so command: URIs are clickable
                         const raw = result.contents;
                         let mdText: string | undefined;
                         if (raw instanceof vscode.MarkdownString) {
                             mdText = raw.value;
                         } else if (typeof raw === 'string') {
                             mdText = raw;
+                        } else if (Array.isArray(raw)) {
+                            // LSP client may return array of MarkedString/MarkdownString
+                            const parts: string[] = [];
+                            for (const item of raw) {
+                                if (item instanceof vscode.MarkdownString) parts.push(item.value);
+                                else if (typeof item === 'string') parts.push(item);
+                                else if (item && typeof item === 'object' && 'value' in item) parts.push(String((item as any).value));
+                            }
+                            mdText = parts.join('\n\n');
                         } else if (raw && typeof raw === 'object' && 'value' in raw) {
-                            mdText = String((raw as {value: unknown}).value);
+                            mdText = String((raw as any).value);
                         }
                         if (mdText && mdText.includes('command:')) {
                             const md = new vscode.MarkdownString(mdText);
                             md.isTrusted = { enabledCommands: ['midl.openDocs'] };
+                            md.supportHtml = true;
                             return new vscode.Hover(md, result.range);
                         }
                     }
