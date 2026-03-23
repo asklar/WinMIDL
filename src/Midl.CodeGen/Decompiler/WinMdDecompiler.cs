@@ -279,7 +279,8 @@ public class WinMdDecompiler
             var evt = reader.GetEventDefinition(eventHandle);
             var evtName = reader.GetString(evt.Name);
             var delegateType = GetEntityName(reader, evt.Type);
-            sb.AppendLine($"{indent}    event {GetShortName(delegateType)} {evtName};");
+            var displayType = string.IsNullOrEmpty(delegateType) ? "Object" : MapToMidlType(delegateType);
+            sb.AppendLine($"{indent}    event {displayType} {evtName};");
         }
 
         sb.AppendLine($"{indent}}};");
@@ -1327,8 +1328,19 @@ public class WinMdDecompiler
         {
             HandleKind.TypeReference => GetTypeRefFullName(reader, (TypeReferenceHandle)handle),
             HandleKind.TypeDefinition => GetTypeDefFullName(reader, (TypeDefinitionHandle)handle),
+            HandleKind.TypeSpecification => DecodeTypeSpec(reader, (TypeSpecificationHandle)handle),
             _ => string.Empty,
         };
+    }
+
+    private static string DecodeTypeSpec(MetadataReader reader, TypeSpecificationHandle handle)
+    {
+        try
+        {
+            var spec = reader.GetTypeSpecification(handle);
+            return spec.DecodeSignature(new DecompilerSignatureTypeProvider(reader), null);
+        }
+        catch { return string.Empty; }
     }
 
     private static string GetShortName(string fullName)
