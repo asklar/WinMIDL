@@ -123,8 +123,9 @@ internal static class DotCompletionProvider
         var current = root;
         foreach (var part in parts)
         {
-            if (!current.ChildNamespaces.TryGetValue(part, out var child))
-                return null;
+            var child = current.ChildNamespaces
+                .FirstOrDefault(kvp => kvp.Key.Equals(part, StringComparison.OrdinalIgnoreCase)).Value;
+            if (child == null) return null;
             current = child;
         }
         return current;
@@ -139,7 +140,7 @@ internal static class DotCompletionProvider
         // Try short name match in all types
         foreach (var t in compilation.GetAllTypes())
         {
-            if (t.Name.Equals(name, StringComparison.Ordinal))
+            if (t.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 return t;
         }
         return null;
@@ -173,7 +174,7 @@ internal static class DotCompletionProvider
 
         foreach (var fullName in compilation.GetAllLazyTypeNames())
         {
-            if (!fullName.StartsWith(prefix, StringComparison.Ordinal)) continue;
+            if (!fullName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
 
             var remainder = fullName[prefix.Length..];
             var dotIdx = remainder.IndexOf('.');
