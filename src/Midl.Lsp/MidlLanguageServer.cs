@@ -62,7 +62,7 @@ public sealed partial class MidlLanguageServer
             {
                 break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 break;
             }
@@ -70,6 +70,7 @@ public sealed partial class MidlLanguageServer
 
             using (msg)
             {
+                if (msg is null) continue;
                 var method = msg.RootElement.TryGetProperty("method", out var m) ? m.GetString() : "(response)";
                 MidlTrace.Lsp($"Received: {method}");
                 await HandleMessageAsync(msg.RootElement);
@@ -288,7 +289,7 @@ public sealed partial class MidlLanguageServer
                     _projectFile = ProjectFile.Load(projectPath);
                     MidlTrace.Lsp($"Loaded winmidl.json: {_projectFile.Inputs.Count} inputs, {_projectFile.References.Count} references");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }

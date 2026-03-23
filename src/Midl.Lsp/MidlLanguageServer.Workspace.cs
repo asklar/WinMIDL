@@ -61,12 +61,12 @@ public sealed partial class MidlLanguageServer
                     var text = await File.ReadAllTextAsync(filePath);
                     await AnalyzeAndPublishAsync(uri, text);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
     }
@@ -113,7 +113,7 @@ public sealed partial class MidlLanguageServer
                         var text = await File.ReadAllTextAsync(filePath);
                         await AnalyzeAndPublishAsync(uri, text);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                     }
                 }
