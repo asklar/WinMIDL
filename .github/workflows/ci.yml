@@ -44,7 +44,10 @@ jobs:
           echo "VCToolsInstallDir=$vsPath\VC\Tools\MSVC\$vcVersion\" >> $env:GITHUB_ENV
 
           $sdkRoot = "${env:ProgramFiles(x86)}\Windows Kits\10"
-          $sdkVer = Get-ChildItem "$sdkRoot\Lib" -Directory | Where-Object { Test-Path "$($_.FullName)\um\x64\advapi32.lib" } | Sort-Object Name -Descending | Select-Object -First 1
+          # Skip SDK 10.0.26546.0 which has NativeAOT linker issues
+          $sdkVer = Get-ChildItem "$sdkRoot\Lib" -Directory |
+            Where-Object { $_.Name -ne '10.0.26546.0' -and (Test-Path "$($_.FullName)\um\x64\advapi32.lib") } |
+            Sort-Object Name -Descending | Select-Object -First 1
           if (-not $sdkVer) { Write-Error "No Windows SDK with libs found"; exit 1 }
           echo "WindowsSdkDir=$sdkRoot\" >> $env:GITHUB_ENV
           echo "WindowsSDKLibVersion=$($sdkVer.Name)\" >> $env:GITHUB_ENV
