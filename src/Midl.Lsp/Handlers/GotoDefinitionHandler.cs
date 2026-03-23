@@ -25,6 +25,7 @@ public static class GotoDefinitionHandler
         int character = position.GetProperty("character").GetInt32();
 
         var text = docManager.GetDocumentText(uri);
+        Console.Error.WriteLine($"[MIDL:GOTODEF] Handle: uri={uri.Substring(0, Math.Min(60, uri.Length))}..., text={text?.Length ?? -1}");
         if (text is null) return null;
 
         // Extract file path from URI for import resolution
@@ -227,20 +228,19 @@ public static class GotoDefinitionHandler
     /// </summary>
     private static object? HandleWinMdView(string sourceText, string uri, int line, int character, int[] lineStarts)
     {
-        MidlTrace.Write("GOTODEF", $"HandleWinMdView: uri={uri}, line={line}, char={character}, textLen={sourceText.Length}");
+        Console.Error.WriteLine($"[MIDL:GOTODEF] HandleWinMdView: uri={uri.Substring(0, Math.Min(80, uri.Length))}..., line={line}, char={character}, textLen={sourceText.Length}");
         int offset = PositionHelper.LineCharToOffset(lineStarts, line, character);
         var lexer = new Lexer.Lexer(sourceText);
         var tokens = lexer.Lex();
-        MidlTrace.Write("GOTODEF", $"HandleWinMdView: lexed {tokens.Count} tokens");
         var (token, tokenOffset) = FindTokenAtOffset(tokens, offset);
         if (token is null || token.Kind != SyntaxKind.IdentifierToken)
         {
-            MidlTrace.Write("GOTODEF", $"HandleWinMdView: no identifier at offset {offset}");
+            Console.Error.WriteLine($"[MIDL:GOTODEF] No identifier at offset {offset}, token={token?.Kind}");
             return null;
         }
 
         string name = token.Text;
-        MidlTrace.Write("GOTODEF", $"HandleWinMdView: token='{name}' at offset {tokenOffset}");
+        Console.Error.WriteLine($"[MIDL:GOTODEF] Token='{name}' at offset {tokenOffset}");
 
         // Extract WinMD path and current namespace from URI
         var uriPath = uri["midl-winmd:///".Length..];
