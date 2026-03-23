@@ -476,6 +476,57 @@ public class DecompilerTests
         Assert.DoesNotContain("System.Uri", idl);
     }
 
+    #region Overridable and protected modifiers
+
+    [Fact]
+    public void Decompile_OverridableMembers_ShowKeyword()
+    {
+        var source = @"
+            namespace N {
+                unsealed runtimeclass Widget {
+                    overridable void OnActivated();
+                    void DoWork();
+                }
+            }";
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("overridable void OnActivated", idl);
+        Assert.Contains("void DoWork", idl);
+        // DoWork should NOT have overridable
+        Assert.DoesNotContain("overridable void DoWork", idl);
+    }
+
+    [Fact]
+    public void Decompile_ProtectedMembers_ShowKeyword()
+    {
+        var source = @"
+            namespace N {
+                unsealed runtimeclass Widget {
+                    protected void Initialize();
+                    void DoWork();
+                }
+            }";
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("protected void Initialize", idl);
+        Assert.DoesNotContain("protected void DoWork", idl);
+    }
+
+    [Fact]
+    public void Decompile_WindowsWinmd_OverridableMembers()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+        // ContentControl has overridable OnContentChanged
+        Assert.Contains("overridable", idl);
+    }
+
+    #endregion
+
     #region Namespace-scoped type names
 
     [Fact]

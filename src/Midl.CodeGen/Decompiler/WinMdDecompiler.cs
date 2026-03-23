@@ -463,6 +463,9 @@ public class WinMdDecompiler
         // Emit static members from [static()] interfaces
         EmitStaticMembers(reader, handle, sb, indent);
 
+        // Emit overridable/protected members from InterfaceImpl attributes
+        EmitModifiedMembers(reader, handle, sb, indent);
+
         sb.AppendLine($"{indent}}};");
     }
 
@@ -492,6 +495,39 @@ public class WinMdDecompiler
         }
     }
 
+    private void EmitModifiedMembers(MetadataReader reader, TypeDefinitionHandle classHandle, StringBuilder sb, string indent)
+    {
+        var td = reader.GetTypeDefinition(classHandle);
+        foreach (var ifaceImplHandle in td.GetInterfaceImplementations())
+        {
+            var impl = reader.GetInterfaceImplementation(ifaceImplHandle);
+            string? prefix = null;
+            foreach (var attrHandle in impl.GetCustomAttributes())
+            {
+                var attr = reader.GetCustomAttribute(attrHandle);
+                var attrName = GetAttributeTypeName(reader, attr.Constructor);
+                if (attrName == "OverridableAttribute")
+                    prefix = "overridable ";
+                else if (attrName == "ProtectedAttribute")
+                    prefix = "protected ";
+            }
+            if (prefix == null) continue;
+
+            var ifaceName = GetEntityName(reader, impl.Interface);
+            if (string.IsNullOrEmpty(ifaceName)) continue;
+
+            TypeDefinitionHandle? ifaceTdHandle;
+            if (impl.Interface.Kind == HandleKind.TypeDefinition)
+                ifaceTdHandle = (TypeDefinitionHandle)impl.Interface;
+            else
+                ifaceTdHandle = FindTypeDefByFullName(reader, ifaceName);
+
+            if (ifaceTdHandle == null) continue;
+            var ifaceTypeDef = reader.GetTypeDefinition(ifaceTdHandle.Value);
+            EmitMembersFromInterface(reader, ifaceTypeDef, sb, indent, prefix);
+        }
+    }
+
     private static TypeDefinitionHandle? FindTypeDefByFullName(MetadataReader reader, string fullName)
     {
         foreach (var handle in reader.TypeDefinitions)
@@ -508,7 +544,11 @@ public class WinMdDecompiler
 
     private void EmitMembersFromInterface(MetadataReader reader, TypeDefinition td, StringBuilder sb, string indent, bool isStatic)
     {
-        var prefix = isStatic ? "static " : "";
+        EmitMembersFromInterface(reader, td, sb, indent, isStatic ? "static " : "");
+    }
+
+    private void EmitMembersFromInterface(MetadataReader reader, TypeDefinition td, StringBuilder sb, string indent, string prefix)
+    {
         var accessorNames = new HashSet<string>();
         var properties = new Dictionary<string, (string Type, bool HasGet, bool HasSet)>();
         var events = new Dictionary<string, string>();
