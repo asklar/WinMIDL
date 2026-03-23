@@ -212,6 +212,12 @@ static std::string format_elem_sig(ElemSig::value_type const& val)
     return std::visit(V{}, val);
 }
 
+// Helper to access protected get_blob on CustomAttribute rows
+struct ca_blob_accessor : winmd::reader::CustomAttribute
+{
+    winmd::reader::byte_view raw_blob() const { return get_blob(2); }
+};
+
 static void dump_custom_attributes(auto const& owner, std::string const& indent)
 {
     int ca_idx = 0;
@@ -261,7 +267,41 @@ static void dump_custom_attributes(auto const& owner, std::string const& indent)
         }
         catch (...)
         {
-            std::cout << indent << "  <failed to decode attribute value>\n";
+            // The high-level Value() decoder fails when constructor parameters reference
+            // enum types in external assemblies (e.g. ThreadingModel, MarshalingType in
+            // Windows.Foundation.Metadata). Fall back to raw blob decoding.
+            try
+            {
+                auto const& accessor = static_cast<ca_blob_accessor const&>(ca);
+                auto blob = accessor.raw_blob();
+                auto sz = blob.size();
+                if (sz >= 6 && blob.as<uint16_t>(0) == 0x0001)
+                {
+                    // Single Int32/enum parameter: prolog(2) + value(4) + named_count(2) = 8
+                    if (sz == 8)
+                    {
+                        int32_t val = blob.as<int32_t>(2);
+                        std::cout << indent << "  Arg[0]: (Int32) " << val << "\n";
+                    }
+                    // Two-parameter (String + Int32): ActivatableAttribute, StaticAttribute, etc.
+                    else if (sz > 8)
+                    {
+                        std::cout << indent << "  <raw blob, " << sz << " bytes>\n";
+                    }
+                    else
+                    {
+                        std::cout << indent << "  <failed to decode attribute value>\n";
+                    }
+                }
+                else
+                {
+                    std::cout << indent << "  <failed to decode attribute value>\n";
+                }
+            }
+            catch (...)
+            {
+                std::cout << indent << "  <failed to decode attribute value>\n";
+            }
         }
 
         ++ca_idx;

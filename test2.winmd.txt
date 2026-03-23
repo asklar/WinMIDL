@@ -34,6 +34,8 @@
     Arg[10]: (UInt8) 85
   CustomAttribute[1]: Windows.Foundation.Metadata.ExclusiveToAttribute
     Arg[0]: (Type) X.F
+  CustomAttribute[2]: Windows.Foundation.Metadata.VersionAttribute
+    Arg[0]: (UInt32) 1
 
 === Type: X.F ===
   Kind: RuntimeClass
@@ -47,7 +49,7 @@
     ImplFlags: 0x0003
     ReturnType: Void
   Method[1]: B
-    Flags: 0x01E6 (Public | Final | Virtual | HideBySig | NewSlot)
+    Flags: 0x01E4 (Family | Final | Virtual | HideBySig | NewSlot)
     ImplFlags: 0x0003
     ReturnType: Boolean
   CustomAttribute[0]: Windows.Foundation.Metadata.ThreadingAttribute
