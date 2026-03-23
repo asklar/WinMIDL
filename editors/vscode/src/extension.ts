@@ -208,15 +208,15 @@ function startLanguageServer(serverPath: string, context: vscode.ExtensionContex
                 if (result && !Array.isArray(result) && 'uri' in result) {
                     const loc = result as vscode.Location;
 
-                    // WinMD decompiled view: open virtual document with MIDL syntax highlighting
+                    // WinMD decompiled view: pre-open virtual document and set language,
+                    // then return the Location so VS Code handles navigation natively
+                    // (this ensures the LSP client attaches to the document)
                     if (loc.uri.scheme === 'midl-winmd') {
                         const doc = await vscode.workspace.openTextDocument(loc.uri);
                         await vscode.languages.setTextDocumentLanguage(doc, 'midl');
-                        await vscode.window.showTextDocument(doc, {
-                            selection: loc.range,
-                            preview: true
-                        });
-                        return null;
+                        // Return the location — VS Code will navigate to it and the LSP
+                        // client will attach because midl-winmd is in the documentSelector
+                        return new vscode.Location(loc.uri, loc.range);
                     }
 
                     const targetPath = loc.uri.fsPath;
