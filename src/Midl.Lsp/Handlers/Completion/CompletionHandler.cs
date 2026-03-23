@@ -95,8 +95,8 @@ public static class CompletionHandler
                 };
 
                 var items = DotCompletionProvider.BuildDotCompletions(dotPrefix, text, includePaths, fileDir, cachedCompilation, editRange);
-                if (items.Count > 0)
-                    return new Dictionary<string, object?> { ["isIncomplete"] = true, ["items"] = items.ToArray() };
+                // Always return from dot path — empty means we're after a leaf type
+                return new Dictionary<string, object?> { ["isIncomplete"] = items.Count > 0, ["items"] = items.ToArray() };
             }
 
             // Check if cursor is inside an attribute context [...]

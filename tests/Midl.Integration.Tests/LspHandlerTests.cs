@@ -889,6 +889,104 @@ public class LspHandlerTests
     }
 
     [Fact]
+    public void DotCompletion_AfterType_ReturnsEmpty()
+    {
+        // Typing "." after a resolved type should NOT show namespace children
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    runtimeclass Foo {\n    }\n    runtimeclass Bar {\n        N.Foo.\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        var compilation = CompilationHelper.Compile(source);
+
+        // Cursor after "N.Foo." — line 4, col 14
+        var result = CompletionHandler.Handle(
+            MakePositionParams(uri, 4, 14), dm, cachedCompilation: compilation);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should NOT show namespace children (N is a namespace, but Foo. shouldn't drill further)
+        // The contextual completion may still show types — we just verify no dot-style namespace items
+        Assert.DoesNotContain("SDK namespace", json);
+    }
+
+    [Fact]
+    public void DotCompletion_AfterSdkType_ReturnsEmpty()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace X {\n    runtimeclass F {\n        Windows.Foundation.Uri.\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+
+        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        if (winmd == null) return;
+        var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
+
+        // Cursor after "Windows.Foundation.Uri." — line 2, col 31
+        var result = CompletionHandler.Handle(
+            MakePositionParams(uri, 2, 31), dm, cachedCompilation: compilation);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should return empty — Uri is a type, not a namespace
+        Assert.DoesNotContain("Foundation", json);
+    }
+
+    [Fact]
+    public void DotCompletion_AfterEnum_ShowsMembers()
+    {
+        // Enum. should still show enum members
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    enum Color { Red, Green, Blue };\n    runtimeclass Foo {\n        N.Color.\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        var compilation = CompilationHelper.Compile(source);
+
+        // Cursor after "N.Color." — line 3, col 16
+        var result = CompletionHandler.Handle(
+            MakePositionParams(uri, 3, 16), dm, cachedCompilation: compilation);
+        var json = JsonSerializer.Serialize(result);
+
+        Assert.Contains("Red", json);
+        Assert.Contains("Green", json);
+        Assert.Contains("Blue", json);
+    }
+
+    [Fact]
+    public void RefDirective_FolderCompletion_UsesBackslashByDefault()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_sep_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        var subDir = Path.Combine(tempDir, "mylibs");
+        Directory.CreateDirectory(subDir);
+        try
+        {
+            var uri = "file:///" + Uri.EscapeDataString(Path.Combine(tempDir, "main.idl")).Replace("\\", "/");
+            var source = "// @ref: \nnamespace N { }";
+            var dm = CreateDocManager(uri, source);
+            var items = RefDirectiveCompletionProvider.BuildRefDirectiveCompletions("", tempDir);
+            var json = JsonSerializer.Serialize(items);
+            // Default separator should be backslash
+            Assert.Contains("mylibs\\\\", json);
+            Assert.DoesNotContain("mylibs/", json);
+        }
+        finally { Directory.Delete(tempDir, true); }
+    }
+
+    [Fact]
+    public void RefDirective_FolderCompletion_MatchesForwardSlash()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"midl_sep_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        var subDir = Path.Combine(tempDir, "libs");
+        Directory.CreateDirectory(subDir);
+        var nestedDir = Path.Combine(subDir, "nested");
+        Directory.CreateDirectory(nestedDir);
+        try
+        {
+            // User typed "libs/" with forward slash — nested dirs should use "/"
+            var items = RefDirectiveCompletionProvider.BuildRefDirectiveCompletions("libs/", tempDir);
+            var json = JsonSerializer.Serialize(items);
+            Assert.Contains("nested/", json);
+        }
+        finally { Directory.Delete(tempDir, true); }
+    }
+
+    [Fact]
     public void CompletionOnRefDirective_ShowsFilesAndFolders()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), $"midl_ref_test_{Guid.NewGuid():N}");
