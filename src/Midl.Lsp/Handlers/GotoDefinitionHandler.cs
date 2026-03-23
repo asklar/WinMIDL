@@ -96,22 +96,24 @@ public static class GotoDefinitionHandler
         var symbol = FindSymbol(compilation, name, sourceText, tokenOffset);
 
         // If not found by simple name, try the full qualified name the cursor is within
-        // e.g., cursor on "UI" in "Microsoft.UI.Xaml.Controls.Control" → extract full QN
+        // e.g., cursor on "Xaml" in "Microsoft.UI.Xaml.Controls.Control" → look up the whole thing
         if (symbol is null)
         {
             var fullQualifiedName = ExtractFullQualifiedNameAtCursor(sourceText, tokenOffset, name);
             if (fullQualifiedName != null && fullQualifiedName != name)
             {
-                // Try the last segment as the type name with full context
-                var lastDot = fullQualifiedName.LastIndexOf('.');
-                var typeName = lastDot >= 0 ? fullQualifiedName[(lastDot + 1)..] : fullQualifiedName;
-                symbol = FindSymbol(compilation, typeName, sourceText,
-                    tokenOffset + (fullQualifiedName.Length - typeName.Length));
+                // Try the full qualified name directly via SymbolTable
+                symbol = compilation.SymbolTable?.LookupDefinedType(fullQualifiedName);
 
-                // If still null, try the full name directly via SymbolTable
+                // Also try FindSymbol with the last segment + correct offset
                 if (symbol is null)
                 {
-                    symbol = compilation.SymbolTable?.LookupDefinedType(fullQualifiedName);
+                    var lastDot = fullQualifiedName.LastIndexOf('.');
+                    var typeName = lastDot >= 0 ? fullQualifiedName[(lastDot + 1)..] : fullQualifiedName;
+                    // Find the actual offset of typeName in source by locating the full QN
+                    var qnIdx = sourceText.IndexOf(fullQualifiedName, StringComparison.Ordinal);
+                    if (qnIdx >= 0)
+                        symbol = FindSymbol(compilation, typeName, sourceText, qnIdx + lastDot + 1);
                 }
             }
         }

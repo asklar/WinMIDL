@@ -418,5 +418,28 @@ public class GotoDefinitionTests
         }
     }
 
+    [Fact]
+    public void GotoDefinition_MiddleNamespaceSegment_StillResolvesType()
+    {
+        // F12 on "Foundation" in "Windows.Foundation.TypedEventHandler" (cursor on middle segment)
+        // should still resolve to TypedEventHandler
+        var source = "namespace N { runtimeclass Foo { event Windows.Foundation.TypedEventHandler<Foo, Object> Changed; } }";
+        var uri = "file:///test.idl";
+
+        // Position cursor on "Foundation" — a middle segment, not the type name
+        int idx = source.IndexOf("Foundation", StringComparison.Ordinal);
+        var lineStarts = PositionHelper.BuildLineStarts(source);
+        var (line, ch) = PositionHelper.OffsetToLineChar(lineStarts, idx);
+
+        var result = GotoDefinitionHandler.HandleCore(source, uri, line, ch);
+
+        // TypedEventHandler is a built-in, so this should resolve on any machine
+        Assert.NotNull(result);
+        var dict = Assert.IsType<Dictionary<string, object?>>(result);
+        var resultUri = dict["uri"]!.ToString()!;
+        Assert.Contains("midl-winmd://", resultUri);
+        Assert.Contains("Windows.Foundation", resultUri);
+    }
+
     #endregion
 }
