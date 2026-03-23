@@ -143,8 +143,16 @@ public sealed class MidlLanguageServer
                 break;
 
             case "textDocument/definition":
-                await _writer.SendResponseAsync(id, GotoDefinitionHandler.Handle(@params, _docManager, _sdkIncludePaths, _referencePaths));
-                break;
+                {
+                    var defUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? defCompilation = null;
+                    if (defUri != null) _lastCompilation.TryGetValue(defUri, out defCompilation);
+                    var defRefs = defUri != null ? GetReferencePaths(defUri) : _referencePaths;
+                    string? defFilePath = defUri?.StartsWith("file:///") == true ? Uri.UnescapeDataString(defUri[8..]) : null;
+                    var defIncludes = GetIncludePaths(defFilePath);
+                    await _writer.SendResponseAsync(id, GotoDefinitionHandler.Handle(@params, _docManager, defIncludes, defRefs, defCompilation));
+                    break;
+                }
 
             case "textDocument/references":
                 await _writer.SendResponseAsync(id, FindReferencesHandler.Handle(@params, _docManager));

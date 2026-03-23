@@ -13,7 +13,8 @@ namespace Midl.Lsp.Handlers;
 public static class GotoDefinitionHandler
 {
     public static object? Handle(JsonElement? @params, DocumentManager docManager,
-        IReadOnlyList<string>? includePaths = null, IReadOnlyList<string>? referencePaths = null)
+        IReadOnlyList<string>? includePaths = null, IReadOnlyList<string>? referencePaths = null,
+        Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -31,7 +32,7 @@ public static class GotoDefinitionHandler
         if (uri.StartsWith("file:///"))
             filePath = Uri.UnescapeDataString(uri[8..]);
 
-        return HandleCore(text, uri, line, character, filePath, includePaths, referencePaths);
+        return HandleCore(text, uri, line, character, filePath, includePaths, referencePaths, cachedCompilation);
     }
 
     /// <summary>
@@ -41,7 +42,8 @@ public static class GotoDefinitionHandler
     public static object? HandleCore(string sourceText, string uri, int line, int character,
         string? currentFilePath = null,
         IReadOnlyList<string>? includePaths = null,
-        IReadOnlyList<string>? referencePaths = null)
+        IReadOnlyList<string>? referencePaths = null,
+        Compilation? cachedCompilation = null)
     {
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
 
@@ -64,23 +66,30 @@ public static class GotoDefinitionHandler
 
         string name = token.Text;
 
+        // Use cached compilation if available (shares type universe with diagnostics/autocomplete)
         Compilation compilation;
-        try
+        if (cachedCompilation != null)
         {
-            // Use the overload that supports import resolution when file path is available
-            if (currentFilePath != null)
-            {
-                compilation = CompilationHelper.Compile(sourceText, referencePaths,
-                    CompilationMode.Strict, includePaths, currentFilePath);
-            }
-            else
-            {
-                compilation = CompilationHelper.Compile(sourceText);
-            }
+            compilation = cachedCompilation;
         }
-        catch
+        else
         {
-            return null;
+            try
+            {
+                if (currentFilePath != null)
+                {
+                    compilation = CompilationHelper.Compile(sourceText, referencePaths,
+                        CompilationMode.Strict, includePaths, currentFilePath);
+                }
+                else
+                {
+                    compilation = CompilationHelper.Compile(sourceText);
+                }
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         // Search for the symbol in compilation
@@ -137,7 +146,7 @@ public static class GotoDefinitionHandler
             }
 
             // Built-in WinRT types have SourceWinMdPath = "<built-in>" — resolve via Windows.winmd
-            if (symbol.FullName.StartsWith("Windows."))
+            if (symbol.SourceWinMdPath == "<built-in>")
             {
                 var winmd = FindWindowsWinMd();
                 if (winmd != null)
