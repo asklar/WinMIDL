@@ -70,7 +70,7 @@ public sealed partial class MidlLanguageServer
 
             using (msg)
             {
-                if (msg is null) continue;
+                if (msg is null) break; // EOF or stream closed
                 var method = msg.RootElement.TryGetProperty("method", out var m) ? m.GetString() : "(response)";
                 MidlTrace.Lsp($"Received: {method}");
                 await HandleMessageAsync(msg.RootElement);

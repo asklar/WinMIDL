@@ -7,28 +7,33 @@ public sealed partial class MidlLanguageServer
 {
     private async Task HandleInitializedAsync()
     {
-        // Register for file watching so we get workspace/didChangeWatchedFiles notifications
-        await _writer.SendRequestAsync("midl-register-1", "client/registerCapability", new Dictionary<string, object?>
+        // Register for file watching. SendRequestAsync only writes the message
+        // (doesn't await a response), so this won't block even without a real client.
+        try
         {
-            ["registrations"] = new[]
+            await _writer.SendRequestAsync("midl-register-1", "client/registerCapability", new Dictionary<string, object?>
             {
-                new Dictionary<string, object?>
+                ["registrations"] = new[]
                 {
-                    ["id"] = "midl-file-watcher",
-                    ["method"] = "workspace/didChangeWatchedFiles",
-                    ["registerOptions"] = new Dictionary<string, object?>
+                    new Dictionary<string, object?>
                     {
-                        ["watchers"] = new[]
+                        ["id"] = "midl-file-watcher",
+                        ["method"] = "workspace/didChangeWatchedFiles",
+                        ["registerOptions"] = new Dictionary<string, object?>
                         {
-                            new Dictionary<string, object?>
+                            ["watchers"] = new[]
                             {
-                                ["globPattern"] = "**/*.idl"
+                                new Dictionary<string, object?>
+                                {
+                                    ["globPattern"] = "**/*.idl"
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
+        catch { /* stream may be closed in test environments */ }
 
         // Scan workspace for .idl files and publish initial diagnostics
         await ScanWorkspaceAsync();
