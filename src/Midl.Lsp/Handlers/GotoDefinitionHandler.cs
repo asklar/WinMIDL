@@ -76,15 +76,8 @@ public static class GotoDefinitionHandler
         {
             try
             {
-                if (currentFilePath != null)
-                {
-                    compilation = CompilationHelper.Compile(sourceText, referencePaths,
-                        CompilationMode.Strict, includePaths, currentFilePath);
-                }
-                else
-                {
-                    compilation = CompilationHelper.Compile(sourceText);
-                }
+                compilation = CompilationHelper.Compile(sourceText, referencePaths,
+                    CompilationMode.Strict, includePaths, currentFilePath);
             }
             catch
             {
@@ -92,31 +85,34 @@ public static class GotoDefinitionHandler
             }
         }
 
-        // Search for the symbol in compilation
-        var symbol = FindSymbol(compilation, name, sourceText, tokenOffset);
+        // If the cursor is inside a fully qualified name, extract it and resolve directly
+        var fullQualifiedName = ExtractFullQualifiedNameAtCursor(sourceText, tokenOffset, name);
+        ISymbol? symbol = null;
 
-        // If not found by simple name, try the full qualified name the cursor is within
-        // e.g., cursor on "Xaml" in "Microsoft.UI.Xaml.Controls.Control" → look up the whole thing
-        if (symbol is null)
+        if (fullQualifiedName != null && fullQualifiedName != name)
         {
-            var fullQualifiedName = ExtractFullQualifiedNameAtCursor(sourceText, tokenOffset, name);
-            if (fullQualifiedName != null && fullQualifiedName != name)
-            {
-                // Try the full qualified name directly via SymbolTable
-                symbol = compilation.SymbolTable?.LookupDefinedType(fullQualifiedName);
+            // FQN found — resolve the type by qualified name
+            symbol = compilation.SymbolTable?.LookupDefinedType(fullQualifiedName);
+            symbol ??= compilation.GetTypeByName(fullQualifiedName);
 
-                // Also try FindSymbol with the last segment + correct offset
-                if (symbol is null)
+            // Fallback: search lazy providers by the last segment (the actual type name)
+            if (symbol is null)
+            {
+                var lastDot = fullQualifiedName.LastIndexOf('.');
+                var typeName = lastDot >= 0 ? fullQualifiedName[(lastDot + 1)..] : fullQualifiedName;
+                foreach (var fqn in compilation.GetAllLazyTypeNames())
                 {
-                    var lastDot = fullQualifiedName.LastIndexOf('.');
-                    var typeName = lastDot >= 0 ? fullQualifiedName[(lastDot + 1)..] : fullQualifiedName;
-                    // Find the actual offset of typeName in source by locating the full QN
-                    var qnIdx = sourceText.IndexOf(fullQualifiedName, StringComparison.Ordinal);
-                    if (qnIdx >= 0)
-                        symbol = FindSymbol(compilation, typeName, sourceText, qnIdx + lastDot + 1);
+                    if (fqn.Equals(fullQualifiedName, StringComparison.Ordinal))
+                    {
+                        symbol = compilation.GetTypeByName(fqn);
+                        break;
+                    }
                 }
             }
         }
+
+        // If no FQN or FQN didn't resolve, try simple name
+        symbol ??= FindSymbol(compilation, name, sourceText, tokenOffset);
 
         if (symbol is null) return null;
 

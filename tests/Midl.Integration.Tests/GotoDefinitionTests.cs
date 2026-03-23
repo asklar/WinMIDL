@@ -441,5 +441,50 @@ public class GotoDefinitionTests
         Assert.Contains("Windows.Foundation", resultUri);
     }
 
+    [Fact]
+    public void GotoDefinition_MiddleSegment_WinMdRefType_Resolves()
+    {
+        // F12 on "ExtLib" in "ExtLib.IWidget" where IWidget comes from a WinMD
+        var tempDir = Path.Combine(Path.GetTempPath(), "midl-gotodef-midseg-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var refSource = "namespace ExtLib { interface IWidget { void Activate(); } }";
+            var refCompilation = CompilationHelper.Compile(refSource);
+            var emitter = new WinMdEmitter();
+            var winmdBytes = emitter.EmitToBytes(refCompilation);
+            var winmdPath = Path.Combine(tempDir, "ExtLib.winmd");
+            File.WriteAllBytes(winmdPath, winmdBytes);
+
+            var source = "namespace N { runtimeclass Foo : ExtLib.IWidget {} }";
+            var idlPath = Path.Combine(tempDir, "test.idl");
+            File.WriteAllText(idlPath, source);
+            var uri = "file:///" + idlPath.Replace('\\', '/');
+
+            // Compile with the ref
+            var compilation = CompilationHelper.Compile(source, new[] { winmdPath },
+                CompilationMode.Strict, null, idlPath);
+
+            // Cursor on "ExtLib" (namespace segment)
+            int extlibIdx = source.IndexOf("ExtLib", StringComparison.Ordinal);
+            var lineStarts = PositionHelper.BuildLineStarts(source);
+            var (line, ch) = PositionHelper.OffsetToLineChar(lineStarts, extlibIdx);
+            
+            var result = GotoDefinitionHandler.HandleCore(source, uri, line, ch,
+                currentFilePath: idlPath,
+                referencePaths: new[] { winmdPath },
+                cachedCompilation: compilation);
+
+            Assert.NotNull(result);
+            var dict = Assert.IsType<Dictionary<string, object?>>(result);
+            var resultUri = dict["uri"]!.ToString()!;
+            Assert.Contains("midl-winmd://", resultUri);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
     #endregion
 }
