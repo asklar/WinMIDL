@@ -174,10 +174,21 @@ export function activate(context: vscode.ExtensionContext) {
                 { scheme: 'midl-winmd' },
                 {
                     async provideDefinition(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.Location | null> {
+                        if (!client) return null;
 
                         // Get the word/FQN under cursor
                         const wordRange = document.getWordRangeAtPosition(position);
+                        if (!wordRange) return null;
                         const word = document.getText(wordRange);
+
+                        // Skip built-in/primitive types — they have no navigable definition
+                        const primitives = new Set([
+                            'Object', 'String', 'Boolean', 'Int16', 'Int32', 'Int64',
+                            'UInt8', 'UInt16', 'UInt32', 'UInt64', 'Single', 'Double',
+                            'Char16', 'Guid', 'void', 'true', 'false',
+                        ]);
+                        if (primitives.has(word)) return null;
+
                         const lineText = document.lineAt(position.line).text;
                         let start = wordRange.start.character;
                         let end = wordRange.end.character;
