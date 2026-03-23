@@ -349,7 +349,7 @@ public sealed class MidlLanguageServer
         _docManager.OpenDocument(uri, text);
 
         // Skip analysis for virtual documents (decompiled WinMD views)
-        if (uri.StartsWith("midl-winmd://")) return;
+        if (uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase)) return;
 
         await AnalyzeAndPublishAsync(uri, text);
     }
@@ -362,7 +362,7 @@ public sealed class MidlLanguageServer
         var uri = td.GetProperty("uri").GetString()!;
 
         // Skip analysis for virtual documents
-        if (uri.StartsWith("midl-winmd://"))
+        if (uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase))
         {
             var changes2 = @params.Value.GetProperty("contentChanges");
             if (changes2.GetArrayLength() > 0)
@@ -542,7 +542,7 @@ public sealed class MidlLanguageServer
     private async Task AnalyzeAndPublishAsync(string uri, string text)
     {
         // Never analyze virtual documents (decompiled WinMD views)
-        if (uri.StartsWith("midl-winmd://")) return;
+        if (uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase)) return;
 
         // Skip recompilation if the text hasn't changed since last analysis
         var hash = text.GetHashCode();

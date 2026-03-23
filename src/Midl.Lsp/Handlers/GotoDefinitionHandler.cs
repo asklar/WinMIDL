@@ -49,7 +49,7 @@ public static class GotoDefinitionHandler
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
 
         // For decompiled WinMD views: look up the type in the WinMD and navigate to its namespace
-        if (uri.StartsWith("midl-winmd://"))
+        if (uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase))
             return HandleWinMdView(sourceText, uri, line, character, lineStarts);
 
         // Check if cursor is on a // @ref: line → navigate to the referenced file/folder
@@ -243,7 +243,12 @@ public static class GotoDefinitionHandler
         Console.Error.WriteLine($"[MIDL:GOTODEF] Token='{name}' at offset {tokenOffset}");
 
         // Extract WinMD path and current namespace from URI
-        var uriPath = uri["midl-winmd:///".Length..];
+        // VS Code may normalize midl-winmd:///C:/... to midl-winmd:/C%3A/... 
+        var uriPath = uri;
+        var schemeEnd = uriPath.IndexOf("midl-winmd:", StringComparison.OrdinalIgnoreCase);
+        if (schemeEnd < 0) return null;
+        uriPath = uriPath[(schemeEnd + "midl-winmd:".Length)..].TrimStart('/');
+        uriPath = Uri.UnescapeDataString(uriPath);
         var winmdIdx = uriPath.IndexOf(".winmd", StringComparison.OrdinalIgnoreCase);
         if (winmdIdx < 0) return null;
         var winmdPath = uriPath[..(winmdIdx + 6)];
