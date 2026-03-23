@@ -93,6 +93,7 @@ public sealed class MidlLanguageServer
         if (method is null)
             return; // Response messages are ignored (we don't make requests)
 
+        Console.Error.WriteLine($"[MIDL:LSP] << {method} (id={id})");
         switch (method)
         {
             case "initialize":
@@ -158,7 +159,10 @@ public sealed class MidlLanguageServer
                 }
 
             case "midl/decompileDefinition":
-                await _writer.SendResponseAsync(id, HandleDecompileDefinition(@params));
+                Console.Error.WriteLine("[MIDL] midl/decompileDefinition request received");
+                var decompResult = HandleDecompileDefinition(@params);
+                Console.Error.WriteLine($"[MIDL] midl/decompileDefinition result: {(decompResult == null ? "null" : "found")}");
+                await _writer.SendResponseAsync(id, decompResult);
                 break;
 
             case "textDocument/references":
