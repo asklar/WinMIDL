@@ -166,6 +166,82 @@ public class InterfaceSynthesisTests
     }
 
     [Fact]
+    public void SynthesizeProtectedInterface_SealedClass()
+    {
+        // Original midl.exe emits IClassProtected even on sealed classes
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                runtimeclass C
+                {
+                    protected void P();
+                }
+            }
+            """);
+
+        Assert.Empty(compilation.Diagnostics);
+
+        var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
+        var rc = ns.Members.OfType<RuntimeClassSymbol>().Single(m => m.Name == "C");
+
+        Assert.NotNull(rc.ProtectedInterface);
+        Assert.Equal("ICProtected", rc.ProtectedInterface!.Name);
+        // When all members are protected, the protected interface becomes the default
+        Assert.Same(rc.ProtectedInterface, rc.DefaultInterface);
+    }
+
+    [Fact]
+    public void SynthesizeProtectedAndDefault_SealedClass()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                runtimeclass C
+                {
+                    void A();
+                    protected void B();
+                }
+            }
+            """);
+
+        Assert.Empty(compilation.Diagnostics);
+
+        var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
+        var rc = ns.Members.OfType<RuntimeClassSymbol>().Single(m => m.Name == "C");
+
+        Assert.NotNull(rc.DefaultInterface);
+        Assert.Equal("IC", rc.DefaultInterface!.Name);
+        Assert.Single(rc.DefaultInterface.Members.OfType<MethodSymbol>());
+
+        Assert.NotNull(rc.ProtectedInterface);
+        Assert.Equal("ICProtected", rc.ProtectedInterface!.Name);
+        Assert.Single(rc.ProtectedInterface.Members.OfType<MethodSymbol>());
+        Assert.NotSame(rc.DefaultInterface, rc.ProtectedInterface);
+    }
+
+    [Fact]
+    public void SynthesizeOverridableInterface_SealedClass()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                runtimeclass C
+                {
+                    overridable void O();
+                }
+            }
+            """);
+
+        Assert.Empty(compilation.Diagnostics);
+
+        var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
+        var rc = ns.Members.OfType<RuntimeClassSymbol>().Single(m => m.Name == "C");
+
+        Assert.NotNull(rc.OverridesInterface);
+        Assert.Equal("ICOverrides", rc.OverridesInterface!.Name);
+    }
+
+    [Fact]
     public void DefaultInterfaceIsFirst()
     {
         var compilation = CompilationHelper.Compile("""

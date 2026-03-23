@@ -686,4 +686,149 @@ public class WinMdEmitterTests
                 "Windows.Foundation.Metadata.ExperimentalAttribute"));
         }
     }
+
+    #region Protected/Overridable interface emission
+
+    private static string GetInterfaceImplName(MetadataReader reader, InterfaceImplementation impl)
+    {
+        if (impl.Interface.Kind == HandleKind.TypeReference)
+        {
+            var typeRef = reader.GetTypeReference((TypeReferenceHandle)impl.Interface);
+            return reader.GetString(typeRef.Name);
+        }
+        if (impl.Interface.Kind == HandleKind.TypeDefinition)
+        {
+            var td = reader.GetTypeDefinition((TypeDefinitionHandle)impl.Interface);
+            return reader.GetString(td.Name);
+        }
+        return "?";
+    }
+
+    [Fact]
+    public void Emit_ProtectedOnSealedClass_CreatesProtectedInterface()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                runtimeclass F
+                {
+                    F();
+                    protected Boolean B();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            // The synthesized interface should be named IFProtected
+            var ifaceHandle = FindTypeDef(reader, "IFProtected");
+            var ifaceTd = reader.GetTypeDefinition(ifaceHandle);
+            Assert.True(ifaceTd.Attributes.HasFlag(TypeAttributes.Interface));
+
+            // The runtime class should reference it
+            var classHandle = FindTypeDef(reader, "F");
+            var classTd = reader.GetTypeDefinition(classHandle);
+            var impls = classTd.GetInterfaceImplementations()
+                .Select(h => reader.GetInterfaceImplementation(h))
+                .ToList();
+
+            // Should have IFProtected with both [Default] and [Protected] attributes
+            var protImpl = impls.Single(i => GetInterfaceImplName(reader, i) == "IFProtected");
+            Assert.True(HasCustomAttribute(reader, classTd.GetInterfaceImplementations().Single(),
+                "Windows.Foundation.Metadata.DefaultAttribute"));
+            Assert.True(HasCustomAttribute(reader, classTd.GetInterfaceImplementations().Single(),
+                "Windows.Foundation.Metadata.ProtectedAttribute"));
+        }
+    }
+
+    [Fact]
+    public void Emit_MixedProtectedAndPublic_CreatesSeparateInterfaces()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                runtimeclass F
+                {
+                    F();
+                    void A();
+                    protected Boolean B();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            // Should have both IF and IFProtected as TypeDefs
+            var defaultIface = FindTypeDef(reader, "IF");
+            var protIface = FindTypeDef(reader, "IFProtected");
+
+            // IF should have method A, IFProtected should have method B
+            var defaultMethods = reader.GetTypeDefinition(defaultIface).GetMethods()
+                .Select(m => reader.GetString(reader.GetMethodDefinition(m).Name))
+                .ToList();
+            Assert.Contains("A", defaultMethods);
+            Assert.DoesNotContain("B", defaultMethods);
+
+            var protMethods = reader.GetTypeDefinition(protIface).GetMethods()
+                .Select(m => reader.GetString(reader.GetMethodDefinition(m).Name))
+                .ToList();
+            Assert.Contains("B", protMethods);
+            Assert.DoesNotContain("A", protMethods);
+
+            // Runtime class should have both InterfaceImpls
+            var classHandle = FindTypeDef(reader, "F");
+            var classTd = reader.GetTypeDefinition(classHandle);
+            var implHandles = classTd.GetInterfaceImplementations().ToList();
+            var impls = implHandles.Select(h => reader.GetInterfaceImplementation(h)).ToList();
+
+            var defaultImplHandle = implHandles.First(h =>
+                GetInterfaceImplName(reader, reader.GetInterfaceImplementation(h)) == "IF");
+            Assert.True(HasCustomAttribute(reader, defaultImplHandle,
+                "Windows.Foundation.Metadata.DefaultAttribute"));
+
+            var protImplHandle = implHandles.First(h =>
+                GetInterfaceImplName(reader, reader.GetInterfaceImplementation(h)) == "IFProtected");
+            Assert.True(HasCustomAttribute(reader, protImplHandle,
+                "Windows.Foundation.Metadata.ProtectedAttribute"));
+        }
+    }
+
+    [Fact]
+    public void Emit_OverridableOnSealedClass_CreatesOverridesInterface()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                runtimeclass F
+                {
+                    void A();
+                    overridable void O();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            FindTypeDef(reader, "IF");
+            var overridesIface = FindTypeDef(reader, "IFOverrides");
+            var overridesMethods = reader.GetTypeDefinition(overridesIface).GetMethods()
+                .Select(m => reader.GetString(reader.GetMethodDefinition(m).Name))
+                .ToList();
+            Assert.Contains("O", overridesMethods);
+
+            var classHandle = FindTypeDef(reader, "F");
+            var classTd = reader.GetTypeDefinition(classHandle);
+            var implHandles = classTd.GetInterfaceImplementations().ToList();
+
+            var overrideImplHandle = implHandles.First(h =>
+                GetInterfaceImplName(reader, reader.GetInterfaceImplementation(h)) == "IFOverrides");
+            Assert.True(HasCustomAttribute(reader, overrideImplHandle,
+                "Windows.Foundation.Metadata.OverridableAttribute"));
+        }
+    }
+
+    #endregion
 }
