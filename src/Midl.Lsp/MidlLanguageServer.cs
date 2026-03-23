@@ -155,7 +155,12 @@ public sealed partial class MidlLanguageServer
                 break;
 
             case "textDocument/hover":
-                await _writer.SendResponseAsync(id, HoverHandler.Handle(@params, _docManager));
+                {
+                    var hoverUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? hoverComp = null;
+                    if (hoverUri != null) _lastCompilation.TryGetValue(hoverUri, out hoverComp);
+                    await _writer.SendResponseAsync(id, HoverHandler.Handle(@params, _docManager, hoverComp));
+                }
                 break;
 
             case "textDocument/documentSymbol":

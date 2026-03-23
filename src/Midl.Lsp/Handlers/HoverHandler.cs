@@ -48,7 +48,8 @@ public static class HoverHandler
         ["requires"] = "**requires** — Specifies interfaces that a runtime class must implement.",
     };
 
-    public static object? Handle(JsonElement? @params, DocumentManager docManager)
+    public static object? Handle(JsonElement? @params, DocumentManager docManager,
+        Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -83,7 +84,7 @@ public static class HoverHandler
         {
             try
             {
-                var compilation = CompilationHelper.Compile(text);
+                var compilation = cachedCompilation ?? CompilationHelper.Compile(text);
                 var symbol = FindSymbolByName(compilation, tokenText);
                 if (symbol is not null)
                 {
@@ -94,12 +95,35 @@ public static class HoverHandler
                             ? $"\nDefined in: {Path.GetFileName(symbol.SourceWinMdPath)}"
                             : "";
                         info = $"(external) **{symbol.Kind}** `{symbol.FullName}`{source}";
+
+                        // Add Microsoft Learn link for Windows SDK types
+                        var learnUrl = GetMsLearnUrl(symbol.FullName, symbol.SourceWinMdPath);
+                        if (learnUrl != null)
+                            info += $"\n\n[📖 View on Microsoft Learn]({learnUrl})";
                     }
                     else
                     {
                         info = $"**{symbol.Kind}** `{symbol.FullName}`";
                     }
                     return MakeHover(info, tokenStart, token.Text.Length, lineStarts);
+                }
+
+                // Also check lazy providers for SDK types not yet resolved
+                foreach (var fullName in compilation.GetAllLazyTypeNames())
+                {
+                    var lastDot = fullName.LastIndexOf('.');
+                    var shortName = lastDot >= 0 ? fullName[(lastDot + 1)..] : fullName;
+                    var backtick = shortName.IndexOf('`');
+                    if (backtick >= 0) shortName = shortName[..backtick];
+                    if (shortName.Equals(tokenText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var cleanName = backtick >= 0 ? fullName[..fullName.IndexOf('`')] : fullName;
+                        var info = $"(SDK) **type** `{cleanName}`";
+                        var learnUrl = GetMsLearnUrl(cleanName, null);
+                        if (learnUrl != null)
+                            info += $"\n\n[📖 View on Microsoft Learn]({learnUrl})";
+                        return MakeHover(info, tokenStart, token.Text.Length, lineStarts);
+                    }
                 }
             }
             catch
@@ -111,6 +135,64 @@ public static class HoverHandler
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Generate a Microsoft Learn URL for a Windows SDK type.
+    /// </summary>
+    private static string? GetMsLearnUrl(string fullName, string? winmdPath)
+    {
+        if (!fullName.StartsWith("Windows.", StringComparison.OrdinalIgnoreCase) &&
+            !fullName.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        // Extract SDK version from WinMD path (e.g. ...UnionMetadata\10.0.26100.0\Windows.winmd)
+        string? sdkVersion = null;
+        if (winmdPath != null)
+        {
+            var dir = Path.GetDirectoryName(winmdPath);
+            if (dir != null)
+            {
+                var dirName = Path.GetFileName(dir);
+                if (dirName != null && dirName.StartsWith("10.0."))
+                    sdkVersion = dirName;
+            }
+        }
+        // Fallback: find SDK version from installed SDKs
+        sdkVersion ??= FindInstalledSdkVersion();
+
+        var baseUrl = fullName.StartsWith("Windows.", StringComparison.OrdinalIgnoreCase)
+            ? "https://learn.microsoft.com/en-us/uwp/api/"
+            : "https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/";
+
+        var typePath = fullName.ToLowerInvariant();
+        var url = baseUrl + typePath;
+
+        // Append SDK version as winrt-NNNNN view parameter
+        if (sdkVersion != null)
+        {
+            // 10.0.26100.0 → winrt-26100
+            var parts = sdkVersion.Split('.');
+            if (parts.Length >= 3)
+                url += $"?view=winrt-{parts[2]}";
+        }
+
+        return url;
+    }
+
+    private static string? FindInstalledSdkVersion()
+    {
+        try
+        {
+            var unionMeta = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata";
+            if (!Directory.Exists(unionMeta)) return null;
+            return Directory.GetDirectories(unionMeta)
+                .Select(Path.GetFileName)
+                .Where(d => d != null && d.StartsWith("10.0.") && !d.Equals("Facade", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(d => d)
+                .FirstOrDefault();
+        }
+        catch { return null; }
     }
 
     private static HoverResult MakeHover(string markdown, int tokenStart, int tokenLength, int[] lineStarts)

@@ -989,7 +989,7 @@ h3 {
     <div style="margin-top:0.5em;"><span class="label">Tokens processed:     </span><span class="model">1,074.9M in · 2.1M out · 1,049.6M cached</span></div>
     <div><span class="label">Model:                </span><span class="model">Claude Opus 4.6 (1M context)</span></div>
   </div>
-  <div class="tagline">"One session. One compiler. <em>660 tests. 91 diagnostics.</em>"</div>
+  <div class="tagline">"One session. One compiler. <em>1,465 tests. 91 diagnostics.</em>"</div>
 </div>
 
 <!-- ==================== SLIDE 4: DESIGN PRINCIPLES ==================== -->
@@ -1338,12 +1338,53 @@ h3 {
   </div>
 </div>
 
-<!-- ==================== SLIDE 13: TEST COVERAGE ==================== -->
+<!-- ==================== SLIDE 13: WINDOWS SDK INTEGRATION ==================== -->
 <div class="slide" data-slide="12">
+  <h2>Windows SDK <span class="accent">Integration</span></h2>
+  <ul class="bullets">
+    <li><strong>Auto-discovery</strong> — automatically references <code style="background:var(--bg-lighter);padding:2px 6px;border-radius:3px;color:var(--type);font-family:'Cascadia Code',monospace;">Windows.winmd</code> from your installed SDK</li>
+    <li><strong>Namespace drill-in</strong> — type <code style="color:var(--type)">Windows.</code> → see <code style="color:var(--type)">Foundation</code>, <code style="color:var(--type)">UI</code>, <code style="color:var(--type)">Storage</code> → keep drilling with dots</li>
+    <li><strong>Case-insensitive</strong> matching with canonical casing on accept</li>
+    <li><strong>Microsoft Learn links</strong> — hover any SDK type to see a 📖 link to its documentation</li>
+    <li><strong>SDK version picker</strong> — select which installed SDK to use, or disable entirely</li>
+  </ul>
+  <div class="note" style="margin-top:24px;font-size:15px;font-style:normal;">
+    Settings: <code style="background:var(--bg-lighter);padding:2px 6px;border-radius:3px;color:var(--string);font-family:'Cascadia Code',monospace;">midl.useWindowsSdk</code> · <code style="background:var(--bg-lighter);padding:2px 6px;border-radius:3px;color:var(--string);font-family:'Cascadia Code',monospace;">midl.windowsSdkVersion</code> · <code style="background:var(--bg-lighter);padding:2px 6px;border-radius:3px;color:var(--string);font-family:'Cascadia Code',monospace;">midl.flatSdkTypeCompletions</code>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 14: NAVIGATION & RENAME ==================== -->
+<div class="slide" data-slide="13">
+  <h2>Navigation &amp; <span class="accent">Rename</span></h2>
+  <ul class="bullets">
+    <li><strong>F12 → source</strong> — go-to-definition on local types jumps to their source file</li>
+    <li><strong>F12 → WinMD</strong> — go-to-definition on SDK types opens a <em>decompiled IDL view</em> showing the type's full API surface</li>
+    <li><strong>F12-in-F12</strong> — navigate between types within decompiled views (cross-namespace chains)</li>
+    <li><strong>F12 on namespaces</strong> — click any segment of a fully-qualified name (<code style="color:var(--type)">Windows.UI.<em>Xaml</em>.Controls</code>)</li>
+    <li><strong>F2 Rename</strong> — rename a symbol and all its references across the file</li>
+    <li><strong>Workspace diagnostics</strong> — file watcher detects changes and re-publishes squiggles automatically</li>
+  </ul>
+</div>
+
+<!-- ==================== SLIDE 15: WINMD PARITY ==================== -->
+<div class="slide" data-slide="14">
+  <h2>WinMD <span class="accent">Parity</span></h2>
+  <ul class="bullets">
+    <li><strong>Protected / Overridable</strong> — emits <code style="color:var(--type)">IClassProtected</code> and <code style="color:var(--type)">IClassOverrides</code> interfaces with correct attributes, even on sealed classes</li>
+    <li><strong>Family access</strong> — protected method stubs use <code style="color:var(--keyword)">Family</code> (not Public) matching original midl</li>
+    <li><strong>Generic attributes</strong> — emits <em>any</em> custom attribute, not just a hardcoded whitelist</li>
+    <li><strong>CLR ↔ WinRT projections</strong> — 40+ type mappings (TimeSpan, IVector ↔ IList, etc.) for accurate decompilation</li>
+    <li><strong>Decompiler</strong> — versioned blocks, static members, base classes, overridable/protected modifiers</li>
+    <li><strong>C++ WinMD dumper</strong> — ground-truth validation tool for binary-level comparison with original midl output</li>
+  </ul>
+</div>
+
+<!-- ==================== SLIDE 16: TEST COVERAGE ==================== -->
+<div class="slide" data-slide="15">
   <h2>Test <span class="accent">Coverage</span></h2>
   <div class="numbers-grid" id="numbersGrid">
     <div class="number-card">
-      <div class="big-number" data-target="651">0</div>
+      <div class="big-number" data-target="1465">0</div>
       <div class="number-label">Tests</div>
     </div>
     <div class="number-card">
@@ -1368,23 +1409,23 @@ h3 {
     </div>
   </div>
   <div class="test-breakdown" id="testBreakdown">
-    <div class="test-bar-segment" style="flex-basis:0%;background:#e06c75;" data-width="8.76%">57</div>
-    <div class="test-bar-segment" style="flex-basis:0%;background:#c678dd;" data-width="9.52%">62</div>
-    <div class="test-bar-segment" style="flex-basis:0%;background:#61afef;" data-width="39.63%">258</div>
-    <div class="test-bar-segment" style="flex-basis:0%;background:#98c379;" data-width="11.83%">77</div>
-    <div class="test-bar-segment" style="flex-basis:0%;background:#e5c07b;" data-width="30.26%">197</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#e06c75;" data-width="5.94%">87</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#c678dd;" data-width="5.12%">75</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#61afef;" data-width="31.54%">462</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#98c379;" data-width="13.65%">200</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#e5c07b;" data-width="43.75%">641</div>
   </div>
   <div class="test-breakdown-legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#e06c75"></div> Lexer 57</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#c678dd"></div> Parser 62</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#61afef"></div> Analysis 258</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#98c379"></div> CodeGen 77</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#e5c07b"></div> Integration 197</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e06c75"></div> Lexer 87</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c678dd"></div> Parser 75</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#61afef"></div> Analysis 462</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#98c379"></div> CodeGen 200</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e5c07b"></div> Integration 641</div>
   </div>
 </div>
 
-<!-- ==================== SLIDE 14: PERFORMANCE ==================== -->
-<div class="slide" data-slide="13">
+<!-- ==================== SLIDE 17: PERFORMANCE ==================== -->
+<div class="slide" data-slide="16">
   <h2><span class="accent">Performance</span></h2>
   <table class="perf-table">
     <thead>
@@ -1439,15 +1480,15 @@ h3 {
   </div>
 </div>
 
-<!-- ==================== SLIDE 15: WHAT'S NEXT ==================== -->
-<div class="slide" data-slide="14">
+<!-- ==================== SLIDE 18: WHAT'S NEXT ==================== -->
+<div class="slide" data-slide="17">
   <h2>What's <span class="accent">Next</span></h2>
   <ul class="roadmap-list">
-    <li>Golden comparison testing (T3) against original midl.exe</li>
-    <li>Drop-in replacement in razzle build (T4)</li>
     <li>VS Code Marketplace publishing</li>
     <li>Code lens — show synthesized interfaces inline</li>
+    <li>Incremental text sync for large files</li>
     <li>More CLI switch compatibility</li>
+    <li>Golden comparison testing against original midl.exe</li>
   </ul>
   <div class="cta-box">
     <h3>GET INVOLVED</h3>
