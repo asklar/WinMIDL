@@ -562,4 +562,53 @@ public class DecompilerTests
     }
 
     #endregion
+
+    #region Base class inheritance
+
+    [Fact]
+    public void Decompile_RuntimeClass_ShowsBaseClass()
+    {
+        var source = @"
+            namespace N {
+                unsealed runtimeclass Base { void DoWork(); }
+                unsealed runtimeclass Derived : Base { void DoMore(); }
+            }";
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        // Derived should show base class
+        Assert.Contains("runtimeclass Derived", idl);
+        Assert.Contains(": Base", idl);
+    }
+
+    [Fact]
+    public void Decompile_WindowsWinmd_ControlShowsBaseClass()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+        // ContentControl extends Control
+        Assert.Matches(@"runtimeclass ContentControl\s*:\s*Control", idl);
+    }
+
+    #endregion
+
+    #region Version number decoding
+
+    [Fact]
+    public void Decompile_VersionNumbers_Decoded()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+        // Should NOT contain raw encoded versions like 65536
+        Assert.DoesNotContain(", 65536)", idl);
+        Assert.DoesNotContain(", 131072)", idl);
+        // Should contain decoded versions like 1 or 2
+        Assert.Contains(", 1)", idl);
+    }
+
+    #endregion
 }

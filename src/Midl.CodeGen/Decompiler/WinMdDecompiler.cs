@@ -329,7 +329,18 @@ public class WinMdDecompiler
         var keyword = isStatic ? "static runtimeclass" : "runtimeclass";
         if (!isSealed && !isStatic) keyword = "unsealed runtimeclass";
 
-        sb.AppendLine($"{indent}{keyword} {name}");
+        // Determine base class (skip System.Object and other System types)
+        var baseTypeName = GetBaseTypeName(reader, td.BaseType);
+        string? baseClass = null;
+        if (baseTypeName != null && baseTypeName != "System.Object" && !baseTypeName.StartsWith("System."))
+        {
+            baseClass = MapToMidlType(baseTypeName);
+        }
+
+        if (baseClass != null)
+            sb.AppendLine($"{indent}{keyword} {name} : {baseClass}");
+        else
+            sb.AppendLine($"{indent}{keyword} {name}");
         sb.AppendLine($"{indent}{{");
 
         // Constructors
@@ -700,7 +711,7 @@ public class WinMdDecompiler
                 var access = blob.ReadInt32();
                 var version = blob.ReadUInt32();
                 var accessStr = access == 2 ? "protected" : "public";
-                sb.AppendLine($"{indent}[composable({GetShortName(factoryType)}, {accessStr}, {version})]");
+                sb.AppendLine($"{indent}[composable({GetShortName(factoryType)}, {accessStr}, {VersionEncoding.Display(version)})]");
             }
         }
         catch { /* best-effort attribute decoding */ }
@@ -722,7 +733,7 @@ public class WinMdDecompiler
                 if (factoryType != null && blob.RemainingBytes >= 4)
                 {
                     var version = blob.ReadUInt32();
-                    sb.AppendLine($"{indent}[activatable({GetShortName(factoryType)}, {version})]");
+                    sb.AppendLine($"{indent}[activatable({GetShortName(factoryType)}, {VersionEncoding.Display(version)})]");
                 }
             }
             else
@@ -731,7 +742,7 @@ public class WinMdDecompiler
                 if (blob.RemainingBytes >= 4)
                 {
                     var version = blob.ReadUInt32();
-                    sb.AppendLine($"{indent}[activatable({version})]");
+                    sb.AppendLine($"{indent}[activatable({VersionEncoding.Display(version)})]");
                 }
             }
         }
@@ -749,7 +760,7 @@ public class WinMdDecompiler
             if (staticType != null && blob.RemainingBytes >= 4)
             {
                 var version = blob.ReadUInt32();
-                sb.AppendLine($"{indent}[static({GetShortName(staticType)}, {version})]");
+                sb.AppendLine($"{indent}[static({GetShortName(staticType)}, {VersionEncoding.Display(version)})]");
             }
         }
         catch { /* best-effort */ }
@@ -768,7 +779,7 @@ public class WinMdDecompiler
                 var deprecationType = blob.ReadInt32();
                 var version = blob.ReadUInt32();
                 var depTypeStr = deprecationType == 1 ? "remove" : "deprecate";
-                sb.AppendLine($"{indent}[deprecated(\"{message}\", {depTypeStr}, {version})]");
+                sb.AppendLine($"{indent}[deprecated(\"{message}\", {depTypeStr}, {VersionEncoding.Display(version)})]");
             }
         }
         catch { /* best-effort */ }
