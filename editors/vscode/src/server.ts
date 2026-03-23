@@ -116,7 +116,7 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
                         }
                         if (mdText && mdText.includes('command:')) {
                             const md = new vscode.MarkdownString(mdText);
-                            md.isTrusted = true;
+                            md.isTrusted = { enabledCommands: ['midl.openDocs'] };
                             return new vscode.Hover(md, result.range);
                         }
                     }
