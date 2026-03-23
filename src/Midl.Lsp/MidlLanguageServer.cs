@@ -53,7 +53,6 @@ public sealed class MidlLanguageServer
 
     public async Task RunAsync(CancellationToken ct = default)
     {
-        Console.Error.WriteLine("[MIDL LSP] Server starting, waiting for messages...");
         while (!ct.IsCancellationRequested)
         {
             JsonDocument? msg;
@@ -67,11 +66,9 @@ public sealed class MidlLanguageServer
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"[MIDL LSP] Read error: {ex.Message}");
                 break;
             }
 
-            if (msg is null) { Console.Error.WriteLine("[MIDL LSP] Stream closed"); break; }
 
             using (msg)
             {
@@ -80,7 +77,6 @@ public sealed class MidlLanguageServer
                 await HandleMessageAsync(msg.RootElement);
             }
         }
-        Console.Error.WriteLine("[MIDL LSP] Server exiting");
     }
 
     private async Task HandleMessageAsync(JsonElement msg)
@@ -93,7 +89,6 @@ public sealed class MidlLanguageServer
         if (method is null)
             return; // Response messages are ignored (we don't make requests)
 
-        Console.Error.WriteLine($"[MIDL:LSP] << {method} (id={id})");
 
         // Skip all textDocument/* requests for virtual decompiled documents
         // (they would try to compile the decompiled IDL text and hang)
@@ -175,9 +170,7 @@ public sealed class MidlLanguageServer
                 }
 
             case "midl/decompileDefinition":
-                Console.Error.WriteLine("[MIDL] midl/decompileDefinition request received");
                 var decompResult = HandleDecompileDefinition(@params);
-                Console.Error.WriteLine($"[MIDL] midl/decompileDefinition result: {(decompResult == null ? "null" : "found")}");
                 await _writer.SendResponseAsync(id, decompResult);
                 break;
 
@@ -299,7 +292,6 @@ public sealed class MidlLanguageServer
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"[MIDL LSP] Failed to load winmidl.json: {ex.Message}");
                 }
             }
         }
@@ -491,13 +483,11 @@ public sealed class MidlLanguageServer
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"[MIDL LSP] Error reading {filePath}: {ex.Message}");
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[MIDL LSP] Workspace scan error: {ex.Message}");
         }
     }
 
@@ -545,7 +535,6 @@ public sealed class MidlLanguageServer
                     }
                     catch (Exception ex)
                     {
-                        Console.Error.WriteLine($"[MIDL LSP] Error reading changed file {filePath}: {ex.Message}");
                     }
                 }
             }
@@ -695,7 +684,6 @@ public sealed class MidlLanguageServer
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[MIDL LSP] Analysis error: {ex}");
             var errorDiag = new Analysis.Diagnostics.Diagnostic(
                 Analysis.Diagnostics.DiagnosticSeverity.Error,
                 "MIDL0000",

@@ -124,7 +124,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.workspace.onDidOpenTextDocument(doc => {
             if (doc.uri.scheme === 'midl-winmd') {
-                console.log(`[MIDL-F12] Document opened: scheme=${doc.uri.scheme} lang=${doc.languageId} uri=${doc.uri.toString().substring(0, 80)}`);
             }
         })
     );
@@ -175,12 +174,9 @@ export function activate(context: vscode.ExtensionContext) {
                 { scheme: 'midl-winmd' },
                 {
                     async provideDefinition(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.Location | null> {
-                        console.log(`[MIDL-F12] called: scheme=${document.uri.scheme} line=${position.line}`);
-                        if (!client) { console.log('[MIDL-F12] no client'); return null; }
 
                         // Get the word/FQN under cursor
                         const wordRange = document.getWordRangeAtPosition(position);
-                        if (!wordRange) { console.log('[MIDL-F12] no word'); return null; }
                         const word = document.getText(wordRange);
                         const lineText = document.lineAt(position.line).text;
                         let start = wordRange.start.character;
@@ -195,28 +191,22 @@ export function activate(context: vscode.ExtensionContext) {
                         const schemeIdx = uriStr.indexOf('midl-winmd:');
                         let uriPath = decodeURIComponent(uriStr.substring(schemeIdx + 'midl-winmd:'.length)).replace(/^\/+/, '');
                         const winmdIdx = uriPath.toLowerCase().indexOf('.winmd');
-                        if (winmdIdx < 0) { console.log('[MIDL-F12] no .winmd in URI'); return null; }
                         const winmdPath = uriPath.substring(0, winmdIdx + 6);
                         const currentNs = uriPath.length > winmdIdx + 7 ? uriPath.substring(winmdIdx + 7) : null;
-                        console.log(`[MIDL-F12] word='${word}' fqn='${fqn}' typeName='${typeName}' winmd='${winmdPath}' ns='${currentNs}'`);
 
                         // Same namespace? Search current document text directly
                         if (!fqn.includes('.') && currentNs) {
-                            console.log('[MIDL-F12] searching current doc for short name');
                             const text = document.getText();
                             for (const kw of ['runtimeclass', 'interface', 'struct', 'enum', 'delegate']) {
                                 const idx = text.indexOf(`${kw} ${word}`);
                                 if (idx >= 0) {
                                     const pos = document.positionAt(idx + kw.length + 1);
-                                    console.log(`[MIDL-F12] found in current doc: ${kw} ${word}`);
                                     return new vscode.Location(document.uri, pos);
                                 }
                             }
-                            console.log('[MIDL-F12] not found in current doc');
                         }
 
                         // Cross-namespace: ask the LSP server
-                        console.log('[MIDL-F12] sending midl/decompileDefinition request');
                         try {
                             const result = await client.sendRequest('midl/decompileDefinition', {
                                 winmdPath,
