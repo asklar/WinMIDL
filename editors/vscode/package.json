@@ -99,6 +99,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show code quality hints (naming conventions, empty types, etc.)"
+        },
+        "midl.useWindowsSdk": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically reference Windows.winmd from the installed Windows SDK for type completion and F12 navigation."
         }
       }
     }

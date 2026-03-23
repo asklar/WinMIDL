@@ -93,7 +93,8 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
         outputChannel: outputChannel,
         initializationOptions: {
             "midl.strictMode": config.get<boolean>('strictMode', true),
-            "midl.codeQualityHints": config.get<boolean>('codeQualityHints', true)
+            "midl.codeQualityHints": config.get<boolean>('codeQualityHints', true),
+            "midl.useWindowsSdk": config.get<boolean>('useWindowsSdk', true)
         },
         middleware: {
             provideDefinition: async (document, position, token, next) => {

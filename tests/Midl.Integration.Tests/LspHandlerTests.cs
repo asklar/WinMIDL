@@ -577,20 +577,19 @@ public class LspHandlerTests
     [Fact]
     public void CompletionInReturnTypePosition_ShowsUserTypes()
     {
-        // Bug fix: typing a return type should show all types including user-defined
+        // Typing in a runtimeclass body should show types AND user-defined types
         var uri = "file:///test.midl";
         var source = "namespace N {\n    enum MyEnum { A };\n    runtimeclass Foo {\n        My\n    }\n}";
         var dm = CreateDocManager(uri, source);
-        // Cursor on line 3 after "My" (partial type name)
         var compilation = CompilationHelper.Compile(source);
         var result = CompletionHandler.Handle(MakePositionParams(uri, 3, 10), dm, cachedCompilation: compilation);
 
         var json = JsonSerializer.Serialize(result);
 
-        // ParameterType context should include all types + user types
+        // RuntimeClassBody context: types + keywords + user types
         Assert.Contains("\"Int32\"", json);
         Assert.Contains("MyEnum", json);
-        Assert.Contains("\"out\"", json);
+        Assert.Contains("\"protected\"", json);
     }
 
     [Fact]

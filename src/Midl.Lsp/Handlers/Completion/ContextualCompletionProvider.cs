@@ -137,23 +137,6 @@ internal static class ContextualCompletionProvider
             if (c == '{' || c == '}' || c == ';') break;
         }
 
-        // If no '(' found on this statement, and the user has started typing a token
-        // (not a keyword/modifier), we may be typing a return type.
-        if ((bodyContext == CompletionContext.InterfaceBody ||
-             bodyContext == CompletionContext.RuntimeClassBody) &&
-            trimmed.Length > 0 &&
-            !trimmed.Contains('(') && !trimmed.Contains(';') &&
-            !trimmed.StartsWith("event ", StringComparison.Ordinal) &&
-            !trimmed.StartsWith("event\t", StringComparison.Ordinal) &&
-            !trimmed.StartsWith("static ", StringComparison.Ordinal) &&
-            !trimmed.StartsWith("protected ", StringComparison.Ordinal) &&
-            !trimmed.StartsWith("overridable ", StringComparison.Ordinal) &&
-            !trimmed.StartsWith("}", StringComparison.Ordinal) &&
-            !trimmed.StartsWith("requires", StringComparison.Ordinal))
-        {
-            return CompletionContext.ParameterType; // reuse ParameterType — same type set
-        }
-
         return bodyContext;
     }
 

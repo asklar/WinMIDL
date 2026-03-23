@@ -22,6 +22,7 @@ public sealed partial class MidlLanguageServer
     private List<string>? _sdkIncludePaths = null;
     private CompilationMode _compilationMode = CompilationMode.Strict;
     private bool _enableQualityHints = true;
+    private bool _useWindowsSdk = true;
     private ProjectFile? _projectFile;
     private string? _workspaceRoot;
 
@@ -263,6 +264,17 @@ public sealed partial class MidlLanguageServer
                     {
                         _enableQualityHints = false;
                     }
+
+                    if (initOpts.TryGetProperty("midl.useWindowsSdk", out var sdkProp) &&
+                        sdkProp.ValueKind == JsonValueKind.False)
+                    {
+                        _useWindowsSdk = false;
+                    }
+                    else if (initOpts.TryGetProperty("useWindowsSdk", out var sdkProp2) &&
+                             sdkProp2.ValueKind == JsonValueKind.False)
+                    {
+                        _useWindowsSdk = false;
+                    }
                 }
 
                 // Discover workspace root
@@ -296,6 +308,21 @@ public sealed partial class MidlLanguageServer
                 }
                 catch (Exception)
                 {
+                }
+            }
+        }
+
+        // Auto-discover Windows.winmd from SDK if enabled
+        if (_useWindowsSdk)
+        {
+            var winmd = Handlers.WinMdNavigator.FindWindowsWinMd();
+            if (winmd != null)
+            {
+                _referencePaths ??= new List<string>();
+                if (!_referencePaths.Contains(winmd))
+                {
+                    _referencePaths.Add(winmd);
+                    MidlTrace.Lsp($"Auto-discovered Windows SDK: {winmd}");
                 }
             }
         }
