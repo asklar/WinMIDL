@@ -106,7 +106,7 @@ internal static class DotCompletionProvider
                 return items;
             }
 
-            // Second try: resolve as a type name (e.g. "MyEnum" → show enum members)
+            // Second try: resolve as a type name
             var typeSymbol = ResolveTypeByShortOrFullName(compilation, prefix);
             if (typeSymbol is EnumSymbol enumSym)
             {
@@ -121,6 +121,19 @@ internal static class DotCompletionProvider
                     });
                 }
                 return items;
+            }
+            // Non-enum type (runtimeclass, interface, struct, delegate) — no dot members
+            if (typeSymbol != null)
+                return items;
+
+            // Also check lazy providers: is the prefix a known type?
+            foreach (var fullName in compilation.GetAllLazyTypeNames())
+            {
+                var cleanName = fullName;
+                var bt = cleanName.IndexOf('`');
+                if (bt >= 0) cleanName = cleanName[..bt];
+                if (cleanName.Equals(prefix, StringComparison.OrdinalIgnoreCase))
+                    return items; // It's a type, not a namespace — no dot completions
             }
 
             // Third try: prefix might be a namespace only known to lazy providers
