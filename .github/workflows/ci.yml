@@ -40,19 +40,21 @@ jobs:
           $vsPath = & $vswhere -prerelease -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
           if (-not $vsPath) { Write-Error "No Visual Studio with C++ found"; exit 1 }
           $vcVersion = (Get-ChildItem "$vsPath\VC\Tools\MSVC" -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name
-          echo "VSINSTALLDIR=$vsPath\" >> $env:GITHUB_ENV
-          echo "VCToolsInstallDir=$vsPath\VC\Tools\MSVC\$vcVersion\" >> $env:GITHUB_ENV
+          $vcTools = "$vsPath\VC\Tools\MSVC\$vcVersion"
 
           $sdkRoot = "${env:ProgramFiles(x86)}\Windows Kits\10"
-          # Skip SDK 10.0.26546.0 which has NativeAOT linker issues
           $sdkVer = Get-ChildItem "$sdkRoot\Lib" -Directory |
             Where-Object { $_.Name -ne '10.0.26546.0' -and (Test-Path "$($_.FullName)\um\x64\advapi32.lib") } |
             Sort-Object Name -Descending | Select-Object -First 1
           if (-not $sdkVer) { Write-Error "No Windows SDK with libs found"; exit 1 }
-          echo "WindowsSdkDir=$sdkRoot\" >> $env:GITHUB_ENV
-          echo "WindowsSDKLibVersion=$($sdkVer.Name)\" >> $env:GITHUB_ENV
-          echo "UCRTVersion=$($sdkVer.Name)" >> $env:GITHUB_ENV
-          Write-Host "Using MSVC $vcVersion from $vsPath, SDK $($sdkVer.Name)"
+          $sv = $sdkVer.Name
+
+          # Set LIB and PATH so NativeAOT can skip vcvarsall (which picks the wrong SDK)
+          $lib = "$vcTools\lib\x64;$sdkRoot\Lib\$sv\um\x64;$sdkRoot\Lib\$sv\ucrt\x64"
+          echo "LIB=$lib" >> $env:GITHUB_ENV
+          echo "PATH=$vcTools\bin\Hostx64\x64;$env:PATH" >> $env:GITHUB_ENV
+          echo "IlcUseEnvironmentalTools=true" >> $env:GITHUB_ENV
+          Write-Host "Using MSVC $vcVersion from $vsPath, SDK $sv"
 
       - name: Publish NativeAOT
         run: dotnet publish src/Midl.Cli -c Release -r win-x64 --self-contained -o publish/win-x64
