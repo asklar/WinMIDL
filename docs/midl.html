@@ -991,7 +991,7 @@ h3 {
     <div><span class="label">Model:                </span><span class="model">Claude Opus 4.6 (1M context)</span></div>
     <div style="margin-top:0.5em;color:var(--text-dim);font-size:14px;">+ continued development across multiple sessions</div>
   </div>
-  <div class="tagline">"One session. One compiler. <em>1,465 tests. 91 diagnostics.</em>"</div>
+  <div class="tagline">"One session. One compiler. <em>1,465 tests. 122 diagnostics.</em>"</div>
 </div>
 
 <!-- ==================== SLIDE 4: DESIGN PRINCIPLES ==================== -->
@@ -1281,29 +1281,24 @@ h3 {
   </div>
 </div>
 
-<!-- ==================== SLIDE 11: 91 DIAGNOSTIC CODES ==================== -->
+<!-- ==================== SLIDE 11: 122 DIAGNOSTIC CODES ==================== -->
 <div class="slide" data-slide="10">
-  <h2><span class="accent">91</span> Diagnostic Codes</h2>
+  <h2><span class="accent">122</span> Diagnostic Codes</h2>
   <div class="diag-grid">
     <div class="diag-card semantic">
-      <div class="diag-range" style="color:var(--error);">MIDL1001 – 1073</div>
+      <div class="diag-range" style="color:var(--error);">MIDL1001 – 1105</div>
       <div class="diag-label">Semantic Errors</div>
-      <div class="diag-count">46 codes — type mismatches, invalid members, missing imports</div>
-    </div>
-    <div class="diag-card syntax">
-      <div class="diag-range" style="color:var(--warning);">MIDL1100 – 1102</div>
-      <div class="diag-label">Syntax Errors</div>
-      <div class="diag-count">3 codes — unexpected tokens, missing delimiters</div>
+      <div class="diag-count">101 codes — type mismatches, invalid members, missing imports</div>
     </div>
     <div class="diag-card strict">
-      <div class="diag-range" style="color:var(--keyword);">MIDL2001 – 2005</div>
+      <div class="diag-range" style="color:var(--keyword);">MIDL2001 – 2006</div>
       <div class="diag-label">Strict Mode Errors</div>
-      <div class="diag-count">5 codes — MIDL2 syntax used in MIDL3 context</div>
+      <div class="diag-count">6 codes — MIDL2 syntax used in MIDL3 context</div>
     </div>
     <div class="diag-card quality">
       <div class="diag-range" style="color:var(--info);">MIDL3001 – 3016</div>
       <div class="diag-label">Code Quality Hints</div>
-      <div class="diag-count">16 codes — naming conventions, simplifications</div>
+      <div class="diag-count">15 codes — naming conventions, simplifications</div>
     </div>
   </div>
   <div class="note" style="margin-top:24px;font-size:16px;font-style:normal;">
@@ -1390,7 +1385,7 @@ h3 {
       <div class="number-label">Tests</div>
     </div>
     <div class="number-card">
-      <div class="big-number" data-target="91">0</div>
+      <div class="big-number" data-target="122">0</div>
       <div class="number-label">Diagnostic Codes</div>
     </div>
     <div class="number-card">
@@ -1402,7 +1397,7 @@ h3 {
       <div class="number-label">Test Projects</div>
     </div>
     <div class="number-card">
-      <div class="big-number" data-target="29">0</div>
+      <div class="big-number" data-target="215">0</div>
       <div class="number-label">Fixture IDL Files</div>
     </div>
     <div class="number-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
@@ -1446,7 +1441,7 @@ h3 {
         <td class="new" style="color:var(--success);">10% faster</td>
       </tr>
       <tr>
-        <td class="metric">Batch (29 files)</td>
+        <td class="metric">Batch (215 files)</td>
         <td class="old">691 ms</td>
         <td class="new">628 ms <span style="color:var(--success);font-weight:400;">✓</span></td>
         <td class="new" style="color:var(--success);">10% faster</td>
@@ -1472,13 +1467,13 @@ h3 {
       <tr>
         <td class="metric">Diagnostics</td>
         <td class="old">~20 codes</td>
-        <td class="new">91 codes</td>
+        <td class="new">122 codes</td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <div class="note" style="font-size:15px;margin-top:24px;font-style:normal;">
-    <strong style="color:var(--success);">10% faster</strong> than the original across 29 files, with 91 diagnostics, full LSP, and graceful error recovery
+    <strong style="color:var(--success);">10% faster</strong> than the original across 215 fixture files, with 122 diagnostics, full LSP, and graceful error recovery
   </div>
 </div>
 
