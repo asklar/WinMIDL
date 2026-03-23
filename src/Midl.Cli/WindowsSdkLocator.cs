@@ -14,6 +14,12 @@ public static class WindowsSdkLocator
     /// </summary>
     public static string? FindSdkRoot()
     {
+        // Fast path: check standard location first (avoids registry)
+        const string standardRoot = @"C:\Program Files (x86)\Windows Kits\10";
+        if (Directory.Exists(Path.Combine(standardRoot, "Include")))
+            return standardRoot;
+
+        // Fallback: registry
         try
         {
             using var hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
