@@ -145,12 +145,15 @@ public sealed class MidlLanguageServer
             case "textDocument/definition":
                 {
                     var defUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Console.Error.WriteLine($"[MIDL:LSP] definition request for: {defUri?.Substring(0, Math.Min(60, defUri?.Length ?? 0))}");
                     Compilation? defCompilation = null;
                     if (defUri != null) _lastCompilation.TryGetValue(defUri, out defCompilation);
                     var defRefs = defUri != null ? GetReferencePaths(defUri) : _referencePaths;
                     string? defFilePath = defUri?.StartsWith("file:///") == true ? Uri.UnescapeDataString(defUri[8..]) : null;
                     var defIncludes = GetIncludePaths(defFilePath);
-                    await _writer.SendResponseAsync(id, GotoDefinitionHandler.Handle(@params, _docManager, defIncludes, defRefs, defCompilation));
+                    var defResult = GotoDefinitionHandler.Handle(@params, _docManager, defIncludes, defRefs, defCompilation);
+                    Console.Error.WriteLine($"[MIDL:LSP] definition result: {(defResult == null ? "null" : "found")}");
+                    await _writer.SendResponseAsync(id, defResult);
                     break;
                 }
 
