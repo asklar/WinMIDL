@@ -101,7 +101,7 @@ export function activate(context: vscode.ExtensionContext) {
             const config = vscode.workspace.getConfiguration('midl');
             const inline = config.get<boolean>('inlineDocsBrowser', true);
             if (inline) {
-                vscode.commands.executeCommand('simpleBrowser.show', vscode.Uri.parse(url));
+                vscode.commands.executeCommand('simpleBrowser.show', url);
             } else {
                 vscode.env.openExternal(vscode.Uri.parse(url));
             }
