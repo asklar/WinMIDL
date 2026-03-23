@@ -84,7 +84,20 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
 
-        vscode.commands.registerCommand('midl.openDocs', (url: string) => {
+        vscode.commands.registerCommand('midl.openDocs', (...args: any[]) => {
+            // Args come from command URI: may be a single URL string or parsed from JSON array
+            let url: string | undefined;
+            if (args.length > 0) {
+                const first = args[0];
+                if (typeof first === 'string') {
+                    url = first;
+                } else if (first && typeof first === 'object' && first.toString) {
+                    url = first.toString();
+                }
+            }
+            console.log('MIDL openDocs:', JSON.stringify(args), '→ url:', url);
+            if (!url) return;
+
             const config = vscode.workspace.getConfiguration('midl');
             const inline = config.get<boolean>('inlineDocsBrowser', true);
             if (inline) {
