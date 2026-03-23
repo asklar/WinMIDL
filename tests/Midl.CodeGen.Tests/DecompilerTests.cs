@@ -702,7 +702,6 @@ public class DecompilerTests
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(bytes);
         Assert.Contains("event MyHandler Activated", idl);
-        // Should NOT have double space (event  Name)
         Assert.DoesNotContain("event  ", idl);
     }
 
@@ -719,10 +718,67 @@ public class DecompilerTests
         var bytes = CompileAndEmit(source);
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(bytes);
-        // Read-write should use shorthand (no { get; set; } or { get; })
         Assert.Contains("String Name;", idl);
-        // Read-only keeps accessor syntax
         Assert.Contains("Int32 ReadOnly { get; };", idl);
+    }
+
+    #endregion
+
+    #region Versioned blocks
+
+    [Fact]
+    public void Decompile_VersionedBlocks_GroupedByVersion()
+    {
+        var source = @"
+            namespace N {
+                [contractversion(1)]
+                apicontract MyContract {}
+
+                [contract(MyContract, 1)]
+                runtimeclass Widget {
+                    void MethodV1();
+
+                    [contract(MyContract, 2)]
+                    {
+                        void MethodV2();
+                    }
+                }
+            }";
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("MethodV1", idl);
+        Assert.Contains("MethodV2", idl);
+        Assert.Matches(@"\[contract\(.*MyContract.*, 2\)\]\s*\{", idl);
+        Assert.DoesNotMatch(@"\[contract\(.*MyContract.*, 1\)\]\s*\{", idl);
+    }
+
+    [Fact]
+    public void Decompile_WindowsWinmd_HasVersionedBlocks()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+        var contractBlockPattern = System.Text.RegularExpressions.Regex.IsMatch(
+            idl, @"\[contract\(.+?, \d+\)\]\s*\{");
+        Assert.True(contractBlockPattern, "Should have at least one versioned block");
+    }
+
+    [Fact]
+    public void Decompile_SingleVersion_NoVersionedBlock()
+    {
+        var source = @"
+            namespace N {
+                runtimeclass Widget {
+                    void DoWork();
+                    String Name;
+                }
+            }";
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.DoesNotMatch(@"\[contract\(.+?\)\]\s*\{", idl);
     }
 
     #endregion

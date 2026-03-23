@@ -471,6 +471,8 @@ internal class TypeDefEmitter
                     {
                         var stubHandle = EmitRuntimeMethodStub(method);
                         classMethodStubs.Add((method.Name, stubHandle));
+                        if (method.ContractVersion is int cv)
+                            _attrs.AddVersionAttribute(stubHandle, (uint)cv);
                         break;
                     }
                     case PropertySymbol prop:
@@ -479,6 +481,11 @@ internal class TypeDefEmitter
                         if (!getterStub.IsNil) classMethodStubs.Add(($"get_{prop.Name}", getterStub));
                         if (setterStub.HasValue) classMethodStubs.Add(($"put_{prop.Name}", setterStub.Value));
                         classProperties.Add((prop, getterStub, setterStub));
+                        if (prop.ContractVersion is int pcv)
+                        {
+                            if (!getterStub.IsNil) _attrs.AddVersionAttribute(getterStub, (uint)pcv);
+                            if (setterStub.HasValue) _attrs.AddVersionAttribute(setterStub.Value, (uint)pcv);
+                        }
                         break;
                     }
                     case EventSymbol evt:
@@ -487,6 +494,11 @@ internal class TypeDefEmitter
                         classMethodStubs.Add(($"add_{evt.Name}", adderStub));
                         classMethodStubs.Add(($"remove_{evt.Name}", removerStub));
                         classEvents.Add((evt, adderStub, removerStub));
+                        if (evt.ContractVersion is int ecv)
+                        {
+                            _attrs.AddVersionAttribute(adderStub, (uint)ecv);
+                            _attrs.AddVersionAttribute(removerStub, (uint)ecv);
+                        }
                         break;
                     }
                 }
