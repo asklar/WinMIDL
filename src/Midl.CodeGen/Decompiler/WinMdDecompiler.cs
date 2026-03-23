@@ -368,6 +368,9 @@ public class WinMdDecompiler
                 staticMethodNames.Add(reader.GetString(method.Name));
         }
 
+        // Collect names of overridable/protected members to skip (handled by EmitModifiedMembers)
+        var modifiedMethodNames = CollectModifiedMemberNames(reader, handle);
+
         // Detect properties and events by naming convention (runtimeclass TypeDefs may not have PropertyMap)
         var accessorNames = new HashSet<string>();
         var properties = new Dictionary<string, (string Type, bool HasGet, bool HasSet, uint? Version)>();
@@ -398,6 +401,8 @@ public class WinMdDecompiler
             var propName = reader.GetString(prop.Name);
             if (staticMethodNames.Contains($"get_{propName}") || staticMethodNames.Contains($"put_{propName}"))
                 continue;
+            if (modifiedMethodNames.Contains($"get_{propName}") || modifiedMethodNames.Contains($"put_{propName}"))
+                continue;
             var propSig = prop.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var accessors = prop.GetAccessors();
             bool hasGetter = !accessors.Getter.IsNil;
@@ -415,6 +420,8 @@ public class WinMdDecompiler
             var evtName = reader.GetString(evt.Name);
             if (staticMethodNames.Contains($"add_{evtName}"))
                 continue;
+            if (modifiedMethodNames.Contains($"add_{evtName}"))
+                continue;
             var delegateType = GetEntityName(reader, evt.Type);
             accessorNames.Add($"add_{evtName}");
             accessorNames.Add($"remove_{evtName}");
@@ -429,6 +436,7 @@ public class WinMdDecompiler
             var methodName = reader.GetString(method.Name);
             if (methodName == ".ctor") continue;
             if (method.Attributes.HasFlag(MethodAttributes.Static)) continue;
+            if (modifiedMethodNames.Contains(methodName)) continue;
 
             if (methodName.StartsWith("get_") && !accessorNames.Contains(methodName))
             {
@@ -474,7 +482,7 @@ public class WinMdDecompiler
         // Collect all members with their version and formatted text
         var members = new List<(uint? Version, string Text)>();
 
-        // Methods (skip constructors, accessors, and static stubs)
+        // Methods (skip constructors, accessors, static stubs, and overridable/protected)
         foreach (var methodHandle in td.GetMethods())
         {
             var method = reader.GetMethodDefinition(methodHandle);
@@ -482,6 +490,7 @@ public class WinMdDecompiler
             if (methodName == ".ctor") continue;
             if (accessorNames.Contains(methodName)) continue;
             if (method.Attributes.HasFlag(MethodAttributes.Static)) continue;
+            if (modifiedMethodNames.Contains(methodName)) continue;
 
             var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var returnType = MapToMidlType(sig.ReturnType);
@@ -759,6 +768,47 @@ public class WinMdDecompiler
             }
             catch { /* best-effort attribute decoding */ }
         }
+    }
+
+    /// <summary>
+    /// Collect method names from overridable/protected interfaces so the main
+    /// emission loop can skip them (they are emitted with a modifier prefix instead).
+    /// </summary>
+    private HashSet<string> CollectModifiedMemberNames(MetadataReader reader, TypeDefinitionHandle classHandle)
+    {
+        var names = new HashSet<string>();
+        var td = reader.GetTypeDefinition(classHandle);
+        foreach (var ifaceImplHandle in td.GetInterfaceImplementations())
+        {
+            var impl = reader.GetInterfaceImplementation(ifaceImplHandle);
+            bool isModified = false;
+            foreach (var attrHandle in impl.GetCustomAttributes())
+            {
+                var attr = reader.GetCustomAttribute(attrHandle);
+                var attrName = GetAttributeTypeName(reader, attr.Constructor);
+                if (attrName is "OverridableAttribute" or "ProtectedAttribute")
+                    isModified = true;
+            }
+            if (!isModified) continue;
+
+            var ifaceName = GetEntityName(reader, impl.Interface);
+            if (string.IsNullOrEmpty(ifaceName)) continue;
+
+            TypeDefinitionHandle? ifaceTdHandle;
+            if (impl.Interface.Kind == HandleKind.TypeDefinition)
+                ifaceTdHandle = (TypeDefinitionHandle)impl.Interface;
+            else
+                ifaceTdHandle = FindTypeDefByFullName(reader, ifaceName);
+
+            if (ifaceTdHandle == null) continue;
+            var ifaceTypeDef = reader.GetTypeDefinition(ifaceTdHandle.Value);
+            foreach (var methodHandle in ifaceTypeDef.GetMethods())
+            {
+                var methodName = reader.GetString(reader.GetMethodDefinition(methodHandle).Name);
+                names.Add(methodName);
+            }
+        }
+        return names;
     }
 
     private void EmitModifiedMembers(MetadataReader reader, TypeDefinitionHandle classHandle, StringBuilder sb, string indent)

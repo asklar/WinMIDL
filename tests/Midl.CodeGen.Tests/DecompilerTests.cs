@@ -6,7 +6,7 @@ using Midl.CodeGen.WinMd;
 
 namespace Midl.CodeGen.Tests;
 
-public class DecompilerTests
+public partial class DecompilerTests
 {
     private static byte[] CompileAndEmit(string source)
     {
