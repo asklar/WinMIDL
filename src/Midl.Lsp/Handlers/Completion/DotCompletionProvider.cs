@@ -15,6 +15,19 @@ internal static class DotCompletionProvider
     /// </summary>
     internal static string? ExtractDotPrefix(string text, int offset)
     {
+        return ExtractDotPrefix(text, offset, out _);
+    }
+
+    /// <summary>
+    /// Extracts the dotted prefix before the cursor, e.g. "Windows.Foundation" from "Windows.Foundation.|".
+    /// Also handles mid-typing after a dot: "Windows.Fo|" → returns "Windows".
+    /// Returns null if cursor is not in a dotted context.
+    /// Also returns the start offset of the full dotted expression via out parameter.
+    /// </summary>
+    internal static string? ExtractDotPrefix(string text, int offset, out int expressionStart)
+    {
+        expressionStart = 0;
+
         // Walk backward from cursor to find the start of the current token
         int tokenEnd = offset;
         int pos = offset - 1;
@@ -34,6 +47,7 @@ internal static class DotCompletionProvider
         if (start >= dotPos) return null;
         var prefix = text[start..dotPos];
         if (prefix.Length == 0 || prefix.EndsWith(".")) return null;
+        expressionStart = start;
         return prefix;
     }
 
@@ -42,7 +56,8 @@ internal static class DotCompletionProvider
     /// </summary>
     internal static List<object> BuildDotCompletions(string prefix, string text,
         IReadOnlyList<string>? includePaths, string? fileDir,
-        Compilation? cachedCompilation = null)
+        Compilation? cachedCompilation = null,
+        Dictionary<string, object?>? editRange = null)
     {
         var items = new List<object>();
 
@@ -66,7 +81,7 @@ internal static class DotCompletionProvider
                 // Add child namespaces
                 foreach (var child in ns.ChildNamespaces.Values.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
                 {
-                    AddDotItem(items, child.Name, CompletionHandler.KindModule, child.FullName, canonicalPrefix);
+                    AddDotItem(items, child.Name, CompletionHandler.KindModule, child.FullName, canonicalPrefix, editRange);
                 }
 
                 // Add types in this namespace
@@ -82,11 +97,11 @@ internal static class DotCompletionProvider
                         SymbolKind.Delegate => CompletionHandler.KindClass,
                         _ => CompletionHandler.KindClass,
                     };
-                    AddDotItem(items, member.Name, kind, member.FullName, canonicalPrefix);
+                    AddDotItem(items, member.Name, kind, member.FullName, canonicalPrefix, editRange);
                 }
 
                 // Also check lazy providers for types in this namespace
-                AddLazyProviderNamespaceMembers(items, compilation, canonicalPrefix);
+                AddLazyProviderNamespaceMembers(items, compilation, canonicalPrefix, editRange);
 
                 return items;
             }
@@ -109,7 +124,7 @@ internal static class DotCompletionProvider
             }
 
             // Third try: prefix might be a namespace only known to lazy providers
-            AddLazyProviderNamespaceMembers(items, compilation, prefix);
+            AddLazyProviderNamespaceMembers(items, compilation, prefix, editRange);
         }
         catch
         {
@@ -152,20 +167,37 @@ internal static class DotCompletionProvider
     /// Add a completion item with filterText set to "prefix.name" so VS Code
     /// can match it against the full dotted text the user is typing.
     /// </summary>
-    private static void AddDotItem(List<object> items, string name, int kind, string detail, string prefix)
+    private static void AddDotItem(List<object> items, string name, int kind, string detail, string prefix,
+        Dictionary<string, object?>? editRange = null)
     {
         var fullInsert = prefix + "." + name;
-        items.Add(new Dictionary<string, object?>
+        var item = new Dictionary<string, object?>
         {
             ["label"] = name,
             ["kind"] = kind,
             ["detail"] = detail,
-            ["insertText"] = fullInsert,
             ["filterText"] = fullInsert,
-        });
+        };
+
+        if (editRange != null)
+        {
+            // Use textEdit with explicit range to replace the full dotted expression
+            item["textEdit"] = new Dictionary<string, object?>
+            {
+                ["range"] = editRange,
+                ["newText"] = fullInsert
+            };
+        }
+        else
+        {
+            item["insertText"] = fullInsert;
+        }
+
+        items.Add(item);
     }
 
-    private static void AddLazyProviderNamespaceMembers(List<object> items, Compilation compilation, string ns)
+    private static void AddLazyProviderNamespaceMembers(List<object> items, Compilation compilation, string ns,
+        Dictionary<string, object?>? editRange = null)
     {
         var existingLabels = new HashSet<string>(
             items.Select(i => ((Dictionary<string, object?>)i)["label"]?.ToString() ?? ""),
@@ -190,7 +222,7 @@ internal static class DotCompletionProvider
                 if (childNamespaces.Add(childNs) && existingLabels.Add(childNs))
                 {
                     AddDotItem(items, childNs, CompletionHandler.KindModule,
-                        canonicalPrefix + "." + childNs, canonicalPrefix);
+                        canonicalPrefix + "." + childNs, canonicalPrefix, editRange);
                 }
             }
             else
@@ -202,7 +234,7 @@ internal static class DotCompletionProvider
                 if (existingLabels.Add(typeName))
                 {
                     AddDotItem(items, typeName, CompletionHandler.KindClass,
-                        fullName, canonicalPrefix);
+                        fullName, canonicalPrefix, editRange);
                 }
             }
         }

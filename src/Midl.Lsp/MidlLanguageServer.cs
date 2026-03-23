@@ -292,6 +292,17 @@ public sealed partial class MidlLanguageServer
                     {
                         _flatSdkTypeCompletions = true;
                     }
+
+                    if (initOpts.TryGetProperty("midl.fetchSdkDocs", out var fetchProp) &&
+                        fetchProp.ValueKind == JsonValueKind.False)
+                    {
+                        HoverHandler.FetchSdkDocs = false;
+                    }
+                    else if (initOpts.TryGetProperty("fetchSdkDocs", out var fetchProp2) &&
+                             fetchProp2.ValueKind == JsonValueKind.False)
+                    {
+                        HoverHandler.FetchSdkDocs = false;
+                    }
                 }
 
                 // Discover workspace root

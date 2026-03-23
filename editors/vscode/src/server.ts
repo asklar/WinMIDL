@@ -96,7 +96,8 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
             "midl.codeQualityHints": config.get<boolean>('codeQualityHints', true),
             "midl.useWindowsSdk": config.get<boolean>('useWindowsSdk', true),
             "midl.windowsSdkVersion": config.get<string>('windowsSdkVersion', 'latest'),
-            "midl.flatSdkTypeCompletions": config.get<boolean>('flatSdkTypeCompletions', false)
+            "midl.flatSdkTypeCompletions": config.get<boolean>('flatSdkTypeCompletions', false),
+            "midl.fetchSdkDocs": config.get<boolean>('fetchSdkDocs', true)
         },
         middleware: {
             provideDefinition: async (document, position, token, next) => {

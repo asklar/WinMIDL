@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Midl.Analysis;
+using Midl.Lsp.Protocol;
 
 namespace Midl.Lsp.Handlers;
 
@@ -81,10 +82,19 @@ public static class CompletionHandler
             }
 
             // Check if cursor follows a dot (e.g. "Windows.Foundation." or "MyEnum.")
-            var dotPrefix = DotCompletionProvider.ExtractDotPrefix(text, offset);
+            var dotPrefix = DotCompletionProvider.ExtractDotPrefix(text, offset, out int exprStart);
             if (dotPrefix != null)
             {
-                var items = DotCompletionProvider.BuildDotCompletions(dotPrefix, text, includePaths, fileDir, cachedCompilation);
+                // Compute textEdit range: from expression start to cursor position
+                var lineStarts = PositionHelper.BuildLineStarts(text);
+                var (startLine, startChar) = PositionHelper.OffsetToLineChar(lineStarts, exprStart);
+                var editRange = new Dictionary<string, object?>
+                {
+                    ["start"] = new Dictionary<string, object?> { ["line"] = startLine, ["character"] = startChar },
+                    ["end"] = new Dictionary<string, object?> { ["line"] = line, ["character"] = character }
+                };
+
+                var items = DotCompletionProvider.BuildDotCompletions(dotPrefix, text, includePaths, fileDir, cachedCompilation, editRange);
                 if (items.Count > 0)
                     return new Dictionary<string, object?> { ["isIncomplete"] = true, ["items"] = items.ToArray() };
             }

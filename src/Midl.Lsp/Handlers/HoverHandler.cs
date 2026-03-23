@@ -1,4 +1,7 @@
+using System.Collections.Concurrent;
+using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Midl.Analysis;
 using Midl.Lsp.Protocol;
 using Midl.Syntax;
@@ -10,6 +13,9 @@ namespace Midl.Lsp.Handlers;
 /// </summary>
 public static class HoverHandler
 {
+    private static readonly HttpClient s_httpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
+    private static readonly ConcurrentDictionary<string, string?> s_descriptionCache = new();
+    internal static bool FetchSdkDocs { get; set; } = true;
     private static readonly Dictionary<string, string> s_keywordDocs = new(StringComparer.Ordinal)
     {
         ["namespace"] = "**namespace** — Declares a namespace scope that groups related types.",
@@ -85,7 +91,15 @@ public static class HoverHandler
             try
             {
                 var compilation = cachedCompilation ?? CompilationHelper.Compile(text);
-                var symbol = FindSymbolByName(compilation, tokenText);
+
+                // Try extracting a full qualified name (e.g. hovering "Windows" in "Windows.UI.Xaml.Application")
+                var fqn = SymbolResolver.ExtractFullQualifiedNameAtCursor(text, tokenStart, tokenText);
+                var lookupName = fqn ?? tokenText;
+
+                var symbol = FindSymbolByName(compilation, lookupName);
+                // If FQN didn't match, fall back to short name
+                if (symbol is null && fqn != null)
+                    symbol = FindSymbolByName(compilation, tokenText);
                 if (symbol is not null)
                 {
                     string info;
@@ -96,10 +110,20 @@ public static class HoverHandler
                             : "";
                         info = $"(external) **{symbol.Kind}** `{symbol.FullName}`{source}";
 
+                        // Add cached description if available
+                        var desc = GetCachedDescription(symbol.FullName);
+                        if (desc != null)
+                            info += $"\n\n{desc}";
+
                         // Add Microsoft Learn link for Windows SDK types
                         var learnUrl = GetMsLearnUrl(symbol.FullName, symbol.SourceWinMdPath);
                         if (learnUrl != null)
+                        {
                             info += $"\n\n[📖 View on Microsoft Learn]({learnUrl})";
+                            // Trigger background fetch if not cached yet
+                            if (desc == null && FetchSdkDocs)
+                                _ = FetchDescriptionAsync(symbol.FullName, learnUrl);
+                        }
                     }
                     else
                     {
@@ -109,19 +133,36 @@ public static class HoverHandler
                 }
 
                 // Also check lazy providers for SDK types not yet resolved
+                // Try FQN match first, then short name
                 foreach (var fullName in compilation.GetAllLazyTypeNames())
                 {
                     var lastDot = fullName.LastIndexOf('.');
                     var shortName = lastDot >= 0 ? fullName[(lastDot + 1)..] : fullName;
                     var backtick = shortName.IndexOf('`');
                     if (backtick >= 0) shortName = shortName[..backtick];
-                    if (shortName.Equals(tokenText, StringComparison.OrdinalIgnoreCase))
+                    var cleanName = backtick >= 0 ? fullName[..fullName.IndexOf('`')] : fullName;
+
+                    bool matched = false;
+                    if (fqn != null && cleanName.Equals(fqn, StringComparison.OrdinalIgnoreCase))
+                        matched = true;
+                    else if (shortName.Equals(tokenText, StringComparison.OrdinalIgnoreCase))
+                        matched = true;
+
+                    if (matched)
                     {
-                        var cleanName = backtick >= 0 ? fullName[..fullName.IndexOf('`')] : fullName;
                         var info = $"(SDK) **type** `{cleanName}`";
+
+                        var desc = GetCachedDescription(cleanName);
+                        if (desc != null)
+                            info += $"\n\n{desc}";
+
                         var learnUrl = GetMsLearnUrl(cleanName, null);
                         if (learnUrl != null)
+                        {
                             info += $"\n\n[📖 View on Microsoft Learn]({learnUrl})";
+                            if (desc == null && FetchSdkDocs)
+                                _ = FetchDescriptionAsync(cleanName, learnUrl);
+                        }
                         return MakeHover(info, tokenStart, token.Text.Length, lineStarts);
                     }
                 }
@@ -230,6 +271,63 @@ public static class HoverHandler
 
     private static Analysis.Symbols.ISymbol? FindSymbolByName(Compilation compilation, string name)
     {
+        // Try FQN match first
+        if (name.Contains('.'))
+        {
+            var byFullName = compilation.GetAllTypes().FirstOrDefault(s =>
+                s.FullName.Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (byFullName != null) return byFullName;
+
+            // Try resolving via GetTypeByName (triggers lazy providers)
+            var resolved = compilation.GetTypeByName(name);
+            if (resolved != null) return resolved;
+        }
         return compilation.GetAllTypes().FirstOrDefault(s => s.Name == name);
+    }
+
+    /// <summary>Get a cached description for a type, or null if not yet fetched.</summary>
+    private static string? GetCachedDescription(string fullName)
+    {
+        return s_descriptionCache.TryGetValue(fullName, out var desc) ? desc : null;
+    }
+
+    /// <summary>Fetch a type description from Microsoft Learn in the background and cache it.</summary>
+    private static async Task FetchDescriptionAsync(string fullName, string learnUrl)
+    {
+        if (s_descriptionCache.ContainsKey(fullName)) return;
+
+        try
+        {
+            var html = await s_httpClient.GetStringAsync(learnUrl);
+
+            // Extract the first paragraph from the page content
+            // The MS Learn markdown/HTML has the description as the first meaningful paragraph
+            var desc = ExtractDescription(html);
+            s_descriptionCache[fullName] = desc;
+        }
+        catch
+        {
+            // Network error — cache null to avoid retrying
+            s_descriptionCache.TryAdd(fullName, null);
+        }
+    }
+
+    /// <summary>Extract the type description from a MS Learn HTML page.</summary>
+    private static string? ExtractDescription(string html)
+    {
+        // Look for the first <p> tag content after the main heading area
+        // MS Learn pages have the description as early paragraph text
+        var match = Regex.Match(html, @"<meta\s+name=""description""\s+content=""([^""]+)""", RegexOptions.IgnoreCase);
+        if (match.Success)
+        {
+            var desc = match.Groups[1].Value.Trim();
+            // Clean up HTML entities
+            desc = desc.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">").Replace("&#39;", "'").Replace("&quot;", "\"");
+            // Truncate to first ~200 chars for hover readability
+            if (desc.Length > 200)
+                desc = desc[..197] + "...";
+            return desc;
+        }
+        return null;
     }
 }

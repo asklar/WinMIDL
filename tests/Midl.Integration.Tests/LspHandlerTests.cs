@@ -840,9 +840,9 @@ public class LspHandlerTests
             MakePositionParams(uri, 2, 16), dm, cachedCompilation: compilation);
         var json = JsonSerializer.Serialize(result);
 
-        // insertText should use canonical casing (Windows.Foundation, not windows.Foundation)
-        Assert.Contains("\"insertText\":\"Windows.Foundation\"", json);
-        Assert.DoesNotContain("\"insertText\":\"windows.", json);
+        // textEdit.newText should use canonical casing (Windows.Foundation, not windows.Foundation)
+        Assert.Contains("Windows.Foundation", json);
+        Assert.DoesNotContain("\"newText\":\"windows.", json);
     }
 
     [Fact]

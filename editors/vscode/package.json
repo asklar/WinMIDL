@@ -120,6 +120,11 @@
           "type": "boolean",
           "default": false,
           "description": "Show all SDK types by short name in completions (e.g. 'Button', 'Control'). When off, only SDK namespace names appear and you drill in with dot notation."
+        },
+        "midl.fetchSdkDocs": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fetch type descriptions from Microsoft Learn on hover. Requires internet access."
         }
       }
     }
