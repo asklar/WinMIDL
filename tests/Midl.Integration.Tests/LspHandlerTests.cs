@@ -805,6 +805,90 @@ public class LspHandlerTests
     }
 
     [Fact]
+    public void DotCompletion_CaseInsensitive_LowercasePrefix()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace X {\n    runtimeclass F {\n        windows.\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+
+        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        if (winmd == null) return;
+        var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
+
+        // Cursor after "windows." — line 2, col 16
+        var result = CompletionHandler.Handle(
+            MakePositionParams(uri, 2, 16), dm, cachedCompilation: compilation);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should show SDK namespace children despite lowercase input
+        Assert.Contains("Foundation", json);
+        Assert.Contains("UI", json);
+    }
+
+    [Fact]
+    public void DotCompletion_InsertText_HasCanonicalCasing()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace X {\n    runtimeclass F {\n        windows.\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+
+        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        if (winmd == null) return;
+        var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
+
+        var result = CompletionHandler.Handle(
+            MakePositionParams(uri, 2, 16), dm, cachedCompilation: compilation);
+        var json = JsonSerializer.Serialize(result);
+
+        // insertText should use canonical casing (Windows.Foundation, not windows.Foundation)
+        Assert.Contains("\"insertText\":\"Windows.Foundation\"", json);
+        Assert.DoesNotContain("\"insertText\":\"windows.", json);
+    }
+
+    [Fact]
+    public void DotCompletion_MultiLevelSdk_ShowsTypesAndSubNamespaces()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace X {\n    runtimeclass F {\n        Windows.Foundation.\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+
+        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        if (winmd == null) return;
+        var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
+
+        // Cursor after "Windows.Foundation." — line 2, col 27
+        var result = CompletionHandler.Handle(
+            MakePositionParams(uri, 2, 27), dm, cachedCompilation: compilation);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should show child namespaces (Collections, Diagnostics, etc.)
+        Assert.Contains("Collections", json);
+        // Should show types in Windows.Foundation (Uri, IAsyncAction, etc.)
+        Assert.Contains("Uri", json);
+    }
+
+    [Fact]
+    public void Completion_RootLevel_ShowsSdkNamespaces()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace X {\n    runtimeclass F {\n        \n    }\n}";
+        var dm = CreateDocManager(uri, source);
+
+        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        if (winmd == null) return;
+        var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
+
+        // Cursor on blank line in runtimeclass body
+        var result = CompletionHandler.Handle(
+            MakePositionParams(uri, 2, 8), dm, cachedCompilation: compilation);
+        var json = JsonSerializer.Serialize(result);
+
+        // Should show "Windows" as a namespace completion
+        Assert.Contains("\"Windows\"", json);
+        Assert.Contains("SDK namespace", json);
+    }
+
+    [Fact]
     public void CompletionOnRefDirective_ShowsFilesAndFolders()
     {
         var tempDir = Path.Combine(Path.GetTempPath(), $"midl_ref_test_{Guid.NewGuid():N}");
