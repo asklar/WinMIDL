@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Midl.Analysis;
 
 #pragma warning disable CS0169 // Field is never used (scaffolded for future use)
 
@@ -272,6 +273,85 @@ internal class CustomAttributeEmitter
             Array.Empty<Action<SignatureTypeEncoder>>());
         var blob = EncodeParameterlessAttribute();
         Metadata.AddCustomAttribute(parent, _experimentalCtorRef.Value, Metadata.GetOrAddBlob(blob));
+    }
+
+    /// <summary>
+    /// Mapping from IDL attribute names to WinMD attribute type names.
+    /// Only includes attributes that are NOT handled by explicit Add*Attribute methods.
+    /// </summary>
+    private static readonly Dictionary<string, string> IdlToWinMdAttributeName =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["webhosthidden"] = "WebHostHiddenAttribute",
+            ["contentproperty"] = "ContentPropertyAttribute",
+            ["inputproperty"] = "InputPropertyAttribute",
+            ["allowforweb"] = "AllowForWebAttribute",
+            ["bindable"] = "BindableAttribute",
+            ["create_instance"] = "CreateInstanceAttribute",
+            ["internal"] = "InternalAttribute",
+        };
+
+    // Cache for generic attribute constructor MemberRefs keyed by (WinMD type name, arg count)
+    private readonly Dictionary<(string typeName, int argCount), MemberReferenceHandle> _genericCtorCache = new();
+
+    /// <summary>
+    /// Emits a custom attribute that is not handled by the explicit well-known attribute methods.
+    /// The attribute is placed in the Windows.Foundation.Metadata namespace.
+    /// </summary>
+    public void AddGenericCustomAttribute(EntityHandle parent, AttributeData attrData)
+    {
+        if (!IdlToWinMdAttributeName.TryGetValue(attrData.Name, out var winmdTypeName))
+        {
+            // Fallback: capitalize first letter, append "Attribute" suffix
+            winmdTypeName = char.ToUpperInvariant(attrData.Name[0]) + attrData.Name[1..];
+            if (!winmdTypeName.EndsWith("Attribute", StringComparison.Ordinal))
+                winmdTypeName += "Attribute";
+        }
+
+        var cacheKey = (winmdTypeName, attrData.Arguments.Count);
+        if (!_genericCtorCache.TryGetValue(cacheKey, out var ctorRef))
+        {
+            var paramEncoders = attrData.Arguments.Select<AttributeArgValue, Action<SignatureTypeEncoder>>(arg =>
+                arg.Kind switch
+                {
+                    ArgKind.String or ArgKind.Identifier or ArgKind.TypeName => e => e.String(),
+                    ArgKind.Integer => e => e.Int32(),
+                    ArgKind.Float => e => e.Double(),
+                    ArgKind.Guid => e => e.String(),
+                    _ => e => e.String(),
+                }).ToArray();
+
+            ctorRef = CreateWfmCtorRef(winmdTypeName, paramEncoders);
+            _genericCtorCache[cacheKey] = ctorRef;
+        }
+
+        var blob = new BlobBuilder();
+        blob.WriteUInt16(0x0001); // prolog
+        foreach (var arg in attrData.Arguments)
+        {
+            switch (arg.Kind)
+            {
+                case ArgKind.String:
+                case ArgKind.Identifier:
+                case ArgKind.TypeName:
+                    blob.WriteSerializedString(arg.StringValue ?? "");
+                    break;
+                case ArgKind.Integer:
+                    blob.WriteInt32((int)arg.IntValue);
+                    break;
+                case ArgKind.Float:
+                    blob.WriteDouble(arg.FloatValue);
+                    break;
+                case ArgKind.Guid:
+                    blob.WriteSerializedString(arg.GuidValue.ToString());
+                    break;
+                default:
+                    blob.WriteSerializedString(arg.StringValue ?? "");
+                    break;
+            }
+        }
+        blob.WriteUInt16(0x0000); // named args
+        Metadata.AddCustomAttribute(parent, ctorRef, Metadata.GetOrAddBlob(blob));
     }
 
 #if WINDOWS_INTERNAL

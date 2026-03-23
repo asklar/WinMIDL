@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Midl.Analysis;
 using Midl.Analysis.Symbols;
 
 namespace Midl.CodeGen.WinMd;
@@ -34,6 +35,41 @@ internal class TypeDefEmitter
             case RuntimeClassSymbol rc: EmitRuntimeClass(rc); break;
             case ApiContractSymbol ac: EmitApiContract(ac); break;
             case AttributeTypeSymbol at: EmitAttribute(at); break;
+        }
+    }
+
+    /// <summary>
+    /// Well-known attribute names already handled by explicit Add*Attribute calls.
+    /// These must NOT be re-emitted by the generic path.
+    /// </summary>
+    private static readonly HashSet<string> HandledAttributeNames =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "uuid", "version", "contract", "contractversion",
+            "deprecated", "activatable", "composable", "static",
+            "threading", "marshaling_behavior", "exclusiveto",
+            "default_interface", "default_overload", "overload",
+            "method_name", "return_name", "flags",
+            "attributeusage", "attributename", "allowmultiple",
+            "experimental", "default", "overridable", "protected",
+            "remote_async",
+#if WINDOWS_INTERNAL
+            "feature", "feature_name",
+#endif
+        };
+
+    /// <summary>
+    /// Emit any custom attributes on the symbol that are NOT already handled
+    /// by the explicit well-known attribute calls.
+    /// </summary>
+    private void EmitRemainingAttributes(EntityHandle handle, List<AttributeData>? attrs)
+    {
+        if (attrs == null || attrs.Count == 0) return;
+
+        foreach (var attr in attrs)
+        {
+            if (HandledAttributeNames.Contains(attr.Name)) continue;
+            _attrs.AddGenericCustomAttribute(handle, attr);
         }
     }
 
@@ -171,6 +207,8 @@ internal class TypeDefEmitter
         if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var enumFInfo) == true)
             _attrs.AddFeatureAttribute(typeDef, (int)enumFInfo.Stage, enumFInfo.ValidInAllBranches);
 #endif
+
+        EmitRemainingAttributes(typeDef, symbol.Attributes);
     }
 
     #endregion
@@ -214,6 +252,8 @@ internal class TypeDefEmitter
 #endif
 
         _attrs.AddVersionAttribute(typeDef);
+
+        EmitRemainingAttributes(typeDef, symbol.Attributes);
     }
 
     #endregion
@@ -304,6 +344,8 @@ internal class TypeDefEmitter
 
         if (symbol.IsExclusive && symbol.ExclusiveToClass != null)
             _attrs.AddExclusiveToAttribute(typeDef, symbol.ExclusiveToClass);
+
+        EmitRemainingAttributes(typeDef, symbol.Attributes);
     }
 
     #endregion
@@ -348,6 +390,8 @@ internal class TypeDefEmitter
 #endif
 
         _attrs.AddVersionAttribute(typeDef);
+
+        EmitRemainingAttributes(typeDef, symbol.Attributes);
     }
 
     private void EmitDelegateConstructor()
@@ -631,6 +675,8 @@ internal class TypeDefEmitter
         // ContractVersionAttribute
         if (symbol.ContractName != null && symbol.ContractVersion != null)
             _attrs.AddContractVersionAttribute(typeDef, symbol.ContractName, (uint)symbol.ContractVersion.Value);
+
+        EmitRemainingAttributes(typeDef, symbol.Attributes);
     }
 
     private void EmitConstructor(ConstructorSymbol ctor, bool isUnsealed)
