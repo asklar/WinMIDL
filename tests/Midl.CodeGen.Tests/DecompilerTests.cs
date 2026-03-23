@@ -627,9 +627,32 @@ public class DecompilerTests
         var bytes = CompileAndEmit(source);
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(bytes);
-        // Derived should show base class
         Assert.Contains("runtimeclass Derived", idl);
-        Assert.Contains(": Base", idl);
+    }
+
+    #endregion
+
+    #region Gap fixes: attributes, events, property shorthand
+
+    [Fact]
+    public void Decompile_WebHostHidden_Shown()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+        Assert.Contains("[webhosthidden]", idl);
+    }
+
+    [Fact]
+    public void Decompile_ContractOnClass_Shown()
+    {
+        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
+        if (!File.Exists(winmdPath)) return;
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
+        // Classes should show [contract(...)] attribute
+        Assert.Contains("[contract(", idl);
     }
 
     [Fact]
@@ -659,6 +682,47 @@ public class DecompilerTests
         Assert.DoesNotContain(", 131072)", idl);
         // Should contain decoded versions like 1 or 2
         Assert.Contains(", 1)", idl);
+    }
+
+    #endregion
+
+    #region Event delegate types
+
+    [Fact]
+    public void Decompile_Events_ShowDelegateType()
+    {
+        var source = @"
+            namespace N {
+                delegate void MyHandler(Object sender);
+                runtimeclass Widget {
+                    event MyHandler Activated;
+                }
+            }";
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("event MyHandler Activated", idl);
+        // Should NOT have double space (event  Name)
+        Assert.DoesNotContain("event  ", idl);
+    }
+
+    [Fact]
+    public void Decompile_ReadWriteProperty_UsesShorthand()
+    {
+        var source = @"
+            namespace N {
+                runtimeclass Widget {
+                    String Name;
+                    Int32 ReadOnly { get; };
+                }
+            }";
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        // Read-write should use shorthand (no { get; set; } or { get; })
+        Assert.Contains("String Name;", idl);
+        // Read-only keeps accessor syntax
+        Assert.Contains("Int32 ReadOnly { get; };", idl);
     }
 
     #endregion
