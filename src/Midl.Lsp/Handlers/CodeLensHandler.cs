@@ -72,21 +72,24 @@ public static class CodeLensHandler
             resolvedPath = Path.GetFullPath(Path.Combine(dir, refValue));
 
         int total = 0;
+        var normalizedRef = resolvedPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+
         foreach (var provider in compilation.LazyProviders!)
         {
             if (provider.SourcePath == null) continue;
 
+            var normalizedSource = Path.GetFullPath(provider.SourcePath);
+
             if (Directory.Exists(resolvedPath))
             {
-                // @ref points to a directory — match any WinMD inside it
-                var providerDir = Path.GetDirectoryName(provider.SourcePath);
-                if (providerDir != null &&
-                    providerDir.StartsWith(resolvedPath, StringComparison.OrdinalIgnoreCase))
+                // @ref points to a directory — match any WinMD whose path is inside it
+                if (normalizedSource.StartsWith(normalizedRef, StringComparison.OrdinalIgnoreCase))
                 {
                     total += provider.TypeCount;
                 }
             }
-            else if (provider.SourcePath.Equals(resolvedPath, StringComparison.OrdinalIgnoreCase))
+            else if (normalizedSource.Equals(Path.GetFullPath(resolvedPath), StringComparison.OrdinalIgnoreCase))
             {
                 total += provider.TypeCount;
             }
