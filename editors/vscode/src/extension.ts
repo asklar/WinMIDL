@@ -120,6 +120,15 @@ class WinMdContentProvider implements vscode.TextDocumentContentProvider {
 export function activate(context: vscode.ExtensionContext) {
     console.log('MIDL Language Support activated');
 
+    // Debug: log all document opens
+    context.subscriptions.push(
+        vscode.workspace.onDidOpenTextDocument(doc => {
+            if (doc.uri.scheme === 'midl-winmd') {
+                console.log(`[MIDL-F12] Document opened: scheme=${doc.uri.scheme} lang=${doc.languageId} uri=${doc.uri.toString().substring(0, 80)}`);
+            }
+        })
+    );
+
     // Create output channel for server logs
     const outputChannel = vscode.window.createOutputChannel('MIDL Language Server');
 
@@ -160,14 +169,17 @@ export function activate(context: vscode.ExtensionContext) {
         );
 
         // Register a DefinitionProvider for midl-winmd scheme documents
-        // (VS Code's LSP client doesn't forward definition requests for virtual documents,
-        // and client.sendRequest hangs. Handle F12 entirely client-side using the CLI.)
+        // Use scheme-only selector (language may not be set when F12 is first pressed)
         context.subscriptions.push(
             vscode.languages.registerDefinitionProvider(
-                { scheme: 'midl-winmd', language: 'midl' },
+                { scheme: 'midl-winmd' },
                 {
                     async provideDefinition(document: vscode.TextDocument, position: vscode.Position): Promise<vscode.Location | null> {
-                        if (!serverBinaryPath) return null;
+                        console.log(`[MIDL-F12] provideDefinition called! scheme=${document.uri.scheme} lang=${document.languageId} line=${position.line}`);
+                        if (!serverBinaryPath) {
+                            console.log('[MIDL-F12] no server binary');
+                            return null;
+                        }
 
                         // Get the word under cursor
                         const wordRange = document.getWordRangeAtPosition(position);
