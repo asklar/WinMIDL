@@ -102,24 +102,26 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
         middleware: {
             provideHover: async (document, position, token, next) => {
                 const result = await next(document, position, token);
-                if (result) {
-                    // Rebuild contents as trusted MarkdownString to enable command: URIs
-                    const raw = result.contents;
-                    let mdText = '';
-                    if (raw instanceof vscode.MarkdownString) {
-                        mdText = raw.value;
-                    } else if (typeof raw === 'string') {
-                        mdText = raw;
-                    } else if (Array.isArray(raw)) {
-                        mdText = raw.map(c => typeof c === 'string' ? c : (c as any).value || '').join('\n\n');
-                    } else if (raw && typeof raw === 'object' && 'value' in raw) {
-                        mdText = (raw as any).value;
+                try {
+                    if (result) {
+                        // Make a trusted copy so command: URIs are clickable
+                        const raw = result.contents;
+                        let mdText: string | undefined;
+                        if (raw instanceof vscode.MarkdownString) {
+                            mdText = raw.value;
+                        } else if (typeof raw === 'string') {
+                            mdText = raw;
+                        } else if (raw && typeof raw === 'object' && 'value' in raw) {
+                            mdText = String((raw as {value: unknown}).value);
+                        }
+                        if (mdText && mdText.includes('command:')) {
+                            const md = new vscode.MarkdownString(mdText);
+                            md.isTrusted = true;
+                            return new vscode.Hover(md, result.range);
+                        }
                     }
-                    if (mdText) {
-                        const md = new vscode.MarkdownString(mdText);
-                        md.isTrusted = true;
-                        (result as any).contents = md;
-                    }
+                } catch (e) {
+                    console.error('MIDL hover middleware error:', e);
                 }
                 return result;
             },
