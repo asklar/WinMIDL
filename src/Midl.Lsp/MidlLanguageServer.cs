@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Lsp.Handlers;
