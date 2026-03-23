@@ -160,7 +160,7 @@ internal static class ContextualCompletionProvider
 
     internal static List<object> BuildContextualCompletions(CompletionContext context, string text, string uri,
         IReadOnlyList<string>? includePaths = null, string? currentFilePath = null,
-        Compilation? cachedCompilation = null)
+        Compilation? cachedCompilation = null, bool flatSdkTypeCompletions = false)
     {
         var items = new List<object>();
 
@@ -199,7 +199,7 @@ internal static class ContextualCompletionProvider
                 CompletionHandler.AddItem(items, "event", CompletionHandler.KindEvent, "Declares an event");
                 CompletionHandler.AddItem(items, "}", CompletionHandler.KindKeyword, "Close interface");
                 CompletionHandler.AddItem(items, "requires", CompletionHandler.KindKeyword, "Requires clause");
-                AddUserTypes(items, compilation);
+                AddUserTypes(items, compilation, flatSdkTypes: flatSdkTypeCompletions);
                 break;
 
             case CompletionContext.RuntimeClassBody:
@@ -211,7 +211,7 @@ internal static class ContextualCompletionProvider
                 CompletionHandler.AddItem(items, "overridable", CompletionHandler.KindKeyword, "Allows override in derived classes");
                 CompletionHandler.AddItem(items, "}", CompletionHandler.KindKeyword, "Close runtimeclass");
                 AddConstructorName(items, text);
-                AddUserTypes(items, compilation);
+                AddUserTypes(items, compilation, flatSdkTypes: flatSdkTypeCompletions);
                 break;
 
             case CompletionContext.BaseList:
@@ -233,7 +233,7 @@ internal static class ContextualCompletionProvider
                 AddAllTypes(items);
                 CompletionHandler.AddItem(items, "out", CompletionHandler.KindKeyword, "Output parameter");
                 CompletionHandler.AddItem(items, "ref", CompletionHandler.KindKeyword, "Reference parameter");
-                AddUserTypes(items, compilation);
+                AddUserTypes(items, compilation, flatSdkTypes: flatSdkTypeCompletions);
                 break;
 
             case CompletionContext.EventType:
@@ -306,9 +306,11 @@ internal static class ContextualCompletionProvider
 
     /// <summary>Add user-defined and external types from the cached compilation (or fall back to ad-hoc compile).</summary>
     private static void AddUserTypes(List<object> items, Compilation? compilation,
-        Func<ISymbol, bool>? filter = null)
+        Func<ISymbol, bool>? filter = null, bool flatSdkTypes = false)
     {
         if (compilation == null) return;
+
+        // 1. Add locally-defined types (from the current file and imports)
         try
         {
             foreach (var type in compilation.GetAllTypes())
@@ -337,38 +339,50 @@ internal static class ContextualCompletionProvider
         }
         catch { /* partial file — skip user types */ }
 
-        // Also add types from lazy WinMD providers (SDK types)
-        if (compilation != null)
+        // 2. SDK types from lazy WinMD providers
+        if (filter == null)
         {
+            var rootNamespaces = new HashSet<string>(StringComparer.Ordinal);
             foreach (var fullName in compilation.GetAllLazyTypeNames())
             {
                 if (string.IsNullOrEmpty(fullName)) continue;
-                var lastDot = fullName.LastIndexOf('.');
-                var shortName = lastDot >= 0 ? fullName[(lastDot + 1)..] : fullName;
-                // Skip generic arity suffix (IVector`1 → IVector)
-                var backtick = shortName.IndexOf('`');
-                if (backtick >= 0) shortName = shortName[..backtick];
-                if (filter != null)
+                var firstDot = fullName.IndexOf('.');
+                var rootNs = firstDot >= 0 ? fullName[..firstDot] : fullName;
+                rootNamespaces.Add(rootNs);
+
+                if (flatSdkTypes)
                 {
-                    // Simple kind inference from WinRT naming conventions
-                    bool isInterface = shortName.StartsWith('I') && shortName.Length > 1 && char.IsUpper(shortName[1]);
-                    if (filter == IsInterfaceFilter && !isInterface) continue;
-                    if (filter == IsDelegateFilter) continue; // can't distinguish delegates from lazy names
+                    // Flat mode: also add every type by short name
+                    var lastDot = fullName.LastIndexOf('.');
+                    var shortName = lastDot >= 0 ? fullName[(lastDot + 1)..] : fullName;
+                    var backtick = shortName.IndexOf('`');
+                    if (backtick >= 0) shortName = shortName[..backtick];
+                    items.Add(new Dictionary<string, object?>
+                    {
+                        ["label"] = shortName,
+                        ["kind"] = CompletionHandler.KindClass,
+                        ["detail"] = $"(SDK) {fullName}",
+                        ["insertText"] = fullName,
+                        ["filterText"] = shortName,
+                        ["sortText"] = "2_" + shortName, // types sort after namespaces
+                    });
                 }
+            }
+
+            // Always show root namespace names
+            foreach (var ns in rootNamespaces.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+            {
                 items.Add(new Dictionary<string, object?>
                 {
-                    ["label"] = shortName,
-                    ["kind"] = CompletionHandler.KindClass,
-                    ["detail"] = $"(SDK) {fullName}",
-                    ["insertText"] = fullName,
-                    ["filterText"] = shortName,
+                    ["label"] = ns,
+                    ["kind"] = CompletionHandler.KindModule,
+                    ["detail"] = $"(SDK namespace)",
+                    ["sortText"] = "0_" + ns, // namespaces sort first
+                    ["commitCharacters"] = new[] { "." },
                 });
             }
         }
     }
-
-    private static readonly Func<ISymbol, bool> IsInterfaceFilter = t => t is InterfaceSymbol;
-    private static readonly Func<ISymbol, bool> IsDelegateFilter = t => t is DelegateSymbol;
 
     /// <summary>Suggest the enclosing runtimeclass name as a constructor.</summary>
     private static void AddConstructorName(List<object> items, string text)

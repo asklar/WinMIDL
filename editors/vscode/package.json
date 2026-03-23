@@ -110,6 +110,11 @@
           "default": "latest",
           "description": "Windows SDK version to use (e.g. '10.0.26100.0'). Set to 'latest' to auto-detect the newest installed version.",
           "examples": ["latest", "10.0.26100.0", "10.0.22621.0"]
+        },
+        "midl.flatSdkTypeCompletions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show all SDK types by short name in completions (e.g. 'Button', 'Control'). When off, only SDK namespace names appear and you drill in with dot notation."
         }
       }
     }

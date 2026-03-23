@@ -29,7 +29,7 @@ public static class CompletionHandler
 
     public static object Handle(JsonElement? @params, DocumentManager docManager,
         IReadOnlyList<string>? includePaths = null, ProjectFile? projectFile = null,
-        Compilation? cachedCompilation = null)
+        Compilation? cachedCompilation = null, bool flatSdkTypeCompletions = false)
     {
         if (@params == null)
             return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = s_staticCompletionItems };
@@ -84,7 +84,7 @@ public static class CompletionHandler
             var dotPrefix = DotCompletionProvider.ExtractDotPrefix(text, offset);
             if (dotPrefix != null)
             {
-                var items = DotCompletionProvider.BuildDotCompletions(dotPrefix, text, includePaths, fileDir);
+                var items = DotCompletionProvider.BuildDotCompletions(dotPrefix, text, includePaths, fileDir, cachedCompilation);
                 if (items.Count > 0)
                     return new Dictionary<string, object?> { ["isIncomplete"] = true, ["items"] = items.ToArray() };
             }
@@ -105,7 +105,7 @@ public static class CompletionHandler
 
             // Context-aware completion based on cursor position
             var context = ContextualCompletionProvider.DetectCompletionContext(text, offset, line);
-            var contextItems = ContextualCompletionProvider.BuildContextualCompletions(context, text, uri, includePaths, fileDir, cachedCompilation);
+            var contextItems = ContextualCompletionProvider.BuildContextualCompletions(context, text, uri, includePaths, fileDir, cachedCompilation, flatSdkTypeCompletions);
             // Use isIncomplete=true for contexts with dynamic user types so VS Code re-queries
             bool isIncomplete = context != ContextualCompletionProvider.CompletionContext.TopLevel &&
                                 context != ContextualCompletionProvider.CompletionContext.EnumBody;

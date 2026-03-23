@@ -34,14 +34,21 @@ internal static class DotCompletionProvider
     /// Build completions for dot-triggered context: child namespaces, types, or enum members.
     /// </summary>
     internal static List<object> BuildDotCompletions(string prefix, string text,
-        IReadOnlyList<string>? includePaths, string? fileDir)
+        IReadOnlyList<string>? includePaths, string? fileDir,
+        Compilation? cachedCompilation = null)
     {
         var items = new List<object>();
 
         try
         {
-            var compilation = CompilationHelper.Compile(text, referencePaths: null,
-                mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: fileDir);
+            var compilation = cachedCompilation;
+            if (compilation == null)
+            {
+                try { compilation = CompilationHelper.Compile(text, referencePaths: null,
+                    mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: fileDir); }
+                catch { }
+            }
+            if (compilation == null) return items;
 
             // First try: resolve prefix as a namespace in the compilation tree
             var ns = ResolveNamespace(compilation.GlobalNamespace, prefix);
@@ -145,57 +152,48 @@ internal static class DotCompletionProvider
 
     private static void AddLazyProviderNamespaceMembers(List<object> items, Compilation compilation, string ns)
     {
-        // Use reflection-free approach: the compilation exposes lazy providers indirectly
-        // through GetTypesInNamespace-like queries by checking all type names
         var existingLabels = new HashSet<string>(
             items.Select(i => ((Dictionary<string, object?>)i)["label"]?.ToString() ?? ""),
             StringComparer.Ordinal);
 
-        // Walk all types looking for ones in this namespace (lazy providers are queried through compilation)
-        // We trigger lazy resolution by looking at the namespace prefix
-        try
-        {
-            // Try resolving a dummy type to trigger namespace population from providers
-            compilation.GetTypeByName(ns + ".__probe__");
-        }
-        catch { }
+        var prefix = ns + ".";
+        var childNamespaces = new HashSet<string>(StringComparer.Ordinal);
 
-        // Re-check the namespace tree after probing
-        var resolvedNs = ResolveNamespace(compilation.GlobalNamespace, ns);
-        if (resolvedNs != null)
+        foreach (var fullName in compilation.GetAllLazyTypeNames())
         {
-            foreach (var child in resolvedNs.ChildNamespaces.Values)
+            if (!fullName.StartsWith(prefix, StringComparison.Ordinal)) continue;
+
+            var remainder = fullName[prefix.Length..];
+            var dotIdx = remainder.IndexOf('.');
+            if (dotIdx >= 0)
             {
-                if (existingLabels.Add(child.Name))
+                // Child namespace
+                var childNs = remainder[..dotIdx];
+                if (childNamespaces.Add(childNs) && existingLabels.Add(childNs))
                 {
                     items.Add(new Dictionary<string, object?>
                     {
-                        ["label"] = child.Name,
+                        ["label"] = childNs,
                         ["kind"] = CompletionHandler.KindModule,
-                        ["detail"] = child.FullName,
-                        ["insertText"] = child.Name,
+                        ["detail"] = prefix + childNs,
+                        ["insertText"] = childNs,
                     });
                 }
             }
-            foreach (var member in resolvedNs.Members.Where(m => m.Kind != SymbolKind.Namespace))
+            else
             {
-                if (existingLabels.Add(member.Name))
+                // Direct type in this namespace
+                var typeName = remainder;
+                var backtick = typeName.IndexOf('`');
+                if (backtick >= 0) typeName = typeName[..backtick];
+                if (existingLabels.Add(typeName))
                 {
-                    var kind = member.Kind switch
-                    {
-                        SymbolKind.Interface => CompletionHandler.KindInterface,
-                        SymbolKind.RuntimeClass => CompletionHandler.KindClass,
-                        SymbolKind.Enum => CompletionHandler.KindEnum,
-                        SymbolKind.Struct => CompletionHandler.KindStruct,
-                        SymbolKind.Delegate => CompletionHandler.KindClass,
-                        _ => CompletionHandler.KindClass,
-                    };
                     items.Add(new Dictionary<string, object?>
                     {
-                        ["label"] = member.Name,
-                        ["kind"] = kind,
-                        ["detail"] = member.FullName,
-                        ["insertText"] = member.Name,
+                        ["label"] = typeName,
+                        ["kind"] = CompletionHandler.KindClass,
+                        ["detail"] = fullName,
+                        ["insertText"] = typeName,
                     });
                 }
             }

@@ -23,6 +23,7 @@ public sealed partial class MidlLanguageServer
     private CompilationMode _compilationMode = CompilationMode.Strict;
     private bool _enableQualityHints = true;
     private bool _useWindowsSdk = true;
+    private bool _flatSdkTypeCompletions;
     private ProjectFile? _projectFile;
     private string? _workspaceRoot;
 
@@ -149,7 +150,7 @@ public sealed partial class MidlLanguageServer
                     var compUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
                     Compilation? cachedComp = null;
                     if (compUri != null) _lastCompilation.TryGetValue(compUri, out cachedComp);
-                    await _writer.SendResponseAsync(id, CompletionHandler.Handle(@params, _docManager, _sdkIncludePaths, _projectFile, cachedComp));
+                    await _writer.SendResponseAsync(id, CompletionHandler.Handle(@params, _docManager, _sdkIncludePaths, _projectFile, cachedComp, _flatSdkTypeCompletions));
                 }
                 break;
 
@@ -274,6 +275,17 @@ public sealed partial class MidlLanguageServer
                              sdkProp2.ValueKind == JsonValueKind.False)
                     {
                         _useWindowsSdk = false;
+                    }
+
+                    if (initOpts.TryGetProperty("midl.flatSdkTypeCompletions", out var flatProp) &&
+                        flatProp.ValueKind == JsonValueKind.True)
+                    {
+                        _flatSdkTypeCompletions = true;
+                    }
+                    else if (initOpts.TryGetProperty("flatSdkTypeCompletions", out var flatProp2) &&
+                             flatProp2.ValueKind == JsonValueKind.True)
+                    {
+                        _flatSdkTypeCompletions = true;
                     }
                 }
 
