@@ -225,6 +225,15 @@ public sealed partial class MidlLanguageServer
                 break;
             }
 
+            case "textDocument/codeLens":
+                {
+                    var clUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? clComp = null;
+                    if (clUri != null) _lastCompilation.TryGetValue(clUri, out clComp);
+                    await _writer.SendResponseAsync(id, CodeLensHandler.Handle(@params, _docManager, clComp));
+                }
+                break;
+
             default:
                 if (hasId)
                 {
@@ -410,6 +419,10 @@ public sealed partial class MidlLanguageServer
                 ["codeActionProvider"] = new Dictionary<string, object?>
                 {
                     ["codeActionKinds"] = new[] { "quickfix" }
+                },
+                ["codeLensProvider"] = new Dictionary<string, object?>
+                {
+                    ["resolveProvider"] = false
                 },
                 ["workspace"] = new Dictionary<string, object?>
                 {

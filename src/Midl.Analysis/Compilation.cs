@@ -14,6 +14,9 @@ public class Compilation
 
     private readonly IReadOnlyList<LazyWinMdProvider>? _lazyProviders;
 
+    /// <summary>Get the lazy WinMD providers (for code lens type counts per reference).</summary>
+    public IReadOnlyList<LazyWinMdProvider>? LazyProviders => _lazyProviders;
+
 #if WINDOWS_INTERNAL
     /// <summary>Feature_name declarations encountered during binding, keyed by name.</summary>
     public Dictionary<string, FeatureNameInfo> FeatureNames { get; } = new(StringComparer.OrdinalIgnoreCase);
