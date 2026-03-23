@@ -56,6 +56,7 @@ public class AttributeValidator
             ["allowmultiple"] = new() { "target_attribute" },
             ["attributename"] = new() { "target_attribute" },
             ["contentproperty"] = new() { "target_runtimeclass" },
+            ["allowforweb"] = new() { "target_runtimeclass" },
         };
 
     /// <summary>All well-known built-in attribute names recognized by the MIDL compiler.</summary>
@@ -87,6 +88,7 @@ public class AttributeValidator
             "entry", "dllname", "custom",
             // XAML/composition
             "contentproperty", "inputproperty",
+            "allowforweb",
             "bindable", "create_instance",
 #if WINDOWS_INTERNAL
             "feature", "feature_name",
