@@ -3,23 +3,25 @@
   Publish the MIDL VS Code extension to the Marketplace.
 
 .DESCRIPTION
-  Downloads the latest VSIX from the GitHub release (or uses a local file)
-  and publishes it using vsce. Requires a fresh Azure DevOps PAT with
-  Marketplace (Manage) scope.
+  Publishes using either Azure CLI credentials (default, no PAT needed)
+  or a PAT. Requires 'az login' to have been run, or a fresh PAT.
 
 .PARAMETER Pat
-  Azure DevOps Personal Access Token with Marketplace scope.
+  Azure DevOps Personal Access Token. If omitted, uses Azure CLI credentials.
 
 .PARAMETER VsixPath
   Path to a local .vsix file. If not provided, publishes from editors/vscode.
 
 .EXAMPLE
+  # Using Azure CLI credentials (recommended):
+  az login
+  .\publish-extension.ps1
+
+  # Using a PAT:
   .\publish-extension.ps1 -Pat "your-pat-here"
 #>
 param(
-    [Parameter(Mandatory)]
     [string]$Pat,
-
     [string]$VsixPath
 )
 
@@ -27,13 +29,23 @@ $ErrorActionPreference = 'Stop'
 
 if ($VsixPath -and (Test-Path $VsixPath)) {
     Write-Host "Publishing from VSIX: $VsixPath"
-    npx @vscode/vsce publish --packagePath $VsixPath -p $Pat
+    if ($Pat) {
+        npx @vscode/vsce publish --packagePath $VsixPath -p $Pat
+    } else {
+        Write-Host "Using Azure CLI credentials (run 'az login' first)"
+        npx @vscode/vsce publish --packagePath $VsixPath --azure-credential
+    }
 } else {
     Push-Location "$PSScriptRoot\..\editors\vscode"
     try {
-        Write-Host "Publishing from editors/vscode..."
         npm ci --silent
-        npx @vscode/vsce publish -p $Pat
+        if ($Pat) {
+            Write-Host "Publishing with PAT..."
+            npx @vscode/vsce publish -p $Pat
+        } else {
+            Write-Host "Publishing with Azure CLI credentials (run 'az login' first)..."
+            npx @vscode/vsce publish --azure-credential
+        }
     } finally {
         Pop-Location
     }
