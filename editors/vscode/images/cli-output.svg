@@ -4,9 +4,11 @@
   <!-- Title bar -->
   <rect width="800" height="30" rx="8" fill="#323233"/>
   <rect y="22" width="800" height="8" fill="#323233"/>
-  <circle cx="16" cy="15" r="5" fill="#FF5F57"/>
-  <circle cx="32" cy="15" r="5" fill="#FEBC2E"/>
-  <circle cx="48" cy="15" r="5" fill="#28C840"/>
+  <!-- Windows title bar buttons (right side) -->
+  <rect x="704" y="12" width="10" height="1" fill="#999"/>
+  <rect x="730" y="8" width="10" height="10" fill="none" style="stroke:#999;stroke-width:1"/>
+  <line x1="758" y1="8" x2="768" y2="18" style="stroke:#999;stroke-width:1.2"/>
+  <line x1="768" y1="8" x2="758" y2="18" style="stroke:#999;stroke-width:1.2"/>
   <text x="400" y="19" style="font-family:Consolas,monospace;font-size:11px;fill:#808080;text-anchor:middle">Terminal</text>
 
   <!-- Prompt -->
