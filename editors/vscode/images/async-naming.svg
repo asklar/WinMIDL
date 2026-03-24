@@ -18,13 +18,13 @@
   <text x="48" y="82" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">{</text>
   <!-- Line 3: IAsyncOperation<String> GetData(); -->
   <text x="64" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#4EC9B0">IAsyncOperation</text>
-  <text x="186" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">&lt;</text>
-  <text x="194" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#4EC9B0">String</text>
-  <text x="240" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">&gt;</text>
-  <text x="256" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#DCDCAA">GetData</text>
-  <text x="310" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">();</text>
+  <text x="184" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">&lt;</text>
+  <text x="192" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#4EC9B0">String</text>
+  <text x="238" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">&gt;</text>
+  <text x="262" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#DCDCAA">GetData</text>
+  <text x="316" y="102" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">();</text>
   <!-- Info squiggly under GetData -->
-  <path d="M 256 106 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3" fill="none" stroke="#3794FF" stroke-width="1.2"/>
+  <path d="M 262 106 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3" fill="none" stroke="#3794FF" stroke-width="1.2"/>
   <!-- Line 4: IAsyncAction Refresh(); -->
   <text x="64" y="122" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#4EC9B0">IAsyncAction</text>
   <text x="168" y="122" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4"> </text>
