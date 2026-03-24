@@ -189,8 +189,8 @@ The extension activates automatically when you open any `.idl` file. All feature
 
 ## Requirements
 
-- **.NET 10 SDK** — Required to build and run the MIDL language server
 - **VS Code 1.85+** — Minimum supported VS Code version
+- **.NET 10 SDK** — Only required if building the language server from source or using a custom `midl.serverPath`. The extension ships a bundled server binary.
 
 ---
 
