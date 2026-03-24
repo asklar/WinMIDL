@@ -164,7 +164,14 @@ Comment toggling, bracket matching, auto-closing pairs, smart indentation, and d
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `midl.serverPath` | `string` | `"midl"` | Path to the MIDL CLI executable. The extension launches this with `--lsp` to start the language server over stdio. |
+| `midl.strictMode` | `boolean` | `true` | Enable strict MIDL3 mode. Classic MIDL constructs (coclass, library, typedef, etc.) produce warnings. Disable for mixed MIDL2/MIDL3 codebases. |
+| `midl.codeQualityHints` | `boolean` | `true` | Show code quality hints (naming conventions, empty types, etc.) |
+| `midl.useWindowsSdk` | `boolean` | `true` | Automatically reference Windows.winmd from the installed Windows SDK for type completion and F12 navigation. |
+| `midl.windowsSdkVersion` | `string` | `"latest"` | Windows SDK version to use. Use the **MIDL: Select Windows SDK Version** command to pick from installed versions. |
+| `midl.flatSdkTypeCompletions` | `boolean` | `false` | Show all SDK types by short name in completions (e.g. `Button`, `Control`). When off, only namespace names appear and you drill in with dot notation. |
+| `midl.fetchSdkDocs` | `boolean` | `true` | Fetch type descriptions from Microsoft Learn on hover. Requires internet access. |
+| `midl.inlineDocsBrowser` | `boolean` | `true` | Open Microsoft Learn documentation in a VS Code side panel instead of the external browser. |
+| `midl.serverPath` | `string` | `"midl"` | Path to the MIDL CLI executable. The extension ships its own copy — you shouldn't need to change this unless using a custom build. |
 
 ---
 
@@ -174,24 +181,7 @@ Comment toggling, bracket matching, auto-closing pairs, smart indentation, and d
 
 Install **MIDL Language Support** from the VS Code marketplace or from a `.vsix` package.
 
-### 2. Build the MIDL Compiler
-
-```bash
-cd E:\midl
-dotnet build
-```
-
-### 3. Configure the Server Path
-
-Open VS Code settings (**Ctrl+,**) and set the path to the compiled MIDL CLI binary:
-
-```json
-{
-    "midl.serverPath": "E:\\midl\\src\\Midl.Cli\\bin\\Debug\\net10.0\\Midl.Cli.exe"
-}
-```
-
-### 4. Open a `.idl` File
+### 2. Open a `.idl` File
 
 The extension activates automatically when you open any `.idl` file. All features — syntax highlighting, diagnostics, completions, hover, and more — are available immediately.
 
