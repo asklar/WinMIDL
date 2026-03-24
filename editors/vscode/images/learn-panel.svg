@@ -23,9 +23,9 @@
   <text x="136" y="62" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Widget</text>
   <text x="40" y="80" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">{</text>
   <!-- IVector highlighted -->
-  <rect x="54" y="86" width="310" height="16" fill="#264f78" rx="2"/>
+  <rect x="54" y="86" width="346" height="16" fill="#264f78" rx="2"/>
   <text x="56" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Windows.Foundation.Collections.IVector&lt;String&gt;</text>
-  <text x="376" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Items;</text>
+  <text x="402" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Items;</text>
   <text x="56" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">IMapView</text>
   <text x="120" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">&lt;</text>
   <text x="128" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">String</text>
@@ -34,7 +34,7 @@
   <text x="240" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">&gt; Props;</text>
   <text x="40" y="134" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">}</text>
   <!-- Hover tooltip -->
-  <rect x="50" y="104" width="340" height="60" fill="#252526" stroke="#454545" stroke-width="1" rx="4"/>
+  <rect x="50" y="104" width="345" height="60" fill="#252526" stroke="#454545" stroke-width="1" rx="4"/>
   <text x="62" y="122" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4;font-weight:bold">IVector&lt;T&gt;</text>
   <text x="170" y="122" style="font-family:Consolas,'Cascadia Code',monospace;font-size:11px;fill:#808080">— Windows.Foundation.Collections</text>
   <text x="62" y="140" style="font-family:Consolas,'Cascadia Code',monospace;font-size:11px;fill:#808080">Represents a random-access collection of elements.</text>

@@ -28,13 +28,13 @@
   <text x="152" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Widget</text>
   <text x="56" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">{</text>
   <!-- Highlighted reference -->
-  <rect x="70" y="123" width="182" height="16" fill="#264f78" rx="2"/>
+  <rect x="70" y="123" width="168" height="16" fill="#264f78" rx="2"/>
   <text x="72" y="134" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Windows.Foundation.Uri</text>
-  <text x="254" y="134" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4"> Homepage;</text>
+  <text x="247" y="134" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4"> Homepage;</text>
   <text x="56" y="152" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">}</text>
   <text x="40" y="170" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">}</text>
   <!-- F12 Arrow -->
-  <path d="M 260 131 C 320 131, 350 80, 397 80" fill="none" stroke="#007ACC" stroke-width="2" stroke-dasharray="6,3"/>
+  <path d="M 238 131 C 310 131, 350 80, 397 80" fill="none" stroke="#007ACC" stroke-width="2" stroke-dasharray="6,3"/>
   <polygon points="393,76 401,80 393,84" fill="#007ACC"/>
   <!-- F12 badge -->
   <rect x="300" y="105" width="36" height="18" fill="#007ACC" rx="4"/>

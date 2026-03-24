@@ -2,7 +2,7 @@
 
 **A complete MIDL3 development environment** — catch errors as you type, get context-aware completions, and ship correct WinRT APIs faster.
 
-![Real-time diagnostics catching MIDL2 syntax in MIDL3 code](images/diagnostics.svg)
+![Real-time diagnostics catching MIDL2 syntax in MIDL3 code](images/diagnostics.png)
 
 ---
 
@@ -10,7 +10,7 @@
 
 Errors and warnings surface instantly as you type — no build step required. Syntax errors, undefined types, MIDL2/MIDL3 migration issues, and duplicate definitions are caught with precise source locations and actionable messages.
 
-![Diagnostics panel showing errors and warnings with source positions](images/diagnostics.svg)
+![Diagnostics quick fix showing "Replace 'Strng' with 'String'"](images/diagnostics-quickfix.png)
 
 ---
 
@@ -18,7 +18,7 @@ Errors and warnings surface instantly as you type — no build step required. Sy
 
 Completions adapt to where your cursor is. Inside an attribute bracket on a `runtimeclass`? You'll see `activatable`, `composable`, `contract`. Inside a `struct` body? Only value types that are valid there.
 
-![Side-by-side autocomplete showing attribute and type completions](images/autocomplete.svg)
+![Side-by-side autocomplete showing attribute and type completions](images/autocomplete.png)
 
 Includes WinRT primitives, collection/async types, external `.winmd` types, and trigger characters on `.` and space.
 
@@ -28,13 +28,13 @@ Includes WinRT primitives, collection/async types, external `.winmd` types, and 
 
 16 built-in code quality rules with one-click quick fixers — enforce WinRT naming conventions, simplify verbose patterns, and catch common mistakes.
 
-![Code quality rules with lightbulb hints and quick fixers](images/code-quality.svg)
+![Code quality rules with lightbulb hints and quick fixers](images/code-quality.png)
 
 ### Async Naming Convention
 
 Methods returning `IAsyncOperation` or `IAsyncAction` should follow the `Async` suffix convention. WinMIDL detects violations and offers one-click renames.
 
-![Async naming convention enforcement with quick fix suggestions](images/async-naming.svg)
+![Async naming convention enforcement with quick fix suggestions](images/async-naming.png)
 
 ---
 
@@ -44,13 +44,13 @@ Methods returning `IAsyncOperation` or `IAsyncAction` should follow the `Async` 
 
 **F12** on any Windows SDK type jumps to a decompiled IDL view straight from the `.winmd` — no source code needed.
 
-![F12 on Windows.Foundation.Uri showing decompiled IDL from the WinMD](images/goto-definition.svg)
+![F12 on Windows.Foundation.Uri showing decompiled IDL from the WinMD](images/goto-definition.png)
 
 ### F2 Rename Symbol
 
 Rename a symbol and all its references in one shot. Works across interface declarations, `requires` clauses, and return types.
 
-![F2 rename widget renaming Foo to IFoo across all references](images/rename.svg)
+![F2 rename widget renaming Foo to IFoo across all references](images/rename.png)
 
 ---
 
@@ -60,21 +60,15 @@ Rename a symbol and all its references in one shot. Works across interface decla
 
 Type a dot after any Windows namespace and IntelliSense walks you through the hierarchy — `Windows.` → `UI.` → `Composition`, `Core`, `Xaml`…
 
-![SDK namespace drill-in autocomplete showing Windows.UI sub-namespaces](images/sdk-autocomplete.svg)
+![SDK namespace drill-in autocomplete showing Windows.UI sub-namespaces](images/sdk-autocomplete.png)
 
 ### Microsoft Learn Integration
 
 Hover any Windows SDK type to see its documentation inline, with a direct link to Microsoft Learn. The side panel shows full API docs without leaving VS Code.
 
-![Hover tooltip and Microsoft Learn side panel for IVector](images/learn-panel.svg)
+![Hover tooltip and Microsoft Learn side panel for IVector](images/learn-panel.png)
 
 ---
-
-## 🏗️ Architecture
-
-WinMIDL is a full compiler pipeline — not just a linter. The same engine powers both the CLI and the VS Code extension via LSP.
-
-![Compiler pipeline: Source → Preprocessor → Lexer → Parser → Green Tree → Binder → WinMD, Headers, IIDs, LSP](images/architecture.svg)
 
 ---
 
