@@ -11,14 +11,14 @@ enum LargeFlags
 {
     LargeFlags_None = 0,
     LargeFlags_Bit0 = 1,
-    LargeFlags_Bit4 = 2,
-    LargeFlags_Bit8 = 3,
-    LargeFlags_Bit12 = 4,
-    LargeFlags_Bit16 = 5,
-    LargeFlags_Bit20 = 6,
-    LargeFlags_Bit24 = 7,
-    LargeFlags_Bit28 = 8,
-    LargeFlags_AllBits = 9,
+    LargeFlags_Bit4 = 16,
+    LargeFlags_Bit8 = 256,
+    LargeFlags_Bit12 = 4096,
+    LargeFlags_Bit16 = 65536,
+    LargeFlags_Bit20 = 1048576,
+    LargeFlags_Bit24 = 16777216,
+    LargeFlags_Bit28 = 268435456,
+    LargeFlags_AllBits = 286331153,
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FlagChecker[] = L"TestApp.Parity.FlagChecker";

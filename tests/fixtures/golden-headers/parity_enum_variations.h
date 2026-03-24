@@ -18,10 +18,10 @@ enum SimpleSequential
 enum ExplicitValues
 {
     ExplicitValues_None = 0,
-    ExplicitValues_Low = 1,
-    ExplicitValues_Medium = 2,
-    ExplicitValues_High = 3,
-    ExplicitValues_Max = 4,
+    ExplicitValues_Low = 10,
+    ExplicitValues_Medium = 100,
+    ExplicitValues_High = 1000,
+    ExplicitValues_Max = 10000,
 };
 
 enum PermissionFlags
@@ -29,10 +29,10 @@ enum PermissionFlags
     PermissionFlags_None = 0,
     PermissionFlags_Read = 1,
     PermissionFlags_Write = 2,
-    PermissionFlags_Execute = 3,
-    PermissionFlags_Delete = 4,
-    PermissionFlags_Admin = 5,
-    PermissionFlags_All = 6,
+    PermissionFlags_Execute = 4,
+    PermissionFlags_Delete = 8,
+    PermissionFlags_Admin = 16,
+    PermissionFlags_All = 31,
 };
 
 enum FileAttributes2
@@ -40,10 +40,10 @@ enum FileAttributes2
     FileAttributes2_Normal = 0,
     FileAttributes2_ReadOnly = 1,
     FileAttributes2_Hidden = 2,
-    FileAttributes2_System = 3,
-    FileAttributes2_Archive = 4,
-    FileAttributes2_Temporary = 5,
-    FileAttributes2_Encrypted = 6,
+    FileAttributes2_System = 4,
+    FileAttributes2_Archive = 8,
+    FileAttributes2_Temporary = 16,
+    FileAttributes2_Encrypted = 32,
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EnumUser[] = L"TestApp.Parity.EnumUser";

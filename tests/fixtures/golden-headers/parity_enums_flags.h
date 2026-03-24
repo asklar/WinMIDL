@@ -28,13 +28,13 @@ enum Priority
 
 enum FileAccess
 {
-    FileAccess_Read = 0,
-    FileAccess_Write = 1,
-    FileAccess_Execute = 2,
+    FileAccess_Read = 1,
+    FileAccess_Write = 2,
+    FileAccess_Execute = 4,
     FileAccess_ReadWrite = 3,
-    FileAccess_ReadExecute = 4,
-    FileAccess_WriteExecute = 5,
-    FileAccess_All = 6,
+    FileAccess_ReadExecute = 5,
+    FileAccess_WriteExecute = 6,
+    FileAccess_All = 7,
 };
 
 enum DayOfWeek
@@ -42,26 +42,26 @@ enum DayOfWeek
     DayOfWeek_None = 0,
     DayOfWeek_Monday = 1,
     DayOfWeek_Tuesday = 2,
-    DayOfWeek_Wednesday = 3,
-    DayOfWeek_Thursday = 4,
-    DayOfWeek_Friday = 5,
-    DayOfWeek_Saturday = 6,
-    DayOfWeek_Sunday = 7,
-    DayOfWeek_Weekday = 8,
-    DayOfWeek_Weekend = 9,
-    DayOfWeek_All = 10,
+    DayOfWeek_Wednesday = 4,
+    DayOfWeek_Thursday = 8,
+    DayOfWeek_Friday = 16,
+    DayOfWeek_Saturday = 32,
+    DayOfWeek_Sunday = 64,
+    DayOfWeek_Weekday = 31,
+    DayOfWeek_Weekend = 96,
+    DayOfWeek_All = 127,
 };
 
 enum Planet
 {
-    Planet_Mercury = 0,
-    Planet_Venus = 1,
-    Planet_Earth = 2,
-    Planet_Mars = 3,
-    Planet_Jupiter = 4,
-    Planet_Saturn = 5,
-    Planet_Uranus = 6,
-    Planet_Neptune = 7,
+    Planet_Mercury = 1,
+    Planet_Venus = 2,
+    Planet_Earth = 3,
+    Planet_Mars = 4,
+    Planet_Jupiter = 5,
+    Planet_Saturn = 6,
+    Planet_Uranus = 7,
+    Planet_Neptune = 8,
 };
 
 enum RenderOptions
@@ -69,9 +69,9 @@ enum RenderOptions
     RenderOptions_None = 0,
     RenderOptions_Antialias = 1,
     RenderOptions_HighQuality = 2,
-    RenderOptions_UseCache = 3,
-    RenderOptions_Animate = 4,
-    RenderOptions_AllEffects = 5,
+    RenderOptions_UseCache = 4,
+    RenderOptions_Animate = 8,
+    RenderOptions_AllEffects = 15,
 };
 
 #endif // __TestApp_Parity_h__
