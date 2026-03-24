@@ -26,7 +26,7 @@
   <text x="64" y="122" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#4EC9B0">IAsyncAction</text>
   <text x="168" y="122" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4"> </text>
   <text x="176" y="122" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#DCDCAA">Refresh</text>
-  <text x="240" y="122" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">();</text>
+  <text x="232" y="122" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">();</text>
   <!-- Info squiggly under Refresh -->
   <path d="M 176 126 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3 l 4 3 l 4 -3" fill="none" stroke="#3794FF" stroke-width="1.2"/>
   <text x="48" y="142" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">}</text>
