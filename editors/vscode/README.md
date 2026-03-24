@@ -1,6 +1,50 @@
 # MIDL Language Support for VS Code
 
-Full language support for Microsoft Interface Definition Language (MIDL/MIDL3) `.idl` files — syntax highlighting, IntelliSense, diagnostics, and more.
+**A complete MIDL3 development environment** — catch errors as you type, get context-aware completions, and ship correct WinRT APIs faster.
+
+![Real-time diagnostics catching MIDL2 syntax in MIDL3 code](images/diagnostics.svg)
+
+---
+
+## ⚡ Real-Time Diagnostics
+
+Errors and warnings surface instantly as you type — no build step required. Syntax errors, undefined types, MIDL2/MIDL3 migration issues, and duplicate definitions are caught with precise source locations and actionable messages.
+
+![Diagnostics panel showing errors and warnings with source positions](images/diagnostics.svg)
+
+---
+
+## 🧠 Context-Aware IntelliSense
+
+Completions adapt to where your cursor is. Inside an attribute bracket on a `runtimeclass`? You'll see `activatable`, `composable`, `contract`. Inside a `struct` body? Only value types that are valid there.
+
+![Side-by-side autocomplete showing attribute and type completions](images/autocomplete.svg)
+
+Includes WinRT primitives, collection/async types, external `.winmd` types, and trigger characters on `.` and space.
+
+---
+
+## 🎯 Code Quality
+
+16 built-in code quality rules with one-click quick fixers — enforce WinRT naming conventions, simplify verbose patterns, and catch common mistakes.
+
+![Code quality rules with lightbulb hints and quick fixers](images/code-quality.svg)
+
+---
+
+## 💻 CLI Experience
+
+Use `winmidl` from the command line for CI pipelines, pre-commit hooks, or batch analysis. Rust-style diagnostic output with source spans and fix suggestions.
+
+![Terminal showing winmidl CLI output with colored diagnostics](images/cli-output.svg)
+
+---
+
+## 🏗️ Architecture
+
+WinMIDL is a full compiler pipeline — not just a linter. The same engine powers both the CLI and the VS Code extension via LSP.
+
+![Compiler pipeline: Source → Preprocessor → Lexer → Parser → Green Tree → Binder → WinMD, Headers, IIDs, LSP](images/architecture.svg)
 
 ---
 
@@ -17,18 +61,6 @@ Full TextMate grammar covering both MIDL3 and classic MIDL syntax:
 - **GUIDs** — Inline GUID literals colorized as constants
 - **Strings, numbers, comments** — Double-quoted strings with escape sequences, hex (`0xFF`) and decimal literals, line (`//`) and block (`/* */`) comments
 - **Storage modifiers** — `static`, `partial`, `unsealed`, `protected`, `overridable`, `get`, `set`, `out`, `ref`, `const`
-
-### ⚡ IntelliSense / Completions
-
-Context-aware auto-complete powered by the MIDL language server:
-
-- **Declaration keywords** — `namespace`, `runtimeclass`, `interface`, `delegate`, `struct`, `enum`, `event`, `apicontract`, `import`
-- **Modifier keywords** — `static`, `partial`, `unsealed`, `protected`, `overridable`
-- **Built-in WinRT types** — `Boolean`, `Char`, `Int16`, `Int32`, `Int64`, `UInt8`, `UInt16`, `UInt32`, `UInt64`, `Single`, `Double`, `String`, `Guid`, `Object`
-- **Common WinRT collection/async types** — `IVector`, `IVectorView`, `IMap`, `IMapView`, `IIterable`, `IAsyncOperation`, `IAsyncAction`, `EventHandler`, `TypedEventHandler`
-- **Property/parameter keywords** — `get`, `set`, `out`, `ref`, `void`
-- **External types** — Types from referenced `.winmd` files in the workspace directory appear with their fully-qualified names
-- **Trigger characters** — Completions trigger on `.` and space
 
 ### 📝 Code Snippets
 
@@ -56,94 +88,37 @@ Context-aware auto-complete powered by the MIDL language server:
 | `versionedblock` | Versioned member block with contract attribute |
 | `import` | Import directive |
 
-### 🔍 Real-Time Diagnostics
-
-Errors and warnings appear as you type, powered by the MIDL semantic analysis engine:
-
-- Syntax errors with precise locations
-- Undefined type detection
-- Duplicate definition warnings
-- Internal compiler error reporting (graceful fallback)
-
-Diagnostics are published on every document open and change via the Language Server Protocol.
-
 ### 🖱️ Hover Information
 
-Hover over any token for contextual documentation:
-
-- **Keywords** — Markdown-formatted documentation for all MIDL3 keywords (`namespace`, `runtimeclass`, `interface`, `delegate`, `struct`, `enum`, `event`, `static`, `partial`, `unsealed`, `protected`, `overridable`, `apicontract`, `import`, `requires`, `get`, `set`, `out`, `ref`, `void`)
-- **Built-in types** — Descriptions for all WinRT primitive types (`Boolean`, `Int32`, `String`, `Guid`, `Object`, etc.)
-- **User-defined types** — Shows the symbol kind and fully-qualified name (e.g., `**RuntimeClass** \`MyNamespace.MyClass\``)
-- **External types** — Shows the fully-qualified name and source `.winmd` file path
-- **Identifiers** — Unresolved identifiers shown with their text
+Hover over any token for contextual documentation — keywords, built-in types, user-defined types, and external `.winmd` symbols.
 
 ### 🔗 Go to Definition
 
-Navigate to where a symbol is defined:
-
-- **Ctrl+Click** or **F12** on any type name or member name
-- Jumps to the defining `runtimeclass`, `interface`, `struct`, `enum`, `delegate`, `apicontract`, `namespace`, method, or constructor declaration
-- Works for top-level types and nested members (methods, properties, constructors)
-- External (`.winmd`) symbols are excluded — navigation is within the current file
+**Ctrl+Click** or **F12** on any type or member name to jump to its declaration.
 
 ### 🔎 Find All References
 
-Find every usage of a symbol in the document:
-
-- **Shift+F12** on any identifier
-- Locates all occurrences of the identifier token across the file
-- Verifies the symbol exists in the compilation before reporting results
-- Returns precise ranges for each reference location
+**Shift+F12** to find every usage of a symbol in the document.
 
 ### ✍️ Signature Help
 
-Parameter hints when typing inside method calls and constructors:
-
-- Triggered by `(` and `,`
-- Shows full method/constructor/delegate signature with parameter list
-- Highlights the active parameter based on comma position
-- Supports methods, constructors, and delegate invocations
+Parameter hints triggered by `(` and `,` — shows full method/constructor/delegate signatures with active parameter highlighting.
 
 ### 🎯 Semantic Highlighting
 
-Rich semantic token classification beyond TextMate grammars:
-
-- **14 token types** — `namespace`, `type`, `interface`, `enum`, `enumMember`, `method`, `property`, `event`, `parameter`, `keyword`, `comment`, `string`, `number`, `struct`
-- **Token modifiers** — `declaration`, `static`
-- Symbol-aware classification: identifiers are resolved against the compilation to determine their exact kind
-- Comments in leading trivia are classified for accurate highlighting
-- Works on top of the TextMate grammar for enhanced highlighting in supported themes
+14 semantic token types with declaration/static modifiers — identifiers resolved against the compilation for precise highlighting.
 
 ### 📐 Document Formatting
 
-Auto-format MIDL documents with **Format Document** (Shift+Alt+F):
-
-- Consistent 4-space indentation based on brace nesting
-- Normalizes spacing after commas
-- Normalizes spacing around `:` (preserving `::` scope resolution)
-- Blank lines inserted between top-level declarations
-- Trailing whitespace removed from all lines
-- Ensures trailing newline
+**Shift+Alt+F** — consistent 4-space indentation, normalized spacing, blank lines between declarations, trailing whitespace cleanup.
 
 ### 📋 Document Outline
 
-See all symbols in the **Outline** view (Ctrl+Shift+O) and **Breadcrumbs**:
-
-- Namespaces, runtime classes, interfaces, structs, enums, delegates, API contracts
-- Nested members: methods, properties, events, constructors, fields, enum members
-- Hierarchical tree structure matching your code's namespace/type/member nesting
+Hierarchical symbol tree in **Outline** view and **Breadcrumbs** — namespaces, types, and members.
 
 ### 📄 Language Configuration
 
-Editor behaviors configured out of the box:
-
-- **Comment toggling** — Ctrl+/ for line comments (`//`), Shift+Alt+A for block comments (`/* */`)
-- **Bracket matching** — `{}`, `[]`, `()`, `<>`
-- **Auto-closing pairs** — Braces, brackets, parentheses, angle brackets, quotes
-- **Folding** — Fold code blocks on `{` / `}`
-- **Smart indentation** — Auto-indent after `{`, auto-outdent on `}`
-- **Word pattern** — Recognizes dotted identifiers (e.g., `Windows.Foundation.Uri`) as single words for double-click selection
-- **Doc comment continuation** — Pressing Enter after `///` or inside `/** */` continues the comment prefix
+Comment toggling, bracket matching, auto-closing pairs, smart indentation, and doc comment continuation — all configured out of the box.
 
 ---
 
