@@ -196,8 +196,7 @@ The extension activates automatically when you open any `.idl` file. All feature
 
 ## Known Limitations
 
-- **Single-file analysis** — The language server analyzes each file independently; cross-file imports are not yet resolved in the LSP
-- **Go to Definition** — Works within the current file and for external `.winmd` types (decompiled view)
+- **Go to Definition** — Works within the current file, across `.idl` files (via `winmidl.json` or `// @ref:` directives), and for external `.winmd` types (decompiled view)
 - **Full document sync** — The entire document is re-sent and reparsed on every keystroke (incremental text sync planned)
 - **No refactoring** — Code actions are available but full refactoring support is still growing
 - **No code folding from LSP** — Folding relies on the regex-based language configuration, not semantic ranges
