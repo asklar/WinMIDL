@@ -32,5 +32,6 @@ TestResults/
 *.trx
 *.winmd
 *.h
+!tests/fixtures/golden-headers/*.h
 *.c
 tests/golden/
