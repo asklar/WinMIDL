@@ -203,25 +203,6 @@ The extension activates automatically when you open any `.idl` file. All feature
 
 ---
 
-## Development
-
-To work on the extension itself:
-
-1. Open `E:\midl\editors\vscode` in VS Code
-2. Run `npm install` to install dependencies
-3. Press **F5** to launch the Extension Development Host (uses the `Launch Extension` debug configuration)
-4. Edit `.idl` files in the new window to test
-
-### Building
-
-```bash
-npm run compile    # One-time TypeScript build
-npm run watch      # Watch mode for development
-npm run package    # Package as .vsix
-```
-
----
-
 ## License
 
-See the [repository](https://github.com/microsoft/midl) for license information.
+MIT
