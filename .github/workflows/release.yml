@@ -162,6 +162,10 @@ jobs:
           name: vscode-extension
           path: publish/midl-language.vsix
 
+      - name: Publish to VS Code Marketplace
+        working-directory: editors/vscode
+        run: npx @vscode/vsce publish --azure-credential
+
   create-release:
     runs-on: self-hosted
     needs: [publish, vscode-extension]
