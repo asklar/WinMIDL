@@ -1,0 +1,32 @@
+import "oaidl.idl";
+import "ocidl.idl";
+import "inspectable.idl";
+
+[
+    object,
+    uuid(A1B2C3D4-E5F6-7890-ABCD-EF0123456789),
+    pointer_default(unique)
+]
+interface IWidgetProvider : IInspectable
+{
+    HRESULT GetWidget([out, retval] IInspectable** widget);
+    HRESULT SetName([in] HSTRING name);
+    HRESULT GetName([out, retval] HSTRING* name);
+    HRESULT GetCount([out, retval] INT32* count);
+    HRESULT SetEnabled([in] boolean enabled);
+    HRESULT GetEnabled([out, retval] boolean* enabled);
+    HRESULT Configure([in] HSTRING name, [in] INT32 count, [in] boolean enabled);
+    HRESULT GetValue([out, retval] DOUBLE* value);
+    HRESULT SetGuid([in] GUID id);
+}
+
+[
+    object,
+    uuid(B2C3D4E5-F6A7-8901-BCDE-F01234567890),
+    pointer_default(unique)
+]
+interface IWidgetFactory : IInspectable
+{
+    HRESULT CreateWidget([in] HSTRING name, [out, retval] IInspectable** widget);
+    HRESULT CreateWithCount([in] HSTRING name, [in] INT32 count, [out, retval] IInspectable** widget);
+}

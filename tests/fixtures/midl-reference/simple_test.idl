@@ -1,0 +1,24 @@
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+    object,
+    uuid(12345678-1234-1234-1234-123456789ABC),
+    oleautomation,
+    pointer_default(unique)
+]
+interface ISimpleCalc : IUnknown
+{
+    HRESULT Add([in] int a, [in] int b, [out, retval] int* result);
+    HRESULT GetName([out, retval] BSTR* name);
+    HRESULT SetValue([in] double val);
+    HRESULT Echo([in] BSTR input, [out, retval] BSTR* output);
+}
+
+[
+    uuid(ABCDEF01-1234-1234-1234-123456789ABC)
+]
+library SimpleCalcLib
+{
+    interface ISimpleCalc;
+}
