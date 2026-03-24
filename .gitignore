@@ -17,6 +17,11 @@ packages/
 editors/vscode/out/
 editors/vscode/node_modules/
 editors/vscode/*.vsix
+editors/vscode/server/
+
+# Binaries
+*.exe
+!tools/winmd-dump/winmd-dump.exe
 
 # OS
 Thumbs.db

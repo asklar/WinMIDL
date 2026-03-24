@@ -34,12 +34,13 @@ public sealed partial class MidlLanguageServer
             filePath = Uri.UnescapeDataString(uri[8..]);
 
         List<string>? refDirs = null;
-        if (filePath != null)
         {
             var text = _docManager.GetDocumentText(uri);
             if (text != null)
             {
-                var dir = Path.GetDirectoryName(filePath);
+                // For file:/// URIs, resolve relative paths against the file's directory.
+                // For untitled/other URIs, dir is null — only absolute @ref paths will resolve.
+                var dir = filePath != null ? Path.GetDirectoryName(filePath) : null;
                 var refPaths = RefDirectiveParser.ParseRefs(text, dir);
                 foreach (var refPath in refPaths)
                 {

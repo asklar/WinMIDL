@@ -32,6 +32,7 @@ public static class CodeLensHandler
             if (!trimmed.StartsWith("// @ref:", StringComparison.Ordinal)) continue;
 
             var refValue = trimmed["// @ref:".Length..].Trim();
+            if (string.IsNullOrEmpty(refValue)) continue;
             string title;
 
             if (compilation?.LazyProviders != null)
@@ -66,6 +67,8 @@ public static class CodeLensHandler
 
     private static int CountTypesForRef(Compilation compilation, string refValue, string? dir)
     {
+        if (string.IsNullOrEmpty(refValue)) return 0;
+
         // Normalize forward slashes to backslashes (Windows)
         var normalizedRefValue = refValue.Replace('/', '\\');
 

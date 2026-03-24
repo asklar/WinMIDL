@@ -94,7 +94,7 @@ $aotArgs = @(
     "--self-contained"
     "-o", $outDir
     "/p:PublishAot=true"
-    "/p:IlcInstructionSet=native"
+    "/p:IlcInstructionSet=x86-64-v2"
 )
 # Pass the verified SDK um\x64 path so the linker can find advapi32.lib etc.
 if ($sdkVersion -and $sdkRoot) {

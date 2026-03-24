@@ -106,6 +106,8 @@ public sealed partial class MidlLanguageServer
             }
         }
 
+        try
+        {
         switch (method)
         {
             case "initialize":
@@ -242,6 +244,16 @@ public sealed partial class MidlLanguageServer
                 }
                 // Unknown notifications are silently ignored per LSP spec
                 break;
+        }
+        }
+        catch (Exception ex)
+        {
+            MidlTrace.Lsp($"Handler error for {method}: {ex.Message}");
+            if (hasId)
+            {
+                try { await _writer.SendErrorAsync(id, -32603, $"Internal error: {ex.Message}"); }
+                catch { /* stream may be closed */ }
+            }
         }
     }
 

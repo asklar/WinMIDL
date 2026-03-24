@@ -2111,4 +2111,99 @@ public class LspHandlerTests
 
     #endregion
 #endif
+
+    #region CodeLens Tests
+
+    [Fact]
+    public void CodeLens_EmptyRefValue_DoesNotCrash()
+    {
+        // Regression: // @ref: with nothing after the colon on an untitled file
+        // previously caused ArgumentException (Arg_PathEmpty) via Path.GetFullPath("")
+        var uri = "untitled:Untitled-1";
+        var source = "// @ref:\nnamespace Foo { }";
+        var dm = CreateDocManager(uri, source);
+        var compilation = CompilationHelper.Compile(source);
+
+        var result = CodeLensHandler.Handle(MakeTextDocParams(uri), dm, compilation);
+        // Should not throw — empty ref lines are skipped
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void CodeLens_EmptyRefValue_FileUri_DoesNotCrash()
+    {
+        var uri = "file:///C:/test/test.midl";
+        var source = "// @ref:\nnamespace Foo { }";
+        var dm = CreateDocManager(uri, source);
+        var compilation = CompilationHelper.Compile(source);
+
+        var result = CodeLensHandler.Handle(MakeTextDocParams(uri), dm, compilation);
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void CodeLens_WhitespaceOnlyRefValue_DoesNotCrash()
+    {
+        var uri = "untitled:Untitled-1";
+        var source = "// @ref:   \nnamespace Foo { }";
+        var dm = CreateDocManager(uri, source);
+        var compilation = CompilationHelper.Compile(source);
+
+        var result = CodeLensHandler.Handle(MakeTextDocParams(uri), dm, compilation);
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void CodeLens_NonEmptyRef_UntitledFile_DoesNotCrash()
+    {
+        // Regression: untitled file with // @ref: D:\OSClient\ crashed the server
+        var uri = "untitled:Untitled-1";
+        var source = "// @ref: D:\\OSClient\\\nnamespace Foo { }";
+        var dm = CreateDocManager(uri, source);
+
+        // Compile with SDK refs to ensure LazyProviders exist
+        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        var refs = winmd != null ? new List<string> { winmd } : null;
+        var compilation = CompilationHelper.Compile(source, refs, CompilationMode.Strict);
+
+        var result = CodeLensHandler.Handle(MakeTextDocParams(uri), dm, compilation);
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void AllHandlers_UntitledFile_WithRefDirective_DoNotCrash()
+    {
+        // Comprehensive test: exercise all handlers that process @ref on untitled files
+        var uri = "untitled:Untitled-1";
+        var source = "// @ref: D:\\OSClient\\\nnamespace Foo {\n    runtimeclass Bar { }\n}";
+        var dm = CreateDocManager(uri, source);
+
+        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        var refs = winmd != null ? new List<string> { winmd } : null;
+        var compilation = CompilationHelper.Compile(source, refs, CompilationMode.Strict);
+
+        // CodeLens
+        var codeLens = CodeLensHandler.Handle(MakeTextDocParams(uri), dm, compilation);
+        Assert.NotNull(codeLens);
+
+        // SemanticTokens
+        var semTokens = SemanticTokensHandler.Handle(MakeTextDocParams(uri), dm);
+        Assert.NotNull(semTokens);
+
+        // DocumentSymbol
+        var symbols = DocumentSymbolHandler.Handle(MakeTextDocParams(uri), dm);
+        Assert.NotNull(symbols);
+
+        // Hover on @ref line
+        var hover = HoverHandler.Handle(MakePositionParams(uri, 0, 15), dm, compilation);
+
+        // Completion on @ref line
+        var completion = CompletionHandler.Handle(MakePositionParams(uri, 0, 20), dm);
+
+        // GotoDefinition on @ref line
+        var gotoDef = GotoDefinitionHandler.Handle(
+            MakePositionParams(uri, 0, 15), dm, null, refs, compilation);
+    }
+
+    #endregion
 }
