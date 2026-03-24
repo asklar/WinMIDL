@@ -103,7 +103,11 @@
   <text x="20" y="280" style="font-family:Consolas,monospace;font-size:13px;fill:#808080;text-anchor:end">12</text>
   <text x="52" y="280" style="font-family:Consolas,monospace;font-size:13px;fill:#d4d4d4">}</text>
 
-  <!-- Tooltip moved to problems panel below -->
+  <!-- Hover tooltip on Strng (rendered last to be opaque) -->
+  <rect x="114" y="208" width="380" height="24" rx="4" fill="#252526" style="stroke:#454545;stroke-width:1"/>
+  <text x="122" y="224" style="font-family:Consolas,monospace;font-size:11px;fill:#F44747">✕</text>
+  <text x="136" y="224" style="font-family:Consolas,monospace;font-size:11px;fill:#d4d4d4">Unknown type 'Strng'. Did you mean 'String'?</text>
+  <text x="444" y="224" style="font-family:Consolas,monospace;font-size:11px;fill:#808080">[MIDL1001]</text>
 
   <!-- Separator -->
   <rect x="0" y="292" width="800" height="1" fill="#454545"/>
