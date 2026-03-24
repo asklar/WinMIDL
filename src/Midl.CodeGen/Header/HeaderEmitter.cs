@@ -277,6 +277,11 @@ public class HeaderEmitter
         if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol)
             return typeRef.ResolvedSymbol.Name;
 
+        // Namespace-qualified type without resolved symbol (e.g. generic instantiation
+        // like "Windows.Foundation.Collections.IVector"): mangle the qualified name.
+        if (typeRef.Name.Contains('.'))
+            return $"{MangleName(typeRef.Name)}*";
+
         // Fallback: use the name as-is
         return typeRef.Name;
     }
