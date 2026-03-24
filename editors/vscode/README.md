@@ -190,7 +190,8 @@ The extension activates automatically when you open any `.idl` file. All feature
 ## Requirements
 
 - **VS Code 1.85+** — Minimum supported VS Code version
-- **.NET 10 SDK** — Only required if building the language server from source or using a custom `midl.serverPath`. The extension ships a bundled server binary.
+
+The extension ships a self-contained Native AOT binary — no .NET SDK or runtime installation required.
 
 ---
 
