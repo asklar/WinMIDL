@@ -28,7 +28,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIFlagChecker;
 
-MIDL_INTERFACE("dcbd2329-c83e-d158-83b5-029ed0c382b6")
+MIDL_INTERFACE("dda98bdc-2ef5-5262-b501-d85fc81faf6a")
 __x_TestApp_CParity_CIFlagChecker : public IInspectable
 {
 public:

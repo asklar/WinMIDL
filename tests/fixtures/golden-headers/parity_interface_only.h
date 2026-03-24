@@ -14,7 +14,7 @@ typedef interface __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter __x_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CInterfaceOnly_CIReader;
 
-MIDL_INTERFACE("34055bbb-284c-5a5f-917a-28ce9a790e23")
+MIDL_INTERFACE("72f05175-d9c4-59bb-a0b0-be36dad73a9d")
 __x_TestApp_CParity_CInterfaceOnly_CIReader : public IInspectable
 {
 public:
@@ -30,7 +30,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CInterfaceOnly_CIWriter;
 
-MIDL_INTERFACE("c7f0e948-e159-b65b-a5f8-8b9caacc6eb1")
+MIDL_INTERFACE("36a3d89b-cfe4-51d7-8f58-c7e63dddda20")
 __x_TestApp_CParity_CInterfaceOnly_CIWriter : public IInspectable
 {
 public:
@@ -46,7 +46,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CInterfaceOnly_CIReaderWriter;
 
-MIDL_INTERFACE("3496dae9-2310-635c-85a0-450616ff5981")
+MIDL_INTERFACE("f29e8a2f-a27e-59d2-97ab-679d8d2d2a84")
 __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter : public IInspectable
 {
 public:

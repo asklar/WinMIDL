@@ -33,9 +33,8 @@ public partial class IidEmitterPatchTests
     }
 
     [Fact]
-    public void Emit_InterfaceWithoutUuid_MatchesHeaderEmitterUuid()
+    public void Emit_InterfaceWithoutUuid_MatchesAbiGuidComputation()
     {
-        const string fullName = "TestNs.IFoo";
         var source = """
             namespace TestNs
             {
@@ -49,11 +48,11 @@ public partial class IidEmitterPatchTests
         var compilation = CompilationHelper.Compile(source);
         var output = _emitter.Emit(compilation);
 
-        // The computed UUID should match HeaderEmitter.GenerateUuid
-        var expectedUuid = HeaderEmitter.GenerateUuid(fullName);
-        var expectedGuid = Guid.Parse(expectedUuid);
+        // The computed UUID should match AbiGuidComputer
+        var iface = compilation.GetAllTypes().OfType<InterfaceSymbol>().First(i => i.Name == "IFoo");
+        var expectedGuid = AbiGuidComputer.ComputeGuid(iface);
 
-        // Verify the GUID data1 appears in the output
+        // Verify the GUID data appears in the output
         var bytes = expectedGuid.ToByteArray();
         uint data1 = BitConverter.ToUInt32(bytes, 0);
         Assert.Contains($"0x{data1:X8}", output);
@@ -161,9 +160,9 @@ public partial class IidEmitterPatchTests
         // Both interfaces should have IID entries
         Assert.Contains("IID_", output);
 
-        // The computed one should be present
-        var expectedUuid = HeaderEmitter.GenerateUuid("Mix.IComputed");
-        var expectedGuid = Guid.Parse(expectedUuid);
+        // The computed one should use ABI GUID
+        var iface = compilation.GetAllTypes().OfType<InterfaceSymbol>().First(i => i.Name == "IComputed");
+        var expectedGuid = AbiGuidComputer.ComputeGuid(iface);
         var bytes = expectedGuid.ToByteArray();
         uint data1 = BitConverter.ToUInt32(bytes, 0);
         Assert.Contains($"0x{data1:X8}", output);

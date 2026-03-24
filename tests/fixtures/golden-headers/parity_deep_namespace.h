@@ -27,7 +27,7 @@ enum DeepStatus
 
 EXTERN_C const IID IID___x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget;
 
-MIDL_INTERFACE("352daa14-86b7-1850-94d5-52bd58aaffce")
+MIDL_INTERFACE("5b1ac8b3-ae49-5340-bca3-f7fff2233190")
 __x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget : public IInspectable
 {
 public:

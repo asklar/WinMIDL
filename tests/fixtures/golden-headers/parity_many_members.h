@@ -14,7 +14,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIManyMemberWidget;
 
-MIDL_INTERFACE("df33b0a4-3db2-5c56-b7b6-5040cfdccfe6")
+MIDL_INTERFACE("28a758e2-7b13-573b-9318-6f0707d8dcd1")
 __x_TestApp_CParity_CIManyMemberWidget : public IInspectable
 {
 public:

@@ -9,7 +9,7 @@ typedef interface __x_TestApp_CParity_CILifecycleWidget __x_TestApp_CParity_CILi
 
 EXTERN_C const IID IID___x_TestApp_CParity_COnStartHandler;
 
-MIDL_INTERFACE("a196256c-4192-5159-82bc-d393ecea46df")
+MIDL_INTERFACE("708a3d1e-1aac-5916-bfa5-025a5887f116")
 __x_TestApp_CParity_COnStartHandler : public IUnknown
 {
 public:
@@ -18,7 +18,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_COnStopHandler;
 
-MIDL_INTERFACE("6a9c3b27-a9fa-bc51-bc63-cd06567f3ddc")
+MIDL_INTERFACE("ad61a9eb-e166-5b8d-87a5-5bc770b44d98")
 __x_TestApp_CParity_COnStopHandler : public IUnknown
 {
 public:
@@ -27,7 +27,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_COnPauseHandler;
 
-MIDL_INTERFACE("50eda04f-5814-ed5a-8c2b-ae1063b9f408")
+MIDL_INTERFACE("e8e7bed6-0887-5a5f-82ce-30c1bf3da568")
 __x_TestApp_CParity_COnPauseHandler : public IUnknown
 {
 public:
@@ -36,7 +36,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_COnResumeHandler;
 
-MIDL_INTERFACE("fcf1f35a-2f36-d25e-8989-976d26edec71")
+MIDL_INTERFACE("b083f402-0316-5069-ba71-da51385c3978")
 __x_TestApp_CParity_COnResumeHandler : public IUnknown
 {
 public:
@@ -50,7 +50,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CILifecycleWidget;
 
-MIDL_INTERFACE("07edb814-c02e-a051-88b2-164514ad1fc5")
+MIDL_INTERFACE("92ad165b-e40d-5ab8-a8d2-e1c2ff1438e5")
 __x_TestApp_CParity_CILifecycleWidget : public IInspectable
 {
 public:

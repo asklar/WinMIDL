@@ -9,7 +9,7 @@ typedef interface __x_TestApp_CParity_CIMultiParamDelegateUser __x_TestApp_CPari
 
 EXTERN_C const IID IID___x_TestApp_CParity_CSixParamCallback;
 
-MIDL_INTERFACE("87fd30bd-c110-995c-b65e-f2d9e6403922")
+MIDL_INTERFACE("dc0fb178-f728-593f-a469-4b29bc8a2266")
 __x_TestApp_CParity_CSixParamCallback : public IUnknown
 {
 public:
@@ -18,7 +18,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CSevenParamCallback;
 
-MIDL_INTERFACE("d59d577e-810d-4057-a051-f6eb6d78524c")
+MIDL_INTERFACE("7ac0c8f9-12e0-571e-84ea-49463a9f97e5")
 __x_TestApp_CParity_CSevenParamCallback : public IUnknown
 {
 public:
@@ -27,7 +27,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CComplexCallback;
 
-MIDL_INTERFACE("020fc21b-e584-9f56-a57d-7523ca38ebea")
+MIDL_INTERFACE("deba0eb2-9036-55cc-99e4-508d0fedd586")
 __x_TestApp_CParity_CComplexCallback : public IUnknown
 {
 public:
@@ -41,7 +41,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMultiParamDelegateUser;
 
-MIDL_INTERFACE("0b657fe6-0527-3c58-a950-c5cd11b40022")
+MIDL_INTERFACE("a5045072-b17e-54c2-bee8-6747a560b7c4")
 __x_TestApp_CParity_CIMultiParamDelegateUser : public IInspectable
 {
 public:

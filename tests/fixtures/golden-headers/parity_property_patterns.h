@@ -19,7 +19,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIPropertyBase;
 
-MIDL_INTERFACE("bafbb3c6-8e85-915e-ab85-958fcd7944d7")
+MIDL_INTERFACE("f992907b-3c35-5fe4-bd98-56aac7dac283")
 __x_TestApp_CParity_CIPropertyBase : public IInspectable
 {
 public:
@@ -46,7 +46,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIPropertyBaseFactory;
 
-MIDL_INTERFACE("64e33f96-b61b-f156-bdcc-a132b62eca4d")
+MIDL_INTERFACE("34d38336-61a7-5415-9387-909db767955d")
 __x_TestApp_CParity_CIPropertyBaseFactory : public IInspectable
 {
 public:
@@ -60,7 +60,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIPropertyChild;
 
-MIDL_INTERFACE("135a7590-7c48-e95a-9cb7-324487ee7e9d")
+MIDL_INTERFACE("4ed61e35-90fa-52d9-9490-7e1429af5c29")
 __x_TestApp_CParity_CIPropertyChild : public IInspectable
 {
 public:
@@ -80,7 +80,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIPropertyChildFactory;
 
-MIDL_INTERFACE("4aae9851-73b3-475d-b47c-61933fb43cc9")
+MIDL_INTERFACE("50f8802f-34f4-5f8f-8391-544659b95db0")
 __x_TestApp_CParity_CIPropertyChildFactory : public IInspectable
 {
 public:

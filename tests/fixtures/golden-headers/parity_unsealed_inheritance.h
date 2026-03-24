@@ -25,7 +25,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIAnimal;
 
-MIDL_INTERFACE("72e918ce-e340-0e5f-be02-c8f35db5c43b")
+MIDL_INTERFACE("86175b7a-2f34-5707-a0aa-bc4db787484b")
 __x_TestApp_CParity_CIAnimal : public IInspectable
 {
 public:
@@ -41,7 +41,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalFactory;
 
-MIDL_INTERFACE("419e6760-3da1-d45a-b205-2c1350aa93f6")
+MIDL_INTERFACE("32236134-b764-58a9-a90a-f8b232a2dc16")
 __x_TestApp_CParity_CIAnimalFactory : public IInspectable
 {
 public:
@@ -55,7 +55,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalOverrides;
 
-MIDL_INTERFACE("e88d18d2-059a-2c57-ab5b-24a57cc88a5b")
+MIDL_INTERFACE("e2d91a62-212b-57b5-a701-01c1740e21c8")
 __x_TestApp_CParity_CIAnimalOverrides : public IInspectable
 {
 public:
@@ -70,7 +70,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMammal;
 
-MIDL_INTERFACE("f3d39398-8d31-b25c-96be-fc51287dd699")
+MIDL_INTERFACE("49e3acb2-c737-5111-a70e-ffe7fd034274")
 __x_TestApp_CParity_CIMammal : public IInspectable
 {
 public:
@@ -84,7 +84,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMammalFactory;
 
-MIDL_INTERFACE("b16de9d3-2af7-d952-9c9d-04d527767ff3")
+MIDL_INTERFACE("f7f583ad-4bc7-540e-8c29-66031b52a175")
 __x_TestApp_CParity_CIMammalFactory : public IInspectable
 {
 public:
@@ -98,7 +98,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMammalOverrides;
 
-MIDL_INTERFACE("59402ad5-5594-e756-9253-5fba25a8817d")
+MIDL_INTERFACE("e6532ac5-3f9e-56ad-a9dc-6ce5c57be856")
 __x_TestApp_CParity_CIMammalOverrides : public IInspectable
 {
 public:
@@ -112,7 +112,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIDog;
 
-MIDL_INTERFACE("a6e0a25e-1ec8-a15b-a9c3-b167a67b5fb4")
+MIDL_INTERFACE("1eaff1c2-66e4-5d2f-8f88-4624023d88a6")
 __x_TestApp_CParity_CIDog : public IInspectable
 {
 public:
@@ -128,7 +128,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIDogFactory;
 
-MIDL_INTERFACE("5ba6b268-b2c9-5e5f-aba7-1ec66f6e3a5b")
+MIDL_INTERFACE("14bea965-06c9-582e-b0e3-c0bfcc6cc911")
 __x_TestApp_CParity_CIDogFactory : public IInspectable
 {
 public:

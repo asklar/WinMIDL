@@ -17,7 +17,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedInterface;
 
-MIDL_INTERFACE("cca4fd3d-fcbf-435b-bde2-0f51e6e9f856")
+MIDL_INTERFACE("5a1e5485-1d0c-590e-9c32-a912e98fdcbb")
 __x_TestApp_CParity_CIDeprecatedInterface : public IInspectable
 {
 public:
@@ -38,7 +38,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedWidget;
 
-MIDL_INTERFACE("b057653a-3a72-1455-bc58-1109b2173d50")
+MIDL_INTERFACE("7ea28274-d635-525c-a05f-f0c97cee0b81")
 __x_TestApp_CParity_CIDeprecatedWidget : public IInspectable
 {
 public:
@@ -52,7 +52,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMixedDeprecation;
 
-MIDL_INTERFACE("60fac147-4fbb-3855-85f1-3b2cd0300cd1")
+MIDL_INTERFACE("e9272e7d-d799-52e1-80cb-817cdf5093a5")
 __x_TestApp_CParity_CIMixedDeprecation : public IInspectable
 {
 public:
@@ -73,7 +73,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIRemovedService;
 
-MIDL_INTERFACE("023d6bbb-773a-c75d-86e1-613497d86b5f")
+MIDL_INTERFACE("19c66218-7ef7-525e-b751-c84617bbe954")
 __x_TestApp_CParity_CIRemovedService : public IInspectable
 {
 public:

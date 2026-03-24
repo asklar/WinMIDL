@@ -22,7 +22,7 @@ enum ReturnStatus
 
 EXTERN_C const IID IID___x_TestApp_CParity_CReturnCallback;
 
-MIDL_INTERFACE("a3e955c6-d952-205e-92d6-dd4237fd02d1")
+MIDL_INTERFACE("af7dbf50-b5d2-547c-a18b-b024c232bad0")
 __x_TestApp_CParity_CReturnCallback : public IUnknown
 {
 public:
@@ -36,7 +36,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIReturnTypeWidget;
 
-MIDL_INTERFACE("81344fca-1eab-0d5b-b245-8e305b2178ab")
+MIDL_INTERFACE("910688b7-fdcb-5130-bccb-703bfbb2172a")
 __x_TestApp_CParity_CIReturnTypeWidget : public IInspectable
 {
 public:

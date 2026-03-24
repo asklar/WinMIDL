@@ -27,7 +27,7 @@ public class IidEmitter
         {
             if (symbol is InterfaceSymbol iface)
             {
-                var guid = iface.Uuid ?? Guid.Parse(HeaderEmitter.GenerateUuid(iface.FullName));
+                var guid = iface.Uuid ?? AbiGuidComputer.ComputeGuid(iface);
                 var mangledName = HeaderEmitter.MangleName(iface.FullName);
                 sb.AppendLine();
                 EmitGuidConstant(sb, "IID", $"IID_{mangledName}", guid);
@@ -35,7 +35,7 @@ public class IidEmitter
             }
             else if (symbol is DelegateSymbol d)
             {
-                var guid = d.Uuid ?? Guid.Parse(HeaderEmitter.GenerateUuid(d.FullName));
+                var guid = d.Uuid ?? AbiGuidComputer.ComputeGuid(d);
                 var mangledName = HeaderEmitter.MangleName(d.FullName);
                 sb.AppendLine();
                 EmitGuidConstant(sb, "IID", $"IID_{mangledName}", guid);

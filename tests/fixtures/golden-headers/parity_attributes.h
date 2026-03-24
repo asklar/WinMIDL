@@ -19,7 +19,7 @@ typedef interface __x_TestApp_CParity_CISettingsHelperStatics __x_TestApp_CParit
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMarkedInterface;
 
-MIDL_INTERFACE("979383d8-da66-b152-b752-de3485e35799")
+MIDL_INTERFACE("12345678-1234-5678-9abc-def012345678")
 __x_TestApp_CParity_CIMarkedInterface : public IInspectable
 {
 public:
@@ -43,7 +43,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIAttributedClass;
 
-MIDL_INTERFACE("54a82f00-4114-8d57-8d59-74738c683b2b")
+MIDL_INTERFACE("8d27b17b-ee98-5bbc-ad8c-58e6b6174efa")
 __x_TestApp_CParity_CIAttributedClass : public IInspectable
 {
 public:
@@ -58,7 +58,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIOldClass;
 
-MIDL_INTERFACE("851ccabb-50ce-fb5c-846d-fb3b5f8fa315")
+MIDL_INTERFACE("04733890-2db5-5f8a-9eb8-eab4590427a6")
 __x_TestApp_CParity_CIOldClass : public IInspectable
 {
 public:
@@ -71,7 +71,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIComposableBase;
 
-MIDL_INTERFACE("76f102c7-6745-7e59-86d0-df7ada506d87")
+MIDL_INTERFACE("eac9c74a-2061-5609-a7a7-0173cfdbfb5f")
 __x_TestApp_CParity_CIComposableBase : public IInspectable
 {
 public:
@@ -85,7 +85,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIComposableBaseFactory;
 
-MIDL_INTERFACE("acc40d35-0d01-fb56-b67a-76c913bfe5ed")
+MIDL_INTERFACE("5dfac6b7-c2a4-570f-8b35-2d4fa86bca48")
 __x_TestApp_CParity_CIComposableBaseFactory : public IInspectable
 {
 public:
@@ -99,7 +99,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIActivatableWidget;
 
-MIDL_INTERFACE("ee1d39a1-fb2e-2553-8d07-0b94f45c1ced")
+MIDL_INTERFACE("79db58e0-36b5-519b-9142-7811ef55264a")
 __x_TestApp_CParity_CIActivatableWidget : public IInspectable
 {
 public:
@@ -113,7 +113,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIActivatableWidgetFactory;
 
-MIDL_INTERFACE("a299a0d7-1e86-b55a-a8b9-bcfad45f67ba")
+MIDL_INTERFACE("83476af4-06b0-5173-8d12-92c238fdf65e")
 __x_TestApp_CParity_CIActivatableWidgetFactory : public IInspectable
 {
 public:
@@ -127,7 +127,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CISettingsHelperStatics;
 
-MIDL_INTERFACE("96803bbe-fb47-c853-8394-1e05cfa7879d")
+MIDL_INTERFACE("70248eac-4fd4-5e34-8ea4-6087ddc9fb06")
 __x_TestApp_CParity_CISettingsHelperStatics : public IInspectable
 {
 public:

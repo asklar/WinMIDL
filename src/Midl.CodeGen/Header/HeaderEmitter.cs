@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
+using static Midl.Analysis.AbiGuidComputer;
 using Midl.Syntax;
 
 namespace Midl.CodeGen.Header;
@@ -153,7 +154,7 @@ public class HeaderEmitter
     private static void EmitDelegate(StringBuilder sb, DelegateSymbol d)
     {
         var mangledName = MangleName(d.FullName);
-        var uuid = GenerateUuid(d.FullName);
+        var uuid = ComputeGuid(d).ToString("D");
 
         sb.AppendLine($"EXTERN_C const IID IID_{mangledName};");
         sb.AppendLine();
@@ -174,7 +175,7 @@ public class HeaderEmitter
     private static void EmitInterface(StringBuilder sb, InterfaceSymbol iface)
     {
         var mangledName = MangleName(iface.FullName);
-        var uuid = GenerateUuid(iface.FullName);
+        var uuid = ComputeGuid(iface).ToString("D");
         var guard = $"____{mangledName.TrimStart('_')}_INTERFACE_DEFINED__";
 
         sb.AppendLine($"#ifndef {guard}");

@@ -33,7 +33,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIRegionManager;
 
-MIDL_INTERFACE("02dd828d-af94-3753-b396-f46f3fdc631d")
+MIDL_INTERFACE("022927de-e419-577f-84e0-0f8ca2784c6c")
 __x_TestApp_CParity_CIRegionManager : public IInspectable
 {
 public:

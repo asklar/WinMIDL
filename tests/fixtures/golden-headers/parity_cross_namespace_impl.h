@@ -9,7 +9,7 @@ typedef interface __x_TestApp_CParity_CImpl_CIDataService __x_TestApp_CParity_CI
 
 EXTERN_C const IID IID___x_TestApp_CParity_CContracts_CDataNotification;
 
-MIDL_INTERFACE("37379885-5000-1d57-a5a9-c7d70e489e3c")
+MIDL_INTERFACE("c031805c-92a5-505b-8203-8d489b64780a")
 __x_TestApp_CParity_CContracts_CDataNotification : public IUnknown
 {
 public:
@@ -23,7 +23,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CImpl_CIDataService;
 
-MIDL_INTERFACE("763ce3f8-df3f-1e56-914a-70345b25d14c")
+MIDL_INTERFACE("e75b5793-0422-540d-9376-cb6e99cc08bd")
 __x_TestApp_CParity_CImpl_CIDataService : public IInspectable
 {
 public:

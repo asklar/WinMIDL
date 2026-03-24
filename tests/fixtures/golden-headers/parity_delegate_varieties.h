@@ -9,7 +9,7 @@ typedef interface __x_TestApp_CParity_CIDelegateUser __x_TestApp_CParity_CIDeleg
 
 EXTERN_C const IID IID___x_TestApp_CParity_CVoidCallback;
 
-MIDL_INTERFACE("6be978a3-10e0-0a56-9121-a6c0485932e3")
+MIDL_INTERFACE("6300ca2f-fcb0-59bf-bfd3-d83fbb4b4e0e")
 __x_TestApp_CParity_CVoidCallback : public IUnknown
 {
 public:
@@ -18,7 +18,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CSingleParamCallback;
 
-MIDL_INTERFACE("50757009-2dbb-4952-88af-afe4b8ba6879")
+MIDL_INTERFACE("7202752a-44e7-5dd2-aadc-14bf4ce8caf6")
 __x_TestApp_CParity_CSingleParamCallback : public IUnknown
 {
 public:
@@ -27,7 +27,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CTwoParamCallback;
 
-MIDL_INTERFACE("175e2c68-5e0e-5054-820d-b30878951230")
+MIDL_INTERFACE("04084542-a866-54d2-87a9-86cb1c720535")
 __x_TestApp_CParity_CTwoParamCallback : public IUnknown
 {
 public:
@@ -36,7 +36,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CThreeParamCallback;
 
-MIDL_INTERFACE("f3530c7c-d710-485e-9f7a-391975e8d2a1")
+MIDL_INTERFACE("5cec491b-7b13-52c7-9734-d5373dcd527a")
 __x_TestApp_CParity_CThreeParamCallback : public IUnknown
 {
 public:
@@ -45,7 +45,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CMultiParamCallback;
 
-MIDL_INTERFACE("8c218686-d565-355e-8432-a393810d68f1")
+MIDL_INTERFACE("34501b3b-be64-5ef4-80b1-245513a267f9")
 __x_TestApp_CParity_CMultiParamCallback : public IUnknown
 {
 public:
@@ -54,7 +54,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CStringTransform;
 
-MIDL_INTERFACE("67b8561c-c445-a25f-814d-b9466e79ee46")
+MIDL_INTERFACE("05ebe2a2-00c6-5ff2-8705-b206de8d3991")
 __x_TestApp_CParity_CStringTransform : public IUnknown
 {
 public:
@@ -63,7 +63,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIntCompare;
 
-MIDL_INTERFACE("d0be11f6-8851-a75d-a5b9-811fc7fe6a91")
+MIDL_INTERFACE("da2d1926-5a90-5368-8884-fb43fd22c8c5")
 __x_TestApp_CParity_CIntCompare : public IUnknown
 {
 public:
@@ -72,7 +72,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CBoolPredicate;
 
-MIDL_INTERFACE("2ad8dc5d-1f16-bc57-98f4-c6491685616b")
+MIDL_INTERFACE("42927cd5-8127-5536-b275-981cd965551f")
 __x_TestApp_CParity_CBoolPredicate : public IUnknown
 {
 public:
@@ -81,7 +81,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CMathOperation;
 
-MIDL_INTERFACE("7978cc6d-29f3-1953-893b-4dd1c847d70f")
+MIDL_INTERFACE("ae37f7e0-ccc1-5b46-b079-9b35c96f6ce8")
 __x_TestApp_CParity_CMathOperation : public IUnknown
 {
 public:
@@ -90,7 +90,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_COutCallback;
 
-MIDL_INTERFACE("6745bdf1-6b73-eb56-b40e-0d9942e37bb2")
+MIDL_INTERFACE("6a203bd3-39ef-54fd-a3e8-face8f432bbf")
 __x_TestApp_CParity_COutCallback : public IUnknown
 {
 public:
@@ -99,7 +99,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CTryParseDelegate;
 
-MIDL_INTERFACE("866b8803-178a-9a5a-b26f-69e4c4fb63c2")
+MIDL_INTERFACE("4120a634-d02d-5914-b26c-c5a8543bb0ad")
 __x_TestApp_CParity_CTryParseDelegate : public IUnknown
 {
 public:
@@ -113,7 +113,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIDelegateUser;
 
-MIDL_INTERFACE("655696df-af93-225e-8122-efcc5ece4ec7")
+MIDL_INTERFACE("b748a1de-2652-5cb2-bae4-446d078e84d3")
 __x_TestApp_CParity_CIDelegateUser : public IInspectable
 {
 public:

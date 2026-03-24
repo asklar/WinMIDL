@@ -27,7 +27,7 @@ struct ConnectionInfo
 
 EXTERN_C const IID IID___x_TestApp_CParity_CConnectionChangedHandler;
 
-MIDL_INTERFACE("3cb0ca05-279d-5f54-9496-f20de430f3f9")
+MIDL_INTERFACE("e8cc33d9-3e43-53eb-8193-b62a2b12f470")
 __x_TestApp_CParity_CConnectionChangedHandler : public IUnknown
 {
 public:
@@ -41,7 +41,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManager;
 
-MIDL_INTERFACE("47adbc8a-78ce-dd5f-b799-4758058e3782")
+MIDL_INTERFACE("88d54d7e-c3af-5a69-a035-76bb8f3d9e77")
 __x_TestApp_CParity_CIConnectionManager : public IInspectable
 {
 public:
@@ -62,7 +62,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManagerFactory;
 
-MIDL_INTERFACE("b32afab8-00c4-7e52-91e3-47aeb63cb9aa")
+MIDL_INTERFACE("0a5b8919-5686-5f15-b0ec-f453c5aaf940")
 __x_TestApp_CParity_CIConnectionManagerFactory : public IInspectable
 {
 public:

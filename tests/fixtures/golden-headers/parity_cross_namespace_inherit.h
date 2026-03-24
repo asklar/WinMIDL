@@ -17,7 +17,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CBase_CICrossNsBase;
 
-MIDL_INTERFACE("164b4b09-34a1-3d59-9373-bc452ce5ff39")
+MIDL_INTERFACE("10b352b8-c2e1-5857-a346-cb8847532d00")
 __x_TestApp_CParity_CBase_CICrossNsBase : public IInspectable
 {
 public:
@@ -31,7 +31,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CBase_CICrossNsBaseOverrides;
 
-MIDL_INTERFACE("8751f6b3-11dd-f159-8837-8b5f4bc8195e")
+MIDL_INTERFACE("42671f4a-01a7-5a02-9f48-d761544eb915")
 __x_TestApp_CParity_CBase_CICrossNsBaseOverrides : public IInspectable
 {
 public:
@@ -47,7 +47,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CDerived_CICrossNsDerived;
 
-MIDL_INTERFACE("99cff9c4-23ec-1454-a6e0-6771e015d231")
+MIDL_INTERFACE("c74449ea-e620-53f5-b64d-49bb5ce27acc")
 __x_TestApp_CParity_CDerived_CICrossNsDerived : public IInspectable
 {
 public:
@@ -61,7 +61,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CDerived_CICrossNsDerivedFactory;
 
-MIDL_INTERFACE("e2b8efc1-86a2-3256-8549-97aa7d65e54b")
+MIDL_INTERFACE("0c164ff9-6fdf-5822-84bb-4a00ed8f60d8")
 __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory : public IInspectable
 {
 public:

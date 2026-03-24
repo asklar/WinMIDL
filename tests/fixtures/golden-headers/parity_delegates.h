@@ -9,7 +9,7 @@ typedef interface __x_TestApp_CParity_CIEventSource __x_TestApp_CParity_CIEventS
 
 EXTERN_C const IID IID___x_TestApp_CParity_CSimpleCallback;
 
-MIDL_INTERFACE("a10f0ee8-31b7-7952-84ae-cd50aae31495")
+MIDL_INTERFACE("65d97cec-4707-5cd8-a342-ad8c102a34bc")
 __x_TestApp_CParity_CSimpleCallback : public IUnknown
 {
 public:
@@ -18,7 +18,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CMessageHandler;
 
-MIDL_INTERFACE("dde085e1-fb20-e755-931e-bc7236b75232")
+MIDL_INTERFACE("a196f933-fc8a-5ff8-8917-e5083038b5ff")
 __x_TestApp_CParity_CMessageHandler : public IUnknown
 {
 public:
@@ -27,7 +27,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CTransformer;
 
-MIDL_INTERFACE("3d534f55-2065-d25a-a70b-31e63679871e")
+MIDL_INTERFACE("425dbc5d-d52c-57d6-b8a0-d10225c22da2")
 __x_TestApp_CParity_CTransformer : public IUnknown
 {
 public:
@@ -36,7 +36,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CPredicate;
 
-MIDL_INTERFACE("87e94797-249c-8e5f-9096-97a19b792581")
+MIDL_INTERFACE("2519e1c7-608c-5fcc-b03b-ff5e5cfa9614")
 __x_TestApp_CParity_CPredicate : public IUnknown
 {
 public:
@@ -50,7 +50,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIEventSource;
 
-MIDL_INTERFACE("69b4f9df-d089-8550-aca6-b40a64ee5f7e")
+MIDL_INTERFACE("dc38a0fc-fc39-5a6a-b9ff-6fe4598dddc7")
 __x_TestApp_CParity_CIEventSource : public IInspectable
 {
 public:

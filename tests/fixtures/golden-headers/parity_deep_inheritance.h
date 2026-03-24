@@ -27,7 +27,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CILevel0Base;
 
-MIDL_INTERFACE("a503b704-3f2a-4b5f-a203-6360bb54703d")
+MIDL_INTERFACE("91015105-6111-515b-8dde-6ce0eed2cd06")
 __x_TestApp_CParity_CILevel0Base : public IInspectable
 {
 public:
@@ -41,7 +41,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CILevel0BaseOverrides;
 
-MIDL_INTERFACE("247c4002-3ab1-d155-8f84-46e484eb02a5")
+MIDL_INTERFACE("8e91a0cb-548c-5262-9996-0fbf0cc268e2")
 __x_TestApp_CParity_CILevel0BaseOverrides : public IInspectable
 {
 public:
@@ -55,7 +55,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CILevel1Mid;
 
-MIDL_INTERFACE("cf08180e-7f76-0a59-9b67-98ab69da9d03")
+MIDL_INTERFACE("c37e8cbc-7017-5559-88c4-e9b0e60d78ba")
 __x_TestApp_CParity_CILevel1Mid : public IInspectable
 {
 public:
@@ -69,7 +69,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CILevel1MidOverrides;
 
-MIDL_INTERFACE("7c58a381-5bb3-ea5b-9f5c-a0bc0852e1e7")
+MIDL_INTERFACE("c113685d-4885-57e8-a4c7-abb5bb9a526b")
 __x_TestApp_CParity_CILevel1MidOverrides : public IInspectable
 {
 public:
@@ -83,7 +83,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CILevel2Upper;
 
-MIDL_INTERFACE("697d7c8a-0cb1-1a5e-9b7f-311a409019b4")
+MIDL_INTERFACE("69bdf725-88f9-5fa9-8531-9e6c89f7428f")
 __x_TestApp_CParity_CILevel2Upper : public IInspectable
 {
 public:
@@ -97,7 +97,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CILevel2UpperOverrides;
 
-MIDL_INTERFACE("7800cfe7-ab24-9a53-8d11-1459fd2a50cb")
+MIDL_INTERFACE("ed1f480f-38c6-5054-bc5a-45f2fca407b8")
 __x_TestApp_CParity_CILevel2UpperOverrides : public IInspectable
 {
 public:
@@ -111,7 +111,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CILevel3Leaf;
 
-MIDL_INTERFACE("88d27c56-8757-bb54-b870-def2acbde853")
+MIDL_INTERFACE("70d1617e-84d5-5b96-a29b-c0fc8ee07c14")
 __x_TestApp_CParity_CILevel3Leaf : public IInspectable
 {
 public:
@@ -126,7 +126,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CILevel3LeafFactory;
 
-MIDL_INTERFACE("83443c3c-da93-e950-997e-2e39097cd0dd")
+MIDL_INTERFACE("c35f4d58-9123-579c-b3b2-992a9c5f5d5f")
 __x_TestApp_CParity_CILevel3LeafFactory : public IInspectable
 {
 public:

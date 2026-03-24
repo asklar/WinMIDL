@@ -15,7 +15,7 @@ struct DelegateResult
 
 EXTERN_C const IID IID___x_TestApp_CParity_CStringRequestHandler;
 
-MIDL_INTERFACE("d31c7e55-2d93-465d-babd-94411aaa2cf1")
+MIDL_INTERFACE("d937f5e4-6440-52b7-ad5b-c2a57f0c8498")
 __x_TestApp_CParity_CStringRequestHandler : public IUnknown
 {
 public:
@@ -24,7 +24,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIntRequestHandler;
 
-MIDL_INTERFACE("5253ea58-e76e-7150-b488-d17a658cabdb")
+MIDL_INTERFACE("00d2b6a3-19db-5297-b16c-96842c2876b3")
 __x_TestApp_CParity_CIntRequestHandler : public IUnknown
 {
 public:
@@ -33,7 +33,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CBoolRequestHandler;
 
-MIDL_INTERFACE("0c5fb1b6-d2dd-a55d-a723-5c1ceddb2c97")
+MIDL_INTERFACE("2a835aa3-f7aa-5765-925a-11301881916c")
 __x_TestApp_CParity_CBoolRequestHandler : public IUnknown
 {
 public:
@@ -42,7 +42,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CDoubleRequestHandler;
 
-MIDL_INTERFACE("f9928da0-1dbb-7351-968b-fbe483076775")
+MIDL_INTERFACE("923bdcf5-ffbd-59d7-9da8-76b47668dcbb")
 __x_TestApp_CParity_CDoubleRequestHandler : public IUnknown
 {
 public:
@@ -51,7 +51,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CResultRequestHandler;
 
-MIDL_INTERFACE("bd0253c0-cd8a-9f58-9ef4-1d02797a2e26")
+MIDL_INTERFACE("9c4780c0-1b8d-5dbc-8db8-f86268a9db51")
 __x_TestApp_CParity_CResultRequestHandler : public IUnknown
 {
 public:
@@ -60,7 +60,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CFactoryHandler;
 
-MIDL_INTERFACE("e918ddd0-0d28-235a-be07-1abe3e31572f")
+MIDL_INTERFACE("828d6f6d-195f-5b54-acee-df9e4cbd5295")
 __x_TestApp_CParity_CFactoryHandler : public IUnknown
 {
 public:
@@ -74,7 +74,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIDelegateReturnWidget;
 
-MIDL_INTERFACE("a49e14cf-792e-575a-a2bb-c5c0586aa60d")
+MIDL_INTERFACE("611b9b68-2a1a-5686-bfd0-831de147b913")
 __x_TestApp_CParity_CIDelegateReturnWidget : public IInspectable
 {
 public:

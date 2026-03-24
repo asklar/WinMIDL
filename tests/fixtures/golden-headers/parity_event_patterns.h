@@ -9,7 +9,7 @@ typedef interface __x_TestApp_CParity_CIEventEmitter __x_TestApp_CParity_CIEvent
 
 EXTERN_C const IID IID___x_TestApp_CParity_CSimpleNotify;
 
-MIDL_INTERFACE("9ce4e9ac-9582-a65e-959c-19a142f454af")
+MIDL_INTERFACE("9ea0f663-8e9f-5ac2-ace4-6e1460b7ddfc")
 __x_TestApp_CParity_CSimpleNotify : public IUnknown
 {
 public:
@@ -18,7 +18,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CValueUpdated;
 
-MIDL_INTERFACE("5c85bded-a0c0-fc50-b23f-304de619b5ca")
+MIDL_INTERFACE("956a3abd-a91f-5d83-8b0c-942fa68c508a")
 __x_TestApp_CParity_CValueUpdated : public IUnknown
 {
 public:
@@ -27,7 +27,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CProgressHandler;
 
-MIDL_INTERFACE("330cb8ff-622a-b157-a5cf-3d0e4c9f32d2")
+MIDL_INTERFACE("71a367d4-2774-5fb8-a5c2-57e63d29c9fa")
 __x_TestApp_CParity_CProgressHandler : public IUnknown
 {
 public:
@@ -36,7 +36,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CErrorHandler;
 
-MIDL_INTERFACE("6eab60dd-1c10-7259-8bed-163f4102f52c")
+MIDL_INTERFACE("da3e2844-7e4d-5bc8-b321-bb025a1c77fc")
 __x_TestApp_CParity_CErrorHandler : public IUnknown
 {
 public:
@@ -50,7 +50,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIEventEmitter;
 
-MIDL_INTERFACE("a9143737-c3b7-b857-a494-8846b0054e38")
+MIDL_INTERFACE("5f39207a-13fe-5246-b4f1-f8d39d1e4010")
 __x_TestApp_CParity_CIEventEmitter : public IInspectable
 {
 public:

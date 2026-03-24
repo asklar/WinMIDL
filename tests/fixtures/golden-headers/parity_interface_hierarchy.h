@@ -17,7 +17,7 @@ typedef interface __x_TestApp_CParity_CITreeNodeFactory __x_TestApp_CParity_CITr
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIBaseNode;
 
-MIDL_INTERFACE("0e35daaa-fe86-fe50-8813-291b83db92d7")
+MIDL_INTERFACE("5553c041-80ea-5d0f-8ac7-9976b79bccf4")
 __x_TestApp_CParity_CIBaseNode : public IInspectable
 {
 public:
@@ -32,7 +32,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CINamedNode;
 
-MIDL_INTERFACE("cc6fddf6-b4f1-ef5d-a32c-12eb3c1b17b3")
+MIDL_INTERFACE("237f3e4f-b075-50cb-9e1c-255966800596")
 __x_TestApp_CParity_CINamedNode : public IInspectable
 {
 public:
@@ -47,7 +47,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIOrderedNode;
 
-MIDL_INTERFACE("ce64bb93-f0ba-6958-a978-405b78147dcb")
+MIDL_INTERFACE("02fffca8-fdda-537e-84a4-7c91fd66baee")
 __x_TestApp_CParity_CIOrderedNode : public IInspectable
 {
 public:
@@ -64,7 +64,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CITaggable;
 
-MIDL_INTERFACE("e53ac807-649e-7858-968e-499ecfbd82ab")
+MIDL_INTERFACE("7553048d-339c-597f-9524-655722aec16d")
 __x_TestApp_CParity_CITaggable : public IInspectable
 {
 public:
@@ -79,7 +79,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CICompositeNode;
 
-MIDL_INTERFACE("f138b823-678d-1b58-a902-93d1c48d5791")
+MIDL_INTERFACE("fa768d22-21ce-5029-9f5b-3bb2faa5784f")
 __x_TestApp_CParity_CICompositeNode : public IInspectable
 {
 public:
@@ -97,7 +97,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CITreeNodeFactory;
 
-MIDL_INTERFACE("aa5aa597-99ef-fd50-80a5-299a8d668fcb")
+MIDL_INTERFACE("eb17ad22-3c2a-514f-81dd-04ebfec21730")
 __x_TestApp_CParity_CITreeNodeFactory : public IInspectable
 {
 public:

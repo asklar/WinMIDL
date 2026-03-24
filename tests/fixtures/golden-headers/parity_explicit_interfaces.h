@@ -18,7 +18,7 @@ typedef interface __x_TestApp_CParity_CIDocument __x_TestApp_CParity_CIDocument;
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIRenderable;
 
-MIDL_INTERFACE("3d7cf325-2b17-3357-a10e-a9a90e3a593c")
+MIDL_INTERFACE("fe32cbc8-4fb0-55cb-b94d-6f7625393433")
 __x_TestApp_CParity_CIRenderable : public IInspectable
 {
 public:
@@ -33,7 +33,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CISerializable;
 
-MIDL_INTERFACE("6f466671-4d00-9758-9072-11e314303760")
+MIDL_INTERFACE("fb6ecc6a-b059-54b2-83ca-d915059fb5af")
 __x_TestApp_CParity_CISerializable : public IInspectable
 {
 public:
@@ -48,7 +48,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIPrintable;
 
-MIDL_INTERFACE("274de313-38b4-1a52-af55-5caf2daa7158")
+MIDL_INTERFACE("2a089a63-5c50-51ef-9c2d-81f96432d3f1")
 __x_TestApp_CParity_CIPrintable : public IInspectable
 {
 public:
@@ -63,7 +63,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CICloneable2;
 
-MIDL_INTERFACE("da4c4b7f-1d12-0a5c-9571-9c7ef4d92070")
+MIDL_INTERFACE("b131b75c-2a46-5460-98ab-9d65879f9131")
 __x_TestApp_CParity_CICloneable2 : public IInspectable
 {
 public:
@@ -81,7 +81,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIGraphicElement;
 
-MIDL_INTERFACE("fffda7e5-6fd3-5b55-bba6-e5e3661a097e")
+MIDL_INTERFACE("a0ea4e37-c3fc-5f54-abb0-82916a85d9cb")
 __x_TestApp_CParity_CIGraphicElement : public IInspectable
 {
 public:
@@ -95,7 +95,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIGraphicElementFactory;
 
-MIDL_INTERFACE("6af2eced-86e0-8e59-82e3-64d19ea0f479")
+MIDL_INTERFACE("80d5e208-8be5-5bee-b96c-6e5f73ea3707")
 __x_TestApp_CParity_CIGraphicElementFactory : public IInspectable
 {
 public:
@@ -109,7 +109,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIDocument;
 
-MIDL_INTERFACE("a64a7bb2-9197-bf5a-bd2c-824e8215ed11")
+MIDL_INTERFACE("8012d1cf-e5be-501a-920a-740d117446d3")
 __x_TestApp_CParity_CIDocument : public IInspectable
 {
 public:

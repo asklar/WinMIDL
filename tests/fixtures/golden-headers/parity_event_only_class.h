@@ -9,7 +9,7 @@ typedef interface __x_TestApp_CParity_CIEventSourceWidget __x_TestApp_CParity_CI
 
 EXTERN_C const IID IID___x_TestApp_CParity_CItemAddedHandler;
 
-MIDL_INTERFACE("daa94288-996b-f15d-80a9-f5958eb3b15e")
+MIDL_INTERFACE("9d3876dc-86c3-598f-8ba1-df7be86b52eb")
 __x_TestApp_CParity_CItemAddedHandler : public IUnknown
 {
 public:
@@ -18,7 +18,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CItemRemovedHandler;
 
-MIDL_INTERFACE("95dd6d62-c906-425b-b606-f6dc89e1b08e")
+MIDL_INTERFACE("0c4a5b80-e523-59ef-86b2-476ac82fb340")
 __x_TestApp_CParity_CItemRemovedHandler : public IUnknown
 {
 public:
@@ -27,7 +27,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CCollectionClearedHandler;
 
-MIDL_INTERFACE("097dca58-701d-d35a-97ea-95e5fefb6a8b")
+MIDL_INTERFACE("58c21e0b-5367-5905-a3e3-f53ed1c36ac8")
 __x_TestApp_CParity_CCollectionClearedHandler : public IUnknown
 {
 public:
@@ -36,7 +36,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CItemMovedHandler;
 
-MIDL_INTERFACE("1b5f896d-6f48-d058-a4bc-616d8c8d994a")
+MIDL_INTERFACE("c37ba4cc-f54f-547b-a75d-5d816ecdc195")
 __x_TestApp_CParity_CItemMovedHandler : public IUnknown
 {
 public:
@@ -50,7 +50,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIEventSourceWidget;
 
-MIDL_INTERFACE("6a5c5c43-a0ac-e05a-8718-69decdfedd5f")
+MIDL_INTERFACE("9d73828b-18b8-5a8a-aee6-9315b1c48b7a")
 __x_TestApp_CParity_CIEventSourceWidget : public IInspectable
 {
 public:

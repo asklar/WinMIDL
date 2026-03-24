@@ -20,7 +20,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIGeocoderService;
 
-MIDL_INTERFACE("8dc4ca27-6d85-db5c-8589-603675b4a0eb")
+MIDL_INTERFACE("e531f636-e1fe-5b63-802c-f7ef0782b782")
 __x_TestApp_CParity_CIGeocoderService : public IInspectable
 {
 public:

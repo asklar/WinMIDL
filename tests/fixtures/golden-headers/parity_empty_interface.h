@@ -15,7 +15,7 @@ typedef interface __x_TestApp_CParity_CIMarkerWidget __x_TestApp_CParity_CIMarke
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMarker;
 
-MIDL_INTERFACE("46cca306-2e9f-d759-8412-293c560d9dd1")
+MIDL_INTERFACE("a1b2c3d4-e5f6-7890-abcd-ef0123456789")
 __x_TestApp_CParity_CIMarker : public IInspectable
 {
 public:
@@ -28,7 +28,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CITagged;
 
-MIDL_INTERFACE("14e80217-d361-fa5c-96b1-e8931abebeec")
+MIDL_INTERFACE("b2c3d4e5-f6a7-8901-bcde-f01234567890")
 __x_TestApp_CParity_CITagged : public IInspectable
 {
 public:
@@ -41,7 +41,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIExtendedMarker;
 
-MIDL_INTERFACE("12501687-6aa2-4555-8b81-c7f3119fe537")
+MIDL_INTERFACE("c3d4e5f6-a7b8-9012-cdef-012345678901")
 __x_TestApp_CParity_CIExtendedMarker : public IInspectable
 {
 public:
@@ -56,7 +56,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMarkerWidget;
 
-MIDL_INTERFACE("9cfb80db-c282-7f5b-8247-28889bb07cbd")
+MIDL_INTERFACE("f3a853f5-5052-53d0-a41b-512d64cc4b6e")
 __x_TestApp_CParity_CIMarkerWidget : public IInspectable
 {
 public:

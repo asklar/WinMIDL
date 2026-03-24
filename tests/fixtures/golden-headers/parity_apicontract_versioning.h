@@ -26,7 +26,7 @@ struct ApiSettings
 
 EXTERN_C const IID IID___x_TestApp_CParity_CApiCallback;
 
-MIDL_INTERFACE("198121d7-650c-735a-a2ba-fa8368bf1679")
+MIDL_INTERFACE("cda79bc6-905c-56c5-8880-069f6b8349da")
 __x_TestApp_CParity_CApiCallback : public IUnknown
 {
 public:
@@ -38,7 +38,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIApiEndpoint;
 
-MIDL_INTERFACE("226f74ee-a02e-4e51-9e7c-bd426a25302c")
+MIDL_INTERFACE("91cc8a7d-3fda-5b2d-85a9-bad2c26d335c")
 __x_TestApp_CParity_CIApiEndpoint : public IInspectable
 {
 public:
@@ -57,7 +57,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIApiService;
 
-MIDL_INTERFACE("d1e45c1c-bbc1-675e-949a-1c44516d9019")
+MIDL_INTERFACE("b60a6ff1-e7c0-5389-b6c5-d3166f1e1f7b")
 __x_TestApp_CParity_CIApiService : public IInspectable
 {
 public:
@@ -78,7 +78,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIApiServiceStatics;
 
-MIDL_INTERFACE("e63d6f86-7abe-d05a-a55c-55cbb7405f47")
+MIDL_INTERFACE("313f7bbb-a5eb-5833-a353-51a0c5391d67")
 __x_TestApp_CParity_CIApiServiceStatics : public IInspectable
 {
 public:
@@ -92,7 +92,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CISecondaryService;
 
-MIDL_INTERFACE("60b7502e-f8d3-c05b-afab-bcee3fb71e30")
+MIDL_INTERFACE("aeb8af6f-702c-5281-a6b1-c58e22682497")
 __x_TestApp_CParity_CISecondaryService : public IInspectable
 {
 public:

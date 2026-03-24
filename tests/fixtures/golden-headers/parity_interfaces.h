@@ -11,7 +11,7 @@ typedef interface __x_TestApp_CParity_CICachedDataSource __x_TestApp_CParity_CIC
 
 EXTERN_C const IID IID___x_TestApp_CParity_CDataChangedHandler;
 
-MIDL_INTERFACE("86116811-ea06-845e-9da7-fecff6ce42b7")
+MIDL_INTERFACE("a767a7e7-9f0a-5cee-96e0-334abd0f02aa")
 __x_TestApp_CParity_CDataChangedHandler : public IUnknown
 {
 public:
@@ -23,7 +23,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIDataSource;
 
-MIDL_INTERFACE("0baccb94-c722-2551-9d66-44ced1b08ec9")
+MIDL_INTERFACE("6185c161-0082-53b2-98ed-9b11e71e123a")
 __x_TestApp_CParity_CIDataSource : public IInspectable
 {
 public:
@@ -42,7 +42,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CICacheable;
 
-MIDL_INTERFACE("eda15993-d953-e651-adf7-158006ed9991")
+MIDL_INTERFACE("c3cfecd8-26e8-5eee-af72-002d2fa0a535")
 __x_TestApp_CParity_CICacheable : public IInspectable
 {
 public:
@@ -57,7 +57,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CICachedDataSource;
 
-MIDL_INTERFACE("db7274be-535a-6050-a512-b1605ff06367")
+MIDL_INTERFACE("94d592ca-8026-5794-998c-2e04edfaac58")
 __x_TestApp_CParity_CICachedDataSource : public IInspectable
 {
 public:

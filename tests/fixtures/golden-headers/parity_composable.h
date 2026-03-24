@@ -25,7 +25,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidget;
 
-MIDL_INTERFACE("943c42d9-c53b-2956-aeab-53316fe8f0fc")
+MIDL_INTERFACE("2a29c645-0830-58d1-ae49-ad0d7cc02eea")
 __x_TestApp_CParity_CIComposableWidget : public IInspectable
 {
 public:
@@ -39,7 +39,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetFactory;
 
-MIDL_INTERFACE("66fdcd34-ce92-fd51-be00-595412aabd22")
+MIDL_INTERFACE("114cfbd6-1cab-51f9-83cf-4142dd49ad34")
 __x_TestApp_CParity_CIComposableWidgetFactory : public IInspectable
 {
 public:
@@ -53,7 +53,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetOverrides;
 
-MIDL_INTERFACE("e875eb54-f800-d358-86e0-3c684b46aaf0")
+MIDL_INTERFACE("43aeaf21-b2c1-5b8d-b1a9-825fab8b41a1")
 __x_TestApp_CParity_CIComposableWidgetOverrides : public IInspectable
 {
 public:
@@ -68,7 +68,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposable;
 
-MIDL_INTERFACE("6016f85d-6957-4556-91eb-a8d9e1ea4cea")
+MIDL_INTERFACE("e42987cd-f125-5e46-90c7-7923b90c6b3d")
 __x_TestApp_CParity_CIMiddleComposable : public IInspectable
 {
 public:
@@ -82,7 +82,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableFactory;
 
-MIDL_INTERFACE("f1051b29-8aaf-4b56-8e16-d82c462dedff")
+MIDL_INTERFACE("abb25bbb-cf8b-5b48-823f-de17cd9e53e4")
 __x_TestApp_CParity_CIMiddleComposableFactory : public IInspectable
 {
 public:
@@ -96,7 +96,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableOverrides;
 
-MIDL_INTERFACE("c4398ed6-ef3e-735b-832b-2698957afa5a")
+MIDL_INTERFACE("f427b1bb-c5ab-5464-8e0d-fd3c9c1f7bb2")
 __x_TestApp_CParity_CIMiddleComposableOverrides : public IInspectable
 {
 public:
@@ -110,7 +110,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposable;
 
-MIDL_INTERFACE("7a732a7b-d36b-a151-bf52-2d4bc1396a34")
+MIDL_INTERFACE("1ec79745-5359-5972-bb55-13ae48379cab")
 __x_TestApp_CParity_CIFinalComposable : public IInspectable
 {
 public:
@@ -124,7 +124,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposableFactory;
 
-MIDL_INTERFACE("0c9ad8fa-3d98-2554-b7a5-b7a4be470f7f")
+MIDL_INTERFACE("e5f3f7c8-861a-54f7-8191-2b5578037c61")
 __x_TestApp_CParity_CIFinalComposableFactory : public IInspectable
 {
 public:

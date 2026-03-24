@@ -9,7 +9,7 @@ typedef interface __x_TestApp_CParity_CIGenericEventWidget __x_TestApp_CParity_C
 
 EXTERN_C const IID IID___x_TestApp_CParity_CNamesChangedDelegate;
 
-MIDL_INTERFACE("91f7f43a-b996-f050-8f1b-423aa9ccff15")
+MIDL_INTERFACE("acf31c80-d848-5402-a0bc-58599c86192a")
 __x_TestApp_CParity_CNamesChangedDelegate : public IUnknown
 {
 public:
@@ -18,7 +18,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CMappingsChangedDelegate;
 
-MIDL_INTERFACE("ba5e4e58-1f25-2d54-afa7-c82b12cd013b")
+MIDL_INTERFACE("17f26d90-5c40-50c4-88c1-edc62f72e66b")
 __x_TestApp_CParity_CMappingsChangedDelegate : public IUnknown
 {
 public:
@@ -32,7 +32,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIGenericEventWidget;
 
-MIDL_INTERFACE("f5ff8bc5-c2b6-195c-9970-57a746d70601")
+MIDL_INTERFACE("b6f06200-3ae5-50f9-9a70-f5f213769855")
 __x_TestApp_CParity_CIGenericEventWidget : public IInspectable
 {
 public:

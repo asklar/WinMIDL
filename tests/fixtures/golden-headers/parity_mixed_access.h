@@ -20,7 +20,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessBase;
 
-MIDL_INTERFACE("48266b7b-0358-2653-a9c0-5e7d5430e1b8")
+MIDL_INTERFACE("441f2cd8-d3e9-5ad9-970c-1101aa3d1df2")
 __x_TestApp_CParity_CIMixedAccessBase : public IInspectable
 {
 public:
@@ -36,7 +36,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessBaseFactory;
 
-MIDL_INTERFACE("a328a986-4ee4-a55c-9f22-4b5b9ea8f2e1")
+MIDL_INTERFACE("a3e6c42b-00a2-50d8-9b60-1f790f4c73d3")
 __x_TestApp_CParity_CIMixedAccessBaseFactory : public IInspectable
 {
 public:
@@ -50,7 +50,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessBaseOverrides;
 
-MIDL_INTERFACE("6e56cb95-0155-835b-94ef-569439ce9f2c")
+MIDL_INTERFACE("b30b3d7f-5b5a-5d3c-90c3-be7f8cb57ae4")
 __x_TestApp_CParity_CIMixedAccessBaseOverrides : public IInspectable
 {
 public:
@@ -66,7 +66,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessDerived;
 
-MIDL_INTERFACE("3a369717-e8e3-fc5a-a502-1a227a520ccf")
+MIDL_INTERFACE("2262e769-513f-5eba-8bd6-15a85e0f90ba")
 __x_TestApp_CParity_CIMixedAccessDerived : public IInspectable
 {
 public:
@@ -80,7 +80,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessDerivedFactory;
 
-MIDL_INTERFACE("bb4065ee-5e9e-5555-a742-6cc4cf128e30")
+MIDL_INTERFACE("2a5f6c84-752f-5623-b0e0-5f75c5bd39d7")
 __x_TestApp_CParity_CIMixedAccessDerivedFactory : public IInspectable
 {
 public:

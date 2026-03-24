@@ -16,7 +16,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CNsAlpha_CIAlphaWidget;
 
-MIDL_INTERFACE("e9d0fd5f-a49e-e352-bf81-cb3feadaaa9d")
+MIDL_INTERFACE("b5d879e4-bf23-5f60-b8ec-cf8edd8651ea")
 __x_TestApp_CParity_CNsAlpha_CIAlphaWidget : public IInspectable
 {
 public:
@@ -32,7 +32,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CNsBeta_CIBetaWidget;
 
-MIDL_INTERFACE("45a5e69e-9667-9453-93b0-edf40edeb277")
+MIDL_INTERFACE("51e59b2f-e01a-570b-9484-cdb574e7785f")
 __x_TestApp_CParity_CNsBeta_CIBetaWidget : public IInspectable
 {
 public:
@@ -48,7 +48,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CNsGamma_CIGammaWidget;
 
-MIDL_INTERFACE("d99b8973-0494-665b-aad2-35030a03659e")
+MIDL_INTERFACE("c9f237de-6e27-59ff-a113-d750338d740c")
 __x_TestApp_CParity_CNsGamma_CIGammaWidget : public IInspectable
 {
 public:

@@ -1,6 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using Midl.Analysis;
+using Midl.Analysis.Symbols;
 
 namespace Midl.Integration.Tests;
 
@@ -11,26 +10,6 @@ namespace Midl.Integration.Tests;
 public partial class IidEmitterIntegrationTests
 {
     private readonly Midl.CodeGen.Iid.IidEmitter _emitter = new();
-
-    /// <summary>
-    /// Replicates the UUID v5 computation for test verification.
-    /// </summary>
-    private static Guid ComputeUuid(string fullName)
-    {
-        var namespaceId = new byte[]
-        {
-            0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1,
-            0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8
-        };
-        var nameBytes = Encoding.UTF8.GetBytes(fullName);
-        var input = new byte[namespaceId.Length + nameBytes.Length];
-        Array.Copy(namespaceId, 0, input, 0, namespaceId.Length);
-        Array.Copy(nameBytes, 0, input, namespaceId.Length, nameBytes.Length);
-        var hash = SHA1.HashData(input);
-        hash[6] = (byte)((hash[6] & 0x0F) | 0x50);
-        hash[8] = (byte)((hash[8] & 0x3F) | 0x80);
-        return new Guid(new ReadOnlySpan<byte>(hash, 0, 16));
-    }
 
     [Fact]
     public void EndToEnd_SimpleInterface_EmitsIidInOutput()
@@ -61,8 +40,9 @@ public partial class IidEmitterIntegrationTests
         Assert.Contains("IID___x_TestApp_CIWidget", output);
         Assert.Contains("const IID", output);
 
-        // The GUID value should match the deterministic computation
-        var expectedGuid = ComputeUuid("TestApp.IWidget");
+        // The GUID value should match the ABI computation
+        var iface = compilation.GetAllTypes().OfType<InterfaceSymbol>().First(i => i.Name == "IWidget");
+        var expectedGuid = AbiGuidComputer.ComputeGuid(iface);
         var bytes = expectedGuid.ToByteArray();
         uint data1 = BitConverter.ToUInt32(bytes, 0);
         Assert.Contains($"0x{data1:X8}", output);

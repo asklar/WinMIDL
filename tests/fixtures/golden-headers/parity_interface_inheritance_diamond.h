@@ -16,7 +16,7 @@ typedef interface __x_TestApp_CParity_CIProcessorWidget __x_TestApp_CParity_CIPr
 
 EXTERN_C const IID IID___x_TestApp_CParity_CINode;
 
-MIDL_INTERFACE("5d0a3133-ab12-cd53-9261-26c787c6f3f9")
+MIDL_INTERFACE("564d73c9-2906-5c45-8dc5-42c6fb034eed")
 __x_TestApp_CParity_CINode : public IInspectable
 {
 public:
@@ -30,7 +30,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIInputNode;
 
-MIDL_INTERFACE("b81c138d-d6f3-bb51-b7d6-1045e431f7d7")
+MIDL_INTERFACE("97896802-9835-53dd-b8f5-bf1b60e4d1a9")
 __x_TestApp_CParity_CIInputNode : public IInspectable
 {
 public:
@@ -44,7 +44,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIOutputNode;
 
-MIDL_INTERFACE("3c845ebe-6560-db5c-b4ec-88e72931af16")
+MIDL_INTERFACE("050ba7a5-4bb5-5e51-820d-83f993813b9d")
 __x_TestApp_CParity_CIOutputNode : public IInspectable
 {
 public:
@@ -58,7 +58,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIProcessorNode;
 
-MIDL_INTERFACE("7edc3f3a-fc2f-9754-ac24-4ea6932fac11")
+MIDL_INTERFACE("90fa482b-7aa3-58bf-a6e5-5ad3c76e2d3f")
 __x_TestApp_CParity_CIProcessorNode : public IInspectable
 {
 public:
@@ -74,7 +74,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIProcessorWidget;
 
-MIDL_INTERFACE("d9ab5128-2cd0-b65b-b59c-dffd14c6b730")
+MIDL_INTERFACE("4edbbc11-a4d3-5e31-9cb0-caaa4616fb51")
 __x_TestApp_CParity_CIProcessorWidget : public IInspectable
 {
 public:

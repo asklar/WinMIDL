@@ -15,7 +15,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_CParity_CISuperWidget;
 
-MIDL_INTERFACE("7cbb75b3-e801-2c5e-9c74-5d41dc856335")
+MIDL_INTERFACE("ac2f0f56-6fe8-5545-b4b3-579aaba2ac3b")
 __x_TestApp_CParity_CISuperWidget : public IInspectable
 {
 public:
@@ -35,7 +35,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_CParity_CISuperWidgetFactory;
 
-MIDL_INTERFACE("d406ffca-4f4c-cd53-95bf-63c4f217b797")
+MIDL_INTERFACE("13bf6660-19e7-5e34-b09e-cb512cfd64d5")
 __x_TestApp_CParity_CISuperWidgetFactory : public IInspectable
 {
 public:
