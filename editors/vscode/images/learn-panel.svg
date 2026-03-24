@@ -23,12 +23,12 @@
   <text x="136" y="62" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Widget</text>
   <text x="40" y="80" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">{</text>
   <!-- IVector highlighted -->
-  <rect x="54" y="86" width="136" height="16" fill="#264f78" rx="2"/>
+  <rect x="54" y="86" width="132" height="16" fill="#264f78" rx="2"/>
   <text x="56" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">IVector</text>
-  <text x="112" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">&lt;</text>
-  <text x="120" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">String</text>
-  <text x="168" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">&gt;</text>
-  <text x="184" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Items;</text>
+  <text x="106" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">&lt;</text>
+  <text x="114" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">String</text>
+  <text x="157" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">&gt;</text>
+  <text x="172" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Items;</text>
   <text x="56" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">IMapView</text>
   <text x="120" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">&lt;</text>
   <text x="128" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">String</text>

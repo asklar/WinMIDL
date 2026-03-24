@@ -86,9 +86,9 @@
   <text x="618" y="236" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">get</text>
   <text x="642" y="236" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">; };</text>
   <text x="466" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Int32</text>
-  <text x="506" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Port { </text>
-  <text x="554" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">get</text>
-  <text x="578" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">; };</text>
+  <text x="510" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Port {</text>
+  <text x="558" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">get</text>
+  <text x="580" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">; };</text>
   <text x="450" y="272" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">}</text>
   <text x="434" y="290" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">}</text>
   <!-- Caption -->

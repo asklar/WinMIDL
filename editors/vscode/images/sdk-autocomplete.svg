@@ -14,18 +14,18 @@
   <text x="24" y="128" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#808080">4</text>
   <!-- Code lines -->
   <text x="52" y="68" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#C586C0">namespace</text>
-  <text x="142" y="68" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">MyApp</text>
+  <text x="130" y="68" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">MyApp</text>
   <text x="52" y="88" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">{</text>
   <!-- runtimeclass Widget : Windows.UI.| -->
   <text x="68" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#C586C0">runtimeclass</text>
   <text x="170" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#4EC9B0">Widget</text>
-  <text x="222" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4"> : </text>
-  <text x="246" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#4EC9B0">Windows</text>
+  <text x="225" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">:</text>
+  <text x="249" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#4EC9B0">Windows</text>
   <text x="304" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">.</text>
   <text x="312" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#4EC9B0">UI</text>
-  <text x="330" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">.</text>
+  <text x="328" y="108" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">.</text>
   <!-- Cursor -->
-  <rect x="338" y="96" width="2" height="16" fill="#d4d4d4"/>
+  <rect x="336" y="96" width="2" height="16" fill="#d4d4d4"/>
   <text x="52" y="128" style="font-family:Consolas,'Cascadia Code',monospace;font-size:13px;fill:#d4d4d4">}</text>
   <!-- Autocomplete dropdown -->
   <rect x="310" y="114" width="220" height="140" fill="#252526" stroke="#454545" stroke-width="1" rx="4"/>

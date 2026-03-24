@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 240" width="800" height="240">
   <!-- Background -->
-  <rect width="800" height="300" fill="#1e1e1e" rx="8"/>
+  <rect width="800" height="240" fill="#1e1e1e" rx="8"/>
   <!-- Title bar -->
   <rect width="800" height="32" fill="#323233" rx="8"/>
   <rect y="24" width="800" height="8" fill="#323233"/>
@@ -46,5 +46,5 @@
   <text x="268" y="183" style="font-family:Consolas,'Cascadia Code',monospace;font-size:11px;fill:#d4d4d4">Quick Fix: Rename to </text>
   <text x="436" y="183" style="font-family:Consolas,'Cascadia Code',monospace;font-size:11px;fill:#4EC9B0;font-weight:bold">RefreshAsync</text>
   <!-- Caption -->
-  <text x="400" y="286" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080;text-anchor:middle">Async naming convention enforcement with one-click quick fixes</text>
+  <text x="400" y="224" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080;text-anchor:middle">Async naming convention enforcement with one-click quick fixes</text>
 </svg>
