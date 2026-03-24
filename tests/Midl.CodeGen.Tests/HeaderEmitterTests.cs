@@ -3,7 +3,7 @@ using Midl.CodeGen.Header;
 
 namespace Midl.CodeGen.Tests;
 
-public class HeaderEmitterTests
+public partial class HeaderEmitterTests
 {
     private readonly HeaderEmitter _emitter = new();
 

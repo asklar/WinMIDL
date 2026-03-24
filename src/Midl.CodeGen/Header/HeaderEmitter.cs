@@ -131,7 +131,8 @@ public class HeaderEmitter
         for (int i = 0; i < e.EnumMembers.Count; i++)
         {
             var member = e.EnumMembers[i];
-            sb.AppendLine($"    {e.Name}_{member.Name} = {i},");
+            var value = member.ExplicitValue ?? i;
+            sb.AppendLine($"    {e.Name}_{member.Name} = {value},");
         }
         sb.AppendLine("};");
         sb.AppendLine();
