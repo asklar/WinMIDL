@@ -200,7 +200,6 @@ The extension activates automatically when you open any `.idl` file. All feature
 - **Full document sync** — The entire document is re-sent and reparsed on every keystroke (incremental text sync planned)
 - **No refactoring** — Code actions are available but full refactoring support is still growing
 - **No code folding from LSP** — Folding relies on the regex-based language configuration, not semantic ranges
-- **External type completions** — `.winmd` files are only discovered in the same directory as the open file
 
 ---
 
