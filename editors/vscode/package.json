@@ -37,7 +37,8 @@
           "MIDL3"
         ],
         "extensions": [
-          ".idl"
+          ".idl",
+          ".idlrt"
         ],
         "firstLine": "^\\s*(namespace|import|\\[|runtimeclass|interface|delegate|struct|enum|//)",
         "configuration": "./language-configuration.json"
