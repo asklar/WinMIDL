@@ -44,7 +44,7 @@
   <text x="40" y="264" style="font-family:Consolas,monospace;font-size:13px;fill:#808080"> | </text>
   <text x="72" y="264" style="font-family:Consolas,monospace;font-size:13px;fill:#d4d4d4">        IFoo* pFoo;</text>
   <text x="32" y="284" style="font-family:Consolas,monospace;font-size:13px;fill:#808080"> | </text>
-  <text x="72" y="284" style="font-family:Consolas,monospace;font-size:13px;fill:#F44747">        ^^^^ </text>
+  <text x="72" y="284" style="font-family:Consolas,monospace;font-size:13px;fill:#F44747">        ^^^^^ </text>
   <text x="173" y="284" style="font-family:Consolas,monospace;font-size:13px;fill:#F44747">Reference types are passed directly</text>
 
   <!-- Summary -->
