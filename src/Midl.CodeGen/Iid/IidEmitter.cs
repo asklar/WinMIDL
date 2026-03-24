@@ -1,6 +1,7 @@
 using System.Text;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
+using Midl.CodeGen.Header;
 
 namespace Midl.CodeGen.Iid;
 
@@ -24,10 +25,20 @@ public class IidEmitter
         bool emittedAny = false;
         foreach (var symbol in compilation.GetAllTypes().Where(t => !t.IsExternal))
         {
-            if (symbol is InterfaceSymbol iface && iface.Uuid.HasValue)
+            if (symbol is InterfaceSymbol iface)
             {
+                var guid = iface.Uuid ?? Guid.Parse(HeaderEmitter.GenerateUuid(iface.FullName));
+                var mangledName = HeaderEmitter.MangleName(iface.FullName);
                 sb.AppendLine();
-                EmitGuidConstant(sb, "IID", $"IID_{iface.Name}", iface.Uuid.Value);
+                EmitGuidConstant(sb, "IID", $"IID_{mangledName}", guid);
+                emittedAny = true;
+            }
+            else if (symbol is DelegateSymbol d)
+            {
+                var guid = d.Uuid ?? Guid.Parse(HeaderEmitter.GenerateUuid(d.FullName));
+                var mangledName = HeaderEmitter.MangleName(d.FullName);
+                sb.AppendLine();
+                EmitGuidConstant(sb, "IID", $"IID_{mangledName}", guid);
                 emittedAny = true;
             }
             else if (symbol is RuntimeClassSymbol rc && rc.Uuid.HasValue)

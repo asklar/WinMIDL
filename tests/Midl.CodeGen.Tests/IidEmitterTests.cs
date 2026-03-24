@@ -22,7 +22,7 @@ public class IidEmitterTests
         var compilation = CompilationHelper.Compile(source);
         var output = _emitter.Emit(compilation);
 
-        Assert.Contains("IID_IMyInterface", output);
+        Assert.Contains("IID___x_IMyInterface", output);
         Assert.Contains("0x12345678", output);
         Assert.Contains("0x1234", output);
     }
@@ -47,8 +47,8 @@ public class IidEmitterTests
         var compilation = CompilationHelper.Compile(source);
         var output = _emitter.Emit(compilation);
 
-        Assert.Contains("IID_IFirst", output);
-        Assert.Contains("IID_ISecond", output);
+        Assert.Contains("IID___x_IFirst", output);
+        Assert.Contains("IID___x_ISecond", output);
         Assert.Contains("0x11111111", output);
         Assert.Contains("0x22222222", output);
     }
@@ -91,7 +91,7 @@ public class IidEmitterTests
     }
 
     [Fact]
-    public void EmitNoIidForMissingUuid()
+    public void EmitComputedIidForMissingUuid()
     {
         var source = """
             interface INoUuid
@@ -103,7 +103,8 @@ public class IidEmitterTests
         var compilation = CompilationHelper.Compile(source);
         var output = _emitter.Emit(compilation);
 
-        Assert.DoesNotContain("IID_INoUuid", output);
-        Assert.DoesNotContain("const IID", output);
+        // After the fix, interfaces without explicit [uuid] get a computed GUID
+        Assert.Contains("IID___x_INoUuid", output);
+        Assert.Contains("const IID", output);
     }
 }
