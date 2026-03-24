@@ -21,7 +21,7 @@ __x_TestApp_Parity_IContractedWidget : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE NewMethod() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_NewProperty(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_NewProperty(/* [out, retval] */ ::boolean* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IContractedWidget_INTERFACE_DEFINED__

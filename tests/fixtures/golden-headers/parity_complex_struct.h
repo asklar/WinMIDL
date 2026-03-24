@@ -14,51 +14,51 @@ enum RecordStatus
 
 struct Point2D
 {
-    FLOAT X;
-    FLOAT Y;
+    float X;
+    float Y;
 };
 
 struct Point3D
 {
-    DOUBLE X;
-    DOUBLE Y;
-    DOUBLE Z;
+    double X;
+    double Y;
+    double Z;
 };
 
 struct Dimensions
 {
-    DOUBLE Width;
-    DOUBLE Height;
+    double Width;
+    double Height;
 };
 
 struct Rect
 {
-    FLOAT X;
-    FLOAT Y;
-    FLOAT Width;
-    FLOAT Height;
+    float X;
+    float Y;
+    float Width;
+    float Height;
 };
 
 struct Color4
 {
-    FLOAT R;
-    FLOAT G;
-    FLOAT B;
-    FLOAT A;
+    float R;
+    float G;
+    float B;
+    float A;
 };
 
 struct ComplexRecord
 {
-    INT32 Id;
-    UINT32 Flags;
-    INT64 Timestamp;
-    UINT64 Size;
-    INT16 SmallValue;
-    UINT16 MediumValue;
-    BYTE TinyValue;
-    FLOAT Ratio;
-    DOUBLE Precision;
-    boolean IsValid;
+    int Id;
+    unsigned int Flags;
+    __int64 Timestamp;
+    unsigned __int64 Size;
+    short SmallValue;
+    unsigned short MediumValue;
+    ::byte TinyValue;
+    float Ratio;
+    double Precision;
+    ::boolean IsValid;
     HSTRING Name;
     HSTRING Description;
     GUID UniqueId;

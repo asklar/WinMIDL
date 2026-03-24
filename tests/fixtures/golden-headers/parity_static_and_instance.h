@@ -22,7 +22,7 @@ __x_TestApp_Parity_IStaticInstanceWidget : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_Name(/* [in] */ HSTRING value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE DoWork() = 0;
 };
 
@@ -51,7 +51,7 @@ MIDL_INTERFACE("01fb0439-6fda-5954-b60b-fe64eb8bf0fe")
 __x_TestApp_Parity_IStaticInstanceWidgetStatics : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE GetInstanceCount(/* [out, retval] */ INT32* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetInstanceCount(/* [out, retval] */ int* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE ResetAll() = 0;
 };
 

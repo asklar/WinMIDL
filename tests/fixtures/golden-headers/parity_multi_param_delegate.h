@@ -13,7 +13,7 @@ MIDL_INTERFACE("87fd30bd-c110-995c-b65e-f2d9e6403922")
 __x_TestApp_Parity_SixParamCallback : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ INT32 id, /* [in] */ boolean active, /* [in] */ DOUBLE value, /* [in] */ FLOAT ratio, /* [in] */ INT32 priority) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ int id, /* [in] */ ::boolean active, /* [in] */ double value, /* [in] */ float ratio, /* [in] */ int priority) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_SevenParamCallback;
@@ -22,7 +22,7 @@ MIDL_INTERFACE("d59d577e-810d-4057-a051-f6eb6d78524c")
 __x_TestApp_Parity_SevenParamCallback : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ INT32 c, /* [in] */ INT32 d, /* [in] */ boolean e, /* [in] */ DOUBLE f, /* [in] */ FLOAT g) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ int c, /* [in] */ int d, /* [in] */ ::boolean e, /* [in] */ double f, /* [in] */ float g) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_ComplexCallback;
@@ -31,7 +31,7 @@ MIDL_INTERFACE("020fc21b-e584-9f56-a57d-7523ca38ebea")
 __x_TestApp_Parity_ComplexCallback : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ INT32 minVal, /* [in] */ INT32 maxVal, /* [in] */ boolean inclusive, /* [in] */ DOUBLE threshold) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ int minVal, /* [in] */ int maxVal, /* [in] */ ::boolean inclusive, /* [in] */ double threshold) = 0;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MultiParamDelegateUser[] = L"TestApp.Parity.MultiParamDelegateUser";

@@ -27,22 +27,22 @@ enum Size
 
 struct Point2D
 {
-    FLOAT X;
-    FLOAT Y;
+    float X;
+    float Y;
 };
 
 struct Point3D
 {
-    FLOAT X;
-    FLOAT Y;
-    FLOAT Z;
+    float X;
+    float Y;
+    float Z;
 };
 
 struct Rectangle
 {
     Point2D Origin;
-    FLOAT Width;
-    FLOAT Height;
+    float Width;
+    float Height;
 };
 
 struct ColoredRect
@@ -63,9 +63,9 @@ MIDL_INTERFACE("2d36e954-cdfc-c65d-9eb5-fac0e0e3f542")
 __x_TestApp_Parity_IShapeFactory : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE CreatePoint(/* [in] */ FLOAT x, /* [in] */ FLOAT y, /* [out, retval] */ Point2D* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CreatePoint3D(/* [in] */ FLOAT x, /* [in] */ FLOAT y, /* [in] */ FLOAT z, /* [out, retval] */ Point3D* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CreateRect(/* [in] */ Point2D origin, /* [in] */ FLOAT w, /* [in] */ FLOAT h, /* [out, retval] */ Rectangle* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreatePoint(/* [in] */ float x, /* [in] */ float y, /* [out, retval] */ Point2D* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreatePoint3D(/* [in] */ float x, /* [in] */ float y, /* [in] */ float z, /* [out, retval] */ Point3D* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateRect(/* [in] */ Point2D origin, /* [in] */ float w, /* [in] */ float h, /* [out, retval] */ Rectangle* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE CreateColoredRect(/* [in] */ Rectangle rect, /* [in] */ Color fill, /* [in] */ Color border, /* [out, retval] */ ColoredRect* returnValue) = 0;
 };
 

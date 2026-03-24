@@ -31,7 +31,7 @@ MIDL_INTERFACE("3d534f55-2065-d25a-a70b-31e63679871e")
 __x_TestApp_Parity_Transformer : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING input, /* [out] */ INT32* output) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING input, /* [out] */ int* output) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_Predicate;
@@ -40,7 +40,7 @@ MIDL_INTERFACE("87e94797-249c-8e5f-9096-97a19b792581")
 __x_TestApp_Parity_Predicate : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ IInspectable* item, /* [out] */ boolean* matched) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ IInspectable* item, /* [out] */ ::boolean* matched) = 0;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EventSource[] = L"TestApp.Parity.EventSource";

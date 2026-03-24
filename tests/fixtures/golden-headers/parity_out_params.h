@@ -18,14 +18,14 @@ MIDL_INTERFACE("d1a93893-ca65-5d51-ae6f-b066db5fd0c9")
 __x_TestApp_Parity_IDataParser : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE TryParseInt(/* [in] */ HSTRING input, /* [out] */ INT32* parsed, /* [out, retval] */ boolean* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE TryParseDouble(/* [in] */ HSTRING input, /* [out] */ DOUBLE* parsed, /* [out, retval] */ boolean* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE TryParseBool(/* [in] */ HSTRING input, /* [out] */ boolean* parsed, /* [out, retval] */ boolean* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE TryParseName(/* [in] */ HSTRING input, /* [out] */ HSTRING* parsedName, /* [out, retval] */ boolean* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetBounds(/* [out] */ INT32* minBound, /* [out] */ INT32* maxBound) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetDimensions(/* [out] */ DOUBLE* width, /* [out] */ DOUBLE* height, /* [out] */ DOUBLE* depth) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetInfo(/* [out] */ HSTRING* infoName, /* [out] */ INT32* infoVersion, /* [out] */ boolean* infoValid) = 0;
-    virtual HRESULT STDMETHODCALLTYPE TryGetKeyValue(/* [in] */ HSTRING key, /* [out] */ HSTRING* foundValue, /* [out] */ boolean* exists, /* [out, retval] */ boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE TryParseInt(/* [in] */ HSTRING input, /* [out] */ int* parsed, /* [out, retval] */ ::boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE TryParseDouble(/* [in] */ HSTRING input, /* [out] */ double* parsed, /* [out, retval] */ ::boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE TryParseBool(/* [in] */ HSTRING input, /* [out] */ ::boolean* parsed, /* [out, retval] */ ::boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE TryParseName(/* [in] */ HSTRING input, /* [out] */ HSTRING* parsedName, /* [out, retval] */ ::boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetBounds(/* [out] */ int* minBound, /* [out] */ int* maxBound) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetDimensions(/* [out] */ double* width, /* [out] */ double* height, /* [out] */ double* depth) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetInfo(/* [out] */ HSTRING* infoName, /* [out] */ int* infoVersion, /* [out] */ ::boolean* infoValid) = 0;
+    virtual HRESULT STDMETHODCALLTYPE TryGetKeyValue(/* [in] */ HSTRING key, /* [out] */ HSTRING* foundValue, /* [out] */ ::boolean* exists, /* [out, retval] */ ::boolean* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IDataParser_INTERFACE_DEFINED__

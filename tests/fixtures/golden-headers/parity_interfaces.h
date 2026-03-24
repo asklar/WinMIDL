@@ -28,9 +28,9 @@ __x_TestApp_Parity_IDataSource : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ItemCount(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ItemCount(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Refresh() = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetItem(/* [in] */ INT32 index, /* [out, retval] */ IInspectable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetItem(/* [in] */ int index, /* [out, retval] */ IInspectable** returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE add_DataChanged(/* [in] */ __x_TestApp_Parity_DataChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_DataChanged(/* [in] */ EventRegistrationToken token) = 0;
 };
@@ -46,7 +46,7 @@ MIDL_INTERFACE("eda15993-d953-e651-adf7-158006ed9991")
 __x_TestApp_Parity_ICacheable : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_IsCached(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IsCached(/* [out, retval] */ ::boolean* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Invalidate() = 0;
 };
 
@@ -61,7 +61,7 @@ MIDL_INTERFACE("db7274be-535a-6050-a512-b1605ff06367")
 __x_TestApp_Parity_ICachedDataSource : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Prefetch(/* [in] */ INT32 count) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Prefetch(/* [in] */ int count) = 0;
 };
 
 #endif // ____x_TestApp_Parity_ICachedDataSource_INTERFACE_DEFINED__

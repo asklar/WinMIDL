@@ -10,7 +10,7 @@ typedef interface __x_TestApp_Parity_IReturnTypeWidget __x_TestApp_Parity_IRetur
 struct ReturnData
 {
     HSTRING Name;
-    INT32 Value;
+    int Value;
 };
 
 enum ReturnStatus

@@ -20,8 +20,8 @@ enum ConnectionState
 struct ConnectionInfo
 {
     HSTRING Host;
-    INT32 Port;
-    boolean Secure;
+    int Port;
+    ::boolean Secure;
     ConnectionState State;
 };
 
@@ -45,12 +45,12 @@ MIDL_INTERFACE("47adbc8a-78ce-dd5f-b799-4758058e3782")
 __x_TestApp_Parity_IConnectionManager : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_IsConnected(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IsConnected(/* [out, retval] */ ::boolean* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetInfo(/* [out, retval] */ ConnectionInfo* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetState(/* [out, retval] */ ConnectionState* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Connect(/* [in] */ HSTRING host, /* [in] */ INT32 port) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Connect(/* [in] */ HSTRING host, /* [in] */ int port) = 0;
     virtual HRESULT STDMETHODCALLTYPE Disconnect() = 0;
-    virtual HRESULT STDMETHODCALLTYPE ConnectAsync(/* [in] */ HSTRING host, /* [in] */ INT32 port, /* [out, retval] */ __x_Windows_Foundation_IAsyncAction** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ConnectAsync(/* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ __x_Windows_Foundation_IAsyncAction** returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE add_StateChanged(/* [in] */ __x_TestApp_Parity_ConnectionChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_StateChanged(/* [in] */ EventRegistrationToken token) = 0;
 };
@@ -66,7 +66,7 @@ MIDL_INTERFACE("b32afab8-00c4-7e52-91e3-47aeb63cb9aa")
 __x_TestApp_Parity_IConnectionManagerFactory : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING host, /* [in] */ INT32 port, /* [out, retval] */ ConnectionManager* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ ConnectionManager* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IConnectionManagerFactory_INTERFACE_DEFINED__

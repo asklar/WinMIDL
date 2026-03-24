@@ -19,12 +19,12 @@ __x_TestApp_Parity_IOverloadVarietyWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Process(/* [in] */ HSTRING data) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ INT32 value, /* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Search(/* [in] */ HSTRING query, /* [out, retval] */ boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ int value, /* [out, retval] */ HSTRING* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Search(/* [in] */ HSTRING query, /* [out, retval] */ ::boolean* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Configure(/* [in] */ HSTRING key) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Process(/* [in] */ HSTRING data, /* [in] */ boolean verbose) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ DOUBLE value, /* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Search(/* [in] */ HSTRING query, /* [in] */ INT32 maxResults, /* [out, retval] */ boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Process(/* [in] */ HSTRING data, /* [in] */ ::boolean verbose) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ double value, /* [out, retval] */ HSTRING* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Search(/* [in] */ HSTRING query, /* [in] */ int maxResults, /* [out, retval] */ ::boolean* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Configure(/* [in] */ HSTRING key, /* [in] */ HSTRING value) = 0;
 };
 

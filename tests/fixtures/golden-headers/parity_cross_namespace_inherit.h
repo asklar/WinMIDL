@@ -51,7 +51,7 @@ MIDL_INTERFACE("99cff9c4-23ec-1454-a6e0-6771e015d231")
 __x_TestApp_Parity_Derived_ICrossNsDerived : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_DerivedId(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_DerivedId(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_Derived_ICrossNsDerived_INTERFACE_DEFINED__

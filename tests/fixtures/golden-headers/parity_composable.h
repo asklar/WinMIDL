@@ -58,7 +58,7 @@ __x_TestApp_Parity_IComposableWidgetOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE OnActivated() = 0;
-    virtual HRESULT STDMETHODCALLTYPE CanActivate(/* [out, retval] */ boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CanActivate(/* [out, retval] */ ::boolean* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IComposableWidgetOverrides_INTERFACE_DEFINED__
@@ -72,7 +72,7 @@ MIDL_INTERFACE("6016f85d-6957-4556-91eb-a8d9e1ea4cea")
 __x_TestApp_Parity_IMiddleComposable : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IMiddleComposable_INTERFACE_DEFINED__
@@ -114,7 +114,7 @@ MIDL_INTERFACE("7a732a7b-d36b-a151-bf52-2d4bc1396a34")
 __x_TestApp_Parity_IFinalComposable : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_IsReady(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IsReady(/* [out, retval] */ ::boolean* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IFinalComposable_INTERFACE_DEFINED__
@@ -129,7 +129,7 @@ __x_TestApp_Parity_IFinalComposableFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ FinalComposable* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [in] */ INT32 priority, /* [out, retval] */ FinalComposable* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [in] */ int priority, /* [out, retval] */ FinalComposable* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IFinalComposableFactory_INTERFACE_DEFINED__

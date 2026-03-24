@@ -23,7 +23,7 @@ __x_TestApp_Parity_IRenderable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Render() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ZOrder(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ZOrder(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IRenderable_INTERFACE_DEFINED__
@@ -53,7 +53,7 @@ __x_TestApp_Parity_IPrintable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Print(/* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE SetMargins(/* [in] */ DOUBLE left, /* [in] */ DOUBLE top, /* [in] */ DOUBLE right, /* [in] */ DOUBLE bottom) = 0;
+    virtual HRESULT STDMETHODCALLTYPE SetMargins(/* [in] */ double left, /* [in] */ double top, /* [in] */ double right, /* [in] */ double bottom) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IPrintable_INTERFACE_DEFINED__
@@ -115,7 +115,7 @@ __x_TestApp_Parity_IDocument : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Title(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_Title(/* [in] */ HSTRING value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_PageCount(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_PageCount(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IDocument_INTERFACE_DEFINED__

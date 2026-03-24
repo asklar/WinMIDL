@@ -24,7 +24,7 @@ __x_TestApp_Parity_IFwdUser : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE SetTargetName(/* [in] */ HSTRING name) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetTargetName(/* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_HasTarget(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_HasTarget(/* [out, retval] */ ::boolean* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IFwdUser_INTERFACE_DEFINED__

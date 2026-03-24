@@ -18,13 +18,13 @@ MIDL_INTERFACE("d569051e-dd74-aa51-81d4-d749efe9de38")
 __x_TestApp_Parity_ICharWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE GetSeparator(/* [out, retval] */ WCHAR* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE SetSeparator(/* [in] */ WCHAR c) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Separator(/* [out, retval] */ WCHAR* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_Separator(/* [in] */ WCHAR value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE IsLetter(/* [in] */ WCHAR c, /* [out, retval] */ boolean* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE IsDigit(/* [in] */ WCHAR c, /* [out, retval] */ boolean* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CharToString(/* [in] */ WCHAR c, /* [out, retval] */ HSTRING* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetSeparator(/* [out, retval] */ wchar_t* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE SetSeparator(/* [in] */ wchar_t c) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Separator(/* [out, retval] */ wchar_t* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_Separator(/* [in] */ wchar_t value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE IsLetter(/* [in] */ wchar_t c, /* [out, retval] */ ::boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE IsDigit(/* [in] */ wchar_t c, /* [out, retval] */ ::boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CharToString(/* [in] */ wchar_t c, /* [out, retval] */ HSTRING* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_ICharWidget_INTERFACE_DEFINED__

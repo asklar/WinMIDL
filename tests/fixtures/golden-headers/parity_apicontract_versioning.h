@@ -20,8 +20,8 @@ enum ApiStatus
 struct ApiSettings
 {
     HSTRING Name;
-    INT32 Version;
-    boolean Debug;
+    int Version;
+    ::boolean Debug;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_ApiCallback;
@@ -63,11 +63,11 @@ __x_TestApp_Parity_IApiService : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE get_ServiceName(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Start() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ConnectionCount(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ConnectionCount(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Restart() = 0;
     virtual HRESULT STDMETHODCALLTYPE add_Restarted(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Restarted(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_IsHealthy(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IsHealthy(/* [out, retval] */ ::boolean* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetStatus(/* [out, retval] */ ApiStatus* returnValue) = 0;
 };
 

@@ -26,7 +26,7 @@ __x_TestApp_Parity_IMixedAccessBase : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE PublicMethod() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_PublicProperty(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_PublicProperty(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IMixedAccessBase_INTERFACE_DEFINED__
@@ -56,7 +56,7 @@ __x_TestApp_Parity_IMixedAccessBaseOverrides : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE OnLoad() = 0;
     virtual HRESULT STDMETHODCALLTYPE OnSave() = 0;
-    virtual HRESULT STDMETHODCALLTYPE CanProcess(/* [out, retval] */ boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CanProcess(/* [out, retval] */ ::boolean* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IMixedAccessBaseOverrides_INTERFACE_DEFINED__

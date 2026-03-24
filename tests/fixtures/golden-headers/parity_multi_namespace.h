@@ -36,7 +36,7 @@ MIDL_INTERFACE("45a5e69e-9667-9453-93b0-edf40edeb277")
 __x_TestApp_Parity_NsBeta_IBetaWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_NsBeta_IBetaWidget_INTERFACE_DEFINED__
@@ -52,7 +52,7 @@ MIDL_INTERFACE("d99b8973-0494-665b-aad2-35030a03659e")
 __x_TestApp_Parity_NsGamma_IGammaWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_Active(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Active(/* [out, retval] */ ::boolean* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_NsGamma_IGammaWidget_INTERFACE_DEFINED__

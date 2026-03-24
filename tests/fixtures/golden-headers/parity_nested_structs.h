@@ -9,8 +9,8 @@ typedef interface __x_TestApp_Parity_IRegionManager __x_TestApp_Parity_IRegionMa
 
 struct InnerPoint
 {
-    DOUBLE X;
-    DOUBLE Y;
+    double X;
+    double Y;
 };
 
 struct MiddleRect
@@ -23,7 +23,7 @@ struct OuterRegion
 {
     MiddleRect Bounds;
     HSTRING Label;
-    INT32 Id;
+    int Id;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_RegionManager[] = L"TestApp.Parity.RegionManager";

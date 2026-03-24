@@ -23,7 +23,7 @@ __x_TestApp_Parity_IDefaultIfaceWidget1 : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Initialize() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Refresh() = 0;
 };
 
@@ -41,7 +41,7 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Start() = 0;
     virtual HRESULT STDMETHODCALLTYPE Stop() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Running(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Running(/* [out, retval] */ ::boolean* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IDefaultIfaceWidget2_INTERFACE_DEFINED__

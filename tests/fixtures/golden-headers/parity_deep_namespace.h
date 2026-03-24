@@ -12,7 +12,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 struct DeepData
 {
     HSTRING Name;
-    INT32 Value;
+    int Value;
 };
 
 enum DeepStatus
@@ -32,7 +32,7 @@ __x_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_IDeepWidget : public IInsp
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_FullName(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Depth(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Depth(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_IDeepWidget_INTERFACE_DEFINED__

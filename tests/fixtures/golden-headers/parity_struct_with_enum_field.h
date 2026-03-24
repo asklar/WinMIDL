@@ -26,9 +26,9 @@ struct LayoutInfo
     Alignment HorizontalAlignment;
     Alignment VerticalAlignment;
     Visibility ElementVisibility;
-    DOUBLE Width;
-    DOUBLE Height;
-    INT32 ZIndex;
+    double Width;
+    double Height;
+    int ZIndex;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_LayoutWidget[] = L"TestApp.Parity.LayoutWidget";

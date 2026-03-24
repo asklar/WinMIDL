@@ -49,8 +49,8 @@ MIDL_INTERFACE("983a1b1a-3670-be5f-9c5e-97ff90562b98")
 __x_TestApp_Parity_ISeekable : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Seek(/* [in] */ INT32 position) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Position(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Seek(/* [in] */ int position) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Position(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_ISeekable_INTERFACE_DEFINED__
@@ -78,7 +78,7 @@ MIDL_INTERFACE("97657964-066c-0053-a172-fdfb444e59c7")
 __x_TestApp_Parity_IFullStream : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_Length(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Length(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Flush() = 0;
 };
 
@@ -97,9 +97,9 @@ __x_TestApp_Parity_IFullStream2 : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE Read(/* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Write(/* [in] */ HSTRING data) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Seek(/* [in] */ INT32 position) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Seek(/* [in] */ int position) = 0;
     virtual HRESULT STDMETHODCALLTYPE Close() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Length(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Length(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Flush() = 0;
 };
 

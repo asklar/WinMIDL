@@ -35,8 +35,8 @@ MIDL_INTERFACE("0aa6ff29-2e7c-1b58-998e-201724bd782a")
 __x_TestApp_Parity_IWidgetExtra : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_ExtraPriority(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_ExtraPriority(/* [in] */ INT32 value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ExtraPriority(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_ExtraPriority(/* [in] */ int value) = 0;
     virtual HRESULT STDMETHODCALLTYPE DoExtra() = 0;
 };
 
@@ -51,7 +51,7 @@ MIDL_INTERFACE("f4ff62d4-f264-485d-a977-c4eec0f93c38")
 __x_TestApp_Parity_IWidgetAdvanced : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_AdvancedScore(/* [out, retval] */ DOUBLE* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_AdvancedScore(/* [out, retval] */ double* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Recalculate() = 0;
 };
 

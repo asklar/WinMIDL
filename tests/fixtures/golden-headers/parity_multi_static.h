@@ -20,8 +20,8 @@ __x_TestApp_Parity_IMultiStaticServiceStatics : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE GetVersion(/* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Initialize() = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetBuildNumber(/* [out, retval] */ INT32* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE IsFeatureEnabled(/* [in] */ HSTRING feature, /* [out, retval] */ boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetBuildNumber(/* [out, retval] */ int* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE IsFeatureEnabled(/* [in] */ HSTRING feature, /* [out, retval] */ ::boolean* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE ResetAll() = 0;
     virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(/* [out, retval] */ HSTRING* returnValue) = 0;
 };

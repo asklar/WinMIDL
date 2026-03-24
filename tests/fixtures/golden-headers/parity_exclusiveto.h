@@ -21,7 +21,7 @@ __x_TestApp_Parity_IExclusiveInternal : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE InternalReset() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_DebugId(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_DebugId(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IExclusiveInternal_INTERFACE_DEFINED__

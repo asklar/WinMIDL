@@ -31,7 +31,7 @@ MIDL_INTERFACE("330cb8ff-622a-b157-a5cf-3d0e4c9f32d2")
 __x_TestApp_Parity_ProgressHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ INT32 percent, /* [in] */ HSTRING message) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ int percent, /* [in] */ HSTRING message) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_ErrorHandler;
@@ -40,7 +40,7 @@ MIDL_INTERFACE("6eab60dd-1c10-7259-8bed-163f4102f52c")
 __x_TestApp_Parity_ErrorHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ INT32 code, /* [in] */ HSTRING description, /* [in] */ boolean isFatal) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ int code, /* [in] */ HSTRING description, /* [in] */ ::boolean isFatal) = 0;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EventEmitter[] = L"TestApp.Parity.EventEmitter";

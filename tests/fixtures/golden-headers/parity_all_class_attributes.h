@@ -21,7 +21,7 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_Name(/* [in] */ HSTRING value) = 0;
     virtual HRESULT STDMETHODCALLTYPE DoWork() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_WorkCount(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_WorkCount(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IFullyAttributedClass_INTERFACE_DEFINED__

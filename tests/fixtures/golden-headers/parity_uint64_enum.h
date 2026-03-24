@@ -32,7 +32,7 @@ MIDL_INTERFACE("dcbd2329-c83e-d158-83b5-029ed0c382b6")
 __x_TestApp_Parity_IFlagChecker : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE HasFlag(/* [in] */ LargeFlags value, /* [in] */ LargeFlags flag, /* [out, retval] */ boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE HasFlag(/* [in] */ LargeFlags value, /* [in] */ LargeFlags flag, /* [out, retval] */ ::boolean* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE CombineFlags(/* [in] */ LargeFlags a, /* [in] */ LargeFlags b, /* [out, retval] */ LargeFlags* returnValue) = 0;
 };
 

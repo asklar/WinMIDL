@@ -20,9 +20,9 @@ __x_TestApp_Parity_IMultiCtorItem : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Enabled(/* [out, retval] */ boolean* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Factor(/* [out, retval] */ DOUBLE* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Enabled(/* [out, retval] */ ::boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Factor(/* [out, retval] */ double* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IMultiCtorItem_INTERFACE_DEFINED__
@@ -37,9 +37,9 @@ __x_TestApp_Parity_IMultiCtorItemFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ INT32 count, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ INT32 count, /* [in] */ boolean enabled, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ INT32 count, /* [in] */ boolean enabled, /* [in] */ DOUBLE factor, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int count, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean enabled, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean enabled, /* [in] */ double factor, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IMultiCtorItemFactory_INTERFACE_DEFINED__

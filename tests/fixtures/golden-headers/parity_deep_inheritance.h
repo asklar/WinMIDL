@@ -59,7 +59,7 @@ MIDL_INTERFACE("cf08180e-7f76-0a59-9b67-98ab69da9d03")
 __x_TestApp_Parity_ILevel1Mid : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_MidValue(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_MidValue(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_ILevel1Mid_INTERFACE_DEFINED__
@@ -87,7 +87,7 @@ MIDL_INTERFACE("697d7c8a-0cb1-1a5e-9b7f-311a409019b4")
 __x_TestApp_Parity_ILevel2Upper : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_UpperFlag(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_UpperFlag(/* [out, retval] */ ::boolean* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_ILevel2Upper_INTERFACE_DEFINED__
@@ -115,7 +115,7 @@ MIDL_INTERFACE("88d27c56-8757-bb54-b870-def2acbde853")
 __x_TestApp_Parity_ILevel3Leaf : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_LeafMetric(/* [out, retval] */ DOUBLE* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_LeafMetric(/* [out, retval] */ double* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Execute() = 0;
 };
 

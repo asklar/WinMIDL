@@ -56,10 +56,10 @@ MIDL_INTERFACE("60fac147-4fbb-3855-85f1-3b2cd0300cd1")
 __x_TestApp_Parity_IMixedDeprecation : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE GetOldValue(/* [out, retval] */ INT32* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetNewValue(/* [out, retval] */ INT32* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_OldCount(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_NewCount(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetOldValue(/* [out, retval] */ int* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetNewValue(/* [out, retval] */ int* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_OldCount(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_NewCount(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE add_LegacyChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_LegacyChanged(/* [in] */ EventRegistrationToken token) = 0;
     virtual HRESULT STDMETHODCALLTYPE add_CurrentChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;

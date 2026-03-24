@@ -18,9 +18,9 @@ MIDL_INTERFACE("5faafb35-773c-5c50-85ce-1f7046534e29")
 __x_TestApp_Parity_IMultiOutWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE GetFullDetails(/* [out] */ HSTRING* name, /* [out] */ INT32* id, /* [out] */ boolean* active, /* [out] */ DOUBLE* value, /* [out] */ FLOAT* ratio) = 0;
-    virtual HRESULT STDMETHODCALLTYPE TryParse(/* [in] */ HSTRING input, /* [out] */ HSTRING* name, /* [out] */ INT32* count, /* [out, retval] */ boolean* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Decompose(/* [out] */ INT32* x, /* [out] */ INT32* y, /* [out] */ INT32* z) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetFullDetails(/* [out] */ HSTRING* name, /* [out] */ int* id, /* [out] */ ::boolean* active, /* [out] */ double* value, /* [out] */ float* ratio) = 0;
+    virtual HRESULT STDMETHODCALLTYPE TryParse(/* [in] */ HSTRING input, /* [out] */ HSTRING* name, /* [out] */ int* count, /* [out, retval] */ ::boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Decompose(/* [out] */ int* x, /* [out] */ int* y, /* [out] */ int* z) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IMultiOutWidget_INTERFACE_DEFINED__

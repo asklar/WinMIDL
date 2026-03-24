@@ -22,7 +22,7 @@ MIDL_INTERFACE("26fce29d-fecf-9354-bc29-170c1283dcea")
 __x_TestApp_Parity_ValidationHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING input, /* [out] */ HSTRING* error, /* [out] */ boolean* isValid) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING input, /* [out] */ HSTRING* error, /* [out] */ ::boolean* isValid) = 0;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EventSourceImpl[] = L"TestApp.Parity.EventSourceImpl";

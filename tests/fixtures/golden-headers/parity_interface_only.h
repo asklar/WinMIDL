@@ -19,8 +19,8 @@ __x_TestApp_Parity_InterfaceOnly_IReader : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Read(/* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE ReadInt(/* [out, retval] */ INT32* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_CanRead(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ReadInt(/* [out, retval] */ int* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_CanRead(/* [out, retval] */ ::boolean* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_InterfaceOnly_IReader_INTERFACE_DEFINED__
@@ -35,8 +35,8 @@ __x_TestApp_Parity_InterfaceOnly_IWriter : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Write(/* [in] */ HSTRING data) = 0;
-    virtual HRESULT STDMETHODCALLTYPE WriteInt(/* [in] */ INT32 value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_CanWrite(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE WriteInt(/* [in] */ int value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_CanWrite(/* [out, retval] */ ::boolean* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_InterfaceOnly_IWriter_INTERFACE_DEFINED__
@@ -51,8 +51,8 @@ __x_TestApp_Parity_InterfaceOnly_IReaderWriter : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Flush() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Position(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_Position(/* [in] */ INT32 value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Position(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_Position(/* [in] */ int value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_InterfaceOnly_IReaderWriter_INTERFACE_DEFINED__

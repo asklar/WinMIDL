@@ -18,14 +18,14 @@ MIDL_INTERFACE("72b27f7c-8394-495b-96b7-d33e4177fe1a")
 __x_TestApp_Parity_ICalculator : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Add(/* [in] */ INT32 a, /* [in] */ INT32 b, /* [out, retval] */ INT32* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Add(/* [in] */ int a, /* [in] */ int b, /* [out, retval] */ int* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Concat(/* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ INT32 formatCode, /* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Parse(/* [in] */ HSTRING input, /* [out, retval] */ INT32* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Add(/* [in] */ DOUBLE a, /* [in] */ DOUBLE b, /* [out, retval] */ DOUBLE* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ int formatCode, /* [out, retval] */ HSTRING* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Parse(/* [in] */ HSTRING input, /* [out, retval] */ int* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Add(/* [in] */ double a, /* [in] */ double b, /* [out, retval] */ double* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Concat(/* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ HSTRING c, /* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ DOUBLE formatValue, /* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Parse(/* [in] */ HSTRING input, /* [in] */ INT32 defaultVal, /* [out, retval] */ INT32* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ double formatValue, /* [out, retval] */ HSTRING* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Parse(/* [in] */ HSTRING input, /* [in] */ int defaultVal, /* [out, retval] */ int* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_ICalculator_INTERFACE_DEFINED__

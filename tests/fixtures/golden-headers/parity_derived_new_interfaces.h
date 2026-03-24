@@ -35,7 +35,7 @@ MIDL_INTERFACE("5f574dc2-364c-d353-be75-88193de63538")
 __x_TestApp_Parity_IComparable2 : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE CompareTo(/* [in] */ IInspectable* other, /* [out, retval] */ INT32* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CompareTo(/* [in] */ IInspectable* other, /* [out, retval] */ int* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IComparable2_INTERFACE_DEFINED__
@@ -67,8 +67,8 @@ MIDL_INTERFACE("721617a0-0a39-c957-ae68-472ee10a29b6")
 __x_TestApp_Parity_IDerivedItem : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_Priority(/* [in] */ INT32 value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_Priority(/* [in] */ int value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IDerivedItem_INTERFACE_DEFINED__

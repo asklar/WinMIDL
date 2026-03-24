@@ -21,15 +21,15 @@ __x_TestApp_Parity_IVersionedMember : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE DoBasicWork() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_IsReady(/* [out, retval] */ boolean* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_Count(/* [in] */ INT32 value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IsReady(/* [out, retval] */ ::boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_Count(/* [in] */ int value) = 0;
     virtual HRESULT STDMETHODCALLTYPE DoAdvancedWork() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Efficiency(/* [out, retval] */ DOUBLE* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Efficiency(/* [out, retval] */ double* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE add_Updated(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Updated(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_IsOptimized(/* [out, retval] */ boolean* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Optimize(/* [in] */ INT32 level) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IsOptimized(/* [out, retval] */ ::boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Optimize(/* [in] */ int level) = 0;
     virtual HRESULT STDMETHODCALLTYPE Reset() = 0;
     virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(/* [out, retval] */ HSTRING* returnValue) = 0;
 };

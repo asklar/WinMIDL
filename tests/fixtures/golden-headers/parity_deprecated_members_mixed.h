@@ -20,8 +20,8 @@ __x_TestApp_Parity_IDeprecatedMembersWidget : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE CurrentMethod() = 0;
     virtual HRESULT STDMETHODCALLTYPE LegacyMethod() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_CurrentCount(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_OldCount(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_CurrentCount(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_OldCount(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE add_CurrentEvent(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_CurrentEvent(/* [in] */ EventRegistrationToken token) = 0;
     virtual HRESULT STDMETHODCALLTYPE add_OldEvent(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;

@@ -9,8 +9,8 @@ typedef interface __x_TestApp_Parity_IGeocoderService __x_TestApp_Parity_IGeocod
 
 struct Coordinate
 {
-    DOUBLE Lat;
-    DOUBLE Lon;
+    double Lat;
+    double Lon;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_GeocoderService[] = L"TestApp.Parity.GeocoderService";
@@ -28,8 +28,8 @@ public:
     virtual HRESULT STDMETHODCALLTYPE ReverseGeocode(/* [in] */ Coordinate coord, /* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE GeocodeMultiple(/* [in] */ __x_Windows_Foundation_Collections_IVector* addresses, /* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE GeocodeAsync(/* [in] */ HSTRING address, /* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE IsValidCoordinate(/* [in] */ Coordinate coord, /* [out, retval] */ boolean* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Distance(/* [in] */ Coordinate from, /* [in] */ Coordinate to, /* [out, retval] */ DOUBLE* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE IsValidCoordinate(/* [in] */ Coordinate coord, /* [out, retval] */ ::boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Distance(/* [in] */ Coordinate from, /* [in] */ Coordinate to, /* [out, retval] */ double* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IGeocoderService_INTERFACE_DEFINED__

@@ -22,7 +22,7 @@ public:
     virtual HRESULT STDMETHODCALLTYPE GetName(/* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Start() = 0;
     virtual HRESULT STDMETHODCALLTYPE Stop() = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_IsRunning(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IsRunning(/* [out, retval] */ ::boolean* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(/* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Restart() = 0;
 };

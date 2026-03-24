@@ -10,7 +10,7 @@ typedef interface __x_TestApp_Parity_IDelegateReturnWidget __x_TestApp_Parity_ID
 struct DelegateResult
 {
     HSTRING Name;
-    INT32 Code;
+    int Code;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_StringRequestHandler;
@@ -28,7 +28,7 @@ MIDL_INTERFACE("5253ea58-e76e-7150-b488-d17a658cabdb")
 __x_TestApp_Parity_IntRequestHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ INT32* result) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ int* result) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_BoolRequestHandler;
@@ -37,7 +37,7 @@ MIDL_INTERFACE("0c5fb1b6-d2dd-a55d-a723-5c1ceddb2c97")
 __x_TestApp_Parity_BoolRequestHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ boolean* result) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ ::boolean* result) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_DoubleRequestHandler;
@@ -46,7 +46,7 @@ MIDL_INTERFACE("f9928da0-1dbb-7351-968b-fbe483076775")
 __x_TestApp_Parity_DoubleRequestHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ DOUBLE* result) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ double* result) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_ResultRequestHandler;

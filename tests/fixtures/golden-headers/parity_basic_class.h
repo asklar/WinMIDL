@@ -20,21 +20,21 @@ __x_TestApp_Parity_IBasicWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetName(/* [out, retval] */ HSTRING* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetCount(/* [out, retval] */ INT32* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE IsActive(/* [out, retval] */ boolean* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetValue(/* [out, retval] */ DOUBLE* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetRatio(/* [out, retval] */ FLOAT* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetCount(/* [out, retval] */ int* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE IsActive(/* [out, retval] */ ::boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetValue(/* [out, retval] */ double* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetRatio(/* [out, retval] */ float* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Reset() = 0;
     virtual HRESULT STDMETHODCALLTYPE SetName(/* [in] */ HSTRING name) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Configure(/* [in] */ HSTRING name, /* [in] */ INT32 count, /* [in] */ boolean enabled) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Configure(/* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean enabled) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_WidgetName(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_WidgetId(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_IsEnabled(/* [out, retval] */ boolean* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_IsEnabled(/* [in] */ boolean value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Factor(/* [out, retval] */ DOUBLE* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_Factor(/* [in] */ DOUBLE value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_Priority(/* [in] */ INT32 value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_WidgetId(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IsEnabled(/* [out, retval] */ ::boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_IsEnabled(/* [in] */ ::boolean value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Factor(/* [out, retval] */ double* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_Factor(/* [in] */ double value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_Priority(/* [in] */ int value) = 0;
     virtual HRESULT STDMETHODCALLTYPE add_Changed(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Changed(/* [in] */ EventRegistrationToken token) = 0;
     virtual HRESULT STDMETHODCALLTYPE add_NameChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;

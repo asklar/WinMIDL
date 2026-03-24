@@ -47,8 +47,8 @@ public partial class HeaderEmitterTests
         var header = _emitter.Emit(compilation);
 
         Assert.Contains("struct Point", header);
-        Assert.Contains("INT32 X;", header);
-        Assert.Contains("INT32 Y;", header);
+        Assert.Contains("int X;", header);
+        Assert.Contains("int Y;", header);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public partial class HeaderEmitterTests
         Assert.Contains("__x_TestApp_IGreeter : public IInspectable", header);
         Assert.Contains("get_Name(/* [out, retval] */ HSTRING* value) = 0;", header);
         Assert.Contains("put_Name(/* [in] */ HSTRING value) = 0;", header);
-        Assert.Contains("SayHello(/* [in] */ INT32 times) = 0;", header);
+        Assert.Contains("SayHello(/* [in] */ int times) = 0;", header);
     }
 
     [Fact]
@@ -134,17 +134,17 @@ public partial class HeaderEmitterTests
 
         var header = _emitter.Emit(compilation);
 
-        Assert.Contains("INT16 a;", header);
-        Assert.Contains("INT32 b;", header);
-        Assert.Contains("INT64 c;", header);
-        Assert.Contains("BYTE d;", header);
-        Assert.Contains("UINT16 e;", header);
-        Assert.Contains("UINT32 f;", header);
-        Assert.Contains("UINT64 g;", header);
-        Assert.Contains("FLOAT h;", header);
-        Assert.Contains("DOUBLE i;", header);
-        Assert.Contains("boolean j;", header);
-        Assert.Contains("WCHAR k;", header);
+        Assert.Contains("short a;", header);
+        Assert.Contains("int b;", header);
+        Assert.Contains("__int64 c;", header);
+        Assert.Contains("::byte d;", header);
+        Assert.Contains("unsigned short e;", header);
+        Assert.Contains("unsigned int f;", header);
+        Assert.Contains("unsigned __int64 g;", header);
+        Assert.Contains("float h;", header);
+        Assert.Contains("double i;", header);
+        Assert.Contains("::boolean j;", header);
+        Assert.Contains("wchar_t k;", header);
         Assert.Contains("HSTRING l;", header);
         Assert.Contains("GUID m;", header);
     }
@@ -186,7 +186,7 @@ public partial class HeaderEmitterTests
         Assert.Contains("MIDL_INTERFACE(", header);
         Assert.Contains("__x_MyCompany_MyApp_IWidget : public IInspectable", header);
         Assert.Contains("get_Name(/* [out, retval] */ HSTRING* value) = 0;", header);
-        Assert.Contains("DoWork(/* [in] */ INT32 count) = 0;", header);
+        Assert.Contains("DoWork(/* [in] */ int count) = 0;", header);
 
         // Runtime class activation string
         Assert.Contains("RuntimeClass_MyCompany_MyApp_Widget", header);

@@ -19,8 +19,8 @@ MIDL_INTERFACE("5db12352-e1dc-9857-b37e-f252a0ecfb54")
 __x_TestApp_Parity_ISealedMultiWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_SortKey(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE MatchesFilter(/* [in] */ HSTRING filter, /* [out, retval] */ boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_SortKey(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE MatchesFilter(/* [in] */ HSTRING filter, /* [out, retval] */ ::boolean* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_DisplayText(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE ToShortString(/* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE ToDetailString(/* [out, retval] */ HSTRING* returnValue) = 0;

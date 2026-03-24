@@ -13,7 +13,7 @@ MIDL_INTERFACE("daa94288-996b-f15d-80a9-f5958eb3b15e")
 __x_TestApp_Parity_ItemAddedHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING item, /* [in] */ INT32 index) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING item, /* [in] */ int index) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_ItemRemovedHandler;
@@ -40,7 +40,7 @@ MIDL_INTERFACE("1b5f896d-6f48-d058-a4bc-616d8c8d994a")
 __x_TestApp_Parity_ItemMovedHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ INT32 oldIndex, /* [in] */ INT32 newIndex) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ int oldIndex, /* [in] */ int newIndex) = 0;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EventSourceWidget[] = L"TestApp.Parity.EventSourceWidget";
@@ -67,7 +67,7 @@ public:
     virtual HRESULT STDMETHODCALLTYPE AddItem(/* [in] */ HSTRING item) = 0;
     virtual HRESULT STDMETHODCALLTYPE RemoveItem(/* [in] */ HSTRING item) = 0;
     virtual HRESULT STDMETHODCALLTYPE Clear() = 0;
-    virtual HRESULT STDMETHODCALLTYPE MoveItem(/* [in] */ INT32 fromIndex, /* [in] */ INT32 toIndex) = 0;
+    virtual HRESULT STDMETHODCALLTYPE MoveItem(/* [in] */ int fromIndex, /* [in] */ int toIndex) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IEventSourceWidget_INTERFACE_DEFINED__

@@ -18,11 +18,11 @@ MIDL_INTERFACE("db459590-48ce-f658-b501-3dcb99d9e1cc")
 __x_TestApp_Parity_IArrayParamWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE ProcessIds(/* [in] */ INT32 ids) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ProcessIds(/* [in] */ int ids) = 0;
     virtual HRESULT STDMETHODCALLTYPE ProcessNames(/* [in] */ HSTRING names) = 0;
-    virtual HRESULT STDMETHODCALLTYPE FillValues(/* [out] */ DOUBLE* values) = 0;
-    virtual HRESULT STDMETHODCALLTYPE TransformInts(/* [in] */ INT32 data) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetIds(/* [out, retval] */ INT32* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE FillValues(/* [out] */ double* values) = 0;
+    virtual HRESULT STDMETHODCALLTYPE TransformInts(/* [in] */ int data) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetIds(/* [out, retval] */ int* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetLabels(/* [out, retval] */ HSTRING* returnValue) = 0;
 };
 

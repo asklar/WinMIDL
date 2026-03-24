@@ -13,7 +13,7 @@ MIDL_INTERFACE("35f3a95c-b0d6-2250-89ca-e0218f0b14a5")
 __x_TestApp_Parity_StatusChangedHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING status, /* [in] */ INT32 code) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING status, /* [in] */ int code) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_ErrorOccurredHandler;
@@ -22,7 +22,7 @@ MIDL_INTERFACE("9d569519-a8bd-8e5f-a9e5-ca1b5055a805")
 __x_TestApp_Parity_ErrorOccurredHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING message, /* [in] */ boolean fatal) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING message, /* [in] */ ::boolean fatal) = 0;
 };
 
 EXTERN_C const IID IID___x_TestApp_Parity_ProgressHandler;
@@ -31,7 +31,7 @@ MIDL_INTERFACE("330cb8ff-622a-b157-a5cf-3d0e4c9f32d2")
 __x_TestApp_Parity_ProgressHandler : public IUnknown
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ DOUBLE percent, /* [in] */ HSTRING description) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ double percent, /* [in] */ HSTRING description) = 0;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EventPatternWidget[] = L"TestApp.Parity.EventPatternWidget";

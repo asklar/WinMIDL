@@ -24,7 +24,7 @@ public:
     virtual HRESULT STDMETHODCALLTYPE put_Tag(/* [in] */ IInspectable* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetAll(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetProperties(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Equals(/* [in] */ IInspectable* other, /* [out, retval] */ boolean* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Equals(/* [in] */ IInspectable* other, /* [out, retval] */ ::boolean* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IObjectWidget_INTERFACE_DEFINED__

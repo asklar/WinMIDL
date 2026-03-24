@@ -30,8 +30,8 @@ __x_TestApp_Parity_IAnimal : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Age(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_Age(/* [in] */ INT32 value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Age(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_Age(/* [in] */ int value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IAnimal_INTERFACE_DEFINED__
@@ -74,7 +74,7 @@ MIDL_INTERFACE("f3d39398-8d31-b25c-96be-fc51287dd699")
 __x_TestApp_Parity_IMammal : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_IsWarmBlooded(/* [out, retval] */ boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IsWarmBlooded(/* [out, retval] */ ::boolean* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IMammal_INTERFACE_DEFINED__

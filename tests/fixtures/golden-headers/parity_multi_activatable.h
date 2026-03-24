@@ -20,7 +20,7 @@ __x_TestApp_Parity_IMultiActivatableWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IMultiActivatableWidget_INTERFACE_DEFINED__
@@ -35,8 +35,8 @@ __x_TestApp_Parity_IMultiActivatableWidgetFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MultiActivatableWidget* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ INT32 id, /* [out, retval] */ MultiActivatableWidget* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ INT32 id, /* [in] */ boolean active, /* [out, retval] */ MultiActivatableWidget* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int id, /* [out, retval] */ MultiActivatableWidget* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int id, /* [in] */ ::boolean active, /* [out, retval] */ MultiActivatableWidget* returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IMultiActivatableWidgetFactory_INTERFACE_DEFINED__

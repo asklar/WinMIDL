@@ -51,8 +51,8 @@ MIDL_INTERFACE("ce64bb93-f0ba-6958-a978-405b78147dcb")
 __x_TestApp_Parity_IOrderedNode : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_SortOrder(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_SortOrder(/* [in] */ INT32 value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_SortOrder(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_SortOrder(/* [in] */ int value) = 0;
     virtual HRESULT STDMETHODCALLTYPE MoveUp() = 0;
     virtual HRESULT STDMETHODCALLTYPE MoveDown() = 0;
 };
@@ -83,7 +83,7 @@ MIDL_INTERFACE("f138b823-678d-1b58-a902-93d1c48d5791")
 __x_TestApp_Parity_ICompositeNode : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_ChildCount(/* [out, retval] */ INT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ChildCount(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE AddChild(/* [in] */ __x_TestApp_Parity_IBaseNode* child) = 0;
     virtual HRESULT STDMETHODCALLTYPE RemoveChild(/* [in] */ HSTRING id) = 0;
 };

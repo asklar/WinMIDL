@@ -15,7 +15,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 struct MinimalStruct
 {
-    INT32 Value;
+    int Value;
 };
 
 enum MinimalEnum

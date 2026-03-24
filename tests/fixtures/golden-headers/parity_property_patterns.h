@@ -24,19 +24,19 @@ __x_TestApp_Parity_IPropertyBase : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyName(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyId(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyFlag(/* [out, retval] */ boolean* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyValue(/* [out, retval] */ DOUBLE* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyId(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyFlag(/* [out, retval] */ ::boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyValue(/* [out, retval] */ double* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_ReadWriteName(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_ReadWriteName(/* [in] */ HSTRING value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadWriteCount(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_ReadWriteCount(/* [in] */ INT32 value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadWriteEnabled(/* [out, retval] */ boolean* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_ReadWriteEnabled(/* [in] */ boolean value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadWriteFactor(/* [out, retval] */ DOUBLE* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_ReadWriteFactor(/* [in] */ DOUBLE value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadWriteRatio(/* [out, retval] */ FLOAT* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_ReadWriteRatio(/* [in] */ FLOAT value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadWriteCount(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_ReadWriteCount(/* [in] */ int value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadWriteEnabled(/* [out, retval] */ ::boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_ReadWriteEnabled(/* [in] */ ::boolean value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadWriteFactor(/* [out, retval] */ double* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_ReadWriteFactor(/* [in] */ double value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadWriteRatio(/* [out, retval] */ float* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_ReadWriteRatio(/* [in] */ float value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IPropertyBase_INTERFACE_DEFINED__
@@ -66,11 +66,11 @@ __x_TestApp_Parity_IPropertyChild : public IInspectable
 public:
     virtual HRESULT STDMETHODCALLTYPE get_ChildName(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_ChildName(/* [in] */ HSTRING value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ChildValue(/* [out, retval] */ INT32* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_ChildValue(/* [in] */ INT32 value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ChildFlag(/* [out, retval] */ boolean* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_ChildFlag(/* [in] */ boolean value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_DerivedId(/* [out, retval] */ UINT32* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ChildValue(/* [out, retval] */ int* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_ChildValue(/* [in] */ int value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ChildFlag(/* [out, retval] */ ::boolean* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_ChildFlag(/* [in] */ ::boolean value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_DerivedId(/* [out, retval] */ unsigned int* value) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IPropertyChild_INTERFACE_DEFINED__

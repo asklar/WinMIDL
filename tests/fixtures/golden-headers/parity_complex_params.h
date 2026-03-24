@@ -10,8 +10,8 @@ typedef interface __x_TestApp_Parity_IComplexParamWidget __x_TestApp_Parity_ICom
 struct ComplexParam
 {
     HSTRING Name;
-    INT32 Id;
-    boolean Active;
+    int Id;
+    ::boolean Active;
 };
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComplexParamWidget[] = L"TestApp.Parity.ComplexParamWidget";
@@ -25,9 +25,9 @@ MIDL_INTERFACE("44340e51-7c1a-0b5d-bd47-4321f0a07f10")
 __x_TestApp_Parity_IComplexParamWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE ProcessAll(/* [in] */ HSTRING name, /* [in] */ INT32 count, /* [in] */ boolean flag, /* [in] */ DOUBLE value, /* [in] */ ComplexParam param) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ProcessAll(/* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean flag, /* [in] */ double value, /* [in] */ ComplexParam param) = 0;
     virtual HRESULT STDMETHODCALLTYPE AcceptCollections(/* [in] */ __x_Windows_Foundation_Collections_IVector* names, /* [in] */ __x_Windows_Foundation_Collections_IMap* counts) = 0;
-    virtual HRESULT STDMETHODCALLTYPE MixedParams(/* [in] */ HSTRING name, /* [out] */ INT32* result, /* [out] */ boolean* success) = 0;
+    virtual HRESULT STDMETHODCALLTYPE MixedParams(/* [in] */ HSTRING name, /* [out] */ int* result, /* [out] */ ::boolean* success) = 0;
 };
 
 #endif // ____x_TestApp_Parity_IComplexParamWidget_INTERFACE_DEFINED__

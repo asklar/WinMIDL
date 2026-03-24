@@ -6,21 +6,21 @@
 
 struct SimpleRect
 {
-    FLOAT X;
-    FLOAT Y;
-    FLOAT Width;
-    FLOAT Height;
+    float X;
+    float Y;
+    float Width;
+    float Height;
 };
 
 struct MixedFields
 {
     HSTRING Name;
-    INT32 Id;
-    UINT32 Flags;
-    DOUBLE Value;
-    boolean IsActive;
-    INT64 Timestamp;
-    BYTE Priority;
+    int Id;
+    unsigned int Flags;
+    double Value;
+    ::boolean IsActive;
+    __int64 Timestamp;
+    ::byte Priority;
     GUID Token;
 };
 
