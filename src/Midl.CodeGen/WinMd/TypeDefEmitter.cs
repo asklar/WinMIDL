@@ -449,7 +449,13 @@ internal class TypeDefEmitter
                 p =>
                 {
                     foreach (var param in symbol.Parameters)
-                        p.AddParameter().Type().FromTypeRef(param.Type, _emitter);
+                    {
+                        var paramEnc = p.AddParameter();
+                        if (param.Direction is ParameterDirection.Out or ParameterDirection.RefConst)
+                            paramEnc.Type(isByRef: true).FromTypeRef(param.Type, _emitter);
+                        else
+                            paramEnc.Type().FromTypeRef(param.Type, _emitter);
+                    }
                 });
 
         var paramList = _emitter.NextParamHandle;
@@ -465,7 +471,7 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < symbol.Parameters.Count; i++)
         {
-            M.AddParameter(ParameterAttributes.In,
+            M.AddParameter(GetParamAttributes(symbol.Parameters[i]),
                 M.GetOrAddString(symbol.Parameters[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
@@ -725,7 +731,7 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < winmdParamCount; i++)
         {
-            M.AddParameter(ParameterAttributes.In,
+            M.AddParameter(GetParamAttributes(ctorParams[i]),
                 M.GetOrAddString(ctorParams[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
@@ -769,7 +775,7 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < method.Parameters.Count; i++)
         {
-            M.AddParameter(ParameterAttributes.In,
+            M.AddParameter(GetParamAttributes(method.Parameters[i]),
                 M.GetOrAddString(method.Parameters[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
@@ -953,6 +959,9 @@ internal class TypeDefEmitter
 
     #region Method Emission Helpers
 
+    private static ParameterAttributes GetParamAttributes(ParameterSymbol param) =>
+        param.Direction == ParameterDirection.Out ? ParameterAttributes.Out : ParameterAttributes.In;
+
     private MethodDefinitionHandle EmitInterfaceMethod(MethodSymbol method)
     {
         var sig = EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: false);
@@ -978,7 +987,7 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < method.Parameters.Count; i++)
         {
-            M.AddParameter(ParameterAttributes.In,
+            M.AddParameter(GetParamAttributes(method.Parameters[i]),
                 M.GetOrAddString(method.Parameters[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
@@ -1208,7 +1217,13 @@ internal class TypeDefEmitter
                 p =>
                 {
                     foreach (var param in winmdParams)
-                        p.AddParameter().Type().FromTypeRef(param.Type, _emitter);
+                    {
+                        var paramEnc = p.AddParameter();
+                        if (param.Direction is ParameterDirection.Out or ParameterDirection.RefConst)
+                            paramEnc.Type(isByRef: true).FromTypeRef(param.Type, _emitter);
+                        else
+                            paramEnc.Type().FromTypeRef(param.Type, _emitter);
+                    }
                 });
         return blob;
     }

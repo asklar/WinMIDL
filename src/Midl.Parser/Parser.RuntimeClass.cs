@@ -305,7 +305,7 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.ParameterList, children);
     }
 
-    /// <summary>Parse a single parameter: [attrs] [out/ref] Type name</summary>
+    /// <summary>Parse a single parameter: [attrs] [out/ref/ref const] Type name</summary>
     private GreenNode ParseParameter()
     {
         var children = RentChildren();
@@ -316,10 +316,19 @@ public sealed partial class Parser
             children.Add(ParseAttributeList());
         }
 
-        // Optional out/ref
-        if (AtAny(SyntaxKind.OutKeyword, SyntaxKind.RefKeyword))
+        // Optional out/ref/ref const
+        if (At(SyntaxKind.OutKeyword))
         {
             children.Add(EatToken());
+        }
+        else if (At(SyntaxKind.RefKeyword))
+        {
+            children.Add(EatToken());
+            // ref const Type name
+            if (At(SyntaxKind.ConstKeyword))
+            {
+                children.Add(EatToken());
+            }
         }
 
         children.Add(ParseTypeReference());

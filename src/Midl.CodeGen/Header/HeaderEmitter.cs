@@ -226,12 +226,13 @@ public class HeaderEmitter
         var paramParts = new List<string>();
         foreach (var p in method.Parameters)
         {
-            var dir = p.Direction == ParameterDirection.Out ? "out" : "in";
             var cType = MapType(p.Type);
             if (p.Direction == ParameterDirection.Out)
-                paramParts.Add($"/* [{dir}] */ {cType}* {p.Name}");
+                paramParts.Add($"/* [out] */ {cType}* {p.Name}");
+            else if (p.Direction == ParameterDirection.RefConst)
+                paramParts.Add($"/* [in] */ {cType}* {p.Name}");
             else
-                paramParts.Add($"/* [{dir}] */ {cType} {p.Name}");
+                paramParts.Add($"/* [in] */ {cType} {p.Name}");
         }
 
         // If non-void return, add retval out param
@@ -289,12 +290,13 @@ public class HeaderEmitter
         var parts = new List<string>();
         foreach (var p in parameters)
         {
-            var dir = p.Direction == ParameterDirection.Out ? "out" : "in";
             var cType = MapType(p.Type);
             if (p.Direction == ParameterDirection.Out)
-                parts.Add($"/* [{dir}] */ {cType}* {p.Name}");
+                parts.Add($"/* [out] */ {cType}* {p.Name}");
+            else if (p.Direction == ParameterDirection.RefConst)
+                parts.Add($"/* [in] */ {cType}* {p.Name}");
             else
-                parts.Add($"/* [{dir}] */ {cType} {p.Name}");
+                parts.Add($"/* [in] */ {cType} {p.Name}");
         }
         return string.Join(", ", parts);
     }

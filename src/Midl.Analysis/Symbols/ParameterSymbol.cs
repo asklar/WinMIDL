@@ -1,6 +1,6 @@
 namespace Midl.Analysis.Symbols;
 
-public enum ParameterDirection { In, Out, Ref }
+public enum ParameterDirection { In, Out, Ref, RefConst }
 
 public class ParameterSymbol : ISymbol
 {

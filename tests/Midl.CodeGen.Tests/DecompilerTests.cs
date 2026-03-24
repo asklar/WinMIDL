@@ -782,4 +782,150 @@ public partial class DecompilerTests
     }
 
     #endregion
+
+    #region Parameter Direction Tests
+
+    [Fact]
+    public void DecompileRefConstParam()
+    {
+        var source = """
+            namespace Test
+            {
+                struct Point { Single X; Single Y; }
+                runtimeclass Calculator
+                {
+                    static Double Area(ref const Point p);
+                }
+            }
+            """;
+
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("ref const Point p", idl);
+    }
+
+    [Fact]
+    public void DecompileRefConstGuid()
+    {
+        var source = """
+            namespace Test
+            {
+                runtimeclass GuidHelper
+                {
+                    static Boolean Equals(ref const Guid a, ref const Guid b);
+                }
+            }
+            """;
+
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("ref const Guid a", idl);
+        Assert.Contains("ref const Guid b", idl);
+    }
+
+    [Fact]
+    public void DecompileOutParam()
+    {
+        var source = """
+            namespace Test
+            {
+                runtimeclass Parser
+                {
+                    static Boolean TryParse(String input, out Int32 parsed);
+                }
+            }
+            """;
+
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("out Int32 parsed", idl);
+    }
+
+    [Fact]
+    public void RoundTripRefConst()
+    {
+        var originalIdl = """
+            namespace Test
+            {
+                struct Point { Single X; Single Y; }
+                runtimeclass Calculator
+                {
+                    static Double Area(ref const Point p);
+                }
+            }
+            """;
+
+        var bytes = CompileAndEmit(originalIdl);
+        var decompiler = new WinMdDecompiler();
+        var decompiledIdl = decompiler.Decompile(bytes);
+
+        // Verify ref const survives the compile → decompile cycle
+        Assert.Contains("ref const Point p", decompiledIdl);
+
+        // Verify the decompiled IDL contains valid MIDL3 structure
+        Assert.Contains("namespace Test", decompiledIdl);
+        Assert.Contains("runtimeclass Calculator", decompiledIdl);
+    }
+
+    [Fact]
+    public void RoundTripOutParam()
+    {
+        var originalIdl = """
+            namespace Test
+            {
+                runtimeclass Parser
+                {
+                    static Boolean TryParse(String input, out Int32 parsed);
+                }
+            }
+            """;
+
+        var bytes = CompileAndEmit(originalIdl);
+        var decompiler = new WinMdDecompiler();
+        var decompiledIdl = decompiler.Decompile(bytes);
+
+        // Verify out survives the compile → decompile cycle
+        Assert.Contains("out Int32 parsed", decompiledIdl);
+
+        Assert.Contains("namespace Test", decompiledIdl);
+        Assert.Contains("runtimeclass Parser", decompiledIdl);
+    }
+
+    #endregion
+
+    #region Static Attribute Suppression
+
+    [Fact]
+    public void Decompile_StaticMethods_NoStaticAttribute()
+    {
+        var source = """
+            namespace Test
+            {
+                runtimeclass Helper
+                {
+                    static Int32 GetCount();
+                    static void Reset();
+                }
+            }
+            """;
+
+        var bytes = CompileAndEmit(source);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        // Methods should have 'static' keyword
+        Assert.Contains("static Int32 GetCount()", idl);
+        Assert.Contains("static void Reset()", idl);
+
+        // [static(IHelperStatics, ...)] attribute should NOT appear
+        Assert.DoesNotMatch(@"\[static\(", idl);
+    }
+
+    #endregion
 }

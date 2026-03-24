@@ -18,19 +18,23 @@ public class WinMdDecompiler
     public string Decompile(string winmdPath, string? namespaceFilter = null)
     {
         var bytes = File.ReadAllBytes(winmdPath);
-        return Decompile(bytes, namespaceFilter);
+        return Decompile(bytes, namespaceFilter, winmdPath);
     }
 
-    public string Decompile(byte[] winmdBytes, string? namespaceFilter = null)
+    public string Decompile(byte[] winmdBytes, string? namespaceFilter = null, string? sourcePath = null)
     {
         using var peReader = new PEReader(new MemoryStream(winmdBytes));
         var reader = peReader.GetMetadataReader();
-        return DecompileFromReader(reader, namespaceFilter);
+        return DecompileFromReader(reader, namespaceFilter, sourcePath);
     }
 
-    private string DecompileFromReader(MetadataReader reader, string? namespaceFilter = null)
+    private string DecompileFromReader(MetadataReader reader, string? namespaceFilter = null, string? sourcePath = null)
     {
         var sb = new StringBuilder();
+        if (sourcePath != null)
+            sb.AppendLine($"// Decompiled from {sourcePath}");
+        else
+            sb.AppendLine("// Decompiled from WinMD");
         var typesByNamespace = new Dictionary<string, List<TypeDefinitionHandle>>();
 
         foreach (var handle in reader.TypeDefinitions)
@@ -1003,7 +1007,7 @@ public class WinMdDecompiler
                     EmitActivatableAttribute(reader, attr, sb, indent);
                     break;
                 case "StaticAttribute":
-                    EmitStaticAttribute(reader, attr, sb, indent);
+                    // Suppressed — static methods already carry the 'static' keyword
                     break;
                 case "DeprecatedAttribute":
                     EmitDeprecatedAttribute(reader, attr, sb, indent);
@@ -1560,14 +1564,14 @@ public class WinMdDecompiler
         
         // Safely collect parameters — some methods may have no parameter rows
         var paramHandles = method.GetParameters();
-        var parameters = new List<(int Seq, string Name)>();
+        var parameters = new List<(int Seq, string Name, ParameterAttributes Attrs)>();
         foreach (var ph in paramHandles)
         {
             try
             {
                 var p = reader.GetParameter(ph);
                 if (p.SequenceNumber > 0) // Skip return value (sequence 0)
-                    parameters.Add((p.SequenceNumber, reader.GetString(p.Name)));
+                    parameters.Add((p.SequenceNumber, reader.GetString(p.Name), p.Attributes));
             }
             catch
             {
@@ -1577,10 +1581,23 @@ public class WinMdDecompiler
 
         for (int i = 0; i < sig.ParameterTypes.Length; i++)
         {
-            var typeName = MapToMidlType(sig.ParameterTypes[i]);
+            var rawType = sig.ParameterTypes[i];
+            bool isByRef = rawType.EndsWith('&');
+            var typeName = MapToMidlType(isByRef ? rawType[..^1] : rawType);
             var match = parameters.FirstOrDefault(p => p.Seq == i + 1);
             var paramName = match.Name ?? $"param{i + 1}";
-            parts.Add($"{typeName} {paramName}");
+
+            // Determine MIDL3 modifier from byref + parameter attributes
+            string prefix = "";
+            if (isByRef)
+            {
+                if ((match.Attrs & ParameterAttributes.Out) != 0)
+                    prefix = "out ";
+                else
+                    prefix = "ref const ";
+            }
+
+            parts.Add($"{prefix}{typeName} {paramName}");
         }
 
         return string.Join(", ", parts);
@@ -1659,7 +1676,7 @@ public class WinMdDecompiler
         public string GetArrayType(string elementType, ArrayShape shape) => $"{elementType}[]";
         public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
             => $"{genericType}<{string.Join(", ", typeArguments)}>";
-        public string GetByReferenceType(string elementType) => elementType;
+        public string GetByReferenceType(string elementType) => elementType + "&";
         public string GetPointerType(string elementType) => elementType;
         public string GetPinnedType(string elementType) => elementType;
         public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired) => unmodifiedType;

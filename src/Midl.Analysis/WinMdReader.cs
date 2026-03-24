@@ -396,9 +396,16 @@ public class WinMdReader
                 ? sig.ParameterTypes[param.SequenceNumber - 1]
                 : "Object";
 
+            // Detect byref parameters from signature (trailing '&')
+            bool isByRef = paramType.EndsWith('&');
+            if (isByRef)
+                paramType = paramType[..^1];
+
             var direction = ParameterDirection.In;
             if ((param.Attributes & ParameterAttributes.Out) != 0)
                 direction = ParameterDirection.Out;
+            else if (isByRef)
+                direction = ParameterDirection.RefConst;
 
             symbol.Parameters.Add(new ParameterSymbol(paramName, symbol)
             {
@@ -941,7 +948,7 @@ public class WinMdReader
         public string GetArrayType(string elementType, ArrayShape shape) => $"{elementType}[]";
         public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
             => $"{genericType}<{string.Join(", ", typeArguments)}>";
-        public string GetByReferenceType(string elementType) => elementType;
+        public string GetByReferenceType(string elementType) => elementType + "&";
         public string GetPointerType(string elementType) => elementType;
         public string GetPinnedType(string elementType) => elementType;
         public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired) => unmodifiedType;

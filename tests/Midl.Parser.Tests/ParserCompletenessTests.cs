@@ -322,7 +322,6 @@ public class ParserCompletenessTests
     public void ParseRefConstParam()
     {
         // runtimeclass C { Double Calc(ref const Windows.Foundation.Rect value); }
-        // 'ref' is captured; 'const' is not a recognized parameter modifier
         var tokens = new TokenBuilder()
             .Keyword(SyntaxKind.RuntimeclassKeyword)
             .Identifier("C")
@@ -350,9 +349,11 @@ public class ParserCompletenessTests
         var rc = FindChild(tree, SyntaxKind.RuntimeClassDeclaration);
         Assert.NotNull(rc);
 
-        // Verify ref keyword is captured somewhere in the tree
+        // Verify both ref and const keywords are captured in the tree
         var refToken = FindChildRecursive(tree, SyntaxKind.RefKeyword);
         Assert.NotNull(refToken);
+        var constToken = FindChildRecursive(tree, SyntaxKind.ConstKeyword);
+        Assert.NotNull(constToken);
     }
 
     // --- Test 10: ParseArrayParam ---

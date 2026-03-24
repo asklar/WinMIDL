@@ -1514,7 +1514,7 @@ public class Binder
 
     private ParameterSymbol BindParameter(GreenNode node, ISymbol containingSymbol, NamespaceSymbol ns)
     {
-        // Slots: [AttributeList...], [OutKeyword|RefKeyword], TypeReference, IdentifierToken
+        // Slots: [AttributeList...], [OutKeyword|RefKeyword [ConstKeyword]], TypeReference, IdentifierToken
         var direction = ParameterDirection.In;
         GreenNode? typeNode = null;
         GreenNode? paramAttrList = null;
@@ -1535,6 +1535,11 @@ public class Binder
                         break;
                     case SyntaxKind.RefKeyword:
                         direction = ParameterDirection.Ref;
+                        break;
+                    case SyntaxKind.ConstKeyword:
+                        // ref const — upgrade Ref to RefConst
+                        if (direction == ParameterDirection.Ref)
+                            direction = ParameterDirection.RefConst;
                         break;
                     case SyntaxKind.IdentifierToken:
                     case var k when IsTypeKeywordOrNameable(k):
@@ -1581,9 +1586,15 @@ public class Binder
         }
 
         // MIDL1013: Reserved parameter names
-        if (name is "result" or "operation" or "value")
+        // 'result' and 'operation' are reserved in methods; 'value' is reserved in constructors
+        bool isConstructor = containingSymbol is ConstructorSymbol;
+        if (!isConstructor && name is "result" or "operation")
         {
-            _diagnostics.Add(DiagnosticDescriptors.ReservedParameterName(name, _posMap.GetPositionOf(name)));
+            _diagnostics.Add(DiagnosticDescriptors.ReservedMethodParameterName(name, _posMap.GetPositionOf(name)));
+        }
+        else if (isConstructor && name is "value")
+        {
+            _diagnostics.Add(DiagnosticDescriptors.ReservedConstructorParameterName(name, _posMap.GetPositionOf(name)));
         }
 
         return param;
@@ -2928,7 +2939,7 @@ public class Binder
     private static bool IsAllowedStructFieldType(TypeRef typeRef) { if (AllowedStructFieldBuiltIns.Contains(typeRef.Name)) return true; if (typeRef.Name == "IReference" && typeRef.TypeArguments.Count > 0) return true; if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol) return true; return false; }
     private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; string methodName = ""; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; methodName = m.Name; } else if (member is ConstructorSymbol c) { p = c.Parameters; methodName = c.Name; } if (p != null) { foreach (var param in p) ValidateParameter(param); ValidateDuplicateParameterNames(p, methodName); } if (_mode == CompilationMode.Strict && rt != null) CheckWinRtTypeCompatibility(rt); } }
     private void ValidateMethodParametersForDelegate(DelegateSymbol d) { foreach (var param in d.Parameters) ValidateParameter(param); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(d.ReturnType); }
-    private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, GetSymbolPosition(param))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, GetSymbolPosition(param))); } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
+    private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref && !param.IsArray) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, GetSymbolPosition(param))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, GetSymbolPosition(param))); } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
     private static readonly HashSet<string> COnlyTypes = new(StringComparer.Ordinal) { "wchar_t","handle_t","error_status_t" };
     private void CheckWinRtTypeCompatibility(TypeRef typeRef) { if (typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return; if (COnlyTypes.Contains(typeRef.Name)) _diagnostics.Add(DiagnosticDescriptors.WinRtTypeNotAllowed(typeRef.Name, typeRef.Position)); }
     private void ValidateDelegateReturnType(DelegateSymbol d) { /* WinRT delegates can return any type */ }

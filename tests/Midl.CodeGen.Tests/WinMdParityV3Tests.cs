@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -557,6 +558,230 @@ public class WinMdParityV3Tests
             return new Guid((int)a, (short)b, (short)c, d, e, f, g, h, i, j, k);
         }
         return null;
+    }
+
+    #endregion
+
+    #region Parameter Direction (ref const / out) — ByRef signatures and ParameterAttributes
+
+    private const string RefConstSource = """
+        namespace TestApp.Parity
+        {
+            struct Point { Single X; Single Y; }
+            runtimeclass Calculator
+            {
+                static Double Area(ref const Point p);
+            }
+        }
+        """;
+
+    private const string OutParamSource = """
+        namespace TestApp.Parity
+        {
+            runtimeclass Parser
+            {
+                static Boolean TryParse(String input, out Int32 parsed);
+            }
+        }
+        """;
+
+    private const string RefConstGuidSource = """
+        namespace TestApp.Parity
+        {
+            runtimeclass GuidHelper
+            {
+                static Boolean Equals(ref const Guid target, ref const Guid other);
+            }
+        }
+        """;
+
+    [Fact]
+    public void RefConst_EmitsParameterAttributeIn()
+    {
+        var bytes = CompileAndEmit(RefConstSource);
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            // Find the synthesized interface that contains Area
+            var ifaceHandle = FindTypeDef(reader, "ICalculatorStatics");
+            var methodHandle = FindMethod(reader, ifaceHandle, "Area");
+            var method = reader.GetMethodDefinition(methodHandle);
+            var parameters = method.GetParameters()
+                .Select(p => reader.GetParameter(p))
+                .Where(p => p.SequenceNumber > 0)
+                .ToList();
+
+            Assert.Single(parameters);
+            Assert.Equal("p", reader.GetString(parameters[0].Name));
+            Assert.True(parameters[0].Attributes.HasFlag(ParameterAttributes.In));
+            Assert.False(parameters[0].Attributes.HasFlag(ParameterAttributes.Out));
+        }
+    }
+
+    [Fact]
+    public void RefConst_EmitsByRefSignature()
+    {
+        var bytes = CompileAndEmit(RefConstSource);
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "ICalculatorStatics");
+            var methodHandle = FindMethod(reader, ifaceHandle, "Area");
+            var method = reader.GetMethodDefinition(methodHandle);
+
+            // Decode the signature — ByRef types should be marked with '&'
+            var sig = method.DecodeSignature(new TestSignatureProvider(reader), null);
+            Assert.Single(sig.ParameterTypes);
+            // The raw decoded type should show ByRef marker
+            Assert.True(sig.ParameterTypes[0].EndsWith("&"), "Parameter should be ByRef (end with '&')");
+        }
+    }
+
+    [Fact]
+    public void OutParam_EmitsParameterAttributeOut()
+    {
+        var bytes = CompileAndEmit(OutParamSource);
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IParserStatics");
+            var methodHandle = FindMethod(reader, ifaceHandle, "TryParse");
+            var method = reader.GetMethodDefinition(methodHandle);
+            var parameters = method.GetParameters()
+                .Select(p => reader.GetParameter(p))
+                .Where(p => p.SequenceNumber > 0)
+                .ToList();
+
+            // First param: input (In), second param: value (Out)
+            Assert.Equal(2, parameters.Count);
+            Assert.Equal("input", reader.GetString(parameters[0].Name));
+            Assert.True(parameters[0].Attributes.HasFlag(ParameterAttributes.In));
+
+            Assert.Equal("parsed", reader.GetString(parameters[1].Name));
+            Assert.True(parameters[1].Attributes.HasFlag(ParameterAttributes.Out));
+        }
+    }
+
+    [Fact]
+    public void OutParam_EmitsByRefSignature()
+    {
+        var bytes = CompileAndEmit(OutParamSource);
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IParserStatics");
+            var methodHandle = FindMethod(reader, ifaceHandle, "TryParse");
+            var method = reader.GetMethodDefinition(methodHandle);
+
+            var sig = method.DecodeSignature(new TestSignatureProvider(reader), null);
+            Assert.Equal(2, sig.ParameterTypes.Length);
+            // First param: not ByRef (plain String)
+            Assert.False(sig.ParameterTypes[0].EndsWith("&"));
+            // Second param: ByRef (out Int32)
+            Assert.True(sig.ParameterTypes[1].EndsWith("&"), "out param should be ByRef (end with '&')");
+        }
+    }
+
+    [Fact]
+    public void RefConstGuid_EmitsCorrectMetadata()
+    {
+        var bytes = CompileAndEmit(RefConstGuidSource);
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IGuidHelperStatics");
+            var methodHandle = FindMethod(reader, ifaceHandle, "Equals");
+            var method = reader.GetMethodDefinition(methodHandle);
+
+            // Both params should be In + ByRef
+            var parameters = method.GetParameters()
+                .Select(p => reader.GetParameter(p))
+                .Where(p => p.SequenceNumber > 0)
+                .ToList();
+            Assert.Equal(2, parameters.Count);
+            foreach (var param in parameters)
+            {
+                Assert.True(param.Attributes.HasFlag(ParameterAttributes.In));
+                Assert.False(param.Attributes.HasFlag(ParameterAttributes.Out));
+            }
+
+            var sig = method.DecodeSignature(new TestSignatureProvider(reader), null);
+            Assert.Equal(2, sig.ParameterTypes.Length);
+            foreach (var pt in sig.ParameterTypes)
+                Assert.True(pt.EndsWith("&"), $"ref const param type '{pt}' should be ByRef (end with '&')");
+        }
+    }
+
+    [Fact]
+    public void RefConstGuid_GroundTruthDump()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"test_refconst_{Guid.NewGuid():N}.winmd");
+        try
+        {
+            var bytes = CompileAndEmit(RefConstGuidSource);
+            File.WriteAllBytes(tempPath, bytes);
+
+            var dumperPath = Path.GetFullPath(Path.Combine(
+                AppContext.BaseDirectory, "..", "..", "..", "..", "..", "tools", "winmd-dump", "winmd-dump.exe"));
+
+            if (!File.Exists(dumperPath))
+                return; // Skip if dumper not available
+
+            var psi = new System.Diagnostics.ProcessStartInfo(dumperPath, tempPath)
+            {
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+            };
+            var proc = System.Diagnostics.Process.Start(psi)!;
+            var output = proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit();
+
+            // Ground truth: params should be ByRef (&) with [In]
+            Assert.Contains("Guid&", output);
+            Assert.Contains("[In]", output);
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+                File.Delete(tempPath);
+        }
+    }
+
+    /// <summary>
+    /// Simple signature provider that preserves ByRef markers for test assertions.
+    /// </summary>
+    private sealed class TestSignatureProvider : ISignatureTypeProvider<string, object?>
+    {
+        private readonly MetadataReader _reader;
+        public TestSignatureProvider(MetadataReader reader) => _reader = reader;
+
+        public string GetPrimitiveType(PrimitiveTypeCode typeCode) => typeCode.ToString();
+        public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
+        {
+            var td = reader.GetTypeDefinition(handle);
+            return reader.GetString(td.Name);
+        }
+        public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
+        {
+            var tr = reader.GetTypeReference(handle);
+            return reader.GetString(tr.Name);
+        }
+        public string GetSZArrayType(string elementType) => $"{elementType}[]";
+        public string GetArrayType(string elementType, ArrayShape shape) => $"{elementType}[]";
+        public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
+            => $"{genericType}<{string.Join(", ", typeArguments)}>";
+        public string GetByReferenceType(string elementType) => elementType + "&";
+        public string GetPointerType(string elementType) => elementType + "*";
+        public string GetPinnedType(string elementType) => elementType;
+        public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired) => unmodifiedType;
+        public string GetFunctionPointerType(MethodSignature<string> signature) => "fnptr";
+        public string GetGenericMethodParameter(object? genericContext, int index) => $"!!{index}";
+        public string GetGenericTypeParameter(object? genericContext, int index) => $"!{index}";
+        public string GetTypeFromSpecification(MetadataReader reader, object? genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
+        {
+            var spec = reader.GetTypeSpecification(handle);
+            return spec.DecodeSignature(this, genericContext);
+        }
     }
 
     #endregion

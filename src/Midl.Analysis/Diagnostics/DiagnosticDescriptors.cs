@@ -62,9 +62,14 @@ public static class DiagnosticDescriptors
             $"Property '{name}' cannot be write-only — WinRT does not support write-only properties",
             position, name.Length);
 
-    public static Diagnostic ReservedParameterName(string name, int position) =>
+    public static Diagnostic ReservedMethodParameterName(string name, int position) =>
         new(DiagnosticSeverity.Warning, "MIDL1013",
-            $"Reserved parameter name '{name}' — use [return_name(\"alt\")] to override",
+            $"Parameter name '{name}' is reserved in methods — use [return_name(\"alt\")] to override",
+            position, name.Length);
+
+    public static Diagnostic ReservedConstructorParameterName(string name, int position) =>
+        new(DiagnosticSeverity.Warning, "MIDL1013",
+            $"Parameter name '{name}' is reserved in constructors",
             position, name.Length);
 
     // Strict mode diagnostics (MIDL2xxx — "2" for "MIDL2/classic constructs not allowed")
