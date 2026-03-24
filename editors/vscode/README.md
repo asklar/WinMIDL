@@ -30,6 +30,44 @@ Includes WinRT primitives, collection/async types, external `.winmd` types, and 
 
 ![Code quality rules with lightbulb hints and quick fixers](images/code-quality.svg)
 
+### Async Naming Convention
+
+Methods returning `IAsyncOperation` or `IAsyncAction` should follow the `Async` suffix convention. WinMIDL detects violations and offers one-click renames.
+
+![Async naming convention enforcement with quick fix suggestions](images/async-naming.svg)
+
+---
+
+## 🔗 Navigation
+
+### Go to Definition — F12 into Decompiled WinMD
+
+**F12** on any Windows SDK type jumps to a decompiled IDL view straight from the `.winmd` — no source code needed.
+
+![F12 on Windows.Foundation.Uri showing decompiled IDL from the WinMD](images/goto-definition.svg)
+
+### F2 Rename Symbol
+
+Rename a symbol and all its references in one shot. Works across interface declarations, `requires` clauses, and return types.
+
+![F2 rename widget renaming Foo to IFoo across all references](images/rename.svg)
+
+---
+
+## 🌐 Windows SDK Integration
+
+### Namespace Drill-In
+
+Type a dot after any Windows namespace and IntelliSense walks you through the hierarchy — `Windows.` → `UI.` → `Composition`, `Core`, `Xaml`…
+
+![SDK namespace drill-in autocomplete showing Windows.UI sub-namespaces](images/sdk-autocomplete.svg)
+
+### Microsoft Learn Integration
+
+Hover any Windows SDK type to see its documentation inline, with a direct link to Microsoft Learn. The side panel shows full API docs without leaving VS Code.
+
+![Hover tooltip and Microsoft Learn side panel for IVector](images/learn-panel.svg)
+
 ---
 
 ## 💻 CLI Experience
@@ -169,9 +207,9 @@ The extension activates automatically when you open any `.idl` file. All feature
 ## Known Limitations
 
 - **Single-file analysis** — The language server analyzes each file independently; cross-file imports are not yet resolved in the LSP
-- **Go to Definition** — Works within the current file only; external `.winmd` types cannot be navigated to
+- **Go to Definition** — Works within the current file and for external `.winmd` types (decompiled view)
 - **Full document sync** — The entire document is re-sent and reparsed on every keystroke (incremental text sync planned)
-- **No rename/refactoring** — Symbol rename and code actions are not yet implemented
+- **No refactoring** — Code actions are available but full refactoring support is still growing
 - **No code folding from LSP** — Folding relies on the regex-based language configuration, not semantic ranges
 - **External type completions** — `.winmd` files are only discovered in the same directory as the open file
 
