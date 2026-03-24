@@ -1,127 +1,96 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="700" height="340" viewBox="0 0 700 340">
-  <defs>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code&amp;display=swap');
-      text { font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace; }
-    </style>
-  </defs>
-
-  <!-- Window chrome -->
-  <rect width="700" height="340" fill="#1e1e1e"/>
-  <rect width="700" height="35" fill="#323233"/>
-
-  <!-- Windows title bar controls -->
-  <line x1="579" y1="17" x2="591" y2="17" stroke="#cccccc" stroke-width="1"/>
-  <rect x="625" y="11" width="12" height="12" fill="none" stroke="#cccccc" stroke-width="1"/>
-  <line x1="671" y1="11" x2="683" y2="23" stroke="#cccccc" stroke-width="1"/>
-  <line x1="683" y1="11" x2="671" y2="23" stroke="#cccccc" stroke-width="1"/>
-
-  <!-- Active tab -->
-  <rect x="0" y="4" width="160" height="31" fill="#1e1e1e"/>
-  <text x="18" y="24" fill="#d4d4d4" font-size="12">📄 Player.idl</text>
-
-  <!-- Line number gutter -->
-  <rect x="0" y="35" width="44" height="305" fill="#1e1e1e"/>
-
-  <!-- Line numbers -->
-  <text x="30" y="62" fill="#858585" font-size="13" text-anchor="end">1</text>
-  <text x="30" y="82" fill="#858585" font-size="13" text-anchor="end">2</text>
-  <text x="30" y="102" fill="#858585" font-size="13" text-anchor="end">3</text>
-  <text x="30" y="122" fill="#858585" font-size="13" text-anchor="end">4</text>
-  <text x="30" y="142" fill="#858585" font-size="13" text-anchor="end">5</text>
-  <text x="30" y="162" fill="#858585" font-size="13" text-anchor="end">6</text>
-  <text x="30" y="182" fill="#858585" font-size="13" text-anchor="end">7</text>
-  <text x="30" y="202" fill="#858585" font-size="13" text-anchor="end">8</text>
-  <text x="30" y="222" fill="#858585" font-size="13" text-anchor="end">9</text>
-  <text x="30" y="242" fill="#858585" font-size="13" text-anchor="end">10</text>
-  <text x="30" y="262" fill="#858585" font-size="13" text-anchor="end">11</text>
-  <text x="30" y="282" fill="#858585" font-size="13" text-anchor="end">12</text>
-
-  <!-- Line 1: enum -->
-  <text x="52" y="62" fill="#569cd6" font-size="13">enum</text>
-  <text x="88" y="62" fill="#4ec9b0" font-size="13">PlayState</text>
-  <text x="165" y="62" fill="#d4d4d4" font-size="13">{</text>
-
-  <!-- Definition highlight box -->
-  <rect x="86" y="49" width="76" height="18" rx="2" fill="#264f78" opacity="0.6"/>
-
-  <!-- Line 2: enum members -->
-  <text x="72" y="82" fill="#b5cea8" font-size="13">Stopped</text>
-  <text x="132" y="82" fill="#d4d4d4" font-size="13">,</text>
-  <text x="146" y="82" fill="#b5cea8" font-size="13">Playing</text>
-  <text x="204" y="82" fill="#d4d4d4" font-size="13">,</text>
-  <text x="218" y="82" fill="#b5cea8" font-size="13">Paused</text>
-
-  <!-- Line 3: close -->
-  <text x="52" y="102" fill="#d4d4d4" font-size="13">};</text>
-
-  <!-- Line 4: blank -->
-
-  <!-- Line 5: interface -->
-  <text x="52" y="142" fill="#569cd6" font-size="13">interface</text>
-  <text x="130" y="142" fill="#4ec9b0" font-size="13">IPlaybackControl</text>
-  <text x="268" y="142" fill="#d4d4d4" font-size="13">{</text>
-
-  <!-- Line 6: method -->
-  <text x="72" y="162" fill="#569cd6" font-size="13">void</text>
-  <text x="108" y="162" fill="#dcdcaa" font-size="13">Play</text>
-  <text x="140" y="162" fill="#d4d4d4" font-size="13">();</text>
-
-  <!-- Line 7: property using PlayState -->
-  <text x="72" y="182" fill="#4ec9b0" font-size="13">PlayState</text>
-
-  <!-- Ctrl+Click underline on PlayState (usage) -->
-  <rect x="72" y="185" width="75" height="1.5" fill="#4ec9b0"/>
-
-  <text x="149" y="182" fill="#9cdcfe" font-size="13">State</text>
-  <text x="195" y="182" fill="#d4d4d4" font-size="13">{ </text>
-  <text x="214" y="182" fill="#569cd6" font-size="13">get</text>
-  <text x="240" y="182" fill="#d4d4d4" font-size="13">; };</text>
-
-  <!-- Current line highlight -->
-  <rect x="44" y="170" width="616" height="20" fill="#ffffff" opacity="0.04"/>
-
-  <!-- Line 8: close -->
-  <text x="52" y="202" fill="#d4d4d4" font-size="13">};</text>
-
-  <!-- Goto definition arrow -->
-  <defs>
-    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-      <polygon points="0 0, 8 3, 0 6" fill="#4ec9b0"/>
-    </marker>
-  </defs>
-
-  <!-- Arrow from usage to definition -->
-  <path d="M108,170 C80,140 80,80 108,56" stroke="#4ec9b0" stroke-width="2" fill="none" stroke-dasharray="5,3" marker-end="url(#arrowhead)" opacity="0.7"/>
-
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 380" width="800" height="380">
+  <!-- Background -->
+  <rect width="800" height="380" fill="#1e1e1e" rx="8"/>
+  <!-- Title bar -->
+  <rect width="800" height="32" fill="#323233" rx="8"/>
+  <rect y="24" width="800" height="8" fill="#323233"/>
+  <!-- Left tab -->
+  <rect x="0" y="8" width="120" height="24" fill="#1e1e1e" rx="4"/>
+  <text x="12" y="24" style="font-family:Consolas,'Cascadia Code',monospace;font-size:11px;fill:#d4d4d4">Widget.idl</text>
+  <!-- Right tab -->
+  <rect x="405" y="8" width="160" height="24" fill="#1e1e1e" rx="4"/>
+  <text x="417" y="24" style="font-family:Consolas,'Cascadia Code',monospace;font-size:11px;fill:#d4d4d4">Uri (decompiled)</text>
+  <!-- Splitter -->
+  <rect x="395" y="32" width="2" height="348" fill="#454545"/>
+  <!-- LEFT PANE: Widget.idl -->
+  <text x="16" y="62" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">1</text>
+  <text x="16" y="80" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">2</text>
+  <text x="16" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">3</text>
+  <text x="16" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">4</text>
+  <text x="16" y="134" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">5</text>
+  <text x="16" y="152" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">6</text>
+  <text x="16" y="170" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">7</text>
+  <!-- Left code -->
+  <text x="40" y="62" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">namespace</text>
+  <text x="114" y="62" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">MyApp</text>
+  <text x="40" y="80" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">{</text>
+  <text x="56" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">runtimeclass</text>
+  <text x="152" y="98" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Widget</text>
+  <text x="56" y="116" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">{</text>
+  <!-- Highlighted reference -->
+  <rect x="70" y="123" width="182" height="16" fill="#264f78" rx="2"/>
+  <text x="72" y="134" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Windows.Foundation.Uri</text>
+  <text x="254" y="134" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4"> Homepage;</text>
+  <text x="56" y="152" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">}</text>
+  <text x="40" y="170" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">}</text>
+  <!-- F12 Arrow -->
+  <path d="M 260 131 C 320 131, 350 80, 397 80" fill="none" stroke="#007ACC" stroke-width="2" stroke-dasharray="6,3"/>
+  <polygon points="393,76 401,80 393,84" fill="#007ACC"/>
   <!-- F12 badge -->
-  <rect x="148" y="170" width="24" height="16" rx="3" fill="#569cd6" opacity="0.8"/>
-  <text x="152" y="182" fill="#ffffff" font-size="9" font-weight="bold">F12</text>
-
-  <!-- Peek definition preview box -->
-  <rect x="52" y="230" width="600" height="80" rx="4" fill="#1b1b1b" stroke="#007acc" stroke-width="2"/>
-
-  <!-- Peek header -->
-  <rect x="52" y="230" width="600" height="22" rx="4" fill="#007acc"/>
-  <rect x="52" y="244" width="600" height="8" fill="#007acc"/>
-  <text x="64" y="246" fill="#ffffff" font-size="11" font-weight="bold">Player.idl — enum PlayState</text>
-  <text x="640" y="246" fill="#ffffff" font-size="11" text-anchor="end">✕</text>
-
-  <!-- Peek content - line numbers -->
-  <text x="66" y="270" fill="#858585" font-size="11">1</text>
-  <text x="66" y="288" fill="#858585" font-size="11">2</text>
-
-  <!-- Peek content - code -->
-  <text x="82" y="270" fill="#569cd6" font-size="12">enum</text>
-  <text x="112" y="270" fill="#4ec9b0" font-size="12">PlayState</text>
-
-  <!-- Highlight in peek -->
-  <rect x="110" y="259" width="68" height="15" rx="2" fill="#515c6a" opacity="0.5"/>
-
-  <text x="178" y="270" fill="#d4d4d4" font-size="12">{</text>
-  <text x="92" y="288" fill="#b5cea8" font-size="12">Stopped</text>
-  <text x="146" y="288" fill="#d4d4d4" font-size="12">,</text>
-  <text x="158" y="288" fill="#b5cea8" font-size="12">Playing</text>
-  <text x="208" y="288" fill="#d4d4d4" font-size="12">,</text>
-  <text x="220" y="288" fill="#b5cea8" font-size="12">Paused</text>
+  <rect x="300" y="105" width="36" height="18" fill="#007ACC" rx="4"/>
+  <text x="307" y="117" style="font-family:Consolas,'Cascadia Code',monospace;font-size:10px;fill:#fff;font-weight:bold">F12</text>
+  <!-- RIGHT PANE: Decompiled -->
+  <!-- Decompiled banner -->
+  <rect x="397" y="32" width="403" height="22" fill="#2d2d2d"/>
+  <text x="410" y="47" style="font-family:Consolas,'Cascadia Code',monospace;font-size:10px;fill:#808080">📄 Decompiled from Windows.winmd</text>
+  <!-- Right line numbers -->
+  <text x="410" y="74" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">1</text>
+  <text x="410" y="92" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">2</text>
+  <text x="410" y="110" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">3</text>
+  <text x="410" y="128" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">4</text>
+  <text x="410" y="146" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">5</text>
+  <text x="410" y="164" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">6</text>
+  <text x="410" y="182" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">7</text>
+  <text x="410" y="200" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">8</text>
+  <text x="410" y="218" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">9</text>
+  <text x="404" y="236" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">10</text>
+  <text x="404" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">11</text>
+  <text x="404" y="272" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">12</text>
+  <text x="404" y="290" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080">13</text>
+  <!-- Right code -->
+  <text x="434" y="74" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#6A9955">// Decompiled from Windows.Foundation.UniversalApiContract</text>
+  <text x="434" y="92" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">namespace</text>
+  <text x="508" y="92" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Windows.Foundation</text>
+  <text x="434" y="110" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">{</text>
+  <text x="450" y="128" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">runtimeclass</text>
+  <text x="546" y="128" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Uri</text>
+  <text x="450" y="146" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">{</text>
+  <text x="466" y="164" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Uri</text>
+  <text x="490" y="164" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">(</text>
+  <text x="498" y="164" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">String</text>
+  <text x="546" y="164" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">uri);</text>
+  <text x="466" y="182" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">String</text>
+  <text x="514" y="182" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">AbsoluteUri { </text>
+  <text x="622" y="182" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">get</text>
+  <text x="646" y="182" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">; };</text>
+  <text x="466" y="200" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">String</text>
+  <text x="514" y="200" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Host { </text>
+  <text x="562" y="200" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">get</text>
+  <text x="586" y="200" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">; };</text>
+  <text x="466" y="218" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">String</text>
+  <text x="514" y="218" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Path { </text>
+  <text x="562" y="218" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">get</text>
+  <text x="586" y="218" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">; };</text>
+  <text x="466" y="236" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">String</text>
+  <text x="514" y="236" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">SchemeName { </text>
+  <text x="618" y="236" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">get</text>
+  <text x="642" y="236" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">; };</text>
+  <text x="466" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#4EC9B0">Int32</text>
+  <text x="510" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">Port {</text>
+  <text x="558" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#C586C0">get</text>
+  <text x="580" y="254" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">; };</text>
+  <text x="450" y="272" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">}</text>
+  <text x="434" y="290" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#d4d4d4">}</text>
+  <!-- Caption -->
+  <text x="400" y="368" style="font-family:Consolas,'Cascadia Code',monospace;font-size:12px;fill:#808080;text-anchor:middle">F12 on any Windows SDK type → decompiled IDL from the .winmd</text>
 </svg>

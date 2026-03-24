@@ -1,6 +1,80 @@
 # MIDL Language Support for VS Code
 
-Full language support for Microsoft Interface Definition Language (MIDL/MIDL3) `.idl` files — syntax highlighting, IntelliSense, diagnostics, and more.
+**A complete MIDL3 development environment** — catch errors as you type, get context-aware completions, and ship correct WinRT APIs faster.
+
+![Real-time diagnostics catching MIDL2 syntax in MIDL3 code](images/diagnostics.svg)
+
+---
+
+## ⚡ Real-Time Diagnostics
+
+Errors and warnings surface instantly as you type — no build step required. Syntax errors, undefined types, MIDL2/MIDL3 migration issues, and duplicate definitions are caught with precise source locations and actionable messages.
+
+![Diagnostics panel showing errors and warnings with source positions](images/diagnostics.svg)
+
+---
+
+## 🧠 Context-Aware IntelliSense
+
+Completions adapt to where your cursor is. Inside an attribute bracket on a `runtimeclass`? You'll see `activatable`, `composable`, `contract`. Inside a `struct` body? Only value types that are valid there.
+
+![Side-by-side autocomplete showing attribute and type completions](images/autocomplete.svg)
+
+Includes WinRT primitives, collection/async types, external `.winmd` types, and trigger characters on `.` and space.
+
+---
+
+## 🎯 Code Quality
+
+16 built-in code quality rules with one-click quick fixers — enforce WinRT naming conventions, simplify verbose patterns, and catch common mistakes.
+
+![Code quality rules with lightbulb hints and quick fixers](images/code-quality.svg)
+
+### Async Naming Convention
+
+Methods returning `IAsyncOperation` or `IAsyncAction` should follow the `Async` suffix convention. WinMIDL detects violations and offers one-click renames.
+
+![Async naming convention enforcement with quick fix suggestions](images/async-naming.svg)
+
+---
+
+## 🔗 Navigation
+
+### Go to Definition — F12 into Decompiled WinMD
+
+**F12** on any Windows SDK type jumps to a decompiled IDL view straight from the `.winmd` — no source code needed.
+
+![F12 on Windows.Foundation.Uri showing decompiled IDL from the WinMD](images/goto-definition.svg)
+
+### F2 Rename Symbol
+
+Rename a symbol and all its references in one shot. Works across interface declarations, `requires` clauses, and return types.
+
+![F2 rename widget renaming Foo to IFoo across all references](images/rename.svg)
+
+---
+
+## 🌐 Windows SDK Integration
+
+### Namespace Drill-In
+
+Type a dot after any Windows namespace and IntelliSense walks you through the hierarchy — `Windows.` → `UI.` → `Composition`, `Core`, `Xaml`…
+
+![SDK namespace drill-in autocomplete showing Windows.UI sub-namespaces](images/sdk-autocomplete.svg)
+
+### Microsoft Learn Integration
+
+Hover any Windows SDK type to see its documentation inline, with a direct link to Microsoft Learn. The side panel shows full API docs without leaving VS Code.
+
+![Hover tooltip and Microsoft Learn side panel for IVector](images/learn-panel.svg)
+
+---
+
+## 🏗️ Architecture
+
+WinMIDL is a full compiler pipeline — not just a linter. The same engine powers both the CLI and the VS Code extension via LSP.
+
+![Compiler pipeline: Source → Preprocessor → Lexer → Parser → Green Tree → Binder → WinMD, Headers, IIDs, LSP](images/architecture.svg)
 
 ---
 
@@ -17,18 +91,6 @@ Full TextMate grammar covering both MIDL3 and classic MIDL syntax:
 - **GUIDs** — Inline GUID literals colorized as constants
 - **Strings, numbers, comments** — Double-quoted strings with escape sequences, hex (`0xFF`) and decimal literals, line (`//`) and block (`/* */`) comments
 - **Storage modifiers** — `static`, `partial`, `unsealed`, `protected`, `overridable`, `get`, `set`, `out`, `ref`, `const`
-
-### ⚡ IntelliSense / Completions
-
-Context-aware auto-complete powered by the MIDL language server:
-
-- **Declaration keywords** — `namespace`, `runtimeclass`, `interface`, `delegate`, `struct`, `enum`, `event`, `apicontract`, `import`
-- **Modifier keywords** — `static`, `partial`, `unsealed`, `protected`, `overridable`
-- **Built-in WinRT types** — `Boolean`, `Char`, `Int16`, `Int32`, `Int64`, `UInt8`, `UInt16`, `UInt32`, `UInt64`, `Single`, `Double`, `String`, `Guid`, `Object`
-- **Common WinRT collection/async types** — `IVector`, `IVectorView`, `IMap`, `IMapView`, `IIterable`, `IAsyncOperation`, `IAsyncAction`, `EventHandler`, `TypedEventHandler`
-- **Property/parameter keywords** — `get`, `set`, `out`, `ref`, `void`
-- **External types** — Types from referenced `.winmd` files in the workspace directory appear with their fully-qualified names
-- **Trigger characters** — Completions trigger on `.` and space
 
 ### 📝 Code Snippets
 
@@ -56,94 +118,37 @@ Context-aware auto-complete powered by the MIDL language server:
 | `versionedblock` | Versioned member block with contract attribute |
 | `import` | Import directive |
 
-### 🔍 Real-Time Diagnostics
-
-Errors and warnings appear as you type, powered by the MIDL semantic analysis engine:
-
-- Syntax errors with precise locations
-- Undefined type detection
-- Duplicate definition warnings
-- Internal compiler error reporting (graceful fallback)
-
-Diagnostics are published on every document open and change via the Language Server Protocol.
-
 ### 🖱️ Hover Information
 
-Hover over any token for contextual documentation:
-
-- **Keywords** — Markdown-formatted documentation for all MIDL3 keywords (`namespace`, `runtimeclass`, `interface`, `delegate`, `struct`, `enum`, `event`, `static`, `partial`, `unsealed`, `protected`, `overridable`, `apicontract`, `import`, `requires`, `get`, `set`, `out`, `ref`, `void`)
-- **Built-in types** — Descriptions for all WinRT primitive types (`Boolean`, `Int32`, `String`, `Guid`, `Object`, etc.)
-- **User-defined types** — Shows the symbol kind and fully-qualified name (e.g., `**RuntimeClass** \`MyNamespace.MyClass\``)
-- **External types** — Shows the fully-qualified name and source `.winmd` file path
-- **Identifiers** — Unresolved identifiers shown with their text
+Hover over any token for contextual documentation — keywords, built-in types, user-defined types, and external `.winmd` symbols.
 
 ### 🔗 Go to Definition
 
-Navigate to where a symbol is defined:
-
-- **Ctrl+Click** or **F12** on any type name or member name
-- Jumps to the defining `runtimeclass`, `interface`, `struct`, `enum`, `delegate`, `apicontract`, `namespace`, method, or constructor declaration
-- Works for top-level types and nested members (methods, properties, constructors)
-- External (`.winmd`) symbols are excluded — navigation is within the current file
+**Ctrl+Click** or **F12** on any type or member name to jump to its declaration.
 
 ### 🔎 Find All References
 
-Find every usage of a symbol in the document:
-
-- **Shift+F12** on any identifier
-- Locates all occurrences of the identifier token across the file
-- Verifies the symbol exists in the compilation before reporting results
-- Returns precise ranges for each reference location
+**Shift+F12** to find every usage of a symbol in the document.
 
 ### ✍️ Signature Help
 
-Parameter hints when typing inside method calls and constructors:
-
-- Triggered by `(` and `,`
-- Shows full method/constructor/delegate signature with parameter list
-- Highlights the active parameter based on comma position
-- Supports methods, constructors, and delegate invocations
+Parameter hints triggered by `(` and `,` — shows full method/constructor/delegate signatures with active parameter highlighting.
 
 ### 🎯 Semantic Highlighting
 
-Rich semantic token classification beyond TextMate grammars:
-
-- **14 token types** — `namespace`, `type`, `interface`, `enum`, `enumMember`, `method`, `property`, `event`, `parameter`, `keyword`, `comment`, `string`, `number`, `struct`
-- **Token modifiers** — `declaration`, `static`
-- Symbol-aware classification: identifiers are resolved against the compilation to determine their exact kind
-- Comments in leading trivia are classified for accurate highlighting
-- Works on top of the TextMate grammar for enhanced highlighting in supported themes
+14 semantic token types with declaration/static modifiers — identifiers resolved against the compilation for precise highlighting.
 
 ### 📐 Document Formatting
 
-Auto-format MIDL documents with **Format Document** (Shift+Alt+F):
-
-- Consistent 4-space indentation based on brace nesting
-- Normalizes spacing after commas
-- Normalizes spacing around `:` (preserving `::` scope resolution)
-- Blank lines inserted between top-level declarations
-- Trailing whitespace removed from all lines
-- Ensures trailing newline
+**Shift+Alt+F** — consistent 4-space indentation, normalized spacing, blank lines between declarations, trailing whitespace cleanup.
 
 ### 📋 Document Outline
 
-See all symbols in the **Outline** view (Ctrl+Shift+O) and **Breadcrumbs**:
-
-- Namespaces, runtime classes, interfaces, structs, enums, delegates, API contracts
-- Nested members: methods, properties, events, constructors, fields, enum members
-- Hierarchical tree structure matching your code's namespace/type/member nesting
+Hierarchical symbol tree in **Outline** view and **Breadcrumbs** — namespaces, types, and members.
 
 ### 📄 Language Configuration
 
-Editor behaviors configured out of the box:
-
-- **Comment toggling** — Ctrl+/ for line comments (`//`), Shift+Alt+A for block comments (`/* */`)
-- **Bracket matching** — `{}`, `[]`, `()`, `<>`
-- **Auto-closing pairs** — Braces, brackets, parentheses, angle brackets, quotes
-- **Folding** — Fold code blocks on `{` / `}`
-- **Smart indentation** — Auto-indent after `{`, auto-outdent on `}`
-- **Word pattern** — Recognizes dotted identifiers (e.g., `Windows.Foundation.Uri`) as single words for double-click selection
-- **Doc comment continuation** — Pressing Enter after `///` or inside `/** */` continues the comment prefix
+Comment toggling, bracket matching, auto-closing pairs, smart indentation, and doc comment continuation — all configured out of the box.
 
 ---
 
@@ -151,7 +156,14 @@ Editor behaviors configured out of the box:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `midl.serverPath` | `string` | `"midl"` | Path to the MIDL CLI executable. The extension launches this with `--lsp` to start the language server over stdio. |
+| `midl.strictMode` | `boolean` | `true` | Enable strict MIDL3 mode. Classic MIDL constructs (coclass, library, typedef, etc.) produce warnings. Disable for mixed MIDL2/MIDL3 codebases. |
+| `midl.codeQualityHints` | `boolean` | `true` | Show code quality hints (naming conventions, empty types, etc.) |
+| `midl.useWindowsSdk` | `boolean` | `true` | Automatically reference Windows.winmd from the installed Windows SDK for type completion and F12 navigation. |
+| `midl.windowsSdkVersion` | `string` | `"latest"` | Windows SDK version to use. Use the **MIDL: Select Windows SDK Version** command to pick from installed versions. |
+| `midl.flatSdkTypeCompletions` | `boolean` | `false` | Show all SDK types by short name in completions (e.g. `Button`, `Control`). When off, only namespace names appear and you drill in with dot notation. |
+| `midl.fetchSdkDocs` | `boolean` | `true` | Fetch type descriptions from Microsoft Learn on hover. Requires internet access. |
+| `midl.inlineDocsBrowser` | `boolean` | `true` | Open Microsoft Learn documentation in a VS Code side panel instead of the external browser. |
+| `midl.serverPath` | `string` | `"midl"` | Path to the MIDL CLI executable. The extension ships its own copy — you shouldn't need to change this unless using a custom build. |
 
 ---
 
@@ -161,24 +173,7 @@ Editor behaviors configured out of the box:
 
 Install **MIDL Language Support** from the VS Code marketplace or from a `.vsix` package.
 
-### 2. Build the MIDL Compiler
-
-```bash
-cd E:\midl
-dotnet build
-```
-
-### 3. Configure the Server Path
-
-Open VS Code settings (**Ctrl+,**) and set the path to the compiled MIDL CLI binary:
-
-```json
-{
-    "midl.serverPath": "E:\\midl\\src\\Midl.Cli\\bin\\Debug\\net10.0\\Midl.Cli.exe"
-}
-```
-
-### 4. Open a `.idl` File
+### 2. Open a `.idl` File
 
 The extension activates automatically when you open any `.idl` file. All features — syntax highlighting, diagnostics, completions, hover, and more — are available immediately.
 
@@ -186,41 +181,21 @@ The extension activates automatically when you open any `.idl` file. All feature
 
 ## Requirements
 
-- **.NET 10 SDK** — Required to build and run the MIDL language server
 - **VS Code 1.85+** — Minimum supported VS Code version
+
+The extension ships a self-contained Native AOT binary — no .NET SDK or runtime installation required.
 
 ---
 
 ## Known Limitations
 
-- **Single-file analysis** — The language server analyzes each file independently; cross-file imports are not yet resolved in the LSP
-- **Go to Definition** — Works within the current file only; external `.winmd` types cannot be navigated to
+- **Go to Definition** — Works within the current file, across `.idl` files (via `winmidl.json` or `// @ref:` directives), and for external `.winmd` types (decompiled view)
 - **Full document sync** — The entire document is re-sent and reparsed on every keystroke (incremental text sync planned)
-- **No rename/refactoring** — Symbol rename and code actions are not yet implemented
+- **No refactoring** — Code actions are available but full refactoring support is still growing
 - **No code folding from LSP** — Folding relies on the regex-based language configuration, not semantic ranges
-- **External type completions** — `.winmd` files are only discovered in the same directory as the open file
-
----
-
-## Development
-
-To work on the extension itself:
-
-1. Open `E:\midl\editors\vscode` in VS Code
-2. Run `npm install` to install dependencies
-3. Press **F5** to launch the Extension Development Host (uses the `Launch Extension` debug configuration)
-4. Edit `.idl` files in the new window to test
-
-### Building
-
-```bash
-npm run compile    # One-time TypeScript build
-npm run watch      # Watch mode for development
-npm run package    # Package as .vsix
-```
 
 ---
 
 ## License
 
-See the [repository](https://github.com/microsoft/midl) for license information.
+MIT

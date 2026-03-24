@@ -9,3 +9,4 @@ node_modules/**
 # Exclude variant SVGs (only icon.png ships)
 images/icon-variant-*
 images/social-variant-*
+images/cli-output.svg
