@@ -65,18 +65,20 @@
   <text x="114" y="180" style="font-family:Consolas,monospace;font-size:13px;fill:#DCDCAA">Widget</text>
   <text x="161" y="180" style="font-family:Consolas,monospace;font-size:13px;fill:#d4d4d4">();</text>
 
-  <!-- Line 8: int Count; (indent2=114, int=3*7.8=23, space, Count starts at 114+23+8=145) -->
+  <!-- Line 8: Strng Name; (typo — indent2=114, Strng=5*7.8=39, space, Name at 161) -->
   <text x="20" y="200" style="font-family:Consolas,monospace;font-size:13px;fill:#808080;text-anchor:end"> 8</text>
-  <text x="114" y="200" style="font-family:Consolas,monospace;font-size:13px;fill:#F44747">int</text>
-  <text x="145" y="200" style="font-family:Consolas,monospace;font-size:13px;fill:#d4d4d4">Count;</text>
-  <!-- Error squiggly under "int" -->
-  <path d="M114,204 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2" style="fill:none;stroke:#F44747;stroke-width:2"/>
+  <text x="114" y="200" style="font-family:Consolas,monospace;font-size:13px;fill:#F44747">Strng</text>
+  <text x="161" y="200" style="font-family:Consolas,monospace;font-size:13px;fill:#d4d4d4">Name;</text>
+  <!-- Error squiggly under "Strng" -->
+  <path d="M114,204 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2 l2,-2 l2,2" style="fill:none;stroke:#F44747;stroke-width:2"/>
 
-  <!-- Tooltip for line 8 error — right of Count -->
-  <rect x="200" y="190" width="420" height="24" rx="4" fill="#252526" style="stroke:#454545;stroke-width:1"/>
-  <text x="208" y="206" style="font-family:Consolas,monospace;font-size:11px;fill:#F44747">⚠</text>
-  <text x="222" y="206" style="font-family:Consolas,monospace;font-size:11px;fill:#d4d4d4">Lowercase 'int' is MIDL2 syntax. Use 'Int32' for MIDL3.</text>
-  <text x="570" y="206" style="font-family:Consolas,monospace;font-size:11px;fill:#808080">[MIDL2005]</text>
+  <!-- Tooltip for line 8 error — right of Name -->
+  <rect x="220" y="186" width="420" height="40" rx="4" fill="#252526" style="stroke:#454545;stroke-width:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))"/>
+  <text x="228" y="202" style="font-family:Consolas,monospace;font-size:11px;fill:#F44747">✕</text>
+  <text x="242" y="202" style="font-family:Consolas,monospace;font-size:11px;fill:#d4d4d4">Unknown type 'Strng'. Did you mean 'String'?</text>
+  <text x="590" y="202" style="font-family:Consolas,monospace;font-size:11px;fill:#808080">[MIDL1001]</text>
+  <text x="242" y="218" style="font-family:Consolas,monospace;font-size:11px;fill:#4EC9B0">💡 Quick Fix:</text>
+  <text x="342" y="218" style="font-family:Consolas,monospace;font-size:11px;fill:#d4d4d4">Replace with 'String'</text>
 
   <!-- Line 9: String Name { get; set; }; (indent2=114, String=6*7.8=47, space at 161, Name=4*7.8=31 starts at 169) -->
   <text x="20" y="220" style="font-family:Consolas,monospace;font-size:13px;fill:#808080;text-anchor:end"> 9</text>
@@ -116,8 +118,8 @@
   <text x="117" y="311" style="font-family:Consolas,monospace;font-size:10px;fill:#fff">1</text>
 
   <text x="24" y="336" style="font-family:Consolas,monospace;font-size:12px;fill:#F44747">●</text>
-  <text x="40" y="336" style="font-family:Consolas,monospace;font-size:12px;fill:#d4d4d4">Lowercase 'int' is MIDL2 syntax. Use 'Int32' for MIDL3.</text>
-  <text x="520" y="336" style="font-family:Consolas,monospace;font-size:12px;fill:#808080">MIDL2005</text>
+  <text x="40" y="336" style="font-family:Consolas,monospace;font-size:12px;fill:#d4d4d4">Unknown type 'Strng'. Did you mean 'String'?</text>
+  <text x="520" y="336" style="font-family:Consolas,monospace;font-size:12px;fill:#808080">MIDL1001</text>
   <text x="600" y="336" style="font-family:Consolas,monospace;font-size:12px;fill:#CE9178">Widget.idl</text>
   <text x="700" y="336" style="font-family:Consolas,monospace;font-size:12px;fill:#808080">[8, 9]</text>
 
