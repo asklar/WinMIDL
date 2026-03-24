@@ -70,14 +70,6 @@ Hover any Windows SDK type to see its documentation inline, with a direct link t
 
 ---
 
-## 💻 CLI Experience
-
-Use `winmidl` from the command line for CI pipelines, pre-commit hooks, or batch analysis. Rust-style diagnostic output with source spans and fix suggestions.
-
-![Terminal showing winmidl CLI output with colored diagnostics](images/cli-output.svg)
-
----
-
 ## 🏗️ Architecture
 
 WinMIDL is a full compiler pipeline — not just a linter. The same engine powers both the CLI and the VS Code extension via LSP.
