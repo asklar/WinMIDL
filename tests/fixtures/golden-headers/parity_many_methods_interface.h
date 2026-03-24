@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ILargeInterfaceImpl __x_TestApp_Parity_ILargeInterfaceImpl;
+typedef interface __x_TestApp_CParity_CILargeInterfaceImpl __x_TestApp_CParity_CILargeInterfaceImpl;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_LargeInterfaceImpl[] = L"TestApp.Parity.LargeInterfaceImpl";
 
-#ifndef ____x_TestApp_Parity_ILargeInterfaceImpl_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILargeInterfaceImpl_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILargeInterfaceImpl_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILargeInterfaceImpl_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILargeInterfaceImpl;
+EXTERN_C const IID IID___x_TestApp_CParity_CILargeInterfaceImpl;
 
 MIDL_INTERFACE("4d9c79d3-1a14-2d51-8721-fe665a1e81bc")
-__x_TestApp_Parity_ILargeInterfaceImpl : public IInspectable
+__x_TestApp_CParity_CILargeInterfaceImpl : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Method1() = 0;
@@ -36,6 +36,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Method16(/* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ HSTRING c, /* [in] */ int d) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILargeInterfaceImpl_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILargeInterfaceImpl_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

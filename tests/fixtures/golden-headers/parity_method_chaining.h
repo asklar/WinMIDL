@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IBuilderWidget __x_TestApp_Parity_IBuilderWidget;
+typedef interface __x_TestApp_CParity_CIBuilderWidget __x_TestApp_CParity_CIBuilderWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_BuilderWidget[] = L"TestApp.Parity.BuilderWidget";
 
-#ifndef ____x_TestApp_Parity_IBuilderWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IBuilderWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIBuilderWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIBuilderWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IBuilderWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIBuilderWidget;
 
 MIDL_INTERFACE("09161878-d375-7857-9956-fa0622156e33")
-__x_TestApp_Parity_IBuilderWidget : public IInspectable
+__x_TestApp_CParity_CIBuilderWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE WithName(/* [in] */ HSTRING name, /* [out, retval] */ BuilderWidget* returnValue) = 0;
@@ -24,6 +24,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Build(/* [out, retval] */ HSTRING* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IBuilderWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIBuilderWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

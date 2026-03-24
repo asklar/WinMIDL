@@ -5,112 +5,112 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IRenderable __x_TestApp_Parity_IRenderable;
-typedef interface __x_TestApp_Parity_ISerializable __x_TestApp_Parity_ISerializable;
-typedef interface __x_TestApp_Parity_IPrintable __x_TestApp_Parity_IPrintable;
-typedef interface __x_TestApp_Parity_ICloneable2 __x_TestApp_Parity_ICloneable2;
-typedef interface __x_TestApp_Parity_IGraphicElement __x_TestApp_Parity_IGraphicElement;
-typedef interface __x_TestApp_Parity_IGraphicElementFactory __x_TestApp_Parity_IGraphicElementFactory;
-typedef interface __x_TestApp_Parity_IDocument __x_TestApp_Parity_IDocument;
+typedef interface __x_TestApp_CParity_CIRenderable __x_TestApp_CParity_CIRenderable;
+typedef interface __x_TestApp_CParity_CISerializable __x_TestApp_CParity_CISerializable;
+typedef interface __x_TestApp_CParity_CIPrintable __x_TestApp_CParity_CIPrintable;
+typedef interface __x_TestApp_CParity_CICloneable2 __x_TestApp_CParity_CICloneable2;
+typedef interface __x_TestApp_CParity_CIGraphicElement __x_TestApp_CParity_CIGraphicElement;
+typedef interface __x_TestApp_CParity_CIGraphicElementFactory __x_TestApp_CParity_CIGraphicElementFactory;
+typedef interface __x_TestApp_CParity_CIDocument __x_TestApp_CParity_CIDocument;
 
-#ifndef ____x_TestApp_Parity_IRenderable_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IRenderable_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIRenderable_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIRenderable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IRenderable;
+EXTERN_C const IID IID___x_TestApp_CParity_CIRenderable;
 
 MIDL_INTERFACE("3d7cf325-2b17-3357-a10e-a9a90e3a593c")
-__x_TestApp_Parity_IRenderable : public IInspectable
+__x_TestApp_CParity_CIRenderable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Render() = 0;
     virtual HRESULT STDMETHODCALLTYPE get_ZOrder(/* [out, retval] */ int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IRenderable_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIRenderable_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ISerializable_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ISerializable_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CISerializable_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CISerializable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ISerializable;
+EXTERN_C const IID IID___x_TestApp_CParity_CISerializable;
 
 MIDL_INTERFACE("6f466671-4d00-9758-9072-11e314303760")
-__x_TestApp_Parity_ISerializable : public IInspectable
+__x_TestApp_CParity_CISerializable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Serialize(/* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Deserialize(/* [in] */ HSTRING data) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ISerializable_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CISerializable_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IPrintable_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IPrintable_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIPrintable_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIPrintable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IPrintable;
+EXTERN_C const IID IID___x_TestApp_CParity_CIPrintable;
 
 MIDL_INTERFACE("274de313-38b4-1a52-af55-5caf2daa7158")
-__x_TestApp_Parity_IPrintable : public IInspectable
+__x_TestApp_CParity_CIPrintable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Print(/* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE SetMargins(/* [in] */ double left, /* [in] */ double top, /* [in] */ double right, /* [in] */ double bottom) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IPrintable_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIPrintable_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ICloneable2_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ICloneable2_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CICloneable2_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CICloneable2_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ICloneable2;
+EXTERN_C const IID IID___x_TestApp_CParity_CICloneable2;
 
 MIDL_INTERFACE("da4c4b7f-1d12-0a5c-9571-9c7ef4d92070")
-__x_TestApp_Parity_ICloneable2 : public IInspectable
+__x_TestApp_CParity_CICloneable2 : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Clone(/* [out, retval] */ IInspectable** returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ICloneable2_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CICloneable2_INTERFACE_DEFINED__
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_GraphicElement[] = L"TestApp.Parity.GraphicElement";
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Document[] = L"TestApp.Parity.Document";
 
-#ifndef ____x_TestApp_Parity_IGraphicElement_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IGraphicElement_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIGraphicElement_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIGraphicElement_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IGraphicElement;
+EXTERN_C const IID IID___x_TestApp_CParity_CIGraphicElement;
 
 MIDL_INTERFACE("fffda7e5-6fd3-5b55-bba6-e5e3661a097e")
-__x_TestApp_Parity_IGraphicElement : public IInspectable
+__x_TestApp_CParity_CIGraphicElement : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_ElementName(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IGraphicElement_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIGraphicElement_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IGraphicElementFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IGraphicElementFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIGraphicElementFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIGraphicElementFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IGraphicElementFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIGraphicElementFactory;
 
 MIDL_INTERFACE("6af2eced-86e0-8e59-82e3-64d19ea0f479")
-__x_TestApp_Parity_IGraphicElementFactory : public IInspectable
+__x_TestApp_CParity_CIGraphicElementFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ GraphicElement* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IGraphicElementFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIGraphicElementFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IDocument_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDocument_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDocument_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDocument_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDocument;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDocument;
 
 MIDL_INTERFACE("a64a7bb2-9197-bf5a-bd2c-824e8215ed11")
-__x_TestApp_Parity_IDocument : public IInspectable
+__x_TestApp_CParity_CIDocument : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Title(/* [out, retval] */ HSTRING* value) = 0;
@@ -118,6 +118,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_PageCount(/* [out, retval] */ int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDocument_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDocument_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

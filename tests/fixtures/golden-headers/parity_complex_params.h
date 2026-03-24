@@ -5,7 +5,7 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IComplexParamWidget __x_TestApp_Parity_IComplexParamWidget;
+typedef interface __x_TestApp_CParity_CIComplexParamWidget __x_TestApp_CParity_CIComplexParamWidget;
 
 struct ComplexParam
 {
@@ -16,20 +16,20 @@ struct ComplexParam
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComplexParamWidget[] = L"TestApp.Parity.ComplexParamWidget";
 
-#ifndef ____x_TestApp_Parity_IComplexParamWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IComplexParamWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIComplexParamWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIComplexParamWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IComplexParamWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComplexParamWidget;
 
 MIDL_INTERFACE("44340e51-7c1a-0b5d-bd47-4321f0a07f10")
-__x_TestApp_Parity_IComplexParamWidget : public IInspectable
+__x_TestApp_CParity_CIComplexParamWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE ProcessAll(/* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean flag, /* [in] */ double value, /* [in] */ ComplexParam param) = 0;
-    virtual HRESULT STDMETHODCALLTYPE AcceptCollections(/* [in] */ __x_Windows_Foundation_Collections_IVector* names, /* [in] */ __x_Windows_Foundation_Collections_IMap* counts) = 0;
+    virtual HRESULT STDMETHODCALLTYPE AcceptCollections(/* [in] */ __x_Windows_CFoundation_CCollections_CIVector* names, /* [in] */ __x_Windows_CFoundation_CCollections_CIMap* counts) = 0;
     virtual HRESULT STDMETHODCALLTYPE MixedParams(/* [in] */ HSTRING name, /* [out] */ int* result, /* [out] */ ::boolean* success) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IComplexParamWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIComplexParamWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

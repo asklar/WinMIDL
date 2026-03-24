@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ICharWidget __x_TestApp_Parity_ICharWidget;
+typedef interface __x_TestApp_CParity_CICharWidget __x_TestApp_CParity_CICharWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_CharWidget[] = L"TestApp.Parity.CharWidget";
 
-#ifndef ____x_TestApp_Parity_ICharWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ICharWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CICharWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CICharWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ICharWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CICharWidget;
 
 MIDL_INTERFACE("d569051e-dd74-aa51-81d4-d749efe9de38")
-__x_TestApp_Parity_ICharWidget : public IInspectable
+__x_TestApp_CParity_CICharWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetSeparator(/* [out, retval] */ wchar_t* returnValue) = 0;
@@ -27,6 +27,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE CharToString(/* [in] */ wchar_t c, /* [out, retval] */ HSTRING* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ICharWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CICharWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

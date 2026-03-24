@@ -5,18 +5,18 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ISuperWidget __x_TestApp_Parity_ISuperWidget;
-typedef interface __x_TestApp_Parity_ISuperWidgetFactory __x_TestApp_Parity_ISuperWidgetFactory;
+typedef interface __x_TestApp_CParity_CISuperWidget __x_TestApp_CParity_CISuperWidget;
+typedef interface __x_TestApp_CParity_CISuperWidgetFactory __x_TestApp_CParity_CISuperWidgetFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_SuperWidget[] = L"TestApp.Parity.SuperWidget";
 
-#ifndef ____x_TestApp_Parity_ISuperWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ISuperWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CISuperWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CISuperWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ISuperWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CISuperWidget;
 
 MIDL_INTERFACE("7cbb75b3-e801-2c5e-9c74-5d41dc856335")
-__x_TestApp_Parity_ISuperWidget : public IInspectable
+__x_TestApp_CParity_CISuperWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
@@ -28,20 +28,20 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Clone(/* [out, retval] */ IInspectable** returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ISuperWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CISuperWidget_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ISuperWidgetFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ISuperWidgetFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CISuperWidgetFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CISuperWidgetFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ISuperWidgetFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CISuperWidgetFactory;
 
 MIDL_INTERFACE("d406ffca-4f4c-cd53-95bf-63c4f217b797")
-__x_TestApp_Parity_ISuperWidgetFactory : public IInspectable
+__x_TestApp_CParity_CISuperWidgetFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ SuperWidget* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ISuperWidgetFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CISuperWidgetFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

@@ -5,7 +5,7 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IRegionManager __x_TestApp_Parity_IRegionManager;
+typedef interface __x_TestApp_CParity_CIRegionManager __x_TestApp_CParity_CIRegionManager;
 
 struct InnerPoint
 {
@@ -28,19 +28,19 @@ struct OuterRegion
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_RegionManager[] = L"TestApp.Parity.RegionManager";
 
-#ifndef ____x_TestApp_Parity_IRegionManager_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IRegionManager_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIRegionManager_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIRegionManager_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IRegionManager;
+EXTERN_C const IID IID___x_TestApp_CParity_CIRegionManager;
 
 MIDL_INTERFACE("02dd828d-af94-3753-b396-f46f3fdc631d")
-__x_TestApp_Parity_IRegionManager : public IInspectable
+__x_TestApp_CParity_CIRegionManager : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetRegion(/* [out, retval] */ OuterRegion* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE SetRegion(/* [in] */ OuterRegion region) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IRegionManager_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIRegionManager_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

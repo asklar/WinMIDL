@@ -5,7 +5,7 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IFlagChecker __x_TestApp_Parity_IFlagChecker;
+typedef interface __x_TestApp_CParity_CIFlagChecker __x_TestApp_CParity_CIFlagChecker;
 
 enum LargeFlags
 {
@@ -23,19 +23,19 @@ enum LargeFlags
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FlagChecker[] = L"TestApp.Parity.FlagChecker";
 
-#ifndef ____x_TestApp_Parity_IFlagChecker_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IFlagChecker_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIFlagChecker_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIFlagChecker_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IFlagChecker;
+EXTERN_C const IID IID___x_TestApp_CParity_CIFlagChecker;
 
 MIDL_INTERFACE("dcbd2329-c83e-d158-83b5-029ed0c382b6")
-__x_TestApp_Parity_IFlagChecker : public IInspectable
+__x_TestApp_CParity_CIFlagChecker : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE HasFlag(/* [in] */ LargeFlags value, /* [in] */ LargeFlags flag, /* [out, retval] */ ::boolean* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE CombineFlags(/* [in] */ LargeFlags a, /* [in] */ LargeFlags b, /* [out, retval] */ LargeFlags* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IFlagChecker_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIFlagChecker_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

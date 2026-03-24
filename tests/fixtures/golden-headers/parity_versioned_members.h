@@ -5,18 +5,18 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IVersionedMember __x_TestApp_Parity_IVersionedMember;
-typedef interface __x_TestApp_Parity_IVersionedMemberStatics __x_TestApp_Parity_IVersionedMemberStatics;
+typedef interface __x_TestApp_CParity_CIVersionedMember __x_TestApp_CParity_CIVersionedMember;
+typedef interface __x_TestApp_CParity_CIVersionedMemberStatics __x_TestApp_CParity_CIVersionedMemberStatics;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_VersionedMember[] = L"TestApp.Parity.VersionedMember";
 
-#ifndef ____x_TestApp_Parity_IVersionedMember_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IVersionedMember_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIVersionedMember_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIVersionedMember_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IVersionedMember;
+EXTERN_C const IID IID___x_TestApp_CParity_CIVersionedMember;
 
 MIDL_INTERFACE("087bf0c4-3cf9-e454-b171-d1c045343df6")
-__x_TestApp_Parity_IVersionedMember : public IInspectable
+__x_TestApp_CParity_CIVersionedMember : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
@@ -26,7 +26,7 @@ public:
     virtual HRESULT STDMETHODCALLTYPE put_Count(/* [in] */ int value) = 0;
     virtual HRESULT STDMETHODCALLTYPE DoAdvancedWork() = 0;
     virtual HRESULT STDMETHODCALLTYPE get_Efficiency(/* [out, retval] */ double* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_Updated(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_Updated(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Updated(/* [in] */ EventRegistrationToken token) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_IsOptimized(/* [out, retval] */ ::boolean* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Optimize(/* [in] */ int level) = 0;
@@ -34,20 +34,20 @@ public:
     virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(/* [out, retval] */ HSTRING* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IVersionedMember_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIVersionedMember_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IVersionedMemberStatics_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IVersionedMemberStatics_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIVersionedMemberStatics_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIVersionedMemberStatics_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IVersionedMemberStatics;
+EXTERN_C const IID IID___x_TestApp_CParity_CIVersionedMemberStatics;
 
 MIDL_INTERFACE("71783529-450d-cc57-a24f-d885e9448a22")
-__x_TestApp_Parity_IVersionedMemberStatics : public IInspectable
+__x_TestApp_CParity_CIVersionedMemberStatics : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateOptimized(/* [in] */ HSTRING name, /* [out, retval] */ VersionedMember* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IVersionedMemberStatics_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIVersionedMemberStatics_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

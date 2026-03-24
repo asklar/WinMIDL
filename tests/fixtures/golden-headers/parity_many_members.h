@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IManyMemberWidget __x_TestApp_Parity_IManyMemberWidget;
+typedef interface __x_TestApp_CParity_CIManyMemberWidget __x_TestApp_CParity_CIManyMemberWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ManyMemberWidget[] = L"TestApp.Parity.ManyMemberWidget";
 
-#ifndef ____x_TestApp_Parity_IManyMemberWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IManyMemberWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIManyMemberWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIManyMemberWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IManyMemberWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIManyMemberWidget;
 
 MIDL_INTERFACE("df33b0a4-3db2-5c56-b7b6-5040cfdccfe6")
-__x_TestApp_Parity_IManyMemberWidget : public IInspectable
+__x_TestApp_CParity_CIManyMemberWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
@@ -47,12 +47,12 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Serialize(/* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Deserialize(/* [in] */ HSTRING data) = 0;
     virtual HRESULT STDMETHODCALLTYPE CompareTo(/* [in] */ ManyMemberWidget other, /* [out, retval] */ int* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_Changed(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_Changed(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Changed(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_NameChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_NameChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_NameChanged(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IManyMemberWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIManyMemberWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

@@ -5,50 +5,50 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IBaseNode __x_TestApp_Parity_IBaseNode;
-typedef interface __x_TestApp_Parity_INamedNode __x_TestApp_Parity_INamedNode;
-typedef interface __x_TestApp_Parity_IOrderedNode __x_TestApp_Parity_IOrderedNode;
-typedef interface __x_TestApp_Parity_ITaggable __x_TestApp_Parity_ITaggable;
-typedef interface __x_TestApp_Parity_ICompositeNode __x_TestApp_Parity_ICompositeNode;
-typedef interface __x_TestApp_Parity_ITreeNodeFactory __x_TestApp_Parity_ITreeNodeFactory;
+typedef interface __x_TestApp_CParity_CIBaseNode __x_TestApp_CParity_CIBaseNode;
+typedef interface __x_TestApp_CParity_CINamedNode __x_TestApp_CParity_CINamedNode;
+typedef interface __x_TestApp_CParity_CIOrderedNode __x_TestApp_CParity_CIOrderedNode;
+typedef interface __x_TestApp_CParity_CITaggable __x_TestApp_CParity_CITaggable;
+typedef interface __x_TestApp_CParity_CICompositeNode __x_TestApp_CParity_CICompositeNode;
+typedef interface __x_TestApp_CParity_CITreeNodeFactory __x_TestApp_CParity_CITreeNodeFactory;
 
-#ifndef ____x_TestApp_Parity_IBaseNode_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IBaseNode_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIBaseNode_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIBaseNode_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IBaseNode;
+EXTERN_C const IID IID___x_TestApp_CParity_CIBaseNode;
 
 MIDL_INTERFACE("0e35daaa-fe86-fe50-8813-291b83db92d7")
-__x_TestApp_Parity_IBaseNode : public IInspectable
+__x_TestApp_CParity_CIBaseNode : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Initialize() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IBaseNode_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIBaseNode_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_INamedNode_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_INamedNode_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CINamedNode_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CINamedNode_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_INamedNode;
+EXTERN_C const IID IID___x_TestApp_CParity_CINamedNode;
 
 MIDL_INTERFACE("cc6fddf6-b4f1-ef5d-a32c-12eb3c1b17b3")
-__x_TestApp_Parity_INamedNode : public IInspectable
+__x_TestApp_CParity_CINamedNode : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_DisplayName(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_DisplayName(/* [in] */ HSTRING value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_INamedNode_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CINamedNode_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IOrderedNode_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IOrderedNode_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIOrderedNode_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIOrderedNode_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IOrderedNode;
+EXTERN_C const IID IID___x_TestApp_CParity_CIOrderedNode;
 
 MIDL_INTERFACE("ce64bb93-f0ba-6958-a978-405b78147dcb")
-__x_TestApp_Parity_IOrderedNode : public IInspectable
+__x_TestApp_CParity_CIOrderedNode : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_SortOrder(/* [out, retval] */ int* value) = 0;
@@ -57,53 +57,53 @@ public:
     virtual HRESULT STDMETHODCALLTYPE MoveDown() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IOrderedNode_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIOrderedNode_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ITaggable_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ITaggable_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CITaggable_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CITaggable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ITaggable;
+EXTERN_C const IID IID___x_TestApp_CParity_CITaggable;
 
 MIDL_INTERFACE("e53ac807-649e-7858-968e-499ecfbd82ab")
-__x_TestApp_Parity_ITaggable : public IInspectable
+__x_TestApp_CParity_CITaggable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Tag(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_Tag(/* [in] */ HSTRING value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ITaggable_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CITaggable_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ICompositeNode_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ICompositeNode_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CICompositeNode_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CICompositeNode_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ICompositeNode;
+EXTERN_C const IID IID___x_TestApp_CParity_CICompositeNode;
 
 MIDL_INTERFACE("f138b823-678d-1b58-a902-93d1c48d5791")
-__x_TestApp_Parity_ICompositeNode : public IInspectable
+__x_TestApp_CParity_CICompositeNode : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_ChildCount(/* [out, retval] */ int* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE AddChild(/* [in] */ __x_TestApp_Parity_IBaseNode* child) = 0;
+    virtual HRESULT STDMETHODCALLTYPE AddChild(/* [in] */ __x_TestApp_CParity_CIBaseNode* child) = 0;
     virtual HRESULT STDMETHODCALLTYPE RemoveChild(/* [in] */ HSTRING id) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ICompositeNode_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CICompositeNode_INTERFACE_DEFINED__
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_TreeNode[] = L"TestApp.Parity.TreeNode";
 
-#ifndef ____x_TestApp_Parity_ITreeNodeFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ITreeNodeFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CITreeNodeFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CITreeNodeFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ITreeNodeFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CITreeNodeFactory;
 
 MIDL_INTERFACE("aa5aa597-99ef-fd50-80a5-299a8d668fcb")
-__x_TestApp_Parity_ITreeNodeFactory : public IInspectable
+__x_TestApp_CParity_CITreeNodeFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING id, /* [out, retval] */ TreeNode* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ITreeNodeFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CITreeNodeFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

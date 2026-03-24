@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IArrayParamWidget __x_TestApp_Parity_IArrayParamWidget;
+typedef interface __x_TestApp_CParity_CIArrayParamWidget __x_TestApp_CParity_CIArrayParamWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ArrayParamWidget[] = L"TestApp.Parity.ArrayParamWidget";
 
-#ifndef ____x_TestApp_Parity_IArrayParamWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IArrayParamWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIArrayParamWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIArrayParamWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IArrayParamWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIArrayParamWidget;
 
 MIDL_INTERFACE("db459590-48ce-f658-b501-3dcb99d9e1cc")
-__x_TestApp_Parity_IArrayParamWidget : public IInspectable
+__x_TestApp_CParity_CIArrayParamWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE ProcessIds(/* [in] */ int ids) = 0;
@@ -26,6 +26,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE GetLabels(/* [out, retval] */ HSTRING* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IArrayParamWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIArrayParamWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

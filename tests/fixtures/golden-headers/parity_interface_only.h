@@ -5,17 +5,17 @@
 #define __TestApp_Parity_InterfaceOnly_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_InterfaceOnly_IReader __x_TestApp_Parity_InterfaceOnly_IReader;
-typedef interface __x_TestApp_Parity_InterfaceOnly_IWriter __x_TestApp_Parity_InterfaceOnly_IWriter;
-typedef interface __x_TestApp_Parity_InterfaceOnly_IReaderWriter __x_TestApp_Parity_InterfaceOnly_IReaderWriter;
+typedef interface __x_TestApp_CParity_CInterfaceOnly_CIReader __x_TestApp_CParity_CInterfaceOnly_CIReader;
+typedef interface __x_TestApp_CParity_CInterfaceOnly_CIWriter __x_TestApp_CParity_CInterfaceOnly_CIWriter;
+typedef interface __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter;
 
-#ifndef ____x_TestApp_Parity_InterfaceOnly_IReader_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_InterfaceOnly_IReader_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CInterfaceOnly_CIReader_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CInterfaceOnly_CIReader_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_InterfaceOnly_IReader;
+EXTERN_C const IID IID___x_TestApp_CParity_CInterfaceOnly_CIReader;
 
 MIDL_INTERFACE("34055bbb-284c-5a5f-917a-28ce9a790e23")
-__x_TestApp_Parity_InterfaceOnly_IReader : public IInspectable
+__x_TestApp_CParity_CInterfaceOnly_CIReader : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Read(/* [out, retval] */ HSTRING* returnValue) = 0;
@@ -23,15 +23,15 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_CanRead(/* [out, retval] */ ::boolean* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_InterfaceOnly_IReader_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CInterfaceOnly_CIReader_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_InterfaceOnly_IWriter_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_InterfaceOnly_IWriter_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CInterfaceOnly_CIWriter_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CInterfaceOnly_CIWriter_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_InterfaceOnly_IWriter;
+EXTERN_C const IID IID___x_TestApp_CParity_CInterfaceOnly_CIWriter;
 
 MIDL_INTERFACE("c7f0e948-e159-b65b-a5f8-8b9caacc6eb1")
-__x_TestApp_Parity_InterfaceOnly_IWriter : public IInspectable
+__x_TestApp_CParity_CInterfaceOnly_CIWriter : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Write(/* [in] */ HSTRING data) = 0;
@@ -39,15 +39,15 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_CanWrite(/* [out, retval] */ ::boolean* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_InterfaceOnly_IWriter_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CInterfaceOnly_CIWriter_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_InterfaceOnly_IReaderWriter_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_InterfaceOnly_IReaderWriter_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_InterfaceOnly_IReaderWriter;
+EXTERN_C const IID IID___x_TestApp_CParity_CInterfaceOnly_CIReaderWriter;
 
 MIDL_INTERFACE("3496dae9-2310-635c-85a0-450616ff5981")
-__x_TestApp_Parity_InterfaceOnly_IReaderWriter : public IInspectable
+__x_TestApp_CParity_CInterfaceOnly_CIReaderWriter : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Flush() = 0;
@@ -55,6 +55,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE put_Position(/* [in] */ int value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_InterfaceOnly_IReaderWriter_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_InterfaceOnly_h__

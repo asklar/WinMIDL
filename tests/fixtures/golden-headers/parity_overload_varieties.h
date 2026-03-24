@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IOverloadVarietyWidget __x_TestApp_Parity_IOverloadVarietyWidget;
+typedef interface __x_TestApp_CParity_CIOverloadVarietyWidget __x_TestApp_CParity_CIOverloadVarietyWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_OverloadVarietyWidget[] = L"TestApp.Parity.OverloadVarietyWidget";
 
-#ifndef ____x_TestApp_Parity_IOverloadVarietyWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IOverloadVarietyWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIOverloadVarietyWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIOverloadVarietyWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IOverloadVarietyWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIOverloadVarietyWidget;
 
 MIDL_INTERFACE("7fc294e1-474b-ae50-b803-fac6b764a8ae")
-__x_TestApp_Parity_IOverloadVarietyWidget : public IInspectable
+__x_TestApp_CParity_CIOverloadVarietyWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Process(/* [in] */ HSTRING data) = 0;
@@ -28,6 +28,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Configure(/* [in] */ HSTRING key, /* [in] */ HSTRING value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IOverloadVarietyWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIOverloadVarietyWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

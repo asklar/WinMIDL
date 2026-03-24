@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IMultiStaticServiceStatics __x_TestApp_Parity_IMultiStaticServiceStatics;
+typedef interface __x_TestApp_CParity_CIMultiStaticServiceStatics __x_TestApp_CParity_CIMultiStaticServiceStatics;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MultiStaticService[] = L"TestApp.Parity.MultiStaticService";
 
-#ifndef ____x_TestApp_Parity_IMultiStaticServiceStatics_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMultiStaticServiceStatics_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMultiStaticServiceStatics_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMultiStaticServiceStatics_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMultiStaticServiceStatics;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMultiStaticServiceStatics;
 
 MIDL_INTERFACE("59c82c4a-b07e-3651-929b-fb0f57cf2bf2")
-__x_TestApp_Parity_IMultiStaticServiceStatics : public IInspectable
+__x_TestApp_CParity_CIMultiStaticServiceStatics : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetVersion(/* [out, retval] */ HSTRING* returnValue) = 0;
@@ -26,6 +26,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(/* [out, retval] */ HSTRING* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMultiStaticServiceStatics_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMultiStaticServiceStatics_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

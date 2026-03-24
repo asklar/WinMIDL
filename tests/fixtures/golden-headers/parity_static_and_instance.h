@@ -5,19 +5,19 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IStaticInstanceWidget __x_TestApp_Parity_IStaticInstanceWidget;
-typedef interface __x_TestApp_Parity_IStaticInstanceWidgetFactory __x_TestApp_Parity_IStaticInstanceWidgetFactory;
-typedef interface __x_TestApp_Parity_IStaticInstanceWidgetStatics __x_TestApp_Parity_IStaticInstanceWidgetStatics;
+typedef interface __x_TestApp_CParity_CIStaticInstanceWidget __x_TestApp_CParity_CIStaticInstanceWidget;
+typedef interface __x_TestApp_CParity_CIStaticInstanceWidgetFactory __x_TestApp_CParity_CIStaticInstanceWidgetFactory;
+typedef interface __x_TestApp_CParity_CIStaticInstanceWidgetStatics __x_TestApp_CParity_CIStaticInstanceWidgetStatics;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_StaticInstanceWidget[] = L"TestApp.Parity.StaticInstanceWidget";
 
-#ifndef ____x_TestApp_Parity_IStaticInstanceWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IStaticInstanceWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIStaticInstanceWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIStaticInstanceWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IStaticInstanceWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIStaticInstanceWidget;
 
 MIDL_INTERFACE("32ca8bb1-920a-d654-953a-f7d354be2f41")
-__x_TestApp_Parity_IStaticInstanceWidget : public IInspectable
+__x_TestApp_CParity_CIStaticInstanceWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
@@ -26,35 +26,35 @@ public:
     virtual HRESULT STDMETHODCALLTYPE DoWork() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IStaticInstanceWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIStaticInstanceWidget_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IStaticInstanceWidgetFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IStaticInstanceWidgetFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIStaticInstanceWidgetFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIStaticInstanceWidgetFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IStaticInstanceWidgetFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIStaticInstanceWidgetFactory;
 
 MIDL_INTERFACE("dcb768f2-7290-f759-89ed-00468836cf65")
-__x_TestApp_Parity_IStaticInstanceWidgetFactory : public IInspectable
+__x_TestApp_CParity_CIStaticInstanceWidgetFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ StaticInstanceWidget* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IStaticInstanceWidgetFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIStaticInstanceWidgetFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IStaticInstanceWidgetStatics_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IStaticInstanceWidgetStatics_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIStaticInstanceWidgetStatics_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIStaticInstanceWidgetStatics_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IStaticInstanceWidgetStatics;
+EXTERN_C const IID IID___x_TestApp_CParity_CIStaticInstanceWidgetStatics;
 
 MIDL_INTERFACE("01fb0439-6fda-5954-b60b-fe64eb8bf0fe")
-__x_TestApp_Parity_IStaticInstanceWidgetStatics : public IInspectable
+__x_TestApp_CParity_CIStaticInstanceWidgetStatics : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetInstanceCount(/* [out, retval] */ int* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE ResetAll() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IStaticInstanceWidgetStatics_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIStaticInstanceWidgetStatics_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

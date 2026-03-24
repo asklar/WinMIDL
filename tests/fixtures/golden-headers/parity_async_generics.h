@@ -5,26 +5,26 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IAsyncGenericWidget __x_TestApp_Parity_IAsyncGenericWidget;
+typedef interface __x_TestApp_CParity_CIAsyncGenericWidget __x_TestApp_CParity_CIAsyncGenericWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_AsyncGenericWidget[] = L"TestApp.Parity.AsyncGenericWidget";
 
-#ifndef ____x_TestApp_Parity_IAsyncGenericWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IAsyncGenericWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIAsyncGenericWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIAsyncGenericWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IAsyncGenericWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAsyncGenericWidget;
 
 MIDL_INTERFACE("2c91d27a-ab65-0256-917d-364aae55bc2f")
-__x_TestApp_Parity_IAsyncGenericWidget : public IInspectable
+__x_TestApp_CParity_CIAsyncGenericWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE FetchAllNamesAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE FetchMappingsAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE FetchIdsAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE SyncAllAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncAction** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE ValidateAllAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE FetchAllNamesAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE FetchMappingsAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE FetchIdsAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE SyncAllAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ValidateAllAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IAsyncGenericWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIAsyncGenericWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

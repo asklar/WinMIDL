@@ -5,32 +5,32 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_INullableWidget __x_TestApp_Parity_INullableWidget;
+typedef interface __x_TestApp_CParity_CINullableWidget __x_TestApp_CParity_CINullableWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_NullableWidget[] = L"TestApp.Parity.NullableWidget";
 
-#ifndef ____x_TestApp_Parity_INullableWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_INullableWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CINullableWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CINullableWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_INullableWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CINullableWidget;
 
 MIDL_INTERFACE("c3fd1b3f-b2ec-7251-af23-87f29ae35b7c")
-__x_TestApp_Parity_INullableWidget : public IInspectable
+__x_TestApp_CParity_CINullableWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_NullableInt(/* [out, retval] */ __x_Windows_Foundation_IReference** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_NullableInt(/* [in] */ __x_Windows_Foundation_IReference* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_NullableBool(/* [out, retval] */ __x_Windows_Foundation_IReference** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_NullableBool(/* [in] */ __x_Windows_Foundation_IReference* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_NullableDouble(/* [out, retval] */ __x_Windows_Foundation_IReference** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_NullableDouble(/* [in] */ __x_Windows_Foundation_IReference* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_NullableSingle(/* [out, retval] */ __x_Windows_Foundation_IReference** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_NullableSingle(/* [in] */ __x_Windows_Foundation_IReference* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_NullableGuid(/* [out, retval] */ __x_Windows_Foundation_IReference** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE SetNullableValue(/* [in] */ __x_Windows_Foundation_IReference* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetNullableValue(/* [out, retval] */ __x_Windows_Foundation_IReference** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_NullableInt(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_NullableInt(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_NullableBool(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_NullableBool(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_NullableDouble(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_NullableDouble(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_NullableSingle(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE put_NullableSingle(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_NullableGuid(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE SetNullableValue(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetNullableValue(/* [out, retval] */ __x_Windows_CFoundation_CIReference** returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_INullableWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CINullableWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

@@ -5,14 +5,14 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IComposableWidget __x_TestApp_Parity_IComposableWidget;
-typedef interface __x_TestApp_Parity_IComposableWidgetFactory __x_TestApp_Parity_IComposableWidgetFactory;
-typedef interface __x_TestApp_Parity_IComposableWidgetOverrides __x_TestApp_Parity_IComposableWidgetOverrides;
-typedef interface __x_TestApp_Parity_IMiddleComposable __x_TestApp_Parity_IMiddleComposable;
-typedef interface __x_TestApp_Parity_IMiddleComposableFactory __x_TestApp_Parity_IMiddleComposableFactory;
-typedef interface __x_TestApp_Parity_IMiddleComposableOverrides __x_TestApp_Parity_IMiddleComposableOverrides;
-typedef interface __x_TestApp_Parity_IFinalComposable __x_TestApp_Parity_IFinalComposable;
-typedef interface __x_TestApp_Parity_IFinalComposableFactory __x_TestApp_Parity_IFinalComposableFactory;
+typedef interface __x_TestApp_CParity_CIComposableWidget __x_TestApp_CParity_CIComposableWidget;
+typedef interface __x_TestApp_CParity_CIComposableWidgetFactory __x_TestApp_CParity_CIComposableWidgetFactory;
+typedef interface __x_TestApp_CParity_CIComposableWidgetOverrides __x_TestApp_CParity_CIComposableWidgetOverrides;
+typedef interface __x_TestApp_CParity_CIMiddleComposable __x_TestApp_CParity_CIMiddleComposable;
+typedef interface __x_TestApp_CParity_CIMiddleComposableFactory __x_TestApp_CParity_CIMiddleComposableFactory;
+typedef interface __x_TestApp_CParity_CIMiddleComposableOverrides __x_TestApp_CParity_CIMiddleComposableOverrides;
+typedef interface __x_TestApp_CParity_CIFinalComposable __x_TestApp_CParity_CIFinalComposable;
+typedef interface __x_TestApp_CParity_CIFinalComposableFactory __x_TestApp_CParity_CIFinalComposableFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableWidget[] = L"TestApp.Parity.ComposableWidget";
 
@@ -20,118 +20,118 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FinalComposable[] = L"TestApp.Parity.FinalComposable";
 
-#ifndef ____x_TestApp_Parity_IComposableWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IComposableWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIComposableWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIComposableWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IComposableWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidget;
 
 MIDL_INTERFACE("943c42d9-c53b-2956-aeab-53316fe8f0fc")
-__x_TestApp_Parity_IComposableWidget : public IInspectable
+__x_TestApp_CParity_CIComposableWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IComposableWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIComposableWidget_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IComposableWidgetFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IComposableWidgetFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIComposableWidgetFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIComposableWidgetFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IComposableWidgetFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetFactory;
 
 MIDL_INTERFACE("66fdcd34-ce92-fd51-be00-595412aabd22")
-__x_TestApp_Parity_IComposableWidgetFactory : public IInspectable
+__x_TestApp_CParity_CIComposableWidgetFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ ComposableWidget* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IComposableWidgetFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIComposableWidgetFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IComposableWidgetOverrides_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IComposableWidgetOverrides_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIComposableWidgetOverrides_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIComposableWidgetOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IComposableWidgetOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetOverrides;
 
 MIDL_INTERFACE("e875eb54-f800-d358-86e0-3c684b46aaf0")
-__x_TestApp_Parity_IComposableWidgetOverrides : public IInspectable
+__x_TestApp_CParity_CIComposableWidgetOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE OnActivated() = 0;
     virtual HRESULT STDMETHODCALLTYPE CanActivate(/* [out, retval] */ ::boolean* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IComposableWidgetOverrides_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIComposableWidgetOverrides_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMiddleComposable_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMiddleComposable_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMiddleComposable_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMiddleComposable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMiddleComposable;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposable;
 
 MIDL_INTERFACE("6016f85d-6957-4556-91eb-a8d9e1ea4cea")
-__x_TestApp_Parity_IMiddleComposable : public IInspectable
+__x_TestApp_CParity_CIMiddleComposable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMiddleComposable_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMiddleComposable_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMiddleComposableFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMiddleComposableFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMiddleComposableFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMiddleComposableFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMiddleComposableFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableFactory;
 
 MIDL_INTERFACE("f1051b29-8aaf-4b56-8e16-d82c462dedff")
-__x_TestApp_Parity_IMiddleComposableFactory : public IInspectable
+__x_TestApp_CParity_CIMiddleComposableFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ MiddleComposable* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMiddleComposableFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMiddleComposableFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMiddleComposableOverrides_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMiddleComposableOverrides_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMiddleComposableOverrides_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMiddleComposableOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMiddleComposableOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableOverrides;
 
 MIDL_INTERFACE("c4398ed6-ef3e-735b-832b-2698957afa5a")
-__x_TestApp_Parity_IMiddleComposableOverrides : public IInspectable
+__x_TestApp_CParity_CIMiddleComposableOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE OnPriorityChanged() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMiddleComposableOverrides_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMiddleComposableOverrides_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IFinalComposable_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IFinalComposable_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIFinalComposable_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIFinalComposable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IFinalComposable;
+EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposable;
 
 MIDL_INTERFACE("7a732a7b-d36b-a151-bf52-2d4bc1396a34")
-__x_TestApp_Parity_IFinalComposable : public IInspectable
+__x_TestApp_CParity_CIFinalComposable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_IsReady(/* [out, retval] */ ::boolean* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IFinalComposable_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIFinalComposable_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IFinalComposableFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IFinalComposableFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIFinalComposableFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIFinalComposableFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IFinalComposableFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposableFactory;
 
 MIDL_INTERFACE("0c9ad8fa-3d98-2554-b7a5-b7a4be470f7f")
-__x_TestApp_Parity_IFinalComposableFactory : public IInspectable
+__x_TestApp_CParity_CIFinalComposableFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ FinalComposable* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [in] */ int priority, /* [out, retval] */ FinalComposable* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IFinalComposableFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIFinalComposableFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

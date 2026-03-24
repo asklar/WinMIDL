@@ -28,7 +28,7 @@ public partial class IidEmitterPatchTests
         var compilation = CompilationHelper.Compile(source);
         var output = _emitter.Emit(compilation);
 
-        Assert.Contains("IID___x_TestNs_IFoo", output);
+        Assert.Contains("IID___x_TestNs_CIFoo", output);
         Assert.Contains("const IID", output);
     }
 
@@ -90,7 +90,7 @@ public partial class IidEmitterPatchTests
         var compilation = CompilationHelper.Compile(source);
         var output = _emitter.Emit(compilation);
 
-        Assert.Contains("IID___x_TestNs_MyHandler", output);
+        Assert.Contains("IID___x_TestNs_CMyHandler", output);
         Assert.Contains("const IID", output);
     }
 
@@ -131,7 +131,7 @@ public partial class IidEmitterPatchTests
         var output = _emitter.Emit(compilation);
 
         // Mangled name replaces dots with underscores and prefixes __x_
-        Assert.Contains("IID___x_Deep_Nested_Ns_IDeep", output);
+        Assert.Contains("IID___x_Deep_CNested_CNs_CIDeep", output);
     }
 
     [Fact]

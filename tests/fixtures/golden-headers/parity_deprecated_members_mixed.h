@@ -5,31 +5,31 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IDeprecatedMembersWidget __x_TestApp_Parity_IDeprecatedMembersWidget;
+typedef interface __x_TestApp_CParity_CIDeprecatedMembersWidget __x_TestApp_CParity_CIDeprecatedMembersWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DeprecatedMembersWidget[] = L"TestApp.Parity.DeprecatedMembersWidget";
 
-#ifndef ____x_TestApp_Parity_IDeprecatedMembersWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDeprecatedMembersWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDeprecatedMembersWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDeprecatedMembersWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDeprecatedMembersWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedMembersWidget;
 
 MIDL_INTERFACE("928580b9-2644-615b-9282-9d156894044d")
-__x_TestApp_Parity_IDeprecatedMembersWidget : public IInspectable
+__x_TestApp_CParity_CIDeprecatedMembersWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CurrentMethod() = 0;
     virtual HRESULT STDMETHODCALLTYPE LegacyMethod() = 0;
     virtual HRESULT STDMETHODCALLTYPE get_CurrentCount(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_OldCount(/* [out, retval] */ int* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_CurrentEvent(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_CurrentEvent(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_CurrentEvent(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_OldEvent(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_OldEvent(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_OldEvent(/* [in] */ EventRegistrationToken token) = 0;
     virtual HRESULT STDMETHODCALLTYPE V2Method() = 0;
     virtual HRESULT STDMETHODCALLTYPE V2OldMethod() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDeprecatedMembersWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDeprecatedMembersWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

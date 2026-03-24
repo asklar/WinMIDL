@@ -5,9 +5,9 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IEmptyRuntimeClass __x_TestApp_Parity_IEmptyRuntimeClass;
-typedef interface __x_TestApp_Parity_IEmptyWithLabel __x_TestApp_Parity_IEmptyWithLabel;
-typedef interface __x_TestApp_Parity_IEmptyStaticClassStatics __x_TestApp_Parity_IEmptyStaticClassStatics;
+typedef interface __x_TestApp_CParity_CIEmptyRuntimeClass __x_TestApp_CParity_CIEmptyRuntimeClass;
+typedef interface __x_TestApp_CParity_CIEmptyWithLabel __x_TestApp_CParity_CIEmptyWithLabel;
+typedef interface __x_TestApp_CParity_CIEmptyStaticClassStatics __x_TestApp_CParity_CIEmptyStaticClassStatics;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EmptyRuntimeClass[] = L"TestApp.Parity.EmptyRuntimeClass";
 
@@ -25,45 +25,45 @@ enum MinimalEnum
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EmptyStaticClass[] = L"TestApp.Parity.EmptyStaticClass";
 
-#ifndef ____x_TestApp_Parity_IEmptyRuntimeClass_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IEmptyRuntimeClass_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIEmptyRuntimeClass_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIEmptyRuntimeClass_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IEmptyRuntimeClass;
+EXTERN_C const IID IID___x_TestApp_CParity_CIEmptyRuntimeClass;
 
 MIDL_INTERFACE("b7a2d74d-7fcc-055f-acde-9e8cdfe5848f")
-__x_TestApp_Parity_IEmptyRuntimeClass : public IInspectable
+__x_TestApp_CParity_CIEmptyRuntimeClass : public IInspectable
 {
 public:
 };
 
-#endif // ____x_TestApp_Parity_IEmptyRuntimeClass_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIEmptyRuntimeClass_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IEmptyWithLabel_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IEmptyWithLabel_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIEmptyWithLabel_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIEmptyWithLabel_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IEmptyWithLabel;
+EXTERN_C const IID IID___x_TestApp_CParity_CIEmptyWithLabel;
 
 MIDL_INTERFACE("a9be5911-8fb9-955f-b4f2-17cb9d6a9401")
-__x_TestApp_Parity_IEmptyWithLabel : public IInspectable
+__x_TestApp_CParity_CIEmptyWithLabel : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IEmptyWithLabel_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIEmptyWithLabel_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IEmptyStaticClassStatics_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IEmptyStaticClassStatics_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIEmptyStaticClassStatics_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIEmptyStaticClassStatics_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IEmptyStaticClassStatics;
+EXTERN_C const IID IID___x_TestApp_CParity_CIEmptyStaticClassStatics;
 
 MIDL_INTERFACE("c7e4237f-f910-a95a-a631-a1910bf33274")
-__x_TestApp_Parity_IEmptyStaticClassStatics : public IInspectable
+__x_TestApp_CParity_CIEmptyStaticClassStatics : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Noop() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IEmptyStaticClassStatics_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIEmptyStaticClassStatics_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

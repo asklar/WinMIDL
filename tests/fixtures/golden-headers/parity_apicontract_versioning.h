@@ -5,10 +5,10 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IApiEndpoint __x_TestApp_Parity_IApiEndpoint;
-typedef interface __x_TestApp_Parity_IApiService __x_TestApp_Parity_IApiService;
-typedef interface __x_TestApp_Parity_IApiServiceStatics __x_TestApp_Parity_IApiServiceStatics;
-typedef interface __x_TestApp_Parity_ISecondaryService __x_TestApp_Parity_ISecondaryService;
+typedef interface __x_TestApp_CParity_CIApiEndpoint __x_TestApp_CParity_CIApiEndpoint;
+typedef interface __x_TestApp_CParity_CIApiService __x_TestApp_CParity_CIApiService;
+typedef interface __x_TestApp_CParity_CIApiServiceStatics __x_TestApp_CParity_CIApiServiceStatics;
+typedef interface __x_TestApp_CParity_CISecondaryService __x_TestApp_CParity_CISecondaryService;
 
 enum ApiStatus
 {
@@ -24,82 +24,82 @@ struct ApiSettings
     ::boolean Debug;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ApiCallback;
+EXTERN_C const IID IID___x_TestApp_CParity_CApiCallback;
 
 MIDL_INTERFACE("198121d7-650c-735a-a2ba-fa8368bf1679")
-__x_TestApp_Parity_ApiCallback : public IUnknown
+__x_TestApp_CParity_CApiCallback : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING result) = 0;
 };
 
-#ifndef ____x_TestApp_Parity_IApiEndpoint_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IApiEndpoint_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIApiEndpoint_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIApiEndpoint_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IApiEndpoint;
+EXTERN_C const IID IID___x_TestApp_CParity_CIApiEndpoint;
 
 MIDL_INTERFACE("226f74ee-a02e-4e51-9e7c-bd426a25302c")
-__x_TestApp_Parity_IApiEndpoint : public IInspectable
+__x_TestApp_CParity_CIApiEndpoint : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Url(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Connect() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IApiEndpoint_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIApiEndpoint_INTERFACE_DEFINED__
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ApiService[] = L"TestApp.Parity.ApiService";
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_SecondaryService[] = L"TestApp.Parity.SecondaryService";
 
-#ifndef ____x_TestApp_Parity_IApiService_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IApiService_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIApiService_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIApiService_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IApiService;
+EXTERN_C const IID IID___x_TestApp_CParity_CIApiService;
 
 MIDL_INTERFACE("d1e45c1c-bbc1-675e-949a-1c44516d9019")
-__x_TestApp_Parity_IApiService : public IInspectable
+__x_TestApp_CParity_CIApiService : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_ServiceName(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Start() = 0;
     virtual HRESULT STDMETHODCALLTYPE get_ConnectionCount(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Restart() = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_Restarted(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_Restarted(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Restarted(/* [in] */ EventRegistrationToken token) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_IsHealthy(/* [out, retval] */ ::boolean* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetStatus(/* [out, retval] */ ApiStatus* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IApiService_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIApiService_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IApiServiceStatics_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IApiServiceStatics_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIApiServiceStatics_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIApiServiceStatics_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IApiServiceStatics;
+EXTERN_C const IID IID___x_TestApp_CParity_CIApiServiceStatics;
 
 MIDL_INTERFACE("e63d6f86-7abe-d05a-a55c-55cbb7405f47")
-__x_TestApp_Parity_IApiServiceStatics : public IInspectable
+__x_TestApp_CParity_CIApiServiceStatics : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateWithSettings(/* [in] */ ApiSettings settings, /* [out, retval] */ ApiService* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IApiServiceStatics_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIApiServiceStatics_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ISecondaryService_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ISecondaryService_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CISecondaryService_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CISecondaryService_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ISecondaryService;
+EXTERN_C const IID IID___x_TestApp_CParity_CISecondaryService;
 
 MIDL_INTERFACE("60b7502e-f8d3-c05b-afab-bcee3fb71e30")
-__x_TestApp_Parity_ISecondaryService : public IInspectable
+__x_TestApp_CParity_CISecondaryService : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Execute() = 0;
     virtual HRESULT STDMETHODCALLTYPE get_Result(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ISecondaryService_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CISecondaryService_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

@@ -5,18 +5,18 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IVersionedService __x_TestApp_Parity_IVersionedService;
-typedef interface __x_TestApp_Parity_IVersionedServiceFactory __x_TestApp_Parity_IVersionedServiceFactory;
+typedef interface __x_TestApp_CParity_CIVersionedService __x_TestApp_CParity_CIVersionedService;
+typedef interface __x_TestApp_CParity_CIVersionedServiceFactory __x_TestApp_CParity_CIVersionedServiceFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_VersionedService[] = L"TestApp.Parity.VersionedService";
 
-#ifndef ____x_TestApp_Parity_IVersionedService_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IVersionedService_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIVersionedService_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIVersionedService_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IVersionedService;
+EXTERN_C const IID IID___x_TestApp_CParity_CIVersionedService;
 
 MIDL_INTERFACE("6d8e0e36-81a6-0c57-b7e4-d4460ba03b30")
-__x_TestApp_Parity_IVersionedService : public IInspectable
+__x_TestApp_CParity_CIVersionedService : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetName(/* [out, retval] */ HSTRING* returnValue) = 0;
@@ -27,20 +27,20 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Restart() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IVersionedService_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIVersionedService_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IVersionedServiceFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IVersionedServiceFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIVersionedServiceFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIVersionedServiceFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IVersionedServiceFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIVersionedServiceFactory;
 
 MIDL_INTERFACE("fc929dea-60c1-655e-8c97-e6fe9ae77806")
-__x_TestApp_Parity_IVersionedServiceFactory : public IInspectable
+__x_TestApp_CParity_CIVersionedServiceFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ VersionedService* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IVersionedServiceFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIVersionedServiceFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

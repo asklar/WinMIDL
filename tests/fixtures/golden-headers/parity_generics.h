@@ -5,26 +5,26 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IGenericConsumer __x_TestApp_Parity_IGenericConsumer;
+typedef interface __x_TestApp_CParity_CIGenericConsumer __x_TestApp_CParity_CIGenericConsumer;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_GenericConsumer[] = L"TestApp.Parity.GenericConsumer";
 
-#ifndef ____x_TestApp_Parity_IGenericConsumer_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IGenericConsumer_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIGenericConsumer_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIGenericConsumer_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IGenericConsumer;
+EXTERN_C const IID IID___x_TestApp_CParity_CIGenericConsumer;
 
 MIDL_INTERFACE("a63e8142-bcdc-2d56-bd2e-1b76c2f0ebb8")
-__x_TestApp_Parity_IGenericConsumer : public IInspectable
+__x_TestApp_CParity_CIGenericConsumer : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE GetNames(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetIds(/* [out, retval] */ __x_Windows_Foundation_Collections_IVectorView** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetMetadata(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE ValidateAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE EnumerateItems(/* [out, retval] */ __x_Windows_Foundation_Collections_IIterable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetIds(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetMetadata(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ValidateAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE EnumerateItems(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IGenericConsumer_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIGenericConsumer_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

@@ -5,7 +5,7 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IDelegateReturnWidget __x_TestApp_Parity_IDelegateReturnWidget;
+typedef interface __x_TestApp_CParity_CIDelegateReturnWidget __x_TestApp_CParity_CIDelegateReturnWidget;
 
 struct DelegateResult
 {
@@ -13,55 +13,55 @@ struct DelegateResult
     int Code;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_StringRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CStringRequestHandler;
 
 MIDL_INTERFACE("d31c7e55-2d93-465d-babd-94411aaa2cf1")
-__x_TestApp_Parity_StringRequestHandler : public IUnknown
+__x_TestApp_CParity_CStringRequestHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ HSTRING* result) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_IntRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CIntRequestHandler;
 
 MIDL_INTERFACE("5253ea58-e76e-7150-b488-d17a658cabdb")
-__x_TestApp_Parity_IntRequestHandler : public IUnknown
+__x_TestApp_CParity_CIntRequestHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ int* result) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_BoolRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CBoolRequestHandler;
 
 MIDL_INTERFACE("0c5fb1b6-d2dd-a55d-a723-5c1ceddb2c97")
-__x_TestApp_Parity_BoolRequestHandler : public IUnknown
+__x_TestApp_CParity_CBoolRequestHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ ::boolean* result) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_DoubleRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CDoubleRequestHandler;
 
 MIDL_INTERFACE("f9928da0-1dbb-7351-968b-fbe483076775")
-__x_TestApp_Parity_DoubleRequestHandler : public IUnknown
+__x_TestApp_CParity_CDoubleRequestHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ double* result) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ResultRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CResultRequestHandler;
 
 MIDL_INTERFACE("bd0253c0-cd8a-9f58-9ef4-1d02797a2e26")
-__x_TestApp_Parity_ResultRequestHandler : public IUnknown
+__x_TestApp_CParity_CResultRequestHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ DelegateResult* result) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_FactoryHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CFactoryHandler;
 
 MIDL_INTERFACE("e918ddd0-0d28-235a-be07-1abe3e31572f")
-__x_TestApp_Parity_FactoryHandler : public IUnknown
+__x_TestApp_CParity_CFactoryHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [out] */ IInspectable** result) = 0;
@@ -69,21 +69,21 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DelegateReturnWidget[] = L"TestApp.Parity.DelegateReturnWidget";
 
-#ifndef ____x_TestApp_Parity_IDelegateReturnWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDelegateReturnWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDelegateReturnWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDelegateReturnWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDelegateReturnWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDelegateReturnWidget;
 
 MIDL_INTERFACE("a49e14cf-792e-575a-a2bb-c5c0586aa60d")
-__x_TestApp_Parity_IDelegateReturnWidget : public IInspectable
+__x_TestApp_CParity_CIDelegateReturnWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE add_NameRequested(/* [in] */ __x_TestApp_Parity_StringRequestHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_NameRequested(/* [in] */ __x_TestApp_CParity_CStringRequestHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_NameRequested(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_ConfirmationRequested(/* [in] */ __x_TestApp_Parity_BoolRequestHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_ConfirmationRequested(/* [in] */ __x_TestApp_CParity_CBoolRequestHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_ConfirmationRequested(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDelegateReturnWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDelegateReturnWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

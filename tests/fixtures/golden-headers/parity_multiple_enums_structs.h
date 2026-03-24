@@ -5,7 +5,7 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IShapeFactory __x_TestApp_Parity_IShapeFactory;
+typedef interface __x_TestApp_CParity_CIShapeFactory __x_TestApp_CParity_CIShapeFactory;
 
 enum Color
 {
@@ -54,13 +54,13 @@ struct ColoredRect
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ShapeFactory[] = L"TestApp.Parity.ShapeFactory";
 
-#ifndef ____x_TestApp_Parity_IShapeFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IShapeFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIShapeFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIShapeFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IShapeFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIShapeFactory;
 
 MIDL_INTERFACE("2d36e954-cdfc-c65d-9eb5-fac0e0e3f542")
-__x_TestApp_Parity_IShapeFactory : public IInspectable
+__x_TestApp_CParity_CIShapeFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreatePoint(/* [in] */ float x, /* [in] */ float y, /* [out, retval] */ Point2D* returnValue) = 0;
@@ -69,6 +69,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE CreateColoredRect(/* [in] */ Rectangle rect, /* [in] */ Color fill, /* [in] */ Color border, /* [out, retval] */ ColoredRect* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IShapeFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIShapeFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

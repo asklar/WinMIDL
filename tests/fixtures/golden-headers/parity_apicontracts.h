@@ -5,18 +5,18 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IContractedWidget __x_TestApp_Parity_IContractedWidget;
-typedef interface __x_TestApp_Parity_IContractedWidgetStatics __x_TestApp_Parity_IContractedWidgetStatics;
+typedef interface __x_TestApp_CParity_CIContractedWidget __x_TestApp_CParity_CIContractedWidget;
+typedef interface __x_TestApp_CParity_CIContractedWidgetStatics __x_TestApp_CParity_CIContractedWidgetStatics;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ContractedWidget[] = L"TestApp.Parity.ContractedWidget";
 
-#ifndef ____x_TestApp_Parity_IContractedWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IContractedWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIContractedWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIContractedWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IContractedWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIContractedWidget;
 
 MIDL_INTERFACE("5f8fca8e-da03-5a5d-a6ac-d6b668bf0603")
-__x_TestApp_Parity_IContractedWidget : public IInspectable
+__x_TestApp_CParity_CIContractedWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
@@ -24,20 +24,20 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_NewProperty(/* [out, retval] */ ::boolean* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IContractedWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIContractedWidget_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IContractedWidgetStatics_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IContractedWidgetStatics_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIContractedWidgetStatics_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIContractedWidgetStatics_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IContractedWidgetStatics;
+EXTERN_C const IID IID___x_TestApp_CParity_CIContractedWidgetStatics;
 
 MIDL_INTERFACE("7430176e-49f9-b556-8518-980eac60fb9e")
-__x_TestApp_Parity_IContractedWidgetStatics : public IInspectable
+__x_TestApp_CParity_CIContractedWidgetStatics : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Create(/* [in] */ HSTRING name, /* [out, retval] */ ContractedWidget* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IContractedWidgetStatics_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIContractedWidgetStatics_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

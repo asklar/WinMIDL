@@ -5,20 +5,20 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IDefaultIfaceWidget1 __x_TestApp_Parity_IDefaultIfaceWidget1;
-typedef interface __x_TestApp_Parity_IDefaultIfaceWidget2 __x_TestApp_Parity_IDefaultIfaceWidget2;
+typedef interface __x_TestApp_CParity_CIDefaultIfaceWidget1 __x_TestApp_CParity_CIDefaultIfaceWidget1;
+typedef interface __x_TestApp_CParity_CIDefaultIfaceWidget2 __x_TestApp_CParity_CIDefaultIfaceWidget2;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DefaultIfaceWidget1[] = L"TestApp.Parity.DefaultIfaceWidget1";
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DefaultIfaceWidget2[] = L"TestApp.Parity.DefaultIfaceWidget2";
 
-#ifndef ____x_TestApp_Parity_IDefaultIfaceWidget1_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDefaultIfaceWidget1_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDefaultIfaceWidget1_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDefaultIfaceWidget1_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDefaultIfaceWidget1;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDefaultIfaceWidget1;
 
 MIDL_INTERFACE("fa6c9bc8-514f-775d-8ad1-bb8273d1bfa6")
-__x_TestApp_Parity_IDefaultIfaceWidget1 : public IInspectable
+__x_TestApp_CParity_CIDefaultIfaceWidget1 : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
@@ -27,15 +27,15 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Refresh() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDefaultIfaceWidget1_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDefaultIfaceWidget1_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IDefaultIfaceWidget2_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDefaultIfaceWidget2_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDefaultIfaceWidget2_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDefaultIfaceWidget2_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDefaultIfaceWidget2;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDefaultIfaceWidget2;
 
 MIDL_INTERFACE("aeb9ff35-ff40-7c58-b245-cb0315fa377d")
-__x_TestApp_Parity_IDefaultIfaceWidget2 : public IInspectable
+__x_TestApp_CParity_CIDefaultIfaceWidget2 : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
@@ -44,6 +44,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_Running(/* [out, retval] */ ::boolean* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDefaultIfaceWidget2_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDefaultIfaceWidget2_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

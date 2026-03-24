@@ -5,21 +5,21 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IEventSourceImpl __x_TestApp_Parity_IEventSourceImpl;
+typedef interface __x_TestApp_CParity_CIEventSourceImpl __x_TestApp_CParity_CIEventSourceImpl;
 
-EXTERN_C const IID IID___x_TestApp_Parity_DataHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CDataHandler;
 
 MIDL_INTERFACE("cab755c5-0488-e859-bf04-769097f88947")
-__x_TestApp_Parity_DataHandler : public IUnknown
+__x_TestApp_CParity_CDataHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ IInspectable* sender, /* [in] */ HSTRING data) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ValidationHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CValidationHandler;
 
 MIDL_INTERFACE("26fce29d-fecf-9354-bc29-170c1283dcea")
-__x_TestApp_Parity_ValidationHandler : public IUnknown
+__x_TestApp_CParity_CValidationHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING input, /* [out] */ HSTRING* error, /* [out] */ ::boolean* isValid) = 0;
@@ -27,25 +27,25 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EventSourceImpl[] = L"TestApp.Parity.EventSourceImpl";
 
-#ifndef ____x_TestApp_Parity_IEventSourceImpl_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IEventSourceImpl_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIEventSourceImpl_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIEventSourceImpl_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IEventSourceImpl;
+EXTERN_C const IID IID___x_TestApp_CParity_CIEventSourceImpl;
 
 MIDL_INTERFACE("df7a1208-3a7f-5b56-b017-f1971f0f91e2")
-__x_TestApp_Parity_IEventSourceImpl : public IInspectable
+__x_TestApp_CParity_CIEventSourceImpl : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE SendData(/* [in] */ HSTRING data) = 0;
     virtual HRESULT STDMETHODCALLTYPE ReceiveData() = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_DataReceived(/* [in] */ __x_TestApp_Parity_DataHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_DataReceived(/* [in] */ __x_TestApp_CParity_CDataHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_DataReceived(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_DataSent(/* [in] */ __x_TestApp_Parity_DataHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_DataSent(/* [in] */ __x_TestApp_CParity_CDataHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_DataSent(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_StatusChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_StatusChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_StatusChanged(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IEventSourceImpl_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIEventSourceImpl_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

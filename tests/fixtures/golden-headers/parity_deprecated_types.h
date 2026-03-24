@@ -5,20 +5,20 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IDeprecatedInterface __x_TestApp_Parity_IDeprecatedInterface;
-typedef interface __x_TestApp_Parity_IDeprecatedWidget __x_TestApp_Parity_IDeprecatedWidget;
-typedef interface __x_TestApp_Parity_IMixedDeprecation __x_TestApp_Parity_IMixedDeprecation;
-typedef interface __x_TestApp_Parity_IRemovedService __x_TestApp_Parity_IRemovedService;
+typedef interface __x_TestApp_CParity_CIDeprecatedInterface __x_TestApp_CParity_CIDeprecatedInterface;
+typedef interface __x_TestApp_CParity_CIDeprecatedWidget __x_TestApp_CParity_CIDeprecatedWidget;
+typedef interface __x_TestApp_CParity_CIMixedDeprecation __x_TestApp_CParity_CIMixedDeprecation;
+typedef interface __x_TestApp_CParity_CIRemovedService __x_TestApp_CParity_CIRemovedService;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DeprecatedWidget[] = L"TestApp.Parity.DeprecatedWidget";
 
-#ifndef ____x_TestApp_Parity_IDeprecatedInterface_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDeprecatedInterface_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDeprecatedInterface_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDeprecatedInterface_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDeprecatedInterface;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedInterface;
 
 MIDL_INTERFACE("cca4fd3d-fcbf-435b-bde2-0f51e6e9f856")
-__x_TestApp_Parity_IDeprecatedInterface : public IInspectable
+__x_TestApp_CParity_CIDeprecatedInterface : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE OldMethod() = 0;
@@ -27,59 +27,59 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_NewProp(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDeprecatedInterface_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDeprecatedInterface_INTERFACE_DEFINED__
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MixedDeprecation[] = L"TestApp.Parity.MixedDeprecation";
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_RemovedService[] = L"TestApp.Parity.RemovedService";
 
-#ifndef ____x_TestApp_Parity_IDeprecatedWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDeprecatedWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDeprecatedWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDeprecatedWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDeprecatedWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedWidget;
 
 MIDL_INTERFACE("b057653a-3a72-1455-bc58-1109b2173d50")
-__x_TestApp_Parity_IDeprecatedWidget : public IInspectable
+__x_TestApp_CParity_CIDeprecatedWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDeprecatedWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDeprecatedWidget_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMixedDeprecation_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMixedDeprecation_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMixedDeprecation_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMixedDeprecation_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMixedDeprecation;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMixedDeprecation;
 
 MIDL_INTERFACE("60fac147-4fbb-3855-85f1-3b2cd0300cd1")
-__x_TestApp_Parity_IMixedDeprecation : public IInspectable
+__x_TestApp_CParity_CIMixedDeprecation : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetOldValue(/* [out, retval] */ int* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetNewValue(/* [out, retval] */ int* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_OldCount(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_NewCount(/* [out, retval] */ int* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_LegacyChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_LegacyChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_LegacyChanged(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_CurrentChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_CurrentChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_CurrentChanged(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMixedDeprecation_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMixedDeprecation_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IRemovedService_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IRemovedService_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIRemovedService_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIRemovedService_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IRemovedService;
+EXTERN_C const IID IID___x_TestApp_CParity_CIRemovedService;
 
 MIDL_INTERFACE("023d6bbb-773a-c75d-86e1-613497d86b5f")
-__x_TestApp_Parity_IRemovedService : public IInspectable
+__x_TestApp_CParity_CIRemovedService : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE DoWork() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IRemovedService_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIRemovedService_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

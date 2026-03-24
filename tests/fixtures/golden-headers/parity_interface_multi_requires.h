@@ -5,94 +5,94 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IReadable2 __x_TestApp_Parity_IReadable2;
-typedef interface __x_TestApp_Parity_IWritable2 __x_TestApp_Parity_IWritable2;
-typedef interface __x_TestApp_Parity_ISeekable __x_TestApp_Parity_ISeekable;
-typedef interface __x_TestApp_Parity_IClosable2 __x_TestApp_Parity_IClosable2;
-typedef interface __x_TestApp_Parity_IFullStream __x_TestApp_Parity_IFullStream;
-typedef interface __x_TestApp_Parity_IFullStream2 __x_TestApp_Parity_IFullStream2;
+typedef interface __x_TestApp_CParity_CIReadable2 __x_TestApp_CParity_CIReadable2;
+typedef interface __x_TestApp_CParity_CIWritable2 __x_TestApp_CParity_CIWritable2;
+typedef interface __x_TestApp_CParity_CISeekable __x_TestApp_CParity_CISeekable;
+typedef interface __x_TestApp_CParity_CIClosable2 __x_TestApp_CParity_CIClosable2;
+typedef interface __x_TestApp_CParity_CIFullStream __x_TestApp_CParity_CIFullStream;
+typedef interface __x_TestApp_CParity_CIFullStream2 __x_TestApp_CParity_CIFullStream2;
 
-#ifndef ____x_TestApp_Parity_IReadable2_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IReadable2_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIReadable2_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIReadable2_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IReadable2;
+EXTERN_C const IID IID___x_TestApp_CParity_CIReadable2;
 
 MIDL_INTERFACE("29657dd3-3c5a-9c51-a776-7baa844aae4e")
-__x_TestApp_Parity_IReadable2 : public IInspectable
+__x_TestApp_CParity_CIReadable2 : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Read(/* [out, retval] */ HSTRING* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IReadable2_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIReadable2_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IWritable2_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IWritable2_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIWritable2_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIWritable2_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IWritable2;
+EXTERN_C const IID IID___x_TestApp_CParity_CIWritable2;
 
 MIDL_INTERFACE("7c8757d9-4541-0154-be3d-74a2a00491e7")
-__x_TestApp_Parity_IWritable2 : public IInspectable
+__x_TestApp_CParity_CIWritable2 : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Write(/* [in] */ HSTRING data) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IWritable2_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIWritable2_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ISeekable_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ISeekable_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CISeekable_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CISeekable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ISeekable;
+EXTERN_C const IID IID___x_TestApp_CParity_CISeekable;
 
 MIDL_INTERFACE("983a1b1a-3670-be5f-9c5e-97ff90562b98")
-__x_TestApp_Parity_ISeekable : public IInspectable
+__x_TestApp_CParity_CISeekable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Seek(/* [in] */ int position) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_Position(/* [out, retval] */ int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ISeekable_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CISeekable_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IClosable2_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IClosable2_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIClosable2_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIClosable2_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IClosable2;
+EXTERN_C const IID IID___x_TestApp_CParity_CIClosable2;
 
 MIDL_INTERFACE("2e115f4a-ed3a-2e56-872e-d9c0b60ebca4")
-__x_TestApp_Parity_IClosable2 : public IInspectable
+__x_TestApp_CParity_CIClosable2 : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Close() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IClosable2_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIClosable2_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IFullStream_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IFullStream_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIFullStream_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIFullStream_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IFullStream;
+EXTERN_C const IID IID___x_TestApp_CParity_CIFullStream;
 
 MIDL_INTERFACE("97657964-066c-0053-a172-fdfb444e59c7")
-__x_TestApp_Parity_IFullStream : public IInspectable
+__x_TestApp_CParity_CIFullStream : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Length(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Flush() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IFullStream_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIFullStream_INTERFACE_DEFINED__
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FullStream[] = L"TestApp.Parity.FullStream";
 
-#ifndef ____x_TestApp_Parity_IFullStream2_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IFullStream2_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIFullStream2_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIFullStream2_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IFullStream2;
+EXTERN_C const IID IID___x_TestApp_CParity_CIFullStream2;
 
 MIDL_INTERFACE("91a2d8ac-a671-c959-8f77-f568fc3ea382")
-__x_TestApp_Parity_IFullStream2 : public IInspectable
+__x_TestApp_CParity_CIFullStream2 : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Read(/* [out, retval] */ HSTRING* returnValue) = 0;
@@ -103,6 +103,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Flush() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IFullStream2_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIFullStream2_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

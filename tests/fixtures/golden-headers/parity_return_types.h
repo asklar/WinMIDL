@@ -5,7 +5,7 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IReturnTypeWidget __x_TestApp_Parity_IReturnTypeWidget;
+typedef interface __x_TestApp_CParity_CIReturnTypeWidget __x_TestApp_CParity_CIReturnTypeWidget;
 
 struct ReturnData
 {
@@ -20,10 +20,10 @@ enum ReturnStatus
     ReturnStatus_Pending = 2,
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ReturnCallback;
+EXTERN_C const IID IID___x_TestApp_CParity_CReturnCallback;
 
 MIDL_INTERFACE("a3e955c6-d952-205e-92d6-dd4237fd02d1")
-__x_TestApp_Parity_ReturnCallback : public IUnknown
+__x_TestApp_CParity_CReturnCallback : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ ReturnData data) = 0;
@@ -31,22 +31,22 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ReturnTypeWidget[] = L"TestApp.Parity.ReturnTypeWidget";
 
-#ifndef ____x_TestApp_Parity_IReturnTypeWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IReturnTypeWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIReturnTypeWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIReturnTypeWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IReturnTypeWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIReturnTypeWidget;
 
 MIDL_INTERFACE("81344fca-1eab-0d5b-b245-8e305b2178ab")
-__x_TestApp_Parity_IReturnTypeWidget : public IInspectable
+__x_TestApp_CParity_CIReturnTypeWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetData(/* [out, retval] */ ReturnData* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetStatus(/* [out, retval] */ ReturnStatus* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetAllData(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetDataAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetStatusAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetAllData(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetDataAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetStatusAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IReturnTypeWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIReturnTypeWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

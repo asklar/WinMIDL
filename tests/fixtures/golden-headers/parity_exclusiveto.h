@@ -5,54 +5,54 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IExclusiveInternal __x_TestApp_Parity_IExclusiveInternal;
-typedef interface __x_TestApp_Parity_IExclusivePrivate __x_TestApp_Parity_IExclusivePrivate;
-typedef interface __x_TestApp_Parity_IExclusiveWidget __x_TestApp_Parity_IExclusiveWidget;
+typedef interface __x_TestApp_CParity_CIExclusiveInternal __x_TestApp_CParity_CIExclusiveInternal;
+typedef interface __x_TestApp_CParity_CIExclusivePrivate __x_TestApp_CParity_CIExclusivePrivate;
+typedef interface __x_TestApp_CParity_CIExclusiveWidget __x_TestApp_CParity_CIExclusiveWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ExclusiveWidget[] = L"TestApp.Parity.ExclusiveWidget";
 
-#ifndef ____x_TestApp_Parity_IExclusiveInternal_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IExclusiveInternal_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIExclusiveInternal_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIExclusiveInternal_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IExclusiveInternal;
+EXTERN_C const IID IID___x_TestApp_CParity_CIExclusiveInternal;
 
 MIDL_INTERFACE("02088cc8-dcd8-0d5f-b6b2-bcf500d1af3e")
-__x_TestApp_Parity_IExclusiveInternal : public IInspectable
+__x_TestApp_CParity_CIExclusiveInternal : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE InternalReset() = 0;
     virtual HRESULT STDMETHODCALLTYPE get_DebugId(/* [out, retval] */ int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IExclusiveInternal_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIExclusiveInternal_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IExclusivePrivate_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IExclusivePrivate_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIExclusivePrivate_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIExclusivePrivate_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IExclusivePrivate;
+EXTERN_C const IID IID___x_TestApp_CParity_CIExclusivePrivate;
 
 MIDL_INTERFACE("4a968d61-2e6d-7e52-9a91-4213b8b799ca")
-__x_TestApp_Parity_IExclusivePrivate : public IInspectable
+__x_TestApp_CParity_CIExclusivePrivate : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE SecretMethod() = 0;
     virtual HRESULT STDMETHODCALLTYPE get_SecretValue(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IExclusivePrivate_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIExclusivePrivate_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IExclusiveWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IExclusiveWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIExclusiveWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIExclusiveWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IExclusiveWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIExclusiveWidget;
 
 MIDL_INTERFACE("b2c3c7c3-720a-e85a-9014-6653cbddb0b2")
-__x_TestApp_Parity_IExclusiveWidget : public IInspectable
+__x_TestApp_CParity_CIExclusiveWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IExclusiveWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIExclusiveWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

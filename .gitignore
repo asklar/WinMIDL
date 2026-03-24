@@ -35,3 +35,6 @@ TestResults/
 !tests/fixtures/golden-headers/*.h
 *.c
 tests/golden/
+
+# Git worktrees
+.worktrees/

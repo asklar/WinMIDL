@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IMultiOutWidget __x_TestApp_Parity_IMultiOutWidget;
+typedef interface __x_TestApp_CParity_CIMultiOutWidget __x_TestApp_CParity_CIMultiOutWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MultiOutWidget[] = L"TestApp.Parity.MultiOutWidget";
 
-#ifndef ____x_TestApp_Parity_IMultiOutWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMultiOutWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMultiOutWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMultiOutWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMultiOutWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMultiOutWidget;
 
 MIDL_INTERFACE("5faafb35-773c-5c50-85ce-1f7046534e29")
-__x_TestApp_Parity_IMultiOutWidget : public IInspectable
+__x_TestApp_CParity_CIMultiOutWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetFullDetails(/* [out] */ HSTRING* name, /* [out] */ int* id, /* [out] */ ::boolean* active, /* [out] */ double* value, /* [out] */ float* ratio) = 0;
@@ -23,6 +23,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Decompose(/* [out] */ int* x, /* [out] */ int* y, /* [out] */ int* z) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMultiOutWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMultiOutWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

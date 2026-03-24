@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ICalculator __x_TestApp_Parity_ICalculator;
+typedef interface __x_TestApp_CParity_CICalculator __x_TestApp_CParity_CICalculator;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Calculator[] = L"TestApp.Parity.Calculator";
 
-#ifndef ____x_TestApp_Parity_ICalculator_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ICalculator_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CICalculator_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CICalculator_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ICalculator;
+EXTERN_C const IID IID___x_TestApp_CParity_CICalculator;
 
 MIDL_INTERFACE("72b27f7c-8394-495b-96b7-d33e4177fe1a")
-__x_TestApp_Parity_ICalculator : public IInspectable
+__x_TestApp_CParity_CICalculator : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Add(/* [in] */ int a, /* [in] */ int b, /* [out, retval] */ int* returnValue) = 0;
@@ -28,6 +28,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Parse(/* [in] */ HSTRING input, /* [in] */ int defaultVal, /* [out, retval] */ int* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ICalculator_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CICalculator_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

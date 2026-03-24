@@ -5,30 +5,30 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IEventPatternWidget __x_TestApp_Parity_IEventPatternWidget;
+typedef interface __x_TestApp_CParity_CIEventPatternWidget __x_TestApp_CParity_CIEventPatternWidget;
 
-EXTERN_C const IID IID___x_TestApp_Parity_StatusChangedHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CStatusChangedHandler;
 
 MIDL_INTERFACE("35f3a95c-b0d6-2250-89ca-e0218f0b14a5")
-__x_TestApp_Parity_StatusChangedHandler : public IUnknown
+__x_TestApp_CParity_CStatusChangedHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING status, /* [in] */ int code) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ErrorOccurredHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CErrorOccurredHandler;
 
 MIDL_INTERFACE("9d569519-a8bd-8e5f-a9e5-ca1b5055a805")
-__x_TestApp_Parity_ErrorOccurredHandler : public IUnknown
+__x_TestApp_CParity_CErrorOccurredHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING message, /* [in] */ ::boolean fatal) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ProgressHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CProgressHandler;
 
 MIDL_INTERFACE("330cb8ff-622a-b157-a5cf-3d0e4c9f32d2")
-__x_TestApp_Parity_ProgressHandler : public IUnknown
+__x_TestApp_CParity_CProgressHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ double percent, /* [in] */ HSTRING description) = 0;
@@ -36,27 +36,27 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EventPatternWidget[] = L"TestApp.Parity.EventPatternWidget";
 
-#ifndef ____x_TestApp_Parity_IEventPatternWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IEventPatternWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIEventPatternWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIEventPatternWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IEventPatternWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIEventPatternWidget;
 
 MIDL_INTERFACE("9af4a534-7f9c-a65a-a3e7-542e8989fbcf")
-__x_TestApp_Parity_IEventPatternWidget : public IInspectable
+__x_TestApp_CParity_CIEventPatternWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE add_StatusChanged(/* [in] */ __x_TestApp_Parity_StatusChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_StatusChanged(/* [in] */ __x_TestApp_CParity_CStatusChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_StatusChanged(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_ErrorOccurred(/* [in] */ __x_TestApp_Parity_ErrorOccurredHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_ErrorOccurred(/* [in] */ __x_TestApp_CParity_CErrorOccurredHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_ErrorOccurred(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_ProgressUpdated(/* [in] */ __x_TestApp_Parity_ProgressHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_ProgressUpdated(/* [in] */ __x_TestApp_CParity_CProgressHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_ProgressUpdated(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_GenericChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_GenericChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_GenericChanged(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_SimpleChanged(/* [in] */ __x_Windows_Foundation_EventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_SimpleChanged(/* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_SimpleChanged(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IEventPatternWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIEventPatternWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

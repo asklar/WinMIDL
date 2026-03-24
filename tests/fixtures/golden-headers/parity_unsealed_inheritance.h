@@ -5,14 +5,14 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IAnimal __x_TestApp_Parity_IAnimal;
-typedef interface __x_TestApp_Parity_IAnimalFactory __x_TestApp_Parity_IAnimalFactory;
-typedef interface __x_TestApp_Parity_IAnimalOverrides __x_TestApp_Parity_IAnimalOverrides;
-typedef interface __x_TestApp_Parity_IMammal __x_TestApp_Parity_IMammal;
-typedef interface __x_TestApp_Parity_IMammalFactory __x_TestApp_Parity_IMammalFactory;
-typedef interface __x_TestApp_Parity_IMammalOverrides __x_TestApp_Parity_IMammalOverrides;
-typedef interface __x_TestApp_Parity_IDog __x_TestApp_Parity_IDog;
-typedef interface __x_TestApp_Parity_IDogFactory __x_TestApp_Parity_IDogFactory;
+typedef interface __x_TestApp_CParity_CIAnimal __x_TestApp_CParity_CIAnimal;
+typedef interface __x_TestApp_CParity_CIAnimalFactory __x_TestApp_CParity_CIAnimalFactory;
+typedef interface __x_TestApp_CParity_CIAnimalOverrides __x_TestApp_CParity_CIAnimalOverrides;
+typedef interface __x_TestApp_CParity_CIMammal __x_TestApp_CParity_CIMammal;
+typedef interface __x_TestApp_CParity_CIMammalFactory __x_TestApp_CParity_CIMammalFactory;
+typedef interface __x_TestApp_CParity_CIMammalOverrides __x_TestApp_CParity_CIMammalOverrides;
+typedef interface __x_TestApp_CParity_CIDog __x_TestApp_CParity_CIDog;
+typedef interface __x_TestApp_CParity_CIDogFactory __x_TestApp_CParity_CIDogFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Animal[] = L"TestApp.Parity.Animal";
 
@@ -20,13 +20,13 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Dog[] = L"TestApp.Parity.Dog";
 
-#ifndef ____x_TestApp_Parity_IAnimal_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IAnimal_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIAnimal_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIAnimal_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IAnimal;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAnimal;
 
 MIDL_INTERFACE("72e918ce-e340-0e5f-be02-c8f35db5c43b")
-__x_TestApp_Parity_IAnimal : public IInspectable
+__x_TestApp_CParity_CIAnimal : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
@@ -34,86 +34,86 @@ public:
     virtual HRESULT STDMETHODCALLTYPE put_Age(/* [in] */ int value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IAnimal_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIAnimal_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IAnimalFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IAnimalFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIAnimalFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIAnimalFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IAnimalFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalFactory;
 
 MIDL_INTERFACE("419e6760-3da1-d45a-b205-2c1350aa93f6")
-__x_TestApp_Parity_IAnimalFactory : public IInspectable
+__x_TestApp_CParity_CIAnimalFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Animal* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IAnimalFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIAnimalFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IAnimalOverrides_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IAnimalOverrides_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIAnimalOverrides_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIAnimalOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IAnimalOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalOverrides;
 
 MIDL_INTERFACE("e88d18d2-059a-2c57-ab5b-24a57cc88a5b")
-__x_TestApp_Parity_IAnimalOverrides : public IInspectable
+__x_TestApp_CParity_CIAnimalOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE MakeSound() = 0;
     virtual HRESULT STDMETHODCALLTYPE Describe(/* [out, retval] */ HSTRING* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IAnimalOverrides_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIAnimalOverrides_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMammal_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMammal_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMammal_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMammal_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMammal;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMammal;
 
 MIDL_INTERFACE("f3d39398-8d31-b25c-96be-fc51287dd699")
-__x_TestApp_Parity_IMammal : public IInspectable
+__x_TestApp_CParity_CIMammal : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_IsWarmBlooded(/* [out, retval] */ ::boolean* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMammal_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMammal_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMammalFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMammalFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMammalFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMammalFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMammalFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMammalFactory;
 
 MIDL_INTERFACE("b16de9d3-2af7-d952-9c9d-04d527767ff3")
-__x_TestApp_Parity_IMammalFactory : public IInspectable
+__x_TestApp_CParity_CIMammalFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Mammal* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMammalFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMammalFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMammalOverrides_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMammalOverrides_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMammalOverrides_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMammalOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMammalOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMammalOverrides;
 
 MIDL_INTERFACE("59402ad5-5594-e756-9253-5fba25a8817d")
-__x_TestApp_Parity_IMammalOverrides : public IInspectable
+__x_TestApp_CParity_CIMammalOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Breathe() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMammalOverrides_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMammalOverrides_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IDog_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDog_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDog_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDog_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDog;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDog;
 
 MIDL_INTERFACE("a6e0a25e-1ec8-a15b-a9c3-b167a67b5fb4")
-__x_TestApp_Parity_IDog : public IInspectable
+__x_TestApp_CParity_CIDog : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Breed(/* [out, retval] */ HSTRING* value) = 0;
@@ -121,20 +121,20 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Sit() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDog_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDog_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IDogFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDogFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDogFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDogFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDogFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDogFactory;
 
 MIDL_INTERFACE("5ba6b268-b2c9-5e5f-aba7-1ec66f6e3a5b")
-__x_TestApp_Parity_IDogFactory : public IInspectable
+__x_TestApp_CParity_CIDogFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Dog* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDogFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDogFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

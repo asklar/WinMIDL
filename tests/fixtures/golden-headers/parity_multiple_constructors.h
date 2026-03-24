@@ -5,18 +5,18 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IMultiCtorItem __x_TestApp_Parity_IMultiCtorItem;
-typedef interface __x_TestApp_Parity_IMultiCtorItemFactory __x_TestApp_Parity_IMultiCtorItemFactory;
+typedef interface __x_TestApp_CParity_CIMultiCtorItem __x_TestApp_CParity_CIMultiCtorItem;
+typedef interface __x_TestApp_CParity_CIMultiCtorItemFactory __x_TestApp_CParity_CIMultiCtorItemFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MultiCtorItem[] = L"TestApp.Parity.MultiCtorItem";
 
-#ifndef ____x_TestApp_Parity_IMultiCtorItem_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMultiCtorItem_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMultiCtorItem_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMultiCtorItem_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMultiCtorItem;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMultiCtorItem;
 
 MIDL_INTERFACE("05b787b4-2e4b-6551-8246-84462a49625a")
-__x_TestApp_Parity_IMultiCtorItem : public IInspectable
+__x_TestApp_CParity_CIMultiCtorItem : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
@@ -25,15 +25,15 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_Factor(/* [out, retval] */ double* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMultiCtorItem_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMultiCtorItem_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMultiCtorItemFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMultiCtorItemFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMultiCtorItemFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMultiCtorItemFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMultiCtorItemFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMultiCtorItemFactory;
 
 MIDL_INTERFACE("57ba4876-e638-1351-af6c-29693e7862a1")
-__x_TestApp_Parity_IMultiCtorItemFactory : public IInspectable
+__x_TestApp_CParity_CIMultiCtorItemFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
@@ -42,6 +42,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean enabled, /* [in] */ double factor, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMultiCtorItemFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMultiCtorItemFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

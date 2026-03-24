@@ -5,28 +5,28 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IObjectWidget __x_TestApp_Parity_IObjectWidget;
+typedef interface __x_TestApp_CParity_CIObjectWidget __x_TestApp_CParity_CIObjectWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ObjectWidget[] = L"TestApp.Parity.ObjectWidget";
 
-#ifndef ____x_TestApp_Parity_IObjectWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IObjectWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIObjectWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIObjectWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IObjectWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIObjectWidget;
 
 MIDL_INTERFACE("517f2217-4a92-0750-b07e-d15e9f24681d")
-__x_TestApp_Parity_IObjectWidget : public IInspectable
+__x_TestApp_CParity_CIObjectWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetValue(/* [out, retval] */ IInspectable** returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE SetValue(/* [in] */ IInspectable* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_Tag(/* [out, retval] */ IInspectable** value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_Tag(/* [in] */ IInspectable* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetAll(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetProperties(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetAll(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetProperties(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Equals(/* [in] */ IInspectable* other, /* [out, retval] */ ::boolean* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IObjectWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIObjectWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

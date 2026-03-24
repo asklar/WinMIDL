@@ -5,7 +5,7 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ILayoutWidget __x_TestApp_Parity_ILayoutWidget;
+typedef interface __x_TestApp_CParity_CILayoutWidget __x_TestApp_CParity_CILayoutWidget;
 
 enum Alignment
 {
@@ -33,19 +33,19 @@ struct LayoutInfo
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_LayoutWidget[] = L"TestApp.Parity.LayoutWidget";
 
-#ifndef ____x_TestApp_Parity_ILayoutWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILayoutWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILayoutWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILayoutWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILayoutWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CILayoutWidget;
 
 MIDL_INTERFACE("6523ae8c-4e14-9552-b8b4-782683c5cb0c")
-__x_TestApp_Parity_ILayoutWidget : public IInspectable
+__x_TestApp_CParity_CILayoutWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetLayout(/* [out, retval] */ LayoutInfo* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE SetLayout(/* [in] */ LayoutInfo layout) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILayoutWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILayoutWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

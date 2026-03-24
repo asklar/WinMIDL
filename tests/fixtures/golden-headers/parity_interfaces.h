@@ -5,65 +5,65 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IDataSource __x_TestApp_Parity_IDataSource;
-typedef interface __x_TestApp_Parity_ICacheable __x_TestApp_Parity_ICacheable;
-typedef interface __x_TestApp_Parity_ICachedDataSource __x_TestApp_Parity_ICachedDataSource;
+typedef interface __x_TestApp_CParity_CIDataSource __x_TestApp_CParity_CIDataSource;
+typedef interface __x_TestApp_CParity_CICacheable __x_TestApp_CParity_CICacheable;
+typedef interface __x_TestApp_CParity_CICachedDataSource __x_TestApp_CParity_CICachedDataSource;
 
-EXTERN_C const IID IID___x_TestApp_Parity_DataChangedHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CDataChangedHandler;
 
 MIDL_INTERFACE("86116811-ea06-845e-9da7-fecff6ce42b7")
-__x_TestApp_Parity_DataChangedHandler : public IUnknown
+__x_TestApp_CParity_CDataChangedHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING key, /* [in] */ IInspectable* data) = 0;
 };
 
-#ifndef ____x_TestApp_Parity_IDataSource_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDataSource_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDataSource_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDataSource_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDataSource;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDataSource;
 
 MIDL_INTERFACE("0baccb94-c722-2551-9d66-44ced1b08ec9")
-__x_TestApp_Parity_IDataSource : public IInspectable
+__x_TestApp_CParity_CIDataSource : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_ItemCount(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Refresh() = 0;
     virtual HRESULT STDMETHODCALLTYPE GetItem(/* [in] */ int index, /* [out, retval] */ IInspectable** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_DataChanged(/* [in] */ __x_TestApp_Parity_DataChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_DataChanged(/* [in] */ __x_TestApp_CParity_CDataChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_DataChanged(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDataSource_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDataSource_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ICacheable_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ICacheable_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CICacheable_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CICacheable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ICacheable;
+EXTERN_C const IID IID___x_TestApp_CParity_CICacheable;
 
 MIDL_INTERFACE("eda15993-d953-e651-adf7-158006ed9991")
-__x_TestApp_Parity_ICacheable : public IInspectable
+__x_TestApp_CParity_CICacheable : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_IsCached(/* [out, retval] */ ::boolean* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Invalidate() = 0;
 };
 
-#endif // ____x_TestApp_Parity_ICacheable_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CICacheable_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ICachedDataSource_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ICachedDataSource_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CICachedDataSource_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CICachedDataSource_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ICachedDataSource;
+EXTERN_C const IID IID___x_TestApp_CParity_CICachedDataSource;
 
 MIDL_INTERFACE("db7274be-535a-6050-a512-b1605ff06367")
-__x_TestApp_Parity_ICachedDataSource : public IInspectable
+__x_TestApp_CParity_CICachedDataSource : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Prefetch(/* [in] */ int count) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ICachedDataSource_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CICachedDataSource_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

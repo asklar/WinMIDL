@@ -5,8 +5,8 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IConnectionManager __x_TestApp_Parity_IConnectionManager;
-typedef interface __x_TestApp_Parity_IConnectionManagerFactory __x_TestApp_Parity_IConnectionManagerFactory;
+typedef interface __x_TestApp_CParity_CIConnectionManager __x_TestApp_CParity_CIConnectionManager;
+typedef interface __x_TestApp_CParity_CIConnectionManagerFactory __x_TestApp_CParity_CIConnectionManagerFactory;
 
 enum ConnectionState
 {
@@ -25,10 +25,10 @@ struct ConnectionInfo
     ConnectionState State;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ConnectionChangedHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CConnectionChangedHandler;
 
 MIDL_INTERFACE("3cb0ca05-279d-5f54-9496-f20de430f3f9")
-__x_TestApp_Parity_ConnectionChangedHandler : public IUnknown
+__x_TestApp_CParity_CConnectionChangedHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ ConnectionInfo info, /* [in] */ ConnectionState oldState) = 0;
@@ -36,13 +36,13 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ConnectionManager[] = L"TestApp.Parity.ConnectionManager";
 
-#ifndef ____x_TestApp_Parity_IConnectionManager_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IConnectionManager_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIConnectionManager_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIConnectionManager_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IConnectionManager;
+EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManager;
 
 MIDL_INTERFACE("47adbc8a-78ce-dd5f-b799-4758058e3782")
-__x_TestApp_Parity_IConnectionManager : public IInspectable
+__x_TestApp_CParity_CIConnectionManager : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_IsConnected(/* [out, retval] */ ::boolean* value) = 0;
@@ -50,25 +50,25 @@ public:
     virtual HRESULT STDMETHODCALLTYPE GetState(/* [out, retval] */ ConnectionState* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Connect(/* [in] */ HSTRING host, /* [in] */ int port) = 0;
     virtual HRESULT STDMETHODCALLTYPE Disconnect() = 0;
-    virtual HRESULT STDMETHODCALLTYPE ConnectAsync(/* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ __x_Windows_Foundation_IAsyncAction** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_StateChanged(/* [in] */ __x_TestApp_Parity_ConnectionChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ConnectAsync(/* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_StateChanged(/* [in] */ __x_TestApp_CParity_CConnectionChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_StateChanged(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IConnectionManager_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIConnectionManager_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IConnectionManagerFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IConnectionManagerFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIConnectionManagerFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIConnectionManagerFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IConnectionManagerFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManagerFactory;
 
 MIDL_INTERFACE("b32afab8-00c4-7e52-91e3-47aeb63cb9aa")
-__x_TestApp_Parity_IConnectionManagerFactory : public IInspectable
+__x_TestApp_CParity_CIConnectionManagerFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ ConnectionManager* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IConnectionManagerFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIConnectionManagerFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

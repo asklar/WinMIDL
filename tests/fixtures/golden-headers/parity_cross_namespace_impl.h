@@ -5,12 +5,12 @@
 #define __TestApp_Parity_Contracts_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_Impl_IDataService __x_TestApp_Parity_Impl_IDataService;
+typedef interface __x_TestApp_CParity_CImpl_CIDataService __x_TestApp_CParity_CImpl_CIDataService;
 
-EXTERN_C const IID IID___x_TestApp_Parity_Contracts_DataNotification;
+EXTERN_C const IID IID___x_TestApp_CParity_CContracts_CDataNotification;
 
 MIDL_INTERFACE("37379885-5000-1d57-a5a9-c7d70e489e3c")
-__x_TestApp_Parity_Contracts_DataNotification : public IUnknown
+__x_TestApp_CParity_CContracts_CDataNotification : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING message) = 0;
@@ -18,23 +18,23 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Impl_DataService[] = L"TestApp.Parity.Impl.DataService";
 
-#ifndef ____x_TestApp_Parity_Impl_IDataService_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_Impl_IDataService_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CImpl_CIDataService_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CImpl_CIDataService_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_Impl_IDataService;
+EXTERN_C const IID IID___x_TestApp_CParity_CImpl_CIDataService;
 
 MIDL_INTERFACE("763ce3f8-df3f-1e56-914a-70345b25d14c")
-__x_TestApp_Parity_Impl_IDataService : public IInspectable
+__x_TestApp_CParity_CImpl_CIDataService : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_ServiceName(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE GetData(/* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE SetData(/* [in] */ HSTRING data) = 0;
     virtual HRESULT STDMETHODCALLTYPE Notify(/* [in] */ HSTRING message) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_Notified(/* [in] */ __x_TestApp_Parity_Contracts_DataNotification* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_Notified(/* [in] */ __x_TestApp_CParity_CContracts_CDataNotification* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Notified(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_Impl_IDataService_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CImpl_CIDataService_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_Contracts_h__

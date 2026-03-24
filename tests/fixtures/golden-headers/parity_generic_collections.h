@@ -5,41 +5,41 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ICollectionManager __x_TestApp_Parity_ICollectionManager;
+typedef interface __x_TestApp_CParity_CICollectionManager __x_TestApp_CParity_CICollectionManager;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_CollectionManager[] = L"TestApp.Parity.CollectionManager";
 
-#ifndef ____x_TestApp_Parity_ICollectionManager_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ICollectionManager_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CICollectionManager_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CICollectionManager_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ICollectionManager;
+EXTERN_C const IID IID___x_TestApp_CParity_CICollectionManager;
 
 MIDL_INTERFACE("5608f74f-c0a7-f05a-ab76-c96708f532d6")
-__x_TestApp_Parity_ICollectionManager : public IInspectable
+__x_TestApp_CParity_CICollectionManager : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE GetNames(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetIds(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetItems(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetNameView(/* [out, retval] */ __x_Windows_Foundation_Collections_IVectorView** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetIdView(/* [out, retval] */ __x_Windows_Foundation_Collections_IVectorView** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetStringMap(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetCountMap(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetObjectMap(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetReadOnlyMap(/* [out, retval] */ __x_Windows_Foundation_Collections_IMapView** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetReadOnlyCounts(/* [out, retval] */ __x_Windows_Foundation_Collections_IMapView** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE EnumerateNames(/* [out, retval] */ __x_Windows_Foundation_Collections_IIterable** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE EnumerateValues(/* [out, retval] */ __x_Windows_Foundation_Collections_IIterable** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE FetchNameAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE ComputeAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE ValidateAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE InitializeAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncAction** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE ResetAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncAction** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_AllNames(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Metadata(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyIds(/* [out, retval] */ __x_Windows_Foundation_Collections_IVectorView** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetIds(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetItems(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetNameView(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetIdView(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetStringMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetCountMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetObjectMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetReadOnlyMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMapView** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetReadOnlyCounts(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMapView** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE EnumerateNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE EnumerateValues(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE FetchNameAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ComputeAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ValidateAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE InitializeAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ResetAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_AllNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Metadata(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyIds(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ICollectionManager_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CICollectionManager_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

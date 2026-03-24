@@ -5,28 +5,28 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IMarkedInterface __x_TestApp_Parity_IMarkedInterface;
-typedef interface __x_TestApp_Parity_IAttributedClass __x_TestApp_Parity_IAttributedClass;
-typedef interface __x_TestApp_Parity_IOldClass __x_TestApp_Parity_IOldClass;
-typedef interface __x_TestApp_Parity_IComposableBase __x_TestApp_Parity_IComposableBase;
-typedef interface __x_TestApp_Parity_IComposableBaseFactory __x_TestApp_Parity_IComposableBaseFactory;
-typedef interface __x_TestApp_Parity_IActivatableWidget __x_TestApp_Parity_IActivatableWidget;
-typedef interface __x_TestApp_Parity_IActivatableWidgetFactory __x_TestApp_Parity_IActivatableWidgetFactory;
-typedef interface __x_TestApp_Parity_ISettingsHelperStatics __x_TestApp_Parity_ISettingsHelperStatics;
+typedef interface __x_TestApp_CParity_CIMarkedInterface __x_TestApp_CParity_CIMarkedInterface;
+typedef interface __x_TestApp_CParity_CIAttributedClass __x_TestApp_CParity_CIAttributedClass;
+typedef interface __x_TestApp_CParity_CIOldClass __x_TestApp_CParity_CIOldClass;
+typedef interface __x_TestApp_CParity_CIComposableBase __x_TestApp_CParity_CIComposableBase;
+typedef interface __x_TestApp_CParity_CIComposableBaseFactory __x_TestApp_CParity_CIComposableBaseFactory;
+typedef interface __x_TestApp_CParity_CIActivatableWidget __x_TestApp_CParity_CIActivatableWidget;
+typedef interface __x_TestApp_CParity_CIActivatableWidgetFactory __x_TestApp_CParity_CIActivatableWidgetFactory;
+typedef interface __x_TestApp_CParity_CISettingsHelperStatics __x_TestApp_CParity_CISettingsHelperStatics;
 
-#ifndef ____x_TestApp_Parity_IMarkedInterface_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMarkedInterface_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMarkedInterface_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMarkedInterface_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMarkedInterface;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMarkedInterface;
 
 MIDL_INTERFACE("979383d8-da66-b152-b752-de3485e35799")
-__x_TestApp_Parity_IMarkedInterface : public IInspectable
+__x_TestApp_CParity_CIMarkedInterface : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE DoSomething() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMarkedInterface_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMarkedInterface_INTERFACE_DEFINED__
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_AttributedClass[] = L"TestApp.Parity.AttributedClass";
 
@@ -38,103 +38,103 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_SettingsHelper[] = L"TestApp.Parity.SettingsHelper";
 
-#ifndef ____x_TestApp_Parity_IAttributedClass_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IAttributedClass_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIAttributedClass_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIAttributedClass_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IAttributedClass;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAttributedClass;
 
 MIDL_INTERFACE("54a82f00-4114-8d57-8d59-74738c683b2b")
-__x_TestApp_Parity_IAttributedClass : public IInspectable
+__x_TestApp_CParity_CIAttributedClass : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_Label(/* [in] */ HSTRING value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IAttributedClass_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIAttributedClass_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IOldClass_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IOldClass_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIOldClass_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIOldClass_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IOldClass;
+EXTERN_C const IID IID___x_TestApp_CParity_CIOldClass;
 
 MIDL_INTERFACE("851ccabb-50ce-fb5c-846d-fb3b5f8fa315")
-__x_TestApp_Parity_IOldClass : public IInspectable
+__x_TestApp_CParity_CIOldClass : public IInspectable
 {
 public:
 };
 
-#endif // ____x_TestApp_Parity_IOldClass_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIOldClass_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IComposableBase_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IComposableBase_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIComposableBase_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIComposableBase_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IComposableBase;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableBase;
 
 MIDL_INTERFACE("76f102c7-6745-7e59-86d0-df7ada506d87")
-__x_TestApp_Parity_IComposableBase : public IInspectable
+__x_TestApp_CParity_CIComposableBase : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IComposableBase_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIComposableBase_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IComposableBaseFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IComposableBaseFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIComposableBaseFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIComposableBaseFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IComposableBaseFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableBaseFactory;
 
 MIDL_INTERFACE("acc40d35-0d01-fb56-b67a-76c913bfe5ed")
-__x_TestApp_Parity_IComposableBaseFactory : public IInspectable
+__x_TestApp_CParity_CIComposableBaseFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ ComposableBase* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IComposableBaseFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIComposableBaseFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IActivatableWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IActivatableWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIActivatableWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIActivatableWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IActivatableWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIActivatableWidget;
 
 MIDL_INTERFACE("ee1d39a1-fb2e-2553-8d07-0b94f45c1ced")
-__x_TestApp_Parity_IActivatableWidget : public IInspectable
+__x_TestApp_CParity_CIActivatableWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Activate() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IActivatableWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIActivatableWidget_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IActivatableWidgetFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IActivatableWidgetFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIActivatableWidgetFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIActivatableWidgetFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IActivatableWidgetFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIActivatableWidgetFactory;
 
 MIDL_INTERFACE("a299a0d7-1e86-b55a-a8b9-bcfad45f67ba")
-__x_TestApp_Parity_IActivatableWidgetFactory : public IInspectable
+__x_TestApp_CParity_CIActivatableWidgetFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ ActivatableWidget* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IActivatableWidgetFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIActivatableWidgetFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ISettingsHelperStatics_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ISettingsHelperStatics_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CISettingsHelperStatics_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CISettingsHelperStatics_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ISettingsHelperStatics;
+EXTERN_C const IID IID___x_TestApp_CParity_CISettingsHelperStatics;
 
 MIDL_INTERFACE("96803bbe-fb47-c853-8394-1e05cfa7879d")
-__x_TestApp_Parity_ISettingsHelperStatics : public IInspectable
+__x_TestApp_CParity_CISettingsHelperStatics : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Read(/* [in] */ HSTRING key, /* [out, retval] */ HSTRING* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE Write(/* [in] */ HSTRING key, /* [in] */ HSTRING data) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ISettingsHelperStatics_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CISettingsHelperStatics_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

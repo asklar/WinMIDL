@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IGuidWidget __x_TestApp_Parity_IGuidWidget;
+typedef interface __x_TestApp_CParity_CIGuidWidget __x_TestApp_CParity_CIGuidWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_GuidWidget[] = L"TestApp.Parity.GuidWidget";
 
-#ifndef ____x_TestApp_Parity_IGuidWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IGuidWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIGuidWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIGuidWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IGuidWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIGuidWidget;
 
 MIDL_INTERFACE("dc36b2a2-d29f-0f51-a5e9-8d9754292709")
-__x_TestApp_Parity_IGuidWidget : public IInspectable
+__x_TestApp_CParity_CIGuidWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ GUID* value) = 0;
@@ -23,9 +23,9 @@ public:
     virtual HRESULT STDMETHODCALLTYPE SetId(/* [in] */ GUID id) = 0;
     virtual HRESULT STDMETHODCALLTYPE CompareIds(/* [in] */ GUID a, /* [in] */ GUID b, /* [out, retval] */ ::boolean* returnValue) = 0;
     virtual HRESULT STDMETHODCALLTYPE ProcessIds(/* [in] */ GUID id1, /* [in] */ GUID id2, /* [in] */ GUID id3) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetAllIds(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetAllIds(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IGuidWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIGuidWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

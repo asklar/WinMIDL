@@ -288,7 +288,7 @@ public class HeaderEmitter
 
     internal static string MangleName(string fullName)
     {
-        return "__x_" + fullName.Replace(".", "_");
+        return "__x_" + fullName.Replace(".", "_C");
     }
 
     private static string BuildParameterList(List<ParameterSymbol> parameters)

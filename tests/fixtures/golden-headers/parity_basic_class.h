@@ -5,18 +5,18 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IBasicWidget __x_TestApp_Parity_IBasicWidget;
-typedef interface __x_TestApp_Parity_IBasicWidgetFactory __x_TestApp_Parity_IBasicWidgetFactory;
+typedef interface __x_TestApp_CParity_CIBasicWidget __x_TestApp_CParity_CIBasicWidget;
+typedef interface __x_TestApp_CParity_CIBasicWidgetFactory __x_TestApp_CParity_CIBasicWidgetFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_BasicWidget[] = L"TestApp.Parity.BasicWidget";
 
-#ifndef ____x_TestApp_Parity_IBasicWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IBasicWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIBasicWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIBasicWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IBasicWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIBasicWidget;
 
 MIDL_INTERFACE("47afeb94-9b85-3c52-b7a5-ded74af0bb55")
-__x_TestApp_Parity_IBasicWidget : public IInspectable
+__x_TestApp_CParity_CIBasicWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetName(/* [out, retval] */ HSTRING* returnValue) = 0;
@@ -35,26 +35,26 @@ public:
     virtual HRESULT STDMETHODCALLTYPE put_Factor(/* [in] */ double value) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_Priority(/* [in] */ int value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_Changed(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_Changed(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Changed(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_NameChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_NameChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_NameChanged(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IBasicWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIBasicWidget_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IBasicWidgetFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IBasicWidgetFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIBasicWidgetFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIBasicWidgetFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IBasicWidgetFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIBasicWidgetFactory;
 
 MIDL_INTERFACE("13211224-c30a-4b52-8454-a10d0d2c685e")
-__x_TestApp_Parity_IBasicWidgetFactory : public IInspectable
+__x_TestApp_CParity_CIBasicWidgetFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ BasicWidget* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IBasicWidgetFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIBasicWidgetFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

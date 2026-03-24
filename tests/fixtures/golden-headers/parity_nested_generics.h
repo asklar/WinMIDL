@@ -5,25 +5,25 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_INestedGenericWidget __x_TestApp_Parity_INestedGenericWidget;
+typedef interface __x_TestApp_CParity_CINestedGenericWidget __x_TestApp_CParity_CINestedGenericWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_NestedGenericWidget[] = L"TestApp.Parity.NestedGenericWidget";
 
-#ifndef ____x_TestApp_Parity_INestedGenericWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_INestedGenericWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CINestedGenericWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CINestedGenericWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_INestedGenericWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CINestedGenericWidget;
 
 MIDL_INTERFACE("be87666a-dba2-2d59-b881-1a01fdaf86ad")
-__x_TestApp_Parity_INestedGenericWidget : public IInspectable
+__x_TestApp_CParity_CINestedGenericWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE GetCategorizedCounts(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetGroupedNames(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE FetchNamesAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE FetchCountsAsync(/* [out, retval] */ __x_Windows_Foundation_IAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetCategorizedCounts(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetGroupedNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE FetchNamesAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE FetchCountsAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_INestedGenericWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CINestedGenericWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

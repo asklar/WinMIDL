@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IContractDeprecatedWidget __x_TestApp_Parity_IContractDeprecatedWidget;
+typedef interface __x_TestApp_CParity_CIContractDeprecatedWidget __x_TestApp_CParity_CIContractDeprecatedWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ContractDeprecatedWidget[] = L"TestApp.Parity.ContractDeprecatedWidget";
 
-#ifndef ____x_TestApp_Parity_IContractDeprecatedWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IContractDeprecatedWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIContractDeprecatedWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIContractDeprecatedWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IContractDeprecatedWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIContractDeprecatedWidget;
 
 MIDL_INTERFACE("83ae23f2-fd07-5d52-8290-064b8d1853aa")
-__x_TestApp_Parity_IContractDeprecatedWidget : public IInspectable
+__x_TestApp_CParity_CIContractDeprecatedWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE NewMethod() = 0;
@@ -26,6 +26,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE V2DeprecatedMethod() = 0;
 };
 
-#endif // ____x_TestApp_Parity_IContractDeprecatedWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIContractDeprecatedWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

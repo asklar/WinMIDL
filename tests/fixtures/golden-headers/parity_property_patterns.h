@@ -5,22 +5,22 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IPropertyBase __x_TestApp_Parity_IPropertyBase;
-typedef interface __x_TestApp_Parity_IPropertyBaseFactory __x_TestApp_Parity_IPropertyBaseFactory;
-typedef interface __x_TestApp_Parity_IPropertyChild __x_TestApp_Parity_IPropertyChild;
-typedef interface __x_TestApp_Parity_IPropertyChildFactory __x_TestApp_Parity_IPropertyChildFactory;
+typedef interface __x_TestApp_CParity_CIPropertyBase __x_TestApp_CParity_CIPropertyBase;
+typedef interface __x_TestApp_CParity_CIPropertyBaseFactory __x_TestApp_CParity_CIPropertyBaseFactory;
+typedef interface __x_TestApp_CParity_CIPropertyChild __x_TestApp_CParity_CIPropertyChild;
+typedef interface __x_TestApp_CParity_CIPropertyChildFactory __x_TestApp_CParity_CIPropertyChildFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_PropertyBase[] = L"TestApp.Parity.PropertyBase";
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_PropertyChild[] = L"TestApp.Parity.PropertyChild";
 
-#ifndef ____x_TestApp_Parity_IPropertyBase_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IPropertyBase_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIPropertyBase_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIPropertyBase_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IPropertyBase;
+EXTERN_C const IID IID___x_TestApp_CParity_CIPropertyBase;
 
 MIDL_INTERFACE("bafbb3c6-8e85-915e-ab85-958fcd7944d7")
-__x_TestApp_Parity_IPropertyBase : public IInspectable
+__x_TestApp_CParity_CIPropertyBase : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyName(/* [out, retval] */ HSTRING* value) = 0;
@@ -39,29 +39,29 @@ public:
     virtual HRESULT STDMETHODCALLTYPE put_ReadWriteRatio(/* [in] */ float value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IPropertyBase_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIPropertyBase_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IPropertyBaseFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IPropertyBaseFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIPropertyBaseFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIPropertyBaseFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IPropertyBaseFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIPropertyBaseFactory;
 
 MIDL_INTERFACE("64e33f96-b61b-f156-bdcc-a132b62eca4d")
-__x_TestApp_Parity_IPropertyBaseFactory : public IInspectable
+__x_TestApp_CParity_CIPropertyBaseFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ PropertyBase* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IPropertyBaseFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIPropertyBaseFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IPropertyChild_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IPropertyChild_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIPropertyChild_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIPropertyChild_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IPropertyChild;
+EXTERN_C const IID IID___x_TestApp_CParity_CIPropertyChild;
 
 MIDL_INTERFACE("135a7590-7c48-e95a-9cb7-324487ee7e9d")
-__x_TestApp_Parity_IPropertyChild : public IInspectable
+__x_TestApp_CParity_CIPropertyChild : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_ChildName(/* [out, retval] */ HSTRING* value) = 0;
@@ -73,20 +73,20 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_DerivedId(/* [out, retval] */ unsigned int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IPropertyChild_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIPropertyChild_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IPropertyChildFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IPropertyChildFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIPropertyChildFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIPropertyChildFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IPropertyChildFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIPropertyChildFactory;
 
 MIDL_INTERFACE("4aae9851-73b3-475d-b47c-61933fb43cc9")
-__x_TestApp_Parity_IPropertyChildFactory : public IInspectable
+__x_TestApp_CParity_CIPropertyChildFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ PropertyChild* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IPropertyChildFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIPropertyChildFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

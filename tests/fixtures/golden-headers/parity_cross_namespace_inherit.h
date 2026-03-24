@@ -5,69 +5,69 @@
 #define __TestApp_Parity_Base_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_Base_ICrossNsBase __x_TestApp_Parity_Base_ICrossNsBase;
-typedef interface __x_TestApp_Parity_Base_ICrossNsBaseOverrides __x_TestApp_Parity_Base_ICrossNsBaseOverrides;
-typedef interface __x_TestApp_Parity_Derived_ICrossNsDerived __x_TestApp_Parity_Derived_ICrossNsDerived;
-typedef interface __x_TestApp_Parity_Derived_ICrossNsDerivedFactory __x_TestApp_Parity_Derived_ICrossNsDerivedFactory;
+typedef interface __x_TestApp_CParity_CBase_CICrossNsBase __x_TestApp_CParity_CBase_CICrossNsBase;
+typedef interface __x_TestApp_CParity_CBase_CICrossNsBaseOverrides __x_TestApp_CParity_CBase_CICrossNsBaseOverrides;
+typedef interface __x_TestApp_CParity_CDerived_CICrossNsDerived __x_TestApp_CParity_CDerived_CICrossNsDerived;
+typedef interface __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Base_CrossNsBase[] = L"TestApp.Parity.Base.CrossNsBase";
 
-#ifndef ____x_TestApp_Parity_Base_ICrossNsBase_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_Base_ICrossNsBase_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CBase_CICrossNsBase_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CBase_CICrossNsBase_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_Base_ICrossNsBase;
+EXTERN_C const IID IID___x_TestApp_CParity_CBase_CICrossNsBase;
 
 MIDL_INTERFACE("164b4b09-34a1-3d59-9373-bc452ce5ff39")
-__x_TestApp_Parity_Base_ICrossNsBase : public IInspectable
+__x_TestApp_CParity_CBase_CICrossNsBase : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_BaseName(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_Base_ICrossNsBase_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CBase_CICrossNsBase_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_Base_ICrossNsBaseOverrides_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_Base_ICrossNsBaseOverrides_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CBase_CICrossNsBaseOverrides_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CBase_CICrossNsBaseOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_Base_ICrossNsBaseOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CBase_CICrossNsBaseOverrides;
 
 MIDL_INTERFACE("8751f6b3-11dd-f159-8837-8b5f4bc8195e")
-__x_TestApp_Parity_Base_ICrossNsBaseOverrides : public IInspectable
+__x_TestApp_CParity_CBase_CICrossNsBaseOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE OnCreate() = 0;
 };
 
-#endif // ____x_TestApp_Parity_Base_ICrossNsBaseOverrides_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CBase_CICrossNsBaseOverrides_INTERFACE_DEFINED__
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Derived_CrossNsDerived[] = L"TestApp.Parity.Derived.CrossNsDerived";
 
-#ifndef ____x_TestApp_Parity_Derived_ICrossNsDerived_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_Derived_ICrossNsDerived_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CDerived_CICrossNsDerived_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CDerived_CICrossNsDerived_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_Derived_ICrossNsDerived;
+EXTERN_C const IID IID___x_TestApp_CParity_CDerived_CICrossNsDerived;
 
 MIDL_INTERFACE("99cff9c4-23ec-1454-a6e0-6771e015d231")
-__x_TestApp_Parity_Derived_ICrossNsDerived : public IInspectable
+__x_TestApp_CParity_CDerived_CICrossNsDerived : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_DerivedId(/* [out, retval] */ int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_Derived_ICrossNsDerived_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CDerived_CICrossNsDerived_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_Derived_ICrossNsDerivedFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_Derived_ICrossNsDerivedFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_Derived_ICrossNsDerivedFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CDerived_CICrossNsDerivedFactory;
 
 MIDL_INTERFACE("e2b8efc1-86a2-3256-8549-97aa7d65e54b")
-__x_TestApp_Parity_Derived_ICrossNsDerivedFactory : public IInspectable
+__x_TestApp_CParity_CDerived_CICrossNsDerivedFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ CrossNsDerived* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_Derived_ICrossNsDerivedFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_Base_h__

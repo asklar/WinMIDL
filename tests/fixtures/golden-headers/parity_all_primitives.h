@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IAllPrimitivesWidget __x_TestApp_Parity_IAllPrimitivesWidget;
+typedef interface __x_TestApp_CParity_CIAllPrimitivesWidget __x_TestApp_CParity_CIAllPrimitivesWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_AllPrimitivesWidget[] = L"TestApp.Parity.AllPrimitivesWidget";
 
-#ifndef ____x_TestApp_Parity_IAllPrimitivesWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IAllPrimitivesWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIAllPrimitivesWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIAllPrimitivesWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IAllPrimitivesWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAllPrimitivesWidget;
 
 MIDL_INTERFACE("10765a46-c063-ae51-ad05-c499d208bc3b")
-__x_TestApp_Parity_IAllPrimitivesWidget : public IInspectable
+__x_TestApp_CParity_CIAllPrimitivesWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetByte(/* [out, retval] */ ::byte* returnValue) = 0;
@@ -47,6 +47,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE SetGuid(/* [in] */ GUID v) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IAllPrimitivesWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIAllPrimitivesWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

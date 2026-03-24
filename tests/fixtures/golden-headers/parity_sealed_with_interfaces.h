@@ -5,18 +5,18 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ISealedMultiWidget __x_TestApp_Parity_ISealedMultiWidget;
-typedef interface __x_TestApp_Parity_ISealedMultiWidgetFactory __x_TestApp_Parity_ISealedMultiWidgetFactory;
+typedef interface __x_TestApp_CParity_CISealedMultiWidget __x_TestApp_CParity_CISealedMultiWidget;
+typedef interface __x_TestApp_CParity_CISealedMultiWidgetFactory __x_TestApp_CParity_CISealedMultiWidgetFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_SealedMultiWidget[] = L"TestApp.Parity.SealedMultiWidget";
 
-#ifndef ____x_TestApp_Parity_ISealedMultiWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ISealedMultiWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CISealedMultiWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CISealedMultiWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ISealedMultiWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CISealedMultiWidget;
 
 MIDL_INTERFACE("5db12352-e1dc-9857-b37e-f252a0ecfb54")
-__x_TestApp_Parity_ISealedMultiWidget : public IInspectable
+__x_TestApp_CParity_CISealedMultiWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_SortKey(/* [out, retval] */ int* value) = 0;
@@ -26,20 +26,20 @@ public:
     virtual HRESULT STDMETHODCALLTYPE ToDetailString(/* [out, retval] */ HSTRING* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ISealedMultiWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CISealedMultiWidget_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ISealedMultiWidgetFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ISealedMultiWidgetFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CISealedMultiWidgetFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CISealedMultiWidgetFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ISealedMultiWidgetFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CISealedMultiWidgetFactory;
 
 MIDL_INTERFACE("01e2892b-d21e-5254-850a-ef5973140ea9")
-__x_TestApp_Parity_ISealedMultiWidgetFactory : public IInspectable
+__x_TestApp_CParity_CISealedMultiWidgetFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ SealedMultiWidget* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ISealedMultiWidgetFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CISealedMultiWidgetFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

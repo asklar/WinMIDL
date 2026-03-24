@@ -5,23 +5,23 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IMixedAccessBase __x_TestApp_Parity_IMixedAccessBase;
-typedef interface __x_TestApp_Parity_IMixedAccessBaseFactory __x_TestApp_Parity_IMixedAccessBaseFactory;
-typedef interface __x_TestApp_Parity_IMixedAccessBaseOverrides __x_TestApp_Parity_IMixedAccessBaseOverrides;
-typedef interface __x_TestApp_Parity_IMixedAccessDerived __x_TestApp_Parity_IMixedAccessDerived;
-typedef interface __x_TestApp_Parity_IMixedAccessDerivedFactory __x_TestApp_Parity_IMixedAccessDerivedFactory;
+typedef interface __x_TestApp_CParity_CIMixedAccessBase __x_TestApp_CParity_CIMixedAccessBase;
+typedef interface __x_TestApp_CParity_CIMixedAccessBaseFactory __x_TestApp_CParity_CIMixedAccessBaseFactory;
+typedef interface __x_TestApp_CParity_CIMixedAccessBaseOverrides __x_TestApp_CParity_CIMixedAccessBaseOverrides;
+typedef interface __x_TestApp_CParity_CIMixedAccessDerived __x_TestApp_CParity_CIMixedAccessDerived;
+typedef interface __x_TestApp_CParity_CIMixedAccessDerivedFactory __x_TestApp_CParity_CIMixedAccessDerivedFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MixedAccessBase[] = L"TestApp.Parity.MixedAccessBase";
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MixedAccessDerived[] = L"TestApp.Parity.MixedAccessDerived";
 
-#ifndef ____x_TestApp_Parity_IMixedAccessBase_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMixedAccessBase_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMixedAccessBase_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessBase_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMixedAccessBase;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessBase;
 
 MIDL_INTERFACE("48266b7b-0358-2653-a9c0-5e7d5430e1b8")
-__x_TestApp_Parity_IMixedAccessBase : public IInspectable
+__x_TestApp_CParity_CIMixedAccessBase : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
@@ -29,29 +29,29 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_PublicProperty(/* [out, retval] */ int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMixedAccessBase_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMixedAccessBase_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMixedAccessBaseFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMixedAccessBaseFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMixedAccessBaseFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessBaseFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMixedAccessBaseFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessBaseFactory;
 
 MIDL_INTERFACE("a328a986-4ee4-a55c-9f22-4b5b9ea8f2e1")
-__x_TestApp_Parity_IMixedAccessBaseFactory : public IInspectable
+__x_TestApp_CParity_CIMixedAccessBaseFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MixedAccessBase* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMixedAccessBaseFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMixedAccessBaseFactory_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMixedAccessBaseOverrides_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMixedAccessBaseOverrides_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMixedAccessBaseOverrides_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessBaseOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMixedAccessBaseOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessBaseOverrides;
 
 MIDL_INTERFACE("6e56cb95-0155-835b-94ef-569439ce9f2c")
-__x_TestApp_Parity_IMixedAccessBaseOverrides : public IInspectable
+__x_TestApp_CParity_CIMixedAccessBaseOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE OnLoad() = 0;
@@ -59,34 +59,34 @@ public:
     virtual HRESULT STDMETHODCALLTYPE CanProcess(/* [out, retval] */ ::boolean* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMixedAccessBaseOverrides_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMixedAccessBaseOverrides_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMixedAccessDerived_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMixedAccessDerived_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMixedAccessDerived_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessDerived_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMixedAccessDerived;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessDerived;
 
 MIDL_INTERFACE("3a369717-e8e3-fc5a-a502-1a227a520ccf")
-__x_TestApp_Parity_IMixedAccessDerived : public IInspectable
+__x_TestApp_CParity_CIMixedAccessDerived : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_DerivedLabel(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMixedAccessDerived_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMixedAccessDerived_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IMixedAccessDerivedFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMixedAccessDerivedFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMixedAccessDerivedFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessDerivedFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMixedAccessDerivedFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMixedAccessDerivedFactory;
 
 MIDL_INTERFACE("bb4065ee-5e9e-5555-a742-6cc4cf128e30")
-__x_TestApp_Parity_IMixedAccessDerivedFactory : public IInspectable
+__x_TestApp_CParity_CIMixedAccessDerivedFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MixedAccessDerived* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMixedAccessDerivedFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMixedAccessDerivedFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

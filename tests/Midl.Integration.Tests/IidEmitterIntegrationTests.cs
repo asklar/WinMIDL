@@ -58,7 +58,7 @@ public partial class IidEmitterIntegrationTests
         Assert.Contains("extern \"C\" {", output);
 
         // Should contain IID for the interface with mangled name
-        Assert.Contains("IID___x_TestApp_IWidget", output);
+        Assert.Contains("IID___x_TestApp_CIWidget", output);
         Assert.Contains("const IID", output);
 
         // The GUID value should match the deterministic computation
@@ -86,8 +86,8 @@ public partial class IidEmitterIntegrationTests
         var compilation = CompilationHelper.Compile(source);
         var output = _emitter.Emit(compilation);
 
-        Assert.Contains("IID___x_TestApp_StatusChanged", output);
-        Assert.Contains("IID___x_TestApp_INotifier", output);
+        Assert.Contains("IID___x_TestApp_CStatusChanged", output);
+        Assert.Contains("IID___x_TestApp_CINotifier", output);
     }
 
     [Fact]

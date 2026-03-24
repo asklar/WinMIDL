@@ -5,7 +5,7 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IEnumUser __x_TestApp_Parity_IEnumUser;
+typedef interface __x_TestApp_CParity_CIEnumUser __x_TestApp_CParity_CIEnumUser;
 
 enum SimpleSequential
 {
@@ -48,13 +48,13 @@ enum FileAttributes2
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EnumUser[] = L"TestApp.Parity.EnumUser";
 
-#ifndef ____x_TestApp_Parity_IEnumUser_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IEnumUser_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIEnumUser_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIEnumUser_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IEnumUser;
+EXTERN_C const IID IID___x_TestApp_CParity_CIEnumUser;
 
 MIDL_INTERFACE("0d925ab0-8a9e-7659-b375-60c3a9cf7322")
-__x_TestApp_Parity_IEnumUser : public IInspectable
+__x_TestApp_CParity_CIEnumUser : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetSequential(/* [out, retval] */ SimpleSequential* returnValue) = 0;
@@ -62,6 +62,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE GetAttributes(/* [out, retval] */ FileAttributes2* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IEnumUser_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIEnumUser_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

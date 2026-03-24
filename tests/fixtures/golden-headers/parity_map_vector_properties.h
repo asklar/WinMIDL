@@ -5,29 +5,29 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ICollectionPropertyWidget __x_TestApp_Parity_ICollectionPropertyWidget;
+typedef interface __x_TestApp_CParity_CICollectionPropertyWidget __x_TestApp_CParity_CICollectionPropertyWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_CollectionPropertyWidget[] = L"TestApp.Parity.CollectionPropertyWidget";
 
-#ifndef ____x_TestApp_Parity_ICollectionPropertyWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ICollectionPropertyWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CICollectionPropertyWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CICollectionPropertyWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ICollectionPropertyWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CICollectionPropertyWidget;
 
 MIDL_INTERFACE("9c1a97cf-e042-ee55-b1e8-84ed402ce10f")
-__x_TestApp_Parity_ICollectionPropertyWidget : public IInspectable
+__x_TestApp_CParity_CICollectionPropertyWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_Names(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Ids(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyNames(/* [out, retval] */ __x_Windows_Foundation_Collections_IVectorView** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_StringMap(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_CountMap(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyStringMap(/* [out, retval] */ __x_Windows_Foundation_Collections_IMapView** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_IterableNames(/* [out, retval] */ __x_Windows_Foundation_Collections_IIterable** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_MixedItems(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Names(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Ids(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_StringMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_CountMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyStringMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMapView** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_IterableNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_MixedItems(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ICollectionPropertyWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CICollectionPropertyWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

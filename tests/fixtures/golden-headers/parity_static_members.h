@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IStaticServiceStatics __x_TestApp_Parity_IStaticServiceStatics;
+typedef interface __x_TestApp_CParity_CIStaticServiceStatics __x_TestApp_CParity_CIStaticServiceStatics;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_StaticService[] = L"TestApp.Parity.StaticService";
 
-#ifndef ____x_TestApp_Parity_IStaticServiceStatics_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IStaticServiceStatics_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IStaticServiceStatics;
+EXTERN_C const IID IID___x_TestApp_CParity_CIStaticServiceStatics;
 
 MIDL_INTERFACE("7ff9aee6-753f-2d50-bb5e-54c06bd1c65b")
-__x_TestApp_Parity_IStaticServiceStatics : public IInspectable
+__x_TestApp_CParity_CIStaticServiceStatics : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE GetVersion(/* [out, retval] */ HSTRING* returnValue) = 0;
@@ -31,12 +31,12 @@ public:
     virtual HRESULT STDMETHODCALLTYPE get_Verbose(/* [out, retval] */ ::boolean* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_Verbose(/* [in] */ ::boolean value) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_Threshold(/* [out, retval] */ double* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_GlobalChanged(/* [in] */ __x_Windows_Foundation_EventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_GlobalChanged(/* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_GlobalChanged(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_CountUpdated(/* [in] */ __x_Windows_Foundation_EventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_CountUpdated(/* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_CountUpdated(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IStaticServiceStatics_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

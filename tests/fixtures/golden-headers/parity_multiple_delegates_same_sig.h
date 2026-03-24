@@ -5,39 +5,39 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ILifecycleWidget __x_TestApp_Parity_ILifecycleWidget;
+typedef interface __x_TestApp_CParity_CILifecycleWidget __x_TestApp_CParity_CILifecycleWidget;
 
-EXTERN_C const IID IID___x_TestApp_Parity_OnStartHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_COnStartHandler;
 
 MIDL_INTERFACE("a196256c-4192-5159-82bc-d393ecea46df")
-__x_TestApp_Parity_OnStartHandler : public IUnknown
+__x_TestApp_CParity_COnStartHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_OnStopHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_COnStopHandler;
 
 MIDL_INTERFACE("6a9c3b27-a9fa-bc51-bc63-cd06567f3ddc")
-__x_TestApp_Parity_OnStopHandler : public IUnknown
+__x_TestApp_CParity_COnStopHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_OnPauseHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_COnPauseHandler;
 
 MIDL_INTERFACE("50eda04f-5814-ed5a-8c2b-ae1063b9f408")
-__x_TestApp_Parity_OnPauseHandler : public IUnknown
+__x_TestApp_CParity_COnPauseHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_OnResumeHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_COnResumeHandler;
 
 MIDL_INTERFACE("fcf1f35a-2f36-d25e-8989-976d26edec71")
-__x_TestApp_Parity_OnResumeHandler : public IUnknown
+__x_TestApp_CParity_COnResumeHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name) = 0;
@@ -45,22 +45,22 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_LifecycleWidget[] = L"TestApp.Parity.LifecycleWidget";
 
-#ifndef ____x_TestApp_Parity_ILifecycleWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILifecycleWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILifecycleWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILifecycleWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILifecycleWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CILifecycleWidget;
 
 MIDL_INTERFACE("07edb814-c02e-a051-88b2-164514ad1fc5")
-__x_TestApp_Parity_ILifecycleWidget : public IInspectable
+__x_TestApp_CParity_CILifecycleWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE add_Started(/* [in] */ __x_TestApp_Parity_OnStartHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_Started(/* [in] */ __x_TestApp_CParity_COnStartHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Started(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_Stopped(/* [in] */ __x_TestApp_Parity_OnStopHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_Stopped(/* [in] */ __x_TestApp_CParity_COnStopHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Stopped(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_Paused(/* [in] */ __x_TestApp_Parity_OnPauseHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_Paused(/* [in] */ __x_TestApp_CParity_COnPauseHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Paused(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_Resumed(/* [in] */ __x_TestApp_Parity_OnResumeHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_Resumed(/* [in] */ __x_TestApp_CParity_COnResumeHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_Resumed(/* [in] */ EventRegistrationToken token) = 0;
     virtual HRESULT STDMETHODCALLTYPE Start() = 0;
     virtual HRESULT STDMETHODCALLTYPE Stop() = 0;
@@ -68,6 +68,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE Resume() = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILifecycleWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILifecycleWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

@@ -5,64 +5,64 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IMarker __x_TestApp_Parity_IMarker;
-typedef interface __x_TestApp_Parity_ITagged __x_TestApp_Parity_ITagged;
-typedef interface __x_TestApp_Parity_IExtendedMarker __x_TestApp_Parity_IExtendedMarker;
-typedef interface __x_TestApp_Parity_IMarkerWidget __x_TestApp_Parity_IMarkerWidget;
+typedef interface __x_TestApp_CParity_CIMarker __x_TestApp_CParity_CIMarker;
+typedef interface __x_TestApp_CParity_CITagged __x_TestApp_CParity_CITagged;
+typedef interface __x_TestApp_CParity_CIExtendedMarker __x_TestApp_CParity_CIExtendedMarker;
+typedef interface __x_TestApp_CParity_CIMarkerWidget __x_TestApp_CParity_CIMarkerWidget;
 
-#ifndef ____x_TestApp_Parity_IMarker_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMarker_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMarker_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMarker_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMarker;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMarker;
 
 MIDL_INTERFACE("46cca306-2e9f-d759-8412-293c560d9dd1")
-__x_TestApp_Parity_IMarker : public IInspectable
+__x_TestApp_CParity_CIMarker : public IInspectable
 {
 public:
 };
 
-#endif // ____x_TestApp_Parity_IMarker_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMarker_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ITagged_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ITagged_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CITagged_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CITagged_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ITagged;
+EXTERN_C const IID IID___x_TestApp_CParity_CITagged;
 
 MIDL_INTERFACE("14e80217-d361-fa5c-96b1-e8931abebeec")
-__x_TestApp_Parity_ITagged : public IInspectable
+__x_TestApp_CParity_CITagged : public IInspectable
 {
 public:
 };
 
-#endif // ____x_TestApp_Parity_ITagged_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CITagged_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_IExtendedMarker_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IExtendedMarker_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIExtendedMarker_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIExtendedMarker_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IExtendedMarker;
+EXTERN_C const IID IID___x_TestApp_CParity_CIExtendedMarker;
 
 MIDL_INTERFACE("12501687-6aa2-4555-8b81-c7f3119fe537")
-__x_TestApp_Parity_IExtendedMarker : public IInspectable
+__x_TestApp_CParity_CIExtendedMarker : public IInspectable
 {
 public:
 };
 
-#endif // ____x_TestApp_Parity_IExtendedMarker_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIExtendedMarker_INTERFACE_DEFINED__
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MarkerWidget[] = L"TestApp.Parity.MarkerWidget";
 
-#ifndef ____x_TestApp_Parity_IMarkerWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMarkerWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMarkerWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMarkerWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMarkerWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMarkerWidget;
 
 MIDL_INTERFACE("9cfb80db-c282-7f5b-8247-28889bb07cbd")
-__x_TestApp_Parity_IMarkerWidget : public IInspectable
+__x_TestApp_CParity_CIMarkerWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMarkerWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMarkerWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

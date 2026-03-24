@@ -5,17 +5,17 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IDataParser __x_TestApp_Parity_IDataParser;
+typedef interface __x_TestApp_CParity_CIDataParser __x_TestApp_CParity_CIDataParser;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DataParser[] = L"TestApp.Parity.DataParser";
 
-#ifndef ____x_TestApp_Parity_IDataParser_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IDataParser_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIDataParser_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIDataParser_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IDataParser;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDataParser;
 
 MIDL_INTERFACE("d1a93893-ca65-5d51-ae6f-b066db5fd0c9")
-__x_TestApp_Parity_IDataParser : public IInspectable
+__x_TestApp_CParity_CIDataParser : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE TryParseInt(/* [in] */ HSTRING input, /* [out] */ int* parsed, /* [out, retval] */ ::boolean* returnValue) = 0;
@@ -28,6 +28,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE TryGetKeyValue(/* [in] */ HSTRING key, /* [out] */ HSTRING* foundValue, /* [out] */ ::boolean* exists, /* [out, retval] */ ::boolean* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IDataParser_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIDataParser_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

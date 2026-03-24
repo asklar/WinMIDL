@@ -5,7 +5,7 @@
 #define __TestApp_Parity_Level1_Level2_Level3_Level4_Level5_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_IDeepWidget __x_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_IDeepWidget;
+typedef interface __x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget __x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_DeepWidget[] = L"TestApp.Parity.Level1.Level2.Level3.Level4.Level5.DeepWidget";
 
@@ -22,19 +22,19 @@ enum DeepStatus
     DeepStatus_Done = 2,
 };
 
-#ifndef ____x_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_IDeepWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_IDeepWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_IDeepWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget;
 
 MIDL_INTERFACE("352daa14-86b7-1850-94d5-52bd58aaffce")
-__x_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_IDeepWidget : public IInspectable
+__x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_FullName(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_Depth(/* [out, retval] */ int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_IDeepWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_Level1_Level2_Level3_Level4_Level5_h__

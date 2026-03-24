@@ -5,14 +5,14 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_ILevel0Base __x_TestApp_Parity_ILevel0Base;
-typedef interface __x_TestApp_Parity_ILevel0BaseOverrides __x_TestApp_Parity_ILevel0BaseOverrides;
-typedef interface __x_TestApp_Parity_ILevel1Mid __x_TestApp_Parity_ILevel1Mid;
-typedef interface __x_TestApp_Parity_ILevel1MidOverrides __x_TestApp_Parity_ILevel1MidOverrides;
-typedef interface __x_TestApp_Parity_ILevel2Upper __x_TestApp_Parity_ILevel2Upper;
-typedef interface __x_TestApp_Parity_ILevel2UpperOverrides __x_TestApp_Parity_ILevel2UpperOverrides;
-typedef interface __x_TestApp_Parity_ILevel3Leaf __x_TestApp_Parity_ILevel3Leaf;
-typedef interface __x_TestApp_Parity_ILevel3LeafFactory __x_TestApp_Parity_ILevel3LeafFactory;
+typedef interface __x_TestApp_CParity_CILevel0Base __x_TestApp_CParity_CILevel0Base;
+typedef interface __x_TestApp_CParity_CILevel0BaseOverrides __x_TestApp_CParity_CILevel0BaseOverrides;
+typedef interface __x_TestApp_CParity_CILevel1Mid __x_TestApp_CParity_CILevel1Mid;
+typedef interface __x_TestApp_CParity_CILevel1MidOverrides __x_TestApp_CParity_CILevel1MidOverrides;
+typedef interface __x_TestApp_CParity_CILevel2Upper __x_TestApp_CParity_CILevel2Upper;
+typedef interface __x_TestApp_CParity_CILevel2UpperOverrides __x_TestApp_CParity_CILevel2UpperOverrides;
+typedef interface __x_TestApp_CParity_CILevel3Leaf __x_TestApp_CParity_CILevel3Leaf;
+typedef interface __x_TestApp_CParity_CILevel3LeafFactory __x_TestApp_CParity_CILevel3LeafFactory;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Level0Base[] = L"TestApp.Parity.Level0Base";
 
@@ -22,117 +22,117 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Level3Leaf[] = L"TestApp.Parity.Level3Leaf";
 
-#ifndef ____x_TestApp_Parity_ILevel0Base_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILevel0Base_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILevel0Base_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILevel0Base_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILevel0Base;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel0Base;
 
 MIDL_INTERFACE("a503b704-3f2a-4b5f-a203-6360bb54703d")
-__x_TestApp_Parity_ILevel0Base : public IInspectable
+__x_TestApp_CParity_CILevel0Base : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_BaseLabel(/* [out, retval] */ HSTRING* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILevel0Base_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILevel0Base_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ILevel0BaseOverrides_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILevel0BaseOverrides_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILevel0BaseOverrides_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILevel0BaseOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILevel0BaseOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel0BaseOverrides;
 
 MIDL_INTERFACE("247c4002-3ab1-d155-8f84-46e484eb02a5")
-__x_TestApp_Parity_ILevel0BaseOverrides : public IInspectable
+__x_TestApp_CParity_CILevel0BaseOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE OnInit() = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILevel0BaseOverrides_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILevel0BaseOverrides_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ILevel1Mid_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILevel1Mid_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILevel1Mid_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILevel1Mid_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILevel1Mid;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel1Mid;
 
 MIDL_INTERFACE("cf08180e-7f76-0a59-9b67-98ab69da9d03")
-__x_TestApp_Parity_ILevel1Mid : public IInspectable
+__x_TestApp_CParity_CILevel1Mid : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_MidValue(/* [out, retval] */ int* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILevel1Mid_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILevel1Mid_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ILevel1MidOverrides_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILevel1MidOverrides_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILevel1MidOverrides_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILevel1MidOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILevel1MidOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel1MidOverrides;
 
 MIDL_INTERFACE("7c58a381-5bb3-ea5b-9f5c-a0bc0852e1e7")
-__x_TestApp_Parity_ILevel1MidOverrides : public IInspectable
+__x_TestApp_CParity_CILevel1MidOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE OnProcess() = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILevel1MidOverrides_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILevel1MidOverrides_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ILevel2Upper_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILevel2Upper_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILevel2Upper_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILevel2Upper_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILevel2Upper;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel2Upper;
 
 MIDL_INTERFACE("697d7c8a-0cb1-1a5e-9b7f-311a409019b4")
-__x_TestApp_Parity_ILevel2Upper : public IInspectable
+__x_TestApp_CParity_CILevel2Upper : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_UpperFlag(/* [out, retval] */ ::boolean* value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILevel2Upper_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILevel2Upper_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ILevel2UpperOverrides_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILevel2UpperOverrides_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILevel2UpperOverrides_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILevel2UpperOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILevel2UpperOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel2UpperOverrides;
 
 MIDL_INTERFACE("7800cfe7-ab24-9a53-8d11-1459fd2a50cb")
-__x_TestApp_Parity_ILevel2UpperOverrides : public IInspectable
+__x_TestApp_CParity_CILevel2UpperOverrides : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE OnComplete() = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILevel2UpperOverrides_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILevel2UpperOverrides_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ILevel3Leaf_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILevel3Leaf_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILevel3Leaf_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILevel3Leaf_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILevel3Leaf;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel3Leaf;
 
 MIDL_INTERFACE("88d27c56-8757-bb54-b870-def2acbde853")
-__x_TestApp_Parity_ILevel3Leaf : public IInspectable
+__x_TestApp_CParity_CILevel3Leaf : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE get_LeafMetric(/* [out, retval] */ double* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE Execute() = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILevel3Leaf_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILevel3Leaf_INTERFACE_DEFINED__
 
-#ifndef ____x_TestApp_Parity_ILevel3LeafFactory_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_ILevel3LeafFactory_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CILevel3LeafFactory_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CILevel3LeafFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_ILevel3LeafFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel3LeafFactory;
 
 MIDL_INTERFACE("83443c3c-da93-e950-997e-2e39097cd0dd")
-__x_TestApp_Parity_ILevel3LeafFactory : public IInspectable
+__x_TestApp_CParity_CILevel3LeafFactory : public IInspectable
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Level3Leaf* returnValue) = 0;
 };
 
-#endif // ____x_TestApp_Parity_ILevel3LeafFactory_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CILevel3LeafFactory_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

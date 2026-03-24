@@ -5,24 +5,24 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IObservableWidget __x_TestApp_Parity_IObservableWidget;
+typedef interface __x_TestApp_CParity_CIObservableWidget __x_TestApp_CParity_CIObservableWidget;
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ObservableWidget[] = L"TestApp.Parity.ObservableWidget";
 
-#ifndef ____x_TestApp_Parity_IObservableWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IObservableWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIObservableWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIObservableWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IObservableWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIObservableWidget;
 
 MIDL_INTERFACE("c6d89ae9-5769-5759-b8db-6de5144a4e20")
-__x_TestApp_Parity_IObservableWidget : public IInspectable
+__x_TestApp_CParity_CIObservableWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE get_Names(/* [out, retval] */ __x_Windows_Foundation_Collections_IObservableVector** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Counts(/* [out, retval] */ __x_Windows_Foundation_Collections_IObservableMap** value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Items(/* [out, retval] */ __x_Windows_Foundation_Collections_IObservableVector** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Names(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIObservableVector** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Counts(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIObservableMap** value) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Items(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIObservableVector** value) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IObservableWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIObservableWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

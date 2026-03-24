@@ -5,39 +5,39 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IEventSourceWidget __x_TestApp_Parity_IEventSourceWidget;
+typedef interface __x_TestApp_CParity_CIEventSourceWidget __x_TestApp_CParity_CIEventSourceWidget;
 
-EXTERN_C const IID IID___x_TestApp_Parity_ItemAddedHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CItemAddedHandler;
 
 MIDL_INTERFACE("daa94288-996b-f15d-80a9-f5958eb3b15e")
-__x_TestApp_Parity_ItemAddedHandler : public IUnknown
+__x_TestApp_CParity_CItemAddedHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING item, /* [in] */ int index) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ItemRemovedHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CItemRemovedHandler;
 
 MIDL_INTERFACE("95dd6d62-c906-425b-b606-f6dc89e1b08e")
-__x_TestApp_Parity_ItemRemovedHandler : public IUnknown
+__x_TestApp_CParity_CItemRemovedHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING item) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_CollectionClearedHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CCollectionClearedHandler;
 
 MIDL_INTERFACE("097dca58-701d-d35a-97ea-95e5fefb6a8b")
-__x_TestApp_Parity_CollectionClearedHandler : public IUnknown
+__x_TestApp_CParity_CCollectionClearedHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke() = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ItemMovedHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CItemMovedHandler;
 
 MIDL_INTERFACE("1b5f896d-6f48-d058-a4bc-616d8c8d994a")
-__x_TestApp_Parity_ItemMovedHandler : public IUnknown
+__x_TestApp_CParity_CItemMovedHandler : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ int oldIndex, /* [in] */ int newIndex) = 0;
@@ -45,24 +45,24 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EventSourceWidget[] = L"TestApp.Parity.EventSourceWidget";
 
-#ifndef ____x_TestApp_Parity_IEventSourceWidget_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IEventSourceWidget_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIEventSourceWidget_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIEventSourceWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IEventSourceWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIEventSourceWidget;
 
 MIDL_INTERFACE("6a5c5c43-a0ac-e05a-8718-69decdfedd5f")
-__x_TestApp_Parity_IEventSourceWidget : public IInspectable
+__x_TestApp_CParity_CIEventSourceWidget : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE add_ItemAdded(/* [in] */ __x_TestApp_Parity_ItemAddedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_ItemAdded(/* [in] */ __x_TestApp_CParity_CItemAddedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_ItemAdded(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_ItemRemoved(/* [in] */ __x_TestApp_Parity_ItemRemovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_ItemRemoved(/* [in] */ __x_TestApp_CParity_CItemRemovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_ItemRemoved(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_CollectionCleared(/* [in] */ __x_TestApp_Parity_CollectionClearedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_CollectionCleared(/* [in] */ __x_TestApp_CParity_CCollectionClearedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_CollectionCleared(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_ItemMoved(/* [in] */ __x_TestApp_Parity_ItemMovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_ItemMoved(/* [in] */ __x_TestApp_CParity_CItemMovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_ItemMoved(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_StateChanged(/* [in] */ __x_Windows_Foundation_TypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_StateChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_StateChanged(/* [in] */ EventRegistrationToken token) = 0;
     virtual HRESULT STDMETHODCALLTYPE AddItem(/* [in] */ HSTRING item) = 0;
     virtual HRESULT STDMETHODCALLTYPE RemoveItem(/* [in] */ HSTRING item) = 0;
@@ -70,6 +70,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE MoveItem(/* [in] */ int fromIndex, /* [in] */ int toIndex) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IEventSourceWidget_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIEventSourceWidget_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__

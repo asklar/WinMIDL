@@ -11,15 +11,15 @@ public partial class HeaderEmitterGenericTests
 {
     [Theory]
     [InlineData("Windows.Foundation.Collections.IVector", new[] { "String" },
-        "__x_Windows_Foundation_Collections_IVector*")]
+        "__x_Windows_CFoundation_CCollections_CIVector*")]
     [InlineData("Windows.Foundation.Collections.IVectorView", new[] { "Int32" },
-        "__x_Windows_Foundation_Collections_IVectorView*")]
+        "__x_Windows_CFoundation_CCollections_CIVectorView*")]
     [InlineData("Windows.Foundation.Collections.IMap", new[] { "String", "Object" },
-        "__x_Windows_Foundation_Collections_IMap*")]
+        "__x_Windows_CFoundation_CCollections_CIMap*")]
     [InlineData("Windows.Foundation.IAsyncOperation", new[] { "Boolean" },
-        "__x_Windows_Foundation_IAsyncOperation*")]
+        "__x_Windows_CFoundation_CIAsyncOperation*")]
     [InlineData("Windows.Foundation.Collections.IIterable", new[] { "String" },
-        "__x_Windows_Foundation_Collections_IIterable*")]
+        "__x_Windows_CFoundation_CCollections_CIIterable*")]
     public void MapType_GenericTypeRef_NullResolvedSymbol_ManglesQualifiedName(
         string typeName, string[] typeArgNames, string expected)
     {
@@ -46,7 +46,7 @@ public partial class HeaderEmitterGenericTests
 
         var result = HeaderEmitter.MapType(typeRef);
 
-        Assert.Equal("__x_Windows_Foundation_Collections_IVector*", result);
+        Assert.Equal("__x_Windows_CFoundation_CCollections_CIVector*", result);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public partial class HeaderEmitterGenericTests
 
         var result = HeaderEmitter.MapType(typeRef);
 
-        Assert.Equal("__x_TestApp_IGreeter*", result);
+        Assert.Equal("__x_TestApp_CIGreeter*", result);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public partial class HeaderEmitterGenericTests
 
         var result = HeaderEmitter.MapType(typeRef);
 
-        Assert.Equal("__x_SomeLib_Widgets_IFoo*", result);
+        Assert.Equal("__x_SomeLib_CWidgets_CIFoo*", result);
     }
 
     [Fact]

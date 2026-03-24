@@ -36,16 +36,16 @@ public partial class HeaderParityGenericTests
         var emitter = new HeaderEmitter();
         var header = emitter.Emit(compilation);
 
-        // IVector<String> → __x_Windows_Foundation_Collections_IVector*
-        Assert.Contains("__x_Windows_Foundation_Collections_IVector*", header);
-        // IVectorView<Int32> → __x_Windows_Foundation_Collections_IVectorView*
-        Assert.Contains("__x_Windows_Foundation_Collections_IVectorView*", header);
-        // IMap<String, Object> → __x_Windows_Foundation_Collections_IMap*
-        Assert.Contains("__x_Windows_Foundation_Collections_IMap*", header);
-        // IAsyncOperation<Boolean> → __x_Windows_Foundation_IAsyncOperation*
-        Assert.Contains("__x_Windows_Foundation_IAsyncOperation*", header);
-        // IIterable<String> → __x_Windows_Foundation_Collections_IIterable*
-        Assert.Contains("__x_Windows_Foundation_Collections_IIterable*", header);
+        // IVector<String> → __x_Windows_CFoundation_CCollections_CIVector*
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIVector*", header);
+        // IVectorView<Int32> → __x_Windows_CFoundation_CCollections_CIVectorView*
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIVectorView*", header);
+        // IMap<String, Object> → __x_Windows_CFoundation_CCollections_CIMap*
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIMap*", header);
+        // IAsyncOperation<Boolean> → __x_Windows_CFoundation_CIAsyncOperation*
+        Assert.Contains("__x_Windows_CFoundation_CIAsyncOperation*", header);
+        // IIterable<String> → __x_Windows_CFoundation_CCollections_CIIterable*
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIIterable*", header);
     }
 
     [SkippableFact]
@@ -65,10 +65,10 @@ public partial class HeaderParityGenericTests
         var header = emitter.Emit(compilation);
 
         // Out/retval params for interface pointers should be double-pointer
-        Assert.Contains("__x_Windows_Foundation_Collections_IVector** returnValue", header);
-        Assert.Contains("__x_Windows_Foundation_Collections_IVectorView** returnValue", header);
-        Assert.Contains("__x_Windows_Foundation_Collections_IMap** returnValue", header);
-        Assert.Contains("__x_Windows_Foundation_IAsyncOperation** returnValue", header);
-        Assert.Contains("__x_Windows_Foundation_Collections_IIterable** returnValue", header);
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIVector** returnValue", header);
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIVectorView** returnValue", header);
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIMap** returnValue", header);
+        Assert.Contains("__x_Windows_CFoundation_CIAsyncOperation** returnValue", header);
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIIterable** returnValue", header);
     }
 }

@@ -5,30 +5,30 @@
 #define __TestApp_Parity_h__
 
 // Forward declarations
-typedef interface __x_TestApp_Parity_IMultiParamDelegateUser __x_TestApp_Parity_IMultiParamDelegateUser;
+typedef interface __x_TestApp_CParity_CIMultiParamDelegateUser __x_TestApp_CParity_CIMultiParamDelegateUser;
 
-EXTERN_C const IID IID___x_TestApp_Parity_SixParamCallback;
+EXTERN_C const IID IID___x_TestApp_CParity_CSixParamCallback;
 
 MIDL_INTERFACE("87fd30bd-c110-995c-b65e-f2d9e6403922")
-__x_TestApp_Parity_SixParamCallback : public IUnknown
+__x_TestApp_CParity_CSixParamCallback : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ int id, /* [in] */ ::boolean active, /* [in] */ double value, /* [in] */ float ratio, /* [in] */ int priority) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_SevenParamCallback;
+EXTERN_C const IID IID___x_TestApp_CParity_CSevenParamCallback;
 
 MIDL_INTERFACE("d59d577e-810d-4057-a051-f6eb6d78524c")
-__x_TestApp_Parity_SevenParamCallback : public IUnknown
+__x_TestApp_CParity_CSevenParamCallback : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ int c, /* [in] */ int d, /* [in] */ ::boolean e, /* [in] */ double f, /* [in] */ float g) = 0;
 };
 
-EXTERN_C const IID IID___x_TestApp_Parity_ComplexCallback;
+EXTERN_C const IID IID___x_TestApp_CParity_CComplexCallback;
 
 MIDL_INTERFACE("020fc21b-e584-9f56-a57d-7523ca38ebea")
-__x_TestApp_Parity_ComplexCallback : public IUnknown
+__x_TestApp_CParity_CComplexCallback : public IUnknown
 {
 public:
     virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ int minVal, /* [in] */ int maxVal, /* [in] */ ::boolean inclusive, /* [in] */ double threshold) = 0;
@@ -36,21 +36,21 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MultiParamDelegateUser[] = L"TestApp.Parity.MultiParamDelegateUser";
 
-#ifndef ____x_TestApp_Parity_IMultiParamDelegateUser_INTERFACE_DEFINED__
-#define ____x_TestApp_Parity_IMultiParamDelegateUser_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMultiParamDelegateUser_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMultiParamDelegateUser_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_Parity_IMultiParamDelegateUser;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMultiParamDelegateUser;
 
 MIDL_INTERFACE("0b657fe6-0527-3c58-a950-c5cd11b40022")
-__x_TestApp_Parity_IMultiParamDelegateUser : public IInspectable
+__x_TestApp_CParity_CIMultiParamDelegateUser : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE add_DataReceived(/* [in] */ __x_TestApp_Parity_SixParamCallback* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_DataReceived(/* [in] */ __x_TestApp_CParity_CSixParamCallback* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_DataReceived(/* [in] */ EventRegistrationToken token) = 0;
-    virtual HRESULT STDMETHODCALLTYPE add_FilterRequested(/* [in] */ __x_TestApp_Parity_ComplexCallback* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_FilterRequested(/* [in] */ __x_TestApp_CParity_CComplexCallback* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_FilterRequested(/* [in] */ EventRegistrationToken token) = 0;
 };
 
-#endif // ____x_TestApp_Parity_IMultiParamDelegateUser_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIMultiParamDelegateUser_INTERFACE_DEFINED__
 
 #endif // __TestApp_Parity_h__
