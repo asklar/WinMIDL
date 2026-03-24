@@ -27,6 +27,10 @@ jobs:
           npm ci
           npx tsc -p .
 
+      - name: Package VSIX (validate)
+        working-directory: editors/vscode
+        run: npx @vscode/vsce package --no-dependencies
+
   native-aot:
     runs-on: self-hosted
     needs: build-and-test
