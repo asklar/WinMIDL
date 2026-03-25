@@ -15,6 +15,8 @@
 #>
 param(
     [switch]$KeepRegistration,
+    [switch]$RegisterOnly,
+    [switch]$UnregisterOnly,
     [switch]$Verbose
 )
 
@@ -24,12 +26,6 @@ $scriptDir  = $PSScriptRoot
 $repoRoot   = (Resolve-Path "$scriptDir/../../..").Path
 $outDir     = "$scriptDir/generated"
 $buildDir   = "$scriptDir/build"
-
-# Ensure clean output
-if (Test-Path $outDir)   { Remove-Item $outDir -Recurse -Force }
-if (Test-Path $buildDir) { Remove-Item $buildDir -Recurse -Force }
-New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-New-Item -ItemType Directory -Path $buildDir -Force | Out-Null
 
 function Write-Step($msg) { Write-Host "`n>> $msg" -ForegroundColor Cyan }
 
@@ -104,6 +100,34 @@ function Get-ClsidWidget($path) {
     }
     return $null
 }
+
+# ---------------------------------------------------------------------------
+# Handle -UnregisterOnly: clean up and exit
+# ---------------------------------------------------------------------------
+if ($UnregisterOnly) {
+    Write-Step "Unregistering COM classes"
+    $regBase = "HKCU:\Software\Classes"
+    $clsidWidget = Get-ClsidWidget "$scriptDir\WidgetServer.cpp"
+    $clsidPS = if (Test-Path "$outDir\TestWidget_proxy.cpp") { Get-ClsidPSFactory "$outDir\TestWidget_proxy.cpp" } else { $null }
+    $iids = if (Test-Path "$outDir\TestWidget_i.c") { Get-IidsFromFile "$outDir\TestWidget_i.c" } else { @{} }
+    if ($clsidWidget) { Remove-Item "$regBase\CLSID\$clsidWidget" -Recurse -Force -EA SilentlyContinue; Write-Host "  Removed CLSID $clsidWidget" }
+    if ($clsidPS) { Remove-Item "$regBase\CLSID\$clsidPS" -Recurse -Force -EA SilentlyContinue; Write-Host "  Removed PS CLSID $clsidPS" }
+    foreach ($entry in $iids.GetEnumerator()) { Remove-Item "$regBase\Interface\$($entry.Value)" -Recurse -Force -EA SilentlyContinue; Write-Host "  Removed IID $($entry.Key)" }
+    Write-Host "  Done" -ForegroundColor Green
+    exit 0
+}
+
+# ---------------------------------------------------------------------------
+# Handle -RegisterOnly: build (if needed) + register, then exit
+# ---------------------------------------------------------------------------
+
+# Ensure output directories exist
+if (-not $RegisterOnly) {
+    if (Test-Path $outDir)   { Remove-Item $outDir -Recurse -Force }
+    if (Test-Path $buildDir) { Remove-Item $buildDir -Recurse -Force }
+}
+New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+New-Item -ItemType Directory -Path $buildDir -Force | Out-Null
 
 # ── Step 1: Generate code from IDL ─────────────────────────────────────────
 Write-Step "Generating header + proxy code from TestWidget.idl"
@@ -344,6 +368,14 @@ foreach ($entry in $iids.GetEnumerator()) {
 }
 
 Write-Host "  Registration complete"
+
+if ($RegisterOnly) {
+    Write-Host "`nRegistration done. Run the client manually:" -ForegroundColor Green
+    Write-Host "  $clientExe" -ForegroundColor DarkGray
+    Write-Host "Unregister with:" -ForegroundColor DarkGray
+    Write-Host "  .\build-and-test.ps1 -UnregisterOnly" -ForegroundColor DarkGray
+    exit 0
+}
 
 # ── Step 8: Run test ───────────────────────────────────────────────────────
 Write-Step "Running TestClient.exe"
