@@ -105,12 +105,15 @@ public class StubGenerator
         sb.AppendLine("        if (pv) ((IUnknown*)pv)->Release();");
         sb.AppendLine("    }");
 
-        // QueryInterface
+        // QueryInterface — constexpr IID lookup
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
-        sb.AppendLine("        if (riid == IID_IUnknown || riid == IID_IRpcStubBuffer) {");
-        sb.AppendLine("            *ppv = static_cast<IRpcStubBuffer*>(this);");
-        sb.AppendLine("            AddRef();");
-        sb.AppendLine("            return S_OK;");
+        sb.AppendLine("        static constexpr IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };");
+        sb.AppendLine("        for (const auto& iid : kSupportedIIDs) {");
+        sb.AppendLine("            if (iid == riid) {");
+        sb.AppendLine("                *ppv = static_cast<IRpcStubBuffer*>(this);");
+        sb.AppendLine("                AddRef();");
+        sb.AppendLine("                return S_OK;");
+        sb.AppendLine("            }");
         sb.AppendLine("        }");
         sb.AppendLine("        *ppv = nullptr;");
         sb.AppendLine("        return E_NOINTERFACE;");

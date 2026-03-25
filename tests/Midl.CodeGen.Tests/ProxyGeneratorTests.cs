@@ -104,7 +104,7 @@ public partial class ProxyGeneratorTests
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {", output);
         // Uses array-based IID lookup
-        Assert.Contains("kSupportedIIDs", output);
+        Assert.Contains("kNonDelegatingIIDs", output);
         Assert.Contains("IID_IUnknown", output);
         Assert.Contains("IID_IRpcProxyBuffer", output);
         Assert.Contains("static_cast<IRpcProxyBuffer*>(this)", output);

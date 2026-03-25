@@ -130,7 +130,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         // Should use array-based lookup, not if-else chain
-        Assert.Contains("kSupportedIIDs", output);
+        Assert.Contains("kNonDelegatingIIDs", output);
         Assert.Contains("for (", output);
     }
 

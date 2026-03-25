@@ -20,11 +20,32 @@ public class ProxyGenerator
         var sb = new StringBuilder();
         EmitPrologue(sb);
 
-        foreach (var symbol in compilation.GetAllTypes().Where(t => !t.IsExternal))
+        // Build runtimeclass → interface IIDs map
+        var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
+        var rcInterfaceMap = new Dictionary<string, List<string>>();
+        foreach (var sym in allTypes)
+        {
+            if (sym is RuntimeClassSymbol rc)
+            {
+                var iids = new List<string>();
+                foreach (var iface in allTypes.OfType<InterfaceSymbol>()
+                    .Where(i => i.ExclusiveToClass == rc.FullName))
+                {
+                    iids.Add($"IID_{HeaderEmitter.MangleName(iface.FullName)}");
+                }
+                rcInterfaceMap[rc.FullName] = iids;
+            }
+        }
+
+        foreach (var symbol in allTypes)
         {
             if (symbol is InterfaceSymbol iface)
             {
-                EmitProxyClass(sb, iface);
+                // Find all sibling IIDs if this interface belongs to a runtimeclass
+                List<string>? allIids = null;
+                if (iface.ExclusiveToClass != null)
+                    rcInterfaceMap.TryGetValue(iface.ExclusiveToClass, out allIids);
+                EmitProxyClass(sb, iface, allIids);
             }
         }
 
@@ -52,7 +73,7 @@ public class ProxyGenerator
         sb.AppendLine("// End of generated proxy file");
     }
 
-    internal static void EmitProxyClass(StringBuilder sb, InterfaceSymbol iface)
+    internal static void EmitProxyClass(StringBuilder sb, InterfaceSymbol iface, List<string>? allRuntimeClassIids = null)
     {
         var mangledName = HeaderEmitter.MangleName(iface.FullName);
         var className = $"C{iface.Name}Proxy";
@@ -66,7 +87,7 @@ public class ProxyGenerator
         sb.AppendLine();
 
         // Emit the nested Face class that implements the interface with delegating IUnknown
-        EmitFaceClass(sb, iface, mangledName, iidName, className);
+        EmitFaceClass(sb, iface, mangledName, iidName, className, allRuntimeClassIids);
 
         sb.AppendLine("    Face m_face;");
         sb.AppendLine("    friend struct Face;");
@@ -90,7 +111,7 @@ public class ProxyGenerator
         sb.AppendLine();
     }
 
-    private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName)
+    private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName, List<string>? allRuntimeClassIids)
     {
         sb.AppendLine($"    struct Face : public {mangledName} {{");
         sb.AppendLine($"        {outerClassName}* m_owner;");
@@ -109,7 +130,8 @@ public class ProxyGenerator
         // IInspectable — static constexpr data, no forwarding
         // Use runtimeclass name if this is an exclusive interface, otherwise interface name
         var runtimeClassName = iface.ExclusiveToClass ?? iface.FullName;
-        EmitFaceIInspectable(sb, runtimeClassName, iidName);
+        var iidList = allRuntimeClassIids ?? new List<string> { iidName };
+        EmitFaceIInspectable(sb, runtimeClassName, iidList);
 
         // Interface methods
         var methods = CollectInterfaceMethods(iface);
@@ -124,10 +146,11 @@ public class ProxyGenerator
         sb.AppendLine();
     }
 
-    private static void EmitFaceIInspectable(StringBuilder sb, string fullName, string iidName)
+    private static void EmitFaceIInspectable(StringBuilder sb, string fullName, List<string> iidNames)
     {
+        var iidList = string.Join(", ", iidNames);
         sb.AppendLine("        // IInspectable — constexpr static data");
-        sb.AppendLine($"        static constexpr IID kImplementedIIDs[] = {{ {iidName} }};");
+        sb.AppendLine($"        static constexpr IID kImplementedIIDs[] = {{ {iidList} }};");
         sb.AppendLine($"        static constexpr wchar_t kRuntimeClassName[] = L\"{fullName}\";");
         sb.AppendLine("        HSTRING_HEADER m_hdrClassName{};");
         sb.AppendLine();
@@ -170,22 +193,24 @@ public class ProxyGenerator
 
     private static void EmitNonDelegatingQI(StringBuilder sb, string mangledName, string iidName)
     {
-        sb.AppendLine("    // Non-delegating IUnknown::QueryInterface");
+        sb.AppendLine("    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup");
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
-        sb.AppendLine("        struct IIDEntry { const IID& iid; void* ptr; bool delegating; };");
-        sb.AppendLine("        const IIDEntry kSupportedIIDs[] = {");
-        sb.AppendLine("            { IID_IUnknown, static_cast<IRpcProxyBuffer*>(this), false },");
-        sb.AppendLine("            { IID_IRpcProxyBuffer, static_cast<IRpcProxyBuffer*>(this), false },");
-        sb.AppendLine($"            {{ {iidName}, static_cast<{mangledName}*>(&m_face), true }},");
-        sb.AppendLine("        };");
-        sb.AppendLine("        for (const auto& e : kSupportedIIDs) {");
-        sb.AppendLine("            if (e.iid == riid) {");
-        sb.AppendLine("                *ppv = e.ptr;");
-        sb.AppendLine("                if (e.delegating) m_pUnkOuter->AddRef(); else AddRef();");
+        sb.AppendLine("        // Constexpr IID table for fast comparison");
+        sb.AppendLine("        static constexpr IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };");
+        sb.AppendLine("        for (const auto& iid : kNonDelegatingIIDs) {");
+        sb.AppendLine("            if (iid == riid) {");
+        sb.AppendLine("                *ppv = static_cast<IRpcProxyBuffer*>(this);");
+        sb.AppendLine("                AddRef();");
         sb.AppendLine("                return S_OK;");
         sb.AppendLine("            }");
         sb.AppendLine("        }");
-        sb.AppendLine("        *ppv = nullptr; return E_NOINTERFACE;");
+        sb.AppendLine($"        if (riid == {iidName}) {{");
+        sb.AppendLine($"            *ppv = static_cast<{mangledName}*>(&m_face);");
+        sb.AppendLine("            m_pUnkOuter->AddRef();");
+        sb.AppendLine("            return S_OK;");
+        sb.AppendLine("        }");
+        sb.AppendLine("        *ppv = nullptr;");
+        sb.AppendLine("        return E_NOINTERFACE;");
         sb.AppendLine("    }");
         sb.AppendLine();
     }
