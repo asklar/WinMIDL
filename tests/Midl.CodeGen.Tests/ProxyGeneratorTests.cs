@@ -108,7 +108,7 @@ public partial class ProxyGeneratorTests
         Assert.Contains("IID_IUnknown", output);
         Assert.Contains("IID_IRpcProxyBuffer", output);
         Assert.Contains("IID___x_TestApp_IWidget", output);
-        Assert.Contains("winmidl::qi_check(kQIEntries", output);
+        Assert.Contains("winmidl::qi_check(kTypeInfo", output);
     }
 
     [Fact]

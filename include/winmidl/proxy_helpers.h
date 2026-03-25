@@ -9,15 +9,16 @@
 
 namespace winmidl {
 
-struct type_info_t {
-    std::span<const IID> iids;
-    std::wstring_view className;
-};
-
 struct qi_entry_t {
     const IID& iid;
     uint32_t offset;
     bool delegating;
+};
+
+struct type_info_t {
+    std::span<const IID> iids;
+    std::wstring_view className;
+    std::span<const qi_entry_t> qiEntries;
 };
 
 inline HRESULT get_iids(type_info_t const& info, ULONG* count, IID** iids) {
@@ -42,10 +43,10 @@ inline HRESULT get_trust_level(TrustLevel* level) {
     return S_OK;
 }
 
-inline HRESULT qi_check(std::span<const qi_entry_t> entries,
+inline HRESULT qi_check(type_info_t const& info,
                          void* pThis, IUnknown* pOuter,
                          REFIID riid, void** ppv) {
-    for (auto& e : entries) {
+    for (auto& e : info.qiEntries) {
         if (e.iid == riid) {
             *ppv = reinterpret_cast<std::byte*>(pThis) + e.offset;
             if (e.delegating) pOuter->AddRef();
