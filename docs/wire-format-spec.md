@@ -34,14 +34,14 @@ Parameters are serialized in declaration order with no padding or alignment gaps
 For fixed-size signatures (no strings or variable-length types), the buffer size is a compile-time constant:
 
 ```cpp
-static constexpr UINT32 kSetPosition_RequestSize = 8; // 2 × FLOAT
+static constexpr UINT32 kSetPosition_RequestSize = sizeof(Point); // blittable struct
 msg.cbBuffer = kSetPosition_RequestSize;
 ```
 
 For variable-size signatures:
 
 ```cpp
-msg.cbBuffer = 4 + WindowsGetStringLen(name) * 2;
+msg.cbBuffer = sizeof(uint32_t) + WindowsGetStringLen(name) * sizeof(wchar_t);
 ```
 
 ## Reply Buffer Layout
@@ -57,7 +57,7 @@ The trailing HRESULT (4 bytes) is always present, even for `void` methods.
 For fixed-size replies, the size is also a compile-time constant:
 
 ```cpp
-static constexpr UINT32 kReplySize = 12; // Int32 out + Boolean retval + HRESULT
+static constexpr UINT32 kReplySize = sizeof(int32_t) + sizeof(int32_t) + sizeof(HRESULT);
 pMsg->cbBuffer = kReplySize;
 ```
 
@@ -120,13 +120,13 @@ Strings use a length-prefixed UTF-16 encoding:
 ```cpp
 // Serialize
 UINT32 len = WindowsGetStringLen(name);
-memcpy(p, &len, 4); p += 4;
+memcpy(p, &len, sizeof(len)); p += sizeof(len);
 PCWSTR raw = WindowsGetStringRawBuffer(name, nullptr);
-memcpy(p, raw, len * 2); p += len * 2;
+memcpy(p, raw, len * sizeof(wchar_t)); p += len * sizeof(wchar_t);
 
 // Deserialize reply (allocating — buffer is freed after)
-UINT32 len; memcpy(&len, pReply, 4); pReply += 4;
-WindowsCreateString((PCWSTR)pReply, len, &str); pReply += len * 2;
+UINT32 len; memcpy(&len, pReply, sizeof(len)); pReply += sizeof(len);
+WindowsCreateString((PCWSTR)pReply, len, &str); pReply += len * sizeof(wchar_t);
 ```
 
 #### Stub side (zero-copy deserialize)
@@ -134,11 +134,11 @@ WindowsCreateString((PCWSTR)pReply, len, &str); pReply += len * 2;
 On the stub side, the RPC buffer is alive for the duration of the `Invoke` call. We use `WindowsCreateStringReference` to create a **non-owning view** into the buffer, avoiding allocation and copy:
 
 ```cpp
-UINT32 len; memcpy(&len, p, 4); p += 4;
+UINT32 len; memcpy(&len, p, sizeof(len)); p += sizeof(len);
 HSTRING_HEADER hdr;
 HSTRING str;
 WindowsCreateStringReference(reinterpret_cast<PCWSTR>(p), len, &hdr, &str);
-p += len * 2;
+p += len * sizeof(wchar_t);
 // str is valid until Invoke returns — no WindowsDeleteString needed
 ```
 
@@ -166,9 +166,9 @@ This is safe because:
 Structs containing enums, strings, or other non-trivial types are serialized field-by-field:
 
 ```cpp
-memcpy(p, &item.Id, 4); p += 4;
-INT32 State_val = static_cast<INT32>(item.State);
-memcpy(p, &State_val, 4); p += 4;
+memcpy(p, &item.Id, sizeof(item.Id)); p += sizeof(item.Id);
+int32_t State_val = static_cast<int32_t>(item.State);
+memcpy(p, &State_val, sizeof(State_val)); p += sizeof(State_val);
 ```
 
 ## Alignment Rules
@@ -182,14 +182,14 @@ This works because:
 
 ## Why This Is Faster Than NDR
 
-| Aspect | NDR | MIDL Compiled |
-|--------|-----|---------------|
+| Aspect | NDR | WinMIDL Compiled |
+|--------|-----|------------------|
 | Format strings | Interpreted at runtime | Compiled to direct memcpy |
 | Buffer sizes | Computed by interpreter | `constexpr` at compile time (fixed-size) |
 | String handling | Always allocates + copies | Zero-copy on stub side (`WindowsCreateStringReference`) |
 | Struct handling | Field-by-field with alignment | Single `memcpy` for blittable structs |
-| Code size | Shared interpreter + format strings | Inline per-method (small, cache-friendly) |
-| Branch prediction | Data-dependent dispatch | Straight-line code, no branches |
+| Code generation | Shared interpreter + per-interface format strings | Shared helpers + per-interface data tables |
+| Identical signatures | Each method gets format string entries | Folded: one function per unique signature shape |
 | Compile-time safety | None | `static_assert` on struct layouts |
 
 ### Key performance wins:
@@ -198,3 +198,9 @@ This works because:
 2. **Zero-copy strings**: `WindowsCreateStringReference` avoids heap allocation and `memcpy` for every string parameter on the stub side.
 3. **Blittable struct memcpy**: A struct with N fields is copied in one `memcpy` call instead of N separate calls.
 4. **No interpreter overhead**: NDR walks format strings at runtime; compiled proxies are straight-line code.
+5. **Signature folding**: Methods with identical parameter/return shapes share one implementation. 50 HSTRING property getters → 1 function.
+6. **Data-driven IInspectable**: `GetIids`, `GetRuntimeClassName`, `QueryInterface` are shared helpers parameterized by constexpr data tables — zero per-interface code.
+
+## Async Method Safety
+
+For methods returning `IAsyncOperation<T>`, `IAsyncAction`, or related async types, the stub MUST NOT use zero-copy `WindowsCreateStringReference` for input HSTRING parameters. The server may capture params beyond the call lifetime. These methods use allocating `WindowsCreateString` instead.
