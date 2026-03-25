@@ -150,10 +150,8 @@ if ($sdkVersion -and $sdkRoot) {
     $umPath = "$sdkRoot\Lib\$sdkVersion\um\$targetArch"
     $aotArgs += "/p:LinkerArg=/LIBPATH:`"$umPath`""
 }
-# For cross-compilation, tell ILC to use the right tools
-if ($targetArch -ne $hostArch) {
-    $aotArgs += "/p:IlcUseEnvironmentalTools=true"
-}
+# Tell ILC to use our LIB/PATH instead of its own discovery
+$aotArgs += "/p:IlcUseEnvironmentalTools=true"
 
 $aotResult = & dotnet @aotArgs 2>&1
 $aotExitCode = $LASTEXITCODE
