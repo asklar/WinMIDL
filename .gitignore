@@ -34,3 +34,5 @@ TestResults/
 *.h
 *.c
 tests/golden/
+
+docs/email/
