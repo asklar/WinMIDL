@@ -106,8 +106,8 @@ public class ProxyGenerator
         sb.AppendLine("        ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }");
         sb.AppendLine();
 
-        // IInspectable forwarding
-        EmitFaceIInspectable(sb);
+        // IInspectable — static constexpr data, no forwarding
+        EmitFaceIInspectable(sb, iface.FullName, iidName);
 
         // Interface methods
         var methods = CollectInterfaceMethods(iface);
@@ -122,23 +122,26 @@ public class ProxyGenerator
         sb.AppendLine();
     }
 
-    private static void EmitFaceIInspectable(StringBuilder sb)
+    private static void EmitFaceIInspectable(StringBuilder sb, string fullName, string iidName)
     {
-        sb.AppendLine("        // IInspectable (forwarded to outer)");
+        sb.AppendLine("        // IInspectable — constexpr static data");
+        sb.AppendLine($"        static constexpr IID kImplementedIIDs[] = {{ {iidName} }};");
+        sb.AppendLine($"        static constexpr wchar_t kRuntimeClassName[] = L\"{fullName}\";");
+        sb.AppendLine("        HSTRING_HEADER m_hdrClassName{};");
+        sb.AppendLine();
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {");
-        sb.AppendLine("            IInspectable* pInsp; HRESULT hr = m_owner->m_pUnkOuter->QueryInterface(IID_IInspectable, (void**)&pInsp);");
-        sb.AppendLine("            if (SUCCEEDED(hr)) { hr = pInsp->GetIids(iidCount, iids); pInsp->Release(); }");
-        sb.AppendLine("            return hr;");
+        sb.AppendLine("            *iidCount = _countof(kImplementedIIDs);");
+        sb.AppendLine("            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));");
+        sb.AppendLine("            if (!*iids) return E_OUTOFMEMORY;");
+        sb.AppendLine("            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));");
+        sb.AppendLine("            return S_OK;");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {");
-        sb.AppendLine("            IInspectable* pInsp; HRESULT hr = m_owner->m_pUnkOuter->QueryInterface(IID_IInspectable, (void**)&pInsp);");
-        sb.AppendLine("            if (SUCCEEDED(hr)) { hr = pInsp->GetRuntimeClassName(className); pInsp->Release(); }");
-        sb.AppendLine("        return hr;");
+        sb.AppendLine("            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {");
-        sb.AppendLine("            IInspectable* pInsp; HRESULT hr = m_owner->m_pUnkOuter->QueryInterface(IID_IInspectable, (void**)&pInsp);");
-        sb.AppendLine("            if (SUCCEEDED(hr)) { hr = pInsp->GetTrustLevel(trustLevel); pInsp->Release(); }");
-        sb.AppendLine("            return hr;");
+        sb.AppendLine("            *trustLevel = BaseTrust;");
+        sb.AppendLine("            return S_OK;");
         sb.AppendLine("        }");
         sb.AppendLine();
     }

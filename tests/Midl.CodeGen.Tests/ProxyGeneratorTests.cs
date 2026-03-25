@@ -149,7 +149,10 @@ public partial class ProxyGeneratorTests
         Assert.Contains("GetIids(ULONG* iidCount, IID** iids) override", output);
         Assert.Contains("GetRuntimeClassName(HSTRING* className) override", output);
         Assert.Contains("GetTrustLevel(TrustLevel* trustLevel) override", output);
-        Assert.Contains("m_pUnkOuter->QueryInterface(IID_IInspectable", output);
+        // Uses constexpr static data, not forwarding
+        Assert.Contains("constexpr IID kImplementedIIDs[]", output);
+        Assert.Contains("constexpr wchar_t kRuntimeClassName[]", output);
+        Assert.Contains("BaseTrust", output);
     }
 
     [Fact]
