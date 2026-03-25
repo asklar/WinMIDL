@@ -15,7 +15,7 @@ public class ProxyGenerator
     // IUnknown occupies vtable slots 0-2, IInspectable 3-5, user methods start at 6
     private static readonly int UserMethodStartSlot = WireFormat.GetFirstUserSlot(isInspectable: true);
 
-    public string Generate(Compilation compilation)
+    public string Generate(Compilation compilation, bool useExceptions = false)
     {
         var sb = new StringBuilder();
         EmitPrologue(sb);
@@ -106,7 +106,7 @@ public class ProxyGenerator
                 string? rcName = null;
                 if (ifaceToRcName.TryGetValue(iface.FullName, out rcName))
                     rcToAllIids.TryGetValue(rcName, out allIids);
-                EmitProxyClass(sb, iface, allIids, rcName);
+                EmitProxyClass(sb, iface, allIids, rcName, useExceptions);
             }
         }
 
@@ -116,7 +116,7 @@ public class ProxyGenerator
 
     public void GenerateToFile(Compilation compilation, string outputPath)
     {
-        var content = Generate(compilation);
+        var content = Generate(compilation, useExceptions: false);
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? ".");
         File.WriteAllText(outputPath, content);
     }
@@ -136,7 +136,7 @@ public class ProxyGenerator
         sb.AppendLine("// End of generated proxy file");
     }
 
-    internal static void EmitProxyClass(StringBuilder sb, InterfaceSymbol iface, List<string>? allRuntimeClassIids = null, string? runtimeClassName = null)
+    internal static void EmitProxyClass(StringBuilder sb, InterfaceSymbol iface, List<string>? allRuntimeClassIids = null, string? runtimeClassName = null, bool useExceptions = false)
     {
         var mangledName = HeaderEmitter.MangleName(iface.FullName);
         var className = $"C{iface.Name}Proxy";
@@ -150,7 +150,7 @@ public class ProxyGenerator
         sb.AppendLine();
 
         // Emit the nested Face class that implements the interface with delegating IUnknown
-        EmitFaceClass(sb, iface, mangledName, iidName, className, allRuntimeClassIids, runtimeClassName);
+        EmitFaceClass(sb, iface, mangledName, iidName, className, allRuntimeClassIids, runtimeClassName, useExceptions);
 
         sb.AppendLine("    Face m_face;");
         sb.AppendLine("    friend struct Face;");
@@ -174,7 +174,7 @@ public class ProxyGenerator
         sb.AppendLine();
     }
 
-    private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName, List<string>? allRuntimeClassIids, string? runtimeClassName)
+    private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName, List<string>? allRuntimeClassIids, string? runtimeClassName, bool useExceptions)
     {
         sb.AppendLine($"    struct Face : public {mangledName} {{");
         sb.AppendLine($"        {outerClassName}* m_owner;");
@@ -201,7 +201,7 @@ public class ProxyGenerator
         int slot = UserMethodStartSlot;
         foreach (var (methodName, parameters, returnType, memberKind) in methods)
         {
-            EmitFaceProxyMethod(sb, iface, methodName, parameters, returnType, memberKind, mangledName, slot);
+            EmitFaceProxyMethod(sb, iface, methodName, parameters, returnType, memberKind, mangledName, slot, useExceptions);
             slot++;
         }
 
@@ -342,7 +342,8 @@ public class ProxyGenerator
         TypeRef returnType,
         MemberKind memberKind,
         string mangledName,
-        int vtableSlot)
+        int vtableSlot,
+        bool useExceptions = false)
     {
         // Build C++ signature
         var sigParts = new List<string>();
@@ -415,8 +416,16 @@ public class ProxyGenerator
             sb.AppendLine($"            msg.cbBuffer = {bufferSizeExpr};");
         }
 
-        sb.AppendLine($"            HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, {iidName});");
-        sb.AppendLine("            RETURN_IF_FAILED(hr);");
+        if (useExceptions)
+        {
+            sb.AppendLine("            try {");
+            sb.AppendLine($"            winmidl::throw_if_failed(m_owner->m_pChannel->GetBuffer(&msg, {iidName}));");
+        }
+        else
+        {
+            sb.AppendLine($"            HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, {iidName});");
+            sb.AppendLine("            RETURN_IF_FAILED(hr);");
+        }
 
         // Serialize input params
         if (inParams.Count > 0)
@@ -428,9 +437,17 @@ public class ProxyGenerator
             }
         }
 
-        sb.AppendLine("            ULONG status;");
-        sb.AppendLine("            hr = m_owner->m_pChannel->SendReceive(&msg, &status);");
-        sb.AppendLine("            RETURN_IF_FAILED(hr);");
+        if (useExceptions)
+        {
+            sb.AppendLine("            ULONG status;");
+            sb.AppendLine("            winmidl::throw_if_failed(m_owner->m_pChannel->SendReceive(&msg, &status));");
+        }
+        else
+        {
+            sb.AppendLine("            ULONG status;");
+            sb.AppendLine("            hr = m_owner->m_pChannel->SendReceive(&msg, &status);");
+            sb.AppendLine("            RETURN_IF_FAILED(hr);");
+        }
 
         // Deserialize reply
         bool needsReadPointer = hasRetval || outParams.Count > 0;
@@ -452,9 +469,20 @@ public class ProxyGenerator
 
         // Deserialize trailing HRESULT
         sb.AppendLine("            HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));");
-        sb.AppendLine("            hr = m_owner->m_pChannel->FreeBuffer(&msg);");
-        sb.AppendLine("            RETURN_IF_FAILED(hr);");
-        sb.AppendLine("            return retHr;");
+
+        if (useExceptions)
+        {
+            sb.AppendLine("            winmidl::throw_if_failed(m_owner->m_pChannel->FreeBuffer(&msg));");
+            sb.AppendLine("            return retHr;");
+            sb.AppendLine("            } catch (HRESULT hr) { return hr; }");
+            sb.AppendLine("              catch (...) { return E_FAIL; }");
+        }
+        else
+        {
+            sb.AppendLine("            hr = m_owner->m_pChannel->FreeBuffer(&msg);");
+            sb.AppendLine("            RETURN_IF_FAILED(hr);");
+            sb.AppendLine("            return retHr;");
+        }
         sb.AppendLine("        }");
         sb.AppendLine();
     }

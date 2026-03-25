@@ -9,6 +9,10 @@
 
 #define RETURN_IF_FAILED(hr) do { HRESULT __hr = (hr); if (FAILED(__hr)) return __hr; } while(0)
 
+namespace winmidl {
+    inline void throw_if_failed(HRESULT hr) { if (FAILED(hr)) throw hr; }
+}
+
 namespace wil {
     template<typename T>
     class com_ptr_nothrow {

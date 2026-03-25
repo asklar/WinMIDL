@@ -34,7 +34,7 @@ public class StubGenerator
     /// <summary>
     /// Generate C++ stub code for all non-external interfaces in the compilation.
     /// </summary>
-    public string Generate(Compilation compilation)
+    public string Generate(Compilation compilation, bool useExceptions = false)
     {
         var sb = new StringBuilder();
 
@@ -50,13 +50,13 @@ public class StubGenerator
 
         foreach (var iface in interfaces)
         {
-            EmitStubClass(sb, iface);
+            EmitStubClass(sb, iface, useExceptions);
         }
 
         return sb.ToString();
     }
 
-    private void EmitStubClass(StringBuilder sb, InterfaceSymbol iface)
+    private void EmitStubClass(StringBuilder sb, InterfaceSymbol iface, bool useExceptions)
     {
         var mangledName = MangleName(iface.FullName);
         var className = $"CStub_{mangledName}";
@@ -136,7 +136,7 @@ public class StubGenerator
         sb.AppendLine("private:");
         foreach (var slot in slots)
         {
-            EmitInvokeHandler(sb, slot, iface);
+            EmitInvokeHandler(sb, slot, iface, useExceptions);
         }
 
         sb.AppendLine("};");
@@ -158,7 +158,7 @@ public class StubGenerator
         sb.AppendLine("    }");
     }
 
-    private void EmitInvokeHandler(StringBuilder sb, StubSlot slot, InterfaceSymbol iface)
+    private void EmitInvokeHandler(StringBuilder sb, StubSlot slot, InterfaceSymbol iface, bool useExceptions)
     {
         var mangledName = MangleName(iface.FullName);
         var iidName = $"IID_{mangledName}";
@@ -199,9 +199,18 @@ public class StubGenerator
         EmitServerCall(sb, slot, inParams, outParams, hasRetval);
 
         // Serialize reply
-        EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams);
+        EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams, useExceptions);
 
-        sb.AppendLine("        return S_OK;");
+        if (useExceptions)
+        {
+            sb.AppendLine("        return S_OK;");
+            sb.AppendLine("        } catch (HRESULT hr) { return hr; }");
+            sb.AppendLine("          catch (...) { return E_FAIL; }");
+        }
+        else
+        {
+            sb.AppendLine("        return S_OK;");
+        }
         sb.AppendLine("    }");
     }
 
@@ -281,7 +290,7 @@ public class StubGenerator
     }
 
     private void EmitSerializeReply(StringBuilder sb, StubSlot slot, List<ParameterSymbol> outParams,
-        bool hasRetval, string iidName, List<ParameterSymbol> inParams)
+        bool hasRetval, string iidName, List<ParameterSymbol> inParams, bool useExceptions)
     {
         // For HSTRING out params/retval, we need to get their lengths before computing buffer size
         // Emit WindowsGetStringRawBuffer calls for any HSTRING results
@@ -336,8 +345,16 @@ public class StubGenerator
             sizeParts.Add("sizeof(HRESULT)");
             sb.AppendLine($"        pMsg->cbBuffer = {string.Join(" + ", sizeParts)};");
         }
-        sb.AppendLine($"        HRESULT hrBuf = pChannel->GetBuffer(pMsg, {iidName});");
-        sb.AppendLine($"        RETURN_IF_FAILED(hrBuf);");
+        if (useExceptions)
+        {
+            sb.AppendLine("        try {");
+            sb.AppendLine($"        winmidl::throw_if_failed(pChannel->GetBuffer(pMsg, {iidName}));");
+        }
+        else
+        {
+            sb.AppendLine($"        HRESULT hrBuf = pChannel->GetBuffer(pMsg, {iidName});");
+            sb.AppendLine($"        RETURN_IF_FAILED(hrBuf);");
+        }
 
         // Check if we need a pointer
         bool needsPointer = outParams.Count > 0 || hasRetval;

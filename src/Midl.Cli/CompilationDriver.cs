@@ -358,7 +358,7 @@ public class CompilationDriver
         if (options.CppProxyFile != null)
         {
             var headerFile = options.HeaderFile ?? Path.GetFileNameWithoutExtension(options.InputFile ?? "output") + ".h";
-            var proxyContent = GenerateCombinedProxy(compilation, headerFile);
+            var proxyContent = GenerateCombinedProxy(compilation, headerFile, options.UseExceptions);
             var path = Path.Combine(outDir, options.CppProxyFile);
             Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
             File.WriteAllText(path, proxyContent);
@@ -395,7 +395,7 @@ public class CompilationDriver
     /// Generates a combined proxy/stub DLL source file containing proxy classes,
     /// stub classes, factory, and DLL export plumbing — ready to compile into a proxy DLL.
     /// </summary>
-    internal static string GenerateCombinedProxy(Compilation compilation, string headerFile)
+    internal static string GenerateCombinedProxy(Compilation compilation, string headerFile, bool useExceptions = false)
     {
         var sb = new System.Text.StringBuilder();
 
@@ -419,12 +419,12 @@ public class CompilationDriver
 
         // Proxy classes (IRpcProxyBuffer implementations)
         var proxyGen = new ProxyGenerator();
-        sb.Append(proxyGen.Generate(compilation));
+        sb.Append(proxyGen.Generate(compilation, useExceptions));
         sb.AppendLine();
 
         // Stub classes (IRpcStubBuffer implementations)
         var stubGen = new StubGenerator();
-        sb.Append(stubGen.Generate(compilation));
+        sb.Append(stubGen.Generate(compilation, useExceptions));
         sb.AppendLine();
 
         // Factory (IPSFactoryBuffer) + DLL exports
