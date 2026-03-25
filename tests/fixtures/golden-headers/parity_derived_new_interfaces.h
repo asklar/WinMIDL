@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -46,6 +45,49 @@
 
 // Header files for imported files
 #include "winrtbase.h"
+
+/*
+ *
+ * Class TestApp.Parity.BaseItem
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IBaseItem ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_BaseItem_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_BaseItem_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_BaseItem[] = L"TestApp.Parity.BaseItem";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.DerivedItem
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IDerivedItem ** Default Interface **
+ *    TestApp.Parity.IDerivedItemFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_DerivedItem_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_DerivedItem_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DerivedItem[] = L"TestApp.Parity.DerivedItem";
+#endif
+
+EXTERN_C const IID IID___x_TestApp_CParity_CISerializable2;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComparable2;
+EXTERN_C const IID IID___x_TestApp_CParity_CIBaseItem;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDerivedItem;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDerivedItemFactory;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CISerializable2_FWD_DEFINED__
@@ -119,18 +161,6 @@ namespace TestApp {
         class DerivedItem;
     } /* Parity */
 } /* TestApp */
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_BaseItem[] = L"TestApp.Parity.BaseItem";
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DerivedItem[] = L"TestApp.Parity.DerivedItem";
-
-EXTERN_C const IID IID___x_TestApp_CParity_CISerializable2;
-EXTERN_C const IID IID___x_TestApp_CParity_CIComparable2;
-EXTERN_C const IID IID___x_TestApp_CParity_CIBaseItem;
-EXTERN_C const IID IID___x_TestApp_CParity_CIDerivedItem;
-EXTERN_C const IID IID___x_TestApp_CParity_CIDerivedItemFactory;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

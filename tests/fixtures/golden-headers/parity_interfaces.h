@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -47,6 +46,13 @@
 // Header files for imported files
 #include "winrtbase.h"
 
+EXTERN_C const IID IID___x_TestApp_CParity_CDataChangedHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDataSource;
+EXTERN_C const IID IID___x_TestApp_CParity_CICacheable;
+EXTERN_C const IID IID___x_TestApp_CParity_CICachedDataSource;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIDataSource_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIDataSource_FWD_DEFINED__
@@ -83,13 +89,6 @@ namespace TestApp {
 #define __x_TestApp_CParity_CICachedDataSource TestApp::Parity::ICachedDataSource
 
 #endif // ____x_TestApp_CParity_CICachedDataSource_FWD_DEFINED__
-
-EXTERN_C const IID IID___x_TestApp_CParity_CDataChangedHandler;
-EXTERN_C const IID IID___x_TestApp_CParity_CIDataSource;
-EXTERN_C const IID IID___x_TestApp_CParity_CICacheable;
-EXTERN_C const IID IID___x_TestApp_CParity_CICachedDataSource;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

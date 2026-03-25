@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -46,6 +45,64 @@
 
 // Header files for imported files
 #include "winrtbase.h"
+
+/*
+ *
+ * Class TestApp.Parity.DeprecatedWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IDeprecatedWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_DeprecatedWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_DeprecatedWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DeprecatedWidget[] = L"TestApp.Parity.DeprecatedWidget";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.MixedDeprecation
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IMixedDeprecation ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_MixedDeprecation_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_MixedDeprecation_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MixedDeprecation[] = L"TestApp.Parity.MixedDeprecation";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.RemovedService
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IRemovedService ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_RemovedService_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_RemovedService_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_RemovedService[] = L"TestApp.Parity.RemovedService";
+#endif
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedInterface;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMixedDeprecation;
+EXTERN_C const IID IID___x_TestApp_CParity_CIRemovedService;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIDeprecatedInterface_FWD_DEFINED__
@@ -113,19 +170,6 @@ namespace TestApp {
         class RemovedService;
     } /* Parity */
 } /* TestApp */
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DeprecatedWidget[] = L"TestApp.Parity.DeprecatedWidget";
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MixedDeprecation[] = L"TestApp.Parity.MixedDeprecation";
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_RemovedService[] = L"TestApp.Parity.RemovedService";
-
-EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedInterface;
-EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedWidget;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMixedDeprecation;
-EXTERN_C const IID IID___x_TestApp_CParity_CIRemovedService;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

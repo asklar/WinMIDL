@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -47,6 +46,47 @@
 // Header files for imported files
 #include "winrtbase.h"
 
+enum ConnectionState
+{
+    ConnectionState_Disconnected = 0,
+    ConnectionState_Connecting = 1,
+    ConnectionState_Connected = 2,
+    ConnectionState_Reconnecting = 3,
+    ConnectionState_Failed = 4,
+};
+
+struct ConnectionInfo
+{
+    HSTRING Host;
+    int Port;
+    ::boolean Secure;
+    ConnectionState State;
+};
+
+/*
+ *
+ * Class TestApp.Parity.ConnectionManager
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IConnectionManager ** Default Interface **
+ *    TestApp.Parity.IConnectionManagerFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ConnectionManager_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ConnectionManager_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ConnectionManager[] = L"TestApp.Parity.ConnectionManager";
+#endif
+
+EXTERN_C const IID IID___x_TestApp_CParity_CConnectionChangedHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManager;
+EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManagerFactory;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIConnectionManager_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIConnectionManager_FWD_DEFINED__
@@ -77,31 +117,6 @@ namespace TestApp {
         class ConnectionManager;
     } /* Parity */
 } /* TestApp */
-
-enum ConnectionState
-{
-    ConnectionState_Disconnected = 0,
-    ConnectionState_Connecting = 1,
-    ConnectionState_Connected = 2,
-    ConnectionState_Reconnecting = 3,
-    ConnectionState_Failed = 4,
-};
-
-struct ConnectionInfo
-{
-    HSTRING Host;
-    int Port;
-    ::boolean Secure;
-    ConnectionState State;
-};
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ConnectionManager[] = L"TestApp.Parity.ConnectionManager";
-
-EXTERN_C const IID IID___x_TestApp_CParity_CConnectionChangedHandler;
-EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManager;
-EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManagerFactory;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

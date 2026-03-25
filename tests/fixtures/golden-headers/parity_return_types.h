@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -47,6 +46,41 @@
 // Header files for imported files
 #include "winrtbase.h"
 
+struct ReturnData
+{
+    HSTRING Name;
+    int Value;
+};
+
+enum ReturnStatus
+{
+    ReturnStatus_Ok = 0,
+    ReturnStatus_Error = 1,
+    ReturnStatus_Pending = 2,
+};
+
+/*
+ *
+ * Class TestApp.Parity.ReturnTypeWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IReturnTypeWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ReturnTypeWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ReturnTypeWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ReturnTypeWidget[] = L"TestApp.Parity.ReturnTypeWidget";
+#endif
+
+EXTERN_C const IID IID___x_TestApp_CParity_CReturnCallback;
+EXTERN_C const IID IID___x_TestApp_CParity_CIReturnTypeWidget;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIReturnTypeWidget_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIReturnTypeWidget_FWD_DEFINED__
@@ -65,26 +99,6 @@ namespace TestApp {
         class ReturnTypeWidget;
     } /* Parity */
 } /* TestApp */
-
-struct ReturnData
-{
-    HSTRING Name;
-    int Value;
-};
-
-enum ReturnStatus
-{
-    ReturnStatus_Ok = 0,
-    ReturnStatus_Error = 1,
-    ReturnStatus_Pending = 2,
-};
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ReturnTypeWidget[] = L"TestApp.Parity.ReturnTypeWidget";
-
-EXTERN_C const IID IID___x_TestApp_CParity_CReturnCallback;
-EXTERN_C const IID IID___x_TestApp_CParity_CIReturnTypeWidget;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

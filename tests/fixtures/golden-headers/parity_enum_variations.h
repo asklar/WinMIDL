@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -47,25 +46,6 @@
 // Header files for imported files
 #include "winrtbase.h"
 
-/* Forward Declarations */
-#ifndef ____x_TestApp_CParity_CIEnumUser_FWD_DEFINED__
-#define ____x_TestApp_CParity_CIEnumUser_FWD_DEFINED__
-
-namespace TestApp {
-    namespace Parity {
-        interface IEnumUser;
-    } /* Parity */
-} /* TestApp */
-#define __x_TestApp_CParity_CIEnumUser TestApp::Parity::IEnumUser
-
-#endif // ____x_TestApp_CParity_CIEnumUser_FWD_DEFINED__
-
-namespace TestApp {
-    namespace Parity {
-        class EnumUser;
-    } /* Parity */
-} /* TestApp */
-
 enum SimpleSequential
 {
     SimpleSequential_First = 0,
@@ -105,11 +85,45 @@ enum FileAttributes2
     FileAttributes2_Encrypted = 32,
 };
 
+/*
+ *
+ * Class TestApp.Parity.EnumUser
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IEnumUser ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_EnumUser_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_EnumUser_DEFINED
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EnumUser[] = L"TestApp.Parity.EnumUser";
+#endif
 
 EXTERN_C const IID IID___x_TestApp_CParity_CIEnumUser;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIEnumUser_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIEnumUser_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IEnumUser;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIEnumUser TestApp::Parity::IEnumUser
+
+#endif // ____x_TestApp_CParity_CIEnumUser_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        class EnumUser;
+    } /* Parity */
+} /* TestApp */
 
 /*
  *

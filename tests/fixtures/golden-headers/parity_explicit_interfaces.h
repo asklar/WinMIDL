@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -46,6 +45,51 @@
 
 // Header files for imported files
 #include "winrtbase.h"
+
+/*
+ *
+ * Class TestApp.Parity.GraphicElement
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IGraphicElement ** Default Interface **
+ *    TestApp.Parity.IGraphicElementFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_GraphicElement_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_GraphicElement_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_GraphicElement[] = L"TestApp.Parity.GraphicElement";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.Document
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IDocument ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_Document_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_Document_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Document[] = L"TestApp.Parity.Document";
+#endif
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIRenderable;
+EXTERN_C const IID IID___x_TestApp_CParity_CISerializable;
+EXTERN_C const IID IID___x_TestApp_CParity_CIPrintable;
+EXTERN_C const IID IID___x_TestApp_CParity_CICloneable2;
+EXTERN_C const IID IID___x_TestApp_CParity_CIGraphicElement;
+EXTERN_C const IID IID___x_TestApp_CParity_CIGraphicElementFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDocument;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIRenderable_FWD_DEFINED__
@@ -143,20 +187,6 @@ namespace TestApp {
         class Document;
     } /* Parity */
 } /* TestApp */
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_GraphicElement[] = L"TestApp.Parity.GraphicElement";
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Document[] = L"TestApp.Parity.Document";
-
-EXTERN_C const IID IID___x_TestApp_CParity_CIRenderable;
-EXTERN_C const IID IID___x_TestApp_CParity_CISerializable;
-EXTERN_C const IID IID___x_TestApp_CParity_CIPrintable;
-EXTERN_C const IID IID___x_TestApp_CParity_CICloneable2;
-EXTERN_C const IID IID___x_TestApp_CParity_CIGraphicElement;
-EXTERN_C const IID IID___x_TestApp_CParity_CIGraphicElementFactory;
-EXTERN_C const IID IID___x_TestApp_CParity_CIDocument;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

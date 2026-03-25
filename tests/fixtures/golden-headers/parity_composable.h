@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -46,6 +45,73 @@
 
 // Header files for imported files
 #include "winrtbase.h"
+
+/*
+ *
+ * Class TestApp.Parity.ComposableWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IComposableWidget ** Default Interface **
+ *    TestApp.Parity.IComposableWidgetFactory
+ *    TestApp.Parity.IComposableWidgetOverrides
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ComposableWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ComposableWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableWidget[] = L"TestApp.Parity.ComposableWidget";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.MiddleComposable
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IMiddleComposable ** Default Interface **
+ *    TestApp.Parity.IMiddleComposableFactory
+ *    TestApp.Parity.IMiddleComposableOverrides
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_MiddleComposable_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_MiddleComposable_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MiddleComposable[] = L"TestApp.Parity.MiddleComposable";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.FinalComposable
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IFinalComposable ** Default Interface **
+ *    TestApp.Parity.IFinalComposableFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_FinalComposable_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_FinalComposable_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FinalComposable[] = L"TestApp.Parity.FinalComposable";
+#endif
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposable;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposable;
+EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposableFactory;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIComposableWidget_FWD_DEFINED__
@@ -161,23 +227,6 @@ namespace TestApp {
         class FinalComposable;
     } /* Parity */
 } /* TestApp */
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableWidget[] = L"TestApp.Parity.ComposableWidget";
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MiddleComposable[] = L"TestApp.Parity.MiddleComposable";
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FinalComposable[] = L"TestApp.Parity.FinalComposable";
-
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidget;
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetFactory;
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetOverrides;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposable;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableFactory;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableOverrides;
-EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposable;
-EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposableFactory;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

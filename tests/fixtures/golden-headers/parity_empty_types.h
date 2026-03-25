@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -46,6 +45,73 @@
 
 // Header files for imported files
 #include "winrtbase.h"
+
+/*
+ *
+ * Class TestApp.Parity.EmptyRuntimeClass
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IEmptyRuntimeClass ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_EmptyRuntimeClass_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_EmptyRuntimeClass_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EmptyRuntimeClass[] = L"TestApp.Parity.EmptyRuntimeClass";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.EmptyWithLabel
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IEmptyWithLabel ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_EmptyWithLabel_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_EmptyWithLabel_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EmptyWithLabel[] = L"TestApp.Parity.EmptyWithLabel";
+#endif
+
+struct MinimalStruct
+{
+    int Value;
+};
+
+enum MinimalEnum
+{
+    MinimalEnum_Default = 0,
+};
+
+/*
+ *
+ * Class TestApp.Parity.EmptyStaticClass
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IEmptyStaticClassStatics
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_EmptyStaticClass_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_EmptyStaticClass_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EmptyStaticClass[] = L"TestApp.Parity.EmptyStaticClass";
+#endif
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIEmptyRuntimeClass;
+EXTERN_C const IID IID___x_TestApp_CParity_CIEmptyWithLabel;
+EXTERN_C const IID IID___x_TestApp_CParity_CIEmptyStaticClassStatics;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIEmptyRuntimeClass_FWD_DEFINED__
@@ -101,28 +167,6 @@ namespace TestApp {
         class EmptyStaticClass;
     } /* Parity */
 } /* TestApp */
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EmptyRuntimeClass[] = L"TestApp.Parity.EmptyRuntimeClass";
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EmptyWithLabel[] = L"TestApp.Parity.EmptyWithLabel";
-
-struct MinimalStruct
-{
-    int Value;
-};
-
-enum MinimalEnum
-{
-    MinimalEnum_Default = 0,
-};
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_EmptyStaticClass[] = L"TestApp.Parity.EmptyStaticClass";
-
-EXTERN_C const IID IID___x_TestApp_CParity_CIEmptyRuntimeClass;
-EXTERN_C const IID IID___x_TestApp_CParity_CIEmptyWithLabel;
-EXTERN_C const IID IID___x_TestApp_CParity_CIEmptyStaticClassStatics;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

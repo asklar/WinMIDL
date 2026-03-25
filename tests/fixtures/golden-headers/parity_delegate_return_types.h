@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -47,6 +46,39 @@
 // Header files for imported files
 #include "winrtbase.h"
 
+struct DelegateResult
+{
+    HSTRING Name;
+    int Code;
+};
+
+/*
+ *
+ * Class TestApp.Parity.DelegateReturnWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IDelegateReturnWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_DelegateReturnWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_DelegateReturnWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DelegateReturnWidget[] = L"TestApp.Parity.DelegateReturnWidget";
+#endif
+
+EXTERN_C const IID IID___x_TestApp_CParity_CStringRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CIntRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CBoolRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CDoubleRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CResultRequestHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CFactoryHandler;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDelegateReturnWidget;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIDelegateReturnWidget_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIDelegateReturnWidget_FWD_DEFINED__
@@ -65,24 +97,6 @@ namespace TestApp {
         class DelegateReturnWidget;
     } /* Parity */
 } /* TestApp */
-
-struct DelegateResult
-{
-    HSTRING Name;
-    int Code;
-};
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DelegateReturnWidget[] = L"TestApp.Parity.DelegateReturnWidget";
-
-EXTERN_C const IID IID___x_TestApp_CParity_CStringRequestHandler;
-EXTERN_C const IID IID___x_TestApp_CParity_CIntRequestHandler;
-EXTERN_C const IID IID___x_TestApp_CParity_CBoolRequestHandler;
-EXTERN_C const IID IID___x_TestApp_CParity_CDoubleRequestHandler;
-EXTERN_C const IID IID___x_TestApp_CParity_CResultRequestHandler;
-EXTERN_C const IID IID___x_TestApp_CParity_CFactoryHandler;
-EXTERN_C const IID IID___x_TestApp_CParity_CIDelegateReturnWidget;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

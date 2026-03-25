@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -47,6 +46,40 @@
 // Header files for imported files
 #include "winrtbase.h"
 
+/*
+ *
+ * Class TestApp.Parity.Level1.Level2.Level3.Level4.Level5.DeepWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.Level1.Level2.Level3.Level4.Level5.IDeepWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_DeepWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_DeepWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_DeepWidget[] = L"TestApp.Parity.Level1.Level2.Level3.Level4.Level5.DeepWidget";
+#endif
+
+struct DeepData
+{
+    HSTRING Name;
+    int Value;
+};
+
+enum DeepStatus
+{
+    DeepStatus_None = 0,
+    DeepStatus_Active = 1,
+    DeepStatus_Done = 2,
+};
+
+EXTERN_C const IID IID___x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget_FWD_DEFINED__
 #define ____x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget_FWD_DEFINED__
@@ -85,25 +118,6 @@ namespace TestApp {
         } /* Level1 */
     } /* Parity */
 } /* TestApp */
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Level1_Level2_Level3_Level4_Level5_DeepWidget[] = L"TestApp.Parity.Level1.Level2.Level3.Level4.Level5.DeepWidget";
-
-struct DeepData
-{
-    HSTRING Name;
-    int Value;
-};
-
-enum DeepStatus
-{
-    DeepStatus_None = 0,
-    DeepStatus_Active = 1,
-    DeepStatus_Done = 2,
-};
-
-EXTERN_C const IID IID___x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

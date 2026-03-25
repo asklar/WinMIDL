@@ -3,7 +3,6 @@
  * File built with WinMIDL Compiler
  */
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
-
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -46,6 +45,73 @@
 
 // Header files for imported files
 #include "winrtbase.h"
+
+/*
+ *
+ * Class TestApp.Parity.Animal
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IAnimal ** Default Interface **
+ *    TestApp.Parity.IAnimalFactory
+ *    TestApp.Parity.IAnimalOverrides
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_Animal_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_Animal_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Animal[] = L"TestApp.Parity.Animal";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.Mammal
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IMammal ** Default Interface **
+ *    TestApp.Parity.IMammalFactory
+ *    TestApp.Parity.IMammalOverrides
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_Mammal_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_Mammal_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Mammal[] = L"TestApp.Parity.Mammal";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.Dog
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IDog ** Default Interface **
+ *    TestApp.Parity.IDogFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_Dog_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_Dog_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Dog[] = L"TestApp.Parity.Dog";
+#endif
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIAnimal;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMammal;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMammalFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMammalOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDog;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDogFactory;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIAnimal_FWD_DEFINED__
@@ -161,23 +227,6 @@ namespace TestApp {
         class Dog;
     } /* Parity */
 } /* TestApp */
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Animal[] = L"TestApp.Parity.Animal";
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Mammal[] = L"TestApp.Parity.Mammal";
-
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Dog[] = L"TestApp.Parity.Dog";
-
-EXTERN_C const IID IID___x_TestApp_CParity_CIAnimal;
-EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalFactory;
-EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalOverrides;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMammal;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMammalFactory;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMammalOverrides;
-EXTERN_C const IID IID___x_TestApp_CParity_CIDog;
-EXTERN_C const IID IID___x_TestApp_CParity_CIDogFactory;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
 
 /*
  *

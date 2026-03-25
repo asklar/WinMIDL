@@ -10,7 +10,7 @@ namespace Midl.CodeGen.Header;
 /// <summary>
 /// Generates C/C++ header files from a MIDL compilation's symbol table.
 /// </summary>
-public class HeaderEmitter
+public partial class HeaderEmitter
 {
     private static readonly Dictionary<string, string> TypeMap = new(StringComparer.Ordinal)
     {
@@ -47,16 +47,13 @@ public class HeaderEmitter
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         MidlTrace.CodeGen($"Generating header, {allTypes.Count} types");
 
-        // Forward declarations (with FWD_DEFINED guards and namespace blocks)
-        EmitForwardDeclarations(sb, allTypes);
-
         // C-section types: runtime classes, enums, structs
         foreach (var symbol in allTypes)
         {
             switch (symbol)
             {
                 case RuntimeClassSymbol rc:
-                    EmitRuntimeClass(sb, rc);
+                    EmitRuntimeClassWithComment(sb, rc);
                     break;
                 case EnumSymbol e:
                     EmitEnum(sb, e);
@@ -69,6 +66,7 @@ public class HeaderEmitter
 
         // Collect C++ types (interfaces and delegates)
         var cppTypes = allTypes.Where(t => t is InterfaceSymbol or DelegateSymbol).ToList();
+        var hasForwardDecls = allTypes.Any(t => t is InterfaceSymbol or RuntimeClassSymbol);
 
         if (cppTypes.Count > 0)
         {
@@ -79,9 +77,15 @@ public class HeaderEmitter
                 sb.AppendLine($"EXTERN_C const IID IID_{mangledName};");
             }
             sb.AppendLine();
+        }
 
+        if (cppTypes.Count > 0 || hasForwardDecls)
+        {
             sb.AppendLine("#if defined(__cplusplus) && !defined(CINTERFACE)");
             sb.AppendLine();
+
+            // Forward declarations (with FWD_DEFINED guards and namespace blocks)
+            EmitForwardDeclarations(sb, allTypes);
 
             foreach (var symbol in cppTypes)
             {
@@ -125,7 +129,6 @@ public class HeaderEmitter
 
         // Warning suppression
         sb.AppendLine("#pragma warning( disable: 4049 )  /* more than 64k source lines */");
-        sb.AppendLine();
 
         // RPC version requirements
         sb.AppendLine("/* verify that the <rpcndr.h> version is high enough to compile this file*/");
