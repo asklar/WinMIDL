@@ -197,20 +197,24 @@ if (Test-Path $exe) {
     Write-Host "  Size:     $sizeMB MB"
     Write-Host ""
     
-    # Quick smoke test
-    Write-Host "Smoke test..." -ForegroundColor Yellow
-    $version = & $exe /version /nologo 2>&1
-    Write-Host "  Version: $version" -ForegroundColor Green
-    
-    # Cold start timing
-    $cold = Measure-Command { & $exe /? /nologo 2>&1 | Out-Null }
-    Write-Host "  Cold start: $([math]::Round($cold.TotalMilliseconds))ms" -ForegroundColor Green
-    
-    # Compile timing
-    $testIdl = Join-Path $repoRoot "tests" "fixtures" "valid" "full_runtimeclass.idl"
-    if (Test-Path $testIdl) {
-        $warm = Measure-Command { & $exe /Zs /nologo $testIdl 2>&1 | Out-Null }
-        Write-Host "  Compile (full_runtimeclass.idl): $([math]::Round($warm.TotalMilliseconds))ms" -ForegroundColor Green
+    # Quick smoke test — skip if cross-compiled (can't run ARM64 on x64)
+    if ($targetArch -eq $hostArch) {
+        Write-Host "Smoke test..." -ForegroundColor Yellow
+        $version = & $exe /version /nologo 2>&1
+        Write-Host "  Version: $version" -ForegroundColor Green
+        
+        # Cold start timing
+        $cold = Measure-Command { & $exe /? /nologo 2>&1 | Out-Null }
+        Write-Host "  Cold start: $([math]::Round($cold.TotalMilliseconds))ms" -ForegroundColor Green
+        
+        # Compile timing
+        $testIdl = Join-Path $repoRoot "tests" "fixtures" "valid" "full_runtimeclass.idl"
+        if (Test-Path $testIdl) {
+            $warm = Measure-Command { & $exe /Zs /nologo $testIdl 2>&1 | Out-Null }
+            Write-Host "  Compile (full_runtimeclass.idl): $([math]::Round($warm.TotalMilliseconds))ms" -ForegroundColor Green
+        }
+    } else {
+        Write-Host "Smoke test skipped (cross-compiled $targetArch binary can't run on $hostArch)" -ForegroundColor DarkGray
     }
     
     Write-Host ""
