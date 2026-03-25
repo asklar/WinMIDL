@@ -110,8 +110,16 @@ namespace TestApp {
         IFlagChecker : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE HasFlag(/* [in] */ LargeFlags value, /* [in] */ LargeFlags flag, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CombineFlags(/* [in] */ LargeFlags a, /* [in] */ LargeFlags b, /* [out, retval] */ LargeFlags* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE HasFlag(
+                /* [in] */LargeFlags value,
+                /* [in] */LargeFlags flag,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CombineFlags(
+                /* [in] */LargeFlags a,
+                /* [in] */LargeFlags b,
+                /* [out, retval] */LargeFlags * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

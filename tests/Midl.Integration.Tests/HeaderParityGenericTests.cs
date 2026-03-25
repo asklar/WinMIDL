@@ -65,10 +65,10 @@ public partial class HeaderParityGenericTests
         var header = emitter.Emit(compilation);
 
         // Out/retval params for interface pointers should be double-pointer
-        Assert.Contains("__x_Windows_CFoundation_CCollections_CIVector** returnValue", header);
-        Assert.Contains("__x_Windows_CFoundation_CCollections_CIVectorView** returnValue", header);
-        Assert.Contains("__x_Windows_CFoundation_CCollections_CIMap** returnValue", header);
-        Assert.Contains("__x_Windows_CFoundation_CIAsyncOperation** returnValue", header);
-        Assert.Contains("__x_Windows_CFoundation_CCollections_CIIterable** returnValue", header);
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIVector* * result", header);
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIVectorView* * result", header);
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIMap* * result", header);
+        Assert.Contains("__x_Windows_CFoundation_CIAsyncOperation* * result", header);
+        Assert.Contains("__x_Windows_CFoundation_CCollections_CIIterable* * result", header);
     }
 }

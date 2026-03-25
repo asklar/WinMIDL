@@ -96,33 +96,87 @@ namespace TestApp {
         IAllPrimitivesWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetByte(/* [out, retval] */ ::byte* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetShort(/* [out, retval] */ short* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetUShort(/* [out, retval] */ unsigned short* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetInt(/* [out, retval] */ int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetUInt(/* [out, retval] */ unsigned int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetLong(/* [out, retval] */ __int64* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetULong(/* [out, retval] */ unsigned __int64* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetFloat(/* [out, retval] */ float* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetDouble(/* [out, retval] */ double* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetBool(/* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetChar(/* [out, retval] */ wchar_t* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetString(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetGuid(/* [out, retval] */ GUID* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetObject(/* [out, retval] */ IInspectable** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetByte(/* [in] */ ::byte v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetShort(/* [in] */ short v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetUShort(/* [in] */ unsigned short v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetInt(/* [in] */ int v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetUInt(/* [in] */ unsigned int v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetLong(/* [in] */ __int64 v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetULong(/* [in] */ unsigned __int64 v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetFloat(/* [in] */ float v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetDouble(/* [in] */ double v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetBool(/* [in] */ ::boolean v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetChar(/* [in] */ wchar_t v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetString(/* [in] */ HSTRING v) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetGuid(/* [in] */ GUID v) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetByte(
+                /* [out, retval] */::byte * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetShort(
+                /* [out, retval] */short * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetUShort(
+                /* [out, retval] */unsigned short * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetInt(
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetUInt(
+                /* [out, retval] */unsigned int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetLong(
+                /* [out, retval] */__int64 * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetULong(
+                /* [out, retval] */unsigned __int64 * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetFloat(
+                /* [out, retval] */float * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetDouble(
+                /* [out, retval] */double * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetBool(
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetChar(
+                /* [out, retval] */wchar_t * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetString(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetGuid(
+                /* [out, retval] */GUID * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetObject(
+                /* [out, retval] */IInspectable* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetByte(
+                /* [in] */::byte v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetShort(
+                /* [in] */short v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetUShort(
+                /* [in] */unsigned short v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetInt(
+                /* [in] */int v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetUInt(
+                /* [in] */unsigned int v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetLong(
+                /* [in] */__int64 v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetULong(
+                /* [in] */unsigned __int64 v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetFloat(
+                /* [in] */float v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetDouble(
+                /* [in] */double v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetBool(
+                /* [in] */::boolean v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetChar(
+                /* [in] */wchar_t v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetString(
+                /* [in] */HSTRING v
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetGuid(
+                /* [in] */GUID v
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

@@ -130,9 +130,15 @@ namespace TestApp {
         IFwdUser : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE SetTargetName(/* [in] */ HSTRING name) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetTargetName(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_HasTarget(/* [out, retval] */ ::boolean* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetTargetName(
+                /* [in] */HSTRING name
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetTargetName(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_HasTarget(
+                /* [out, retval] */::boolean * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -165,8 +171,12 @@ namespace TestApp {
         IFwdTarget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Data(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE LinkTo(/* [in] */ FwdUser user) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Data(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE LinkTo(
+                /* [in] */FwdUser user
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -199,7 +209,10 @@ namespace TestApp {
         IFwdTargetFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING data, /* [out, retval] */ FwdTarget* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING data,
+                /* [out, retval] */FwdTarget * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

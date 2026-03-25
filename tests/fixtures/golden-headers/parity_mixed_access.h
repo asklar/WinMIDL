@@ -156,9 +156,13 @@ namespace TestApp {
         IMixedAccessBase : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE PublicMethod(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_PublicProperty(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_PublicProperty(
+                /* [out, retval] */int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -191,7 +195,10 @@ namespace TestApp {
         IMixedAccessBaseFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MixedAccessBase* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */MixedAccessBase * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -226,7 +233,9 @@ namespace TestApp {
         public:
             virtual HRESULT STDMETHODCALLTYPE OnLoad(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE OnSave(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CanProcess(/* [out, retval] */ ::boolean* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CanProcess(
+                /* [out, retval] */::boolean * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -259,7 +268,9 @@ namespace TestApp {
         IMixedAccessDerived : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_DerivedLabel(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_DerivedLabel(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -292,7 +303,10 @@ namespace TestApp {
         IMixedAccessDerivedFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MixedAccessDerived* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */MixedAccessDerived * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

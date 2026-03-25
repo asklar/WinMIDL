@@ -151,7 +151,9 @@ namespace TestApp {
             IAlphaWidget : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
+                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Label(
+                    /* [out, retval] */HSTRING * value
+                    ) = 0;
             };
         } /* NsAlpha */
     } /* Parity */
@@ -186,7 +188,9 @@ namespace TestApp {
             IBetaWidget : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ int* value) = 0;
+                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Count(
+                    /* [out, retval] */int * value
+                    ) = 0;
             };
         } /* NsBeta */
     } /* Parity */
@@ -221,7 +225,9 @@ namespace TestApp {
             IGammaWidget : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE get_Active(/* [out, retval] */ ::boolean* value) = 0;
+                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Active(
+                    /* [out, retval] */::boolean * value
+                    ) = 0;
             };
         } /* NsGamma */
     } /* Parity */

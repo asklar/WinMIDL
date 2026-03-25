@@ -109,13 +109,25 @@ namespace TestApp {
         ISuperWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Print(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Validate(/* [out, retval] */ ::boolean* returnValue) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Print(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Validate(
+                /* [out, retval] */::boolean * result
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Reset(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Tag(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Tag(/* [in] */ HSTRING value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Clone(/* [out, retval] */ IInspectable** returnValue) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Tag(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Tag(
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Clone(
+                /* [out, retval] */IInspectable* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -148,7 +160,10 @@ namespace TestApp {
         ISuperWidgetFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ SuperWidget* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */SuperWidget * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

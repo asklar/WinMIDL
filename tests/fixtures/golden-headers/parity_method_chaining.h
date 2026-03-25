@@ -96,10 +96,21 @@ namespace TestApp {
         IBuilderWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE WithName(/* [in] */ HSTRING name, /* [out, retval] */ BuilderWidget* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE WithId(/* [in] */ int id, /* [out, retval] */ BuilderWidget* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE WithFlag(/* [in] */ ::boolean flag, /* [out, retval] */ BuilderWidget* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Build(/* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE WithName(
+                /* [in] */HSTRING name,
+                /* [out, retval] */BuilderWidget * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE WithId(
+                /* [in] */int id,
+                /* [out, retval] */BuilderWidget * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE WithFlag(
+                /* [in] */::boolean flag,
+                /* [out, retval] */BuilderWidget * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Build(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

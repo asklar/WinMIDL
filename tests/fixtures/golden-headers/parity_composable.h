@@ -203,7 +203,9 @@ namespace TestApp {
         IComposableWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Label(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -236,7 +238,10 @@ namespace TestApp {
         IComposableWidgetFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ ComposableWidget* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING label,
+                /* [out, retval] */ComposableWidget * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -270,7 +275,9 @@ namespace TestApp {
         {
         public:
             virtual HRESULT STDMETHODCALLTYPE OnActivated(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CanActivate(/* [out, retval] */ ::boolean* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CanActivate(
+                /* [out, retval] */::boolean * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -303,7 +310,9 @@ namespace TestApp {
         IMiddleComposable : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Priority(
+                /* [out, retval] */int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -336,7 +345,10 @@ namespace TestApp {
         IMiddleComposableFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ MiddleComposable* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING label,
+                /* [out, retval] */MiddleComposable * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -402,7 +414,9 @@ namespace TestApp {
         IFinalComposable : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_IsReady(/* [out, retval] */ ::boolean* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsReady(
+                /* [out, retval] */::boolean * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -435,8 +449,15 @@ namespace TestApp {
         IFinalComposableFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ FinalComposable* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [in] */ int priority, /* [out, retval] */ FinalComposable* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING label,
+                /* [out, retval] */FinalComposable * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING label,
+                /* [in] */int priority,
+                /* [out, retval] */FinalComposable * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

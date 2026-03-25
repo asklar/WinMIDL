@@ -203,9 +203,15 @@ namespace TestApp {
         IAnimal : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Age(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Age(/* [in] */ int value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Age(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Age(
+                /* [in] */int value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -238,7 +244,10 @@ namespace TestApp {
         IAnimalFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Animal* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */Animal * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -272,7 +281,9 @@ namespace TestApp {
         {
         public:
             virtual HRESULT STDMETHODCALLTYPE MakeSound(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Describe(/* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Describe(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -305,7 +316,9 @@ namespace TestApp {
         IMammal : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_IsWarmBlooded(/* [out, retval] */ ::boolean* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsWarmBlooded(
+                /* [out, retval] */::boolean * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -338,7 +351,10 @@ namespace TestApp {
         IMammalFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Mammal* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */Mammal * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -404,7 +420,9 @@ namespace TestApp {
         IDog : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Breed(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Breed(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Fetch(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE Sit(void) = 0;
         };
@@ -439,7 +457,10 @@ namespace TestApp {
         IDogFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Dog* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */Dog * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

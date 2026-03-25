@@ -109,19 +109,40 @@ namespace TestApp {
         IVersionedMember : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE DoBasicWork(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_IsReady(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Count(/* [in] */ int value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsReady(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Count(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Count(
+                /* [in] */int value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE DoAdvancedWork(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Efficiency(/* [out, retval] */ double* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_Updated(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_Updated(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_IsOptimized(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Optimize(/* [in] */ int level) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Efficiency(
+                /* [out, retval] */double * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_Updated(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_Updated(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsOptimized(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Optimize(
+                /* [in] */int level
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Reset(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(/* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -154,7 +175,10 @@ namespace TestApp {
         IVersionedMemberStatics : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateOptimized(/* [in] */ HSTRING name, /* [out, retval] */ VersionedMember* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateOptimized(
+                /* [in] */HSTRING name,
+                /* [out, retval] */VersionedMember * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

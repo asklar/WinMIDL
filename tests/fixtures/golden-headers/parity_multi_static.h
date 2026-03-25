@@ -96,12 +96,21 @@ namespace TestApp {
         IMultiStaticServiceStatics : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetVersion(/* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetVersion(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Initialize(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetBuildNumber(/* [out, retval] */ int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE IsFeatureEnabled(/* [in] */ HSTRING feature, /* [out, retval] */ ::boolean* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetBuildNumber(
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE IsFeatureEnabled(
+                /* [in] */HSTRING feature,
+                /* [out, retval] */::boolean * result
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE ResetAll(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(/* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

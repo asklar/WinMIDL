@@ -156,7 +156,9 @@ namespace TestApp {
             ICrossNsBase : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE get_BaseName(/* [out, retval] */ HSTRING* value) = 0;
+                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_BaseName(
+                    /* [out, retval] */HSTRING * value
+                    ) = 0;
             };
         } /* Base */
     } /* Parity */
@@ -226,7 +228,9 @@ namespace TestApp {
             ICrossNsDerived : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE get_DerivedId(/* [out, retval] */ int* value) = 0;
+                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_DerivedId(
+                    /* [out, retval] */int * value
+                    ) = 0;
             };
         } /* Derived */
     } /* Parity */
@@ -261,7 +265,10 @@ namespace TestApp {
             ICrossNsDerivedFactory : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ CrossNsDerived* returnValue) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                    /* [in] */HSTRING name,
+                    /* [out, retval] */CrossNsDerived * result
+                    ) = 0;
             };
         } /* Derived */
     } /* Parity */

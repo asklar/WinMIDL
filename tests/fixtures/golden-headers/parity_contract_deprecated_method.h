@@ -98,8 +98,12 @@ namespace TestApp {
         public:
             virtual HRESULT STDMETHODCALLTYPE NewMethod(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE OldMethod(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_CurrentValue(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_LegacyValue(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_CurrentValue(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_LegacyValue(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE AddedInV2(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE V2DeprecatedMethod(void) = 0;
         };

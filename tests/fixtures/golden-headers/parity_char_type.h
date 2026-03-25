@@ -96,13 +96,30 @@ namespace TestApp {
         ICharWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetSeparator(/* [out, retval] */ wchar_t* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetSeparator(/* [in] */ wchar_t c) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Separator(/* [out, retval] */ wchar_t* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Separator(/* [in] */ wchar_t value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE IsLetter(/* [in] */ wchar_t c, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE IsDigit(/* [in] */ wchar_t c, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CharToString(/* [in] */ wchar_t c, /* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetSeparator(
+                /* [out, retval] */wchar_t * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetSeparator(
+                /* [in] */wchar_t c
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Separator(
+                /* [out, retval] */wchar_t * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Separator(
+                /* [in] */wchar_t value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE IsLetter(
+                /* [in] */wchar_t c,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE IsDigit(
+                /* [in] */wchar_t c,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CharToString(
+                /* [in] */wchar_t c,
+                /* [out, retval] */HSTRING * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

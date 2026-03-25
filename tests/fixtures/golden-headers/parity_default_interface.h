@@ -162,7 +162,9 @@ namespace TestApp {
         IWidgetCore : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_CoreName(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_CoreName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Activate(void) = 0;
         };
     } /* Parity */
@@ -194,8 +196,12 @@ namespace TestApp {
         IWidgetExtra : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_ExtraPriority(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_ExtraPriority(/* [in] */ int value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ExtraPriority(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_ExtraPriority(
+                /* [in] */int value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE DoExtra(void) = 0;
         };
     } /* Parity */
@@ -227,7 +233,9 @@ namespace TestApp {
         IWidgetAdvanced : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_AdvancedScore(/* [out, retval] */ double* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_AdvancedScore(
+                /* [out, retval] */double * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Recalculate(void) = 0;
         };
     } /* Parity */
@@ -261,7 +269,9 @@ namespace TestApp {
         IMinimalWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Label(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -294,7 +304,10 @@ namespace TestApp {
         IMultiInterfaceWidgetFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MultiInterfaceWidget* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */MultiInterfaceWidget * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

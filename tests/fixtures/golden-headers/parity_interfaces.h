@@ -108,7 +108,10 @@ namespace TestApp {
         DataChangedHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING key, /* [in] */ IInspectable* data) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING key,
+                /* [in] */IInspectable* data
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -137,12 +140,24 @@ namespace TestApp {
         IDataSource : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ItemCount(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ItemCount(
+                /* [out, retval] */int * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Refresh(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetItem(/* [in] */ int index, /* [out, retval] */ IInspectable** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_DataChanged(/* [in] */ __x_TestApp_CParity_CDataChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_DataChanged(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetItem(
+                /* [in] */int index,
+                /* [out, retval] */IInspectable* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_DataChanged(
+                /* [in] */__x_TestApp_CParity_CDataChangedHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_DataChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -173,7 +188,9 @@ namespace TestApp {
         ICacheable : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_IsCached(/* [out, retval] */ ::boolean* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsCached(
+                /* [out, retval] */::boolean * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Invalidate(void) = 0;
         };
     } /* Parity */
@@ -205,7 +222,9 @@ namespace TestApp {
         ICachedDataSource : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Prefetch(/* [in] */ int count) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Prefetch(
+                /* [in] */int count
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

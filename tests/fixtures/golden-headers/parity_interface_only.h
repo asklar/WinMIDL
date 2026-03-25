@@ -119,9 +119,15 @@ namespace TestApp {
             IReader : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE Read(/* [out, retval] */ HSTRING* returnValue) = 0;
-                virtual HRESULT STDMETHODCALLTYPE ReadInt(/* [out, retval] */ int* returnValue) = 0;
-                virtual HRESULT STDMETHODCALLTYPE get_CanRead(/* [out, retval] */ ::boolean* value) = 0;
+                virtual HRESULT STDMETHODCALLTYPE Read(
+                    /* [out, retval] */HSTRING * result
+                    ) = 0;
+                virtual HRESULT STDMETHODCALLTYPE ReadInt(
+                    /* [out, retval] */int * result
+                    ) = 0;
+                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_CanRead(
+                    /* [out, retval] */::boolean * value
+                    ) = 0;
             };
         } /* InterfaceOnly */
     } /* Parity */
@@ -154,9 +160,15 @@ namespace TestApp {
             IWriter : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE Write(/* [in] */ HSTRING data) = 0;
-                virtual HRESULT STDMETHODCALLTYPE WriteInt(/* [in] */ int value) = 0;
-                virtual HRESULT STDMETHODCALLTYPE get_CanWrite(/* [out, retval] */ ::boolean* value) = 0;
+                virtual HRESULT STDMETHODCALLTYPE Write(
+                    /* [in] */HSTRING data
+                    ) = 0;
+                virtual HRESULT STDMETHODCALLTYPE WriteInt(
+                    /* [in] */int value
+                    ) = 0;
+                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_CanWrite(
+                    /* [out, retval] */::boolean * value
+                    ) = 0;
             };
         } /* InterfaceOnly */
     } /* Parity */
@@ -190,8 +202,12 @@ namespace TestApp {
             {
             public:
                 virtual HRESULT STDMETHODCALLTYPE Flush(void) = 0;
-                virtual HRESULT STDMETHODCALLTYPE get_Position(/* [out, retval] */ int* value) = 0;
-                virtual HRESULT STDMETHODCALLTYPE put_Position(/* [in] */ int value) = 0;
+                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Position(
+                    /* [out, retval] */int * value
+                    ) = 0;
+                virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Position(
+                    /* [in] */int value
+                    ) = 0;
             };
         } /* InterfaceOnly */
     } /* Parity */

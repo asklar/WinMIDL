@@ -92,7 +92,14 @@ namespace TestApp {
         SixParamCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ int id, /* [in] */ ::boolean active, /* [in] */ double value, /* [in] */ float ratio, /* [in] */ int priority) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING name,
+                /* [in] */int id,
+                /* [in] */::boolean active,
+                /* [in] */double value,
+                /* [in] */float ratio,
+                /* [in] */int priority
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -116,7 +123,15 @@ namespace TestApp {
         SevenParamCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ int c, /* [in] */ int d, /* [in] */ ::boolean e, /* [in] */ double f, /* [in] */ float g) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING a,
+                /* [in] */HSTRING b,
+                /* [in] */int c,
+                /* [in] */int d,
+                /* [in] */::boolean e,
+                /* [in] */double f,
+                /* [in] */float g
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -140,7 +155,13 @@ namespace TestApp {
         ComplexCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ int minVal, /* [in] */ int maxVal, /* [in] */ ::boolean inclusive, /* [in] */ double threshold) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING name,
+                /* [in] */int minVal,
+                /* [in] */int maxVal,
+                /* [in] */::boolean inclusive,
+                /* [in] */double threshold
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -171,10 +192,20 @@ namespace TestApp {
         IMultiParamDelegateUser : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE add_DataReceived(/* [in] */ __x_TestApp_CParity_CSixParamCallback* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_DataReceived(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_FilterRequested(/* [in] */ __x_TestApp_CParity_CComplexCallback* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_FilterRequested(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_DataReceived(
+                /* [in] */__x_TestApp_CParity_CSixParamCallback* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_DataReceived(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_FilterRequested(
+                /* [in] */__x_TestApp_CParity_CComplexCallback* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_FilterRequested(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

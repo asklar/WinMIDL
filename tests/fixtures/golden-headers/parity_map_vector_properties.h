@@ -96,14 +96,30 @@ namespace TestApp {
         ICollectionPropertyWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Names(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Ids(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_StringMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_CountMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyStringMap(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMapView** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_IterableNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_MixedItems(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Names(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Ids(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadOnlyNames(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVectorView* * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_StringMap(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_CountMap(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadOnlyStringMap(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMapView* * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IterableNames(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIIterable* * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_MixedItems(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

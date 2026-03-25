@@ -68,9 +68,13 @@ public partial class HeaderEmitterTests
 
         Assert.Contains("MIDL_INTERFACE(", header);
         Assert.Contains("IGreeter : public IInspectable", header);
-        Assert.Contains("get_Name(/* [out, retval] */ HSTRING* value) = 0;", header);
-        Assert.Contains("put_Name(/* [in] */ HSTRING value) = 0;", header);
-        Assert.Contains("SayHello(/* [in] */ int times) = 0;", header);
+        Assert.Contains("get_Name(", header);
+        Assert.Contains("/* [propget] */", header);
+        Assert.Contains("/* [out, retval] */HSTRING * value", header);
+        Assert.Contains("put_Name(", header);
+        Assert.Contains("/* [propput] */", header);
+        Assert.Contains("/* [in] */HSTRING value", header);
+        Assert.Contains("/* [in] */int times", header);
     }
 
     [Fact]
@@ -185,8 +189,10 @@ public partial class HeaderEmitterTests
         // Interface
         Assert.Contains("MIDL_INTERFACE(", header);
         Assert.Contains("IWidget : public IInspectable", header);
-        Assert.Contains("get_Name(/* [out, retval] */ HSTRING* value) = 0;", header);
-        Assert.Contains("DoWork(/* [in] */ int count) = 0;", header);
+        Assert.Contains("get_Name(", header);
+        Assert.Contains("/* [propget] */", header);
+        Assert.Contains("/* [out, retval] */HSTRING * value", header);
+        Assert.Contains("/* [in] */int count", header);
 
         // Runtime class activation string
         Assert.Contains("RuntimeClass_MyCompany_MyApp_Widget", header);

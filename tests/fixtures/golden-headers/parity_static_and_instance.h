@@ -122,9 +122,15 @@ namespace TestApp {
         IStaticInstanceWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Name(/* [in] */ HSTRING value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Name(
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Id(
+                /* [out, retval] */int * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE DoWork(void) = 0;
         };
     } /* Parity */
@@ -158,7 +164,10 @@ namespace TestApp {
         IStaticInstanceWidgetFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ StaticInstanceWidget* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */StaticInstanceWidget * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -191,7 +200,9 @@ namespace TestApp {
         IStaticInstanceWidgetStatics : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetInstanceCount(/* [out, retval] */ int* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetInstanceCount(
+                /* [out, retval] */int * result
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE ResetAll(void) = 0;
         };
     } /* Parity */

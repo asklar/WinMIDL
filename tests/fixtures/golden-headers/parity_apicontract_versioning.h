@@ -151,7 +151,9 @@ namespace TestApp {
         ApiCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING result) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -180,7 +182,9 @@ namespace TestApp {
         IApiEndpoint : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Url(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Url(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Connect(void) = 0;
         };
     } /* Parity */
@@ -214,14 +218,27 @@ namespace TestApp {
         IApiService : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_ServiceName(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ServiceName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Start(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ConnectionCount(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ConnectionCount(
+                /* [out, retval] */int * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Restart(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_Restarted(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_Restarted(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_IsHealthy(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetStatus(/* [out, retval] */ ApiStatus* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_Restarted(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_Restarted(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsHealthy(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetStatus(
+                /* [out, retval] */ApiStatus * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -254,7 +271,10 @@ namespace TestApp {
         IApiServiceStatics : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateWithSettings(/* [in] */ ApiSettings settings, /* [out, retval] */ ApiService* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateWithSettings(
+                /* [in] */ApiSettings settings,
+                /* [out, retval] */ApiService * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -288,7 +308,9 @@ namespace TestApp {
         {
         public:
             virtual HRESULT STDMETHODCALLTYPE Execute(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Result(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Result(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

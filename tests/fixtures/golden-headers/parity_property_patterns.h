@@ -143,20 +143,48 @@ namespace TestApp {
         IPropertyBase : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyName(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyId(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyFlag(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadOnlyValue(/* [out, retval] */ double* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadWriteName(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_ReadWriteName(/* [in] */ HSTRING value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadWriteCount(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_ReadWriteCount(/* [in] */ int value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadWriteEnabled(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_ReadWriteEnabled(/* [in] */ ::boolean value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadWriteFactor(/* [out, retval] */ double* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_ReadWriteFactor(/* [in] */ double value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ReadWriteRatio(/* [out, retval] */ float* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_ReadWriteRatio(/* [in] */ float value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadOnlyName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadOnlyId(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadOnlyFlag(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadOnlyValue(
+                /* [out, retval] */double * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadWriteName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_ReadWriteName(
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadWriteCount(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_ReadWriteCount(
+                /* [in] */int value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadWriteEnabled(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_ReadWriteEnabled(
+                /* [in] */::boolean value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadWriteFactor(
+                /* [out, retval] */double * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_ReadWriteFactor(
+                /* [in] */double value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ReadWriteRatio(
+                /* [out, retval] */float * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_ReadWriteRatio(
+                /* [in] */float value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -189,7 +217,10 @@ namespace TestApp {
         IPropertyBaseFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ PropertyBase* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */PropertyBase * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -222,13 +253,27 @@ namespace TestApp {
         IPropertyChild : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_ChildName(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_ChildName(/* [in] */ HSTRING value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ChildValue(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_ChildValue(/* [in] */ int value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ChildFlag(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_ChildFlag(/* [in] */ ::boolean value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_DerivedId(/* [out, retval] */ unsigned int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ChildName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_ChildName(
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ChildValue(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_ChildValue(
+                /* [in] */int value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ChildFlag(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_ChildFlag(
+                /* [in] */::boolean value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_DerivedId(
+                /* [out, retval] */unsigned int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -261,7 +306,10 @@ namespace TestApp {
         IPropertyChildFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ PropertyChild* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */PropertyChild * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

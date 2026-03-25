@@ -96,11 +96,21 @@ namespace TestApp {
         IGenericConsumer : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetIds(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetMetadata(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ValidateAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE EnumerateItems(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetNames(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetIds(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVectorView* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetMetadata(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ValidateAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE EnumerateItems(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIIterable* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

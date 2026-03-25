@@ -96,11 +96,21 @@ namespace TestApp {
         IAsyncGenericWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE FetchAllNamesAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE FetchMappingsAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE FetchIdsAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SyncAllAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ValidateAllAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE FetchAllNamesAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE FetchMappingsAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE FetchIdsAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SyncAllAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncAction* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ValidateAllAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

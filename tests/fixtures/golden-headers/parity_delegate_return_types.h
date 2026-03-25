@@ -101,7 +101,9 @@ namespace TestApp {
         StringRequestHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ HSTRING* result) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [out] */HSTRING * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -125,7 +127,9 @@ namespace TestApp {
         IntRequestHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ int* result) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [out] */int * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -149,7 +153,9 @@ namespace TestApp {
         BoolRequestHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ ::boolean* result) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [out] */::boolean * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -173,7 +179,9 @@ namespace TestApp {
         DoubleRequestHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ double* result) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [out] */double * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -197,7 +205,9 @@ namespace TestApp {
         ResultRequestHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [out] */ DelegateResult* result) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [out] */DelegateResult * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -221,7 +231,10 @@ namespace TestApp {
         FactoryHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [out] */ IInspectable** result) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING name,
+                /* [out] */IInspectable* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -252,10 +265,20 @@ namespace TestApp {
         IDelegateReturnWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE add_NameRequested(/* [in] */ __x_TestApp_CParity_CStringRequestHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_NameRequested(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_ConfirmationRequested(/* [in] */ __x_TestApp_CParity_CBoolRequestHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_ConfirmationRequested(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_NameRequested(
+                /* [in] */__x_TestApp_CParity_CStringRequestHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_NameRequested(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_ConfirmationRequested(
+                /* [in] */__x_TestApp_CParity_CBoolRequestHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_ConfirmationRequested(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

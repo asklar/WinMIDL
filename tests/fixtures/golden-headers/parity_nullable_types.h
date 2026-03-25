@@ -96,17 +96,39 @@ namespace TestApp {
         INullableWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_NullableInt(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_NullableInt(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_NullableBool(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_NullableBool(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_NullableDouble(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_NullableDouble(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_NullableSingle(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_NullableSingle(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_NullableGuid(/* [out, retval] */ __x_Windows_CFoundation_CIReference** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetNullableValue(/* [in] */ __x_Windows_CFoundation_CIReference* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetNullableValue(/* [out, retval] */ __x_Windows_CFoundation_CIReference** returnValue) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_NullableInt(
+                /* [out, retval] */__x_Windows_CFoundation_CIReference* * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_NullableInt(
+                /* [in] */__x_Windows_CFoundation_CIReference* value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_NullableBool(
+                /* [out, retval] */__x_Windows_CFoundation_CIReference* * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_NullableBool(
+                /* [in] */__x_Windows_CFoundation_CIReference* value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_NullableDouble(
+                /* [out, retval] */__x_Windows_CFoundation_CIReference* * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_NullableDouble(
+                /* [in] */__x_Windows_CFoundation_CIReference* value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_NullableSingle(
+                /* [out, retval] */__x_Windows_CFoundation_CIReference* * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_NullableSingle(
+                /* [in] */__x_Windows_CFoundation_CIReference* value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_NullableGuid(
+                /* [out, retval] */__x_Windows_CFoundation_CIReference* * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetNullableValue(
+                /* [in] */__x_Windows_CFoundation_CIReference* value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetNullableValue(
+                /* [out, retval] */__x_Windows_CFoundation_CIReference* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

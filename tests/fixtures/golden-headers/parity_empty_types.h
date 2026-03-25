@@ -180,7 +180,9 @@ namespace TestApp {
         IEmptyWithLabel : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Label(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

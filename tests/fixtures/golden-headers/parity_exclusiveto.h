@@ -123,7 +123,9 @@ namespace TestApp {
         {
         public:
             virtual HRESULT STDMETHODCALLTYPE InternalReset(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_DebugId(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_DebugId(
+                /* [out, retval] */int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -157,7 +159,9 @@ namespace TestApp {
         {
         public:
             virtual HRESULT STDMETHODCALLTYPE SecretMethod(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_SecretValue(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_SecretValue(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -190,7 +194,9 @@ namespace TestApp {
         IExclusiveWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

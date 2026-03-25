@@ -96,9 +96,24 @@ namespace TestApp {
         IMultiOutWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetFullDetails(/* [out] */ HSTRING* name, /* [out] */ int* id, /* [out] */ ::boolean* active, /* [out] */ double* value, /* [out] */ float* ratio) = 0;
-            virtual HRESULT STDMETHODCALLTYPE TryParse(/* [in] */ HSTRING input, /* [out] */ HSTRING* name, /* [out] */ int* count, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Decompose(/* [out] */ int* x, /* [out] */ int* y, /* [out] */ int* z) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetFullDetails(
+                /* [out] */HSTRING * name,
+                /* [out] */int * id,
+                /* [out] */::boolean * active,
+                /* [out] */double * value,
+                /* [out] */float * ratio
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE TryParse(
+                /* [in] */HSTRING input,
+                /* [out] */HSTRING * name,
+                /* [out] */int * count,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Decompose(
+                /* [out] */int * x,
+                /* [out] */int * y,
+                /* [out] */int * z
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
