@@ -155,6 +155,11 @@ public class ProxyGenerator
         sb.AppendLine("    Face m_face;");
         sb.AppendLine("    friend struct Face;");
         sb.AppendLine();
+
+        // Declare kQIEntries and kTypeInfo (defined out-of-class after offsetof is valid)
+        sb.AppendLine($"    static const winmidl::qi_entry_t kQIEntries[];");
+        sb.AppendLine($"    static const winmidl::type_info_t kTypeInfo;");
+        sb.AppendLine();
         sb.AppendLine("public:");
 
         // Constructor
@@ -171,6 +176,16 @@ public class ProxyGenerator
         EmitRelease(sb, className);
 
         sb.AppendLine("};");
+        sb.AppendLine();
+
+        // Out-of-class definitions — offsetof requires a complete type
+        var rcName = runtimeClassName ?? iface.ExclusiveToClass ?? iface.FullName;
+        sb.AppendLine($"inline const winmidl::qi_entry_t {className}::kQIEntries[] = {{");
+        sb.AppendLine($"    {{ IID_IUnknown, 0, false }},");
+        sb.AppendLine($"    {{ IID_IRpcProxyBuffer, 0, false }},");
+        sb.AppendLine($"    {{ {iidName}, static_cast<uint32_t>(offsetof({className}, m_face)), true }},");
+        sb.AppendLine($"}};");
+        sb.AppendLine($"inline const winmidl::type_info_t {className}::kTypeInfo = {{ {className}::Face::kIIDs, L\"{rcName}\", {className}::kQIEntries }};");
         sb.AppendLine();
     }
 
@@ -191,10 +206,8 @@ public class ProxyGenerator
         sb.AppendLine();
 
         // IInspectable — static constexpr data, no forwarding
-        // Use runtimeclass name if known, otherwise interface name
-        var rcName = runtimeClassName ?? iface.ExclusiveToClass ?? iface.FullName;
         var iidList = allRuntimeClassIids ?? new List<string> { iidName };
-        EmitFaceIInspectable(sb, rcName, iidList);
+        EmitFaceIInspectable(sb, iidList);
 
         // Interface methods
         var methods = CollectInterfaceMethods(iface);
@@ -209,12 +222,11 @@ public class ProxyGenerator
         sb.AppendLine();
     }
 
-    private static void EmitFaceIInspectable(StringBuilder sb, string fullName, List<string> iidNames)
+    private static void EmitFaceIInspectable(StringBuilder sb, List<string> iidNames)
     {
         var iidList = string.Join(", ", iidNames);
         sb.AppendLine("        // IInspectable — static data via shared helpers");
         sb.AppendLine($"        static inline const IID kIIDs[] = {{ {iidList} }};");
-        sb.AppendLine($"        static constexpr winmidl::type_info_t kTypeInfo = {{ kIIDs, L\"{fullName}\" }};");
         sb.AppendLine();
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {");
         sb.AppendLine("            return winmidl::get_iids(kTypeInfo, iidCount, iids);");
@@ -252,13 +264,7 @@ public class ProxyGenerator
     {
         sb.AppendLine("    // Non-delegating IUnknown::QueryInterface — qi_check lookup");
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
-        sb.AppendLine($"        const uint32_t faceOff = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(&m_face) - reinterpret_cast<uintptr_t>(this));");
-        sb.AppendLine($"        const winmidl::qi_entry_t kQIEntries[] = {{");
-        sb.AppendLine($"            {{ IID_IUnknown, 0, false }},");
-        sb.AppendLine($"            {{ IID_IRpcProxyBuffer, 0, false }},");
-        sb.AppendLine($"            {{ {iidName}, faceOff, true }},");
-        sb.AppendLine($"        }};");
-        sb.AppendLine("        return winmidl::qi_check(kQIEntries, this, m_pUnkOuter, riid, ppv);");
+        sb.AppendLine("        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);");
         sb.AppendLine("    }");
         sb.AppendLine();
     }
