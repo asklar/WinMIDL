@@ -1,0 +1,79 @@
+namespace TestApp.Comprehensive
+{
+    // 1. Enum (simple + flags)
+    enum Color { Red, Green, Blue };
+    [flags] enum Permissions { None = 0, Read = 1, Write = 2, Execute = 4, All = 7 };
+
+    // 2. Structs (simple + nested enum field)
+    struct Point { Single X; Single Y; };
+    struct ColoredPoint { Point Position; Color PointColor; };
+
+    // 3. Standalone interface
+    interface ILogger
+    {
+        void Log(String message);
+        String LastMessage { get; };
+    };
+
+    // 4. Simple runtimeclass with default interface
+    interface IAnimal
+    {
+        String Name { get; };
+        Int32 LegCount { get; };
+    };
+
+    [default_interface]
+    runtimeclass Animal : IAnimal
+    {
+        Animal();
+    }
+
+    // 5. Unsealed (composable) runtimeclass
+    unsealed runtimeclass Shape
+    {
+        Shape();
+        String Kind { get; };
+        Double Area { get; };
+    }
+
+    // 6. Derived runtimeclass (inheritance)
+    runtimeclass Circle : Shape
+    {
+        Circle();
+        Double Radius { get; };
+    }
+
+    // 7. Multiple interface implementation
+    interface ISerializable
+    {
+        String Serialize();
+    };
+
+    interface ICloneable
+    {
+        String CloneAsString();
+    };
+
+    runtimeclass Document : ISerializable, ICloneable
+    {
+        Document();
+        String Title { get; };
+    }
+
+    // 8. Various parameter patterns
+    interface ICalculator
+    {
+        Double Add(Double a, Double b);
+        Boolean TryDivide(Double num, Double denom, out Double result);
+        Point MakePoint(Single x, Single y);
+        void SetPermissions(Permissions perms);
+        Permissions GetPermissions();
+        ColoredPoint Translate(ColoredPoint pt, Single dx, Single dy);
+    };
+
+    [default_interface]
+    runtimeclass Calculator : ICalculator
+    {
+        Calculator();
+    }
+}
