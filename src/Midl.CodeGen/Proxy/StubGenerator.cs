@@ -86,9 +86,16 @@ public class StubGenerator
         // Invoke
         EmitInvokeDispatch(sb, iface, slots, iidName);
 
-        // IsIIDSupported
+        // Static type info for this interface
+        sb.AppendLine($"    static inline const IID kIIDs[] = {{ {iidName} }};");
+        sb.AppendLine($"    static constexpr winmidl::type_info_t kTypeInfo = {{ kIIDs, L\"{iface.FullName}\" }};");
+        sb.AppendLine();
+
+        // IsIIDSupported — data-driven via type_info
         sb.AppendLine($"    IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {{");
-        sb.AppendLine($"        if (riid == {iidName}) {{ AddRef(); return this; }}");
+        sb.AppendLine($"        for (const auto& iid : kTypeInfo.iids) {{");
+        sb.AppendLine($"            if (iid == riid) {{ AddRef(); return this; }}");
+        sb.AppendLine($"        }}");
         sb.AppendLine("        return nullptr;");
         sb.AppendLine("    }");
 
@@ -105,18 +112,14 @@ public class StubGenerator
         sb.AppendLine("        if (pv) ((IUnknown*)pv)->Release();");
         sb.AppendLine("    }");
 
-        // QueryInterface — constexpr IID lookup
+        // QueryInterface — table-driven via qi_check
+        sb.AppendLine("    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {");
+        sb.AppendLine("        { IID_IUnknown, 0, false },");
+        sb.AppendLine("        { IID_IRpcStubBuffer, 0, false },");
+        sb.AppendLine("    };");
+        sb.AppendLine();
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
-        sb.AppendLine("        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };");
-        sb.AppendLine("        for (const auto& iid : kSupportedIIDs) {");
-        sb.AppendLine("            if (iid == riid) {");
-        sb.AppendLine("                *ppv = static_cast<IRpcStubBuffer*>(this);");
-        sb.AppendLine("                AddRef();");
-        sb.AppendLine("                return S_OK;");
-        sb.AppendLine("            }");
-        sb.AppendLine("        }");
-        sb.AppendLine("        *ppv = nullptr;");
-        sb.AppendLine("        return E_NOINTERFACE;");
+        sb.AppendLine("        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);");
         sb.AppendLine("    }");
 
         // AddRef

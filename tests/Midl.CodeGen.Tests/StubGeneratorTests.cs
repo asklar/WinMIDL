@@ -141,7 +141,8 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid)", output);
-        Assert.Contains("riid == IID___x_TestApp_IWidget", output);
+        Assert.Contains("kTypeInfo.iids", output);
+        Assert.Contains("IID___x_TestApp_IWidget", output);
     }
 
     [Fact]
