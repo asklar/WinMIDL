@@ -69,6 +69,25 @@ EXTERN_C const IID IID___x_TestApp_CParity_CIEventSourceImpl;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FITypedEventHandler_2_IInspectable_HSTRING_USE
+#define DEF___FITypedEventHandler_2_IInspectable_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("e07948c3-6dd3-0253-94d2-7935ca900443"))
+        TypedEventHandler<IInspectable*,HSTRING> : TypedEventHandler_impl<IInspectable*,HSTRING>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.TypedEventHandler`2<Object, String>";
+            }
+        };
+        typedef TypedEventHandler<IInspectable*,HSTRING> __FITypedEventHandler_2_IInspectable_HSTRING_t;
+#define __FITypedEventHandler_2_IInspectable_HSTRING Windows::Foundation::__FITypedEventHandler_2_IInspectable_HSTRING_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_IInspectable_HSTRING_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIEventSourceImpl_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIEventSourceImpl_FWD_DEFINED__
@@ -217,6 +236,45 @@ typedef interface __x_TestApp_CParity_CValidationHandler __x_TestApp_CParity_CVa
 #define ____x_TestApp_CParity_CIEventSourceImpl_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIEventSourceImpl __x_TestApp_CParity_CIEventSourceImpl;
 #endif // ____x_TestApp_CParity_CIEventSourceImpl_FWD_DEFINED__
+
+#if !defined(______FITypedEventHandler_2_IInspectable_HSTRING_INTERFACE_DEFINED__)
+#define ______FITypedEventHandler_2_IInspectable_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_IInspectable_HSTRING __FITypedEventHandler_2_IInspectable_HSTRING;
+
+EXTERN_C const IID IID___FITypedEventHandler_2_IInspectable_HSTRING;
+
+typedef struct __FITypedEventHandler_2_IInspectable_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_IInspectable_HSTRING * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_IInspectable_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_IInspectable_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_IInspectable_HSTRING * This, IInspectable * sender, HSTRING args);
+    END_INTERFACE
+} __FITypedEventHandler_2_IInspectable_HSTRINGVtbl;
+
+interface __FITypedEventHandler_2_IInspectable_HSTRING
+{
+    CONST_VTBL struct __FITypedEventHandler_2_IInspectable_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_IInspectable_HSTRING_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FITypedEventHandler_2_IInspectable_HSTRING_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FITypedEventHandler_2_IInspectable_HSTRING_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FITypedEventHandler_2_IInspectable_HSTRING_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FITypedEventHandler_2_IInspectable_HSTRING_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CDataHandler_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CDataHandler_INTERFACE_DEFINED__

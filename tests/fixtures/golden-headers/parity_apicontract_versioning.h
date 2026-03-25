@@ -103,6 +103,25 @@ EXTERN_C const IID IID___x_TestApp_CParity_CISecondaryService;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("9121ae08-d9a3-0e56-b64c-51099c9d07d3"))
+        TypedEventHandler<TestApp::Parity::ApiService*,IInspectable*> : TypedEventHandler_impl<TestApp::Parity::ApiService*,IInspectable*>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.ApiService, Object>";
+            }
+        };
+        typedef TypedEventHandler<TestApp::Parity::ApiService*,IInspectable*> __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIApiEndpoint_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIApiEndpoint_FWD_DEFINED__
@@ -376,6 +395,45 @@ typedef interface __x_TestApp_CParity_CIApiServiceStatics __x_TestApp_CParity_CI
 #define ____x_TestApp_CParity_CISecondaryService_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CISecondaryService __x_TestApp_CParity_CISecondaryService;
 #endif // ____x_TestApp_CParity_CISecondaryService_FWD_DEFINED__
+
+#if !defined(______FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_INTERFACE_DEFINED__)
+#define ______FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable;
+
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable * This, ApiService sender, IInspectable * args);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectableVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CApiCallback_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CApiCallback_INTERFACE_DEFINED__

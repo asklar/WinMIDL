@@ -73,6 +73,63 @@ EXTERN_C const IID IID___x_TestApp_CParity_CIGeocoderService;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FIVector_1_TestApp__CParity__CCoordinate_USE
+#define DEF___FIVector_1_TestApp__CParity__CCoordinate_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("6694642c-c48b-7d53-a4a4-9f9411dd9a34"))
+            IVector<Coordinate> : IVector_impl<Coordinate>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IVector`1<TestApp.Parity.Coordinate>";
+                }
+            };
+            typedef IVector<Coordinate> __FIVector_1_TestApp__CParity__CCoordinate_t;
+#define __FIVector_1_TestApp__CParity__CCoordinate Windows::Foundation::Collections::__FIVector_1_TestApp__CParity__CCoordinate_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIVector_1_TestApp__CParity__CCoordinate_USE */
+
+#ifndef DEF___FIVector_1_HSTRING_USE
+#define DEF___FIVector_1_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("600da974-b393-fa59-80ed-c8e2b9e186e6"))
+            IVector<HSTRING> : IVector_impl<HSTRING>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IVector`1<String>";
+                }
+            };
+            typedef IVector<HSTRING> __FIVector_1_HSTRING_t;
+#define __FIVector_1_HSTRING Windows::Foundation::Collections::__FIVector_1_HSTRING_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIVector_1_HSTRING_USE */
+
+#ifndef DEF___FIAsyncOperation_1_TestApp__CParity__CCoordinate_USE
+#define DEF___FIAsyncOperation_1_TestApp__CParity__CCoordinate_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("727f2ad0-d47d-dd50-bf96-bb285f6da67e"))
+        IAsyncOperation<Coordinate> : IAsyncOperation_impl<Coordinate>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IAsyncOperation`1<TestApp.Parity.Coordinate>";
+            }
+        };
+        typedef IAsyncOperation<Coordinate> __FIAsyncOperation_1_TestApp__CParity__CCoordinate_t;
+#define __FIAsyncOperation_1_TestApp__CParity__CCoordinate Windows::Foundation::__FIAsyncOperation_1_TestApp__CParity__CCoordinate_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIAsyncOperation_1_TestApp__CParity__CCoordinate_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIGeocoderService_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIGeocoderService_FWD_DEFINED__
@@ -156,6 +213,247 @@ namespace TestApp {
 #define ____x_TestApp_CParity_CIGeocoderService_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIGeocoderService __x_TestApp_CParity_CIGeocoderService;
 #endif // ____x_TestApp_CParity_CIGeocoderService_FWD_DEFINED__
+
+#if !defined(______FIVector_1_TestApp__CParity__CCoordinate_INTERFACE_DEFINED__)
+#define ______FIVector_1_TestApp__CParity__CCoordinate_INTERFACE_DEFINED__
+
+typedef interface __FIVector_1_TestApp__CParity__CCoordinate __FIVector_1_TestApp__CParity__CCoordinate;
+
+EXTERN_C const IID IID___FIVector_1_TestApp__CParity__CCoordinate;
+
+typedef struct __FIVector_1_TestApp__CParity__CCoordinateVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIVector_1_TestApp__CParity__CCoordinate * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIVector_1_TestApp__CParity__CCoordinate * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIVector_1_TestApp__CParity__CCoordinate * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIVector_1_TestApp__CParity__CCoordinate * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIVector_1_TestApp__CParity__CCoordinate * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIVector_1_TestApp__CParity__CCoordinate * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index, Coordinate * result);
+    HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *GetView )(__FIVector_1_TestApp__CParity__CCoordinate * This, __FIVectorView_1_* * result);
+    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVector_1_TestApp__CParity__CCoordinate * This, Coordinate value, unsigned int * index, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *SetAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index, Coordinate value);
+    HRESULT ( STDMETHODCALLTYPE *InsertAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index, Coordinate value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index);
+    HRESULT ( STDMETHODCALLTYPE *Append )(__FIVector_1_TestApp__CParity__CCoordinate * This, Coordinate value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAtEnd )(__FIVector_1_TestApp__CParity__CCoordinate * This);
+    HRESULT ( STDMETHODCALLTYPE *Clear )(__FIVector_1_TestApp__CParity__CCoordinate * This);
+    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int startIndex, unsigned int itemsLength, Coordinate * items, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *ReplaceAll )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int countItems, Coordinate * items);
+    END_INTERFACE
+} __FIVector_1_TestApp__CParity__CCoordinateVtbl;
+
+interface __FIVector_1_TestApp__CParity__CCoordinate
+{
+    CONST_VTBL struct __FIVector_1_TestApp__CParity__CCoordinateVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIVector_1_TestApp__CParity__CCoordinate_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_GetAt(This,index,result) \
+    ( (This)->lpVtbl->GetAt(This,index,result) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_get_Size(This,result) \
+    ( (This)->lpVtbl->get_Size(This,result) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_GetView(This,result) \
+    ( (This)->lpVtbl->GetView(This,result) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_IndexOf(This,value,index,result) \
+    ( (This)->lpVtbl->IndexOf(This,value,index,result) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_SetAt(This,index,value) \
+    ( (This)->lpVtbl->SetAt(This,index,value) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_InsertAt(This,index,value) \
+    ( (This)->lpVtbl->InsertAt(This,index,value) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_RemoveAt(This,index) \
+    ( (This)->lpVtbl->RemoveAt(This,index) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_Append(This,value) \
+    ( (This)->lpVtbl->Append(This,value) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_RemoveAtEnd(This) \
+    ( (This)->lpVtbl->RemoveAtEnd(This) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_Clear(This) \
+    ( (This)->lpVtbl->Clear(This) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_GetMany(This,startIndex,itemsLength,items,result) \
+    ( (This)->lpVtbl->GetMany(This,startIndex,itemsLength,items,result) )
+
+#define __FIVector_1_TestApp__CParity__CCoordinate_ReplaceAll(This,countItems,items) \
+    ( (This)->lpVtbl->ReplaceAll(This,countItems,items) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIVector_1_TestApp__CParity__CCoordinate_INTERFACE_DEFINED__
+
+#if !defined(______FIVector_1_HSTRING_INTERFACE_DEFINED__)
+#define ______FIVector_1_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FIVector_1_HSTRING __FIVector_1_HSTRING;
+
+EXTERN_C const IID IID___FIVector_1_HSTRING;
+
+typedef struct __FIVector_1_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIVector_1_HSTRING * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIVector_1_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIVector_1_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIVector_1_HSTRING * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIVector_1_HSTRING * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIVector_1_HSTRING * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVector_1_HSTRING * This, unsigned int index, HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIVector_1_HSTRING * This, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *GetView )(__FIVector_1_HSTRING * This, __FIVectorView_1_* * result);
+    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVector_1_HSTRING * This, HSTRING value, unsigned int * index, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *SetAt )(__FIVector_1_HSTRING * This, unsigned int index, HSTRING value);
+    HRESULT ( STDMETHODCALLTYPE *InsertAt )(__FIVector_1_HSTRING * This, unsigned int index, HSTRING value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAt )(__FIVector_1_HSTRING * This, unsigned int index);
+    HRESULT ( STDMETHODCALLTYPE *Append )(__FIVector_1_HSTRING * This, HSTRING value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAtEnd )(__FIVector_1_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *Clear )(__FIVector_1_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVector_1_HSTRING * This, unsigned int startIndex, unsigned int itemsLength, HSTRING * items, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *ReplaceAll )(__FIVector_1_HSTRING * This, unsigned int countItems, HSTRING * items);
+    END_INTERFACE
+} __FIVector_1_HSTRINGVtbl;
+
+interface __FIVector_1_HSTRING
+{
+    CONST_VTBL struct __FIVector_1_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIVector_1_HSTRING_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIVector_1_HSTRING_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIVector_1_HSTRING_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIVector_1_HSTRING_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIVector_1_HSTRING_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIVector_1_HSTRING_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIVector_1_HSTRING_GetAt(This,index,result) \
+    ( (This)->lpVtbl->GetAt(This,index,result) )
+
+#define __FIVector_1_HSTRING_get_Size(This,result) \
+    ( (This)->lpVtbl->get_Size(This,result) )
+
+#define __FIVector_1_HSTRING_GetView(This,result) \
+    ( (This)->lpVtbl->GetView(This,result) )
+
+#define __FIVector_1_HSTRING_IndexOf(This,value,index,result) \
+    ( (This)->lpVtbl->IndexOf(This,value,index,result) )
+
+#define __FIVector_1_HSTRING_SetAt(This,index,value) \
+    ( (This)->lpVtbl->SetAt(This,index,value) )
+
+#define __FIVector_1_HSTRING_InsertAt(This,index,value) \
+    ( (This)->lpVtbl->InsertAt(This,index,value) )
+
+#define __FIVector_1_HSTRING_RemoveAt(This,index) \
+    ( (This)->lpVtbl->RemoveAt(This,index) )
+
+#define __FIVector_1_HSTRING_Append(This,value) \
+    ( (This)->lpVtbl->Append(This,value) )
+
+#define __FIVector_1_HSTRING_RemoveAtEnd(This) \
+    ( (This)->lpVtbl->RemoveAtEnd(This) )
+
+#define __FIVector_1_HSTRING_Clear(This) \
+    ( (This)->lpVtbl->Clear(This) )
+
+#define __FIVector_1_HSTRING_GetMany(This,startIndex,itemsLength,items,result) \
+    ( (This)->lpVtbl->GetMany(This,startIndex,itemsLength,items,result) )
+
+#define __FIVector_1_HSTRING_ReplaceAll(This,countItems,items) \
+    ( (This)->lpVtbl->ReplaceAll(This,countItems,items) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIVector_1_HSTRING_INTERFACE_DEFINED__
+
+#if !defined(______FIAsyncOperation_1_TestApp__CParity__CCoordinate_INTERFACE_DEFINED__)
+#define ______FIAsyncOperation_1_TestApp__CParity__CCoordinate_INTERFACE_DEFINED__
+
+typedef interface __FIAsyncOperation_1_TestApp__CParity__CCoordinate __FIAsyncOperation_1_TestApp__CParity__CCoordinate;
+
+EXTERN_C const IID IID___FIAsyncOperation_1_TestApp__CParity__CCoordinate;
+
+typedef struct __FIAsyncOperation_1_TestApp__CParity__CCoordinateVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CCoordinate * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CCoordinate * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, Coordinate * result);
+    END_INTERFACE
+} __FIAsyncOperation_1_TestApp__CParity__CCoordinateVtbl;
+
+interface __FIAsyncOperation_1_TestApp__CParity__CCoordinate
+{
+    CONST_VTBL struct __FIAsyncOperation_1_TestApp__CParity__CCoordinateVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIAsyncOperation_1_TestApp__CParity__CCoordinate_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIAsyncOperation_1_TestApp__CParity__CCoordinate_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIAsyncOperation_1_TestApp__CParity__CCoordinate_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIAsyncOperation_1_TestApp__CParity__CCoordinate_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIAsyncOperation_1_TestApp__CParity__CCoordinate_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIAsyncOperation_1_TestApp__CParity__CCoordinate_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIAsyncOperation_1_TestApp__CParity__CCoordinate_GetResults(This,result) \
+    ( (This)->lpVtbl->GetResults(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIAsyncOperation_1_TestApp__CParity__CCoordinate_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CIGeocoderService_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CIGeocoderService_INTERFACE_DEFINED__

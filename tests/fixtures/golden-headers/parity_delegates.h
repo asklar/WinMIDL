@@ -71,6 +71,44 @@ EXTERN_C const IID IID___x_TestApp_CParity_CIEventSource;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("d37bf519-cc2d-dc53-b0c7-b5f6890784c4"))
+        TypedEventHandler<TestApp::Parity::EventSource*,HSTRING> : TypedEventHandler_impl<TestApp::Parity::EventSource*,HSTRING>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.EventSource, String>";
+            }
+        };
+        typedef TypedEventHandler<TestApp::Parity::EventSource*,HSTRING> __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_USE */
+
+#ifndef DEF___FIEventHandler_1_int_USE
+#define DEF___FIEventHandler_1_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("7e0685f9-82b7-3151-b8ae-c8753cd62f0d"))
+        EventHandler<int> : EventHandler_impl<int>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.EventHandler`1<Int32>";
+            }
+        };
+        typedef EventHandler<int> __FIEventHandler_1_int_t;
+#define __FIEventHandler_1_int Windows::Foundation::__FIEventHandler_1_int_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIEventHandler_1_int_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIEventSource_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIEventSource_FWD_DEFINED__
@@ -274,6 +312,84 @@ typedef interface __x_TestApp_CParity_CPredicate __x_TestApp_CParity_CPredicate;
 #define ____x_TestApp_CParity_CIEventSource_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIEventSource __x_TestApp_CParity_CIEventSource;
 #endif // ____x_TestApp_CParity_CIEventSource_FWD_DEFINED__
+
+#if !defined(______FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_INTERFACE_DEFINED__)
+#define ______FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING;
+
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING * This, EventSource sender, HSTRING args);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRINGVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FITypedEventHandler_2_TestApp__CParity__CEventSource_HSTRING_INTERFACE_DEFINED__
+
+#if !defined(______FIEventHandler_1_int_INTERFACE_DEFINED__)
+#define ______FIEventHandler_1_int_INTERFACE_DEFINED__
+
+typedef interface __FIEventHandler_1_int __FIEventHandler_1_int;
+
+EXTERN_C const IID IID___FIEventHandler_1_int;
+
+typedef struct __FIEventHandler_1_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIEventHandler_1_int * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIEventHandler_1_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIEventHandler_1_int * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FIEventHandler_1_int * This, IInspectable * sender, int args);
+    END_INTERFACE
+} __FIEventHandler_1_intVtbl;
+
+interface __FIEventHandler_1_int
+{
+    CONST_VTBL struct __FIEventHandler_1_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIEventHandler_1_int_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIEventHandler_1_int_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIEventHandler_1_int_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIEventHandler_1_int_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIEventHandler_1_int_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CSimpleCallback_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CSimpleCallback_INTERFACE_DEFINED__

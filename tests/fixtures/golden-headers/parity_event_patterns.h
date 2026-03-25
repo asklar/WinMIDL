@@ -71,6 +71,139 @@ EXTERN_C const IID IID___x_TestApp_CParity_CIEventEmitter;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("9ba9da2c-8f86-7c50-92b1-d52f6c656729"))
+        TypedEventHandler<TestApp::Parity::EventEmitter*,IInspectable*> : TypedEventHandler_impl<TestApp::Parity::EventEmitter*,IInspectable*>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.EventEmitter, Object>";
+            }
+        };
+        typedef TypedEventHandler<TestApp::Parity::EventEmitter*,IInspectable*> __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_USE */
+
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("fdb291d3-280e-9255-9e53-802b3761db22"))
+        TypedEventHandler<TestApp::Parity::EventEmitter*,HSTRING> : TypedEventHandler_impl<TestApp::Parity::EventEmitter*,HSTRING>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.EventEmitter, String>";
+            }
+        };
+        typedef TypedEventHandler<TestApp::Parity::EventEmitter*,HSTRING> __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_USE */
+
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("e2f9b4e3-4ec9-cb5a-ab85-1d19a95c8706"))
+        TypedEventHandler<TestApp::Parity::EventEmitter*,int> : TypedEventHandler_impl<TestApp::Parity::EventEmitter*,int>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.EventEmitter, Int32>";
+            }
+        };
+        typedef TypedEventHandler<TestApp::Parity::EventEmitter*,int> __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_USE */
+
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("4218f894-1377-715e-8378-1203047c2971"))
+        TypedEventHandler<TestApp::Parity::EventEmitter*,boolean> : TypedEventHandler_impl<TestApp::Parity::EventEmitter*,boolean>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.EventEmitter, Boolean>";
+            }
+        };
+        typedef TypedEventHandler<TestApp::Parity::EventEmitter*,boolean> __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_USE */
+
+#ifndef DEF___FIEventHandler_1_IInspectable_USE
+#define DEF___FIEventHandler_1_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("20821eaf-4c89-c35a-be1b-9350e66aafcd"))
+        EventHandler<IInspectable*> : EventHandler_impl<IInspectable*>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.EventHandler`1<Object>";
+            }
+        };
+        typedef EventHandler<IInspectable*> __FIEventHandler_1_IInspectable_t;
+#define __FIEventHandler_1_IInspectable Windows::Foundation::__FIEventHandler_1_IInspectable_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIEventHandler_1_IInspectable_USE */
+
+#ifndef DEF___FIEventHandler_1_int_USE
+#define DEF___FIEventHandler_1_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("7e0685f9-82b7-3151-b8ae-c8753cd62f0d"))
+        EventHandler<int> : EventHandler_impl<int>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.EventHandler`1<Int32>";
+            }
+        };
+        typedef EventHandler<int> __FIEventHandler_1_int_t;
+#define __FIEventHandler_1_int Windows::Foundation::__FIEventHandler_1_int_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIEventHandler_1_int_USE */
+
+#ifndef DEF___FIEventHandler_1_HSTRING_USE
+#define DEF___FIEventHandler_1_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("86b7acbb-7943-145b-a5fc-6d3aeaeb2989"))
+        EventHandler<HSTRING> : EventHandler_impl<HSTRING>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.EventHandler`1<String>";
+            }
+        };
+        typedef EventHandler<HSTRING> __FIEventHandler_1_HSTRING_t;
+#define __FIEventHandler_1_HSTRING Windows::Foundation::__FIEventHandler_1_HSTRING_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIEventHandler_1_HSTRING_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIEventEmitter_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIEventEmitter_FWD_DEFINED__
@@ -332,6 +465,279 @@ typedef interface __x_TestApp_CParity_CErrorHandler __x_TestApp_CParity_CErrorHa
 #define ____x_TestApp_CParity_CIEventEmitter_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIEventEmitter __x_TestApp_CParity_CIEventEmitter;
 #endif // ____x_TestApp_CParity_CIEventEmitter_FWD_DEFINED__
+
+#if !defined(______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_INTERFACE_DEFINED__)
+#define ______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable;
+
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable * This, EventEmitter sender, IInspectable * args);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectableVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_IInspectable_INTERFACE_DEFINED__
+
+#if !defined(______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_INTERFACE_DEFINED__)
+#define ______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING;
+
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING * This, EventEmitter sender, HSTRING args);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRINGVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_HSTRING_INTERFACE_DEFINED__
+
+#if !defined(______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_INTERFACE_DEFINED__)
+#define ______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int;
+
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int * This, EventEmitter sender, int args);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_intVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_int_INTERFACE_DEFINED__
+
+#if !defined(______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_INTERFACE_DEFINED__)
+#define ______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean;
+
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_booleanVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean * This, EventEmitter sender, boolean args);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_booleanVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_booleanVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FITypedEventHandler_2_TestApp__CParity__CEventEmitter_boolean_INTERFACE_DEFINED__
+
+#if !defined(______FIEventHandler_1_IInspectable_INTERFACE_DEFINED__)
+#define ______FIEventHandler_1_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FIEventHandler_1_IInspectable __FIEventHandler_1_IInspectable;
+
+EXTERN_C const IID IID___FIEventHandler_1_IInspectable;
+
+typedef struct __FIEventHandler_1_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIEventHandler_1_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIEventHandler_1_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIEventHandler_1_IInspectable * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FIEventHandler_1_IInspectable * This, IInspectable * sender, IInspectable * args);
+    END_INTERFACE
+} __FIEventHandler_1_IInspectableVtbl;
+
+interface __FIEventHandler_1_IInspectable
+{
+    CONST_VTBL struct __FIEventHandler_1_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIEventHandler_1_IInspectable_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIEventHandler_1_IInspectable_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIEventHandler_1_IInspectable_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIEventHandler_1_IInspectable_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIEventHandler_1_IInspectable_INTERFACE_DEFINED__
+
+#if !defined(______FIEventHandler_1_int_INTERFACE_DEFINED__)
+#define ______FIEventHandler_1_int_INTERFACE_DEFINED__
+
+typedef interface __FIEventHandler_1_int __FIEventHandler_1_int;
+
+EXTERN_C const IID IID___FIEventHandler_1_int;
+
+typedef struct __FIEventHandler_1_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIEventHandler_1_int * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIEventHandler_1_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIEventHandler_1_int * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FIEventHandler_1_int * This, IInspectable * sender, int args);
+    END_INTERFACE
+} __FIEventHandler_1_intVtbl;
+
+interface __FIEventHandler_1_int
+{
+    CONST_VTBL struct __FIEventHandler_1_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIEventHandler_1_int_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIEventHandler_1_int_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIEventHandler_1_int_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIEventHandler_1_int_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIEventHandler_1_int_INTERFACE_DEFINED__
+
+#if !defined(______FIEventHandler_1_HSTRING_INTERFACE_DEFINED__)
+#define ______FIEventHandler_1_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FIEventHandler_1_HSTRING __FIEventHandler_1_HSTRING;
+
+EXTERN_C const IID IID___FIEventHandler_1_HSTRING;
+
+typedef struct __FIEventHandler_1_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIEventHandler_1_HSTRING * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIEventHandler_1_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIEventHandler_1_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FIEventHandler_1_HSTRING * This, IInspectable * sender, HSTRING args);
+    END_INTERFACE
+} __FIEventHandler_1_HSTRINGVtbl;
+
+interface __FIEventHandler_1_HSTRING
+{
+    CONST_VTBL struct __FIEventHandler_1_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIEventHandler_1_HSTRING_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIEventHandler_1_HSTRING_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIEventHandler_1_HSTRING_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIEventHandler_1_HSTRING_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIEventHandler_1_HSTRING_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CSimpleNotify_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CSimpleNotify_INTERFACE_DEFINED__
