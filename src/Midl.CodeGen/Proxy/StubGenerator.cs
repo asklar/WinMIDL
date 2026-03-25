@@ -31,23 +31,6 @@ public class StubGenerator
         ["HRESULT"] = "HRESULT",
     };
 
-    private static readonly Dictionary<string, int> WireSizeMap = new(StringComparer.Ordinal)
-    {
-        ["Boolean"] = 1,
-        ["UInt8"] = 1,
-        ["Char"] = 2,
-        ["Int16"] = 2,
-        ["UInt16"] = 2,
-        ["Int32"] = 4,
-        ["UInt32"] = 4,
-        ["Single"] = 4,
-        ["HRESULT"] = 4,
-        ["Int64"] = 8,
-        ["UInt64"] = 8,
-        ["Double"] = 8,
-        ["Guid"] = 16,
-    };
-
     /// <summary>
     /// Generate C++ stub code for all non-external interfaces in the compilation.
     /// </summary>
@@ -225,46 +208,34 @@ public class StubGenerator
     {
         if (typeRef.Name == "String")
         {
-            // HSTRING: read [4B length] then [N×2B chars], create via WindowsCreateString
-            sb.AppendLine($"        UINT32 {name}_len;");
-            sb.AppendLine($"        memcpy(&{name}_len, p, 4); p += 4;");
-            sb.AppendLine($"        HSTRING {name};");
-            sb.AppendLine($"        if ({name}_len > 0) {{");
-            sb.AppendLine($"            WindowsCreateString((PCNZWCH)p, {name}_len, &{name});");
-            sb.AppendLine($"            p += {name}_len * 2;");
-            sb.AppendLine("        } else {");
-            sb.AppendLine($"            {name} = nullptr;");
-            sb.AppendLine("        }");
+            // HSTRING: WireFormat handles declaration + deserialization
+            WireFormat.EmitDeserializeHString(sb, name, "p");
         }
         else if (typeRef.ResolvedSymbol is StructSymbol structSym)
         {
-            // Struct: read fields sequentially
             var cType = MapType(typeRef);
             sb.AppendLine($"        {cType} {name};");
             foreach (var field in structSym.Fields)
             {
-                var fieldSize = GetWireSize(field.Type);
+                var fieldSize = WireFormat.GetWireSize(field.Type);
                 sb.AppendLine($"        memcpy(&{name}.{field.Name}, p, {fieldSize}); p += {fieldSize};");
             }
         }
         else if (typeRef.ResolvedSymbol is EnumSymbol)
         {
-            // Enum: 4 bytes as int
             var cType = MapType(typeRef);
             sb.AppendLine($"        {cType} {name};");
             sb.AppendLine($"        memcpy(&{name}, p, 4); p += 4;");
         }
         else if (typeRef.Name == "Guid")
         {
-            // GUID: 16 bytes raw
             sb.AppendLine($"        GUID {name};");
             sb.AppendLine($"        memcpy(&{name}, p, 16); p += 16;");
         }
         else
         {
-            // Primitive: raw memcpy
             var cType = MapType(typeRef);
-            var size = GetWireSize(typeRef);
+            var size = WireFormat.GetWireSize(typeRef);
             sb.AppendLine($"        {cType} {name};");
             sb.AppendLine($"        memcpy(&{name}, p, {size}); p += {size};");
         }
@@ -293,8 +264,9 @@ public class StubGenerator
     private void EmitSerializeReply(StringBuilder sb, StubSlot slot, List<ParameterSymbol> outParams,
         bool hasRetval, string iidName, List<ParameterSymbol> inParams)
     {
-        // Calculate reply size
-        var sizeExpr = BuildReplySizeExpression(outParams, hasRetval, slot.ReturnType);
+        // Calculate reply size using WireFormat
+        var replyParams = outParams.Select(p => (p.Type, p.Name)).ToList();
+        var sizeExpr = WireFormat.BuildReplySizeExpression(replyParams, hasRetval, slot.ReturnType);
         sb.AppendLine($"        pMsg->cbBuffer = {sizeExpr};");
         sb.AppendLine($"        pChannel->GetBuffer(pMsg, {iidName});");
 
@@ -308,7 +280,7 @@ public class StubGenerator
         // Serialize out params
         foreach (var param in outParams)
         {
-            EmitSerializeValue(sb, param.Type, param.Name);
+            WireFormat.EmitSerializeReplyValue(sb, param.Type, param.Name, "p");
         }
 
         // Serialize return value
@@ -320,7 +292,7 @@ public class StubGenerator
             }
             else
             {
-                EmitSerializeValue(sb, slot.ReturnType, "returnValue");
+                WireFormat.EmitSerializeReplyValue(sb, slot.ReturnType, "returnValue", "p");
             }
         }
 
@@ -346,36 +318,6 @@ public class StubGenerator
         }
     }
 
-    private void EmitSerializeValue(StringBuilder sb, TypeRef typeRef, string name)
-    {
-        if (typeRef.ResolvedSymbol is StructSymbol structSym)
-        {
-            foreach (var field in structSym.Fields)
-            {
-                var fieldSize = GetWireSize(field.Type);
-                sb.AppendLine($"        memcpy(p, &{name}.{field.Name}, {fieldSize}); p += {fieldSize};");
-            }
-        }
-        else if (typeRef.Name == "String")
-        {
-            EmitSerializeHString(sb, name);
-        }
-        else
-        {
-            var size = GetWireSize(typeRef);
-            sb.AppendLine($"        memcpy(p, &{name}, {size}); p += {size};");
-        }
-    }
-
-    private static void EmitSerializeHString(StringBuilder sb, string name)
-    {
-        sb.AppendLine($"        UINT32 {name}_len = 0;");
-        sb.AppendLine($"        PCWSTR {name}_raw = nullptr;");
-        sb.AppendLine($"        if ({name}) {{ {name}_raw = WindowsGetStringRawBuffer({name}, &{name}_len); }}");
-        sb.AppendLine($"        memcpy(p, &{name}_len, 4); p += 4;");
-        sb.AppendLine($"        if ({name}_len > 0) {{ memcpy(p, {name}_raw, {name}_len * 2); p += {name}_len * 2; }}");
-    }
-
     private static void EmitSerializeHStringReturn(StringBuilder sb)
     {
         sb.AppendLine("        UINT32 len = 0;");
@@ -385,43 +327,6 @@ public class StubGenerator
         sb.AppendLine("        if (len > 0) { memcpy(p, raw, len * 2); p += len * 2; }");
     }
 
-    private string BuildReplySizeExpression(List<ParameterSymbol> outParams, bool hasRetval, TypeRef returnType)
-    {
-        var parts = new List<string>();
-
-        foreach (var param in outParams)
-        {
-            parts.Add(GetWireSizeExpression(param.Type));
-        }
-
-        if (hasRetval)
-        {
-            parts.Add(GetWireSizeExpression(returnType));
-        }
-
-        parts.Add("4"); // HRESULT at the end
-
-        return string.Join(" + ", parts);
-    }
-
-    private string GetWireSizeExpression(TypeRef typeRef)
-    {
-        if (typeRef.Name == "String")
-            return "4 + len * 2";
-        if (typeRef.ResolvedSymbol is StructSymbol structSym)
-            return structSym.Fields.Sum(f => GetWireSize(f.Type)).ToString();
-        return GetWireSize(typeRef).ToString();
-    }
-
-    private static int GetWireSize(TypeRef typeRef)
-    {
-        if (WireSizeMap.TryGetValue(typeRef.Name, out var size))
-            return size;
-        if (typeRef.ResolvedSymbol is EnumSymbol)
-            return 4;
-        return 4; // default
-    }
-
     /// <summary>
     /// Build the list of ABI slots for an interface.
     /// IUnknown: 0-2, IInspectable: 3-5, user methods: 6+
@@ -429,7 +334,7 @@ public class StubGenerator
     private static List<StubSlot> BuildSlotList(InterfaceSymbol iface)
     {
         var slots = new List<StubSlot>();
-        int index = 6; // user methods start at slot 6
+        int index = WireFormat.GetFirstUserSlot(isInspectable: true);
 
         foreach (var member in iface.Members)
         {
