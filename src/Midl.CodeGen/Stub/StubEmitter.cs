@@ -28,12 +28,45 @@ public class StubEmitter
         // Build the type and proc format strings from all types used in interfaces
         var typeBuilder = new NdrTypeFormatBuilder();
         var procBuilder = new NdrProcFormatBuilder();
-        CollectTypesAndProcs(compilation, typeBuilder, procBuilder);
+        var interfaceOffsets = CollectTypesAndProcs(compilation, typeBuilder, procBuilder);
 
         sb.AppendLine(procBuilder.EmitProcFormatString(filePrefix));
         sb.AppendLine();
         sb.AppendLine(typeBuilder.EmitTypeFormatString(filePrefix));
         sb.AppendLine();
+
+        // Emit per-interface stub dispatch structures
+        var dispatchBuilder = new StubDispatchBuilder(filePrefix);
+        var interfaces = compilation.GetAllTypes().OfType<InterfaceSymbol>()
+            .Where(i => !i.IsExternal)
+            .ToList();
+
+        foreach (var iface in interfaces)
+        {
+            if (interfaceOffsets.TryGetValue(iface.Name, out var offsets))
+            {
+                sb.AppendLine(dispatchBuilder.EmitFormatStringOffsetTable(iface, offsets));
+                sb.AppendLine();
+            }
+
+            sb.AppendLine(dispatchBuilder.EmitServerInfo(iface));
+            sb.AppendLine();
+
+            var stubTable = dispatchBuilder.EmitStubFunctionTable(iface);
+            if (stubTable != null)
+            {
+                sb.AppendLine(stubTable);
+                sb.AppendLine();
+            }
+
+            sb.AppendLine(dispatchBuilder.EmitStubVtbl(iface));
+            sb.AppendLine();
+        }
+
+        // Emit the shared MIDL_STUB_DESC (after per-interface structures, matching MIDL output order)
+        sb.AppendLine(dispatchBuilder.EmitStubDesc());
+        sb.AppendLine();
+
         sb.AppendLine("// End of generated proxy file");
 
         return sb.ToString();
@@ -49,12 +82,15 @@ public class StubEmitter
     /// <summary>
     /// Walks all interfaces in the compilation and adds their parameter types
     /// to the NdrTypeFormatBuilder and procedures to the NdrProcFormatBuilder.
+    /// Returns a dictionary of interface name → list of method offsets for the FormatStringOffsetTable.
     /// </summary>
-    private static void CollectTypesAndProcs(
+    private static Dictionary<string, List<int>> CollectTypesAndProcs(
         Compilation compilation,
         NdrTypeFormatBuilder typeBuilder,
         NdrProcFormatBuilder procBuilder)
     {
+        var interfaceOffsets = new Dictionary<string, List<int>>();
+
         foreach (var iface in compilation.GetAllTypes().OfType<InterfaceSymbol>())
         {
             if (iface.IsExternal) continue;
@@ -64,21 +100,28 @@ public class StubEmitter
                 .Any(r => r.Name == "IInspectable");
             int methodNumber = isInspectable ? 6 : 3;
 
+            var offsets = new List<int>();
+
             foreach (var member in iface.Members)
             {
                 switch (member)
                 {
                     case MethodSymbol method:
-                        procBuilder.AddMethod(method, methodNumber++, typeBuilder);
+                        offsets.Add(procBuilder.AddMethod(method, methodNumber++, typeBuilder));
                         break;
                     case PropertySymbol prop:
-                        procBuilder.AddProperty(prop, ref methodNumber, typeBuilder);
+                        offsets.Add(procBuilder.AddProperty(prop, ref methodNumber, typeBuilder));
                         break;
                     case EventSymbol evt:
-                        procBuilder.AddEvent(evt, ref methodNumber, typeBuilder);
+                        offsets.Add(procBuilder.AddEvent(evt, ref methodNumber, typeBuilder));
                         break;
                 }
             }
+
+            if (offsets.Count > 0)
+                interfaceOffsets[iface.Name] = offsets;
         }
+
+        return interfaceOffsets;
     }
 }
