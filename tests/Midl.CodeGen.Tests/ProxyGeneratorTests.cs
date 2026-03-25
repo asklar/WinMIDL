@@ -103,13 +103,12 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {", output);
-        // Uses array-based IID lookup
-        Assert.Contains("kNonDelegatingIIDs", output);
+        // Uses qi_check with entry table
+        Assert.Contains("kQIEntries", output);
         Assert.Contains("IID_IUnknown", output);
         Assert.Contains("IID_IRpcProxyBuffer", output);
-        Assert.Contains("static_cast<IRpcProxyBuffer*>(this)", output);
         Assert.Contains("IID___x_TestApp_IWidget", output);
-        Assert.Contains("static_cast<__x_TestApp_IWidget*>(&m_face)", output);
+        Assert.Contains("winmidl::qi_check(kQIEntries", output);
     }
 
     [Fact]
@@ -149,10 +148,12 @@ public partial class ProxyGeneratorTests
         Assert.Contains("GetIids(ULONG* iidCount, IID** iids) override", output);
         Assert.Contains("GetRuntimeClassName(HSTRING* className) override", output);
         Assert.Contains("GetTrustLevel(TrustLevel* trustLevel) override", output);
-        // Uses constexpr static data, not forwarding
-        Assert.Contains("inline const IID kImplementedIIDs[]", output);
-        Assert.Contains("constexpr wchar_t kRuntimeClassName[]", output);
-        Assert.Contains("BaseTrust", output);
+        // Uses shared helpers via kTypeInfo
+        Assert.Contains("inline const IID kIIDs[]", output);
+        Assert.Contains("winmidl::type_info_t kTypeInfo", output);
+        Assert.Contains("winmidl::get_iids(kTypeInfo", output);
+        Assert.Contains("winmidl::get_runtime_class_name(kTypeInfo", output);
+        Assert.Contains("winmidl::get_trust_level(", output);
     }
 
     [Fact]

@@ -33,6 +33,8 @@ TestResults/
 *.winmd
 *.h
 *.c
+# Include tracked runtime helpers
+!include/winmidl/*.h
 tests/golden/
 .worktrees/
 *.obj
