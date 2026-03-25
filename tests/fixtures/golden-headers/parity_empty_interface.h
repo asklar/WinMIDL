@@ -47,66 +47,179 @@
 // Header files for imported files
 #include "winrtbase.h"
 
-// Forward declarations
-typedef interface __x_TestApp_CParity_CIMarker __x_TestApp_CParity_CIMarker;
-typedef interface __x_TestApp_CParity_CITagged __x_TestApp_CParity_CITagged;
-typedef interface __x_TestApp_CParity_CIExtendedMarker __x_TestApp_CParity_CIExtendedMarker;
-typedef interface __x_TestApp_CParity_CIMarkerWidget __x_TestApp_CParity_CIMarkerWidget;
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIMarker_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMarker_FWD_DEFINED__
 
-#ifndef ____x_TestApp_CParity_CIMarker_INTERFACE_DEFINED__
-#define ____x_TestApp_CParity_CIMarker_INTERFACE_DEFINED__
+namespace TestApp {
+    namespace Parity {
+        interface IMarker;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMarker TestApp::Parity::IMarker
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMarker;
+#endif // ____x_TestApp_CParity_CIMarker_FWD_DEFINED__
 
-MIDL_INTERFACE("a1b2c3d4-e5f6-7890-abcd-ef0123456789")
-__x_TestApp_CParity_CIMarker : public IInspectable
-{
-public:
-};
+#ifndef ____x_TestApp_CParity_CITagged_FWD_DEFINED__
+#define ____x_TestApp_CParity_CITagged_FWD_DEFINED__
 
-#endif // ____x_TestApp_CParity_CIMarker_INTERFACE_DEFINED__
+namespace TestApp {
+    namespace Parity {
+        interface ITagged;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CITagged TestApp::Parity::ITagged
 
-#ifndef ____x_TestApp_CParity_CITagged_INTERFACE_DEFINED__
-#define ____x_TestApp_CParity_CITagged_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CITagged_FWD_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CITagged;
+#ifndef ____x_TestApp_CParity_CIExtendedMarker_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIExtendedMarker_FWD_DEFINED__
 
-MIDL_INTERFACE("b2c3d4e5-f6a7-8901-bcde-f01234567890")
-__x_TestApp_CParity_CITagged : public IInspectable
-{
-public:
-};
+namespace TestApp {
+    namespace Parity {
+        interface IExtendedMarker;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIExtendedMarker TestApp::Parity::IExtendedMarker
 
-#endif // ____x_TestApp_CParity_CITagged_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIExtendedMarker_FWD_DEFINED__
 
-#ifndef ____x_TestApp_CParity_CIExtendedMarker_INTERFACE_DEFINED__
-#define ____x_TestApp_CParity_CIExtendedMarker_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMarkerWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMarkerWidget_FWD_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIExtendedMarker;
+namespace TestApp {
+    namespace Parity {
+        interface IMarkerWidget;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMarkerWidget TestApp::Parity::IMarkerWidget
 
-MIDL_INTERFACE("c3d4e5f6-a7b8-9012-cdef-012345678901")
-__x_TestApp_CParity_CIExtendedMarker : public IInspectable
-{
-public:
-};
+#endif // ____x_TestApp_CParity_CIMarkerWidget_FWD_DEFINED__
 
-#endif // ____x_TestApp_CParity_CIExtendedMarker_INTERFACE_DEFINED__
+namespace TestApp {
+    namespace Parity {
+        class MarkerWidget;
+    } /* Parity */
+} /* TestApp */
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MarkerWidget[] = L"TestApp.Parity.MarkerWidget";
 
+EXTERN_C const IID IID___x_TestApp_CParity_CIMarker;
+EXTERN_C const IID IID___x_TestApp_CParity_CITagged;
+EXTERN_C const IID IID___x_TestApp_CParity_CIExtendedMarker;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMarkerWidget;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
+/*
+ *
+ * Interface TestApp.Parity.IMarker
+ *
+ *
+ */
+#ifndef ____x_TestApp_CParity_CIMarker_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIMarker_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMarker[] = L"TestApp.Parity.IMarker";
+
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("a1b2c3d4-e5f6-7890-abcd-ef0123456789")
+        IMarker : public IInspectable
+        {
+        public:
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMarker TestApp::Parity::IMarker
+
+#endif // ____x_TestApp_CParity_CIMarker_INTERFACE_DEFINED__
+
+/*
+ *
+ * Interface TestApp.Parity.ITagged
+ *
+ *
+ */
+#ifndef ____x_TestApp_CParity_CITagged_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CITagged_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ITagged[] = L"TestApp.Parity.ITagged";
+
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("b2c3d4e5-f6a7-8901-bcde-f01234567890")
+        ITagged : public IInspectable
+        {
+        public:
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CITagged TestApp::Parity::ITagged
+
+#endif // ____x_TestApp_CParity_CITagged_INTERFACE_DEFINED__
+
+/*
+ *
+ * Interface TestApp.Parity.IExtendedMarker
+ *
+ *
+ */
+#ifndef ____x_TestApp_CParity_CIExtendedMarker_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIExtendedMarker_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IExtendedMarker[] = L"TestApp.Parity.IExtendedMarker";
+
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("c3d4e5f6-a7b8-9012-cdef-012345678901")
+        IExtendedMarker : public IInspectable
+        {
+        public:
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIExtendedMarker TestApp::Parity::IExtendedMarker
+
+#endif // ____x_TestApp_CParity_CIExtendedMarker_INTERFACE_DEFINED__
+
+/*
+ *
+ * Interface TestApp.Parity.IMarkerWidget
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.MarkerWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IMarkerWidget:HRESULT get_Name(String*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIMarkerWidget_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIMarkerWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMarkerWidget;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMarkerWidget[] = L"TestApp.Parity.IMarkerWidget";
 
-MIDL_INTERFACE("f3a853f5-5052-53d0-a41b-512d64cc4b6e")
-__x_TestApp_CParity_CIMarkerWidget : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("f3a853f5-5052-53d0-a41b-512d64cc4b6e")
+        IMarkerWidget : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMarkerWidget TestApp::Parity::IMarkerWidget
 
 #endif // ____x_TestApp_CParity_CIMarkerWidget_INTERFACE_DEFINED__
+
+#endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

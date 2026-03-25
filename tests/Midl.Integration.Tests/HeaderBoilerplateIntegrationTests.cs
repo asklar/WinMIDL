@@ -112,10 +112,10 @@ public partial class HeaderBoilerplateIntegrationTests
         var header = CompileFixtureToHeader("parity_interfaces");
 
         var boilerplateEnd = header.IndexOf("#include \"winrtbase.h\"");
-        var forwardDecl = header.IndexOf("// Forward declarations");
+        var forwardDecl = header.IndexOf("/* Forward Declarations */");
 
         Assert.True(boilerplateEnd > 0, "winrtbase.h include not found");
-        Assert.True(forwardDecl > 0, "Forward declarations not found");
+        Assert.True(forwardDecl > 0, "Forward Declarations not found");
         Assert.True(boilerplateEnd < forwardDecl, "Boilerplate must appear before forward declarations");
     }
 

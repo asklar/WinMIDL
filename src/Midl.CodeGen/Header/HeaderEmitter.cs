@@ -47,30 +47,57 @@ public class HeaderEmitter
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         MidlTrace.CodeGen($"Generating header, {allTypes.Count} types");
 
-        // Forward declarations
+        // Forward declarations (with FWD_DEFINED guards and namespace blocks)
         EmitForwardDeclarations(sb, allTypes);
 
-        // Type definitions grouped by kind: enums, structs, delegates, interfaces, runtime classes
+        // C-section types: runtime classes, enums, structs
         foreach (var symbol in allTypes)
         {
             switch (symbol)
             {
+                case RuntimeClassSymbol rc:
+                    EmitRuntimeClass(sb, rc);
+                    break;
                 case EnumSymbol e:
                     EmitEnum(sb, e);
                     break;
                 case StructSymbol s:
                     EmitStruct(sb, s);
                     break;
-                case DelegateSymbol d:
-                    EmitDelegate(sb, d);
-                    break;
-                case InterfaceSymbol iface:
-                    EmitInterface(sb, iface);
-                    break;
-                case RuntimeClassSymbol rc:
-                    EmitRuntimeClass(sb, rc);
-                    break;
             }
+        }
+
+        // Collect C++ types (interfaces and delegates)
+        var cppTypes = allTypes.Where(t => t is InterfaceSymbol or DelegateSymbol).ToList();
+
+        if (cppTypes.Count > 0)
+        {
+            // Emit IID declarations in C section (before C++ guard)
+            foreach (var symbol in cppTypes)
+            {
+                var mangledName = MangleName(symbol.FullName);
+                sb.AppendLine($"EXTERN_C const IID IID_{mangledName};");
+            }
+            sb.AppendLine();
+
+            sb.AppendLine("#if defined(__cplusplus) && !defined(CINTERFACE)");
+            sb.AppendLine();
+
+            foreach (var symbol in cppTypes)
+            {
+                switch (symbol)
+                {
+                    case DelegateSymbol d:
+                        EmitDelegateCpp(sb, d);
+                        break;
+                    case InterfaceSymbol iface:
+                        EmitInterfaceCpp(sb, iface);
+                        break;
+                }
+            }
+
+            sb.AppendLine("#endif // defined(__cplusplus) && !defined(CINTERFACE)");
+            sb.AppendLine();
         }
 
         EmitBoilerplateFooter(sb, innerGuard, outerGuard);
@@ -191,21 +218,66 @@ public class HeaderEmitter
 
     private static void EmitForwardDeclarations(StringBuilder sb, List<ISymbol> allTypes)
     {
-        var hasForward = false;
-        foreach (var symbol in allTypes)
+        var interfaces = allTypes.OfType<InterfaceSymbol>().ToList();
+        var runtimeClasses = allTypes.OfType<RuntimeClassSymbol>().ToList();
+
+        if (interfaces.Count == 0 && runtimeClasses.Count == 0)
+            return;
+
+        sb.AppendLine("/* Forward Declarations */");
+
+        foreach (var iface in interfaces)
         {
-            if (symbol is InterfaceSymbol iface)
-            {
-                if (!hasForward)
-                {
-                    sb.AppendLine("// Forward declarations");
-                    hasForward = true;
-                }
-                sb.AppendLine($"typedef interface {MangleName(iface.FullName)} {MangleName(iface.FullName)};");
-            }
-        }
-        if (hasForward)
+            var mangledName = MangleName(iface.FullName);
+            var fwdGuard = $"__{mangledName}_FWD_DEFINED__";
+
+            sb.AppendLine($"#ifndef {fwdGuard}");
+            sb.AppendLine($"#define {fwdGuard}");
             sb.AppendLine();
+            EmitNamespaceBlock(sb, iface.FullName, "interface");
+            sb.AppendLine($"#define {mangledName} {iface.FullName.Replace(".", "::")}");
+            sb.AppendLine();
+            sb.AppendLine($"#endif // {fwdGuard}");
+            sb.AppendLine();
+        }
+
+        foreach (var rc in runtimeClasses)
+        {
+            EmitNamespaceBlock(sb, rc.FullName, "class");
+            sb.AppendLine();
+        }
+    }
+
+    /// <summary>
+    /// Emits a type declaration wrapped in nested namespace blocks.
+    /// </summary>
+    private static void EmitNamespaceBlock(StringBuilder sb, string fullName, string keyword)
+    {
+        var lastDot = fullName.LastIndexOf('.');
+        if (lastDot < 0)
+        {
+            sb.AppendLine($"{keyword} {fullName};");
+            return;
+        }
+
+        var namespacePart = fullName[..lastDot];
+        var typeName = fullName[(lastDot + 1)..];
+        var segments = namespacePart.Split('.');
+
+        for (int i = 0; i < segments.Length; i++)
+        {
+            var indent = new string(' ', i * 4);
+            sb.AppendLine($"{indent}namespace {segments[i]} {{");
+        }
+
+        var typeIndent = new string(' ', segments.Length * 4);
+        sb.AppendLine($"{typeIndent}{keyword} {typeName};");
+
+        for (int i = segments.Length - 1; i >= 0; i--)
+        {
+            var indent = new string(' ', i * 4);
+            sb.AppendLine($"{indent}}} /* {segments[i]} */");
+        }
     }
 
     private static void EmitEnum(StringBuilder sb, EnumSymbol e)
@@ -234,79 +306,194 @@ public class HeaderEmitter
         sb.AppendLine();
     }
 
-    private static void EmitDelegate(StringBuilder sb, DelegateSymbol d)
+    private static void EmitDelegateCpp(StringBuilder sb, DelegateSymbol d)
     {
         var mangledName = MangleName(d.FullName);
+        var shortName = d.Name;
         var uuid = ComputeGuid(d).ToString("D");
+        var nsParts = GetNamespaceParts(d);
+        var nsIndent = new string(' ', nsParts.Length * 4);
 
-        sb.AppendLine($"EXTERN_C const IID IID_{mangledName};");
-        sb.AppendLine();
-        sb.AppendLine($"MIDL_INTERFACE(\"{uuid}\")");
-        sb.AppendLine($"{mangledName} : public IUnknown");
-        sb.AppendLine("{");
-        sb.AppendLine("public:");
+        // Type comment (IID seed)
+        var invokeMethod = new MethodSymbol("Invoke", null) { ReturnType = d.ReturnType };
+        invokeMethod.Parameters.AddRange(d.Parameters);
+        EmitTypeComment(sb, "Delegate", d.FullName, exclusiveToClass: null,
+            hasExplicitUuid: d.Uuid.HasValue, new List<ISymbol> { invokeMethod });
+
+        // Open namespace blocks
+        for (int i = 0; i < nsParts.Length; i++)
+        {
+            var indent = new string(' ', i * 4);
+            sb.AppendLine($"{indent}namespace {nsParts[i]} {{");
+        }
+
+        sb.AppendLine($"{nsIndent}MIDL_INTERFACE(\"{uuid}\")");
+        sb.AppendLine($"{nsIndent}{shortName} : public IUnknown");
+        sb.AppendLine($"{nsIndent}{{");
+        sb.AppendLine($"{nsIndent}public:");
 
         // Delegate has an Invoke method
-        var returnType = MapType(d.ReturnType);
         var paramList = BuildParameterList(d.Parameters);
-        sb.AppendLine($"    virtual HRESULT STDMETHODCALLTYPE Invoke({paramList}) = 0;");
+        var paramStr = paramList.Length > 0 ? paramList : "void";
+        sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE Invoke({paramStr}) = 0;");
 
-        sb.AppendLine("};");
+        sb.AppendLine($"{nsIndent}}};");
+
+        // Close namespace blocks in reverse
+        for (int i = nsParts.Length - 1; i >= 0; i--)
+        {
+            var indent = new string(' ', i * 4);
+            sb.AppendLine($"{indent}}} /* {nsParts[i]} */");
+        }
+        sb.AppendLine();
+
+        // Emit #define alias
+        var qualifiedName = string.Join("::", nsParts.Append(shortName));
+        sb.AppendLine($"#define {mangledName} {qualifiedName}");
         sb.AppendLine();
     }
 
-    private static void EmitInterface(StringBuilder sb, InterfaceSymbol iface)
+    private static void EmitInterfaceCpp(StringBuilder sb, InterfaceSymbol iface)
     {
         var mangledName = MangleName(iface.FullName);
+        var shortName = iface.Name;
         var uuid = ComputeGuid(iface).ToString("D");
         var guard = $"____{mangledName.TrimStart('_')}_INTERFACE_DEFINED__";
+        var nsParts = GetNamespaceParts(iface);
+        var nsIndent = new string(' ', nsParts.Length * 4);
+        var dotName = iface.FullName;
+        var underscoreName = dotName.Replace(".", "_");
+
+        // Type comment (IID seed)
+        EmitTypeComment(sb, "Interface", iface.FullName,
+            GetExclusiveToClass(iface),
+            hasExplicitUuid: iface.Uuid.HasValue, iface.Members.ToList());
 
         sb.AppendLine($"#ifndef {guard}");
         sb.AppendLine($"#define {guard}");
         sb.AppendLine();
-        sb.AppendLine($"EXTERN_C const IID IID_{mangledName};");
+
+        // InterfaceName string constant
+        sb.AppendLine($"extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_{underscoreName}[] = L\"{dotName}\";");
         sb.AppendLine();
-        sb.AppendLine($"MIDL_INTERFACE(\"{uuid}\")");
-        sb.AppendLine($"{mangledName} : public IInspectable");
-        sb.AppendLine("{");
-        sb.AppendLine("public:");
+
+        // Open namespace blocks
+        for (int i = 0; i < nsParts.Length; i++)
+        {
+            var indent = new string(' ', i * 4);
+            sb.AppendLine($"{indent}namespace {nsParts[i]} {{");
+        }
+
+        sb.AppendLine($"{nsIndent}MIDL_INTERFACE(\"{uuid}\")");
+        sb.AppendLine($"{nsIndent}{shortName} : public IInspectable");
+        sb.AppendLine($"{nsIndent}{{");
+        sb.AppendLine($"{nsIndent}public:");
 
         foreach (var member in iface.Members)
         {
             switch (member)
             {
                 case PropertySymbol prop:
-                    EmitPropertyMethods(sb, prop);
+                    EmitPropertyMethods(sb, prop, nsIndent);
                     break;
                 case MethodSymbol method:
-                    EmitMethod(sb, method);
+                    EmitMethod(sb, method, nsIndent);
                     break;
                 case EventSymbol evt:
-                    EmitEventMethods(sb, evt);
+                    EmitEventMethods(sb, evt, nsIndent);
                     break;
             }
         }
 
-        sb.AppendLine("};");
+        sb.AppendLine($"{nsIndent}}};");
+
+        // Close namespace blocks in reverse
+        for (int i = nsParts.Length - 1; i >= 0; i--)
+        {
+            var indent = new string(' ', i * 4);
+            sb.AppendLine($"{indent}}} /* {nsParts[i]} */");
+        }
+        sb.AppendLine();
+
+        // Emit #define alias
+        var qualifiedName = string.Join("::", nsParts.Append(shortName));
+        sb.AppendLine($"#define {mangledName} {qualifiedName}");
         sb.AppendLine();
         sb.AppendLine($"#endif // {guard}");
         sb.AppendLine();
     }
 
-    private static void EmitPropertyMethods(StringBuilder sb, PropertySymbol prop)
+    /// <summary>
+    /// Gets the exclusive-to class name from either the symbol property (synthesized interfaces)
+    /// or the [exclusiveto] attribute (explicitly declared interfaces).
+    /// </summary>
+    private static string? GetExclusiveToClass(InterfaceSymbol iface)
+    {
+        if (iface.ExclusiveToClass != null)
+            return iface.ExclusiveToClass;
+
+        var attr = iface.Attributes.FirstOrDefault(
+            a => string.Equals(a.Name, "exclusiveto", StringComparison.OrdinalIgnoreCase));
+        if (attr != null)
+        {
+            var className = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
+            if (className != null)
+            {
+                // Resolve to FQN if the class is in the same namespace
+                if (!className.Contains('.') && iface.ContainingSymbol is NamespaceSymbol ns
+                    && ns.FullName.Length > 0)
+                {
+                    return $"{ns.FullName}.{className}";
+                }
+                return className;
+            }
+        }
+
+        return null;
+    }
+
+    private static void EmitTypeComment(StringBuilder sb, string kind, string fullName,
+        string? exclusiveToClass, bool hasExplicitUuid, IReadOnlyList<ISymbol> members)
+    {
+        sb.AppendLine("/*");
+        sb.AppendLine(" *");
+        sb.AppendLine($" * {kind} {fullName}");
+        sb.AppendLine(" *");
+
+        if (exclusiveToClass != null)
+        {
+            sb.AppendLine($" * {kind} is a part of the implementation of type {exclusiveToClass}");
+            sb.AppendLine(" *");
+        }
+
+        if (!hasExplicitUuid)
+        {
+            sb.AppendLine(" *");
+            sb.AppendLine($" * The IID for this {kind.ToLowerInvariant()} was automatically generated by MIDLRT.");
+            sb.AppendLine(" *");
+            var seed = BuildAbiSignatureSeed(fullName, members);
+            sb.AppendLine($" * {kind} IID generation seed: {seed}");
+            sb.AppendLine(" *");
+        }
+
+        sb.AppendLine(" *");
+        sb.AppendLine(" */");
+    }
+
+    private static void EmitPropertyMethods(StringBuilder sb, PropertySymbol prop, string nsIndent = "")
     {
         var cType = MapType(prop.Type);
         if (prop.HasGetter)
         {
-            sb.AppendLine($"    virtual HRESULT STDMETHODCALLTYPE get_{prop.Name}(/* [out, retval] */ {cType}* value) = 0;");
+            sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE get_{prop.Name}(/* [out, retval] */ {cType}* value) = 0;");
         }
         if (prop.HasSetter)
         {
-            sb.AppendLine($"    virtual HRESULT STDMETHODCALLTYPE put_{prop.Name}(/* [in] */ {cType} value) = 0;");
+            sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE put_{prop.Name}(/* [in] */ {cType} value) = 0;");
         }
     }
 
-    private static void EmitMethod(StringBuilder sb, MethodSymbol method)
+    private static void EmitMethod(StringBuilder sb, MethodSymbol method, string nsIndent = "")
     {
         var paramParts = new List<string>();
         foreach (var p in method.Parameters)
@@ -327,14 +514,14 @@ public class HeaderEmitter
             paramParts.Add($"/* [out, retval] */ {retType}* returnValue");
         }
 
-        var paramStr = string.Join(", ", paramParts);
-        sb.AppendLine($"    virtual HRESULT STDMETHODCALLTYPE {method.Name}({paramStr}) = 0;");
+        var paramStr = paramParts.Count > 0 ? string.Join(", ", paramParts) : "void";
+        sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE {method.Name}({paramStr}) = 0;");
     }
 
-    private static void EmitEventMethods(StringBuilder sb, EventSymbol evt)
+    private static void EmitEventMethods(StringBuilder sb, EventSymbol evt, string nsIndent = "")
     {
-        sb.AppendLine($"    virtual HRESULT STDMETHODCALLTYPE add_{evt.Name}(/* [in] */ {MapType(evt.DelegateType)} handler, /* [out, retval] */ EventRegistrationToken* token) = 0;");
-        sb.AppendLine($"    virtual HRESULT STDMETHODCALLTYPE remove_{evt.Name}(/* [in] */ EventRegistrationToken token) = 0;");
+        sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE add_{evt.Name}(/* [in] */ {MapType(evt.DelegateType)} handler, /* [out, retval] */ EventRegistrationToken* token) = 0;");
+        sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE remove_{evt.Name}(/* [in] */ EventRegistrationToken token) = 0;");
     }
 
     private static void EmitRuntimeClass(StringBuilder sb, RuntimeClassSymbol rc)
@@ -373,6 +560,13 @@ public class HeaderEmitter
     internal static string MangleName(string fullName)
     {
         return "__x_" + fullName.Replace(".", "_C");
+    }
+
+    private static string[] GetNamespaceParts(ISymbol symbol)
+    {
+        if (symbol.ContainingSymbol is NamespaceSymbol ns && ns.FullName.Length > 0)
+            return ns.FullName.Split('.');
+        return Array.Empty<string>();
     }
 
     private static string BuildParameterList(List<ParameterSymbol> parameters)

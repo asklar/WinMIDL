@@ -67,7 +67,7 @@ public partial class HeaderEmitterTests
         var header = _emitter.Emit(compilation);
 
         Assert.Contains("MIDL_INTERFACE(", header);
-        Assert.Contains("__x_TestApp_CIGreeter : public IInspectable", header);
+        Assert.Contains("IGreeter : public IInspectable", header);
         Assert.Contains("get_Name(/* [out, retval] */ HSTRING* value) = 0;", header);
         Assert.Contains("put_Name(/* [in] */ HSTRING value) = 0;", header);
         Assert.Contains("SayHello(/* [in] */ int times) = 0;", header);
@@ -184,7 +184,7 @@ public partial class HeaderEmitterTests
 
         // Interface
         Assert.Contains("MIDL_INTERFACE(", header);
-        Assert.Contains("__x_MyCompany_CMyApp_CIWidget : public IInspectable", header);
+        Assert.Contains("IWidget : public IInspectable", header);
         Assert.Contains("get_Name(/* [out, retval] */ HSTRING* value) = 0;", header);
         Assert.Contains("DoWork(/* [in] */ int count) = 0;", header);
 

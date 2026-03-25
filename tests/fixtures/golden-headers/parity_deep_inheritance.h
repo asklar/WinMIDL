@@ -47,15 +47,126 @@
 // Header files for imported files
 #include "winrtbase.h"
 
-// Forward declarations
-typedef interface __x_TestApp_CParity_CILevel0Base __x_TestApp_CParity_CILevel0Base;
-typedef interface __x_TestApp_CParity_CILevel0BaseOverrides __x_TestApp_CParity_CILevel0BaseOverrides;
-typedef interface __x_TestApp_CParity_CILevel1Mid __x_TestApp_CParity_CILevel1Mid;
-typedef interface __x_TestApp_CParity_CILevel1MidOverrides __x_TestApp_CParity_CILevel1MidOverrides;
-typedef interface __x_TestApp_CParity_CILevel2Upper __x_TestApp_CParity_CILevel2Upper;
-typedef interface __x_TestApp_CParity_CILevel2UpperOverrides __x_TestApp_CParity_CILevel2UpperOverrides;
-typedef interface __x_TestApp_CParity_CILevel3Leaf __x_TestApp_CParity_CILevel3Leaf;
-typedef interface __x_TestApp_CParity_CILevel3LeafFactory __x_TestApp_CParity_CILevel3LeafFactory;
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CILevel0Base_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILevel0Base_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface ILevel0Base;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CILevel0Base TestApp::Parity::ILevel0Base
+
+#endif // ____x_TestApp_CParity_CILevel0Base_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CILevel0BaseOverrides_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILevel0BaseOverrides_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface ILevel0BaseOverrides;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CILevel0BaseOverrides TestApp::Parity::ILevel0BaseOverrides
+
+#endif // ____x_TestApp_CParity_CILevel0BaseOverrides_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CILevel1Mid_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILevel1Mid_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface ILevel1Mid;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CILevel1Mid TestApp::Parity::ILevel1Mid
+
+#endif // ____x_TestApp_CParity_CILevel1Mid_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CILevel1MidOverrides_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILevel1MidOverrides_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface ILevel1MidOverrides;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CILevel1MidOverrides TestApp::Parity::ILevel1MidOverrides
+
+#endif // ____x_TestApp_CParity_CILevel1MidOverrides_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CILevel2Upper_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILevel2Upper_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface ILevel2Upper;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CILevel2Upper TestApp::Parity::ILevel2Upper
+
+#endif // ____x_TestApp_CParity_CILevel2Upper_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CILevel2UpperOverrides_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILevel2UpperOverrides_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface ILevel2UpperOverrides;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CILevel2UpperOverrides TestApp::Parity::ILevel2UpperOverrides
+
+#endif // ____x_TestApp_CParity_CILevel2UpperOverrides_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CILevel3Leaf_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILevel3Leaf_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface ILevel3Leaf;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CILevel3Leaf TestApp::Parity::ILevel3Leaf
+
+#endif // ____x_TestApp_CParity_CILevel3Leaf_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CILevel3LeafFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILevel3LeafFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface ILevel3LeafFactory;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CILevel3LeafFactory TestApp::Parity::ILevel3LeafFactory
+
+#endif // ____x_TestApp_CParity_CILevel3LeafFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        class Level0Base;
+    } /* Parity */
+} /* TestApp */
+
+namespace TestApp {
+    namespace Parity {
+        class Level1Mid;
+    } /* Parity */
+} /* TestApp */
+
+namespace TestApp {
+    namespace Parity {
+        class Level2Upper;
+    } /* Parity */
+} /* TestApp */
+
+namespace TestApp {
+    namespace Parity {
+        class Level3Leaf;
+    } /* Parity */
+} /* TestApp */
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Level0Base[] = L"TestApp.Parity.Level0Base";
 
@@ -65,118 +176,283 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Level3Leaf[] = L"TestApp.Parity.Level3Leaf";
 
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel0Base;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel0BaseOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel1Mid;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel1MidOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel2Upper;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel2UpperOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel3Leaf;
+EXTERN_C const IID IID___x_TestApp_CParity_CILevel3LeafFactory;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
+/*
+ *
+ * Interface TestApp.Parity.ILevel0Base
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Level0Base
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.ILevel0Base:HRESULT get_BaseLabel(String*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CILevel0Base_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CILevel0Base_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CILevel0Base;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILevel0Base[] = L"TestApp.Parity.ILevel0Base";
 
-MIDL_INTERFACE("91015105-6111-515b-8dde-6ce0eed2cd06")
-__x_TestApp_CParity_CILevel0Base : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_BaseLabel(/* [out, retval] */ HSTRING* value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("91015105-6111-515b-8dde-6ce0eed2cd06")
+        ILevel0Base : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_BaseLabel(/* [out, retval] */ HSTRING* value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CILevel0Base TestApp::Parity::ILevel0Base
 
 #endif // ____x_TestApp_CParity_CILevel0Base_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.ILevel0BaseOverrides
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Level0Base
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.ILevel0BaseOverrides:HRESULT OnInit();
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CILevel0BaseOverrides_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CILevel0BaseOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CILevel0BaseOverrides;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILevel0BaseOverrides[] = L"TestApp.Parity.ILevel0BaseOverrides";
 
-MIDL_INTERFACE("8e91a0cb-548c-5262-9996-0fbf0cc268e2")
-__x_TestApp_CParity_CILevel0BaseOverrides : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE OnInit() = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("8e91a0cb-548c-5262-9996-0fbf0cc268e2")
+        ILevel0BaseOverrides : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE OnInit(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CILevel0BaseOverrides TestApp::Parity::ILevel0BaseOverrides
 
 #endif // ____x_TestApp_CParity_CILevel0BaseOverrides_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.ILevel1Mid
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Level1Mid
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.ILevel1Mid:HRESULT get_MidValue(Int32*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CILevel1Mid_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CILevel1Mid_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CILevel1Mid;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILevel1Mid[] = L"TestApp.Parity.ILevel1Mid";
 
-MIDL_INTERFACE("c37e8cbc-7017-5559-88c4-e9b0e60d78ba")
-__x_TestApp_CParity_CILevel1Mid : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_MidValue(/* [out, retval] */ int* value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("c37e8cbc-7017-5559-88c4-e9b0e60d78ba")
+        ILevel1Mid : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_MidValue(/* [out, retval] */ int* value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CILevel1Mid TestApp::Parity::ILevel1Mid
 
 #endif // ____x_TestApp_CParity_CILevel1Mid_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.ILevel1MidOverrides
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Level1Mid
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.ILevel1MidOverrides:HRESULT OnProcess();
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CILevel1MidOverrides_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CILevel1MidOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CILevel1MidOverrides;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILevel1MidOverrides[] = L"TestApp.Parity.ILevel1MidOverrides";
 
-MIDL_INTERFACE("c113685d-4885-57e8-a4c7-abb5bb9a526b")
-__x_TestApp_CParity_CILevel1MidOverrides : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE OnProcess() = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("c113685d-4885-57e8-a4c7-abb5bb9a526b")
+        ILevel1MidOverrides : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE OnProcess(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CILevel1MidOverrides TestApp::Parity::ILevel1MidOverrides
 
 #endif // ____x_TestApp_CParity_CILevel1MidOverrides_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.ILevel2Upper
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Level2Upper
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.ILevel2Upper:HRESULT get_UpperFlag(Boolean*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CILevel2Upper_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CILevel2Upper_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CILevel2Upper;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILevel2Upper[] = L"TestApp.Parity.ILevel2Upper";
 
-MIDL_INTERFACE("69bdf725-88f9-5fa9-8531-9e6c89f7428f")
-__x_TestApp_CParity_CILevel2Upper : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_UpperFlag(/* [out, retval] */ ::boolean* value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("69bdf725-88f9-5fa9-8531-9e6c89f7428f")
+        ILevel2Upper : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_UpperFlag(/* [out, retval] */ ::boolean* value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CILevel2Upper TestApp::Parity::ILevel2Upper
 
 #endif // ____x_TestApp_CParity_CILevel2Upper_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.ILevel2UpperOverrides
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Level2Upper
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.ILevel2UpperOverrides:HRESULT OnComplete();
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CILevel2UpperOverrides_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CILevel2UpperOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CILevel2UpperOverrides;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILevel2UpperOverrides[] = L"TestApp.Parity.ILevel2UpperOverrides";
 
-MIDL_INTERFACE("ed1f480f-38c6-5054-bc5a-45f2fca407b8")
-__x_TestApp_CParity_CILevel2UpperOverrides : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE OnComplete() = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("ed1f480f-38c6-5054-bc5a-45f2fca407b8")
+        ILevel2UpperOverrides : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE OnComplete(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CILevel2UpperOverrides TestApp::Parity::ILevel2UpperOverrides
 
 #endif // ____x_TestApp_CParity_CILevel2UpperOverrides_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.ILevel3Leaf
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Level3Leaf
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.ILevel3Leaf:HRESULT get_LeafMetric(Double*);HRESULT Execute();
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CILevel3Leaf_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CILevel3Leaf_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CILevel3Leaf;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILevel3Leaf[] = L"TestApp.Parity.ILevel3Leaf";
 
-MIDL_INTERFACE("70d1617e-84d5-5b96-a29b-c0fc8ee07c14")
-__x_TestApp_CParity_CILevel3Leaf : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_LeafMetric(/* [out, retval] */ double* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Execute() = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("70d1617e-84d5-5b96-a29b-c0fc8ee07c14")
+        ILevel3Leaf : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_LeafMetric(/* [out, retval] */ double* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Execute(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CILevel3Leaf TestApp::Parity::ILevel3Leaf
 
 #endif // ____x_TestApp_CParity_CILevel3Leaf_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.ILevel3LeafFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Level3Leaf
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.ILevel3LeafFactory:HRESULT CreateInstance(String,TestApp.Parity.Level3Leaf**);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CILevel3LeafFactory_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CILevel3LeafFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CILevel3LeafFactory;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILevel3LeafFactory[] = L"TestApp.Parity.ILevel3LeafFactory";
 
-MIDL_INTERFACE("c35f4d58-9123-579c-b3b2-992a9c5f5d5f")
-__x_TestApp_CParity_CILevel3LeafFactory : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Level3Leaf* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("c35f4d58-9123-579c-b3b2-992a9c5f5d5f")
+        ILevel3LeafFactory : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Level3Leaf* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CILevel3LeafFactory TestApp::Parity::ILevel3LeafFactory
 
 #endif // ____x_TestApp_CParity_CILevel3LeafFactory_INTERFACE_DEFINED__
+
+#endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

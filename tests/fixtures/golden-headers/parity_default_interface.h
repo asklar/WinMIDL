@@ -47,58 +47,84 @@
 // Header files for imported files
 #include "winrtbase.h"
 
-// Forward declarations
-typedef interface __x_TestApp_CParity_CIWidgetCore __x_TestApp_CParity_CIWidgetCore;
-typedef interface __x_TestApp_CParity_CIWidgetExtra __x_TestApp_CParity_CIWidgetExtra;
-typedef interface __x_TestApp_CParity_CIWidgetAdvanced __x_TestApp_CParity_CIWidgetAdvanced;
-typedef interface __x_TestApp_CParity_CIMinimalWidget __x_TestApp_CParity_CIMinimalWidget;
-typedef interface __x_TestApp_CParity_CIMultiInterfaceWidgetFactory __x_TestApp_CParity_CIMultiInterfaceWidgetFactory;
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIWidgetCore_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIWidgetCore_FWD_DEFINED__
 
-#ifndef ____x_TestApp_CParity_CIWidgetCore_INTERFACE_DEFINED__
-#define ____x_TestApp_CParity_CIWidgetCore_INTERFACE_DEFINED__
+namespace TestApp {
+    namespace Parity {
+        interface IWidgetCore;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIWidgetCore TestApp::Parity::IWidgetCore
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIWidgetCore;
+#endif // ____x_TestApp_CParity_CIWidgetCore_FWD_DEFINED__
 
-MIDL_INTERFACE("bef20854-5beb-541b-b621-7434bf68a6d4")
-__x_TestApp_CParity_CIWidgetCore : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_CoreName(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Activate() = 0;
-};
+#ifndef ____x_TestApp_CParity_CIWidgetExtra_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIWidgetExtra_FWD_DEFINED__
 
-#endif // ____x_TestApp_CParity_CIWidgetCore_INTERFACE_DEFINED__
+namespace TestApp {
+    namespace Parity {
+        interface IWidgetExtra;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIWidgetExtra TestApp::Parity::IWidgetExtra
 
-#ifndef ____x_TestApp_CParity_CIWidgetExtra_INTERFACE_DEFINED__
-#define ____x_TestApp_CParity_CIWidgetExtra_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIWidgetExtra_FWD_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIWidgetExtra;
+#ifndef ____x_TestApp_CParity_CIWidgetAdvanced_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIWidgetAdvanced_FWD_DEFINED__
 
-MIDL_INTERFACE("59812327-106d-5876-8363-1206c874e049")
-__x_TestApp_CParity_CIWidgetExtra : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_ExtraPriority(/* [out, retval] */ int* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_ExtraPriority(/* [in] */ int value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE DoExtra() = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        interface IWidgetAdvanced;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIWidgetAdvanced TestApp::Parity::IWidgetAdvanced
 
-#endif // ____x_TestApp_CParity_CIWidgetExtra_INTERFACE_DEFINED__
+#endif // ____x_TestApp_CParity_CIWidgetAdvanced_FWD_DEFINED__
 
-#ifndef ____x_TestApp_CParity_CIWidgetAdvanced_INTERFACE_DEFINED__
-#define ____x_TestApp_CParity_CIWidgetAdvanced_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMinimalWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMinimalWidget_FWD_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIWidgetAdvanced;
+namespace TestApp {
+    namespace Parity {
+        interface IMinimalWidget;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMinimalWidget TestApp::Parity::IMinimalWidget
 
-MIDL_INTERFACE("b6e31ec8-b22a-5a6d-b983-ab7c6ce49ae0")
-__x_TestApp_CParity_CIWidgetAdvanced : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_AdvancedScore(/* [out, retval] */ double* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Recalculate() = 0;
-};
+#endif // ____x_TestApp_CParity_CIMinimalWidget_FWD_DEFINED__
 
-#endif // ____x_TestApp_CParity_CIWidgetAdvanced_INTERFACE_DEFINED__
+#ifndef ____x_TestApp_CParity_CIMultiInterfaceWidgetFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMultiInterfaceWidgetFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IMultiInterfaceWidgetFactory;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMultiInterfaceWidgetFactory TestApp::Parity::IMultiInterfaceWidgetFactory
+
+#endif // ____x_TestApp_CParity_CIMultiInterfaceWidgetFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        class MinimalWidget;
+    } /* Parity */
+} /* TestApp */
+
+namespace TestApp {
+    namespace Parity {
+        class MultiInterfaceWidget;
+    } /* Parity */
+} /* TestApp */
+
+namespace TestApp {
+    namespace Parity {
+        class AutoDefaultWidget;
+    } /* Parity */
+} /* TestApp */
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MinimalWidget[] = L"TestApp.Parity.MinimalWidget";
 
@@ -106,33 +132,178 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_AutoDefaultWidget[] = L"TestApp.Parity.AutoDefaultWidget";
 
+EXTERN_C const IID IID___x_TestApp_CParity_CIWidgetCore;
+EXTERN_C const IID IID___x_TestApp_CParity_CIWidgetExtra;
+EXTERN_C const IID IID___x_TestApp_CParity_CIWidgetAdvanced;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMinimalWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMultiInterfaceWidgetFactory;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
+/*
+ *
+ * Interface TestApp.Parity.IWidgetCore
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IWidgetCore:HRESULT get_CoreName(String*);HRESULT Activate();
+ *
+ *
+ */
+#ifndef ____x_TestApp_CParity_CIWidgetCore_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIWidgetCore_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IWidgetCore[] = L"TestApp.Parity.IWidgetCore";
+
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("bef20854-5beb-541b-b621-7434bf68a6d4")
+        IWidgetCore : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_CoreName(/* [out, retval] */ HSTRING* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Activate(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIWidgetCore TestApp::Parity::IWidgetCore
+
+#endif // ____x_TestApp_CParity_CIWidgetCore_INTERFACE_DEFINED__
+
+/*
+ *
+ * Interface TestApp.Parity.IWidgetExtra
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IWidgetExtra:HRESULT get_ExtraPriority(Int32*);HRESULT put_ExtraPriority(Int32);HRESULT DoExtra();
+ *
+ *
+ */
+#ifndef ____x_TestApp_CParity_CIWidgetExtra_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIWidgetExtra_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IWidgetExtra[] = L"TestApp.Parity.IWidgetExtra";
+
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("59812327-106d-5876-8363-1206c874e049")
+        IWidgetExtra : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_ExtraPriority(/* [out, retval] */ int* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE put_ExtraPriority(/* [in] */ int value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE DoExtra(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIWidgetExtra TestApp::Parity::IWidgetExtra
+
+#endif // ____x_TestApp_CParity_CIWidgetExtra_INTERFACE_DEFINED__
+
+/*
+ *
+ * Interface TestApp.Parity.IWidgetAdvanced
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IWidgetAdvanced:HRESULT get_AdvancedScore(Double*);HRESULT Recalculate();
+ *
+ *
+ */
+#ifndef ____x_TestApp_CParity_CIWidgetAdvanced_INTERFACE_DEFINED__
+#define ____x_TestApp_CParity_CIWidgetAdvanced_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IWidgetAdvanced[] = L"TestApp.Parity.IWidgetAdvanced";
+
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("b6e31ec8-b22a-5a6d-b983-ab7c6ce49ae0")
+        IWidgetAdvanced : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_AdvancedScore(/* [out, retval] */ double* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Recalculate(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIWidgetAdvanced TestApp::Parity::IWidgetAdvanced
+
+#endif // ____x_TestApp_CParity_CIWidgetAdvanced_INTERFACE_DEFINED__
+
+/*
+ *
+ * Interface TestApp.Parity.IMinimalWidget
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.MinimalWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IMinimalWidget:HRESULT get_Label(String*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIMinimalWidget_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIMinimalWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMinimalWidget;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMinimalWidget[] = L"TestApp.Parity.IMinimalWidget";
 
-MIDL_INTERFACE("2f06df61-4524-59e5-ac0a-37c58960e283")
-__x_TestApp_CParity_CIMinimalWidget : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("2f06df61-4524-59e5-ac0a-37c58960e283")
+        IMinimalWidget : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMinimalWidget TestApp::Parity::IMinimalWidget
 
 #endif // ____x_TestApp_CParity_CIMinimalWidget_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IMultiInterfaceWidgetFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.MultiInterfaceWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IMultiInterfaceWidgetFactory:HRESULT CreateInstance(String,TestApp.Parity.MultiInterfaceWidget**);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIMultiInterfaceWidgetFactory_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIMultiInterfaceWidgetFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMultiInterfaceWidgetFactory;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMultiInterfaceWidgetFactory[] = L"TestApp.Parity.IMultiInterfaceWidgetFactory";
 
-MIDL_INTERFACE("558694b6-efe1-530f-984d-c9ad8ceaa08e")
-__x_TestApp_CParity_CIMultiInterfaceWidgetFactory : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MultiInterfaceWidget* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("558694b6-efe1-530f-984d-c9ad8ceaa08e")
+        IMultiInterfaceWidgetFactory : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MultiInterfaceWidget* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMultiInterfaceWidgetFactory TestApp::Parity::IMultiInterfaceWidgetFactory
 
 #endif // ____x_TestApp_CParity_CIMultiInterfaceWidgetFactory_INTERFACE_DEFINED__
+
+#endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

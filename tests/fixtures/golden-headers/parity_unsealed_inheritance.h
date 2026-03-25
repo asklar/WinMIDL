@@ -47,15 +47,120 @@
 // Header files for imported files
 #include "winrtbase.h"
 
-// Forward declarations
-typedef interface __x_TestApp_CParity_CIAnimal __x_TestApp_CParity_CIAnimal;
-typedef interface __x_TestApp_CParity_CIAnimalFactory __x_TestApp_CParity_CIAnimalFactory;
-typedef interface __x_TestApp_CParity_CIAnimalOverrides __x_TestApp_CParity_CIAnimalOverrides;
-typedef interface __x_TestApp_CParity_CIMammal __x_TestApp_CParity_CIMammal;
-typedef interface __x_TestApp_CParity_CIMammalFactory __x_TestApp_CParity_CIMammalFactory;
-typedef interface __x_TestApp_CParity_CIMammalOverrides __x_TestApp_CParity_CIMammalOverrides;
-typedef interface __x_TestApp_CParity_CIDog __x_TestApp_CParity_CIDog;
-typedef interface __x_TestApp_CParity_CIDogFactory __x_TestApp_CParity_CIDogFactory;
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIAnimal_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIAnimal_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IAnimal;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIAnimal TestApp::Parity::IAnimal
+
+#endif // ____x_TestApp_CParity_CIAnimal_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIAnimalFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIAnimalFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IAnimalFactory;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIAnimalFactory TestApp::Parity::IAnimalFactory
+
+#endif // ____x_TestApp_CParity_CIAnimalFactory_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIAnimalOverrides_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIAnimalOverrides_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IAnimalOverrides;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIAnimalOverrides TestApp::Parity::IAnimalOverrides
+
+#endif // ____x_TestApp_CParity_CIAnimalOverrides_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMammal_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMammal_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IMammal;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMammal TestApp::Parity::IMammal
+
+#endif // ____x_TestApp_CParity_CIMammal_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMammalFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMammalFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IMammalFactory;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMammalFactory TestApp::Parity::IMammalFactory
+
+#endif // ____x_TestApp_CParity_CIMammalFactory_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMammalOverrides_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMammalOverrides_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IMammalOverrides;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMammalOverrides TestApp::Parity::IMammalOverrides
+
+#endif // ____x_TestApp_CParity_CIMammalOverrides_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIDog_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIDog_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IDog;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIDog TestApp::Parity::IDog
+
+#endif // ____x_TestApp_CParity_CIDog_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIDogFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIDogFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IDogFactory;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIDogFactory TestApp::Parity::IDogFactory
+
+#endif // ____x_TestApp_CParity_CIDogFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        class Animal;
+    } /* Parity */
+} /* TestApp */
+
+namespace TestApp {
+    namespace Parity {
+        class Mammal;
+    } /* Parity */
+} /* TestApp */
+
+namespace TestApp {
+    namespace Parity {
+        class Dog;
+    } /* Parity */
+} /* TestApp */
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Animal[] = L"TestApp.Parity.Animal";
 
@@ -63,122 +168,287 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Dog[] = L"TestApp.Parity.Dog";
 
+EXTERN_C const IID IID___x_TestApp_CParity_CIAnimal;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMammal;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMammalFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMammalOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDog;
+EXTERN_C const IID IID___x_TestApp_CParity_CIDogFactory;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
+/*
+ *
+ * Interface TestApp.Parity.IAnimal
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Animal
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IAnimal:HRESULT get_Name(String*);HRESULT get_Age(Int32*);HRESULT put_Age(Int32);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIAnimal_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIAnimal_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIAnimal;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IAnimal[] = L"TestApp.Parity.IAnimal";
 
-MIDL_INTERFACE("86175b7a-2f34-5707-a0aa-bc4db787484b")
-__x_TestApp_CParity_CIAnimal : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Age(/* [out, retval] */ int* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE put_Age(/* [in] */ int value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("86175b7a-2f34-5707-a0aa-bc4db787484b")
+        IAnimal : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE get_Age(/* [out, retval] */ int* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE put_Age(/* [in] */ int value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIAnimal TestApp::Parity::IAnimal
 
 #endif // ____x_TestApp_CParity_CIAnimal_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IAnimalFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Animal
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IAnimalFactory:HRESULT CreateInstance(String,TestApp.Parity.Animal**);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIAnimalFactory_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIAnimalFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalFactory;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IAnimalFactory[] = L"TestApp.Parity.IAnimalFactory";
 
-MIDL_INTERFACE("32236134-b764-58a9-a90a-f8b232a2dc16")
-__x_TestApp_CParity_CIAnimalFactory : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Animal* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("32236134-b764-58a9-a90a-f8b232a2dc16")
+        IAnimalFactory : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Animal* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIAnimalFactory TestApp::Parity::IAnimalFactory
 
 #endif // ____x_TestApp_CParity_CIAnimalFactory_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IAnimalOverrides
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Animal
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IAnimalOverrides:HRESULT MakeSound();HRESULT Describe(String*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIAnimalOverrides_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIAnimalOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIAnimalOverrides;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IAnimalOverrides[] = L"TestApp.Parity.IAnimalOverrides";
 
-MIDL_INTERFACE("e2d91a62-212b-57b5-a701-01c1740e21c8")
-__x_TestApp_CParity_CIAnimalOverrides : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE MakeSound() = 0;
-    virtual HRESULT STDMETHODCALLTYPE Describe(/* [out, retval] */ HSTRING* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("e2d91a62-212b-57b5-a701-01c1740e21c8")
+        IAnimalOverrides : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE MakeSound(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Describe(/* [out, retval] */ HSTRING* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIAnimalOverrides TestApp::Parity::IAnimalOverrides
 
 #endif // ____x_TestApp_CParity_CIAnimalOverrides_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IMammal
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Mammal
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IMammal:HRESULT get_IsWarmBlooded(Boolean*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIMammal_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIMammal_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMammal;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMammal[] = L"TestApp.Parity.IMammal";
 
-MIDL_INTERFACE("49e3acb2-c737-5111-a70e-ffe7fd034274")
-__x_TestApp_CParity_CIMammal : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_IsWarmBlooded(/* [out, retval] */ ::boolean* value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("49e3acb2-c737-5111-a70e-ffe7fd034274")
+        IMammal : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_IsWarmBlooded(/* [out, retval] */ ::boolean* value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMammal TestApp::Parity::IMammal
 
 #endif // ____x_TestApp_CParity_CIMammal_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IMammalFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Mammal
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IMammalFactory:HRESULT CreateInstance(String,TestApp.Parity.Mammal**);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIMammalFactory_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIMammalFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMammalFactory;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMammalFactory[] = L"TestApp.Parity.IMammalFactory";
 
-MIDL_INTERFACE("f7f583ad-4bc7-540e-8c29-66031b52a175")
-__x_TestApp_CParity_CIMammalFactory : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Mammal* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("f7f583ad-4bc7-540e-8c29-66031b52a175")
+        IMammalFactory : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Mammal* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMammalFactory TestApp::Parity::IMammalFactory
 
 #endif // ____x_TestApp_CParity_CIMammalFactory_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IMammalOverrides
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Mammal
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IMammalOverrides:HRESULT Breathe();
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIMammalOverrides_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIMammalOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMammalOverrides;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMammalOverrides[] = L"TestApp.Parity.IMammalOverrides";
 
-MIDL_INTERFACE("e6532ac5-3f9e-56ad-a9dc-6ce5c57be856")
-__x_TestApp_CParity_CIMammalOverrides : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE Breathe() = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("e6532ac5-3f9e-56ad-a9dc-6ce5c57be856")
+        IMammalOverrides : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE Breathe(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMammalOverrides TestApp::Parity::IMammalOverrides
 
 #endif // ____x_TestApp_CParity_CIMammalOverrides_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IDog
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Dog
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IDog:HRESULT get_Breed(String*);HRESULT Fetch();HRESULT Sit();
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIDog_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIDog_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIDog;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IDog[] = L"TestApp.Parity.IDog";
 
-MIDL_INTERFACE("1eaff1c2-66e4-5d2f-8f88-4624023d88a6")
-__x_TestApp_CParity_CIDog : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_Breed(/* [out, retval] */ HSTRING* value) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Fetch() = 0;
-    virtual HRESULT STDMETHODCALLTYPE Sit() = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("1eaff1c2-66e4-5d2f-8f88-4624023d88a6")
+        IDog : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_Breed(/* [out, retval] */ HSTRING* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Fetch(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Sit(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIDog TestApp::Parity::IDog
 
 #endif // ____x_TestApp_CParity_CIDog_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IDogFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.Dog
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IDogFactory:HRESULT CreateInstance(String,TestApp.Parity.Dog**);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIDogFactory_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIDogFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIDogFactory;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IDogFactory[] = L"TestApp.Parity.IDogFactory";
 
-MIDL_INTERFACE("14bea965-06c9-582e-b0e3-c0bfcc6cc911")
-__x_TestApp_CParity_CIDogFactory : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Dog* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("14bea965-06c9-582e-b0e3-c0bfcc6cc911")
+        IDogFactory : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Dog* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIDogFactory TestApp::Parity::IDogFactory
 
 #endif // ____x_TestApp_CParity_CIDogFactory_INTERFACE_DEFINED__
+
+#endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

@@ -47,15 +47,120 @@
 // Header files for imported files
 #include "winrtbase.h"
 
-// Forward declarations
-typedef interface __x_TestApp_CParity_CIComposableWidget __x_TestApp_CParity_CIComposableWidget;
-typedef interface __x_TestApp_CParity_CIComposableWidgetFactory __x_TestApp_CParity_CIComposableWidgetFactory;
-typedef interface __x_TestApp_CParity_CIComposableWidgetOverrides __x_TestApp_CParity_CIComposableWidgetOverrides;
-typedef interface __x_TestApp_CParity_CIMiddleComposable __x_TestApp_CParity_CIMiddleComposable;
-typedef interface __x_TestApp_CParity_CIMiddleComposableFactory __x_TestApp_CParity_CIMiddleComposableFactory;
-typedef interface __x_TestApp_CParity_CIMiddleComposableOverrides __x_TestApp_CParity_CIMiddleComposableOverrides;
-typedef interface __x_TestApp_CParity_CIFinalComposable __x_TestApp_CParity_CIFinalComposable;
-typedef interface __x_TestApp_CParity_CIFinalComposableFactory __x_TestApp_CParity_CIFinalComposableFactory;
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIComposableWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIComposableWidget_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IComposableWidget;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIComposableWidget TestApp::Parity::IComposableWidget
+
+#endif // ____x_TestApp_CParity_CIComposableWidget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIComposableWidgetFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIComposableWidgetFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IComposableWidgetFactory;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIComposableWidgetFactory TestApp::Parity::IComposableWidgetFactory
+
+#endif // ____x_TestApp_CParity_CIComposableWidgetFactory_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIComposableWidgetOverrides_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIComposableWidgetOverrides_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IComposableWidgetOverrides;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIComposableWidgetOverrides TestApp::Parity::IComposableWidgetOverrides
+
+#endif // ____x_TestApp_CParity_CIComposableWidgetOverrides_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMiddleComposable_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMiddleComposable_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IMiddleComposable;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMiddleComposable TestApp::Parity::IMiddleComposable
+
+#endif // ____x_TestApp_CParity_CIMiddleComposable_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMiddleComposableFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMiddleComposableFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IMiddleComposableFactory;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMiddleComposableFactory TestApp::Parity::IMiddleComposableFactory
+
+#endif // ____x_TestApp_CParity_CIMiddleComposableFactory_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMiddleComposableOverrides_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMiddleComposableOverrides_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IMiddleComposableOverrides;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIMiddleComposableOverrides TestApp::Parity::IMiddleComposableOverrides
+
+#endif // ____x_TestApp_CParity_CIMiddleComposableOverrides_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIFinalComposable_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIFinalComposable_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IFinalComposable;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIFinalComposable TestApp::Parity::IFinalComposable
+
+#endif // ____x_TestApp_CParity_CIFinalComposable_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIFinalComposableFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIFinalComposableFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IFinalComposableFactory;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIFinalComposableFactory TestApp::Parity::IFinalComposableFactory
+
+#endif // ____x_TestApp_CParity_CIFinalComposableFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        class ComposableWidget;
+    } /* Parity */
+} /* TestApp */
+
+namespace TestApp {
+    namespace Parity {
+        class MiddleComposable;
+    } /* Parity */
+} /* TestApp */
+
+namespace TestApp {
+    namespace Parity {
+        class FinalComposable;
+    } /* Parity */
+} /* TestApp */
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableWidget[] = L"TestApp.Parity.ComposableWidget";
 
@@ -63,119 +168,284 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FinalComposable[] = L"TestApp.Parity.FinalComposable";
 
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidget;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposable;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableFactory;
+EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableOverrides;
+EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposable;
+EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposableFactory;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+
+/*
+ *
+ * Interface TestApp.Parity.IComposableWidget
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.ComposableWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IComposableWidget:HRESULT get_Label(String*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIComposableWidget_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIComposableWidget_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidget;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IComposableWidget[] = L"TestApp.Parity.IComposableWidget";
 
-MIDL_INTERFACE("2a29c645-0830-58d1-ae49-ad0d7cc02eea")
-__x_TestApp_CParity_CIComposableWidget : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("2a29c645-0830-58d1-ae49-ad0d7cc02eea")
+        IComposableWidget : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIComposableWidget TestApp::Parity::IComposableWidget
 
 #endif // ____x_TestApp_CParity_CIComposableWidget_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IComposableWidgetFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.ComposableWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IComposableWidgetFactory:HRESULT CreateInstance(String,TestApp.Parity.ComposableWidget**);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIComposableWidgetFactory_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIComposableWidgetFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetFactory;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IComposableWidgetFactory[] = L"TestApp.Parity.IComposableWidgetFactory";
 
-MIDL_INTERFACE("114cfbd6-1cab-51f9-83cf-4142dd49ad34")
-__x_TestApp_CParity_CIComposableWidgetFactory : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ ComposableWidget* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("114cfbd6-1cab-51f9-83cf-4142dd49ad34")
+        IComposableWidgetFactory : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ ComposableWidget* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIComposableWidgetFactory TestApp::Parity::IComposableWidgetFactory
 
 #endif // ____x_TestApp_CParity_CIComposableWidgetFactory_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IComposableWidgetOverrides
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.ComposableWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IComposableWidgetOverrides:HRESULT OnActivated();HRESULT CanActivate(Boolean*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIComposableWidgetOverrides_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIComposableWidgetOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetOverrides;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IComposableWidgetOverrides[] = L"TestApp.Parity.IComposableWidgetOverrides";
 
-MIDL_INTERFACE("43aeaf21-b2c1-5b8d-b1a9-825fab8b41a1")
-__x_TestApp_CParity_CIComposableWidgetOverrides : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE OnActivated() = 0;
-    virtual HRESULT STDMETHODCALLTYPE CanActivate(/* [out, retval] */ ::boolean* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("43aeaf21-b2c1-5b8d-b1a9-825fab8b41a1")
+        IComposableWidgetOverrides : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE OnActivated(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CanActivate(/* [out, retval] */ ::boolean* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIComposableWidgetOverrides TestApp::Parity::IComposableWidgetOverrides
 
 #endif // ____x_TestApp_CParity_CIComposableWidgetOverrides_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IMiddleComposable
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.MiddleComposable
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IMiddleComposable:HRESULT get_Priority(Int32*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIMiddleComposable_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIMiddleComposable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposable;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMiddleComposable[] = L"TestApp.Parity.IMiddleComposable";
 
-MIDL_INTERFACE("e42987cd-f125-5e46-90c7-7923b90c6b3d")
-__x_TestApp_CParity_CIMiddleComposable : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("e42987cd-f125-5e46-90c7-7923b90c6b3d")
+        IMiddleComposable : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMiddleComposable TestApp::Parity::IMiddleComposable
 
 #endif // ____x_TestApp_CParity_CIMiddleComposable_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IMiddleComposableFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.MiddleComposable
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IMiddleComposableFactory:HRESULT CreateInstance(String,TestApp.Parity.MiddleComposable**);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIMiddleComposableFactory_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIMiddleComposableFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableFactory;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMiddleComposableFactory[] = L"TestApp.Parity.IMiddleComposableFactory";
 
-MIDL_INTERFACE("abb25bbb-cf8b-5b48-823f-de17cd9e53e4")
-__x_TestApp_CParity_CIMiddleComposableFactory : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ MiddleComposable* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("abb25bbb-cf8b-5b48-823f-de17cd9e53e4")
+        IMiddleComposableFactory : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ MiddleComposable* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMiddleComposableFactory TestApp::Parity::IMiddleComposableFactory
 
 #endif // ____x_TestApp_CParity_CIMiddleComposableFactory_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IMiddleComposableOverrides
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.MiddleComposable
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IMiddleComposableOverrides:HRESULT OnPriorityChanged();
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIMiddleComposableOverrides_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIMiddleComposableOverrides_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableOverrides;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMiddleComposableOverrides[] = L"TestApp.Parity.IMiddleComposableOverrides";
 
-MIDL_INTERFACE("f427b1bb-c5ab-5464-8e0d-fd3c9c1f7bb2")
-__x_TestApp_CParity_CIMiddleComposableOverrides : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE OnPriorityChanged() = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("f427b1bb-c5ab-5464-8e0d-fd3c9c1f7bb2")
+        IMiddleComposableOverrides : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE OnPriorityChanged(void) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIMiddleComposableOverrides TestApp::Parity::IMiddleComposableOverrides
 
 #endif // ____x_TestApp_CParity_CIMiddleComposableOverrides_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IFinalComposable
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.FinalComposable
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IFinalComposable:HRESULT get_IsReady(Boolean*);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIFinalComposable_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIFinalComposable_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposable;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IFinalComposable[] = L"TestApp.Parity.IFinalComposable";
 
-MIDL_INTERFACE("1ec79745-5359-5972-bb55-13ae48379cab")
-__x_TestApp_CParity_CIFinalComposable : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE get_IsReady(/* [out, retval] */ ::boolean* value) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("1ec79745-5359-5972-bb55-13ae48379cab")
+        IFinalComposable : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE get_IsReady(/* [out, retval] */ ::boolean* value) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIFinalComposable TestApp::Parity::IFinalComposable
 
 #endif // ____x_TestApp_CParity_CIFinalComposable_INTERFACE_DEFINED__
 
+/*
+ *
+ * Interface TestApp.Parity.IFinalComposableFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.FinalComposable
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IFinalComposableFactory:HRESULT CreateInstance(String,TestApp.Parity.FinalComposable**);HRESULT CreateInstance(String,Int32,TestApp.Parity.FinalComposable**);
+ *
+ *
+ */
 #ifndef ____x_TestApp_CParity_CIFinalComposableFactory_INTERFACE_DEFINED__
 #define ____x_TestApp_CParity_CIFinalComposableFactory_INTERFACE_DEFINED__
 
-EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposableFactory;
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IFinalComposableFactory[] = L"TestApp.Parity.IFinalComposableFactory";
 
-MIDL_INTERFACE("e5f3f7c8-861a-54f7-8191-2b5578037c61")
-__x_TestApp_CParity_CIFinalComposableFactory : public IInspectable
-{
-public:
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ FinalComposable* returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [in] */ int priority, /* [out, retval] */ FinalComposable* returnValue) = 0;
-};
+namespace TestApp {
+    namespace Parity {
+        MIDL_INTERFACE("e5f3f7c8-861a-54f7-8191-2b5578037c61")
+        IFinalComposableFactory : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ FinalComposable* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [in] */ int priority, /* [out, retval] */ FinalComposable* returnValue) = 0;
+        };
+    } /* Parity */
+} /* TestApp */
+
+#define __x_TestApp_CParity_CIFinalComposableFactory TestApp::Parity::IFinalComposableFactory
 
 #endif // ____x_TestApp_CParity_CIFinalComposableFactory_INTERFACE_DEFINED__
+
+#endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")
 
