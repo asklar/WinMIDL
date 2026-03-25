@@ -150,7 +150,7 @@ public partial class ProxyGeneratorTests
         Assert.Contains("GetRuntimeClassName(HSTRING* className) override", output);
         Assert.Contains("GetTrustLevel(TrustLevel* trustLevel) override", output);
         // Uses constexpr static data, not forwarding
-        Assert.Contains("constexpr IID kImplementedIIDs[]", output);
+        Assert.Contains("inline const IID kImplementedIIDs[]", output);
         Assert.Contains("constexpr wchar_t kRuntimeClassName[]", output);
         Assert.Contains("BaseTrust", output);
     }

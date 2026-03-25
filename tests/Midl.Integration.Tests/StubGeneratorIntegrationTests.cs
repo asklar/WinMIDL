@@ -160,9 +160,9 @@ public class StubGeneratorIntegrationTests
         Assert.Contains("boolean returnValue;", output);
         Assert.Contains("m_pServer->TryReset(&errorCode, &returnValue)", output);
         // Reply: [errorCode][returnValue][HRESULT]
-        Assert.Contains("memcpy(p, &errorCode, sizeof(INT32))", output);
-        Assert.Contains("memcpy(p, &returnValue, sizeof(boolean))", output);
-        Assert.Contains("memcpy(p, &hr, sizeof(HRESULT))", output);
+        Assert.Contains("memcpy(pOut, &errorCode, sizeof(INT32))", output);
+        Assert.Contains("memcpy(pOut, &returnValue, sizeof(boolean))", output);
+        Assert.Contains("memcpy(pOut, &hr, sizeof(HRESULT))", output);
     }
 
     [Fact]

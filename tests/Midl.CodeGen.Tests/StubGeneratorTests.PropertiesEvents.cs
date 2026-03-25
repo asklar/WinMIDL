@@ -187,7 +187,7 @@ public partial class StubGeneratorTests
         Assert.Contains("Invoke_get_Priority(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("INT32 returnValue;", output);
         Assert.Contains("m_pServer->get_Priority(&returnValue)", output);
-        Assert.Contains("memcpy(p, &returnValue, sizeof(INT32))", output);
+        Assert.Contains("memcpy(pOut, &returnValue, sizeof(INT32))", output);
     }
 
     [Fact]

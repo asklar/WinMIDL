@@ -95,7 +95,7 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         // Reply serialization should also use single memcpy for blittable
-        Assert.Contains("memcpy(p, &returnValue, sizeof(Point))", output);
+        Assert.Contains("memcpy(pOut, &returnValue, sizeof(Point))", output);
     }
 
     // ─── Struct layout assertions ───
