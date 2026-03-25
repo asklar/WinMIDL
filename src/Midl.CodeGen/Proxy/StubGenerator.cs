@@ -337,7 +337,7 @@ public class StubGenerator
             sb.AppendLine($"        pMsg->cbBuffer = {string.Join(" + ", sizeParts)};");
         }
         sb.AppendLine($"        HRESULT hrBuf = pChannel->GetBuffer(pMsg, {iidName});");
-        sb.AppendLine($"        if (FAILED(hrBuf)) return hrBuf;");
+        sb.AppendLine($"        RETURN_IF_FAILED(hrBuf);");
 
         // Check if we need a pointer
         bool needsPointer = outParams.Count > 0 || hasRetval;

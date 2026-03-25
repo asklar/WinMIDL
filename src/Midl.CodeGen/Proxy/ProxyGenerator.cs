@@ -416,7 +416,7 @@ public class ProxyGenerator
         }
 
         sb.AppendLine($"            HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, {iidName});");
-        sb.AppendLine("            if (FAILED(hr)) return hr;");
+        sb.AppendLine("            RETURN_IF_FAILED(hr);");
 
         // Serialize input params
         if (inParams.Count > 0)
@@ -430,7 +430,7 @@ public class ProxyGenerator
 
         sb.AppendLine("            ULONG status;");
         sb.AppendLine("            hr = m_owner->m_pChannel->SendReceive(&msg, &status);");
-        sb.AppendLine("            if (FAILED(hr)) return hr;");
+        sb.AppendLine("            RETURN_IF_FAILED(hr);");
 
         // Deserialize reply
         bool needsReadPointer = hasRetval || outParams.Count > 0;
@@ -453,7 +453,7 @@ public class ProxyGenerator
         // Deserialize trailing HRESULT
         sb.AppendLine("            HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));");
         sb.AppendLine("            hr = m_owner->m_pChannel->FreeBuffer(&msg);");
-        sb.AppendLine("            if (FAILED(hr)) return hr;");
+        sb.AppendLine("            RETURN_IF_FAILED(hr);");
         sb.AppendLine("            return retHr;");
         sb.AppendLine("        }");
         sb.AppendLine();
@@ -541,7 +541,7 @@ public class ProxyGenerator
         }
 
         sb.AppendLine($"        HRESULT hr = m_pChannel->GetBuffer(&msg, {iidName});");
-        sb.AppendLine("        if (FAILED(hr)) return hr;");
+        sb.AppendLine("        RETURN_IF_FAILED(hr);");
 
         // Serialize input params
         if (inParams.Count > 0)
@@ -555,7 +555,7 @@ public class ProxyGenerator
 
         sb.AppendLine("        ULONG status;");
         sb.AppendLine("        hr = m_pChannel->SendReceive(&msg, &status);");
-        sb.AppendLine("        if (FAILED(hr)) return hr;");
+        sb.AppendLine("        RETURN_IF_FAILED(hr);");
 
         // Deserialize reply
         bool needsReadPointer = hasRetval || outParams.Count > 0;
@@ -578,7 +578,7 @@ public class ProxyGenerator
         // Deserialize trailing HRESULT
         sb.AppendLine("        HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));");
         sb.AppendLine("        hr = m_pChannel->FreeBuffer(&msg);");
-        sb.AppendLine("        if (FAILED(hr)) return hr;");
+        sb.AppendLine("        RETURN_IF_FAILED(hr);");
         sb.AppendLine("        return retHr;");
         sb.AppendLine("    }");
         sb.AppendLine();
