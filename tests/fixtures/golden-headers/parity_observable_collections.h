@@ -110,9 +110,15 @@ namespace TestApp {
         IObservableWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Names(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIObservableVector** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Counts(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIObservableMap** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Items(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIObservableVector** value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Names(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIObservableVector* * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Counts(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIObservableMap* * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Items(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIObservableVector* * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

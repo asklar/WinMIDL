@@ -106,7 +106,10 @@ namespace TestApp {
         StatusChangedHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING status, /* [in] */ int code) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING status,
+                /* [in] */int code
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -130,7 +133,10 @@ namespace TestApp {
         ErrorOccurredHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING message, /* [in] */ ::boolean fatal) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING message,
+                /* [in] */::boolean fatal
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -154,7 +160,10 @@ namespace TestApp {
         ProgressHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ double percent, /* [in] */ HSTRING description) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */double percent,
+                /* [in] */HSTRING description
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -185,16 +194,41 @@ namespace TestApp {
         IEventPatternWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE add_StatusChanged(/* [in] */ __x_TestApp_CParity_CStatusChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_StatusChanged(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_ErrorOccurred(/* [in] */ __x_TestApp_CParity_CErrorOccurredHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_ErrorOccurred(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_ProgressUpdated(/* [in] */ __x_TestApp_CParity_CProgressHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_ProgressUpdated(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_GenericChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_GenericChanged(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_SimpleChanged(/* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_SimpleChanged(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_StatusChanged(
+                /* [in] */__x_TestApp_CParity_CStatusChangedHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_StatusChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_ErrorOccurred(
+                /* [in] */__x_TestApp_CParity_CErrorOccurredHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_ErrorOccurred(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_ProgressUpdated(
+                /* [in] */__x_TestApp_CParity_CProgressHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_ProgressUpdated(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_GenericChanged(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_GenericChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_SimpleChanged(
+                /* [in] */__x_Windows_CFoundation_CEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_SimpleChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

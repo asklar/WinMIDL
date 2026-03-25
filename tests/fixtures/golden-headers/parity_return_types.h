@@ -117,7 +117,9 @@ namespace TestApp {
         ReturnCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ ReturnData data) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */ReturnData data
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -148,11 +150,21 @@ namespace TestApp {
         IReturnTypeWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetData(/* [out, retval] */ ReturnData* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetStatus(/* [out, retval] */ ReturnStatus* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetAllData(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetDataAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetStatusAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetData(
+                /* [out, retval] */ReturnData * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetStatus(
+                /* [out, retval] */ReturnStatus * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetAllData(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetDataAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetStatusAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

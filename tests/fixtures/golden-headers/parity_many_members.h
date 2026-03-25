@@ -110,39 +110,100 @@ namespace TestApp {
         IManyMemberWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Name(/* [in] */ HSTRING value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_IsActive(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_IsActive(/* [in] */ ::boolean value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Value(/* [out, retval] */ double* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Value(/* [in] */ double value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Ratio(/* [out, retval] */ float* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Description(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Description(/* [in] */ HSTRING value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Priority(/* [in] */ int value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_IsVisible(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_IsVisible(/* [in] */ ::boolean value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Category(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_SortOrder(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_SortOrder(/* [in] */ int value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Name(
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Id(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsActive(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_IsActive(
+                /* [in] */::boolean value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Value(
+                /* [out, retval] */double * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Value(
+                /* [in] */double value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Ratio(
+                /* [out, retval] */float * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Description(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Description(
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Priority(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Priority(
+                /* [in] */int value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsVisible(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_IsVisible(
+                /* [in] */::boolean value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Category(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_SortOrder(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_SortOrder(
+                /* [in] */int value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Reset(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Initialize(/* [in] */ HSTRING name) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetLabel(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ComputeHash(/* [out, retval] */ int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Validate(/* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Measure(/* [out, retval] */ double* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Initialize(
+                /* [in] */HSTRING name
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetLabel(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ComputeHash(
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Validate(
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Measure(
+                /* [out, retval] */double * result
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Enable(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE Disable(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE Toggle(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Serialize(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Deserialize(/* [in] */ HSTRING data) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CompareTo(/* [in] */ ManyMemberWidget other, /* [out, retval] */ int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_Changed(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_Changed(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_NameChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_NameChanged(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Serialize(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Deserialize(
+                /* [in] */HSTRING data
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CompareTo(
+                /* [in] */ManyMemberWidget other,
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_Changed(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_Changed(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_NameChanged(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_NameChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

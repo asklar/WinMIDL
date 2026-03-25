@@ -129,8 +129,12 @@ namespace TestApp {
         IRegionManager : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetRegion(/* [out, retval] */ OuterRegion* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetRegion(/* [in] */ OuterRegion region) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetRegion(
+                /* [out, retval] */OuterRegion * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetRegion(
+                /* [in] */OuterRegion region
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

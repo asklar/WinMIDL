@@ -124,8 +124,12 @@ namespace TestApp {
         IMultiActivatableWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Id(
+                /* [out, retval] */int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -158,9 +162,21 @@ namespace TestApp {
         IMultiActivatableWidgetFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MultiActivatableWidget* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int id, /* [out, retval] */ MultiActivatableWidget* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int id, /* [in] */ ::boolean active, /* [out, retval] */ MultiActivatableWidget* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */MultiActivatableWidget * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [in] */int id,
+                /* [out, retval] */MultiActivatableWidget * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [in] */int id,
+                /* [in] */::boolean active,
+                /* [out, retval] */MultiActivatableWidget * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

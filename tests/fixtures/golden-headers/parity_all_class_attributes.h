@@ -110,10 +110,16 @@ namespace TestApp {
         IFullyAttributedClass : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Name(/* [in] */ HSTRING value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Name(
+                /* [in] */HSTRING value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE DoWork(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_WorkCount(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_WorkCount(
+                /* [out, retval] */int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

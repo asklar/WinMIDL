@@ -160,7 +160,9 @@ namespace TestApp {
         INode : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Id(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -191,7 +193,9 @@ namespace TestApp {
         IInputNode : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Accept(/* [in] */ IInspectable* data) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Accept(
+                /* [in] */IInspectable* data
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -222,7 +226,9 @@ namespace TestApp {
         IOutputNode : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Produce(/* [out, retval] */ IInspectable** returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Produce(
+                /* [out, retval] */IInspectable* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -286,10 +292,16 @@ namespace TestApp {
         IProcessorWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Process(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Accept(/* [in] */ IInspectable* data) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Produce(/* [out, retval] */ IInspectable** returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Accept(
+                /* [in] */IInspectable* data
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Produce(
+                /* [out, retval] */IInspectable* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

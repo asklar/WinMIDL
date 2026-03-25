@@ -117,9 +117,22 @@ namespace TestApp {
         IComplexParamWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE ProcessAll(/* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean flag, /* [in] */ double value, /* [in] */ ComplexParam param) = 0;
-            virtual HRESULT STDMETHODCALLTYPE AcceptCollections(/* [in] */ __x_Windows_CFoundation_CCollections_CIVector* names, /* [in] */ __x_Windows_CFoundation_CCollections_CIMap* counts) = 0;
-            virtual HRESULT STDMETHODCALLTYPE MixedParams(/* [in] */ HSTRING name, /* [out] */ int* result, /* [out] */ ::boolean* success) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ProcessAll(
+                /* [in] */HSTRING name,
+                /* [in] */int count,
+                /* [in] */::boolean flag,
+                /* [in] */double value,
+                /* [in] */ComplexParam param
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE AcceptCollections(
+                /* [in] */__x_Windows_CFoundation_CCollections_CIVector* names,
+                /* [in] */__x_Windows_CFoundation_CCollections_CIMap* counts
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE MixedParams(
+                /* [in] */HSTRING name,
+                /* [out] */int * result,
+                /* [out] */::boolean * success
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

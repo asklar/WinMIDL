@@ -110,12 +110,28 @@ namespace TestApp {
         IGuidWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ GUID* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GenerateId(/* [out, retval] */ GUID* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetId(/* [in] */ GUID id) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CompareIds(/* [in] */ GUID a, /* [in] */ GUID b, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ProcessIds(/* [in] */ GUID id1, /* [in] */ GUID id2, /* [in] */ GUID id3) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetAllIds(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Id(
+                /* [out, retval] */GUID * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GenerateId(
+                /* [out, retval] */GUID * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetId(
+                /* [in] */GUID id
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CompareIds(
+                /* [in] */GUID a,
+                /* [in] */GUID b,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ProcessIds(
+                /* [in] */GUID id1,
+                /* [in] */GUID id2,
+                /* [in] */GUID id3
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetAllIds(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

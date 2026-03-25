@@ -110,10 +110,18 @@ namespace TestApp {
         INestedGenericWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetCategorizedCounts(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetGroupedNames(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE FetchNamesAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE FetchCountsAsync(/* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetCategorizedCounts(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetGroupedNames(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE FetchNamesAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE FetchCountsAsync(
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

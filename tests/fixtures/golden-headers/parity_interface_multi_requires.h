@@ -173,7 +173,9 @@ namespace TestApp {
         IReadable2 : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Read(/* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Read(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -204,7 +206,9 @@ namespace TestApp {
         IWritable2 : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Write(/* [in] */ HSTRING data) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Write(
+                /* [in] */HSTRING data
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -235,8 +239,12 @@ namespace TestApp {
         ISeekable : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Seek(/* [in] */ int position) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Position(/* [out, retval] */ int* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Seek(
+                /* [in] */int position
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Position(
+                /* [out, retval] */int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -298,7 +306,9 @@ namespace TestApp {
         IFullStream : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Length(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Length(
+                /* [out, retval] */int * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Flush(void) = 0;
         };
     } /* Parity */
@@ -332,11 +342,19 @@ namespace TestApp {
         IFullStream2 : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Read(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Write(/* [in] */ HSTRING data) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Seek(/* [in] */ int position) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Read(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Write(
+                /* [in] */HSTRING data
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Seek(
+                /* [in] */int position
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Close(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Length(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Length(
+                /* [out, retval] */int * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Flush(void) = 0;
         };
     } /* Parity */

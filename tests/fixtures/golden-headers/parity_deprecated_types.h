@@ -195,8 +195,12 @@ namespace TestApp {
         public:
             virtual HRESULT STDMETHODCALLTYPE OldMethod(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE NewMethod(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_OldProp(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_NewProp(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_OldProp(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_NewProp(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -229,7 +233,9 @@ namespace TestApp {
         IDeprecatedWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -262,14 +268,32 @@ namespace TestApp {
         IMixedDeprecation : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetOldValue(/* [out, retval] */ int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetNewValue(/* [out, retval] */ int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_OldCount(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_NewCount(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_LegacyChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_LegacyChanged(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_CurrentChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_CurrentChanged(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetOldValue(
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetNewValue(
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_OldCount(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_NewCount(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_LegacyChanged(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_LegacyChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_CurrentChanged(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_CurrentChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

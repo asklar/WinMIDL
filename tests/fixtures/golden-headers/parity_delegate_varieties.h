@@ -138,7 +138,9 @@ namespace TestApp {
         SingleParamCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -162,7 +164,10 @@ namespace TestApp {
         TwoParamCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ int value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING name,
+                /* [in] */int value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -186,7 +191,11 @@ namespace TestApp {
         ThreeParamCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name, /* [in] */ int value, /* [in] */ ::boolean enabled) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING name,
+                /* [in] */int value,
+                /* [in] */::boolean enabled
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -210,7 +219,13 @@ namespace TestApp {
         MultiParamCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING a, /* [in] */ int b, /* [in] */ double c, /* [in] */ ::boolean d, /* [in] */ float e) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING a,
+                /* [in] */int b,
+                /* [in] */double c,
+                /* [in] */::boolean d,
+                /* [in] */float e
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -234,7 +249,10 @@ namespace TestApp {
         StringTransform : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING input) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING input,
+                /* [out, retval] */HSTRING * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -258,7 +276,11 @@ namespace TestApp {
         IntCompare : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING a, /* [in] */ HSTRING b) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING a,
+                /* [in] */HSTRING b,
+                /* [out, retval] */int * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -282,7 +304,10 @@ namespace TestApp {
         BoolPredicate : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ int value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */int value,
+                /* [out, retval] */::boolean * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -306,7 +331,11 @@ namespace TestApp {
         MathOperation : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ double x, /* [in] */ double y) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */double x,
+                /* [in] */double y,
+                /* [out, retval] */double * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -330,7 +359,10 @@ namespace TestApp {
         OutCallback : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING input, /* [out] */ int* result) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING input,
+                /* [out] */int * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -354,7 +386,11 @@ namespace TestApp {
         TryParseDelegate : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING input, /* [out] */ double* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING input,
+                /* [out] */double * value,
+                /* [out, retval] */::boolean * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -385,12 +421,27 @@ namespace TestApp {
         IDelegateUser : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE add_SimpleEvent(/* [in] */ __x_TestApp_CParity_CVoidCallback* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_SimpleEvent(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_MessageReceived(/* [in] */ __x_TestApp_CParity_CSingleParamCallback* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_MessageReceived(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_TransformRequested(/* [in] */ __x_TestApp_CParity_CStringTransform* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_TransformRequested(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_SimpleEvent(
+                /* [in] */__x_TestApp_CParity_CVoidCallback* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_SimpleEvent(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_MessageReceived(
+                /* [in] */__x_TestApp_CParity_CSingleParamCallback* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_MessageReceived(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_TransformRequested(
+                /* [in] */__x_TestApp_CParity_CStringTransform* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_TransformRequested(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

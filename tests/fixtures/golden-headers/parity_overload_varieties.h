@@ -110,14 +110,37 @@ namespace TestApp {
         IOverloadVarietyWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Process(/* [in] */ HSTRING data) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ int value, /* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Search(/* [in] */ HSTRING query, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Configure(/* [in] */ HSTRING key) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Process(/* [in] */ HSTRING data, /* [in] */ ::boolean verbose) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Format(/* [in] */ double value, /* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Search(/* [in] */ HSTRING query, /* [in] */ int maxResults, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Configure(/* [in] */ HSTRING key, /* [in] */ HSTRING value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Process(
+                /* [in] */HSTRING data
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Format(
+                /* [in] */int value,
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Search(
+                /* [in] */HSTRING query,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Configure(
+                /* [in] */HSTRING key
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Process(
+                /* [in] */HSTRING data,
+                /* [in] */::boolean verbose
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Format(
+                /* [in] */double value,
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Search(
+                /* [in] */HSTRING query,
+                /* [in] */int maxResults,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Configure(
+                /* [in] */HSTRING key,
+                /* [in] */HSTRING value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

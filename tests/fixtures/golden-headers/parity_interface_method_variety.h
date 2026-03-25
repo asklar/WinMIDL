@@ -116,12 +116,31 @@ namespace TestApp {
         IGeocoderService : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Geocode(/* [in] */ HSTRING address, /* [out, retval] */ Coordinate* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ReverseGeocode(/* [in] */ Coordinate coord, /* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GeocodeMultiple(/* [in] */ __x_Windows_CFoundation_CCollections_CIVector* addresses, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GeocodeAsync(/* [in] */ HSTRING address, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE IsValidCoordinate(/* [in] */ Coordinate coord, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Distance(/* [in] */ Coordinate from, /* [in] */ Coordinate to, /* [out, retval] */ double* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Geocode(
+                /* [in] */HSTRING address,
+                /* [out, retval] */Coordinate * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ReverseGeocode(
+                /* [in] */Coordinate coord,
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GeocodeMultiple(
+                /* [in] */__x_Windows_CFoundation_CCollections_CIVector* addresses,
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GeocodeAsync(
+                /* [in] */HSTRING address,
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE IsValidCoordinate(
+                /* [in] */Coordinate coord,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Distance(
+                /* [in] */Coordinate from,
+                /* [in] */Coordinate to,
+                /* [out, retval] */double * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

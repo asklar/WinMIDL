@@ -155,10 +155,29 @@ namespace TestApp {
         IShapeFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreatePoint(/* [in] */ float x, /* [in] */ float y, /* [out, retval] */ Point2D* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CreatePoint3D(/* [in] */ float x, /* [in] */ float y, /* [in] */ float z, /* [out, retval] */ Point3D* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CreateRect(/* [in] */ Point2D origin, /* [in] */ float w, /* [in] */ float h, /* [out, retval] */ Rectangle* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CreateColoredRect(/* [in] */ Rectangle rect, /* [in] */ Color fill, /* [in] */ Color border, /* [out, retval] */ ColoredRect* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreatePoint(
+                /* [in] */float x,
+                /* [in] */float y,
+                /* [out, retval] */Point2D * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreatePoint3D(
+                /* [in] */float x,
+                /* [in] */float y,
+                /* [in] */float z,
+                /* [out, retval] */Point3D * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateRect(
+                /* [in] */Point2D origin,
+                /* [in] */float w,
+                /* [in] */float h,
+                /* [out, retval] */Rectangle * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateColoredRect(
+                /* [in] */Rectangle rect,
+                /* [in] */Color fill,
+                /* [in] */Color border,
+                /* [out, retval] */ColoredRect * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

@@ -173,7 +173,9 @@ namespace TestApp {
         IBaseNode : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Id(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Id(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Initialize(void) = 0;
         };
     } /* Parity */
@@ -205,8 +207,12 @@ namespace TestApp {
         INamedNode : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_DisplayName(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_DisplayName(/* [in] */ HSTRING value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_DisplayName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_DisplayName(
+                /* [in] */HSTRING value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -237,8 +243,12 @@ namespace TestApp {
         IOrderedNode : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_SortOrder(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_SortOrder(/* [in] */ int value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_SortOrder(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_SortOrder(
+                /* [in] */int value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE MoveUp(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE MoveDown(void) = 0;
         };
@@ -271,8 +281,12 @@ namespace TestApp {
         ITaggable : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Tag(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Tag(/* [in] */ HSTRING value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Tag(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Tag(
+                /* [in] */HSTRING value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -303,9 +317,15 @@ namespace TestApp {
         ICompositeNode : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_ChildCount(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE AddChild(/* [in] */ __x_TestApp_CParity_CIBaseNode* child) = 0;
-            virtual HRESULT STDMETHODCALLTYPE RemoveChild(/* [in] */ HSTRING id) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ChildCount(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE AddChild(
+                /* [in] */__x_TestApp_CParity_CIBaseNode* child
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE RemoveChild(
+                /* [in] */HSTRING id
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -338,7 +358,10 @@ namespace TestApp {
         ITreeNodeFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING id, /* [out, retval] */ TreeNode* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING id,
+                /* [out, retval] */TreeNode * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

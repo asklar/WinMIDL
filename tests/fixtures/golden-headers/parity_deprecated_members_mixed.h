@@ -112,12 +112,26 @@ namespace TestApp {
         public:
             virtual HRESULT STDMETHODCALLTYPE CurrentMethod(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE LegacyMethod(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_CurrentCount(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_OldCount(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_CurrentEvent(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_CurrentEvent(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_OldEvent(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_OldEvent(/* [in] */ EventRegistrationToken token) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_CurrentCount(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_OldCount(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_CurrentEvent(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_CurrentEvent(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_OldEvent(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_OldEvent(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE V2Method(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE V2OldMethod(void) = 0;
         };

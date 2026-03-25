@@ -338,9 +338,7 @@ public partial class HeaderEmitter
         sb.AppendLine($"{nsIndent}public:");
 
         // Delegate has an Invoke method
-        var paramList = BuildParameterList(d.Parameters);
-        var paramStr = paramList.Length > 0 ? paramList : "void";
-        sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE Invoke({paramStr}) = 0;");
+        EmitVtableMethod(sb, "Invoke", d.Parameters, d.ReturnType, nsIndent);
 
         sb.AppendLine($"{nsIndent}}};");
 
@@ -485,49 +483,7 @@ public partial class HeaderEmitter
         sb.AppendLine(" */");
     }
 
-    private static void EmitPropertyMethods(StringBuilder sb, PropertySymbol prop, string nsIndent = "")
-    {
-        var cType = MapType(prop.Type);
-        if (prop.HasGetter)
-        {
-            sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE get_{prop.Name}(/* [out, retval] */ {cType}* value) = 0;");
-        }
-        if (prop.HasSetter)
-        {
-            sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE put_{prop.Name}(/* [in] */ {cType} value) = 0;");
-        }
-    }
-
-    private static void EmitMethod(StringBuilder sb, MethodSymbol method, string nsIndent = "")
-    {
-        var paramParts = new List<string>();
-        foreach (var p in method.Parameters)
-        {
-            var cType = MapType(p.Type);
-            if (p.Direction == ParameterDirection.Out)
-                paramParts.Add($"/* [out] */ {cType}* {p.Name}");
-            else if (p.Direction == ParameterDirection.RefConst)
-                paramParts.Add($"/* [in] */ {cType}* {p.Name}");
-            else
-                paramParts.Add($"/* [in] */ {cType} {p.Name}");
-        }
-
-        // If non-void return, add retval out param
-        if (method.ReturnType.Name != "void")
-        {
-            var retType = MapType(method.ReturnType);
-            paramParts.Add($"/* [out, retval] */ {retType}* returnValue");
-        }
-
-        var paramStr = paramParts.Count > 0 ? string.Join(", ", paramParts) : "void";
-        sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE {method.Name}({paramStr}) = 0;");
-    }
-
-    private static void EmitEventMethods(StringBuilder sb, EventSymbol evt, string nsIndent = "")
-    {
-        sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE add_{evt.Name}(/* [in] */ {MapType(evt.DelegateType)} handler, /* [out, retval] */ EventRegistrationToken* token) = 0;");
-        sb.AppendLine($"{nsIndent}    virtual HRESULT STDMETHODCALLTYPE remove_{evt.Name}(/* [in] */ EventRegistrationToken token) = 0;");
-    }
+    // EmitPropertyMethods, EmitMethod, EmitEventMethods moved to HeaderEmitter.MethodFormat.cs
 
     private static void EmitRuntimeClass(StringBuilder sb, RuntimeClassSymbol rc)
     {
@@ -574,21 +530,7 @@ public partial class HeaderEmitter
         return Array.Empty<string>();
     }
 
-    private static string BuildParameterList(List<ParameterSymbol> parameters)
-    {
-        var parts = new List<string>();
-        foreach (var p in parameters)
-        {
-            var cType = MapType(p.Type);
-            if (p.Direction == ParameterDirection.Out)
-                parts.Add($"/* [out] */ {cType}* {p.Name}");
-            else if (p.Direction == ParameterDirection.RefConst)
-                parts.Add($"/* [in] */ {cType}* {p.Name}");
-            else
-                parts.Add($"/* [in] */ {cType} {p.Name}");
-        }
-        return string.Join(", ", parts);
-    }
+    // BuildParameterList replaced by FormatParam in HeaderEmitter.MethodFormat.cs
 
     /// <summary>
     /// Generates a deterministic UUID v5 from the fully-qualified type name.

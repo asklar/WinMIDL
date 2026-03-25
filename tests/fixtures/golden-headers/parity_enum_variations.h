@@ -149,9 +149,15 @@ namespace TestApp {
         IEnumUser : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetSequential(/* [out, retval] */ SimpleSequential* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetPermissions(/* [in] */ PermissionFlags flags) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetAttributes(/* [out, retval] */ FileAttributes2* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetSequential(
+                /* [out, retval] */SimpleSequential * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetPermissions(
+                /* [in] */PermissionFlags flags
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetAttributes(
+                /* [out, retval] */FileAttributes2 * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

@@ -184,8 +184,12 @@ namespace TestApp {
         ISerializable2 : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Serialize(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Deserialize(/* [in] */ HSTRING data) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Serialize(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Deserialize(
+                /* [in] */HSTRING data
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -216,7 +220,10 @@ namespace TestApp {
         IComparable2 : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CompareTo(/* [in] */ IInspectable* other, /* [out, retval] */ int* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CompareTo(
+                /* [in] */IInspectable* other,
+                /* [out, retval] */int * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -249,7 +256,9 @@ namespace TestApp {
         IBaseItem : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -282,8 +291,12 @@ namespace TestApp {
         IDerivedItem : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Priority(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Priority(/* [in] */ int value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Priority(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Priority(
+                /* [in] */int value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -316,7 +329,10 @@ namespace TestApp {
         IDerivedItemFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ DerivedItem* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */DerivedItem * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

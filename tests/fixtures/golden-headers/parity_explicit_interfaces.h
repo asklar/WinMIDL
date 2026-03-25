@@ -211,7 +211,9 @@ namespace TestApp {
         {
         public:
             virtual HRESULT STDMETHODCALLTYPE Render(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_ZOrder(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ZOrder(
+                /* [out, retval] */int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -242,8 +244,12 @@ namespace TestApp {
         ISerializable : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Serialize(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Deserialize(/* [in] */ HSTRING data) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Serialize(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Deserialize(
+                /* [in] */HSTRING data
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -274,8 +280,15 @@ namespace TestApp {
         IPrintable : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Print(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetMargins(/* [in] */ double left, /* [in] */ double top, /* [in] */ double right, /* [in] */ double bottom) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Print(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetMargins(
+                /* [in] */double left,
+                /* [in] */double top,
+                /* [in] */double right,
+                /* [in] */double bottom
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -306,7 +319,9 @@ namespace TestApp {
         ICloneable2 : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Clone(/* [out, retval] */ IInspectable** returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Clone(
+                /* [out, retval] */IInspectable* * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -339,7 +354,9 @@ namespace TestApp {
         IGraphicElement : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_ElementName(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ElementName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -372,7 +389,10 @@ namespace TestApp {
         IGraphicElementFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ GraphicElement* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */GraphicElement * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -405,9 +425,15 @@ namespace TestApp {
         IDocument : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Title(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Title(/* [in] */ HSTRING value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_PageCount(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Title(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Title(
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_PageCount(
+                /* [out, retval] */int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

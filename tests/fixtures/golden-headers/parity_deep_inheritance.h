@@ -274,7 +274,9 @@ namespace TestApp {
         ILevel0Base : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_BaseLabel(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_BaseLabel(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -340,7 +342,9 @@ namespace TestApp {
         ILevel1Mid : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_MidValue(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_MidValue(
+                /* [out, retval] */int * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -406,7 +410,9 @@ namespace TestApp {
         ILevel2Upper : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_UpperFlag(/* [out, retval] */ ::boolean* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_UpperFlag(
+                /* [out, retval] */::boolean * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -472,7 +478,9 @@ namespace TestApp {
         ILevel3Leaf : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_LeafMetric(/* [out, retval] */ double* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_LeafMetric(
+                /* [out, retval] */double * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Execute(void) = 0;
         };
     } /* Parity */
@@ -506,7 +514,10 @@ namespace TestApp {
         ILevel3LeafFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ Level3Leaf* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */Level3Leaf * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

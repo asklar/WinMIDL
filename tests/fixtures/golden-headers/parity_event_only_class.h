@@ -107,7 +107,10 @@ namespace TestApp {
         ItemAddedHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING item, /* [in] */ int index) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING item,
+                /* [in] */int index
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -131,7 +134,9 @@ namespace TestApp {
         ItemRemovedHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING item) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING item
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -179,7 +184,10 @@ namespace TestApp {
         ItemMovedHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ int oldIndex, /* [in] */ int newIndex) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */int oldIndex,
+                /* [in] */int newIndex
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -210,20 +218,52 @@ namespace TestApp {
         IEventSourceWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE add_ItemAdded(/* [in] */ __x_TestApp_CParity_CItemAddedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_ItemAdded(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_ItemRemoved(/* [in] */ __x_TestApp_CParity_CItemRemovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_ItemRemoved(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_CollectionCleared(/* [in] */ __x_TestApp_CParity_CCollectionClearedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_CollectionCleared(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_ItemMoved(/* [in] */ __x_TestApp_CParity_CItemMovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_ItemMoved(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_StateChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_StateChanged(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE AddItem(/* [in] */ HSTRING item) = 0;
-            virtual HRESULT STDMETHODCALLTYPE RemoveItem(/* [in] */ HSTRING item) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_ItemAdded(
+                /* [in] */__x_TestApp_CParity_CItemAddedHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_ItemAdded(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_ItemRemoved(
+                /* [in] */__x_TestApp_CParity_CItemRemovedHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_ItemRemoved(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_CollectionCleared(
+                /* [in] */__x_TestApp_CParity_CCollectionClearedHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_CollectionCleared(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_ItemMoved(
+                /* [in] */__x_TestApp_CParity_CItemMovedHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_ItemMoved(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_StateChanged(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_StateChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE AddItem(
+                /* [in] */HSTRING item
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE RemoveItem(
+                /* [in] */HSTRING item
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Clear(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE MoveItem(/* [in] */ int fromIndex, /* [in] */ int toIndex) = 0;
+            virtual HRESULT STDMETHODCALLTYPE MoveItem(
+                /* [in] */int fromIndex,
+                /* [in] */int toIndex
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

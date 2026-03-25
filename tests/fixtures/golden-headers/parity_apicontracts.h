@@ -124,9 +124,13 @@ namespace TestApp {
         IContractedWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE NewMethod(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_NewProperty(/* [out, retval] */ ::boolean* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_NewProperty(
+                /* [out, retval] */::boolean * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -159,7 +163,10 @@ namespace TestApp {
         IContractedWidgetStatics : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Create(/* [in] */ HSTRING name, /* [out, retval] */ ContractedWidget* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Create(
+                /* [in] */HSTRING name,
+                /* [out, retval] */ContractedWidget * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

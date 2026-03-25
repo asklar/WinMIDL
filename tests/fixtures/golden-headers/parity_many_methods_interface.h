@@ -111,21 +111,67 @@ namespace TestApp {
         {
         public:
             virtual HRESULT STDMETHODCALLTYPE Method1(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method2(/* [in] */ HSTRING a) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method3(/* [in] */ int a, /* [in] */ int b) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method4(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method5(/* [out, retval] */ int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method6(/* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method7(/* [in] */ double x, /* [out, retval] */ double* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method8(/* [in] */ float y, /* [out, retval] */ float* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method9(/* [in] */ HSTRING a, /* [in] */ int b, /* [in] */ ::boolean c) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method10(/* [in] */ int id, /* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method11(/* [in] */ HSTRING name, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method12(/* [in] */ HSTRING key, /* [in] */ int defaultValue, /* [out, retval] */ int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method13(/* [in] */ ::boolean flag) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method14(/* [in] */ int a, /* [in] */ int b, /* [out, retval] */ double* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method15(/* [in] */ HSTRING prefix, /* [in] */ HSTRING suffix, /* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Method16(/* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ HSTRING c, /* [in] */ int d) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method2(
+                /* [in] */HSTRING a
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method3(
+                /* [in] */int a,
+                /* [in] */int b
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method4(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method5(
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method6(
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method7(
+                /* [in] */double x,
+                /* [out, retval] */double * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method8(
+                /* [in] */float y,
+                /* [out, retval] */float * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method9(
+                /* [in] */HSTRING a,
+                /* [in] */int b,
+                /* [in] */::boolean c
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method10(
+                /* [in] */int id,
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method11(
+                /* [in] */HSTRING name,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method12(
+                /* [in] */HSTRING key,
+                /* [in] */int defaultValue,
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method13(
+                /* [in] */::boolean flag
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method14(
+                /* [in] */int a,
+                /* [in] */int b,
+                /* [out, retval] */double * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method15(
+                /* [in] */HSTRING prefix,
+                /* [in] */HSTRING suffix,
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Method16(
+                /* [in] */HSTRING a,
+                /* [in] */HSTRING b,
+                /* [in] */HSTRING c,
+                /* [in] */int d
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

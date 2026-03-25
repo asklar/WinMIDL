@@ -321,8 +321,12 @@ namespace TestApp {
         IAttributedClass : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Label(/* [in] */ HSTRING value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Label(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Label(
+                /* [in] */HSTRING value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -387,7 +391,9 @@ namespace TestApp {
         IComposableBase : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -420,7 +426,10 @@ namespace TestApp {
         IComposableBaseFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ ComposableBase* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */ComposableBase * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -486,7 +495,10 @@ namespace TestApp {
         IActivatableWidgetFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING label, /* [out, retval] */ ActivatableWidget* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING label,
+                /* [out, retval] */ActivatableWidget * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -519,8 +531,14 @@ namespace TestApp {
         ISettingsHelperStatics : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Read(/* [in] */ HSTRING key, /* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Write(/* [in] */ HSTRING key, /* [in] */ HSTRING data) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Read(
+                /* [in] */HSTRING key,
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Write(
+                /* [in] */HSTRING key,
+                /* [in] */HSTRING data
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

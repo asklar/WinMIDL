@@ -110,23 +110,59 @@ namespace TestApp {
         IStaticServiceStatics : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetVersion(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ComputeHash(/* [in] */ HSTRING input, /* [out, retval] */ int* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE IsSupported(/* [out, retval] */ ::boolean* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetVersion(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ComputeHash(
+                /* [in] */HSTRING input,
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE IsSupported(
+                /* [out, retval] */::boolean * result
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Initialize(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE Shutdown(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Configure(/* [in] */ HSTRING key, /* [in] */ HSTRING value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ComputeRatio(/* [in] */ int numerator, /* [in] */ int denominator, /* [out, retval] */ double* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_DefaultName(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_DefaultName(/* [in] */ HSTRING value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_InstanceCount(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Verbose(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Verbose(/* [in] */ ::boolean value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Threshold(/* [out, retval] */ double* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_GlobalChanged(/* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_GlobalChanged(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_CountUpdated(/* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_CountUpdated(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Configure(
+                /* [in] */HSTRING key,
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ComputeRatio(
+                /* [in] */int numerator,
+                /* [in] */int denominator,
+                /* [out, retval] */double * result
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_DefaultName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_DefaultName(
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_InstanceCount(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Verbose(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Verbose(
+                /* [in] */::boolean value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Threshold(
+                /* [out, retval] */double * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_GlobalChanged(
+                /* [in] */__x_Windows_CFoundation_CEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_GlobalChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_CountUpdated(
+                /* [in] */__x_Windows_CFoundation_CEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_CountUpdated(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

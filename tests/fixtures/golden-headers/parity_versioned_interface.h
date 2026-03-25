@@ -124,11 +124,17 @@ namespace TestApp {
         IVersionedService : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetName(/* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetName(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Start(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE Stop(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_IsRunning(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(/* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsRunning(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetDiagnostics(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Restart(void) = 0;
         };
     } /* Parity */
@@ -162,7 +168,10 @@ namespace TestApp {
         IVersionedServiceFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ VersionedService* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */VersionedService * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

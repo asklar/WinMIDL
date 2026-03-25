@@ -105,7 +105,9 @@ namespace TestApp {
         NamesChangedDelegate : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ __x_Windows_CFoundation_CCollections_CIVector* names) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */__x_Windows_CFoundation_CCollections_CIVector* names
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -129,7 +131,9 @@ namespace TestApp {
         MappingsChangedDelegate : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ __x_Windows_CFoundation_CCollections_CIMap* mappings) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */__x_Windows_CFoundation_CCollections_CIMap* mappings
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -160,14 +164,34 @@ namespace TestApp {
         IGenericEventWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE add_NamesChanged(/* [in] */ __x_TestApp_CParity_CNamesChangedDelegate* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_NamesChanged(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_MappingsChanged(/* [in] */ __x_TestApp_CParity_CMappingsChangedDelegate* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_MappingsChanged(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_CountChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_CountChanged(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_ActiveChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_ActiveChanged(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_NamesChanged(
+                /* [in] */__x_TestApp_CParity_CNamesChangedDelegate* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_NamesChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_MappingsChanged(
+                /* [in] */__x_TestApp_CParity_CMappingsChangedDelegate* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_MappingsChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_CountChanged(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_CountChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_ActiveChanged(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_ActiveChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

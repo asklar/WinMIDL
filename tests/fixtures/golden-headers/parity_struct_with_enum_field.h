@@ -134,8 +134,12 @@ namespace TestApp {
         ILayoutWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetLayout(/* [out, retval] */ LayoutInfo* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetLayout(/* [in] */ LayoutInfo layout) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetLayout(
+                /* [out, retval] */LayoutInfo * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetLayout(
+                /* [in] */LayoutInfo layout
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

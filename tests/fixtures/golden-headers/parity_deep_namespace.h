@@ -148,8 +148,12 @@ namespace TestApp {
                             IDeepWidget : public IInspectable
                             {
                             public:
-                                virtual HRESULT STDMETHODCALLTYPE get_FullName(/* [out, retval] */ HSTRING* value) = 0;
-                                virtual HRESULT STDMETHODCALLTYPE get_Depth(/* [out, retval] */ int* value) = 0;
+                                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_FullName(
+                                    /* [out, retval] */HSTRING * value
+                                    ) = 0;
+                                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Depth(
+                                    /* [out, retval] */int * value
+                                    ) = 0;
                             };
                         } /* Level5 */
                     } /* Level4 */

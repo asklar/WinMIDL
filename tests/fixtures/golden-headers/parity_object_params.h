@@ -110,13 +110,28 @@ namespace TestApp {
         IObjectWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE GetValue(/* [out, retval] */ IInspectable** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE SetValue(/* [in] */ IInspectable* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Tag(/* [out, retval] */ IInspectable** value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE put_Tag(/* [in] */ IInspectable* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetAll(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetProperties(/* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Equals(/* [in] */ IInspectable* other, /* [out, retval] */ ::boolean* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetValue(
+                /* [out, retval] */IInspectable* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetValue(
+                /* [in] */IInspectable* value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Tag(
+                /* [out, retval] */IInspectable* * value
+                ) = 0;
+            virtual /* [propput] */ HRESULT STDMETHODCALLTYPE put_Tag(
+                /* [in] */IInspectable* value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetAll(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetProperties(
+                /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Equals(
+                /* [in] */IInspectable* other,
+                /* [out, retval] */::boolean * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

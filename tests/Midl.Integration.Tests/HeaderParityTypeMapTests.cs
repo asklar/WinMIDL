@@ -31,17 +31,17 @@ public partial class HeaderParityTypeMapTests
         var header = _emitter.Emit(compilation);
 
         // Return types (out params) — must use real midl.exe types
-        Assert.Contains("::byte* returnValue", header);
-        Assert.Contains("short* returnValue", header);
-        Assert.Contains("unsigned short* returnValue", header);
-        Assert.Contains("int* returnValue", header);
-        Assert.Contains("unsigned int* returnValue", header);
-        Assert.Contains("__int64* returnValue", header);
-        Assert.Contains("unsigned __int64* returnValue", header);
-        Assert.Contains("float* returnValue", header);
-        Assert.Contains("double* returnValue", header);
-        Assert.Contains("::boolean* returnValue", header);
-        Assert.Contains("wchar_t* returnValue", header);
+        Assert.Contains("::byte * result", header);
+        Assert.Contains("short * result", header);
+        Assert.Contains("unsigned short * result", header);
+        Assert.Contains("int * result", header);
+        Assert.Contains("unsigned int * result", header);
+        Assert.Contains("__int64 * result", header);
+        Assert.Contains("unsigned __int64 * result", header);
+        Assert.Contains("float * result", header);
+        Assert.Contains("double * result", header);
+        Assert.Contains("::boolean * result", header);
+        Assert.Contains("wchar_t * result", header);
 
         // Input params — must use real midl.exe types
         Assert.Contains("::byte v", header);
@@ -57,9 +57,9 @@ public partial class HeaderParityTypeMapTests
         Assert.Contains("wchar_t v", header);
 
         // Types that stay the same
-        Assert.Contains("HSTRING* returnValue", header);
-        Assert.Contains("GUID* returnValue", header);
-        Assert.Contains("IInspectable** returnValue", header);
+        Assert.Contains("HSTRING * result", header);
+        Assert.Contains("GUID * result", header);
+        Assert.Contains("IInspectable* * result", header);
         Assert.Contains("HSTRING v", header);
         Assert.Contains("GUID v", header);
 

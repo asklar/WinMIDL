@@ -105,7 +105,10 @@ namespace TestApp {
         DataHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ IInspectable* sender, /* [in] */ HSTRING data) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */IInspectable* sender,
+                /* [in] */HSTRING data
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -129,7 +132,11 @@ namespace TestApp {
         ValidationHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING input, /* [out] */ HSTRING* error, /* [out] */ ::boolean* isValid) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING input,
+                /* [out] */HSTRING * error,
+                /* [out] */::boolean * isValid
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -160,14 +167,31 @@ namespace TestApp {
         IEventSourceImpl : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE SendData(/* [in] */ HSTRING data) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SendData(
+                /* [in] */HSTRING data
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE ReceiveData(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_DataReceived(/* [in] */ __x_TestApp_CParity_CDataHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_DataReceived(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_DataSent(/* [in] */ __x_TestApp_CParity_CDataHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_DataSent(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_StatusChanged(/* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_StatusChanged(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_DataReceived(
+                /* [in] */__x_TestApp_CParity_CDataHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_DataReceived(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_DataSent(
+                /* [in] */__x_TestApp_CParity_CDataHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_DataSent(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_StatusChanged(
+                /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_StatusChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

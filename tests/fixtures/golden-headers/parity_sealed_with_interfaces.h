@@ -124,11 +124,22 @@ namespace TestApp {
         ISealedMultiWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_SortKey(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE MatchesFilter(/* [in] */ HSTRING filter, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_DisplayText(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ToShortString(/* [out, retval] */ HSTRING* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ToDetailString(/* [out, retval] */ HSTRING* returnValue) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_SortKey(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE MatchesFilter(
+                /* [in] */HSTRING filter,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_DisplayText(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ToShortString(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ToDetailString(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -161,7 +172,10 @@ namespace TestApp {
         ISealedMultiWidgetFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ SealedMultiWidget* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */SealedMultiWidget * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

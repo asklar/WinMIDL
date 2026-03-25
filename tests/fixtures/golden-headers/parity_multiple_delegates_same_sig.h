@@ -107,7 +107,9 @@ namespace TestApp {
         OnStartHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING name
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -131,7 +133,9 @@ namespace TestApp {
         OnStopHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING name
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -155,7 +159,9 @@ namespace TestApp {
         OnPauseHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING name
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -179,7 +185,9 @@ namespace TestApp {
         OnResumeHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING name) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */HSTRING name
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -210,14 +218,34 @@ namespace TestApp {
         ILifecycleWidget : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE add_Started(/* [in] */ __x_TestApp_CParity_COnStartHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_Started(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_Stopped(/* [in] */ __x_TestApp_CParity_COnStopHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_Stopped(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_Paused(/* [in] */ __x_TestApp_CParity_COnPauseHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_Paused(/* [in] */ EventRegistrationToken token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_Resumed(/* [in] */ __x_TestApp_CParity_COnResumeHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_Resumed(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_Started(
+                /* [in] */__x_TestApp_CParity_COnStartHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_Started(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_Stopped(
+                /* [in] */__x_TestApp_CParity_COnStopHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_Stopped(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_Paused(
+                /* [in] */__x_TestApp_CParity_COnPauseHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_Paused(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_Resumed(
+                /* [in] */__x_TestApp_CParity_COnResumeHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_Resumed(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Start(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE Stop(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE Pause(void) = 0;

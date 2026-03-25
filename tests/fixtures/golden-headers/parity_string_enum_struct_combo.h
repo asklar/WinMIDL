@@ -135,7 +135,10 @@ namespace TestApp {
         ConnectionChangedHandler : public IUnknown
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ ConnectionInfo info, /* [in] */ ConnectionState oldState) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Invoke(
+                /* [in] */ConnectionInfo info,
+                /* [in] */ConnectionState oldState
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -166,14 +169,32 @@ namespace TestApp {
         IConnectionManager : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_IsConnected(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetInfo(/* [out, retval] */ ConnectionInfo* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetState(/* [out, retval] */ ConnectionState* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE Connect(/* [in] */ HSTRING host, /* [in] */ int port) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_IsConnected(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetInfo(
+                /* [out, retval] */ConnectionInfo * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetState(
+                /* [out, retval] */ConnectionState * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Connect(
+                /* [in] */HSTRING host,
+                /* [in] */int port
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Disconnect(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE ConnectAsync(/* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE add_StateChanged(/* [in] */ __x_TestApp_CParity_CConnectionChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-            virtual HRESULT STDMETHODCALLTYPE remove_StateChanged(/* [in] */ EventRegistrationToken token) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ConnectAsync(
+                /* [in] */HSTRING host,
+                /* [in] */int port,
+                /* [out, retval] */__x_Windows_CFoundation_CIAsyncAction* * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE add_StateChanged(
+                /* [in] */__x_TestApp_CParity_CConnectionChangedHandler* handler,
+                /* [out, retval] */EventRegistrationToken * token
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE remove_StateChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -206,7 +227,11 @@ namespace TestApp {
         IConnectionManagerFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ ConnectionManager* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING host,
+                /* [in] */int port,
+                /* [out, retval] */ConnectionManager * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

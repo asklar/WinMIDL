@@ -110,14 +110,46 @@ namespace TestApp {
         IDataParser : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE TryParseInt(/* [in] */ HSTRING input, /* [out] */ int* parsed, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE TryParseDouble(/* [in] */ HSTRING input, /* [out] */ double* parsed, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE TryParseBool(/* [in] */ HSTRING input, /* [out] */ ::boolean* parsed, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE TryParseName(/* [in] */ HSTRING input, /* [out] */ HSTRING* parsedName, /* [out, retval] */ ::boolean* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetBounds(/* [out] */ int* minBound, /* [out] */ int* maxBound) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetDimensions(/* [out] */ double* width, /* [out] */ double* height, /* [out] */ double* depth) = 0;
-            virtual HRESULT STDMETHODCALLTYPE GetInfo(/* [out] */ HSTRING* infoName, /* [out] */ int* infoVersion, /* [out] */ ::boolean* infoValid) = 0;
-            virtual HRESULT STDMETHODCALLTYPE TryGetKeyValue(/* [in] */ HSTRING key, /* [out] */ HSTRING* foundValue, /* [out] */ ::boolean* exists, /* [out, retval] */ ::boolean* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE TryParseInt(
+                /* [in] */HSTRING input,
+                /* [out] */int * parsed,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE TryParseDouble(
+                /* [in] */HSTRING input,
+                /* [out] */double * parsed,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE TryParseBool(
+                /* [in] */HSTRING input,
+                /* [out] */::boolean * parsed,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE TryParseName(
+                /* [in] */HSTRING input,
+                /* [out] */HSTRING * parsedName,
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetBounds(
+                /* [out] */int * minBound,
+                /* [out] */int * maxBound
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetDimensions(
+                /* [out] */double * width,
+                /* [out] */double * height,
+                /* [out] */double * depth
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetInfo(
+                /* [out] */HSTRING * infoName,
+                /* [out] */int * infoVersion,
+                /* [out] */::boolean * infoValid
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE TryGetKeyValue(
+                /* [in] */HSTRING key,
+                /* [out] */HSTRING * foundValue,
+                /* [out] */::boolean * exists,
+                /* [out, retval] */::boolean * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

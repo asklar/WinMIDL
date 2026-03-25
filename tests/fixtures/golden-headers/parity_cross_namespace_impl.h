@@ -109,7 +109,9 @@ namespace TestApp {
             DataNotification : public IUnknown
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE Invoke(/* [in] */ HSTRING message) = 0;
+                virtual HRESULT STDMETHODCALLTYPE Invoke(
+                    /* [in] */HSTRING message
+                    ) = 0;
             };
         } /* Contracts */
     } /* Parity */
@@ -142,12 +144,25 @@ namespace TestApp {
             IDataService : public IInspectable
             {
             public:
-                virtual HRESULT STDMETHODCALLTYPE get_ServiceName(/* [out, retval] */ HSTRING* value) = 0;
-                virtual HRESULT STDMETHODCALLTYPE GetData(/* [out, retval] */ HSTRING* returnValue) = 0;
-                virtual HRESULT STDMETHODCALLTYPE SetData(/* [in] */ HSTRING data) = 0;
-                virtual HRESULT STDMETHODCALLTYPE Notify(/* [in] */ HSTRING message) = 0;
-                virtual HRESULT STDMETHODCALLTYPE add_Notified(/* [in] */ __x_TestApp_CParity_CContracts_CDataNotification* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
-                virtual HRESULT STDMETHODCALLTYPE remove_Notified(/* [in] */ EventRegistrationToken token) = 0;
+                virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_ServiceName(
+                    /* [out, retval] */HSTRING * value
+                    ) = 0;
+                virtual HRESULT STDMETHODCALLTYPE GetData(
+                    /* [out, retval] */HSTRING * result
+                    ) = 0;
+                virtual HRESULT STDMETHODCALLTYPE SetData(
+                    /* [in] */HSTRING data
+                    ) = 0;
+                virtual HRESULT STDMETHODCALLTYPE Notify(
+                    /* [in] */HSTRING message
+                    ) = 0;
+                virtual HRESULT STDMETHODCALLTYPE add_Notified(
+                    /* [in] */__x_TestApp_CParity_CContracts_CDataNotification* handler,
+                    /* [out, retval] */EventRegistrationToken * token
+                    ) = 0;
+                virtual HRESULT STDMETHODCALLTYPE remove_Notified(
+                    /* [in] */EventRegistrationToken token
+                    ) = 0;
             };
         } /* Impl */
     } /* Parity */

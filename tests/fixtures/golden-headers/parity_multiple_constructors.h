@@ -124,10 +124,18 @@ namespace TestApp {
         IMultiCtorItem : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ int* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Enabled(/* [out, retval] */ ::boolean* value) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Factor(/* [out, retval] */ double* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Count(
+                /* [out, retval] */int * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Enabled(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Factor(
+                /* [out, retval] */double * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
@@ -160,10 +168,28 @@ namespace TestApp {
         IMultiCtorItemFactory : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int count, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean enabled, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
-            virtual HRESULT STDMETHODCALLTYPE CreateInstance(/* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean enabled, /* [in] */ double factor, /* [out, retval] */ MultiCtorItem* returnValue) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [out, retval] */MultiCtorItem * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [in] */int count,
+                /* [out, retval] */MultiCtorItem * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [in] */int count,
+                /* [in] */::boolean enabled,
+                /* [out, retval] */MultiCtorItem * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [in] */int count,
+                /* [in] */::boolean enabled,
+                /* [in] */double factor,
+                /* [out, retval] */MultiCtorItem * result
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */

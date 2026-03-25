@@ -111,9 +111,9 @@ public partial class HeaderEmitterTypeMapTests
 
         var header = emitter.Emit(compilation);
 
-        Assert.Contains("/* [in] */ int v", header);
-        Assert.Contains("/* [in] */ float v", header);
-        Assert.Contains("/* [in] */ ::boolean v", header);
-        Assert.Contains("/* [out, retval] */ int* returnValue", header);
+        Assert.Contains("/* [in] */int v", header);
+        Assert.Contains("/* [in] */float v", header);
+        Assert.Contains("/* [in] */::boolean v", header);
+        Assert.Contains("/* [out, retval] */int * result", header);
     }
 }

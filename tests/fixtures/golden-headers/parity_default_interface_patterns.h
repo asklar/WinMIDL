@@ -146,9 +146,13 @@ namespace TestApp {
         IDefaultIfaceWidget1 : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Name(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Initialize(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Count(/* [out, retval] */ int* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Count(
+                /* [out, retval] */int * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Refresh(void) = 0;
         };
     } /* Parity */
@@ -182,10 +186,14 @@ namespace TestApp {
         IDefaultIfaceWidget2 : public IInspectable
         {
         public:
-            virtual HRESULT STDMETHODCALLTYPE get_Label(/* [out, retval] */ HSTRING* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Label(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
             virtual HRESULT STDMETHODCALLTYPE Start(void) = 0;
             virtual HRESULT STDMETHODCALLTYPE Stop(void) = 0;
-            virtual HRESULT STDMETHODCALLTYPE get_Running(/* [out, retval] */ ::boolean* value) = 0;
+            virtual /* [propget] */ HRESULT STDMETHODCALLTYPE get_Running(
+                /* [out, retval] */::boolean * value
+                ) = 0;
         };
     } /* Parity */
 } /* TestApp */
