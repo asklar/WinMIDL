@@ -24,7 +24,8 @@ param(
     [string]$Configuration = "Release",
     [string]$Runtime = "win-x64",
     [string]$OutputDir = "publish",
-    [switch]$SkipTests
+    [switch]$SkipTests,
+    [switch]$Native
 )
 
 $ErrorActionPreference = "Stop"
@@ -85,6 +86,13 @@ try {
     }
 } catch { }
 
+$instructionSet = if ($Native) { "native" } else { "x86-64-v2" }
+if ($Native) {
+    Write-Host "  Instruction set: native (optimized for this machine — NOT portable)" -ForegroundColor Yellow
+} else {
+    Write-Host "  Instruction set: x86-64-v2 (portable)" -ForegroundColor DarkGray
+}
+
 Write-Host "Attempting NativeAOT publish..." -ForegroundColor Yellow
 $aotArgs = @(
     "publish"
@@ -94,7 +102,7 @@ $aotArgs = @(
     "--self-contained"
     "-o", $outDir
     "/p:PublishAot=true"
-    "/p:IlcInstructionSet=x86-64-v2"
+    "/p:IlcInstructionSet=$instructionSet"
 )
 # Pass the verified SDK um\x64 path so the linker can find advapi32.lib etc.
 if ($sdkVersion -and $sdkRoot) {
