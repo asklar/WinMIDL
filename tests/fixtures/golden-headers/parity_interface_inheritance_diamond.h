@@ -352,7 +352,7 @@ typedef struct __x_TestApp_CParity_CINodeVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CINode * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CINode * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CINode * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CINode * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CINode * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CINodeVtbl;
 
@@ -401,7 +401,7 @@ typedef struct __x_TestApp_CParity_CIInputNodeVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIInputNode * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIInputNode * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIInputNode * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Accept )(__x_TestApp_CParity_CIInputNode * This, /* [in] */ IInspectable* data);
+    HRESULT ( STDMETHODCALLTYPE *Accept )(__x_TestApp_CParity_CIInputNode * This, /* [in] */IInspectable* data);
     END_INTERFACE
 } __x_TestApp_CParity_CIInputNodeVtbl;
 
@@ -450,7 +450,7 @@ typedef struct __x_TestApp_CParity_CIOutputNodeVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIOutputNode * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIOutputNode * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIOutputNode * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Produce )(__x_TestApp_CParity_CIOutputNode * This, /* [out, retval] */ IInspectable** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Produce )(__x_TestApp_CParity_CIOutputNode * This, /* [out, retval] */IInspectable* * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIOutputNodeVtbl;
 
@@ -478,8 +478,8 @@ interface __x_TestApp_CParity_CIOutputNode
 #define __x_TestApp_CParity_CIOutputNode_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIOutputNode_Produce(This,returnValue) \
-    ( (This)->lpVtbl->Produce(This,returnValue) )
+#define __x_TestApp_CParity_CIOutputNode_Produce(This,result) \
+    ( (This)->lpVtbl->Produce(This,result) )
 
 #endif /* COBJMACROS */
 
@@ -548,10 +548,10 @@ typedef struct __x_TestApp_CParity_CIProcessorWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIProcessorWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIProcessorWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIProcessorWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIProcessorWidget * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIProcessorWidget * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIProcessorWidget * This);
-    HRESULT ( STDMETHODCALLTYPE *Accept )(__x_TestApp_CParity_CIProcessorWidget * This, /* [in] */ IInspectable* data);
-    HRESULT ( STDMETHODCALLTYPE *Produce )(__x_TestApp_CParity_CIProcessorWidget * This, /* [out, retval] */ IInspectable** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Accept )(__x_TestApp_CParity_CIProcessorWidget * This, /* [in] */IInspectable* data);
+    HRESULT ( STDMETHODCALLTYPE *Produce )(__x_TestApp_CParity_CIProcessorWidget * This, /* [out, retval] */IInspectable* * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIProcessorWidgetVtbl;
 
@@ -588,8 +588,8 @@ interface __x_TestApp_CParity_CIProcessorWidget
 #define __x_TestApp_CParity_CIProcessorWidget_Accept(This,data) \
     ( (This)->lpVtbl->Accept(This,data) )
 
-#define __x_TestApp_CParity_CIProcessorWidget_Produce(This,returnValue) \
-    ( (This)->lpVtbl->Produce(This,returnValue) )
+#define __x_TestApp_CParity_CIProcessorWidget_Produce(This,result) \
+    ( (This)->lpVtbl->Produce(This,result) )
 
 #endif /* COBJMACROS */
 

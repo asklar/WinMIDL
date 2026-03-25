@@ -152,10 +152,10 @@ typedef struct __x_TestApp_CParity_CINestedGenericWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CINestedGenericWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CINestedGenericWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CINestedGenericWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetCategorizedCounts )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetGroupedNames )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *FetchNamesAsync )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *FetchCountsAsync )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetCategorizedCounts )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result);
+    HRESULT ( STDMETHODCALLTYPE *GetGroupedNames )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * result);
+    HRESULT ( STDMETHODCALLTYPE *FetchNamesAsync )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
+    HRESULT ( STDMETHODCALLTYPE *FetchCountsAsync )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
     END_INTERFACE
 } __x_TestApp_CParity_CINestedGenericWidgetVtbl;
 
@@ -183,17 +183,17 @@ interface __x_TestApp_CParity_CINestedGenericWidget
 #define __x_TestApp_CParity_CINestedGenericWidget_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CINestedGenericWidget_GetCategorizedCounts(This,returnValue) \
-    ( (This)->lpVtbl->GetCategorizedCounts(This,returnValue) )
+#define __x_TestApp_CParity_CINestedGenericWidget_GetCategorizedCounts(This,result) \
+    ( (This)->lpVtbl->GetCategorizedCounts(This,result) )
 
-#define __x_TestApp_CParity_CINestedGenericWidget_GetGroupedNames(This,returnValue) \
-    ( (This)->lpVtbl->GetGroupedNames(This,returnValue) )
+#define __x_TestApp_CParity_CINestedGenericWidget_GetGroupedNames(This,result) \
+    ( (This)->lpVtbl->GetGroupedNames(This,result) )
 
-#define __x_TestApp_CParity_CINestedGenericWidget_FetchNamesAsync(This,returnValue) \
-    ( (This)->lpVtbl->FetchNamesAsync(This,returnValue) )
+#define __x_TestApp_CParity_CINestedGenericWidget_FetchNamesAsync(This,result) \
+    ( (This)->lpVtbl->FetchNamesAsync(This,result) )
 
-#define __x_TestApp_CParity_CINestedGenericWidget_FetchCountsAsync(This,returnValue) \
-    ( (This)->lpVtbl->FetchCountsAsync(This,returnValue) )
+#define __x_TestApp_CParity_CINestedGenericWidget_FetchCountsAsync(This,result) \
+    ( (This)->lpVtbl->FetchCountsAsync(This,result) )
 
 #endif /* COBJMACROS */
 

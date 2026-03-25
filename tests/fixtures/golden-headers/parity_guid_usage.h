@@ -162,12 +162,12 @@ typedef struct __x_TestApp_CParity_CIGuidWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGuidWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGuidWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGuidWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */ GUID* value);
-    HRESULT ( STDMETHODCALLTYPE *GenerateId )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */ GUID* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *SetId )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */ GUID id);
-    HRESULT ( STDMETHODCALLTYPE *CompareIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */ GUID a, /* [in] */ GUID b, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *ProcessIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */ GUID id1, /* [in] */ GUID id2, /* [in] */ GUID id3);
-    HRESULT ( STDMETHODCALLTYPE *GetAllIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */GUID * value);
+    HRESULT ( STDMETHODCALLTYPE *GenerateId )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */GUID * result);
+    HRESULT ( STDMETHODCALLTYPE *SetId )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */GUID id);
+    HRESULT ( STDMETHODCALLTYPE *CompareIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */GUID a, /* [in] */GUID b, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *ProcessIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */GUID id1, /* [in] */GUID id2, /* [in] */GUID id3);
+    HRESULT ( STDMETHODCALLTYPE *GetAllIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIGuidWidgetVtbl;
 
@@ -198,20 +198,20 @@ interface __x_TestApp_CParity_CIGuidWidget
 #define __x_TestApp_CParity_CIGuidWidget_get_Id(This,value) \
     ( (This)->lpVtbl->get_Id(This,value) )
 
-#define __x_TestApp_CParity_CIGuidWidget_GenerateId(This,returnValue) \
-    ( (This)->lpVtbl->GenerateId(This,returnValue) )
+#define __x_TestApp_CParity_CIGuidWidget_GenerateId(This,result) \
+    ( (This)->lpVtbl->GenerateId(This,result) )
 
 #define __x_TestApp_CParity_CIGuidWidget_SetId(This,id) \
     ( (This)->lpVtbl->SetId(This,id) )
 
-#define __x_TestApp_CParity_CIGuidWidget_CompareIds(This,a,b,returnValue) \
-    ( (This)->lpVtbl->CompareIds(This,a,b,returnValue) )
+#define __x_TestApp_CParity_CIGuidWidget_CompareIds(This,a,b,result) \
+    ( (This)->lpVtbl->CompareIds(This,a,b,result) )
 
 #define __x_TestApp_CParity_CIGuidWidget_ProcessIds(This,id1,id2,id3) \
     ( (This)->lpVtbl->ProcessIds(This,id1,id2,id3) )
 
-#define __x_TestApp_CParity_CIGuidWidget_GetAllIds(This,returnValue) \
-    ( (This)->lpVtbl->GetAllIds(This,returnValue) )
+#define __x_TestApp_CParity_CIGuidWidget_GetAllIds(This,result) \
+    ( (This)->lpVtbl->GetAllIds(This,result) )
 
 #endif /* COBJMACROS */
 

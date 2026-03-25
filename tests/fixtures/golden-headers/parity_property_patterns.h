@@ -386,20 +386,20 @@ typedef struct __x_TestApp_CParity_CIPropertyBaseVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIPropertyBase * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIPropertyBase * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIPropertyBase * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyName )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */ HSTRING* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyId )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */ int* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyFlag )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */ ::boolean* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyValue )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */ double* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteName )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */ HSTRING* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteName )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */ HSTRING value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteCount )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */ int* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteCount )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */ int value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteEnabled )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */ ::boolean* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteEnabled )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */ ::boolean value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteFactor )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */ double* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteFactor )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */ double value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteRatio )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */ float* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteRatio )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */ float value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyName )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */HSTRING * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyId )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */int * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyFlag )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyValue )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */double * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteName )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */HSTRING * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteName )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */HSTRING value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteCount )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */int * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteCount )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */int value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteEnabled )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */::boolean * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteEnabled )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteFactor )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */double * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteFactor )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */double value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteRatio )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */float * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteRatio )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */float value);
     END_INTERFACE
 } __x_TestApp_CParity_CIPropertyBaseVtbl;
 
@@ -487,7 +487,7 @@ typedef struct __x_TestApp_CParity_CIPropertyBaseFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIPropertyBaseFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIPropertyBaseFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIPropertyBaseFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIPropertyBaseFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ PropertyBase* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIPropertyBaseFactory * This, /* [in] */HSTRING name, /* [out, retval] */PropertyBase * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIPropertyBaseFactoryVtbl;
 
@@ -515,8 +515,8 @@ interface __x_TestApp_CParity_CIPropertyBaseFactory
 #define __x_TestApp_CParity_CIPropertyBaseFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIPropertyBaseFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIPropertyBaseFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 
@@ -536,13 +536,13 @@ typedef struct __x_TestApp_CParity_CIPropertyChildVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIPropertyChild * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIPropertyChild * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIPropertyChild * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildName )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */ HSTRING* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildName )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */ HSTRING value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildValue )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */ int* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildValue )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */ int value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildFlag )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */ ::boolean* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildFlag )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */ ::boolean value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DerivedId )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */ unsigned int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildName )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */HSTRING * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildName )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */HSTRING value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildValue )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */int * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildValue )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */int value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildFlag )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */::boolean * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildFlag )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DerivedId )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */unsigned int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIPropertyChildVtbl;
 
@@ -609,7 +609,7 @@ typedef struct __x_TestApp_CParity_CIPropertyChildFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIPropertyChildFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIPropertyChildFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIPropertyChildFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIPropertyChildFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ PropertyChild* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIPropertyChildFactory * This, /* [in] */HSTRING name, /* [out, retval] */PropertyChild * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIPropertyChildFactoryVtbl;
 
@@ -637,8 +637,8 @@ interface __x_TestApp_CParity_CIPropertyChildFactory
 #define __x_TestApp_CParity_CIPropertyChildFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIPropertyChildFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIPropertyChildFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 

@@ -572,7 +572,7 @@ typedef struct __x_TestApp_CParity_CIComposableWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIComposableWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIComposableWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIComposableWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Label )(__x_TestApp_CParity_CIComposableWidget * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Label )(__x_TestApp_CParity_CIComposableWidget * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIComposableWidgetVtbl;
 
@@ -621,7 +621,7 @@ typedef struct __x_TestApp_CParity_CIComposableWidgetFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIComposableWidgetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIComposableWidgetFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIComposableWidgetFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIComposableWidgetFactory * This, /* [in] */ HSTRING label, /* [out, retval] */ ComposableWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIComposableWidgetFactory * This, /* [in] */HSTRING label, /* [out, retval] */ComposableWidget * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIComposableWidgetFactoryVtbl;
 
@@ -649,8 +649,8 @@ interface __x_TestApp_CParity_CIComposableWidgetFactory
 #define __x_TestApp_CParity_CIComposableWidgetFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIComposableWidgetFactory_CreateInstance(This,label,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,label,returnValue) )
+#define __x_TestApp_CParity_CIComposableWidgetFactory_CreateInstance(This,label,result) \
+    ( (This)->lpVtbl->CreateInstance(This,label,result) )
 
 #endif /* COBJMACROS */
 
@@ -671,7 +671,7 @@ typedef struct __x_TestApp_CParity_CIComposableWidgetOverridesVtbl
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIComposableWidgetOverrides * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIComposableWidgetOverrides * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *OnActivated )(__x_TestApp_CParity_CIComposableWidgetOverrides * This);
-    HRESULT ( STDMETHODCALLTYPE *CanActivate )(__x_TestApp_CParity_CIComposableWidgetOverrides * This, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CanActivate )(__x_TestApp_CParity_CIComposableWidgetOverrides * This, /* [out, retval] */::boolean * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIComposableWidgetOverridesVtbl;
 
@@ -702,8 +702,8 @@ interface __x_TestApp_CParity_CIComposableWidgetOverrides
 #define __x_TestApp_CParity_CIComposableWidgetOverrides_OnActivated(This) \
     ( (This)->lpVtbl->OnActivated(This) )
 
-#define __x_TestApp_CParity_CIComposableWidgetOverrides_CanActivate(This,returnValue) \
-    ( (This)->lpVtbl->CanActivate(This,returnValue) )
+#define __x_TestApp_CParity_CIComposableWidgetOverrides_CanActivate(This,result) \
+    ( (This)->lpVtbl->CanActivate(This,result) )
 
 #endif /* COBJMACROS */
 
@@ -723,7 +723,7 @@ typedef struct __x_TestApp_CParity_CIMiddleComposableVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMiddleComposable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMiddleComposable * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMiddleComposable * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(__x_TestApp_CParity_CIMiddleComposable * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(__x_TestApp_CParity_CIMiddleComposable * This, /* [out, retval] */int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIMiddleComposableVtbl;
 
@@ -772,7 +772,7 @@ typedef struct __x_TestApp_CParity_CIMiddleComposableFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMiddleComposableFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMiddleComposableFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMiddleComposableFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMiddleComposableFactory * This, /* [in] */ HSTRING label, /* [out, retval] */ MiddleComposable* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMiddleComposableFactory * This, /* [in] */HSTRING label, /* [out, retval] */MiddleComposable * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIMiddleComposableFactoryVtbl;
 
@@ -800,8 +800,8 @@ interface __x_TestApp_CParity_CIMiddleComposableFactory
 #define __x_TestApp_CParity_CIMiddleComposableFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIMiddleComposableFactory_CreateInstance(This,label,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,label,returnValue) )
+#define __x_TestApp_CParity_CIMiddleComposableFactory_CreateInstance(This,label,result) \
+    ( (This)->lpVtbl->CreateInstance(This,label,result) )
 
 #endif /* COBJMACROS */
 
@@ -870,7 +870,7 @@ typedef struct __x_TestApp_CParity_CIFinalComposableVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFinalComposable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFinalComposable * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFinalComposable * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsReady )(__x_TestApp_CParity_CIFinalComposable * This, /* [out, retval] */ ::boolean* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsReady )(__x_TestApp_CParity_CIFinalComposable * This, /* [out, retval] */::boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIFinalComposableVtbl;
 
@@ -919,8 +919,8 @@ typedef struct __x_TestApp_CParity_CIFinalComposableFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFinalComposableFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFinalComposableFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFinalComposableFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIFinalComposableFactory * This, /* [in] */ HSTRING label, /* [out, retval] */ FinalComposable* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIFinalComposableFactory * This, /* [in] */ HSTRING label, /* [in] */ int priority, /* [out, retval] */ FinalComposable* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIFinalComposableFactory * This, /* [in] */HSTRING label, /* [out, retval] */FinalComposable * result);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIFinalComposableFactory * This, /* [in] */HSTRING label, /* [in] */int priority, /* [out, retval] */FinalComposable * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIFinalComposableFactoryVtbl;
 
@@ -948,11 +948,11 @@ interface __x_TestApp_CParity_CIFinalComposableFactory
 #define __x_TestApp_CParity_CIFinalComposableFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIFinalComposableFactory_CreateInstance(This,label,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,label,returnValue) )
+#define __x_TestApp_CParity_CIFinalComposableFactory_CreateInstance(This,label,result) \
+    ( (This)->lpVtbl->CreateInstance(This,label,result) )
 
-#define __x_TestApp_CParity_CIFinalComposableFactory_CreateInstance(This,label,priority,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,label,priority,returnValue) )
+#define __x_TestApp_CParity_CIFinalComposableFactory_CreateInstance(This,label,priority,result) \
+    ( (This)->lpVtbl->CreateInstance(This,label,priority,result) )
 
 #endif /* COBJMACROS */
 

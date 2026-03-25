@@ -155,11 +155,11 @@ typedef struct __x_TestApp_CParity_CIAsyncGenericWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIAsyncGenericWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIAsyncGenericWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIAsyncGenericWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *FetchAllNamesAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *FetchMappingsAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *FetchIdsAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *SyncAllAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *ValidateAllAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *FetchAllNamesAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
+    HRESULT ( STDMETHODCALLTYPE *FetchMappingsAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
+    HRESULT ( STDMETHODCALLTYPE *FetchIdsAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
+    HRESULT ( STDMETHODCALLTYPE *SyncAllAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncAction* * result);
+    HRESULT ( STDMETHODCALLTYPE *ValidateAllAsync )(__x_TestApp_CParity_CIAsyncGenericWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIAsyncGenericWidgetVtbl;
 
@@ -187,20 +187,20 @@ interface __x_TestApp_CParity_CIAsyncGenericWidget
 #define __x_TestApp_CParity_CIAsyncGenericWidget_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIAsyncGenericWidget_FetchAllNamesAsync(This,returnValue) \
-    ( (This)->lpVtbl->FetchAllNamesAsync(This,returnValue) )
+#define __x_TestApp_CParity_CIAsyncGenericWidget_FetchAllNamesAsync(This,result) \
+    ( (This)->lpVtbl->FetchAllNamesAsync(This,result) )
 
-#define __x_TestApp_CParity_CIAsyncGenericWidget_FetchMappingsAsync(This,returnValue) \
-    ( (This)->lpVtbl->FetchMappingsAsync(This,returnValue) )
+#define __x_TestApp_CParity_CIAsyncGenericWidget_FetchMappingsAsync(This,result) \
+    ( (This)->lpVtbl->FetchMappingsAsync(This,result) )
 
-#define __x_TestApp_CParity_CIAsyncGenericWidget_FetchIdsAsync(This,returnValue) \
-    ( (This)->lpVtbl->FetchIdsAsync(This,returnValue) )
+#define __x_TestApp_CParity_CIAsyncGenericWidget_FetchIdsAsync(This,result) \
+    ( (This)->lpVtbl->FetchIdsAsync(This,result) )
 
-#define __x_TestApp_CParity_CIAsyncGenericWidget_SyncAllAsync(This,returnValue) \
-    ( (This)->lpVtbl->SyncAllAsync(This,returnValue) )
+#define __x_TestApp_CParity_CIAsyncGenericWidget_SyncAllAsync(This,result) \
+    ( (This)->lpVtbl->SyncAllAsync(This,result) )
 
-#define __x_TestApp_CParity_CIAsyncGenericWidget_ValidateAllAsync(This,returnValue) \
-    ( (This)->lpVtbl->ValidateAllAsync(This,returnValue) )
+#define __x_TestApp_CParity_CIAsyncGenericWidget_ValidateAllAsync(This,result) \
+    ( (This)->lpVtbl->ValidateAllAsync(This,result) )
 
 #endif /* COBJMACROS */
 

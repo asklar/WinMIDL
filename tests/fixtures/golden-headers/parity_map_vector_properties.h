@@ -164,14 +164,14 @@ typedef struct __x_TestApp_CParity_CICollectionPropertyWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CICollectionPropertyWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CICollectionPropertyWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CICollectionPropertyWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Names )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Ids )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyNames )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_StringMap )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CountMap )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyStringMap )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMapView** value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IterableNames )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_MixedItems )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Names )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Ids )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyNames )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVectorView* * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_StringMap )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CountMap )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyStringMap )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMapView* * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IterableNames )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIIterable* * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_MixedItems )(__x_TestApp_CParity_CICollectionPropertyWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * value);
     END_INTERFACE
 } __x_TestApp_CParity_CICollectionPropertyWidgetVtbl;
 

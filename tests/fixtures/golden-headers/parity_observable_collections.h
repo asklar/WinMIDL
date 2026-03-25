@@ -149,9 +149,9 @@ typedef struct __x_TestApp_CParity_CIObservableWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIObservableWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIObservableWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIObservableWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Names )(__x_TestApp_CParity_CIObservableWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIObservableVector** value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Counts )(__x_TestApp_CParity_CIObservableWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIObservableMap** value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Items )(__x_TestApp_CParity_CIObservableWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIObservableVector** value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Names )(__x_TestApp_CParity_CIObservableWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIObservableVector* * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Counts )(__x_TestApp_CParity_CIObservableWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIObservableMap* * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Items )(__x_TestApp_CParity_CIObservableWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIObservableVector* * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIObservableWidgetVtbl;
 

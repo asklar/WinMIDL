@@ -283,9 +283,9 @@ typedef struct __x_TestApp_CParity_CIFwdUserVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFwdUser * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFwdUser * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFwdUser * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *SetTargetName )(__x_TestApp_CParity_CIFwdUser * This, /* [in] */ HSTRING name);
-    HRESULT ( STDMETHODCALLTYPE *GetTargetName )(__x_TestApp_CParity_CIFwdUser * This, /* [out, retval] */ HSTRING* returnValue);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_HasTarget )(__x_TestApp_CParity_CIFwdUser * This, /* [out, retval] */ ::boolean* value);
+    HRESULT ( STDMETHODCALLTYPE *SetTargetName )(__x_TestApp_CParity_CIFwdUser * This, /* [in] */HSTRING name);
+    HRESULT ( STDMETHODCALLTYPE *GetTargetName )(__x_TestApp_CParity_CIFwdUser * This, /* [out, retval] */HSTRING * result);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_HasTarget )(__x_TestApp_CParity_CIFwdUser * This, /* [out, retval] */::boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIFwdUserVtbl;
 
@@ -316,8 +316,8 @@ interface __x_TestApp_CParity_CIFwdUser
 #define __x_TestApp_CParity_CIFwdUser_SetTargetName(This,name) \
     ( (This)->lpVtbl->SetTargetName(This,name) )
 
-#define __x_TestApp_CParity_CIFwdUser_GetTargetName(This,returnValue) \
-    ( (This)->lpVtbl->GetTargetName(This,returnValue) )
+#define __x_TestApp_CParity_CIFwdUser_GetTargetName(This,result) \
+    ( (This)->lpVtbl->GetTargetName(This,result) )
 
 #define __x_TestApp_CParity_CIFwdUser_get_HasTarget(This,value) \
     ( (This)->lpVtbl->get_HasTarget(This,value) )
@@ -340,8 +340,8 @@ typedef struct __x_TestApp_CParity_CIFwdTargetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFwdTarget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFwdTarget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFwdTarget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Data )(__x_TestApp_CParity_CIFwdTarget * This, /* [out, retval] */ HSTRING* value);
-    HRESULT ( STDMETHODCALLTYPE *LinkTo )(__x_TestApp_CParity_CIFwdTarget * This, /* [in] */ FwdUser user);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Data )(__x_TestApp_CParity_CIFwdTarget * This, /* [out, retval] */HSTRING * value);
+    HRESULT ( STDMETHODCALLTYPE *LinkTo )(__x_TestApp_CParity_CIFwdTarget * This, /* [in] */FwdUser user);
     END_INTERFACE
 } __x_TestApp_CParity_CIFwdTargetVtbl;
 
@@ -393,7 +393,7 @@ typedef struct __x_TestApp_CParity_CIFwdTargetFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFwdTargetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFwdTargetFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFwdTargetFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIFwdTargetFactory * This, /* [in] */ HSTRING data, /* [out, retval] */ FwdTarget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIFwdTargetFactory * This, /* [in] */HSTRING data, /* [out, retval] */FwdTarget * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIFwdTargetFactoryVtbl;
 
@@ -421,8 +421,8 @@ interface __x_TestApp_CParity_CIFwdTargetFactory
 #define __x_TestApp_CParity_CIFwdTargetFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIFwdTargetFactory_CreateInstance(This,data,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,data,returnValue) )
+#define __x_TestApp_CParity_CIFwdTargetFactory_CreateInstance(This,data,result) \
+    ( (This)->lpVtbl->CreateInstance(This,data,result) )
 
 #endif /* COBJMACROS */
 

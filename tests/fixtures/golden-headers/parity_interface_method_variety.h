@@ -171,12 +171,12 @@ typedef struct __x_TestApp_CParity_CIGeocoderServiceVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGeocoderService * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGeocoderService * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGeocoderService * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Geocode )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */ HSTRING address, /* [out, retval] */ Coordinate* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *ReverseGeocode )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */ Coordinate coord, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GeocodeMultiple )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */ __x_Windows_CFoundation_CCollections_CIVector* addresses, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GeocodeAsync )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */ HSTRING address, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *IsValidCoordinate )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */ Coordinate coord, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Distance )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */ Coordinate from, /* [in] */ Coordinate to, /* [out, retval] */ double* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Geocode )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */HSTRING address, /* [out, retval] */Coordinate * result);
+    HRESULT ( STDMETHODCALLTYPE *ReverseGeocode )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */Coordinate coord, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *GeocodeMultiple )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */__x_Windows_CFoundation_CCollections_CIVector* addresses, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result);
+    HRESULT ( STDMETHODCALLTYPE *GeocodeAsync )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */HSTRING address, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
+    HRESULT ( STDMETHODCALLTYPE *IsValidCoordinate )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */Coordinate coord, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Distance )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */Coordinate from, /* [in] */Coordinate to, /* [out, retval] */double * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIGeocoderServiceVtbl;
 
@@ -204,23 +204,23 @@ interface __x_TestApp_CParity_CIGeocoderService
 #define __x_TestApp_CParity_CIGeocoderService_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIGeocoderService_Geocode(This,address,returnValue) \
-    ( (This)->lpVtbl->Geocode(This,address,returnValue) )
+#define __x_TestApp_CParity_CIGeocoderService_Geocode(This,address,result) \
+    ( (This)->lpVtbl->Geocode(This,address,result) )
 
-#define __x_TestApp_CParity_CIGeocoderService_ReverseGeocode(This,coord,returnValue) \
-    ( (This)->lpVtbl->ReverseGeocode(This,coord,returnValue) )
+#define __x_TestApp_CParity_CIGeocoderService_ReverseGeocode(This,coord,result) \
+    ( (This)->lpVtbl->ReverseGeocode(This,coord,result) )
 
-#define __x_TestApp_CParity_CIGeocoderService_GeocodeMultiple(This,addresses,returnValue) \
-    ( (This)->lpVtbl->GeocodeMultiple(This,addresses,returnValue) )
+#define __x_TestApp_CParity_CIGeocoderService_GeocodeMultiple(This,addresses,result) \
+    ( (This)->lpVtbl->GeocodeMultiple(This,addresses,result) )
 
-#define __x_TestApp_CParity_CIGeocoderService_GeocodeAsync(This,address,returnValue) \
-    ( (This)->lpVtbl->GeocodeAsync(This,address,returnValue) )
+#define __x_TestApp_CParity_CIGeocoderService_GeocodeAsync(This,address,result) \
+    ( (This)->lpVtbl->GeocodeAsync(This,address,result) )
 
-#define __x_TestApp_CParity_CIGeocoderService_IsValidCoordinate(This,coord,returnValue) \
-    ( (This)->lpVtbl->IsValidCoordinate(This,coord,returnValue) )
+#define __x_TestApp_CParity_CIGeocoderService_IsValidCoordinate(This,coord,result) \
+    ( (This)->lpVtbl->IsValidCoordinate(This,coord,result) )
 
-#define __x_TestApp_CParity_CIGeocoderService_Distance(This,from,to,returnValue) \
-    ( (This)->lpVtbl->Distance(This,from,to,returnValue) )
+#define __x_TestApp_CParity_CIGeocoderService_Distance(This,from,to,result) \
+    ( (This)->lpVtbl->Distance(This,from,to,result) )
 
 #endif /* COBJMACROS */
 

@@ -374,8 +374,8 @@ typedef struct __x_TestApp_CParity_CIDeprecatedInterfaceVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDeprecatedInterface * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *OldMethod )(__x_TestApp_CParity_CIDeprecatedInterface * This);
     HRESULT ( STDMETHODCALLTYPE *NewMethod )(__x_TestApp_CParity_CIDeprecatedInterface * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_OldProp )(__x_TestApp_CParity_CIDeprecatedInterface * This, /* [out, retval] */ HSTRING* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewProp )(__x_TestApp_CParity_CIDeprecatedInterface * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_OldProp )(__x_TestApp_CParity_CIDeprecatedInterface * This, /* [out, retval] */HSTRING * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewProp )(__x_TestApp_CParity_CIDeprecatedInterface * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIDeprecatedInterfaceVtbl;
 
@@ -433,7 +433,7 @@ typedef struct __x_TestApp_CParity_CIDeprecatedWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIDeprecatedWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIDeprecatedWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDeprecatedWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIDeprecatedWidget * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIDeprecatedWidget * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIDeprecatedWidgetVtbl;
 
@@ -482,14 +482,14 @@ typedef struct __x_TestApp_CParity_CIMixedDeprecationVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedDeprecation * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedDeprecation * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedDeprecation * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetOldValue )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */ int* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetNewValue )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */ int* returnValue);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_OldCount )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */ int* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewCount )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */ int* value);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_LegacyChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_LegacyChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CurrentChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CurrentChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */ EventRegistrationToken token);
+    HRESULT ( STDMETHODCALLTYPE *GetOldValue )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */int * result);
+    HRESULT ( STDMETHODCALLTYPE *GetNewValue )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */int * result);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_OldCount )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */int * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewCount )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */int * value);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_LegacyChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_LegacyChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CurrentChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CurrentChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */EventRegistrationToken token);
     END_INTERFACE
 } __x_TestApp_CParity_CIMixedDeprecationVtbl;
 
@@ -517,11 +517,11 @@ interface __x_TestApp_CParity_CIMixedDeprecation
 #define __x_TestApp_CParity_CIMixedDeprecation_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIMixedDeprecation_GetOldValue(This,returnValue) \
-    ( (This)->lpVtbl->GetOldValue(This,returnValue) )
+#define __x_TestApp_CParity_CIMixedDeprecation_GetOldValue(This,result) \
+    ( (This)->lpVtbl->GetOldValue(This,result) )
 
-#define __x_TestApp_CParity_CIMixedDeprecation_GetNewValue(This,returnValue) \
-    ( (This)->lpVtbl->GetNewValue(This,returnValue) )
+#define __x_TestApp_CParity_CIMixedDeprecation_GetNewValue(This,result) \
+    ( (This)->lpVtbl->GetNewValue(This,result) )
 
 #define __x_TestApp_CParity_CIMixedDeprecation_get_OldCount(This,value) \
     ( (This)->lpVtbl->get_OldCount(This,value) )

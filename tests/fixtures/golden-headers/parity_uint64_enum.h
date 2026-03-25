@@ -164,8 +164,8 @@ typedef struct __x_TestApp_CParity_CIFlagCheckerVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFlagChecker * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFlagChecker * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFlagChecker * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *HasFlag )(__x_TestApp_CParity_CIFlagChecker * This, /* [in] */ LargeFlags value, /* [in] */ LargeFlags flag, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *CombineFlags )(__x_TestApp_CParity_CIFlagChecker * This, /* [in] */ LargeFlags a, /* [in] */ LargeFlags b, /* [out, retval] */ LargeFlags* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *HasFlag )(__x_TestApp_CParity_CIFlagChecker * This, /* [in] */LargeFlags value, /* [in] */LargeFlags flag, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *CombineFlags )(__x_TestApp_CParity_CIFlagChecker * This, /* [in] */LargeFlags a, /* [in] */LargeFlags b, /* [out, retval] */LargeFlags * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIFlagCheckerVtbl;
 
@@ -193,11 +193,11 @@ interface __x_TestApp_CParity_CIFlagChecker
 #define __x_TestApp_CParity_CIFlagChecker_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIFlagChecker_HasFlag(This,value,flag,returnValue) \
-    ( (This)->lpVtbl->HasFlag(This,value,flag,returnValue) )
+#define __x_TestApp_CParity_CIFlagChecker_HasFlag(This,value,flag,result) \
+    ( (This)->lpVtbl->HasFlag(This,value,flag,result) )
 
-#define __x_TestApp_CParity_CIFlagChecker_CombineFlags(This,a,b,returnValue) \
-    ( (This)->lpVtbl->CombineFlags(This,a,b,returnValue) )
+#define __x_TestApp_CParity_CIFlagChecker_CombineFlags(This,a,b,result) \
+    ( (This)->lpVtbl->CombineFlags(This,a,b,result) )
 
 #endif /* COBJMACROS */
 

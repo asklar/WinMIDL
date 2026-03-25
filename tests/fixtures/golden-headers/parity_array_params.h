@@ -158,12 +158,12 @@ typedef struct __x_TestApp_CParity_CIArrayParamWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIArrayParamWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIArrayParamWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIArrayParamWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *ProcessIds )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [in] */ int ids);
-    HRESULT ( STDMETHODCALLTYPE *ProcessNames )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [in] */ HSTRING names);
-    HRESULT ( STDMETHODCALLTYPE *FillValues )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [out] */ double* values);
-    HRESULT ( STDMETHODCALLTYPE *TransformInts )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [in] */ int data);
-    HRESULT ( STDMETHODCALLTYPE *GetIds )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [out, retval] */ int* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetLabels )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ProcessIds )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [in] */int ids);
+    HRESULT ( STDMETHODCALLTYPE *ProcessNames )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [in] */HSTRING names);
+    HRESULT ( STDMETHODCALLTYPE *FillValues )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [out] */double * values);
+    HRESULT ( STDMETHODCALLTYPE *TransformInts )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [in] */int data);
+    HRESULT ( STDMETHODCALLTYPE *GetIds )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [out, retval] */int * result);
+    HRESULT ( STDMETHODCALLTYPE *GetLabels )(__x_TestApp_CParity_CIArrayParamWidget * This, /* [out, retval] */HSTRING * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIArrayParamWidgetVtbl;
 
@@ -203,11 +203,11 @@ interface __x_TestApp_CParity_CIArrayParamWidget
 #define __x_TestApp_CParity_CIArrayParamWidget_TransformInts(This,data) \
     ( (This)->lpVtbl->TransformInts(This,data) )
 
-#define __x_TestApp_CParity_CIArrayParamWidget_GetIds(This,returnValue) \
-    ( (This)->lpVtbl->GetIds(This,returnValue) )
+#define __x_TestApp_CParity_CIArrayParamWidget_GetIds(This,result) \
+    ( (This)->lpVtbl->GetIds(This,result) )
 
-#define __x_TestApp_CParity_CIArrayParamWidget_GetLabels(This,returnValue) \
-    ( (This)->lpVtbl->GetLabels(This,returnValue) )
+#define __x_TestApp_CParity_CIArrayParamWidget_GetLabels(This,result) \
+    ( (This)->lpVtbl->GetLabels(This,result) )
 
 #endif /* COBJMACROS */
 

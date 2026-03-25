@@ -211,11 +211,11 @@ typedef struct __x_TestApp_CParity_CISealedMultiWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_SortKey )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */ int* value);
-    HRESULT ( STDMETHODCALLTYPE *MatchesFilter )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [in] */ HSTRING filter, /* [out, retval] */ ::boolean* returnValue);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DisplayText )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */ HSTRING* value);
-    HRESULT ( STDMETHODCALLTYPE *ToShortString )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *ToDetailString )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */ HSTRING* returnValue);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_SortKey )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */int * value);
+    HRESULT ( STDMETHODCALLTYPE *MatchesFilter )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [in] */HSTRING filter, /* [out, retval] */::boolean * result);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DisplayText )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */HSTRING * value);
+    HRESULT ( STDMETHODCALLTYPE *ToShortString )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *ToDetailString )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */HSTRING * result);
     END_INTERFACE
 } __x_TestApp_CParity_CISealedMultiWidgetVtbl;
 
@@ -246,17 +246,17 @@ interface __x_TestApp_CParity_CISealedMultiWidget
 #define __x_TestApp_CParity_CISealedMultiWidget_get_SortKey(This,value) \
     ( (This)->lpVtbl->get_SortKey(This,value) )
 
-#define __x_TestApp_CParity_CISealedMultiWidget_MatchesFilter(This,filter,returnValue) \
-    ( (This)->lpVtbl->MatchesFilter(This,filter,returnValue) )
+#define __x_TestApp_CParity_CISealedMultiWidget_MatchesFilter(This,filter,result) \
+    ( (This)->lpVtbl->MatchesFilter(This,filter,result) )
 
 #define __x_TestApp_CParity_CISealedMultiWidget_get_DisplayText(This,value) \
     ( (This)->lpVtbl->get_DisplayText(This,value) )
 
-#define __x_TestApp_CParity_CISealedMultiWidget_ToShortString(This,returnValue) \
-    ( (This)->lpVtbl->ToShortString(This,returnValue) )
+#define __x_TestApp_CParity_CISealedMultiWidget_ToShortString(This,result) \
+    ( (This)->lpVtbl->ToShortString(This,result) )
 
-#define __x_TestApp_CParity_CISealedMultiWidget_ToDetailString(This,returnValue) \
-    ( (This)->lpVtbl->ToDetailString(This,returnValue) )
+#define __x_TestApp_CParity_CISealedMultiWidget_ToDetailString(This,result) \
+    ( (This)->lpVtbl->ToDetailString(This,result) )
 
 #endif /* COBJMACROS */
 
@@ -276,7 +276,7 @@ typedef struct __x_TestApp_CParity_CISealedMultiWidgetFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISealedMultiWidgetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISealedMultiWidgetFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISealedMultiWidgetFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CISealedMultiWidgetFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ SealedMultiWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CISealedMultiWidgetFactory * This, /* [in] */HSTRING name, /* [out, retval] */SealedMultiWidget * result);
     END_INTERFACE
 } __x_TestApp_CParity_CISealedMultiWidgetFactoryVtbl;
 
@@ -304,8 +304,8 @@ interface __x_TestApp_CParity_CISealedMultiWidgetFactory
 #define __x_TestApp_CParity_CISealedMultiWidgetFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CISealedMultiWidgetFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CISealedMultiWidgetFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 

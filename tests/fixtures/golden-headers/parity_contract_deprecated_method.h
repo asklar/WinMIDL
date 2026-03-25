@@ -152,8 +152,8 @@ typedef struct __x_TestApp_CParity_CIContractDeprecatedWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIContractDeprecatedWidget * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *NewMethod )(__x_TestApp_CParity_CIContractDeprecatedWidget * This);
     HRESULT ( STDMETHODCALLTYPE *OldMethod )(__x_TestApp_CParity_CIContractDeprecatedWidget * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CurrentValue )(__x_TestApp_CParity_CIContractDeprecatedWidget * This, /* [out, retval] */ HSTRING* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_LegacyValue )(__x_TestApp_CParity_CIContractDeprecatedWidget * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CurrentValue )(__x_TestApp_CParity_CIContractDeprecatedWidget * This, /* [out, retval] */HSTRING * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_LegacyValue )(__x_TestApp_CParity_CIContractDeprecatedWidget * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *AddedInV2 )(__x_TestApp_CParity_CIContractDeprecatedWidget * This);
     HRESULT ( STDMETHODCALLTYPE *V2DeprecatedMethod )(__x_TestApp_CParity_CIContractDeprecatedWidget * This);
     END_INTERFACE

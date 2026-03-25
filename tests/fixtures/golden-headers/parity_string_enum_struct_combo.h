@@ -267,7 +267,7 @@ typedef struct __x_TestApp_CParity_CConnectionChangedHandlerVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CConnectionChangedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CConnectionChangedHandler * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CConnectionChangedHandler * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CConnectionChangedHandler * This, /* [in] */ ConnectionInfo info, /* [in] */ ConnectionState oldState);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CConnectionChangedHandler * This, /* [in] */ConnectionInfo info, /* [in] */ConnectionState oldState);
     END_INTERFACE
 } __x_TestApp_CParity_CConnectionChangedHandlerVtbl;
 
@@ -307,14 +307,14 @@ typedef struct __x_TestApp_CParity_CIConnectionManagerVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsConnected )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ ::boolean* value);
-    HRESULT ( STDMETHODCALLTYPE *GetInfo )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ ConnectionInfo* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetState )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ ConnectionState* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Connect )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */ HSTRING host, /* [in] */ int port);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsConnected )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */::boolean * value);
+    HRESULT ( STDMETHODCALLTYPE *GetInfo )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ConnectionInfo * result);
+    HRESULT ( STDMETHODCALLTYPE *GetState )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ConnectionState * result);
+    HRESULT ( STDMETHODCALLTYPE *Connect )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */HSTRING host, /* [in] */int port);
     HRESULT ( STDMETHODCALLTYPE *Disconnect )(__x_TestApp_CParity_CIConnectionManager * This);
-    HRESULT ( STDMETHODCALLTYPE *ConnectAsync )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_StateChanged )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */ __x_TestApp_CParity_CConnectionChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_StateChanged )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */ EventRegistrationToken token);
+    HRESULT ( STDMETHODCALLTYPE *ConnectAsync )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */HSTRING host, /* [in] */int port, /* [out, retval] */__x_Windows_CFoundation_CIAsyncAction* * result);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_StateChanged )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */__x_TestApp_CParity_CConnectionChangedHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_StateChanged )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */EventRegistrationToken token);
     END_INTERFACE
 } __x_TestApp_CParity_CIConnectionManagerVtbl;
 
@@ -345,11 +345,11 @@ interface __x_TestApp_CParity_CIConnectionManager
 #define __x_TestApp_CParity_CIConnectionManager_get_IsConnected(This,value) \
     ( (This)->lpVtbl->get_IsConnected(This,value) )
 
-#define __x_TestApp_CParity_CIConnectionManager_GetInfo(This,returnValue) \
-    ( (This)->lpVtbl->GetInfo(This,returnValue) )
+#define __x_TestApp_CParity_CIConnectionManager_GetInfo(This,result) \
+    ( (This)->lpVtbl->GetInfo(This,result) )
 
-#define __x_TestApp_CParity_CIConnectionManager_GetState(This,returnValue) \
-    ( (This)->lpVtbl->GetState(This,returnValue) )
+#define __x_TestApp_CParity_CIConnectionManager_GetState(This,result) \
+    ( (This)->lpVtbl->GetState(This,result) )
 
 #define __x_TestApp_CParity_CIConnectionManager_Connect(This,host,port) \
     ( (This)->lpVtbl->Connect(This,host,port) )
@@ -357,8 +357,8 @@ interface __x_TestApp_CParity_CIConnectionManager
 #define __x_TestApp_CParity_CIConnectionManager_Disconnect(This) \
     ( (This)->lpVtbl->Disconnect(This) )
 
-#define __x_TestApp_CParity_CIConnectionManager_ConnectAsync(This,host,port,returnValue) \
-    ( (This)->lpVtbl->ConnectAsync(This,host,port,returnValue) )
+#define __x_TestApp_CParity_CIConnectionManager_ConnectAsync(This,host,port,result) \
+    ( (This)->lpVtbl->ConnectAsync(This,host,port,result) )
 
 #define __x_TestApp_CParity_CIConnectionManager_add_StateChanged(This,handler,token) \
     ( (This)->lpVtbl->add_StateChanged(This,handler,token) )
@@ -384,7 +384,7 @@ typedef struct __x_TestApp_CParity_CIConnectionManagerFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIConnectionManagerFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIConnectionManagerFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIConnectionManagerFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIConnectionManagerFactory * This, /* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ ConnectionManager* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIConnectionManagerFactory * This, /* [in] */HSTRING host, /* [in] */int port, /* [out, retval] */ConnectionManager * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIConnectionManagerFactoryVtbl;
 
@@ -412,8 +412,8 @@ interface __x_TestApp_CParity_CIConnectionManagerFactory
 #define __x_TestApp_CParity_CIConnectionManagerFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIConnectionManagerFactory_CreateInstance(This,host,port,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,host,port,returnValue) )
+#define __x_TestApp_CParity_CIConnectionManagerFactory_CreateInstance(This,host,port,result) \
+    ( (This)->lpVtbl->CreateInstance(This,host,port,result) )
 
 #endif /* COBJMACROS */
 

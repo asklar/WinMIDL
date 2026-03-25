@@ -189,8 +189,8 @@ typedef struct __x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDee
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_FullName )(__x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget * This, /* [out, retval] */ HSTRING* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Depth )(__x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_FullName )(__x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget * This, /* [out, retval] */HSTRING * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Depth )(__x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidget * This, /* [out, retval] */int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CLevel1_CLevel2_CLevel3_CLevel4_CLevel5_CIDeepWidgetVtbl;
 

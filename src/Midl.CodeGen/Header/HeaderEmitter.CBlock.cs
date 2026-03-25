@@ -169,17 +169,17 @@ public partial class HeaderEmitter
         {
             var cType = MapType(p.Type);
             if (p.Direction == ParameterDirection.Out)
-                paramParts.Add($"/* [out] */ {cType}* {p.Name}");
+                paramParts.Add($"/* [out] */{cType} * {p.Name}");
             else if (p.Direction == ParameterDirection.RefConst)
-                paramParts.Add($"/* [in] */ {cType}* {p.Name}");
+                paramParts.Add($"/* [in] */{cType} * {p.Name}");
             else
-                paramParts.Add($"/* [in] */ {cType} {p.Name}");
+                paramParts.Add($"/* [in] */{cType} {p.Name}");
         }
 
         if (method.ReturnType.Name != "void")
         {
             var retType = MapType(method.ReturnType);
-            paramParts.Add($"/* [out, retval] */ {retType}* returnValue");
+            paramParts.Add($"/* [out, retval] */{retType} * result");
         }
 
         var paramStr = string.Join(", ", paramParts);
@@ -191,19 +191,19 @@ public partial class HeaderEmitter
         var cType = MapType(prop.Type);
         if (prop.HasGetter)
         {
-            sb.AppendLine($"    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_{prop.Name} )({mangledName} * This, /* [out, retval] */ {cType}* value);");
+            sb.AppendLine($"    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_{prop.Name} )({mangledName} * This, /* [out, retval] */{cType} * value);");
         }
         if (prop.HasSetter)
         {
-            sb.AppendLine($"    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_{prop.Name} )({mangledName} * This, /* [in] */ {cType} value);");
+            sb.AppendLine($"    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_{prop.Name} )({mangledName} * This, /* [in] */{cType} value);");
         }
     }
 
     private static void EmitCVtableEvent(StringBuilder sb, string mangledName, EventSymbol evt)
     {
         var delegateType = MapType(evt.DelegateType);
-        sb.AppendLine($"    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_{evt.Name} )({mangledName} * This, /* [in] */ {delegateType} handler, /* [out, retval] */ EventRegistrationToken* token);");
-        sb.AppendLine($"    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_{evt.Name} )({mangledName} * This, /* [in] */ EventRegistrationToken token);");
+        sb.AppendLine($"    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_{evt.Name} )({mangledName} * This, /* [in] */{delegateType} handler, /* [out, retval] */EventRegistrationToken * token);");
+        sb.AppendLine($"    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_{evt.Name} )({mangledName} * This, /* [in] */EventRegistrationToken token);");
     }
 
     /// <summary>
@@ -265,7 +265,7 @@ public partial class HeaderEmitter
         foreach (var p in method.Parameters)
             paramNames.Add(p.Name);
         if (method.ReturnType.Name != "void")
-            paramNames.Add("returnValue");
+            paramNames.Add("result");
 
         var macroParams = string.Join(",", paramNames);
         var callParams = string.Join(",", paramNames);

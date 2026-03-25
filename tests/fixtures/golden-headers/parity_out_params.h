@@ -180,14 +180,14 @@ typedef struct __x_TestApp_CParity_CIDataParserVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIDataParser * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIDataParser * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDataParser * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *TryParseInt )(__x_TestApp_CParity_CIDataParser * This, /* [in] */ HSTRING input, /* [out] */ int* parsed, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *TryParseDouble )(__x_TestApp_CParity_CIDataParser * This, /* [in] */ HSTRING input, /* [out] */ double* parsed, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *TryParseBool )(__x_TestApp_CParity_CIDataParser * This, /* [in] */ HSTRING input, /* [out] */ ::boolean* parsed, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *TryParseName )(__x_TestApp_CParity_CIDataParser * This, /* [in] */ HSTRING input, /* [out] */ HSTRING* parsedName, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetBounds )(__x_TestApp_CParity_CIDataParser * This, /* [out] */ int* minBound, /* [out] */ int* maxBound);
-    HRESULT ( STDMETHODCALLTYPE *GetDimensions )(__x_TestApp_CParity_CIDataParser * This, /* [out] */ double* width, /* [out] */ double* height, /* [out] */ double* depth);
-    HRESULT ( STDMETHODCALLTYPE *GetInfo )(__x_TestApp_CParity_CIDataParser * This, /* [out] */ HSTRING* infoName, /* [out] */ int* infoVersion, /* [out] */ ::boolean* infoValid);
-    HRESULT ( STDMETHODCALLTYPE *TryGetKeyValue )(__x_TestApp_CParity_CIDataParser * This, /* [in] */ HSTRING key, /* [out] */ HSTRING* foundValue, /* [out] */ ::boolean* exists, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *TryParseInt )(__x_TestApp_CParity_CIDataParser * This, /* [in] */HSTRING input, /* [out] */int * parsed, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *TryParseDouble )(__x_TestApp_CParity_CIDataParser * This, /* [in] */HSTRING input, /* [out] */double * parsed, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *TryParseBool )(__x_TestApp_CParity_CIDataParser * This, /* [in] */HSTRING input, /* [out] */::boolean * parsed, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *TryParseName )(__x_TestApp_CParity_CIDataParser * This, /* [in] */HSTRING input, /* [out] */HSTRING * parsedName, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *GetBounds )(__x_TestApp_CParity_CIDataParser * This, /* [out] */int * minBound, /* [out] */int * maxBound);
+    HRESULT ( STDMETHODCALLTYPE *GetDimensions )(__x_TestApp_CParity_CIDataParser * This, /* [out] */double * width, /* [out] */double * height, /* [out] */double * depth);
+    HRESULT ( STDMETHODCALLTYPE *GetInfo )(__x_TestApp_CParity_CIDataParser * This, /* [out] */HSTRING * infoName, /* [out] */int * infoVersion, /* [out] */::boolean * infoValid);
+    HRESULT ( STDMETHODCALLTYPE *TryGetKeyValue )(__x_TestApp_CParity_CIDataParser * This, /* [in] */HSTRING key, /* [out] */HSTRING * foundValue, /* [out] */::boolean * exists, /* [out, retval] */::boolean * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIDataParserVtbl;
 
@@ -215,17 +215,17 @@ interface __x_TestApp_CParity_CIDataParser
 #define __x_TestApp_CParity_CIDataParser_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIDataParser_TryParseInt(This,input,parsed,returnValue) \
-    ( (This)->lpVtbl->TryParseInt(This,input,parsed,returnValue) )
+#define __x_TestApp_CParity_CIDataParser_TryParseInt(This,input,parsed,result) \
+    ( (This)->lpVtbl->TryParseInt(This,input,parsed,result) )
 
-#define __x_TestApp_CParity_CIDataParser_TryParseDouble(This,input,parsed,returnValue) \
-    ( (This)->lpVtbl->TryParseDouble(This,input,parsed,returnValue) )
+#define __x_TestApp_CParity_CIDataParser_TryParseDouble(This,input,parsed,result) \
+    ( (This)->lpVtbl->TryParseDouble(This,input,parsed,result) )
 
-#define __x_TestApp_CParity_CIDataParser_TryParseBool(This,input,parsed,returnValue) \
-    ( (This)->lpVtbl->TryParseBool(This,input,parsed,returnValue) )
+#define __x_TestApp_CParity_CIDataParser_TryParseBool(This,input,parsed,result) \
+    ( (This)->lpVtbl->TryParseBool(This,input,parsed,result) )
 
-#define __x_TestApp_CParity_CIDataParser_TryParseName(This,input,parsedName,returnValue) \
-    ( (This)->lpVtbl->TryParseName(This,input,parsedName,returnValue) )
+#define __x_TestApp_CParity_CIDataParser_TryParseName(This,input,parsedName,result) \
+    ( (This)->lpVtbl->TryParseName(This,input,parsedName,result) )
 
 #define __x_TestApp_CParity_CIDataParser_GetBounds(This,minBound,maxBound) \
     ( (This)->lpVtbl->GetBounds(This,minBound,maxBound) )
@@ -236,8 +236,8 @@ interface __x_TestApp_CParity_CIDataParser
 #define __x_TestApp_CParity_CIDataParser_GetInfo(This,infoName,infoVersion,infoValid) \
     ( (This)->lpVtbl->GetInfo(This,infoName,infoVersion,infoValid) )
 
-#define __x_TestApp_CParity_CIDataParser_TryGetKeyValue(This,key,foundValue,exists,returnValue) \
-    ( (This)->lpVtbl->TryGetKeyValue(This,key,foundValue,exists,returnValue) )
+#define __x_TestApp_CParity_CIDataParser_TryGetKeyValue(This,key,foundValue,exists,result) \
+    ( (This)->lpVtbl->TryGetKeyValue(This,key,foundValue,exists,result) )
 
 #endif /* COBJMACROS */
 

@@ -54,7 +54,7 @@ public partial class HeaderParityTests
         // COBJMACROS
         Assert.Contains("#ifdef COBJMACROS", cBlock);
         Assert.Contains("#define __x_TestApp_CParity_CIBasicWidget_QueryInterface(This,riid,ppvObject)", cBlock);
-        Assert.Contains("#define __x_TestApp_CParity_CIBasicWidget_GetName(This,returnValue)", cBlock);
+        Assert.Contains("#define __x_TestApp_CParity_CIBasicWidget_GetName(This,result)", cBlock);
         Assert.Contains("#define __x_TestApp_CParity_CIBasicWidget_get_WidgetName(This,value)", cBlock);
         Assert.Contains("#define __x_TestApp_CParity_CIBasicWidget_add_Changed(This,handler,token)", cBlock);
         Assert.Contains("#endif /* COBJMACROS */", cBlock);
@@ -74,7 +74,7 @@ public partial class HeaderParityTests
         Assert.Contains("typedef struct __x_TestApp_CParity_CInterfaceOnly_CIReaderWriterVtbl", cBlock);
 
         // Each gets COBJMACROS
-        Assert.Contains("#define __x_TestApp_CParity_CInterfaceOnly_CIReader_Read(This,returnValue)", cBlock);
+        Assert.Contains("#define __x_TestApp_CParity_CInterfaceOnly_CIReader_Read(This,result)", cBlock);
         Assert.Contains("#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_Write(This,data)", cBlock);
         Assert.Contains("#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_Flush(This)", cBlock);
     }

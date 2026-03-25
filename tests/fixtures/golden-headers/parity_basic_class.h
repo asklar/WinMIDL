@@ -257,26 +257,26 @@ typedef struct __x_TestApp_CParity_CIBasicWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIBasicWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIBasicWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIBasicWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetName )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetCount )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ int* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *IsActive )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetValue )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ double* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetRatio )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ float* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetName )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *GetCount )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */int * result);
+    HRESULT ( STDMETHODCALLTYPE *IsActive )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *GetValue )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */double * result);
+    HRESULT ( STDMETHODCALLTYPE *GetRatio )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */float * result);
     HRESULT ( STDMETHODCALLTYPE *Reset )(__x_TestApp_CParity_CIBasicWidget * This);
-    HRESULT ( STDMETHODCALLTYPE *SetName )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */ HSTRING name);
-    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean enabled);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_WidgetName )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ HSTRING* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_WidgetId )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ int* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsEnabled )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ ::boolean* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsEnabled )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */ ::boolean value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Factor )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ double* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Factor )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */ double value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */ int* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Priority )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */ int value);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Changed )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Changed )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_NameChanged )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_NameChanged )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */ EventRegistrationToken token);
+    HRESULT ( STDMETHODCALLTYPE *SetName )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */HSTRING name);
+    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */HSTRING name, /* [in] */int count, /* [in] */::boolean enabled);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_WidgetName )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */HSTRING * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_WidgetId )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */int * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsEnabled )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */::boolean * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsEnabled )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Factor )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */double * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Factor )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */double value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */int * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Priority )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */int value);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Changed )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Changed )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_NameChanged )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_NameChanged )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */EventRegistrationToken token);
     END_INTERFACE
 } __x_TestApp_CParity_CIBasicWidgetVtbl;
 
@@ -304,20 +304,20 @@ interface __x_TestApp_CParity_CIBasicWidget
 #define __x_TestApp_CParity_CIBasicWidget_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIBasicWidget_GetName(This,returnValue) \
-    ( (This)->lpVtbl->GetName(This,returnValue) )
+#define __x_TestApp_CParity_CIBasicWidget_GetName(This,result) \
+    ( (This)->lpVtbl->GetName(This,result) )
 
-#define __x_TestApp_CParity_CIBasicWidget_GetCount(This,returnValue) \
-    ( (This)->lpVtbl->GetCount(This,returnValue) )
+#define __x_TestApp_CParity_CIBasicWidget_GetCount(This,result) \
+    ( (This)->lpVtbl->GetCount(This,result) )
 
-#define __x_TestApp_CParity_CIBasicWidget_IsActive(This,returnValue) \
-    ( (This)->lpVtbl->IsActive(This,returnValue) )
+#define __x_TestApp_CParity_CIBasicWidget_IsActive(This,result) \
+    ( (This)->lpVtbl->IsActive(This,result) )
 
-#define __x_TestApp_CParity_CIBasicWidget_GetValue(This,returnValue) \
-    ( (This)->lpVtbl->GetValue(This,returnValue) )
+#define __x_TestApp_CParity_CIBasicWidget_GetValue(This,result) \
+    ( (This)->lpVtbl->GetValue(This,result) )
 
-#define __x_TestApp_CParity_CIBasicWidget_GetRatio(This,returnValue) \
-    ( (This)->lpVtbl->GetRatio(This,returnValue) )
+#define __x_TestApp_CParity_CIBasicWidget_GetRatio(This,result) \
+    ( (This)->lpVtbl->GetRatio(This,result) )
 
 #define __x_TestApp_CParity_CIBasicWidget_Reset(This) \
     ( (This)->lpVtbl->Reset(This) )
@@ -382,7 +382,7 @@ typedef struct __x_TestApp_CParity_CIBasicWidgetFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIBasicWidgetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIBasicWidgetFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIBasicWidgetFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIBasicWidgetFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ BasicWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIBasicWidgetFactory * This, /* [in] */HSTRING name, /* [out, retval] */BasicWidget * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIBasicWidgetFactoryVtbl;
 
@@ -410,8 +410,8 @@ interface __x_TestApp_CParity_CIBasicWidgetFactory
 #define __x_TestApp_CParity_CIBasicWidgetFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIBasicWidgetFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIBasicWidgetFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 

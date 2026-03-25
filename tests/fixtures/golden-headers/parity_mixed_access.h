@@ -389,9 +389,9 @@ typedef struct __x_TestApp_CParity_CIMixedAccessBaseVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedAccessBase * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedAccessBase * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessBase * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIMixedAccessBase * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIMixedAccessBase * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *PublicMethod )(__x_TestApp_CParity_CIMixedAccessBase * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_PublicProperty )(__x_TestApp_CParity_CIMixedAccessBase * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_PublicProperty )(__x_TestApp_CParity_CIMixedAccessBase * This, /* [out, retval] */int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIMixedAccessBaseVtbl;
 
@@ -446,7 +446,7 @@ typedef struct __x_TestApp_CParity_CIMixedAccessBaseFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMixedAccessBaseFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ MixedAccessBase* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMixedAccessBaseFactory * This, /* [in] */HSTRING name, /* [out, retval] */MixedAccessBase * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIMixedAccessBaseFactoryVtbl;
 
@@ -474,8 +474,8 @@ interface __x_TestApp_CParity_CIMixedAccessBaseFactory
 #define __x_TestApp_CParity_CIMixedAccessBaseFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIMixedAccessBaseFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIMixedAccessBaseFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 
@@ -497,7 +497,7 @@ typedef struct __x_TestApp_CParity_CIMixedAccessBaseOverridesVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseOverrides * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *OnLoad )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This);
     HRESULT ( STDMETHODCALLTYPE *OnSave )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This);
-    HRESULT ( STDMETHODCALLTYPE *CanProcess )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CanProcess )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This, /* [out, retval] */::boolean * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIMixedAccessBaseOverridesVtbl;
 
@@ -531,8 +531,8 @@ interface __x_TestApp_CParity_CIMixedAccessBaseOverrides
 #define __x_TestApp_CParity_CIMixedAccessBaseOverrides_OnSave(This) \
     ( (This)->lpVtbl->OnSave(This) )
 
-#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_CanProcess(This,returnValue) \
-    ( (This)->lpVtbl->CanProcess(This,returnValue) )
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_CanProcess(This,result) \
+    ( (This)->lpVtbl->CanProcess(This,result) )
 
 #endif /* COBJMACROS */
 
@@ -552,7 +552,7 @@ typedef struct __x_TestApp_CParity_CIMixedAccessDerivedVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerived * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerived * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerived * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DerivedLabel )(__x_TestApp_CParity_CIMixedAccessDerived * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DerivedLabel )(__x_TestApp_CParity_CIMixedAccessDerived * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIMixedAccessDerivedVtbl;
 
@@ -601,7 +601,7 @@ typedef struct __x_TestApp_CParity_CIMixedAccessDerivedFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerivedFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerivedFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerivedFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMixedAccessDerivedFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ MixedAccessDerived* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMixedAccessDerivedFactory * This, /* [in] */HSTRING name, /* [out, retval] */MixedAccessDerived * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIMixedAccessDerivedFactoryVtbl;
 
@@ -629,8 +629,8 @@ interface __x_TestApp_CParity_CIMixedAccessDerivedFactory
 #define __x_TestApp_CParity_CIMixedAccessDerivedFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIMixedAccessDerivedFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIMixedAccessDerivedFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 

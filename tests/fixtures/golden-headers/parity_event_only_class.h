@@ -309,7 +309,7 @@ typedef struct __x_TestApp_CParity_CItemAddedHandlerVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CItemAddedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CItemAddedHandler * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CItemAddedHandler * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CItemAddedHandler * This, /* [in] */ HSTRING item, /* [in] */ int index);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CItemAddedHandler * This, /* [in] */HSTRING item, /* [in] */int index);
     END_INTERFACE
 } __x_TestApp_CParity_CItemAddedHandlerVtbl;
 
@@ -344,7 +344,7 @@ typedef struct __x_TestApp_CParity_CItemRemovedHandlerVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CItemRemovedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CItemRemovedHandler * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CItemRemovedHandler * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CItemRemovedHandler * This, /* [in] */ HSTRING item);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CItemRemovedHandler * This, /* [in] */HSTRING item);
     END_INTERFACE
 } __x_TestApp_CParity_CItemRemovedHandlerVtbl;
 
@@ -414,7 +414,7 @@ typedef struct __x_TestApp_CParity_CItemMovedHandlerVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CItemMovedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CItemMovedHandler * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CItemMovedHandler * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CItemMovedHandler * This, /* [in] */ int oldIndex, /* [in] */ int newIndex);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CItemMovedHandler * This, /* [in] */int oldIndex, /* [in] */int newIndex);
     END_INTERFACE
 } __x_TestApp_CParity_CItemMovedHandlerVtbl;
 
@@ -454,20 +454,20 @@ typedef struct __x_TestApp_CParity_CIEventSourceWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIEventSourceWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIEventSourceWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIEventSourceWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ItemAdded )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_TestApp_CParity_CItemAddedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ItemAdded )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ItemRemoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_TestApp_CParity_CItemRemovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ItemRemoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CollectionCleared )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_TestApp_CParity_CCollectionClearedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CollectionCleared )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ItemMoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_TestApp_CParity_CItemMovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ItemMoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_StateChanged )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_StateChanged )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
-    HRESULT ( STDMETHODCALLTYPE *AddItem )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ HSTRING item);
-    HRESULT ( STDMETHODCALLTYPE *RemoveItem )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ HSTRING item);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ItemAdded )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */__x_TestApp_CParity_CItemAddedHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ItemAdded )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ItemRemoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */__x_TestApp_CParity_CItemRemovedHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ItemRemoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CollectionCleared )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */__x_TestApp_CParity_CCollectionClearedHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CollectionCleared )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ItemMoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */__x_TestApp_CParity_CItemMovedHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ItemMoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_StateChanged )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_StateChanged )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */EventRegistrationToken token);
+    HRESULT ( STDMETHODCALLTYPE *AddItem )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */HSTRING item);
+    HRESULT ( STDMETHODCALLTYPE *RemoveItem )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */HSTRING item);
     HRESULT ( STDMETHODCALLTYPE *Clear )(__x_TestApp_CParity_CIEventSourceWidget * This);
-    HRESULT ( STDMETHODCALLTYPE *MoveItem )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ int fromIndex, /* [in] */ int toIndex);
+    HRESULT ( STDMETHODCALLTYPE *MoveItem )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */int fromIndex, /* [in] */int toIndex);
     END_INTERFACE
 } __x_TestApp_CParity_CIEventSourceWidgetVtbl;
 

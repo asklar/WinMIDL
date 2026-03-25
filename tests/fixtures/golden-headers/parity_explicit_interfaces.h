@@ -495,7 +495,7 @@ typedef struct __x_TestApp_CParity_CIRenderableVtbl
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIRenderable * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIRenderable * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *Render )(__x_TestApp_CParity_CIRenderable * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ZOrder )(__x_TestApp_CParity_CIRenderable * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ZOrder )(__x_TestApp_CParity_CIRenderable * This, /* [out, retval] */int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIRenderableVtbl;
 
@@ -547,8 +547,8 @@ typedef struct __x_TestApp_CParity_CISerializableVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISerializable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISerializable * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISerializable * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Serialize )(__x_TestApp_CParity_CISerializable * This, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Deserialize )(__x_TestApp_CParity_CISerializable * This, /* [in] */ HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *Serialize )(__x_TestApp_CParity_CISerializable * This, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Deserialize )(__x_TestApp_CParity_CISerializable * This, /* [in] */HSTRING data);
     END_INTERFACE
 } __x_TestApp_CParity_CISerializableVtbl;
 
@@ -576,8 +576,8 @@ interface __x_TestApp_CParity_CISerializable
 #define __x_TestApp_CParity_CISerializable_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CISerializable_Serialize(This,returnValue) \
-    ( (This)->lpVtbl->Serialize(This,returnValue) )
+#define __x_TestApp_CParity_CISerializable_Serialize(This,result) \
+    ( (This)->lpVtbl->Serialize(This,result) )
 
 #define __x_TestApp_CParity_CISerializable_Deserialize(This,data) \
     ( (This)->lpVtbl->Deserialize(This,data) )
@@ -600,8 +600,8 @@ typedef struct __x_TestApp_CParity_CIPrintableVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIPrintable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIPrintable * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIPrintable * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Print )(__x_TestApp_CParity_CIPrintable * This, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *SetMargins )(__x_TestApp_CParity_CIPrintable * This, /* [in] */ double left, /* [in] */ double top, /* [in] */ double right, /* [in] */ double bottom);
+    HRESULT ( STDMETHODCALLTYPE *Print )(__x_TestApp_CParity_CIPrintable * This, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *SetMargins )(__x_TestApp_CParity_CIPrintable * This, /* [in] */double left, /* [in] */double top, /* [in] */double right, /* [in] */double bottom);
     END_INTERFACE
 } __x_TestApp_CParity_CIPrintableVtbl;
 
@@ -629,8 +629,8 @@ interface __x_TestApp_CParity_CIPrintable
 #define __x_TestApp_CParity_CIPrintable_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIPrintable_Print(This,returnValue) \
-    ( (This)->lpVtbl->Print(This,returnValue) )
+#define __x_TestApp_CParity_CIPrintable_Print(This,result) \
+    ( (This)->lpVtbl->Print(This,result) )
 
 #define __x_TestApp_CParity_CIPrintable_SetMargins(This,left,top,right,bottom) \
     ( (This)->lpVtbl->SetMargins(This,left,top,right,bottom) )
@@ -653,7 +653,7 @@ typedef struct __x_TestApp_CParity_CICloneable2Vtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CICloneable2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CICloneable2 * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CICloneable2 * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Clone )(__x_TestApp_CParity_CICloneable2 * This, /* [out, retval] */ IInspectable** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Clone )(__x_TestApp_CParity_CICloneable2 * This, /* [out, retval] */IInspectable* * result);
     END_INTERFACE
 } __x_TestApp_CParity_CICloneable2Vtbl;
 
@@ -681,8 +681,8 @@ interface __x_TestApp_CParity_CICloneable2
 #define __x_TestApp_CParity_CICloneable2_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CICloneable2_Clone(This,returnValue) \
-    ( (This)->lpVtbl->Clone(This,returnValue) )
+#define __x_TestApp_CParity_CICloneable2_Clone(This,result) \
+    ( (This)->lpVtbl->Clone(This,result) )
 
 #endif /* COBJMACROS */
 
@@ -702,7 +702,7 @@ typedef struct __x_TestApp_CParity_CIGraphicElementVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGraphicElement * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGraphicElement * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGraphicElement * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ElementName )(__x_TestApp_CParity_CIGraphicElement * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ElementName )(__x_TestApp_CParity_CIGraphicElement * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIGraphicElementVtbl;
 
@@ -751,7 +751,7 @@ typedef struct __x_TestApp_CParity_CIGraphicElementFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGraphicElementFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGraphicElementFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGraphicElementFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIGraphicElementFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ GraphicElement* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIGraphicElementFactory * This, /* [in] */HSTRING name, /* [out, retval] */GraphicElement * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIGraphicElementFactoryVtbl;
 
@@ -779,8 +779,8 @@ interface __x_TestApp_CParity_CIGraphicElementFactory
 #define __x_TestApp_CParity_CIGraphicElementFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIGraphicElementFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIGraphicElementFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 
@@ -800,9 +800,9 @@ typedef struct __x_TestApp_CParity_CIDocumentVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIDocument * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIDocument * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDocument * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Title )(__x_TestApp_CParity_CIDocument * This, /* [out, retval] */ HSTRING* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Title )(__x_TestApp_CParity_CIDocument * This, /* [in] */ HSTRING value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_PageCount )(__x_TestApp_CParity_CIDocument * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Title )(__x_TestApp_CParity_CIDocument * This, /* [out, retval] */HSTRING * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Title )(__x_TestApp_CParity_CIDocument * This, /* [in] */HSTRING value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_PageCount )(__x_TestApp_CParity_CIDocument * This, /* [out, retval] */int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIDocumentVtbl;
 

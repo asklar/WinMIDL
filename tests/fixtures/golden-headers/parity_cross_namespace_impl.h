@@ -194,7 +194,7 @@ typedef struct __x_TestApp_CParity_CContracts_CDataNotificationVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CContracts_CDataNotification * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CContracts_CDataNotification * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CContracts_CDataNotification * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CContracts_CDataNotification * This, /* [in] */ HSTRING message);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CContracts_CDataNotification * This, /* [in] */HSTRING message);
     END_INTERFACE
 } __x_TestApp_CParity_CContracts_CDataNotificationVtbl;
 
@@ -234,12 +234,12 @@ typedef struct __x_TestApp_CParity_CImpl_CIDataServiceVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CImpl_CIDataService * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CImpl_CIDataService * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CImpl_CIDataService * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ServiceName )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [out, retval] */ HSTRING* value);
-    HRESULT ( STDMETHODCALLTYPE *GetData )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *SetData )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [in] */ HSTRING data);
-    HRESULT ( STDMETHODCALLTYPE *Notify )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [in] */ HSTRING message);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Notified )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [in] */ __x_TestApp_CParity_CContracts_CDataNotification* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Notified )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [in] */ EventRegistrationToken token);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ServiceName )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [out, retval] */HSTRING * value);
+    HRESULT ( STDMETHODCALLTYPE *GetData )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *SetData )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [in] */HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *Notify )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [in] */HSTRING message);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Notified )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [in] */__x_TestApp_CParity_CContracts_CDataNotification* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Notified )(__x_TestApp_CParity_CImpl_CIDataService * This, /* [in] */EventRegistrationToken token);
     END_INTERFACE
 } __x_TestApp_CParity_CImpl_CIDataServiceVtbl;
 
@@ -270,8 +270,8 @@ interface __x_TestApp_CParity_CImpl_CIDataService
 #define __x_TestApp_CParity_CImpl_CIDataService_get_ServiceName(This,value) \
     ( (This)->lpVtbl->get_ServiceName(This,value) )
 
-#define __x_TestApp_CParity_CImpl_CIDataService_GetData(This,returnValue) \
-    ( (This)->lpVtbl->GetData(This,returnValue) )
+#define __x_TestApp_CParity_CImpl_CIDataService_GetData(This,result) \
+    ( (This)->lpVtbl->GetData(This,result) )
 
 #define __x_TestApp_CParity_CImpl_CIDataService_SetData(This,data) \
     ( (This)->lpVtbl->SetData(This,data) )

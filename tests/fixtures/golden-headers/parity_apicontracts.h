@@ -202,9 +202,9 @@ typedef struct __x_TestApp_CParity_CIContractedWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIContractedWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIContractedWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIContractedWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIContractedWidget * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIContractedWidget * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *NewMethod )(__x_TestApp_CParity_CIContractedWidget * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewProperty )(__x_TestApp_CParity_CIContractedWidget * This, /* [out, retval] */ ::boolean* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewProperty )(__x_TestApp_CParity_CIContractedWidget * This, /* [out, retval] */::boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIContractedWidgetVtbl;
 
@@ -259,7 +259,7 @@ typedef struct __x_TestApp_CParity_CIContractedWidgetStaticsVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIContractedWidgetStatics * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIContractedWidgetStatics * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIContractedWidgetStatics * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Create )(__x_TestApp_CParity_CIContractedWidgetStatics * This, /* [in] */ HSTRING name, /* [out, retval] */ ContractedWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Create )(__x_TestApp_CParity_CIContractedWidgetStatics * This, /* [in] */HSTRING name, /* [out, retval] */ContractedWidget * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIContractedWidgetStaticsVtbl;
 
@@ -287,8 +287,8 @@ interface __x_TestApp_CParity_CIContractedWidgetStatics
 #define __x_TestApp_CParity_CIContractedWidgetStatics_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIContractedWidgetStatics_Create(This,name,returnValue) \
-    ( (This)->lpVtbl->Create(This,name,returnValue) )
+#define __x_TestApp_CParity_CIContractedWidgetStatics_Create(This,name,result) \
+    ( (This)->lpVtbl->Create(This,name,result) )
 
 #endif /* COBJMACROS */
 

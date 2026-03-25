@@ -227,7 +227,7 @@ typedef struct __x_TestApp_CParity_CNamesChangedDelegateVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CNamesChangedDelegate * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CNamesChangedDelegate * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CNamesChangedDelegate * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CNamesChangedDelegate * This, /* [in] */ __x_Windows_CFoundation_CCollections_CIVector* names);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CNamesChangedDelegate * This, /* [in] */__x_Windows_CFoundation_CCollections_CIVector* names);
     END_INTERFACE
 } __x_TestApp_CParity_CNamesChangedDelegateVtbl;
 
@@ -262,7 +262,7 @@ typedef struct __x_TestApp_CParity_CMappingsChangedDelegateVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CMappingsChangedDelegate * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CMappingsChangedDelegate * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CMappingsChangedDelegate * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CMappingsChangedDelegate * This, /* [in] */ __x_Windows_CFoundation_CCollections_CIMap* mappings);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CMappingsChangedDelegate * This, /* [in] */__x_Windows_CFoundation_CCollections_CIMap* mappings);
     END_INTERFACE
 } __x_TestApp_CParity_CMappingsChangedDelegateVtbl;
 
@@ -302,14 +302,14 @@ typedef struct __x_TestApp_CParity_CIGenericEventWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGenericEventWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGenericEventWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGenericEventWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_NamesChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ __x_TestApp_CParity_CNamesChangedDelegate* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_NamesChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_MappingsChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ __x_TestApp_CParity_CMappingsChangedDelegate* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_MappingsChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CountChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CountChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ActiveChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ActiveChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_NamesChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */__x_TestApp_CParity_CNamesChangedDelegate* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_NamesChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_MappingsChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */__x_TestApp_CParity_CMappingsChangedDelegate* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_MappingsChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CountChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CountChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ActiveChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ActiveChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */EventRegistrationToken token);
     END_INTERFACE
 } __x_TestApp_CParity_CIGenericEventWidgetVtbl;
 

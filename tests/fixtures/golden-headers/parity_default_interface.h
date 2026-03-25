@@ -399,7 +399,7 @@ typedef struct __x_TestApp_CParity_CIWidgetCoreVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIWidgetCore * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIWidgetCore * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIWidgetCore * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CoreName )(__x_TestApp_CParity_CIWidgetCore * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CoreName )(__x_TestApp_CParity_CIWidgetCore * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *Activate )(__x_TestApp_CParity_CIWidgetCore * This);
     END_INTERFACE
 } __x_TestApp_CParity_CIWidgetCoreVtbl;
@@ -452,8 +452,8 @@ typedef struct __x_TestApp_CParity_CIWidgetExtraVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIWidgetExtra * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIWidgetExtra * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIWidgetExtra * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ExtraPriority )(__x_TestApp_CParity_CIWidgetExtra * This, /* [out, retval] */ int* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ExtraPriority )(__x_TestApp_CParity_CIWidgetExtra * This, /* [in] */ int value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ExtraPriority )(__x_TestApp_CParity_CIWidgetExtra * This, /* [out, retval] */int * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ExtraPriority )(__x_TestApp_CParity_CIWidgetExtra * This, /* [in] */int value);
     HRESULT ( STDMETHODCALLTYPE *DoExtra )(__x_TestApp_CParity_CIWidgetExtra * This);
     END_INTERFACE
 } __x_TestApp_CParity_CIWidgetExtraVtbl;
@@ -509,7 +509,7 @@ typedef struct __x_TestApp_CParity_CIWidgetAdvancedVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIWidgetAdvanced * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIWidgetAdvanced * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIWidgetAdvanced * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_AdvancedScore )(__x_TestApp_CParity_CIWidgetAdvanced * This, /* [out, retval] */ double* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_AdvancedScore )(__x_TestApp_CParity_CIWidgetAdvanced * This, /* [out, retval] */double * value);
     HRESULT ( STDMETHODCALLTYPE *Recalculate )(__x_TestApp_CParity_CIWidgetAdvanced * This);
     END_INTERFACE
 } __x_TestApp_CParity_CIWidgetAdvancedVtbl;
@@ -562,7 +562,7 @@ typedef struct __x_TestApp_CParity_CIMinimalWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMinimalWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMinimalWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMinimalWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Label )(__x_TestApp_CParity_CIMinimalWidget * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Label )(__x_TestApp_CParity_CIMinimalWidget * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIMinimalWidgetVtbl;
 
@@ -611,7 +611,7 @@ typedef struct __x_TestApp_CParity_CIMultiInterfaceWidgetFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMultiInterfaceWidgetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMultiInterfaceWidgetFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiInterfaceWidgetFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiInterfaceWidgetFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ MultiInterfaceWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiInterfaceWidgetFactory * This, /* [in] */HSTRING name, /* [out, retval] */MultiInterfaceWidget * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIMultiInterfaceWidgetFactoryVtbl;
 
@@ -639,8 +639,8 @@ interface __x_TestApp_CParity_CIMultiInterfaceWidgetFactory
 #define __x_TestApp_CParity_CIMultiInterfaceWidgetFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIMultiInterfaceWidgetFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIMultiInterfaceWidgetFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 

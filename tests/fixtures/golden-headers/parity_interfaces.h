@@ -264,7 +264,7 @@ typedef struct __x_TestApp_CParity_CDataChangedHandlerVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CDataChangedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CDataChangedHandler * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CDataChangedHandler * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CDataChangedHandler * This, /* [in] */ HSTRING key, /* [in] */ IInspectable* data);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CDataChangedHandler * This, /* [in] */HSTRING key, /* [in] */IInspectable* data);
     END_INTERFACE
 } __x_TestApp_CParity_CDataChangedHandlerVtbl;
 
@@ -304,12 +304,12 @@ typedef struct __x_TestApp_CParity_CIDataSourceVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIDataSource * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIDataSource * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDataSource * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIDataSource * This, /* [out, retval] */ HSTRING* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ItemCount )(__x_TestApp_CParity_CIDataSource * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIDataSource * This, /* [out, retval] */HSTRING * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ItemCount )(__x_TestApp_CParity_CIDataSource * This, /* [out, retval] */int * value);
     HRESULT ( STDMETHODCALLTYPE *Refresh )(__x_TestApp_CParity_CIDataSource * This);
-    HRESULT ( STDMETHODCALLTYPE *GetItem )(__x_TestApp_CParity_CIDataSource * This, /* [in] */ int index, /* [out, retval] */ IInspectable** returnValue);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_DataChanged )(__x_TestApp_CParity_CIDataSource * This, /* [in] */ __x_TestApp_CParity_CDataChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_DataChanged )(__x_TestApp_CParity_CIDataSource * This, /* [in] */ EventRegistrationToken token);
+    HRESULT ( STDMETHODCALLTYPE *GetItem )(__x_TestApp_CParity_CIDataSource * This, /* [in] */int index, /* [out, retval] */IInspectable* * result);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_DataChanged )(__x_TestApp_CParity_CIDataSource * This, /* [in] */__x_TestApp_CParity_CDataChangedHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_DataChanged )(__x_TestApp_CParity_CIDataSource * This, /* [in] */EventRegistrationToken token);
     END_INTERFACE
 } __x_TestApp_CParity_CIDataSourceVtbl;
 
@@ -346,8 +346,8 @@ interface __x_TestApp_CParity_CIDataSource
 #define __x_TestApp_CParity_CIDataSource_Refresh(This) \
     ( (This)->lpVtbl->Refresh(This) )
 
-#define __x_TestApp_CParity_CIDataSource_GetItem(This,index,returnValue) \
-    ( (This)->lpVtbl->GetItem(This,index,returnValue) )
+#define __x_TestApp_CParity_CIDataSource_GetItem(This,index,result) \
+    ( (This)->lpVtbl->GetItem(This,index,result) )
 
 #define __x_TestApp_CParity_CIDataSource_add_DataChanged(This,handler,token) \
     ( (This)->lpVtbl->add_DataChanged(This,handler,token) )
@@ -373,7 +373,7 @@ typedef struct __x_TestApp_CParity_CICacheableVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CICacheable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CICacheable * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CICacheable * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsCached )(__x_TestApp_CParity_CICacheable * This, /* [out, retval] */ ::boolean* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsCached )(__x_TestApp_CParity_CICacheable * This, /* [out, retval] */::boolean * value);
     HRESULT ( STDMETHODCALLTYPE *Invalidate )(__x_TestApp_CParity_CICacheable * This);
     END_INTERFACE
 } __x_TestApp_CParity_CICacheableVtbl;
@@ -426,7 +426,7 @@ typedef struct __x_TestApp_CParity_CICachedDataSourceVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CICachedDataSource * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CICachedDataSource * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CICachedDataSource * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Prefetch )(__x_TestApp_CParity_CICachedDataSource * This, /* [in] */ int count);
+    HRESULT ( STDMETHODCALLTYPE *Prefetch )(__x_TestApp_CParity_CICachedDataSource * This, /* [in] */int count);
     END_INTERFACE
 } __x_TestApp_CParity_CICachedDataSourceVtbl;
 

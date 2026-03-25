@@ -178,14 +178,14 @@ typedef struct __x_TestApp_CParity_CICalculatorVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CICalculator * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CICalculator * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CICalculator * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Add )(__x_TestApp_CParity_CICalculator * This, /* [in] */ int a, /* [in] */ int b, /* [out, retval] */ int* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Concat )(__x_TestApp_CParity_CICalculator * This, /* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CICalculator * This, /* [in] */ int formatCode, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Parse )(__x_TestApp_CParity_CICalculator * This, /* [in] */ HSTRING input, /* [out, retval] */ int* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Add )(__x_TestApp_CParity_CICalculator * This, /* [in] */ double a, /* [in] */ double b, /* [out, retval] */ double* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Concat )(__x_TestApp_CParity_CICalculator * This, /* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ HSTRING c, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CICalculator * This, /* [in] */ double formatValue, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Parse )(__x_TestApp_CParity_CICalculator * This, /* [in] */ HSTRING input, /* [in] */ int defaultVal, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Add )(__x_TestApp_CParity_CICalculator * This, /* [in] */int a, /* [in] */int b, /* [out, retval] */int * result);
+    HRESULT ( STDMETHODCALLTYPE *Concat )(__x_TestApp_CParity_CICalculator * This, /* [in] */HSTRING a, /* [in] */HSTRING b, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CICalculator * This, /* [in] */int formatCode, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Parse )(__x_TestApp_CParity_CICalculator * This, /* [in] */HSTRING input, /* [out, retval] */int * result);
+    HRESULT ( STDMETHODCALLTYPE *Add )(__x_TestApp_CParity_CICalculator * This, /* [in] */double a, /* [in] */double b, /* [out, retval] */double * result);
+    HRESULT ( STDMETHODCALLTYPE *Concat )(__x_TestApp_CParity_CICalculator * This, /* [in] */HSTRING a, /* [in] */HSTRING b, /* [in] */HSTRING c, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CICalculator * This, /* [in] */double formatValue, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Parse )(__x_TestApp_CParity_CICalculator * This, /* [in] */HSTRING input, /* [in] */int defaultVal, /* [out, retval] */int * result);
     END_INTERFACE
 } __x_TestApp_CParity_CICalculatorVtbl;
 
@@ -213,29 +213,29 @@ interface __x_TestApp_CParity_CICalculator
 #define __x_TestApp_CParity_CICalculator_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CICalculator_Add(This,a,b,returnValue) \
-    ( (This)->lpVtbl->Add(This,a,b,returnValue) )
+#define __x_TestApp_CParity_CICalculator_Add(This,a,b,result) \
+    ( (This)->lpVtbl->Add(This,a,b,result) )
 
-#define __x_TestApp_CParity_CICalculator_Concat(This,a,b,returnValue) \
-    ( (This)->lpVtbl->Concat(This,a,b,returnValue) )
+#define __x_TestApp_CParity_CICalculator_Concat(This,a,b,result) \
+    ( (This)->lpVtbl->Concat(This,a,b,result) )
 
-#define __x_TestApp_CParity_CICalculator_Format(This,formatCode,returnValue) \
-    ( (This)->lpVtbl->Format(This,formatCode,returnValue) )
+#define __x_TestApp_CParity_CICalculator_Format(This,formatCode,result) \
+    ( (This)->lpVtbl->Format(This,formatCode,result) )
 
-#define __x_TestApp_CParity_CICalculator_Parse(This,input,returnValue) \
-    ( (This)->lpVtbl->Parse(This,input,returnValue) )
+#define __x_TestApp_CParity_CICalculator_Parse(This,input,result) \
+    ( (This)->lpVtbl->Parse(This,input,result) )
 
-#define __x_TestApp_CParity_CICalculator_Add(This,a,b,returnValue) \
-    ( (This)->lpVtbl->Add(This,a,b,returnValue) )
+#define __x_TestApp_CParity_CICalculator_Add(This,a,b,result) \
+    ( (This)->lpVtbl->Add(This,a,b,result) )
 
-#define __x_TestApp_CParity_CICalculator_Concat(This,a,b,c,returnValue) \
-    ( (This)->lpVtbl->Concat(This,a,b,c,returnValue) )
+#define __x_TestApp_CParity_CICalculator_Concat(This,a,b,c,result) \
+    ( (This)->lpVtbl->Concat(This,a,b,c,result) )
 
-#define __x_TestApp_CParity_CICalculator_Format(This,formatValue,returnValue) \
-    ( (This)->lpVtbl->Format(This,formatValue,returnValue) )
+#define __x_TestApp_CParity_CICalculator_Format(This,formatValue,result) \
+    ( (This)->lpVtbl->Format(This,formatValue,result) )
 
-#define __x_TestApp_CParity_CICalculator_Parse(This,input,defaultVal,returnValue) \
-    ( (This)->lpVtbl->Parse(This,input,defaultVal,returnValue) )
+#define __x_TestApp_CParity_CICalculator_Parse(This,input,defaultVal,result) \
+    ( (This)->lpVtbl->Parse(This,input,defaultVal,result) )
 
 #endif /* COBJMACROS */
 

@@ -229,19 +229,19 @@ typedef struct __x_TestApp_CParity_CIVersionedMemberVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIVersionedMember * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIVersionedMember * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIVersionedMember * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *DoBasicWork )(__x_TestApp_CParity_CIVersionedMember * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsReady )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */ ::boolean* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Count )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */ int* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Count )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */ int value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsReady )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Count )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */int * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Count )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */int value);
     HRESULT ( STDMETHODCALLTYPE *DoAdvancedWork )(__x_TestApp_CParity_CIVersionedMember * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Efficiency )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */ double* value);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Updated )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Updated )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */ EventRegistrationToken token);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsOptimized )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */ ::boolean* value);
-    HRESULT ( STDMETHODCALLTYPE *Optimize )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */ int level);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Efficiency )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */double * value);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Updated )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Updated )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */EventRegistrationToken token);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsOptimized )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */::boolean * value);
+    HRESULT ( STDMETHODCALLTYPE *Optimize )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */int level);
     HRESULT ( STDMETHODCALLTYPE *Reset )(__x_TestApp_CParity_CIVersionedMember * This);
-    HRESULT ( STDMETHODCALLTYPE *GetDiagnostics )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetDiagnostics )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */HSTRING * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIVersionedMemberVtbl;
 
@@ -305,8 +305,8 @@ interface __x_TestApp_CParity_CIVersionedMember
 #define __x_TestApp_CParity_CIVersionedMember_Reset(This) \
     ( (This)->lpVtbl->Reset(This) )
 
-#define __x_TestApp_CParity_CIVersionedMember_GetDiagnostics(This,returnValue) \
-    ( (This)->lpVtbl->GetDiagnostics(This,returnValue) )
+#define __x_TestApp_CParity_CIVersionedMember_GetDiagnostics(This,result) \
+    ( (This)->lpVtbl->GetDiagnostics(This,result) )
 
 #endif /* COBJMACROS */
 
@@ -326,7 +326,7 @@ typedef struct __x_TestApp_CParity_CIVersionedMemberStaticsVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIVersionedMemberStatics * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIVersionedMemberStatics * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIVersionedMemberStatics * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateOptimized )(__x_TestApp_CParity_CIVersionedMemberStatics * This, /* [in] */ HSTRING name, /* [out, retval] */ VersionedMember* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateOptimized )(__x_TestApp_CParity_CIVersionedMemberStatics * This, /* [in] */HSTRING name, /* [out, retval] */VersionedMember * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIVersionedMemberStaticsVtbl;
 
@@ -354,8 +354,8 @@ interface __x_TestApp_CParity_CIVersionedMemberStatics
 #define __x_TestApp_CParity_CIVersionedMemberStatics_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIVersionedMemberStatics_CreateOptimized(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateOptimized(This,name,returnValue) )
+#define __x_TestApp_CParity_CIVersionedMemberStatics_CreateOptimized(This,name,result) \
+    ( (This)->lpVtbl->CreateOptimized(This,name,result) )
 
 #endif /* COBJMACROS */
 

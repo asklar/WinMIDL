@@ -260,9 +260,9 @@ typedef struct __x_TestApp_CParity_CIStaticInstanceWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIStaticInstanceWidget * This, /* [out, retval] */ HSTRING* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Name )(__x_TestApp_CParity_CIStaticInstanceWidget * This, /* [in] */ HSTRING value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIStaticInstanceWidget * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIStaticInstanceWidget * This, /* [out, retval] */HSTRING * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Name )(__x_TestApp_CParity_CIStaticInstanceWidget * This, /* [in] */HSTRING value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIStaticInstanceWidget * This, /* [out, retval] */int * value);
     HRESULT ( STDMETHODCALLTYPE *DoWork )(__x_TestApp_CParity_CIStaticInstanceWidget * This);
     END_INTERFACE
 } __x_TestApp_CParity_CIStaticInstanceWidgetVtbl;
@@ -321,7 +321,7 @@ typedef struct __x_TestApp_CParity_CIStaticInstanceWidgetFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ StaticInstanceWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, /* [in] */HSTRING name, /* [out, retval] */StaticInstanceWidget * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIStaticInstanceWidgetFactoryVtbl;
 
@@ -349,8 +349,8 @@ interface __x_TestApp_CParity_CIStaticInstanceWidgetFactory
 #define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 
@@ -370,7 +370,7 @@ typedef struct __x_TestApp_CParity_CIStaticInstanceWidgetStaticsVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetInstanceCount )(__x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetInstanceCount )(__x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, /* [out, retval] */int * result);
     HRESULT ( STDMETHODCALLTYPE *ResetAll )(__x_TestApp_CParity_CIStaticInstanceWidgetStatics * This);
     END_INTERFACE
 } __x_TestApp_CParity_CIStaticInstanceWidgetStaticsVtbl;
@@ -399,8 +399,8 @@ interface __x_TestApp_CParity_CIStaticInstanceWidgetStatics
 #define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_GetInstanceCount(This,returnValue) \
-    ( (This)->lpVtbl->GetInstanceCount(This,returnValue) )
+#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_GetInstanceCount(This,result) \
+    ( (This)->lpVtbl->GetInstanceCount(This,result) )
 
 #define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_ResetAll(This) \
     ( (This)->lpVtbl->ResetAll(This) )

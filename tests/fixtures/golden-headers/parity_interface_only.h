@@ -248,9 +248,9 @@ typedef struct __x_TestApp_CParity_CInterfaceOnly_CIReaderVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *ReadInt )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */ int* returnValue);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanRead )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */ ::boolean* value);
+    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *ReadInt )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */int * result);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanRead )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */::boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CInterfaceOnly_CIReaderVtbl;
 
@@ -278,11 +278,11 @@ interface __x_TestApp_CParity_CInterfaceOnly_CIReader
 #define __x_TestApp_CParity_CInterfaceOnly_CIReader_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CInterfaceOnly_CIReader_Read(This,returnValue) \
-    ( (This)->lpVtbl->Read(This,returnValue) )
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_Read(This,result) \
+    ( (This)->lpVtbl->Read(This,result) )
 
-#define __x_TestApp_CParity_CInterfaceOnly_CIReader_ReadInt(This,returnValue) \
-    ( (This)->lpVtbl->ReadInt(This,returnValue) )
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_ReadInt(This,result) \
+    ( (This)->lpVtbl->ReadInt(This,result) )
 
 #define __x_TestApp_CParity_CInterfaceOnly_CIReader_get_CanRead(This,value) \
     ( (This)->lpVtbl->get_CanRead(This,value) )
@@ -305,9 +305,9 @@ typedef struct __x_TestApp_CParity_CInterfaceOnly_CIWriterVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [in] */ HSTRING data);
-    HRESULT ( STDMETHODCALLTYPE *WriteInt )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [in] */ int value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanWrite )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [out, retval] */ ::boolean* value);
+    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [in] */HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *WriteInt )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [in] */int value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanWrite )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [out, retval] */::boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CInterfaceOnly_CIWriterVtbl;
 
@@ -363,8 +363,8 @@ typedef struct __x_TestApp_CParity_CInterfaceOnly_CIReaderWriterVtbl
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *Flush )(__x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Position )(__x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, /* [out, retval] */ int* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Position )(__x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, /* [in] */ int value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Position )(__x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, /* [out, retval] */int * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Position )(__x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, /* [in] */int value);
     END_INTERFACE
 } __x_TestApp_CParity_CInterfaceOnly_CIReaderWriterVtbl;
 

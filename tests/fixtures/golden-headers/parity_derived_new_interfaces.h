@@ -383,8 +383,8 @@ typedef struct __x_TestApp_CParity_CISerializable2Vtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISerializable2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISerializable2 * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISerializable2 * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Serialize )(__x_TestApp_CParity_CISerializable2 * This, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Deserialize )(__x_TestApp_CParity_CISerializable2 * This, /* [in] */ HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *Serialize )(__x_TestApp_CParity_CISerializable2 * This, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Deserialize )(__x_TestApp_CParity_CISerializable2 * This, /* [in] */HSTRING data);
     END_INTERFACE
 } __x_TestApp_CParity_CISerializable2Vtbl;
 
@@ -412,8 +412,8 @@ interface __x_TestApp_CParity_CISerializable2
 #define __x_TestApp_CParity_CISerializable2_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CISerializable2_Serialize(This,returnValue) \
-    ( (This)->lpVtbl->Serialize(This,returnValue) )
+#define __x_TestApp_CParity_CISerializable2_Serialize(This,result) \
+    ( (This)->lpVtbl->Serialize(This,result) )
 
 #define __x_TestApp_CParity_CISerializable2_Deserialize(This,data) \
     ( (This)->lpVtbl->Deserialize(This,data) )
@@ -436,7 +436,7 @@ typedef struct __x_TestApp_CParity_CIComparable2Vtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIComparable2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIComparable2 * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIComparable2 * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CompareTo )(__x_TestApp_CParity_CIComparable2 * This, /* [in] */ IInspectable* other, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CompareTo )(__x_TestApp_CParity_CIComparable2 * This, /* [in] */IInspectable* other, /* [out, retval] */int * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIComparable2Vtbl;
 
@@ -464,8 +464,8 @@ interface __x_TestApp_CParity_CIComparable2
 #define __x_TestApp_CParity_CIComparable2_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIComparable2_CompareTo(This,other,returnValue) \
-    ( (This)->lpVtbl->CompareTo(This,other,returnValue) )
+#define __x_TestApp_CParity_CIComparable2_CompareTo(This,other,result) \
+    ( (This)->lpVtbl->CompareTo(This,other,result) )
 
 #endif /* COBJMACROS */
 
@@ -485,7 +485,7 @@ typedef struct __x_TestApp_CParity_CIBaseItemVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIBaseItem * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIBaseItem * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIBaseItem * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIBaseItem * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIBaseItem * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIBaseItemVtbl;
 
@@ -534,8 +534,8 @@ typedef struct __x_TestApp_CParity_CIDerivedItemVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIDerivedItem * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIDerivedItem * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDerivedItem * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(__x_TestApp_CParity_CIDerivedItem * This, /* [out, retval] */ int* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Priority )(__x_TestApp_CParity_CIDerivedItem * This, /* [in] */ int value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(__x_TestApp_CParity_CIDerivedItem * This, /* [out, retval] */int * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Priority )(__x_TestApp_CParity_CIDerivedItem * This, /* [in] */int value);
     END_INTERFACE
 } __x_TestApp_CParity_CIDerivedItemVtbl;
 
@@ -587,7 +587,7 @@ typedef struct __x_TestApp_CParity_CIDerivedItemFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIDerivedItemFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIDerivedItemFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDerivedItemFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIDerivedItemFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ DerivedItem* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIDerivedItemFactory * This, /* [in] */HSTRING name, /* [out, retval] */DerivedItem * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIDerivedItemFactoryVtbl;
 
@@ -615,8 +615,8 @@ interface __x_TestApp_CParity_CIDerivedItemFactory
 #define __x_TestApp_CParity_CIDerivedItemFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIDerivedItemFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIDerivedItemFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 

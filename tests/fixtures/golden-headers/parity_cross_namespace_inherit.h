@@ -346,7 +346,7 @@ typedef struct __x_TestApp_CParity_CBase_CICrossNsBaseVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBase * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBase * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBase * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_BaseName )(__x_TestApp_CParity_CBase_CICrossNsBase * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_BaseName )(__x_TestApp_CParity_CBase_CICrossNsBase * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CBase_CICrossNsBaseVtbl;
 
@@ -444,7 +444,7 @@ typedef struct __x_TestApp_CParity_CDerived_CICrossNsDerivedVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerived * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerived * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerived * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DerivedId )(__x_TestApp_CParity_CDerived_CICrossNsDerived * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DerivedId )(__x_TestApp_CParity_CDerived_CICrossNsDerived * This, /* [out, retval] */int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CDerived_CICrossNsDerivedVtbl;
 
@@ -493,7 +493,7 @@ typedef struct __x_TestApp_CParity_CDerived_CICrossNsDerivedFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ CrossNsDerived* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, /* [in] */HSTRING name, /* [out, retval] */CrossNsDerived * result);
     END_INTERFACE
 } __x_TestApp_CParity_CDerived_CICrossNsDerivedFactoryVtbl;
 
@@ -521,8 +521,8 @@ interface __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory
 #define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 

@@ -252,7 +252,7 @@ typedef struct __x_TestApp_CParity_CIExclusiveInternalVtbl
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIExclusiveInternal * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIExclusiveInternal * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *InternalReset )(__x_TestApp_CParity_CIExclusiveInternal * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DebugId )(__x_TestApp_CParity_CIExclusiveInternal * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DebugId )(__x_TestApp_CParity_CIExclusiveInternal * This, /* [out, retval] */int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIExclusiveInternalVtbl;
 
@@ -305,7 +305,7 @@ typedef struct __x_TestApp_CParity_CIExclusivePrivateVtbl
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIExclusivePrivate * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIExclusivePrivate * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *SecretMethod )(__x_TestApp_CParity_CIExclusivePrivate * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_SecretValue )(__x_TestApp_CParity_CIExclusivePrivate * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_SecretValue )(__x_TestApp_CParity_CIExclusivePrivate * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIExclusivePrivateVtbl;
 
@@ -357,7 +357,7 @@ typedef struct __x_TestApp_CParity_CIExclusiveWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIExclusiveWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIExclusiveWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIExclusiveWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIExclusiveWidget * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIExclusiveWidget * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIExclusiveWidgetVtbl;
 

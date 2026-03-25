@@ -166,12 +166,12 @@ typedef struct __x_TestApp_CParity_CIDeprecatedMembersWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDeprecatedMembersWidget * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *CurrentMethod )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This);
     HRESULT ( STDMETHODCALLTYPE *LegacyMethod )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CurrentCount )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [out, retval] */ int* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_OldCount )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [out, retval] */ int* value);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CurrentEvent )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CurrentEvent )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_OldEvent )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_OldEvent )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CurrentCount )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [out, retval] */int * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_OldCount )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [out, retval] */int * value);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CurrentEvent )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CurrentEvent )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_OldEvent )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_OldEvent )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This, /* [in] */EventRegistrationToken token);
     HRESULT ( STDMETHODCALLTYPE *V2Method )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This);
     HRESULT ( STDMETHODCALLTYPE *V2OldMethod )(__x_TestApp_CParity_CIDeprecatedMembersWidget * This);
     END_INTERFACE

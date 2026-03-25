@@ -653,8 +653,8 @@ typedef struct __x_TestApp_CParity_CIAttributedClassVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIAttributedClass * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIAttributedClass * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIAttributedClass * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Label )(__x_TestApp_CParity_CIAttributedClass * This, /* [out, retval] */ HSTRING* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Label )(__x_TestApp_CParity_CIAttributedClass * This, /* [in] */ HSTRING value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Label )(__x_TestApp_CParity_CIAttributedClass * This, /* [out, retval] */HSTRING * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Label )(__x_TestApp_CParity_CIAttributedClass * This, /* [in] */HSTRING value);
     END_INTERFACE
 } __x_TestApp_CParity_CIAttributedClassVtbl;
 
@@ -751,7 +751,7 @@ typedef struct __x_TestApp_CParity_CIComposableBaseVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIComposableBase * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIComposableBase * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIComposableBase * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIComposableBase * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIComposableBase * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIComposableBaseVtbl;
 
@@ -800,7 +800,7 @@ typedef struct __x_TestApp_CParity_CIComposableBaseFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIComposableBaseFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIComposableBaseFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIComposableBaseFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIComposableBaseFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ ComposableBase* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIComposableBaseFactory * This, /* [in] */HSTRING name, /* [out, retval] */ComposableBase * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIComposableBaseFactoryVtbl;
 
@@ -828,8 +828,8 @@ interface __x_TestApp_CParity_CIComposableBaseFactory
 #define __x_TestApp_CParity_CIComposableBaseFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIComposableBaseFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CIComposableBaseFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 
@@ -898,7 +898,7 @@ typedef struct __x_TestApp_CParity_CIActivatableWidgetFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIActivatableWidgetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIActivatableWidgetFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIActivatableWidgetFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIActivatableWidgetFactory * This, /* [in] */ HSTRING label, /* [out, retval] */ ActivatableWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIActivatableWidgetFactory * This, /* [in] */HSTRING label, /* [out, retval] */ActivatableWidget * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIActivatableWidgetFactoryVtbl;
 
@@ -926,8 +926,8 @@ interface __x_TestApp_CParity_CIActivatableWidgetFactory
 #define __x_TestApp_CParity_CIActivatableWidgetFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIActivatableWidgetFactory_CreateInstance(This,label,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,label,returnValue) )
+#define __x_TestApp_CParity_CIActivatableWidgetFactory_CreateInstance(This,label,result) \
+    ( (This)->lpVtbl->CreateInstance(This,label,result) )
 
 #endif /* COBJMACROS */
 
@@ -947,8 +947,8 @@ typedef struct __x_TestApp_CParity_CISettingsHelperStaticsVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISettingsHelperStatics * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISettingsHelperStatics * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISettingsHelperStatics * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CISettingsHelperStatics * This, /* [in] */ HSTRING key, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CISettingsHelperStatics * This, /* [in] */ HSTRING key, /* [in] */ HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CISettingsHelperStatics * This, /* [in] */HSTRING key, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CISettingsHelperStatics * This, /* [in] */HSTRING key, /* [in] */HSTRING data);
     END_INTERFACE
 } __x_TestApp_CParity_CISettingsHelperStaticsVtbl;
 
@@ -976,8 +976,8 @@ interface __x_TestApp_CParity_CISettingsHelperStatics
 #define __x_TestApp_CParity_CISettingsHelperStatics_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CISettingsHelperStatics_Read(This,key,returnValue) \
-    ( (This)->lpVtbl->Read(This,key,returnValue) )
+#define __x_TestApp_CParity_CISettingsHelperStatics_Read(This,key,result) \
+    ( (This)->lpVtbl->Read(This,key,result) )
 
 #define __x_TestApp_CParity_CISettingsHelperStatics_Write(This,key,data) \
     ( (This)->lpVtbl->Write(This,key,data) )

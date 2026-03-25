@@ -187,7 +187,7 @@ public partial class HeaderEmitterCBlockTests
         var cBlock = ExtractCBlock(header);
 
         Assert.Contains("*GetName", cBlock);
-        Assert.Contains("HSTRING* returnValue", cBlock);
+        Assert.Contains("HSTRING * result", cBlock);
     }
 
     // ── Property annotations ───────────────────────────────────────────
@@ -338,8 +338,8 @@ public partial class HeaderEmitterCBlockTests
 
         Assert.Contains("#define __x_TestApp_CIFoo_DoIt(This)", cBlock);
         Assert.Contains("(This)->lpVtbl->DoIt(This)", cBlock);
-        Assert.Contains("#define __x_TestApp_CIFoo_GetName(This,returnValue)", cBlock);
-        Assert.Contains("(This)->lpVtbl->GetName(This,returnValue)", cBlock);
+        Assert.Contains("#define __x_TestApp_CIFoo_GetName(This,result)", cBlock);
+        Assert.Contains("(This)->lpVtbl->GetName(This,result)", cBlock);
     }
 
     [Fact]

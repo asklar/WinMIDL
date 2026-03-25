@@ -411,7 +411,7 @@ typedef struct __x_TestApp_CParity_CIReadable2Vtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIReadable2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIReadable2 * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIReadable2 * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CIReadable2 * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CIReadable2 * This, /* [out, retval] */HSTRING * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIReadable2Vtbl;
 
@@ -439,8 +439,8 @@ interface __x_TestApp_CParity_CIReadable2
 #define __x_TestApp_CParity_CIReadable2_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIReadable2_Read(This,returnValue) \
-    ( (This)->lpVtbl->Read(This,returnValue) )
+#define __x_TestApp_CParity_CIReadable2_Read(This,result) \
+    ( (This)->lpVtbl->Read(This,result) )
 
 #endif /* COBJMACROS */
 
@@ -460,7 +460,7 @@ typedef struct __x_TestApp_CParity_CIWritable2Vtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIWritable2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIWritable2 * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIWritable2 * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CIWritable2 * This, /* [in] */ HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CIWritable2 * This, /* [in] */HSTRING data);
     END_INTERFACE
 } __x_TestApp_CParity_CIWritable2Vtbl;
 
@@ -509,8 +509,8 @@ typedef struct __x_TestApp_CParity_CISeekableVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISeekable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISeekable * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISeekable * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Seek )(__x_TestApp_CParity_CISeekable * This, /* [in] */ int position);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Position )(__x_TestApp_CParity_CISeekable * This, /* [out, retval] */ int* value);
+    HRESULT ( STDMETHODCALLTYPE *Seek )(__x_TestApp_CParity_CISeekable * This, /* [in] */int position);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Position )(__x_TestApp_CParity_CISeekable * This, /* [out, retval] */int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CISeekableVtbl;
 
@@ -611,7 +611,7 @@ typedef struct __x_TestApp_CParity_CIFullStreamVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFullStream * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFullStream * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFullStream * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Length )(__x_TestApp_CParity_CIFullStream * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Length )(__x_TestApp_CParity_CIFullStream * This, /* [out, retval] */int * value);
     HRESULT ( STDMETHODCALLTYPE *Flush )(__x_TestApp_CParity_CIFullStream * This);
     END_INTERFACE
 } __x_TestApp_CParity_CIFullStreamVtbl;
@@ -664,11 +664,11 @@ typedef struct __x_TestApp_CParity_CIFullStream2Vtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFullStream2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFullStream2 * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFullStream2 * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CIFullStream2 * This, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CIFullStream2 * This, /* [in] */ HSTRING data);
-    HRESULT ( STDMETHODCALLTYPE *Seek )(__x_TestApp_CParity_CIFullStream2 * This, /* [in] */ int position);
+    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CIFullStream2 * This, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CIFullStream2 * This, /* [in] */HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *Seek )(__x_TestApp_CParity_CIFullStream2 * This, /* [in] */int position);
     HRESULT ( STDMETHODCALLTYPE *Close )(__x_TestApp_CParity_CIFullStream2 * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Length )(__x_TestApp_CParity_CIFullStream2 * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Length )(__x_TestApp_CParity_CIFullStream2 * This, /* [out, retval] */int * value);
     HRESULT ( STDMETHODCALLTYPE *Flush )(__x_TestApp_CParity_CIFullStream2 * This);
     END_INTERFACE
 } __x_TestApp_CParity_CIFullStream2Vtbl;
@@ -697,8 +697,8 @@ interface __x_TestApp_CParity_CIFullStream2
 #define __x_TestApp_CParity_CIFullStream2_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIFullStream2_Read(This,returnValue) \
-    ( (This)->lpVtbl->Read(This,returnValue) )
+#define __x_TestApp_CParity_CIFullStream2_Read(This,result) \
+    ( (This)->lpVtbl->Read(This,result) )
 
 #define __x_TestApp_CParity_CIFullStream2_Write(This,data) \
     ( (This)->lpVtbl->Write(This,data) )

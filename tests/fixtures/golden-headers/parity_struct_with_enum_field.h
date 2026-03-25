@@ -170,8 +170,8 @@ typedef struct __x_TestApp_CParity_CILayoutWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CILayoutWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CILayoutWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CILayoutWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetLayout )(__x_TestApp_CParity_CILayoutWidget * This, /* [out, retval] */ LayoutInfo* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *SetLayout )(__x_TestApp_CParity_CILayoutWidget * This, /* [in] */ LayoutInfo layout);
+    HRESULT ( STDMETHODCALLTYPE *GetLayout )(__x_TestApp_CParity_CILayoutWidget * This, /* [out, retval] */LayoutInfo * result);
+    HRESULT ( STDMETHODCALLTYPE *SetLayout )(__x_TestApp_CParity_CILayoutWidget * This, /* [in] */LayoutInfo layout);
     END_INTERFACE
 } __x_TestApp_CParity_CILayoutWidgetVtbl;
 
@@ -199,8 +199,8 @@ interface __x_TestApp_CParity_CILayoutWidget
 #define __x_TestApp_CParity_CILayoutWidget_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CILayoutWidget_GetLayout(This,returnValue) \
-    ( (This)->lpVtbl->GetLayout(This,returnValue) )
+#define __x_TestApp_CParity_CILayoutWidget_GetLayout(This,result) \
+    ( (This)->lpVtbl->GetLayout(This,result) )
 
 #define __x_TestApp_CParity_CILayoutWidget_SetLayout(This,layout) \
     ( (This)->lpVtbl->SetLayout(This,layout) )

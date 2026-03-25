@@ -171,14 +171,14 @@ typedef struct __x_TestApp_CParity_CIOverloadVarietyWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING data);
-    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ int value, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING query, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING key);
-    HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING data, /* [in] */ ::boolean verbose);
-    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ double value, /* [out, retval] */ HSTRING* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING query, /* [in] */ int maxResults, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING key, /* [in] */ HSTRING value);
+    HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */int value, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING query, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING key);
+    HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING data, /* [in] */::boolean verbose);
+    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */double value, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING query, /* [in] */int maxResults, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING key, /* [in] */HSTRING value);
     END_INTERFACE
 } __x_TestApp_CParity_CIOverloadVarietyWidgetVtbl;
 
@@ -209,11 +209,11 @@ interface __x_TestApp_CParity_CIOverloadVarietyWidget
 #define __x_TestApp_CParity_CIOverloadVarietyWidget_Process(This,data) \
     ( (This)->lpVtbl->Process(This,data) )
 
-#define __x_TestApp_CParity_CIOverloadVarietyWidget_Format(This,value,returnValue) \
-    ( (This)->lpVtbl->Format(This,value,returnValue) )
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Format(This,value,result) \
+    ( (This)->lpVtbl->Format(This,value,result) )
 
-#define __x_TestApp_CParity_CIOverloadVarietyWidget_Search(This,query,returnValue) \
-    ( (This)->lpVtbl->Search(This,query,returnValue) )
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Search(This,query,result) \
+    ( (This)->lpVtbl->Search(This,query,result) )
 
 #define __x_TestApp_CParity_CIOverloadVarietyWidget_Configure(This,key) \
     ( (This)->lpVtbl->Configure(This,key) )
@@ -221,11 +221,11 @@ interface __x_TestApp_CParity_CIOverloadVarietyWidget
 #define __x_TestApp_CParity_CIOverloadVarietyWidget_Process(This,data,verbose) \
     ( (This)->lpVtbl->Process(This,data,verbose) )
 
-#define __x_TestApp_CParity_CIOverloadVarietyWidget_Format(This,value,returnValue) \
-    ( (This)->lpVtbl->Format(This,value,returnValue) )
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Format(This,value,result) \
+    ( (This)->lpVtbl->Format(This,value,result) )
 
-#define __x_TestApp_CParity_CIOverloadVarietyWidget_Search(This,query,maxResults,returnValue) \
-    ( (This)->lpVtbl->Search(This,query,maxResults,returnValue) )
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Search(This,query,maxResults,result) \
+    ( (This)->lpVtbl->Search(This,query,maxResults,result) )
 
 #define __x_TestApp_CParity_CIOverloadVarietyWidget_Configure(This,key,value) \
     ( (This)->lpVtbl->Configure(This,key,value) )

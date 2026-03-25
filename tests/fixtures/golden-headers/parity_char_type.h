@@ -164,13 +164,13 @@ typedef struct __x_TestApp_CParity_CICharWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CICharWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CICharWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CICharWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetSeparator )(__x_TestApp_CParity_CICharWidget * This, /* [out, retval] */ wchar_t* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *SetSeparator )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t c);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Separator )(__x_TestApp_CParity_CICharWidget * This, /* [out, retval] */ wchar_t* value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Separator )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t value);
-    HRESULT ( STDMETHODCALLTYPE *IsLetter )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t c, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *IsDigit )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t c, /* [out, retval] */ ::boolean* returnValue);
-    HRESULT ( STDMETHODCALLTYPE *CharToString )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t c, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetSeparator )(__x_TestApp_CParity_CICharWidget * This, /* [out, retval] */wchar_t * result);
+    HRESULT ( STDMETHODCALLTYPE *SetSeparator )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Separator )(__x_TestApp_CParity_CICharWidget * This, /* [out, retval] */wchar_t * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Separator )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t value);
+    HRESULT ( STDMETHODCALLTYPE *IsLetter )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *IsDigit )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *CharToString )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c, /* [out, retval] */HSTRING * result);
     END_INTERFACE
 } __x_TestApp_CParity_CICharWidgetVtbl;
 
@@ -198,8 +198,8 @@ interface __x_TestApp_CParity_CICharWidget
 #define __x_TestApp_CParity_CICharWidget_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CICharWidget_GetSeparator(This,returnValue) \
-    ( (This)->lpVtbl->GetSeparator(This,returnValue) )
+#define __x_TestApp_CParity_CICharWidget_GetSeparator(This,result) \
+    ( (This)->lpVtbl->GetSeparator(This,result) )
 
 #define __x_TestApp_CParity_CICharWidget_SetSeparator(This,c) \
     ( (This)->lpVtbl->SetSeparator(This,c) )
@@ -210,14 +210,14 @@ interface __x_TestApp_CParity_CICharWidget
 #define __x_TestApp_CParity_CICharWidget_put_Separator(This,value) \
     ( (This)->lpVtbl->put_Separator(This,value) )
 
-#define __x_TestApp_CParity_CICharWidget_IsLetter(This,c,returnValue) \
-    ( (This)->lpVtbl->IsLetter(This,c,returnValue) )
+#define __x_TestApp_CParity_CICharWidget_IsLetter(This,c,result) \
+    ( (This)->lpVtbl->IsLetter(This,c,result) )
 
-#define __x_TestApp_CParity_CICharWidget_IsDigit(This,c,returnValue) \
-    ( (This)->lpVtbl->IsDigit(This,c,returnValue) )
+#define __x_TestApp_CParity_CICharWidget_IsDigit(This,c,result) \
+    ( (This)->lpVtbl->IsDigit(This,c,result) )
 
-#define __x_TestApp_CParity_CICharWidget_CharToString(This,c,returnValue) \
-    ( (This)->lpVtbl->CharToString(This,c,returnValue) )
+#define __x_TestApp_CParity_CICharWidget_CharToString(This,c,result) \
+    ( (This)->lpVtbl->CharToString(This,c,result) )
 
 #endif /* COBJMACROS */
 

@@ -173,17 +173,17 @@ typedef struct __x_TestApp_CParity_CINullableWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CINullableWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CINullableWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CINullableWidget * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableInt )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIReference** value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_NullableInt )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */ __x_Windows_CFoundation_CIReference* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableBool )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIReference** value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_NullableBool )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */ __x_Windows_CFoundation_CIReference* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableDouble )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIReference** value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_NullableDouble )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */ __x_Windows_CFoundation_CIReference* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableSingle )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIReference** value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_NullableSingle )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */ __x_Windows_CFoundation_CIReference* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableGuid )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIReference** value);
-    HRESULT ( STDMETHODCALLTYPE *SetNullableValue )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */ __x_Windows_CFoundation_CIReference* value);
-    HRESULT ( STDMETHODCALLTYPE *GetNullableValue )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIReference** returnValue);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableInt )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIReference* * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_NullableInt )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */__x_Windows_CFoundation_CIReference* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableBool )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIReference* * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_NullableBool )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */__x_Windows_CFoundation_CIReference* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableDouble )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIReference* * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_NullableDouble )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */__x_Windows_CFoundation_CIReference* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableSingle )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIReference* * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_NullableSingle )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */__x_Windows_CFoundation_CIReference* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NullableGuid )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIReference* * value);
+    HRESULT ( STDMETHODCALLTYPE *SetNullableValue )(__x_TestApp_CParity_CINullableWidget * This, /* [in] */__x_Windows_CFoundation_CIReference* value);
+    HRESULT ( STDMETHODCALLTYPE *GetNullableValue )(__x_TestApp_CParity_CINullableWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIReference* * result);
     END_INTERFACE
 } __x_TestApp_CParity_CINullableWidgetVtbl;
 
@@ -241,8 +241,8 @@ interface __x_TestApp_CParity_CINullableWidget
 #define __x_TestApp_CParity_CINullableWidget_SetNullableValue(This,value) \
     ( (This)->lpVtbl->SetNullableValue(This,value) )
 
-#define __x_TestApp_CParity_CINullableWidget_GetNullableValue(This,returnValue) \
-    ( (This)->lpVtbl->GetNullableValue(This,returnValue) )
+#define __x_TestApp_CParity_CINullableWidget_GetNullableValue(This,result) \
+    ( (This)->lpVtbl->GetNullableValue(This,result) )
 
 #endif /* COBJMACROS */
 

@@ -155,11 +155,11 @@ typedef struct __x_TestApp_CParity_CIGenericConsumerVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGenericConsumer * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGenericConsumer * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGenericConsumer * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetNames )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetIds )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetMetadata )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *ValidateAsync )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *EnumerateItems )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetNames )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result);
+    HRESULT ( STDMETHODCALLTYPE *GetIds )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVectorView* * result);
+    HRESULT ( STDMETHODCALLTYPE *GetMetadata )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * result);
+    HRESULT ( STDMETHODCALLTYPE *ValidateAsync )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
+    HRESULT ( STDMETHODCALLTYPE *EnumerateItems )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIIterable* * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIGenericConsumerVtbl;
 
@@ -187,20 +187,20 @@ interface __x_TestApp_CParity_CIGenericConsumer
 #define __x_TestApp_CParity_CIGenericConsumer_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIGenericConsumer_GetNames(This,returnValue) \
-    ( (This)->lpVtbl->GetNames(This,returnValue) )
+#define __x_TestApp_CParity_CIGenericConsumer_GetNames(This,result) \
+    ( (This)->lpVtbl->GetNames(This,result) )
 
-#define __x_TestApp_CParity_CIGenericConsumer_GetIds(This,returnValue) \
-    ( (This)->lpVtbl->GetIds(This,returnValue) )
+#define __x_TestApp_CParity_CIGenericConsumer_GetIds(This,result) \
+    ( (This)->lpVtbl->GetIds(This,result) )
 
-#define __x_TestApp_CParity_CIGenericConsumer_GetMetadata(This,returnValue) \
-    ( (This)->lpVtbl->GetMetadata(This,returnValue) )
+#define __x_TestApp_CParity_CIGenericConsumer_GetMetadata(This,result) \
+    ( (This)->lpVtbl->GetMetadata(This,result) )
 
-#define __x_TestApp_CParity_CIGenericConsumer_ValidateAsync(This,returnValue) \
-    ( (This)->lpVtbl->ValidateAsync(This,returnValue) )
+#define __x_TestApp_CParity_CIGenericConsumer_ValidateAsync(This,result) \
+    ( (This)->lpVtbl->ValidateAsync(This,result) )
 
-#define __x_TestApp_CParity_CIGenericConsumer_EnumerateItems(This,returnValue) \
-    ( (This)->lpVtbl->EnumerateItems(This,returnValue) )
+#define __x_TestApp_CParity_CIGenericConsumer_EnumerateItems(This,result) \
+    ( (This)->lpVtbl->EnumerateItems(This,result) )
 
 #endif /* COBJMACROS */
 

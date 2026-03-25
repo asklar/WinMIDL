@@ -583,7 +583,7 @@ typedef struct __x_TestApp_CParity_CILevel0BaseVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CILevel0Base * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CILevel0Base * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CILevel0Base * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_BaseLabel )(__x_TestApp_CParity_CILevel0Base * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_BaseLabel )(__x_TestApp_CParity_CILevel0Base * This, /* [out, retval] */HSTRING * value);
     END_INTERFACE
 } __x_TestApp_CParity_CILevel0BaseVtbl;
 
@@ -681,7 +681,7 @@ typedef struct __x_TestApp_CParity_CILevel1MidVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CILevel1Mid * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CILevel1Mid * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CILevel1Mid * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_MidValue )(__x_TestApp_CParity_CILevel1Mid * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_MidValue )(__x_TestApp_CParity_CILevel1Mid * This, /* [out, retval] */int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CILevel1MidVtbl;
 
@@ -779,7 +779,7 @@ typedef struct __x_TestApp_CParity_CILevel2UpperVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CILevel2Upper * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CILevel2Upper * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CILevel2Upper * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_UpperFlag )(__x_TestApp_CParity_CILevel2Upper * This, /* [out, retval] */ ::boolean* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_UpperFlag )(__x_TestApp_CParity_CILevel2Upper * This, /* [out, retval] */::boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CILevel2UpperVtbl;
 
@@ -877,7 +877,7 @@ typedef struct __x_TestApp_CParity_CILevel3LeafVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CILevel3Leaf * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CILevel3Leaf * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CILevel3Leaf * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_LeafMetric )(__x_TestApp_CParity_CILevel3Leaf * This, /* [out, retval] */ double* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_LeafMetric )(__x_TestApp_CParity_CILevel3Leaf * This, /* [out, retval] */double * value);
     HRESULT ( STDMETHODCALLTYPE *Execute )(__x_TestApp_CParity_CILevel3Leaf * This);
     END_INTERFACE
 } __x_TestApp_CParity_CILevel3LeafVtbl;
@@ -930,7 +930,7 @@ typedef struct __x_TestApp_CParity_CILevel3LeafFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CILevel3LeafFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CILevel3LeafFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CILevel3LeafFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CILevel3LeafFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ Level3Leaf* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CILevel3LeafFactory * This, /* [in] */HSTRING name, /* [out, retval] */Level3Leaf * result);
     END_INTERFACE
 } __x_TestApp_CParity_CILevel3LeafFactoryVtbl;
 
@@ -958,8 +958,8 @@ interface __x_TestApp_CParity_CILevel3LeafFactory
 #define __x_TestApp_CParity_CILevel3LeafFactory_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CILevel3LeafFactory_CreateInstance(This,name,returnValue) \
-    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+#define __x_TestApp_CParity_CILevel3LeafFactory_CreateInstance(This,name,result) \
+    ( (This)->lpVtbl->CreateInstance(This,name,result) )
 
 #endif /* COBJMACROS */
 

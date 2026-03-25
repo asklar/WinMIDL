@@ -260,7 +260,7 @@ typedef struct __x_TestApp_CParity_CSixParamCallbackVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CSixParamCallback * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CSixParamCallback * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CSixParamCallback * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CSixParamCallback * This, /* [in] */ HSTRING name, /* [in] */ int id, /* [in] */ ::boolean active, /* [in] */ double value, /* [in] */ float ratio, /* [in] */ int priority);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CSixParamCallback * This, /* [in] */HSTRING name, /* [in] */int id, /* [in] */::boolean active, /* [in] */double value, /* [in] */float ratio, /* [in] */int priority);
     END_INTERFACE
 } __x_TestApp_CParity_CSixParamCallbackVtbl;
 
@@ -295,7 +295,7 @@ typedef struct __x_TestApp_CParity_CSevenParamCallbackVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CSevenParamCallback * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CSevenParamCallback * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CSevenParamCallback * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CSevenParamCallback * This, /* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ int c, /* [in] */ int d, /* [in] */ ::boolean e, /* [in] */ double f, /* [in] */ float g);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CSevenParamCallback * This, /* [in] */HSTRING a, /* [in] */HSTRING b, /* [in] */int c, /* [in] */int d, /* [in] */::boolean e, /* [in] */double f, /* [in] */float g);
     END_INTERFACE
 } __x_TestApp_CParity_CSevenParamCallbackVtbl;
 
@@ -330,7 +330,7 @@ typedef struct __x_TestApp_CParity_CComplexCallbackVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CComplexCallback * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CComplexCallback * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CComplexCallback * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CComplexCallback * This, /* [in] */ HSTRING name, /* [in] */ int minVal, /* [in] */ int maxVal, /* [in] */ ::boolean inclusive, /* [in] */ double threshold);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CComplexCallback * This, /* [in] */HSTRING name, /* [in] */int minVal, /* [in] */int maxVal, /* [in] */::boolean inclusive, /* [in] */double threshold);
     END_INTERFACE
 } __x_TestApp_CParity_CComplexCallbackVtbl;
 
@@ -370,10 +370,10 @@ typedef struct __x_TestApp_CParity_CIMultiParamDelegateUserVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMultiParamDelegateUser * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMultiParamDelegateUser * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiParamDelegateUser * This, __RPC__out TrustLevel *trustLevel);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_DataReceived )(__x_TestApp_CParity_CIMultiParamDelegateUser * This, /* [in] */ __x_TestApp_CParity_CSixParamCallback* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_DataReceived )(__x_TestApp_CParity_CIMultiParamDelegateUser * This, /* [in] */ EventRegistrationToken token);
-    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_FilterRequested )(__x_TestApp_CParity_CIMultiParamDelegateUser * This, /* [in] */ __x_TestApp_CParity_CComplexCallback* handler, /* [out, retval] */ EventRegistrationToken* token);
-    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_FilterRequested )(__x_TestApp_CParity_CIMultiParamDelegateUser * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_DataReceived )(__x_TestApp_CParity_CIMultiParamDelegateUser * This, /* [in] */__x_TestApp_CParity_CSixParamCallback* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_DataReceived )(__x_TestApp_CParity_CIMultiParamDelegateUser * This, /* [in] */EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_FilterRequested )(__x_TestApp_CParity_CIMultiParamDelegateUser * This, /* [in] */__x_TestApp_CParity_CComplexCallback* handler, /* [out, retval] */EventRegistrationToken * token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_FilterRequested )(__x_TestApp_CParity_CIMultiParamDelegateUser * This, /* [in] */EventRegistrationToken token);
     END_INTERFACE
 } __x_TestApp_CParity_CIMultiParamDelegateUserVtbl;
 

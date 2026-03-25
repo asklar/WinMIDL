@@ -162,13 +162,13 @@ typedef struct __x_TestApp_CParity_CIObjectWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIObjectWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIObjectWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIObjectWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetValue )(__x_TestApp_CParity_CIObjectWidget * This, /* [out, retval] */ IInspectable** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *SetValue )(__x_TestApp_CParity_CIObjectWidget * This, /* [in] */ IInspectable* value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Tag )(__x_TestApp_CParity_CIObjectWidget * This, /* [out, retval] */ IInspectable** value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Tag )(__x_TestApp_CParity_CIObjectWidget * This, /* [in] */ IInspectable* value);
-    HRESULT ( STDMETHODCALLTYPE *GetAll )(__x_TestApp_CParity_CIObjectWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *GetProperties )(__x_TestApp_CParity_CIObjectWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue);
-    HRESULT ( STDMETHODCALLTYPE *Equals )(__x_TestApp_CParity_CIObjectWidget * This, /* [in] */ IInspectable* other, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetValue )(__x_TestApp_CParity_CIObjectWidget * This, /* [out, retval] */IInspectable* * result);
+    HRESULT ( STDMETHODCALLTYPE *SetValue )(__x_TestApp_CParity_CIObjectWidget * This, /* [in] */IInspectable* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Tag )(__x_TestApp_CParity_CIObjectWidget * This, /* [out, retval] */IInspectable* * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Tag )(__x_TestApp_CParity_CIObjectWidget * This, /* [in] */IInspectable* value);
+    HRESULT ( STDMETHODCALLTYPE *GetAll )(__x_TestApp_CParity_CIObjectWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result);
+    HRESULT ( STDMETHODCALLTYPE *GetProperties )(__x_TestApp_CParity_CIObjectWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIMap* * result);
+    HRESULT ( STDMETHODCALLTYPE *Equals )(__x_TestApp_CParity_CIObjectWidget * This, /* [in] */IInspectable* other, /* [out, retval] */::boolean * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIObjectWidgetVtbl;
 
@@ -196,8 +196,8 @@ interface __x_TestApp_CParity_CIObjectWidget
 #define __x_TestApp_CParity_CIObjectWidget_GetTrustLevel(This,trustLevel) \
     ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
 
-#define __x_TestApp_CParity_CIObjectWidget_GetValue(This,returnValue) \
-    ( (This)->lpVtbl->GetValue(This,returnValue) )
+#define __x_TestApp_CParity_CIObjectWidget_GetValue(This,result) \
+    ( (This)->lpVtbl->GetValue(This,result) )
 
 #define __x_TestApp_CParity_CIObjectWidget_SetValue(This,value) \
     ( (This)->lpVtbl->SetValue(This,value) )
@@ -208,14 +208,14 @@ interface __x_TestApp_CParity_CIObjectWidget
 #define __x_TestApp_CParity_CIObjectWidget_put_Tag(This,value) \
     ( (This)->lpVtbl->put_Tag(This,value) )
 
-#define __x_TestApp_CParity_CIObjectWidget_GetAll(This,returnValue) \
-    ( (This)->lpVtbl->GetAll(This,returnValue) )
+#define __x_TestApp_CParity_CIObjectWidget_GetAll(This,result) \
+    ( (This)->lpVtbl->GetAll(This,result) )
 
-#define __x_TestApp_CParity_CIObjectWidget_GetProperties(This,returnValue) \
-    ( (This)->lpVtbl->GetProperties(This,returnValue) )
+#define __x_TestApp_CParity_CIObjectWidget_GetProperties(This,result) \
+    ( (This)->lpVtbl->GetProperties(This,result) )
 
-#define __x_TestApp_CParity_CIObjectWidget_Equals(This,other,returnValue) \
-    ( (This)->lpVtbl->Equals(This,other,returnValue) )
+#define __x_TestApp_CParity_CIObjectWidget_Equals(This,other,result) \
+    ( (This)->lpVtbl->Equals(This,other,result) )
 
 #endif /* COBJMACROS */
 
