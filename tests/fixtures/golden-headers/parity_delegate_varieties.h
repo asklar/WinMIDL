@@ -626,7 +626,7 @@ typedef struct __x_TestApp_CParity_CThreeParamCallbackVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CThreeParamCallback * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CThreeParamCallback * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CThreeParamCallback * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CThreeParamCallback * This, /* [in] */HSTRING name, /* [in] */int value, /* [in] */::boolean enabled);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CThreeParamCallback * This, /* [in] */HSTRING name, /* [in] */int value, /* [in] */boolean enabled);
     END_INTERFACE
 } __x_TestApp_CParity_CThreeParamCallbackVtbl;
 
@@ -661,7 +661,7 @@ typedef struct __x_TestApp_CParity_CMultiParamCallbackVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CMultiParamCallback * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CMultiParamCallback * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CMultiParamCallback * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CMultiParamCallback * This, /* [in] */HSTRING a, /* [in] */int b, /* [in] */double c, /* [in] */::boolean d, /* [in] */float e);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CMultiParamCallback * This, /* [in] */HSTRING a, /* [in] */int b, /* [in] */double c, /* [in] */boolean d, /* [in] */float e);
     END_INTERFACE
 } __x_TestApp_CParity_CMultiParamCallbackVtbl;
 
@@ -766,7 +766,7 @@ typedef struct __x_TestApp_CParity_CBoolPredicateVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CBoolPredicate * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CBoolPredicate * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CBoolPredicate * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CBoolPredicate * This, /* [in] */int value, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CBoolPredicate * This, /* [in] */int value, /* [out, retval] */boolean * result);
     END_INTERFACE
 } __x_TestApp_CParity_CBoolPredicateVtbl;
 
@@ -871,7 +871,7 @@ typedef struct __x_TestApp_CParity_CTryParseDelegateVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CTryParseDelegate * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CTryParseDelegate * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CTryParseDelegate * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CTryParseDelegate * This, /* [in] */HSTRING input, /* [out] */double * value, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CTryParseDelegate * This, /* [in] */HSTRING input, /* [out] */double * value, /* [out, retval] */boolean * result);
     END_INTERFACE
 } __x_TestApp_CParity_CTryParseDelegateVtbl;
 

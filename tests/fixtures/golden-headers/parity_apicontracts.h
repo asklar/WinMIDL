@@ -213,7 +213,7 @@ typedef struct __x_TestApp_CParity_CIContractedWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIContractedWidget * This, __RPC__out TrustLevel *trustLevel);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIContractedWidget * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *NewMethod )(__x_TestApp_CParity_CIContractedWidget * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewProperty )(__x_TestApp_CParity_CIContractedWidget * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewProperty )(__x_TestApp_CParity_CIContractedWidget * This, /* [out, retval] */boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIContractedWidgetVtbl;
 

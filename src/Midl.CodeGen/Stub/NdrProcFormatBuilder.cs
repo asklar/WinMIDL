@@ -282,6 +282,14 @@ public class NdrProcFormatBuilder
 
         var sb = new StringBuilder();
 
+        // Emit the typedef for the format string struct
+        sb.AppendLine($"typedef struct _{filePrefix}_MIDL_PROC_FORMAT_STRING");
+        sb.AppendLine("    {");
+        sb.AppendLine("        short Pad;");
+        sb.AppendLine($"        unsigned char Format[{bytes.Count}];");
+        sb.AppendLine($"    }} {filePrefix}_MIDL_PROC_FORMAT_STRING;");
+        sb.AppendLine();
+
         sb.AppendLine($"static const {filePrefix}_MIDL_PROC_FORMAT_STRING {filePrefix}__MIDL_ProcFormatString =");
         sb.AppendLine("    {");
         sb.AppendLine("        0,");

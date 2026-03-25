@@ -168,8 +168,8 @@ typedef struct __x_TestApp_CParity_CIMultiOutWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMultiOutWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMultiOutWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiOutWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetFullDetails )(__x_TestApp_CParity_CIMultiOutWidget * This, /* [out] */HSTRING * name, /* [out] */int * id, /* [out] */::boolean * active, /* [out] */double * value, /* [out] */float * ratio);
-    HRESULT ( STDMETHODCALLTYPE *TryParse )(__x_TestApp_CParity_CIMultiOutWidget * This, /* [in] */HSTRING input, /* [out] */HSTRING * name, /* [out] */int * count, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *GetFullDetails )(__x_TestApp_CParity_CIMultiOutWidget * This, /* [out] */HSTRING * name, /* [out] */int * id, /* [out] */boolean * active, /* [out] */double * value, /* [out] */float * ratio);
+    HRESULT ( STDMETHODCALLTYPE *TryParse )(__x_TestApp_CParity_CIMultiOutWidget * This, /* [in] */HSTRING input, /* [out] */HSTRING * name, /* [out] */int * count, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *Decompose )(__x_TestApp_CParity_CIMultiOutWidget * This, /* [out] */int * x, /* [out] */int * y, /* [out] */int * z);
     END_INTERFACE
 } __x_TestApp_CParity_CIMultiOutWidgetVtbl;

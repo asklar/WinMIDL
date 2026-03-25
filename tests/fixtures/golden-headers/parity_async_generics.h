@@ -395,7 +395,7 @@ typedef struct __FIAsyncOperation_1___FIVector_1_HSTRINGVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1___FIVector_1_HSTRING * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1___FIVector_1_HSTRING * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1___FIVector_1_HSTRING * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1___FIVector_1_HSTRING * This, __FIVector_1_HSTRING * * result);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1___FIVector_1_HSTRING * This, __x_Windows_CFoundation_CCollections_CIVector* * result);
     END_INTERFACE
 } __FIAsyncOperation_1___FIVector_1_HSTRINGVtbl;
 
@@ -521,7 +521,7 @@ typedef struct __FIAsyncOperation_1___FIMap_2_HSTRING_intVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __FIMap_2_HSTRING_int * * result);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __x_Windows_CFoundation_CCollections_CIMap* * result);
     END_INTERFACE
 } __FIAsyncOperation_1___FIMap_2_HSTRING_intVtbl;
 
@@ -635,7 +635,7 @@ typedef struct __FIAsyncOperation_1___FIVectorView_1_intVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1___FIVectorView_1_int * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1___FIVectorView_1_int * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1___FIVectorView_1_int * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1___FIVectorView_1_int * This, __FIVectorView_1_int * * result);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1___FIVectorView_1_int * This, __x_Windows_CFoundation_CCollections_CIVectorView* * result);
     END_INTERFACE
 } __FIAsyncOperation_1___FIVectorView_1_intVtbl;
 

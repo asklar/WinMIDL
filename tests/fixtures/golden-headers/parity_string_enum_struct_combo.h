@@ -275,7 +275,7 @@ typedef struct __x_TestApp_CParity_CConnectionChangedHandlerVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CConnectionChangedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CConnectionChangedHandler * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CConnectionChangedHandler * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CConnectionChangedHandler * This, /* [in] */ConnectionInfo info, /* [in] */ConnectionState oldState);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CConnectionChangedHandler * This, /* [in] */struct ConnectionInfo info, /* [in] */enum ConnectionState oldState);
     END_INTERFACE
 } __x_TestApp_CParity_CConnectionChangedHandlerVtbl;
 
@@ -315,9 +315,9 @@ typedef struct __x_TestApp_CParity_CIConnectionManagerVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsConnected )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */::boolean * value);
-    HRESULT ( STDMETHODCALLTYPE *GetInfo )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ConnectionInfo * result);
-    HRESULT ( STDMETHODCALLTYPE *GetState )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ConnectionState * result);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsConnected )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */boolean * value);
+    HRESULT ( STDMETHODCALLTYPE *GetInfo )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */struct ConnectionInfo * result);
+    HRESULT ( STDMETHODCALLTYPE *GetState )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */enum ConnectionState * result);
     HRESULT ( STDMETHODCALLTYPE *Connect )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */HSTRING host, /* [in] */int port);
     HRESULT ( STDMETHODCALLTYPE *Disconnect )(__x_TestApp_CParity_CIConnectionManager * This);
     HRESULT ( STDMETHODCALLTYPE *ConnectAsync )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */HSTRING host, /* [in] */int port, /* [out, retval] */__x_Windows_CFoundation_CIAsyncAction* * result);

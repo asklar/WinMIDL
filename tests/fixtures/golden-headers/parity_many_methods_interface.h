@@ -217,14 +217,14 @@ typedef struct __x_TestApp_CParity_CILargeInterfaceImplVtbl
     HRESULT ( STDMETHODCALLTYPE *Method3 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */int a, /* [in] */int b);
     HRESULT ( STDMETHODCALLTYPE *Method4 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *Method5 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [out, retval] */int * result);
-    HRESULT ( STDMETHODCALLTYPE *Method6 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Method6 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *Method7 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */double x, /* [out, retval] */double * result);
     HRESULT ( STDMETHODCALLTYPE *Method8 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */float y, /* [out, retval] */float * result);
-    HRESULT ( STDMETHODCALLTYPE *Method9 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */HSTRING a, /* [in] */int b, /* [in] */::boolean c);
+    HRESULT ( STDMETHODCALLTYPE *Method9 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */HSTRING a, /* [in] */int b, /* [in] */boolean c);
     HRESULT ( STDMETHODCALLTYPE *Method10 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */int id, /* [out, retval] */HSTRING * result);
-    HRESULT ( STDMETHODCALLTYPE *Method11 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */HSTRING name, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Method11 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */HSTRING name, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *Method12 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */HSTRING key, /* [in] */int defaultValue, /* [out, retval] */int * result);
-    HRESULT ( STDMETHODCALLTYPE *Method13 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */::boolean flag);
+    HRESULT ( STDMETHODCALLTYPE *Method13 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */boolean flag);
     HRESULT ( STDMETHODCALLTYPE *Method14 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */int a, /* [in] */int b, /* [out, retval] */double * result);
     HRESULT ( STDMETHODCALLTYPE *Method15 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */HSTRING prefix, /* [in] */HSTRING suffix, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *Method16 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */HSTRING a, /* [in] */HSTRING b, /* [in] */HSTRING c, /* [in] */int d);

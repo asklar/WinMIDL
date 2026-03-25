@@ -240,7 +240,7 @@ typedef struct __FIEventHandler_1_IInspectableVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIEventHandler_1_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIEventHandler_1_IInspectable * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIEventHandler_1_IInspectable * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FIEventHandler_1_IInspectable * This, IInspectable * sender, IInspectable * args);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FIEventHandler_1_IInspectable * This, IInspectable * sender, IInspectable* args);
     END_INTERFACE
 } __FIEventHandler_1_IInspectableVtbl;
 
@@ -321,7 +321,7 @@ typedef struct __x_TestApp_CParity_CIStaticServiceStaticsVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *GetVersion )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *ComputeHash )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */HSTRING input, /* [out, retval] */int * result);
-    HRESULT ( STDMETHODCALLTYPE *IsSupported )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *IsSupported )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *Initialize )(__x_TestApp_CParity_CIStaticServiceStatics * This);
     HRESULT ( STDMETHODCALLTYPE *Shutdown )(__x_TestApp_CParity_CIStaticServiceStatics * This);
     HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */HSTRING key, /* [in] */HSTRING value);
@@ -329,8 +329,8 @@ typedef struct __x_TestApp_CParity_CIStaticServiceStaticsVtbl
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DefaultName )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */HSTRING * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_DefaultName )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */HSTRING value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_InstanceCount )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */int * value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Verbose )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */::boolean * value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Verbose )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Verbose )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */boolean * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Verbose )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */boolean value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Threshold )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */double * value);
     /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_GlobalChanged )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */__x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
     /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_GlobalChanged )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */EventRegistrationToken token);

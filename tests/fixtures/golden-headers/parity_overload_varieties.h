@@ -183,11 +183,11 @@ typedef struct __x_TestApp_CParity_CIOverloadVarietyWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING data);
     HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */int value, /* [out, retval] */HSTRING * result);
-    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING query, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING query, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING key);
-    HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING data, /* [in] */::boolean verbose);
+    HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING data, /* [in] */boolean verbose);
     HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */double value, /* [out, retval] */HSTRING * result);
-    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING query, /* [in] */int maxResults, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING query, /* [in] */int maxResults, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */HSTRING key, /* [in] */HSTRING value);
     END_INTERFACE
 } __x_TestApp_CParity_CIOverloadVarietyWidgetVtbl;

@@ -289,7 +289,7 @@ typedef struct __x_TestApp_CParity_CIGuidWidgetVtbl
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */GUID * value);
     HRESULT ( STDMETHODCALLTYPE *GenerateId )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */GUID * result);
     HRESULT ( STDMETHODCALLTYPE *SetId )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */GUID id);
-    HRESULT ( STDMETHODCALLTYPE *CompareIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */GUID a, /* [in] */GUID b, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *CompareIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */GUID a, /* [in] */GUID b, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *ProcessIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */GUID id1, /* [in] */GUID id2, /* [in] */GUID id3);
     HRESULT ( STDMETHODCALLTYPE *GetAllIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result);
     END_INTERFACE

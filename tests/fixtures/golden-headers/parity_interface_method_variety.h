@@ -240,18 +240,18 @@ typedef struct __FIVector_1_TestApp__CParity__CCoordinateVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIVector_1_TestApp__CParity__CCoordinate * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIVector_1_TestApp__CParity__CCoordinate * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIVector_1_TestApp__CParity__CCoordinate * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index, Coordinate * result);
+    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index, struct Coordinate * result);
     HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int * result);
     HRESULT ( STDMETHODCALLTYPE *GetView )(__FIVector_1_TestApp__CParity__CCoordinate * This, __FIVectorView_1_* * result);
-    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVector_1_TestApp__CParity__CCoordinate * This, Coordinate value, unsigned int * index, boolean * result);
-    HRESULT ( STDMETHODCALLTYPE *SetAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index, Coordinate value);
-    HRESULT ( STDMETHODCALLTYPE *InsertAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index, Coordinate value);
+    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVector_1_TestApp__CParity__CCoordinate * This, struct Coordinate value, unsigned int * index, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *SetAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index, struct Coordinate value);
+    HRESULT ( STDMETHODCALLTYPE *InsertAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index, struct Coordinate value);
     HRESULT ( STDMETHODCALLTYPE *RemoveAt )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int index);
-    HRESULT ( STDMETHODCALLTYPE *Append )(__FIVector_1_TestApp__CParity__CCoordinate * This, Coordinate value);
+    HRESULT ( STDMETHODCALLTYPE *Append )(__FIVector_1_TestApp__CParity__CCoordinate * This, struct Coordinate value);
     HRESULT ( STDMETHODCALLTYPE *RemoveAtEnd )(__FIVector_1_TestApp__CParity__CCoordinate * This);
     HRESULT ( STDMETHODCALLTYPE *Clear )(__FIVector_1_TestApp__CParity__CCoordinate * This);
-    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int startIndex, unsigned int itemsLength, Coordinate * items, unsigned int * result);
-    HRESULT ( STDMETHODCALLTYPE *ReplaceAll )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int countItems, Coordinate * items);
+    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int startIndex, unsigned int itemsLength, struct Coordinate * items, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *ReplaceAll )(__FIVector_1_TestApp__CParity__CCoordinate * This, unsigned int countItems, struct Coordinate * items);
     END_INTERFACE
 } __FIVector_1_TestApp__CParity__CCoordinateVtbl;
 
@@ -430,7 +430,7 @@ typedef struct __FIAsyncOperation_1_TestApp__CParity__CCoordinateVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, Coordinate * result);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1_TestApp__CParity__CCoordinate * This, struct Coordinate * result);
     END_INTERFACE
 } __FIAsyncOperation_1_TestApp__CParity__CCoordinateVtbl;
 
@@ -479,12 +479,12 @@ typedef struct __x_TestApp_CParity_CIGeocoderServiceVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGeocoderService * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGeocoderService * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGeocoderService * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *Geocode )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */HSTRING address, /* [out, retval] */Coordinate * result);
-    HRESULT ( STDMETHODCALLTYPE *ReverseGeocode )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */Coordinate coord, /* [out, retval] */HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *Geocode )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */HSTRING address, /* [out, retval] */struct Coordinate * result);
+    HRESULT ( STDMETHODCALLTYPE *ReverseGeocode )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */struct Coordinate coord, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *GeocodeMultiple )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */__x_Windows_CFoundation_CCollections_CIVector* addresses, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result);
     HRESULT ( STDMETHODCALLTYPE *GeocodeAsync )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */HSTRING address, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
-    HRESULT ( STDMETHODCALLTYPE *IsValidCoordinate )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */Coordinate coord, /* [out, retval] */::boolean * result);
-    HRESULT ( STDMETHODCALLTYPE *Distance )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */Coordinate from, /* [in] */Coordinate to, /* [out, retval] */double * result);
+    HRESULT ( STDMETHODCALLTYPE *IsValidCoordinate )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */struct Coordinate coord, /* [out, retval] */boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Distance )(__x_TestApp_CParity_CIGeocoderService * This, /* [in] */struct Coordinate from, /* [in] */struct Coordinate to, /* [out, retval] */double * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIGeocoderServiceVtbl;
 

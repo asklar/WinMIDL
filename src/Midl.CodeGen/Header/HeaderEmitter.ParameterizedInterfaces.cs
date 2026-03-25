@@ -550,39 +550,7 @@ public partial class HeaderEmitter
     /// Maps a TypeRef to its C ABI type for use in parameterized vtable parameters.
     /// Pointer types (interfaces, delegates, Object, String) include the pointer star.
     /// </summary>
-    private static string MapTypeForC(TypeRef typeRef)
-    {
-        if (typeRef.TypeArguments.Count > 0)
-        {
-            var fiName = ComputeFIMangledName(typeRef);
-            return $"{fiName} *";
-        }
-
-        return typeRef.Name switch
-        {
-            "Object" => "IInspectable *",
-            "String" => "HSTRING",
-            "Int16" => "short",
-            "Int32" => "int",
-            "Int64" => "__int64",
-            "UInt8" => "BYTE",
-            "UInt16" => "unsigned short",
-            "UInt32" => "unsigned int",
-            "UInt64" => "unsigned __int64",
-            "Single" => "float",
-            "Double" => "double",
-            "Boolean" => "boolean",
-            "Char" => "wchar_t",
-            "Guid" => "GUID",
-            _ when typeRef.Name.Contains('.') =>
-                $"__x_{typeRef.Name.Replace(".", "_C")} *",
-            _ when typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol =>
-                $"{MangleName(typeRef.ResolvedSymbol.FullName)} *",
-            _ when typeRef.ResolvedSymbol is EnumSymbol or StructSymbol =>
-                typeRef.ResolvedSymbol.Name,
-            _ => typeRef.Name,
-        };
-    }
+    // MapTypeForC is defined in HeaderEmitter.cs
 
     /// <summary>
     /// If the C type already ends with *, return it plus another * for out param.

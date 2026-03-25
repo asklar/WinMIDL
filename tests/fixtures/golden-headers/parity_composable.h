@@ -674,7 +674,7 @@ typedef struct __x_TestApp_CParity_CIComposableWidgetOverridesVtbl
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIComposableWidgetOverrides * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIComposableWidgetOverrides * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *OnActivated )(__x_TestApp_CParity_CIComposableWidgetOverrides * This);
-    HRESULT ( STDMETHODCALLTYPE *CanActivate )(__x_TestApp_CParity_CIComposableWidgetOverrides * This, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *CanActivate )(__x_TestApp_CParity_CIComposableWidgetOverrides * This, /* [out, retval] */boolean * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIComposableWidgetOverridesVtbl;
 
@@ -873,7 +873,7 @@ typedef struct __x_TestApp_CParity_CIFinalComposableVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFinalComposable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFinalComposable * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFinalComposable * This, __RPC__out TrustLevel *trustLevel);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsReady )(__x_TestApp_CParity_CIFinalComposable * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsReady )(__x_TestApp_CParity_CIFinalComposable * This, /* [out, retval] */boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIFinalComposableVtbl;
 

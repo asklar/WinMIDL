@@ -236,7 +236,7 @@ typedef struct __x_TestApp_CParity_CIMultiCtorItemVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiCtorItem * This, __RPC__out TrustLevel *trustLevel);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIMultiCtorItem * This, /* [out, retval] */HSTRING * value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Count )(__x_TestApp_CParity_CIMultiCtorItem * This, /* [out, retval] */int * value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Enabled )(__x_TestApp_CParity_CIMultiCtorItem * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Enabled )(__x_TestApp_CParity_CIMultiCtorItem * This, /* [out, retval] */boolean * value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Factor )(__x_TestApp_CParity_CIMultiCtorItem * This, /* [out, retval] */double * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIMultiCtorItemVtbl;
@@ -297,8 +297,8 @@ typedef struct __x_TestApp_CParity_CIMultiCtorItemFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiCtorItemFactory * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */HSTRING name, /* [out, retval] */MultiCtorItem * result);
     HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */HSTRING name, /* [in] */int count, /* [out, retval] */MultiCtorItem * result);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */HSTRING name, /* [in] */int count, /* [in] */::boolean enabled, /* [out, retval] */MultiCtorItem * result);
-    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */HSTRING name, /* [in] */int count, /* [in] */::boolean enabled, /* [in] */double factor, /* [out, retval] */MultiCtorItem * result);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */HSTRING name, /* [in] */int count, /* [in] */boolean enabled, /* [out, retval] */MultiCtorItem * result);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */HSTRING name, /* [in] */int count, /* [in] */boolean enabled, /* [in] */double factor, /* [out, retval] */MultiCtorItem * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIMultiCtorItemFactoryVtbl;
 

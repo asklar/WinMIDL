@@ -32,6 +32,29 @@ public partial class HeaderEmitter
         ["HRESULT"] = "HRESULT",
     };
 
+    /// <summary>
+    /// C-compatible type map: no <c>::</c> scope operators, uses C-safe type names.
+    /// </summary>
+    private static readonly Dictionary<string, string> CTypeMap = new(StringComparer.Ordinal)
+    {
+        ["Int16"] = "short",
+        ["Int32"] = "int",
+        ["Int64"] = "__int64",
+        ["UInt8"] = "BYTE",
+        ["UInt16"] = "unsigned short",
+        ["UInt32"] = "unsigned int",
+        ["UInt64"] = "unsigned __int64",
+        ["Single"] = "float",
+        ["Double"] = "double",
+        ["Boolean"] = "boolean",
+        ["Char"] = "wchar_t",
+        ["String"] = "HSTRING",
+        ["Guid"] = "GUID",
+        ["Object"] = "IInspectable*",
+        ["void"] = "void",
+        ["HRESULT"] = "HRESULT",
+    };
+
     public string Emit(Compilation compilation) => Emit(compilation, inputFilename: null);
 
     public string Emit(Compilation compilation, string? inputFilename)
@@ -524,6 +547,45 @@ public partial class HeaderEmitter
             return $"{MangleName(typeRef.Name)}*";
 
         // Fallback: use the name as-is
+        return typeRef.Name;
+    }
+
+    /// <summary>
+    /// Maps a WinRT type reference to a C type name.
+    /// Unlike <see cref="MapType"/>, this produces C-compatible type names:
+    /// - Uses <c>boolean</c> instead of <c>::boolean</c>
+    /// - Prefixes enum types with <c>enum</c> keyword
+    /// - Prefixes struct types with <c>struct</c> keyword
+    /// </summary>
+    internal static string MapTypeForC(TypeRef typeRef)
+    {
+        if (typeRef.Name == "void")
+            return "void";
+
+        if (CTypeMap.TryGetValue(typeRef.Name, out var mapped))
+            return mapped;
+
+        // For resolved user-defined types that are interfaces/delegates, use pointer
+        if (typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
+            return $"{MangleName(typeRef.ResolvedSymbol.FullName)}*";
+
+        // For enum/struct, prefix with C tag keyword
+        if (typeRef.ResolvedSymbol is EnumSymbol)
+            return $"enum {typeRef.ResolvedSymbol.Name}";
+        if (typeRef.ResolvedSymbol is StructSymbol)
+            return $"struct {typeRef.ResolvedSymbol.Name}";
+
+        // Namespace-qualified type without resolved symbol
+        if (typeRef.Name.Contains('.'))
+            return $"{MangleName(typeRef.Name)}*";
+
+        // Generic type arguments
+        if (typeRef.TypeArguments.Count > 0)
+        {
+            var fiName = ComputeFIMangledName(typeRef);
+            return $"{fiName} *";
+        }
+
         return typeRef.Name;
     }
 

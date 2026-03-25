@@ -193,7 +193,7 @@ public partial class DllPlumbingBuilderTests
 
         var result = builder.EmitInterfaceNamesList(interfaces);
 
-        Assert.Contains("static const PCInterfaceName const _InterfaceNamesList[]", result);
+        Assert.Contains("PCInterfaceName const _InterfaceNamesList[]", result);
     }
 
     #endregion

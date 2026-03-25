@@ -395,14 +395,14 @@ typedef struct __x_TestApp_CParity_CIPropertyBaseVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIPropertyBase * This, __RPC__out TrustLevel *trustLevel);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyName )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */HSTRING * value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyId )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */int * value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyFlag )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyFlag )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */boolean * value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyValue )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */double * value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteName )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */HSTRING * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteName )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */HSTRING value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteCount )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */int * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteCount )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */int value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteEnabled )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */::boolean * value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteEnabled )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteEnabled )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */boolean * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteEnabled )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */boolean value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteFactor )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */double * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ReadWriteFactor )(__x_TestApp_CParity_CIPropertyBase * This, /* [in] */double value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadWriteRatio )(__x_TestApp_CParity_CIPropertyBase * This, /* [out, retval] */float * value);
@@ -547,8 +547,8 @@ typedef struct __x_TestApp_CParity_CIPropertyChildVtbl
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildName )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */HSTRING value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildValue )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */int * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildValue )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */int value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildFlag )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */::boolean * value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildFlag )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildFlag )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */boolean * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_ChildFlag )(__x_TestApp_CParity_CIPropertyChild * This, /* [in] */boolean value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DerivedId )(__x_TestApp_CParity_CIPropertyChild * This, /* [out, retval] */unsigned int * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIPropertyChildVtbl;

@@ -168,7 +168,7 @@ typedef struct __x_TestApp_CParity_CIMultiStaticServiceStaticsVtbl
     HRESULT ( STDMETHODCALLTYPE *GetVersion )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *Initialize )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This);
     HRESULT ( STDMETHODCALLTYPE *GetBuildNumber )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This, /* [out, retval] */int * result);
-    HRESULT ( STDMETHODCALLTYPE *IsFeatureEnabled )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This, /* [in] */HSTRING feature, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *IsFeatureEnabled )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This, /* [in] */HSTRING feature, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *ResetAll )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This);
     HRESULT ( STDMETHODCALLTYPE *GetDiagnostics )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This, /* [out, retval] */HSTRING * result);
     END_INTERFACE

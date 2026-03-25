@@ -29,7 +29,7 @@ public partial class IidEmitterPatchTests
         var output = _emitter.Emit(compilation);
 
         Assert.Contains("IID___x_TestNs_CIFoo", output);
-        Assert.Contains("const IID", output);
+        Assert.Contains("MIDL_DEFINE_GUID(IID", output);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public partial class IidEmitterPatchTests
         var output = _emitter.Emit(compilation);
 
         Assert.Contains("IID___x_TestNs_CMyHandler", output);
-        Assert.Contains("const IID", output);
+        Assert.Contains("MIDL_DEFINE_GUID(IID", output);
     }
 
     [Fact]

@@ -511,7 +511,7 @@ typedef struct __x_TestApp_CParity_CPredicateVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CPredicate * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CPredicate * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CPredicate * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CPredicate * This, /* [in] */IInspectable* item, /* [out] */::boolean * matched);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CPredicate * This, /* [in] */IInspectable* item, /* [out] */boolean * matched);
     END_INTERFACE
 } __x_TestApp_CParity_CPredicateVtbl;
 

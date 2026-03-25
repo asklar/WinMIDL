@@ -258,7 +258,7 @@ typedef struct __x_TestApp_CParity_CInterfaceOnly_CIReaderVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *ReadInt )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */int * result);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanRead )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanRead )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CInterfaceOnly_CIReaderVtbl;
 
@@ -315,7 +315,7 @@ typedef struct __x_TestApp_CParity_CInterfaceOnly_CIWriterVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [in] */HSTRING data);
     HRESULT ( STDMETHODCALLTYPE *WriteInt )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [in] */int value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanWrite )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanWrite )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [out, retval] */boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CInterfaceOnly_CIWriterVtbl;
 

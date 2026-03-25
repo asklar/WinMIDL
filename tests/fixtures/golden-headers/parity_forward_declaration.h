@@ -293,7 +293,7 @@ typedef struct __x_TestApp_CParity_CIFwdUserVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFwdUser * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *SetTargetName )(__x_TestApp_CParity_CIFwdUser * This, /* [in] */HSTRING name);
     HRESULT ( STDMETHODCALLTYPE *GetTargetName )(__x_TestApp_CParity_CIFwdUser * This, /* [out, retval] */HSTRING * result);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_HasTarget )(__x_TestApp_CParity_CIFwdUser * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_HasTarget )(__x_TestApp_CParity_CIFwdUser * This, /* [out, retval] */boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIFwdUserVtbl;
 

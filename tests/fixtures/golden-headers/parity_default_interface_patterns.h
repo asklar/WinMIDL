@@ -302,7 +302,7 @@ typedef struct __x_TestApp_CParity_CIDefaultIfaceWidget2Vtbl
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Label )(__x_TestApp_CParity_CIDefaultIfaceWidget2 * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *Start )(__x_TestApp_CParity_CIDefaultIfaceWidget2 * This);
     HRESULT ( STDMETHODCALLTYPE *Stop )(__x_TestApp_CParity_CIDefaultIfaceWidget2 * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Running )(__x_TestApp_CParity_CIDefaultIfaceWidget2 * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Running )(__x_TestApp_CParity_CIDefaultIfaceWidget2 * This, /* [out, retval] */boolean * value);
     END_INTERFACE
 } __x_TestApp_CParity_CIDefaultIfaceWidget2Vtbl;
 

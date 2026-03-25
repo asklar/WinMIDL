@@ -258,7 +258,7 @@ typedef struct __FITypedEventHandler_2_IInspectable_HSTRINGVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_IInspectable_HSTRING * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_IInspectable_HSTRING * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_IInspectable_HSTRING * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_IInspectable_HSTRING * This, IInspectable * sender, HSTRING args);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_IInspectable_HSTRING * This, IInspectable* sender, HSTRING args);
     END_INTERFACE
 } __FITypedEventHandler_2_IInspectable_HSTRINGVtbl;
 
@@ -328,7 +328,7 @@ typedef struct __x_TestApp_CParity_CValidationHandlerVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CValidationHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CValidationHandler * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CValidationHandler * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CValidationHandler * This, /* [in] */HSTRING input, /* [out] */HSTRING * error, /* [out] */::boolean * isValid);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CValidationHandler * This, /* [in] */HSTRING input, /* [out] */HSTRING * error, /* [out] */boolean * isValid);
     END_INTERFACE
 } __x_TestApp_CParity_CValidationHandlerVtbl;
 

@@ -219,7 +219,7 @@ typedef struct __x_TestApp_CParity_CIVersionedServiceVtbl
     HRESULT ( STDMETHODCALLTYPE *GetName )(__x_TestApp_CParity_CIVersionedService * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *Start )(__x_TestApp_CParity_CIVersionedService * This);
     HRESULT ( STDMETHODCALLTYPE *Stop )(__x_TestApp_CParity_CIVersionedService * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsRunning )(__x_TestApp_CParity_CIVersionedService * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsRunning )(__x_TestApp_CParity_CIVersionedService * This, /* [out, retval] */boolean * value);
     HRESULT ( STDMETHODCALLTYPE *GetDiagnostics )(__x_TestApp_CParity_CIVersionedService * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *Restart )(__x_TestApp_CParity_CIVersionedService * This);
     END_INTERFACE

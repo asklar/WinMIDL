@@ -105,6 +105,6 @@ public class IidEmitterTests
 
         // After the fix, interfaces without explicit [uuid] get a computed GUID
         Assert.Contains("IID___x_INoUuid", output);
-        Assert.Contains("const IID", output);
+        Assert.Contains("MIDL_DEFINE_GUID(IID", output);
     }
 }

@@ -134,6 +134,14 @@ public class NdrTypeFormatBuilder
         var bytes = Build();
         var sb = new System.Text.StringBuilder();
 
+        // Emit the typedef for the format string struct
+        sb.AppendLine($"typedef struct _{filePrefix}_MIDL_TYPE_FORMAT_STRING");
+        sb.AppendLine("    {");
+        sb.AppendLine("        short Pad;");
+        sb.AppendLine($"        unsigned char Format[{bytes.Length}];");
+        sb.AppendLine($"    }} {filePrefix}_MIDL_TYPE_FORMAT_STRING;");
+        sb.AppendLine();
+
         sb.AppendLine($"static const {filePrefix}_MIDL_TYPE_FORMAT_STRING {filePrefix}__MIDL_TypeFormatString =");
         sb.AppendLine("    {");
         sb.AppendLine("        0,");

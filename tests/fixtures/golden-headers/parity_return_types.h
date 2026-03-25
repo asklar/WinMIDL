@@ -268,18 +268,18 @@ typedef struct __FIVector_1_TestApp__CParity__CReturnDataVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIVector_1_TestApp__CParity__CReturnData * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIVector_1_TestApp__CParity__CReturnData * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIVector_1_TestApp__CParity__CReturnData * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int index, ReturnData * result);
+    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int index, struct ReturnData * result);
     HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int * result);
     HRESULT ( STDMETHODCALLTYPE *GetView )(__FIVector_1_TestApp__CParity__CReturnData * This, __FIVectorView_1_* * result);
-    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVector_1_TestApp__CParity__CReturnData * This, ReturnData value, unsigned int * index, boolean * result);
-    HRESULT ( STDMETHODCALLTYPE *SetAt )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int index, ReturnData value);
-    HRESULT ( STDMETHODCALLTYPE *InsertAt )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int index, ReturnData value);
+    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVector_1_TestApp__CParity__CReturnData * This, struct ReturnData value, unsigned int * index, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *SetAt )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int index, struct ReturnData value);
+    HRESULT ( STDMETHODCALLTYPE *InsertAt )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int index, struct ReturnData value);
     HRESULT ( STDMETHODCALLTYPE *RemoveAt )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int index);
-    HRESULT ( STDMETHODCALLTYPE *Append )(__FIVector_1_TestApp__CParity__CReturnData * This, ReturnData value);
+    HRESULT ( STDMETHODCALLTYPE *Append )(__FIVector_1_TestApp__CParity__CReturnData * This, struct ReturnData value);
     HRESULT ( STDMETHODCALLTYPE *RemoveAtEnd )(__FIVector_1_TestApp__CParity__CReturnData * This);
     HRESULT ( STDMETHODCALLTYPE *Clear )(__FIVector_1_TestApp__CParity__CReturnData * This);
-    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int startIndex, unsigned int itemsLength, ReturnData * items, unsigned int * result);
-    HRESULT ( STDMETHODCALLTYPE *ReplaceAll )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int countItems, ReturnData * items);
+    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int startIndex, unsigned int itemsLength, struct ReturnData * items, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *ReplaceAll )(__FIVector_1_TestApp__CParity__CReturnData * This, unsigned int countItems, struct ReturnData * items);
     END_INTERFACE
 } __FIVector_1_TestApp__CParity__CReturnDataVtbl;
 
@@ -363,7 +363,7 @@ typedef struct __FIAsyncOperation_1_TestApp__CParity__CReturnDataVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CReturnData * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CReturnData * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CReturnData * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1_TestApp__CParity__CReturnData * This, ReturnData * result);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1_TestApp__CParity__CReturnData * This, struct ReturnData * result);
     END_INTERFACE
 } __FIAsyncOperation_1_TestApp__CParity__CReturnDataVtbl;
 
@@ -414,7 +414,7 @@ typedef struct __FIAsyncOperation_1_TestApp__CParity__CReturnStatusVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CReturnStatus * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CReturnStatus * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1_TestApp__CParity__CReturnStatus * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1_TestApp__CParity__CReturnStatus * This, ReturnStatus * result);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1_TestApp__CParity__CReturnStatus * This, enum ReturnStatus * result);
     END_INTERFACE
 } __FIAsyncOperation_1_TestApp__CParity__CReturnStatusVtbl;
 
@@ -458,7 +458,7 @@ typedef struct __x_TestApp_CParity_CReturnCallbackVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CReturnCallback * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CReturnCallback * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CReturnCallback * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CReturnCallback * This, /* [in] */ReturnData data);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CReturnCallback * This, /* [in] */struct ReturnData data);
     END_INTERFACE
 } __x_TestApp_CParity_CReturnCallbackVtbl;
 
@@ -498,8 +498,8 @@ typedef struct __x_TestApp_CParity_CIReturnTypeWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIReturnTypeWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIReturnTypeWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIReturnTypeWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetData )(__x_TestApp_CParity_CIReturnTypeWidget * This, /* [out, retval] */ReturnData * result);
-    HRESULT ( STDMETHODCALLTYPE *GetStatus )(__x_TestApp_CParity_CIReturnTypeWidget * This, /* [out, retval] */ReturnStatus * result);
+    HRESULT ( STDMETHODCALLTYPE *GetData )(__x_TestApp_CParity_CIReturnTypeWidget * This, /* [out, retval] */struct ReturnData * result);
+    HRESULT ( STDMETHODCALLTYPE *GetStatus )(__x_TestApp_CParity_CIReturnTypeWidget * This, /* [out, retval] */enum ReturnStatus * result);
     HRESULT ( STDMETHODCALLTYPE *GetAllData )(__x_TestApp_CParity_CIReturnTypeWidget * This, /* [out, retval] */__x_Windows_CFoundation_CCollections_CIVector* * result);
     HRESULT ( STDMETHODCALLTYPE *GetDataAsync )(__x_TestApp_CParity_CIReturnTypeWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);
     HRESULT ( STDMETHODCALLTYPE *GetStatusAsync )(__x_TestApp_CParity_CIReturnTypeWidget * This, /* [out, retval] */__x_Windows_CFoundation_CIAsyncOperation* * result);

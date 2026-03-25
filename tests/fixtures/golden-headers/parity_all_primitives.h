@@ -231,7 +231,7 @@ typedef struct __x_TestApp_CParity_CIAllPrimitivesWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIAllPrimitivesWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIAllPrimitivesWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIAllPrimitivesWidget * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetByte )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */::byte * result);
+    HRESULT ( STDMETHODCALLTYPE *GetByte )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */BYTE * result);
     HRESULT ( STDMETHODCALLTYPE *GetShort )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */short * result);
     HRESULT ( STDMETHODCALLTYPE *GetUShort )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */unsigned short * result);
     HRESULT ( STDMETHODCALLTYPE *GetInt )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */int * result);
@@ -240,12 +240,12 @@ typedef struct __x_TestApp_CParity_CIAllPrimitivesWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetULong )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */unsigned __int64 * result);
     HRESULT ( STDMETHODCALLTYPE *GetFloat )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */float * result);
     HRESULT ( STDMETHODCALLTYPE *GetDouble )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */double * result);
-    HRESULT ( STDMETHODCALLTYPE *GetBool )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *GetBool )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *GetChar )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */wchar_t * result);
     HRESULT ( STDMETHODCALLTYPE *GetString )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *GetGuid )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */GUID * result);
     HRESULT ( STDMETHODCALLTYPE *GetObject )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */IInspectable* * result);
-    HRESULT ( STDMETHODCALLTYPE *SetByte )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */::byte v);
+    HRESULT ( STDMETHODCALLTYPE *SetByte )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */BYTE v);
     HRESULT ( STDMETHODCALLTYPE *SetShort )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */short v);
     HRESULT ( STDMETHODCALLTYPE *SetUShort )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */unsigned short v);
     HRESULT ( STDMETHODCALLTYPE *SetInt )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */int v);
@@ -254,7 +254,7 @@ typedef struct __x_TestApp_CParity_CIAllPrimitivesWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *SetULong )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */unsigned __int64 v);
     HRESULT ( STDMETHODCALLTYPE *SetFloat )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */float v);
     HRESULT ( STDMETHODCALLTYPE *SetDouble )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */double v);
-    HRESULT ( STDMETHODCALLTYPE *SetBool )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */::boolean v);
+    HRESULT ( STDMETHODCALLTYPE *SetBool )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */boolean v);
     HRESULT ( STDMETHODCALLTYPE *SetChar )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */wchar_t v);
     HRESULT ( STDMETHODCALLTYPE *SetString )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */HSTRING v);
     HRESULT ( STDMETHODCALLTYPE *SetGuid )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */GUID v);

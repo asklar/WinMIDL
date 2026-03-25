@@ -198,9 +198,9 @@ typedef struct __x_TestApp_CParity_CIEnumUserVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIEnumUser * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIEnumUser * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIEnumUser * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *GetSequential )(__x_TestApp_CParity_CIEnumUser * This, /* [out, retval] */SimpleSequential * result);
-    HRESULT ( STDMETHODCALLTYPE *SetPermissions )(__x_TestApp_CParity_CIEnumUser * This, /* [in] */PermissionFlags flags);
-    HRESULT ( STDMETHODCALLTYPE *GetAttributes )(__x_TestApp_CParity_CIEnumUser * This, /* [out, retval] */FileAttributes2 * result);
+    HRESULT ( STDMETHODCALLTYPE *GetSequential )(__x_TestApp_CParity_CIEnumUser * This, /* [out, retval] */enum SimpleSequential * result);
+    HRESULT ( STDMETHODCALLTYPE *SetPermissions )(__x_TestApp_CParity_CIEnumUser * This, /* [in] */enum PermissionFlags flags);
+    HRESULT ( STDMETHODCALLTYPE *GetAttributes )(__x_TestApp_CParity_CIEnumUser * This, /* [out, retval] */enum FileAttributes2 * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIEnumUserVtbl;
 

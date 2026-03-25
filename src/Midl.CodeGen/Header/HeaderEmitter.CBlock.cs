@@ -186,7 +186,7 @@ public partial class HeaderEmitter
 
         foreach (var p in method.Parameters)
         {
-            var cType = MapType(p.Type);
+            var cType = MapTypeForC(p.Type);
             if (p.Direction == ParameterDirection.Out)
                 paramParts.Add($"/* [out] */{cType} * {p.Name}");
             else if (p.Direction == ParameterDirection.RefConst)
@@ -197,7 +197,7 @@ public partial class HeaderEmitter
 
         if (method.ReturnType.Name != "void")
         {
-            var retType = MapType(method.ReturnType);
+            var retType = MapTypeForC(method.ReturnType);
             paramParts.Add($"/* [out, retval] */{retType} * result");
         }
 
@@ -207,7 +207,7 @@ public partial class HeaderEmitter
 
     private static void EmitCVtableProperty(StringBuilder sb, string mangledName, PropertySymbol prop)
     {
-        var cType = MapType(prop.Type);
+        var cType = MapTypeForC(prop.Type);
         if (prop.HasGetter)
         {
             sb.AppendLine($"    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_{prop.Name} )({mangledName} * This, /* [out, retval] */{cType} * value);");
@@ -220,7 +220,7 @@ public partial class HeaderEmitter
 
     private static void EmitCVtableEvent(StringBuilder sb, string mangledName, EventSymbol evt)
     {
-        var delegateType = MapType(evt.DelegateType);
+        var delegateType = MapTypeForC(evt.DelegateType);
         sb.AppendLine($"    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_{evt.Name} )({mangledName} * This, /* [in] */{delegateType} handler, /* [out, retval] */EventRegistrationToken * token);");
         sb.AppendLine($"    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_{evt.Name} )({mangledName} * This, /* [in] */EventRegistrationToken token);");
     }

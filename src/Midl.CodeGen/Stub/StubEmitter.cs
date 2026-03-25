@@ -38,6 +38,18 @@ public class StubEmitter
         var procBuilder = new NdrProcFormatBuilder();
         var interfaceData = CollectTypesAndProcs(compilation, typeBuilder, procBuilder);
 
+        // Emit IID forward declarations with mangled names
+        // and #define mappings from short names to mangled names
+        foreach (var data in interfaceData)
+        {
+            var mangledName = Header.HeaderEmitter.MangleName(data.Interface.FullName);
+            var shortName = data.Interface.Name;
+            sb.AppendLine($"EXTERN_C const IID IID_{mangledName};");
+            if (shortName != mangledName)
+                sb.AppendLine($"#define IID_{shortName} IID_{mangledName}");
+        }
+        sb.AppendLine();
+
         sb.AppendLine(procBuilder.EmitProcFormatString(filePrefix));
         sb.AppendLine();
         sb.AppendLine(typeBuilder.EmitTypeFormatString(filePrefix));

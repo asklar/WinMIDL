@@ -38,7 +38,7 @@ public partial class IidEmitterIntegrationTests
 
         // Should contain IID for the interface with mangled name
         Assert.Contains("IID___x_TestApp_CIWidget", output);
-        Assert.Contains("const IID", output);
+        Assert.Contains("MIDL_DEFINE_GUID(IID", output);
 
         // The GUID value should match the ABI computation
         var iface = compilation.GetAllTypes().OfType<InterfaceSymbol>().First(i => i.Name == "IWidget");

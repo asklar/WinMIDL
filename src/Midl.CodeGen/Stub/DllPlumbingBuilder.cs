@@ -78,7 +78,7 @@ public class DllPlumbingBuilder
     {
         var sb = new StringBuilder();
 
-        sb.AppendLine("static const PCInterfaceName const _InterfaceNamesList[] =");
+        sb.AppendLine("PCInterfaceName const _InterfaceNamesList[] =");
         sb.AppendLine("{");
 
         foreach (var name in interfaceNames)
@@ -141,19 +141,24 @@ public class DllPlumbingBuilder
     /// <summary>
     /// Emits the DLL export functions: DllGetClassObject, DllCanUnloadNow,
     /// DllRegisterServer, DllUnregisterServer, GetProxyDllInfo.
+    /// Guarded by REGISTER_PROXY_DLL to match standard MIDL output.
     /// </summary>
     public string EmitDllExports()
     {
         var sb = new StringBuilder();
 
+        sb.AppendLine("#ifdef REGISTER_PROXY_DLL");
+        sb.AppendLine();
+        sb.AppendLine("CStdPSFactoryBuffer gPFactory = {0, 0, 0, 0};");
+        sb.AppendLine();
         sb.AppendLine("HRESULT STDAPICALLTYPE DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppv)");
         sb.AppendLine("{");
-        sb.AppendLine("    return NdrDllGetClassObject(rclsid, riid, ppv, g_ProxyFileList, &CLSID_PSFactoryBuffer);");
+        sb.AppendLine("    return NdrDllGetClassObject(rclsid, riid, ppv, g_ProxyFileList, &CLSID_PSFactoryBuffer, &gPFactory);");
         sb.AppendLine("}");
         sb.AppendLine();
         sb.AppendLine("HRESULT STDAPICALLTYPE DllCanUnloadNow(void)");
         sb.AppendLine("{");
-        sb.AppendLine("    return NdrDllCanUnloadNow(S_OK, g_ProxyFileList, &CLSID_PSFactoryBuffer);");
+        sb.AppendLine("    return NdrDllCanUnloadNow(&gPFactory);");
         sb.AppendLine("}");
         sb.AppendLine();
         sb.AppendLine("HRESULT STDAPICALLTYPE DllRegisterServer(void)");
@@ -172,6 +177,8 @@ public class DllPlumbingBuilder
         sb.AppendLine("    *pClsid = &CLSID_PSFactoryBuffer;");
         sb.AppendLine("    return S_OK;");
         sb.AppendLine("}");
+        sb.AppendLine();
+        sb.AppendLine("#endif /* REGISTER_PROXY_DLL */");
 
         return sb.ToString();
     }

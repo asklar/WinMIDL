@@ -167,7 +167,7 @@ typedef struct __x_TestApp_CParity_CIBuilderWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIBuilderWidget * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *WithName )(__x_TestApp_CParity_CIBuilderWidget * This, /* [in] */HSTRING name, /* [out, retval] */BuilderWidget * result);
     HRESULT ( STDMETHODCALLTYPE *WithId )(__x_TestApp_CParity_CIBuilderWidget * This, /* [in] */int id, /* [out, retval] */BuilderWidget * result);
-    HRESULT ( STDMETHODCALLTYPE *WithFlag )(__x_TestApp_CParity_CIBuilderWidget * This, /* [in] */::boolean flag, /* [out, retval] */BuilderWidget * result);
+    HRESULT ( STDMETHODCALLTYPE *WithFlag )(__x_TestApp_CParity_CIBuilderWidget * This, /* [in] */boolean flag, /* [out, retval] */BuilderWidget * result);
     HRESULT ( STDMETHODCALLTYPE *Build )(__x_TestApp_CParity_CIBuilderWidget * This, /* [out, retval] */HSTRING * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIBuilderWidgetVtbl;

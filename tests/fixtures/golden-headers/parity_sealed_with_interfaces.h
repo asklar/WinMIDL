@@ -221,7 +221,7 @@ typedef struct __x_TestApp_CParity_CISealedMultiWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This, __RPC__out TrustLevel *trustLevel);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_SortKey )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */int * value);
-    HRESULT ( STDMETHODCALLTYPE *MatchesFilter )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [in] */HSTRING filter, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *MatchesFilter )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [in] */HSTRING filter, /* [out, retval] */boolean * result);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DisplayText )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *ToShortString )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *ToDetailString )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */HSTRING * result);

@@ -415,7 +415,7 @@ typedef struct __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectabl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable * This, ApiService sender, IInspectable * args);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectable * This, ApiService sender, IInspectable* args);
     END_INTERFACE
 } __FITypedEventHandler_2_TestApp__CParity__CApiService_IInspectableVtbl;
 
@@ -549,8 +549,8 @@ typedef struct __x_TestApp_CParity_CIApiServiceVtbl
     HRESULT ( STDMETHODCALLTYPE *Restart )(__x_TestApp_CParity_CIApiService * This);
     /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Restarted )(__x_TestApp_CParity_CIApiService * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
     /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Restarted )(__x_TestApp_CParity_CIApiService * This, /* [in] */EventRegistrationToken token);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsHealthy )(__x_TestApp_CParity_CIApiService * This, /* [out, retval] */::boolean * value);
-    HRESULT ( STDMETHODCALLTYPE *GetStatus )(__x_TestApp_CParity_CIApiService * This, /* [out, retval] */ApiStatus * result);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsHealthy )(__x_TestApp_CParity_CIApiService * This, /* [out, retval] */boolean * value);
+    HRESULT ( STDMETHODCALLTYPE *GetStatus )(__x_TestApp_CParity_CIApiService * This, /* [out, retval] */enum ApiStatus * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIApiServiceVtbl;
 
@@ -620,7 +620,7 @@ typedef struct __x_TestApp_CParity_CIApiServiceStaticsVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIApiServiceStatics * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIApiServiceStatics * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIApiServiceStatics * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreateWithSettings )(__x_TestApp_CParity_CIApiServiceStatics * This, /* [in] */ApiSettings settings, /* [out, retval] */ApiService * result);
+    HRESULT ( STDMETHODCALLTYPE *CreateWithSettings )(__x_TestApp_CParity_CIApiServiceStatics * This, /* [in] */struct ApiSettings settings, /* [out, retval] */ApiService * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIApiServiceStaticsVtbl;
 

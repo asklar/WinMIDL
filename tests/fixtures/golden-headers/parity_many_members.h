@@ -281,7 +281,7 @@ typedef struct __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInsp
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * This, ManyMemberWidget sender, IInspectable * args);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * This, ManyMemberWidget sender, IInspectable* args);
     END_INTERFACE
 } __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectableVtbl;
 
@@ -363,8 +363,8 @@ typedef struct __x_TestApp_CParity_CIManyMemberWidgetVtbl
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */HSTRING * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Name )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */HSTRING value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */int * value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsActive )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */::boolean * value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsActive )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsActive )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */boolean * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsActive )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */boolean value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Value )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */double * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Value )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */double value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Ratio )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */float * value);
@@ -372,8 +372,8 @@ typedef struct __x_TestApp_CParity_CIManyMemberWidgetVtbl
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Description )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */HSTRING value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */int * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Priority )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */int value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsVisible )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */::boolean * value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsVisible )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsVisible )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */boolean * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsVisible )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */boolean value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Category )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */HSTRING * value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_SortOrder )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */int * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_SortOrder )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */int value);
@@ -381,7 +381,7 @@ typedef struct __x_TestApp_CParity_CIManyMemberWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *Initialize )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [in] */HSTRING name);
     HRESULT ( STDMETHODCALLTYPE *GetLabel )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *ComputeHash )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */int * result);
-    HRESULT ( STDMETHODCALLTYPE *Validate )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Validate )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *Measure )(__x_TestApp_CParity_CIManyMemberWidget * This, /* [out, retval] */double * result);
     HRESULT ( STDMETHODCALLTYPE *Enable )(__x_TestApp_CParity_CIManyMemberWidget * This);
     HRESULT ( STDMETHODCALLTYPE *Disable )(__x_TestApp_CParity_CIManyMemberWidget * This);

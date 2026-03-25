@@ -225,7 +225,7 @@ typedef struct __x_TestApp_CParity_CISuperWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISuperWidget * This, __RPC__out TrustLevel *trustLevel);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CISuperWidget * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *Print )(__x_TestApp_CParity_CISuperWidget * This, /* [out, retval] */HSTRING * result);
-    HRESULT ( STDMETHODCALLTYPE *Validate )(__x_TestApp_CParity_CISuperWidget * This, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Validate )(__x_TestApp_CParity_CISuperWidget * This, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *Reset )(__x_TestApp_CParity_CISuperWidget * This);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Tag )(__x_TestApp_CParity_CISuperWidget * This, /* [out, retval] */HSTRING * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Tag )(__x_TestApp_CParity_CISuperWidget * This, /* [in] */HSTRING value);

@@ -303,7 +303,7 @@ typedef struct __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectab
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * This, BasicWidget sender, IInspectable * args);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * This, BasicWidget sender, IInspectable* args);
     END_INTERFACE
 } __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectableVtbl;
 
@@ -384,16 +384,16 @@ typedef struct __x_TestApp_CParity_CIBasicWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIBasicWidget * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *GetName )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */HSTRING * result);
     HRESULT ( STDMETHODCALLTYPE *GetCount )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */int * result);
-    HRESULT ( STDMETHODCALLTYPE *IsActive )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *IsActive )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *GetValue )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */double * result);
     HRESULT ( STDMETHODCALLTYPE *GetRatio )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */float * result);
     HRESULT ( STDMETHODCALLTYPE *Reset )(__x_TestApp_CParity_CIBasicWidget * This);
     HRESULT ( STDMETHODCALLTYPE *SetName )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */HSTRING name);
-    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */HSTRING name, /* [in] */int count, /* [in] */::boolean enabled);
+    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */HSTRING name, /* [in] */int count, /* [in] */boolean enabled);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_WidgetName )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */HSTRING * value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_WidgetId )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */int * value);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsEnabled )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */::boolean * value);
-    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsEnabled )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsEnabled )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */boolean * value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsEnabled )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */boolean value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Factor )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */double * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Factor )(__x_TestApp_CParity_CIBasicWidget * This, /* [in] */double value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(__x_TestApp_CParity_CIBasicWidget * This, /* [out, retval] */int * value);

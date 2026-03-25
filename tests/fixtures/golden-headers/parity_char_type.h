@@ -178,8 +178,8 @@ typedef struct __x_TestApp_CParity_CICharWidgetVtbl
     HRESULT ( STDMETHODCALLTYPE *SetSeparator )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Separator )(__x_TestApp_CParity_CICharWidget * This, /* [out, retval] */wchar_t * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Separator )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t value);
-    HRESULT ( STDMETHODCALLTYPE *IsLetter )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c, /* [out, retval] */::boolean * result);
-    HRESULT ( STDMETHODCALLTYPE *IsDigit )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *IsLetter )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c, /* [out, retval] */boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *IsDigit )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c, /* [out, retval] */boolean * result);
     HRESULT ( STDMETHODCALLTYPE *CharToString )(__x_TestApp_CParity_CICharWidget * This, /* [in] */wchar_t c, /* [out, retval] */HSTRING * result);
     END_INTERFACE
 } __x_TestApp_CParity_CICharWidgetVtbl;

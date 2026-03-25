@@ -218,10 +218,10 @@ typedef struct __x_TestApp_CParity_CIShapeFactoryVtbl
     HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIShapeFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
     HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIShapeFactory * This, __RPC__deref_out_opt HSTRING *className);
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIShapeFactory * This, __RPC__out TrustLevel *trustLevel);
-    HRESULT ( STDMETHODCALLTYPE *CreatePoint )(__x_TestApp_CParity_CIShapeFactory * This, /* [in] */float x, /* [in] */float y, /* [out, retval] */Point2D * result);
-    HRESULT ( STDMETHODCALLTYPE *CreatePoint3D )(__x_TestApp_CParity_CIShapeFactory * This, /* [in] */float x, /* [in] */float y, /* [in] */float z, /* [out, retval] */Point3D * result);
-    HRESULT ( STDMETHODCALLTYPE *CreateRect )(__x_TestApp_CParity_CIShapeFactory * This, /* [in] */Point2D origin, /* [in] */float w, /* [in] */float h, /* [out, retval] */Rectangle * result);
-    HRESULT ( STDMETHODCALLTYPE *CreateColoredRect )(__x_TestApp_CParity_CIShapeFactory * This, /* [in] */Rectangle rect, /* [in] */Color fill, /* [in] */Color border, /* [out, retval] */ColoredRect * result);
+    HRESULT ( STDMETHODCALLTYPE *CreatePoint )(__x_TestApp_CParity_CIShapeFactory * This, /* [in] */float x, /* [in] */float y, /* [out, retval] */struct Point2D * result);
+    HRESULT ( STDMETHODCALLTYPE *CreatePoint3D )(__x_TestApp_CParity_CIShapeFactory * This, /* [in] */float x, /* [in] */float y, /* [in] */float z, /* [out, retval] */struct Point3D * result);
+    HRESULT ( STDMETHODCALLTYPE *CreateRect )(__x_TestApp_CParity_CIShapeFactory * This, /* [in] */struct Point2D origin, /* [in] */float w, /* [in] */float h, /* [out, retval] */struct Rectangle * result);
+    HRESULT ( STDMETHODCALLTYPE *CreateColoredRect )(__x_TestApp_CParity_CIShapeFactory * This, /* [in] */struct Rectangle rect, /* [in] */enum Color fill, /* [in] */enum Color border, /* [out, retval] */struct ColoredRect * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIShapeFactoryVtbl;
 

@@ -318,7 +318,7 @@ typedef struct __FITypedEventHandler_2_TestApp__CParity__CEventPatternWidget_IIn
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventPatternWidget_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventPatternWidget_IInspectable * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CEventPatternWidget_IInspectable * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CEventPatternWidget_IInspectable * This, EventPatternWidget sender, IInspectable * args);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CEventPatternWidget_IInspectable * This, EventPatternWidget sender, IInspectable* args);
     END_INTERFACE
 } __FITypedEventHandler_2_TestApp__CParity__CEventPatternWidget_IInspectableVtbl;
 
@@ -357,7 +357,7 @@ typedef struct __FIEventHandler_1_IInspectableVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIEventHandler_1_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIEventHandler_1_IInspectable * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIEventHandler_1_IInspectable * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FIEventHandler_1_IInspectable * This, IInspectable * sender, IInspectable * args);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FIEventHandler_1_IInspectable * This, IInspectable * sender, IInspectable* args);
     END_INTERFACE
 } __FIEventHandler_1_IInspectableVtbl;
 
@@ -427,7 +427,7 @@ typedef struct __x_TestApp_CParity_CErrorOccurredHandlerVtbl
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CErrorOccurredHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CErrorOccurredHandler * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CErrorOccurredHandler * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CErrorOccurredHandler * This, /* [in] */HSTRING message, /* [in] */::boolean fatal);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CErrorOccurredHandler * This, /* [in] */HSTRING message, /* [in] */boolean fatal);
     END_INTERFACE
 } __x_TestApp_CParity_CErrorOccurredHandlerVtbl;
 

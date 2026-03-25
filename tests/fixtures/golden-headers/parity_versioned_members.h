@@ -256,7 +256,7 @@ typedef struct __FITypedEventHandler_2_TestApp__CParity__CVersionedMember_IInspe
     HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CVersionedMember_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
     ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CVersionedMember_IInspectable * This);
     ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CVersionedMember_IInspectable * This);
-    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CVersionedMember_IInspectable * This, VersionedMember sender, IInspectable * args);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CVersionedMember_IInspectable * This, VersionedMember sender, IInspectable* args);
     END_INTERFACE
 } __FITypedEventHandler_2_TestApp__CParity__CVersionedMember_IInspectableVtbl;
 
@@ -298,14 +298,14 @@ typedef struct __x_TestApp_CParity_CIVersionedMemberVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIVersionedMember * This, __RPC__out TrustLevel *trustLevel);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */HSTRING * value);
     HRESULT ( STDMETHODCALLTYPE *DoBasicWork )(__x_TestApp_CParity_CIVersionedMember * This);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsReady )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsReady )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */boolean * value);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Count )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */int * value);
     /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Count )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */int value);
     HRESULT ( STDMETHODCALLTYPE *DoAdvancedWork )(__x_TestApp_CParity_CIVersionedMember * This);
     /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Efficiency )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */double * value);
     /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Updated )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */__x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */EventRegistrationToken * token);
     /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Updated )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */EventRegistrationToken token);
-    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsOptimized )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */::boolean * value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsOptimized )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */boolean * value);
     HRESULT ( STDMETHODCALLTYPE *Optimize )(__x_TestApp_CParity_CIVersionedMember * This, /* [in] */int level);
     HRESULT ( STDMETHODCALLTYPE *Reset )(__x_TestApp_CParity_CIVersionedMember * This);
     HRESULT ( STDMETHODCALLTYPE *GetDiagnostics )(__x_TestApp_CParity_CIVersionedMember * This, /* [out, retval] */HSTRING * result);

@@ -503,7 +503,7 @@ typedef struct __x_TestApp_CParity_CIMixedAccessBaseOverridesVtbl
     HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseOverrides * This, __RPC__out TrustLevel *trustLevel);
     HRESULT ( STDMETHODCALLTYPE *OnLoad )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This);
     HRESULT ( STDMETHODCALLTYPE *OnSave )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This);
-    HRESULT ( STDMETHODCALLTYPE *CanProcess )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This, /* [out, retval] */::boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *CanProcess )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This, /* [out, retval] */boolean * result);
     END_INTERFACE
 } __x_TestApp_CParity_CIMixedAccessBaseOverridesVtbl;
 
