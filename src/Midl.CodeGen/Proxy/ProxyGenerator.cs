@@ -13,7 +13,7 @@ namespace Midl.CodeGen.Proxy;
 public class ProxyGenerator
 {
     // IUnknown occupies vtable slots 0-2, IInspectable 3-5, user methods start at 6
-    private const int UserMethodStartSlot = 6;
+    private static readonly int UserMethodStartSlot = WireFormat.GetFirstUserSlot(isInspectable: true);
 
     public string Generate(Compilation compilation)
     {
@@ -313,223 +313,55 @@ public class ProxyGenerator
 
     /// <summary>
     /// Computes the C++ expression for the buffer size needed to serialize the given parameters.
+    /// Delegates to <see cref="WireFormat.ComputeBufferSize"/>.
     /// </summary>
     internal static string ComputeBufferSize(List<ProxyParam> inParams)
     {
-        if (inParams.Count == 0)
-            return "0";
-
-        var parts = new List<string>();
-        foreach (var p in inParams)
-        {
-            parts.Add(GetTypeSize(p.Type));
-        }
-
-        return string.Join(" + ", parts);
+        return WireFormat.ComputeBufferSize(inParams);
     }
 
     /// <summary>
     /// Returns a C++ expression for the serialized size of a type.
+    /// Delegates to <see cref="WireFormat.GetTypeSizeExpression"/>.
     /// </summary>
     internal static string GetTypeSize(TypeRef type)
     {
-        var name = type.Name;
-
-        // Primitives
-        if (name is "Boolean" or "UInt8")
-            return "1";
-        if (name is "Int16" or "UInt16" or "Char")
-            return "2";
-        if (name is "Int32" or "UInt32" or "Single" or "HRESULT")
-            return "4";
-        if (name is "Int64" or "UInt64" or "Double")
-            return "8";
-        if (name is "Guid")
-            return "16";
-
-        // Enum is always 4 bytes (as int)
-        if (type.ResolvedSymbol is EnumSymbol)
-            return "4";
-
-        // HSTRING: dynamic, but we use expression
-        if (name is "String")
-            return "4 + WindowsGetStringLen({0}) * 2";
-
-        // EventRegistrationToken: 8 bytes (INT64)
-        if (name is "EventRegistrationToken")
-            return "8";
-
-        // Struct: sum of field sizes
-        if (type.ResolvedSymbol is StructSymbol structSym)
-        {
-            return ComputeStructSize(structSym);
-        }
-
-        // Interface/delegate pointers can't be directly marshaled via memcpy
-        // For now, return sizeof(void*) as placeholder
-        return "sizeof(void*)";
+        return WireFormat.GetTypeSizeExpression(type);
     }
 
     /// <summary>
     /// Computes the size expression for a struct by summing its field sizes.
+    /// Delegates to <see cref="WireFormat.GetWireSize"/>.
     /// </summary>
     internal static string ComputeStructSize(StructSymbol structSym)
     {
         if (structSym.Fields.Count == 0)
             return "0";
-
-        var fieldSizes = structSym.Fields.Select(f => GetTypeSizeSimple(f.Type)).ToList();
-        var total = fieldSizes.Sum();
-        return total.ToString();
-    }
-
-    /// <summary>
-    /// Returns a numeric size for types that have fixed sizes. Used for struct field size computation.
-    /// </summary>
-    private static int GetTypeSizeSimple(TypeRef type)
-    {
-        var name = type.Name;
-        if (name is "Boolean" or "UInt8") return 1;
-        if (name is "Int16" or "UInt16" or "Char") return 2;
-        if (name is "Int32" or "UInt32" or "Single" or "HRESULT") return 4;
-        if (name is "Int64" or "UInt64" or "Double") return 8;
-        if (name is "Guid") return 16;
-        if (name is "EventRegistrationToken") return 8;
-        if (type.ResolvedSymbol is EnumSymbol) return 4;
-        if (type.ResolvedSymbol is StructSymbol s)
-            return s.Fields.Sum(f => GetTypeSizeSimple(f.Type));
-        return 8; // fallback for pointers
+        var typeRef = new TypeRef(structSym.Name) { ResolvedSymbol = structSym };
+        return WireFormat.GetWireSize(typeRef).ToString();
     }
 
     /// <summary>
     /// Emits C++ code to serialize a parameter into the RPC buffer.
-    /// Assumes a BYTE* p variable is in scope and advances it.
+    /// Delegates to <see cref="WireFormat.EmitSerialize"/>.
     /// </summary>
     internal static void EmitSerialize(StringBuilder sb, string paramName, TypeRef type)
     {
-        var typeName = type.Name;
-
-        if (typeName is "String")
-        {
-            // HSTRING serialization: [4-byte char count][UTF-16 chars]
-            sb.AppendLine($"        UINT32 {paramName}_len = WindowsGetStringLen({paramName});");
-            sb.AppendLine($"        memcpy(p, &{paramName}_len, 4); p += 4;");
-            sb.AppendLine($"        PCWSTR {paramName}_raw = WindowsGetStringRawBuffer({paramName}, nullptr);");
-            sb.AppendLine($"        memcpy(p, {paramName}_raw, {paramName}_len * 2); p += {paramName}_len * 2;");
-            return;
-        }
-
-        if (typeName is "Guid")
-        {
-            sb.AppendLine($"        memcpy(p, &{paramName}, 16); p += 16;");
-            return;
-        }
-
-        if (type.ResolvedSymbol is EnumSymbol)
-        {
-            sb.AppendLine($"        INT32 {paramName}_val = static_cast<INT32>({paramName});");
-            sb.AppendLine($"        memcpy(p, &{paramName}_val, 4); p += 4;");
-            return;
-        }
-
-        if (type.ResolvedSymbol is StructSymbol structSym)
-        {
-            EmitSerializeStruct(sb, paramName, structSym);
-            return;
-        }
-
-        // Primitive types
-        var size = GetPrimitiveSize(typeName);
-        if (size > 0)
-        {
-            sb.AppendLine($"        memcpy(p, &{paramName}, {size}); p += {size};");
-            return;
-        }
-
-        // EventRegistrationToken
-        if (typeName is "EventRegistrationToken")
-        {
-            sb.AppendLine($"        memcpy(p, &{paramName}, 8); p += 8;");
-            return;
-        }
-
-        // Fallback for interface pointers etc.
-        sb.AppendLine($"        // TODO: marshal {paramName} of type {typeName}");
-    }
-
-    private static void EmitSerializeStruct(StringBuilder sb, string paramName, StructSymbol structSym)
-    {
-        foreach (var field in structSym.Fields)
-        {
-            var fieldAccess = $"{paramName}.{field.Name}";
-            EmitSerialize(sb, fieldAccess, field.Type);
-        }
+        WireFormat.EmitSerialize(sb, type, paramName, "p");
     }
 
     /// <summary>
     /// Emits C++ code to deserialize a value from the RPC reply buffer.
-    /// Assumes a BYTE* pReply variable is in scope and advances it.
+    /// Delegates to <see cref="WireFormat.EmitDeserializeReply"/>.
     /// </summary>
     internal static void EmitDeserialize(StringBuilder sb, string targetName, TypeRef type, bool isPointer)
     {
-        var typeName = type.Name;
-        var deref = isPointer ? $"*{targetName}" : targetName;
-
-        if (typeName is "String")
-        {
-            // HSTRING deserialization
-            sb.AppendLine($"        UINT32 {targetName}_len; memcpy(&{targetName}_len, pReply, 4); pReply += 4;");
-            sb.AppendLine($"        WindowsCreateString((PCWSTR)pReply, {targetName}_len, {(isPointer ? targetName : $"&{targetName}")}); pReply += {targetName}_len * 2;");
-            return;
-        }
-
-        if (typeName is "Guid")
-        {
-            sb.AppendLine($"        memcpy({(isPointer ? targetName : $"&{targetName}")}, pReply, 16); pReply += 16;");
-            return;
-        }
-
-        if (type.ResolvedSymbol is EnumSymbol)
-        {
-            sb.AppendLine($"        INT32 {targetName}_val; memcpy(&{targetName}_val, pReply, 4); pReply += 4;");
-            sb.AppendLine($"        {deref} = static_cast<decltype({deref})>({targetName}_val);");
-            return;
-        }
-
-        if (type.ResolvedSymbol is StructSymbol structSym)
-        {
-            EmitDeserializeStruct(sb, targetName, structSym, isPointer);
-            return;
-        }
-
-        var size = GetPrimitiveSize(typeName);
-        if (size > 0)
-        {
-            sb.AppendLine($"        memcpy({(isPointer ? targetName : $"&{targetName}")}, pReply, {size}); pReply += {size};");
-            return;
-        }
-
-        if (typeName is "EventRegistrationToken")
-        {
-            sb.AppendLine($"        memcpy({(isPointer ? targetName : $"&{targetName}")}, pReply, 8); pReply += 8;");
-            return;
-        }
-
-        sb.AppendLine($"        // TODO: unmarshal {targetName} of type {typeName}");
-    }
-
-    private static void EmitDeserializeStruct(StringBuilder sb, string targetName, StructSymbol structSym, bool isPointer)
-    {
-        var prefix = isPointer ? $"{targetName}->" : $"{targetName}.";
-        foreach (var field in structSym.Fields)
-        {
-            var fieldTarget = $"{prefix}{field.Name}";
-            EmitDeserialize(sb, fieldTarget, field.Type, isPointer: false);
-        }
+        WireFormat.EmitDeserializeReply(sb, type, targetName, "pReply", isPointer);
     }
 
     /// <summary>
     /// Returns the byte size for a primitive type name, or 0 if not a recognized primitive.
+    /// Delegates to <see cref="WireFormat.GetWireSize"/>.
     /// </summary>
     internal static int GetPrimitiveSize(string typeName)
     {
