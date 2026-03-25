@@ -2,7 +2,9 @@
 /*
  * File built with WinMIDL Compiler
  */
+
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
+
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -24,11 +26,11 @@
 #include <windows.h>
 #include <ole2.h>
 #endif /*COM_NO_WINDOWS_H*/
-
 #ifndef __TestApp_Parity_h__
 #define __TestApp_Parity_h__
 #ifndef __TestApp_Parity_p_h__
 #define __TestApp_Parity_p_h__
+
 
 #pragma once
 
@@ -39,33 +41,39 @@
 #define CHECK_NS_PREFIX_STATE "never"
 #endif // !defined(DISABLE_NS_PREFIX_CHECKS)
 
+
 #pragma push_macro("MIDL_CONST_ID")
 #undef MIDL_CONST_ID
 #define MIDL_CONST_ID const __declspec(selectany)
 
+
 // Header files for imported files
 #include "winrtbase.h"
 
-/*
- *
- * Class TestApp.Parity.NestedGenericWidget
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.INestedGenericWidget ** Default Interface **
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_NestedGenericWidget_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_NestedGenericWidget_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_NestedGenericWidget[] = L"TestApp.Parity.NestedGenericWidget";
-#endif
-
-EXTERN_C const IID IID___x_TestApp_CParity_CINestedGenericWidget;
-
 #if defined(__cplusplus) && !defined(CINTERFACE)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface INestedGenericWidget;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CINestedGenericWidget TestApp::Parity::INestedGenericWidget
+
+#endif // ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
+
+namespace TestApp {
+    namespace Parity {
+        class NestedGenericWidget;
+    } /* Parity */
+} /* TestApp */
 
 #ifndef DEF___FIMap_2_HSTRING_int_USE
 #define DEF___FIMap_2_HSTRING_int_USE
@@ -181,25 +189,6 @@ namespace Windows {     namespace Foundation {
 #endif // !defined(RO_NO_TEMPLATE_NAME)
 #endif /* DEF___FIAsyncOperation_1___FIMap_2_HSTRING_int_USE */
 
-/* Forward Declarations */
-#ifndef ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
-#define ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
-
-namespace TestApp {
-    namespace Parity {
-        interface INestedGenericWidget;
-    } /* Parity */
-} /* TestApp */
-#define __x_TestApp_CParity_CINestedGenericWidget TestApp::Parity::INestedGenericWidget
-
-#endif // ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
-
-namespace TestApp {
-    namespace Parity {
-        class NestedGenericWidget;
-    } /* Parity */
-} /* TestApp */
-
 /*
  *
  * Interface TestApp.Parity.INestedGenericWidget
@@ -244,6 +233,23 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CINestedGenericWidget_INTERFACE_DEFINED__
 
+/*
+ *
+ * Class TestApp.Parity.NestedGenericWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.INestedGenericWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_NestedGenericWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_NestedGenericWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_NestedGenericWidget[] = L"TestApp.Parity.NestedGenericWidget";
+#endif
+
 #else // !defined(__cplusplus)
 
 /* Forward Declarations */
@@ -251,6 +257,10 @@ namespace TestApp {
 #define ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CINestedGenericWidget __x_TestApp_CParity_CINestedGenericWidget;
 #endif // ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
 
 #if !defined(______FIMap_2_HSTRING_int_INTERFACE_DEFINED__)
 #define ______FIMap_2_HSTRING_int_INTERFACE_DEFINED__
@@ -755,7 +765,24 @@ interface __x_TestApp_CParity_CINestedGenericWidget
 
 #endif // ____x_TestApp_CParity_CINestedGenericWidget_INTERFACE_DEFINED__
 
-#endif // defined(__cplusplus) && !defined(CINTERFACE)
+/*
+ *
+ * Class TestApp.Parity.NestedGenericWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.INestedGenericWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_NestedGenericWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_NestedGenericWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_NestedGenericWidget[] = L"TestApp.Parity.NestedGenericWidget";
+#endif
+
+#endif // defined(__cplusplus)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

@@ -51,7 +51,7 @@ public partial class HeaderEmitterTests
     }
 
     [Fact]
-    public void Boilerplate_NoExtraBlankLineAfterPragmaWarning()
+    public void Boilerplate_BlankLineAfterPragmaWarning_MatchesMidl()
     {
         var compilation = Compile(@"
             namespace TestApp
@@ -61,7 +61,7 @@ public partial class HeaderEmitterTests
 
         var header = _emitter.Emit(compilation);
 
-        // After "#pragma warning( disable: 4049 )..." there should NOT be a blank line
+        // Real midl.exe has a blank line after "#pragma warning( disable: 4049 )..."
         // before the next comment about rpcndr.h
         var pragmaIdx = header.IndexOf("#pragma warning( disable: 4049 )");
         Assert.True(pragmaIdx >= 0, "Pragma warning should be present");
@@ -70,8 +70,7 @@ public partial class HeaderEmitterTests
         var nextLineStart = header.IndexOf('\n', pragmaIdx) + 1;
         var nextLine = header.Substring(nextLineStart, header.IndexOf('\n', nextLineStart) - nextLineStart).Trim();
 
-        // The next non-empty content should be the rpcndr.h comment, not a blank line
-        Assert.NotEqual("", nextLine);
-        Assert.StartsWith("/* verify", nextLine);
+        // The next line should be blank (matching real midl.exe)
+        Assert.Equal("", nextLine);
     }
 }

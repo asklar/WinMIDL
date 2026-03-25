@@ -2,7 +2,9 @@
 /*
  * File built with WinMIDL Compiler
  */
+
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
+
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -24,11 +26,11 @@
 #include <windows.h>
 #include <ole2.h>
 #endif /*COM_NO_WINDOWS_H*/
-
 #ifndef __TestApp_Parity_h__
 #define __TestApp_Parity_h__
 #ifndef __TestApp_Parity_p_h__
 #define __TestApp_Parity_p_h__
+
 
 #pragma once
 
@@ -39,77 +41,14 @@
 #define CHECK_NS_PREFIX_STATE "never"
 #endif // !defined(DISABLE_NS_PREFIX_CHECKS)
 
+
 #pragma push_macro("MIDL_CONST_ID")
 #undef MIDL_CONST_ID
 #define MIDL_CONST_ID const __declspec(selectany)
 
+
 // Header files for imported files
 #include "winrtbase.h"
-
-/*
- *
- * Class TestApp.Parity.ComposableWidget
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IComposableWidget ** Default Interface **
- *    TestApp.Parity.IComposableWidgetFactory
- *    TestApp.Parity.IComposableWidgetOverrides
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_ComposableWidget_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_ComposableWidget_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableWidget[] = L"TestApp.Parity.ComposableWidget";
-#endif
-
-/*
- *
- * Class TestApp.Parity.MiddleComposable
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IMiddleComposable ** Default Interface **
- *    TestApp.Parity.IMiddleComposableFactory
- *    TestApp.Parity.IMiddleComposableOverrides
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_MiddleComposable_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_MiddleComposable_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MiddleComposable[] = L"TestApp.Parity.MiddleComposable";
-#endif
-
-/*
- *
- * Class TestApp.Parity.FinalComposable
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IFinalComposable ** Default Interface **
- *    TestApp.Parity.IFinalComposableFactory
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_FinalComposable_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_FinalComposable_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FinalComposable[] = L"TestApp.Parity.FinalComposable";
-#endif
-
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidget;
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetFactory;
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableWidgetOverrides;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposable;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableFactory;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMiddleComposableOverrides;
-EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposable;
-EXTERN_C const IID IID___x_TestApp_CParity_CIFinalComposableFactory;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -209,6 +148,10 @@ namespace TestApp {
 #define __x_TestApp_CParity_CIFinalComposableFactory TestApp::Parity::IFinalComposableFactory
 
 #endif // ____x_TestApp_CParity_CIFinalComposableFactory_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
 
 namespace TestApp {
     namespace Parity {
@@ -515,6 +458,62 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIFinalComposableFactory_INTERFACE_DEFINED__
 
+/*
+ *
+ * Class TestApp.Parity.ComposableWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IComposableWidget ** Default Interface **
+ *    TestApp.Parity.IComposableWidgetFactory
+ *    TestApp.Parity.IComposableWidgetOverrides
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ComposableWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ComposableWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableWidget[] = L"TestApp.Parity.ComposableWidget";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.MiddleComposable
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IMiddleComposable ** Default Interface **
+ *    TestApp.Parity.IMiddleComposableFactory
+ *    TestApp.Parity.IMiddleComposableOverrides
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_MiddleComposable_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_MiddleComposable_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MiddleComposable[] = L"TestApp.Parity.MiddleComposable";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.FinalComposable
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IFinalComposable ** Default Interface **
+ *    TestApp.Parity.IFinalComposableFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_FinalComposable_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_FinalComposable_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FinalComposable[] = L"TestApp.Parity.FinalComposable";
+#endif
+
 #else // !defined(__cplusplus)
 
 /* Forward Declarations */
@@ -557,6 +556,10 @@ typedef interface __x_TestApp_CParity_CIFinalComposable __x_TestApp_CParity_CIFi
 #define ____x_TestApp_CParity_CIFinalComposableFactory_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIFinalComposableFactory __x_TestApp_CParity_CIFinalComposableFactory;
 #endif // ____x_TestApp_CParity_CIFinalComposableFactory_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
 
 #if !defined(____x_TestApp_CParity_CIComposableWidget_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CIComposableWidget_INTERFACE_DEFINED__
@@ -958,7 +961,63 @@ interface __x_TestApp_CParity_CIFinalComposableFactory
 
 #endif // ____x_TestApp_CParity_CIFinalComposableFactory_INTERFACE_DEFINED__
 
-#endif // defined(__cplusplus) && !defined(CINTERFACE)
+/*
+ *
+ * Class TestApp.Parity.ComposableWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IComposableWidget ** Default Interface **
+ *    TestApp.Parity.IComposableWidgetFactory
+ *    TestApp.Parity.IComposableWidgetOverrides
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ComposableWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ComposableWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableWidget[] = L"TestApp.Parity.ComposableWidget";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.MiddleComposable
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IMiddleComposable ** Default Interface **
+ *    TestApp.Parity.IMiddleComposableFactory
+ *    TestApp.Parity.IMiddleComposableOverrides
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_MiddleComposable_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_MiddleComposable_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MiddleComposable[] = L"TestApp.Parity.MiddleComposable";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.FinalComposable
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IFinalComposable ** Default Interface **
+ *    TestApp.Parity.IFinalComposableFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_FinalComposable_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_FinalComposable_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FinalComposable[] = L"TestApp.Parity.FinalComposable";
+#endif
+
+#endif // defined(__cplusplus)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

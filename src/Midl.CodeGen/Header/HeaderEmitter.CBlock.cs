@@ -13,12 +13,19 @@ public partial class HeaderEmitter
     /// Emits the full C compatibility block (#else branch) for all interfaces and delegates.
     /// </summary>
     private static void EmitCBlock(StringBuilder sb, List<ISymbol> cppTypes,
-        List<TypeRef>? parameterizedInstantiations = null)
+        List<TypeRef>? parameterizedInstantiations = null,
+        List<RuntimeClassSymbol>? runtimeClasses = null)
     {
         sb.AppendLine("#else // !defined(__cplusplus)");
         sb.AppendLine();
 
         EmitCForwardDeclarations(sb, cppTypes);
+
+        // Section comment headers (matching real midl.exe)
+        sb.AppendLine("// Parameterized interface forward declarations (C)");
+        sb.AppendLine();
+        sb.AppendLine("// Collection interface definitions");
+        sb.AppendLine();
 
         // Parameterized interface C vtable structs
         if (parameterizedInstantiations != null)
@@ -35,6 +42,13 @@ public partial class HeaderEmitter
                     EmitCDelegate(sb, d);
                     break;
             }
+        }
+
+        // RuntimeClass definitions (inside C block)
+        if (runtimeClasses != null)
+        {
+            foreach (var rc in runtimeClasses)
+                EmitRuntimeClassWithComment(sb, rc);
         }
     }
 

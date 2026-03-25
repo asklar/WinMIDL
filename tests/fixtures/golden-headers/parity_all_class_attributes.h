@@ -2,7 +2,9 @@
 /*
  * File built with WinMIDL Compiler
  */
+
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
+
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -24,11 +26,11 @@
 #include <windows.h>
 #include <ole2.h>
 #endif /*COM_NO_WINDOWS_H*/
-
 #ifndef __TestApp_Parity_h__
 #define __TestApp_Parity_h__
 #ifndef __TestApp_Parity_p_h__
 #define __TestApp_Parity_p_h__
+
 
 #pragma once
 
@@ -39,31 +41,14 @@
 #define CHECK_NS_PREFIX_STATE "never"
 #endif // !defined(DISABLE_NS_PREFIX_CHECKS)
 
+
 #pragma push_macro("MIDL_CONST_ID")
 #undef MIDL_CONST_ID
 #define MIDL_CONST_ID const __declspec(selectany)
 
+
 // Header files for imported files
 #include "winrtbase.h"
-
-/*
- *
- * Class TestApp.Parity.FullyAttributedClass
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IFullyAttributedClass ** Default Interface **
- *
- * Class Threading Model:  both
- *
- * Class Marshaling Behavior:  agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_FullyAttributedClass_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_FullyAttributedClass_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FullyAttributedClass[] = L"TestApp.Parity.FullyAttributedClass";
-#endif
-
-EXTERN_C const IID IID___x_TestApp_CParity_CIFullyAttributedClass;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -79,6 +64,10 @@ namespace TestApp {
 #define __x_TestApp_CParity_CIFullyAttributedClass TestApp::Parity::IFullyAttributedClass
 
 #endif // ____x_TestApp_CParity_CIFullyAttributedClass_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
 
 namespace TestApp {
     namespace Parity {
@@ -128,6 +117,23 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIFullyAttributedClass_INTERFACE_DEFINED__
 
+/*
+ *
+ * Class TestApp.Parity.FullyAttributedClass
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IFullyAttributedClass ** Default Interface **
+ *
+ * Class Threading Model:  both
+ *
+ * Class Marshaling Behavior:  agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_FullyAttributedClass_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_FullyAttributedClass_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FullyAttributedClass[] = L"TestApp.Parity.FullyAttributedClass";
+#endif
+
 #else // !defined(__cplusplus)
 
 /* Forward Declarations */
@@ -135,6 +141,10 @@ namespace TestApp {
 #define ____x_TestApp_CParity_CIFullyAttributedClass_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIFullyAttributedClass __x_TestApp_CParity_CIFullyAttributedClass;
 #endif // ____x_TestApp_CParity_CIFullyAttributedClass_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
 
 #if !defined(____x_TestApp_CParity_CIFullyAttributedClass_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CIFullyAttributedClass_INTERFACE_DEFINED__
@@ -197,7 +207,24 @@ interface __x_TestApp_CParity_CIFullyAttributedClass
 
 #endif // ____x_TestApp_CParity_CIFullyAttributedClass_INTERFACE_DEFINED__
 
-#endif // defined(__cplusplus) && !defined(CINTERFACE)
+/*
+ *
+ * Class TestApp.Parity.FullyAttributedClass
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IFullyAttributedClass ** Default Interface **
+ *
+ * Class Threading Model:  both
+ *
+ * Class Marshaling Behavior:  agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_FullyAttributedClass_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_FullyAttributedClass_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_FullyAttributedClass[] = L"TestApp.Parity.FullyAttributedClass";
+#endif
+
+#endif // defined(__cplusplus)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

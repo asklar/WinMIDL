@@ -27,7 +27,7 @@ public partial class HeaderEmitterNamespaceTests
         var header = _emitter.Emit(compilation);
 
         Assert.Contains("#if defined(__cplusplus) && !defined(CINTERFACE)", header);
-        Assert.Contains("#endif // defined(__cplusplus) && !defined(CINTERFACE)", header);
+        Assert.Contains("#endif // defined(__cplusplus)", header);
     }
 
     [Fact]
@@ -120,13 +120,10 @@ public partial class HeaderEmitterNamespaceTests
 
         var header = _emitter.Emit(compilation);
 
-        // EXTERN_C IID should be outside the C++ guard
+        // EXTERN_C IID should NOT appear before the C++ guard (matching real midl.exe)
         var cppGuardStart = header.IndexOf("#if defined(__cplusplus) && !defined(CINTERFACE)");
-        var iidDecl = header.IndexOf("EXTERN_C const IID IID___x_TestApp_CParity_CIReader;");
-
-        Assert.True(iidDecl >= 0, "IID declaration should be present");
-        Assert.True(cppGuardStart >= 0, "C++ guard should be present");
-        Assert.True(iidDecl < cppGuardStart, "IID declaration should be before C++ guard");
+        var beforeGuard = header.Substring(0, cppGuardStart);
+        Assert.DoesNotContain("EXTERN_C const IID IID___x_TestApp_CParity_CIReader;", beforeGuard);
     }
 
     [Fact]

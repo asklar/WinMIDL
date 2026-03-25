@@ -35,9 +35,6 @@ public partial class HeaderParityNamespaceTests
         // Forward declarations with FWD_DEFINED guards
         Assert.Contains("#ifndef ____x_TestApp_CParity_CIBasicWidget_FWD_DEFINED__", header);
 
-        // IID declaration outside C++ block
-        Assert.Contains("EXTERN_C const IID IID___x_TestApp_CParity_CIBasicWidget;", header);
-
         // C++ guard
         Assert.Contains("#if defined(__cplusplus) && !defined(CINTERFACE)", header);
 
@@ -57,9 +54,9 @@ public partial class HeaderParityNamespaceTests
         Assert.Contains("#define __x_TestApp_CParity_CIBasicWidget TestApp::Parity::IBasicWidget", header);
 
         // C++ guard closing
-        Assert.Contains("#endif // defined(__cplusplus) && !defined(CINTERFACE)", header);
+        Assert.Contains("#endif // defined(__cplusplus)", header);
 
-        // Runtime class string (outside C++ block)
+        // Runtime class string (inside C++ and C blocks)
         Assert.Contains("RuntimeClass_TestApp_Parity_BasicWidget", header);
 
         // void param for no-arg methods

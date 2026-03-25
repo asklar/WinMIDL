@@ -2,7 +2,9 @@
 /*
  * File built with WinMIDL Compiler
  */
+
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
+
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -24,11 +26,11 @@
 #include <windows.h>
 #include <ole2.h>
 #endif /*COM_NO_WINDOWS_H*/
-
 #ifndef __TestApp_Parity_h__
 #define __TestApp_Parity_h__
 #ifndef __TestApp_Parity_p_h__
 #define __TestApp_Parity_p_h__
+
 
 #pragma once
 
@@ -39,9 +41,11 @@
 #define CHECK_NS_PREFIX_STATE "never"
 #endif // !defined(DISABLE_NS_PREFIX_CHECKS)
 
+
 #pragma push_macro("MIDL_CONST_ID")
 #undef MIDL_CONST_ID
 #define MIDL_CONST_ID const __declspec(selectany)
+
 
 // Header files for imported files
 #include "winrtbase.h"
@@ -62,28 +66,6 @@ struct ConnectionInfo
     ::boolean Secure;
     ConnectionState State;
 };
-
-/*
- *
- * Class TestApp.Parity.ConnectionManager
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IConnectionManager ** Default Interface **
- *    TestApp.Parity.IConnectionManagerFactory
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_ConnectionManager_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_ConnectionManager_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ConnectionManager[] = L"TestApp.Parity.ConnectionManager";
-#endif
-
-EXTERN_C const IID IID___x_TestApp_CParity_CConnectionChangedHandler;
-EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManager;
-EXTERN_C const IID IID___x_TestApp_CParity_CIConnectionManagerFactory;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -111,6 +93,10 @@ namespace TestApp {
 #define __x_TestApp_CParity_CIConnectionManagerFactory TestApp::Parity::IConnectionManagerFactory
 
 #endif // ____x_TestApp_CParity_CIConnectionManagerFactory_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
 
 namespace TestApp {
     namespace Parity {
@@ -240,6 +226,24 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIConnectionManagerFactory_INTERFACE_DEFINED__
 
+/*
+ *
+ * Class TestApp.Parity.ConnectionManager
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IConnectionManager ** Default Interface **
+ *    TestApp.Parity.IConnectionManagerFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ConnectionManager_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ConnectionManager_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ConnectionManager[] = L"TestApp.Parity.ConnectionManager";
+#endif
+
 #else // !defined(__cplusplus)
 
 /* Forward Declarations */
@@ -257,6 +261,10 @@ typedef interface __x_TestApp_CParity_CIConnectionManager __x_TestApp_CParity_CI
 #define ____x_TestApp_CParity_CIConnectionManagerFactory_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIConnectionManagerFactory __x_TestApp_CParity_CIConnectionManagerFactory;
 #endif // ____x_TestApp_CParity_CIConnectionManagerFactory_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
 
 #if !defined(____x_TestApp_CParity_CConnectionChangedHandler_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CConnectionChangedHandler_INTERFACE_DEFINED__
@@ -419,7 +427,25 @@ interface __x_TestApp_CParity_CIConnectionManagerFactory
 
 #endif // ____x_TestApp_CParity_CIConnectionManagerFactory_INTERFACE_DEFINED__
 
-#endif // defined(__cplusplus) && !defined(CINTERFACE)
+/*
+ *
+ * Class TestApp.Parity.ConnectionManager
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IConnectionManager ** Default Interface **
+ *    TestApp.Parity.IConnectionManagerFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ConnectionManager_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ConnectionManager_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ConnectionManager[] = L"TestApp.Parity.ConnectionManager";
+#endif
+
+#endif // defined(__cplusplus)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

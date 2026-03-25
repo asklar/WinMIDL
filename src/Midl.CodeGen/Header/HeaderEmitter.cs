@@ -47,14 +47,11 @@ public partial class HeaderEmitter
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         MidlTrace.CodeGen($"Generating header, {allTypes.Count} types");
 
-        // C-section types: runtime classes, enums, structs
+        // Enums and structs are emitted outside C++/C guards
         foreach (var symbol in allTypes)
         {
             switch (symbol)
             {
-                case RuntimeClassSymbol rc:
-                    EmitRuntimeClassWithComment(sb, rc);
-                    break;
                 case EnumSymbol e:
                     EmitEnum(sb, e);
                     break;
@@ -66,18 +63,8 @@ public partial class HeaderEmitter
 
         // Collect C++ types (interfaces and delegates)
         var cppTypes = allTypes.Where(t => t is InterfaceSymbol or DelegateSymbol).ToList();
+        var runtimeClasses = allTypes.OfType<RuntimeClassSymbol>().ToList();
         var hasForwardDecls = allTypes.Any(t => t is InterfaceSymbol or RuntimeClassSymbol);
-
-        if (cppTypes.Count > 0)
-        {
-            // Emit IID declarations in C section (before C++ guard)
-            foreach (var symbol in cppTypes)
-            {
-                var mangledName = MangleName(symbol.FullName);
-                sb.AppendLine($"EXTERN_C const IID IID_{mangledName};");
-            }
-            sb.AppendLine();
-        }
 
         // Collect parameterized interface instantiations for __FI blocks
         var parameterizedInstantiations = CollectParameterizedInstantiations(compilation);
@@ -87,12 +74,13 @@ public partial class HeaderEmitter
             sb.AppendLine("#if defined(__cplusplus) && !defined(CINTERFACE)");
             sb.AppendLine();
 
-            // Parameterized interface C++ template specializations (before forward decls)
-            EmitParameterizedInterfacesCpp(sb, parameterizedInstantiations);
-
-            // Forward declarations (with FWD_DEFINED guards and namespace blocks)
+            // 1. Forward declarations (with FWD_DEFINED guards and namespace blocks)
             EmitForwardDeclarations(sb, allTypes);
 
+            // 2. Parameterized interface C++ template specializations
+            EmitParameterizedInterfacesCpp(sb, parameterizedInstantiations);
+
+            // 3. Interface/delegate C++ definitions
             foreach (var symbol in cppTypes)
             {
                 switch (symbol)
@@ -106,9 +94,14 @@ public partial class HeaderEmitter
                 }
             }
 
-            EmitCBlock(sb, cppTypes, parameterizedInstantiations);
+            // 4. RuntimeClass definitions (inside C++ guard)
+            foreach (var rc in runtimeClasses)
+                EmitRuntimeClassWithComment(sb, rc);
 
-            sb.AppendLine("#endif // defined(__cplusplus) && !defined(CINTERFACE)");
+            // C block (#else branch)
+            EmitCBlock(sb, cppTypes, parameterizedInstantiations, runtimeClasses);
+
+            sb.AppendLine("#endif // defined(__cplusplus)");
             sb.AppendLine();
         }
 
@@ -134,9 +127,11 @@ public partial class HeaderEmitter
         sb.AppendLine("/*");
         sb.AppendLine(" * File built with WinMIDL Compiler");
         sb.AppendLine(" */");
+        sb.AppendLine();
 
         // Warning suppression
         sb.AppendLine("#pragma warning( disable: 4049 )  /* more than 64k source lines */");
+        sb.AppendLine();
 
         // RPC version requirements
         sb.AppendLine("/* verify that the <rpcndr.h> version is high enough to compile this file*/");
@@ -166,13 +161,13 @@ public partial class HeaderEmitter
         sb.AppendLine("#include <windows.h>");
         sb.AppendLine("#include <ole2.h>");
         sb.AppendLine("#endif /*COM_NO_WINDOWS_H*/");
-        sb.AppendLine();
 
-        // Double include guard
+        // Double include guard (no blank line before guards, matching real midl)
         sb.AppendLine($"#ifndef {outerGuard}");
         sb.AppendLine($"#define {outerGuard}");
         sb.AppendLine($"#ifndef {innerGuard}");
         sb.AppendLine($"#define {innerGuard}");
+        sb.AppendLine();
         sb.AppendLine();
         sb.AppendLine("#pragma once");
         sb.AppendLine();
@@ -185,11 +180,13 @@ public partial class HeaderEmitter
         sb.AppendLine("#define CHECK_NS_PREFIX_STATE \"never\"");
         sb.AppendLine("#endif // !defined(DISABLE_NS_PREFIX_CHECKS)");
         sb.AppendLine();
+        sb.AppendLine();
 
         // MIDL_CONST_ID macro
         sb.AppendLine("#pragma push_macro(\"MIDL_CONST_ID\")");
         sb.AppendLine("#undef MIDL_CONST_ID");
         sb.AppendLine("#define MIDL_CONST_ID const __declspec(selectany)");
+        sb.AppendLine();
         sb.AppendLine();
 
         // Header files for imported files
@@ -251,6 +248,12 @@ public partial class HeaderEmitter
             sb.AppendLine($"#endif // {fwdGuard}");
             sb.AppendLine();
         }
+
+        // Section comment headers (matching real midl.exe)
+        sb.AppendLine("// Parameterized interface forward declarations (C++)");
+        sb.AppendLine();
+        sb.AppendLine("// Collection interface definitions");
+        sb.AppendLine();
 
         foreach (var rc in runtimeClasses)
         {

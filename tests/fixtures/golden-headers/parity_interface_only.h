@@ -2,7 +2,9 @@
 /*
  * File built with WinMIDL Compiler
  */
+
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
+
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -24,11 +26,11 @@
 #include <windows.h>
 #include <ole2.h>
 #endif /*COM_NO_WINDOWS_H*/
-
 #ifndef __TestApp_Parity_InterfaceOnly_h__
 #define __TestApp_Parity_InterfaceOnly_h__
 #ifndef __TestApp_Parity_InterfaceOnly_p_h__
 #define __TestApp_Parity_InterfaceOnly_p_h__
+
 
 #pragma once
 
@@ -39,16 +41,14 @@
 #define CHECK_NS_PREFIX_STATE "never"
 #endif // !defined(DISABLE_NS_PREFIX_CHECKS)
 
+
 #pragma push_macro("MIDL_CONST_ID")
 #undef MIDL_CONST_ID
 #define MIDL_CONST_ID const __declspec(selectany)
 
+
 // Header files for imported files
 #include "winrtbase.h"
-
-EXTERN_C const IID IID___x_TestApp_CParity_CInterfaceOnly_CIReader;
-EXTERN_C const IID IID___x_TestApp_CParity_CInterfaceOnly_CIWriter;
-EXTERN_C const IID IID___x_TestApp_CParity_CInterfaceOnly_CIReaderWriter;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -94,6 +94,10 @@ namespace TestApp {
 #define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter TestApp::Parity::InterfaceOnly::IReaderWriter
 
 #endif // ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
 
 /*
  *
@@ -233,6 +237,10 @@ typedef interface __x_TestApp_CParity_CInterfaceOnly_CIWriter __x_TestApp_CParit
 #define ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter;
 #endif // ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
 
 #if !defined(____x_TestApp_CParity_CInterfaceOnly_CIReader_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CInterfaceOnly_CIReader_INTERFACE_DEFINED__
@@ -405,7 +413,7 @@ interface __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter
 
 #endif // ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_INTERFACE_DEFINED__
 
-#endif // defined(__cplusplus) && !defined(CINTERFACE)
+#endif // defined(__cplusplus)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

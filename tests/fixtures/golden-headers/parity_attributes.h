@@ -2,7 +2,9 @@
 /*
  * File built with WinMIDL Compiler
  */
+
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
+
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -24,11 +26,11 @@
 #include <windows.h>
 #include <ole2.h>
 #endif /*COM_NO_WINDOWS_H*/
-
 #ifndef __TestApp_Parity_h__
 #define __TestApp_Parity_h__
 #ifndef __TestApp_Parity_p_h__
 #define __TestApp_Parity_p_h__
+
 
 #pragma once
 
@@ -39,108 +41,14 @@
 #define CHECK_NS_PREFIX_STATE "never"
 #endif // !defined(DISABLE_NS_PREFIX_CHECKS)
 
+
 #pragma push_macro("MIDL_CONST_ID")
 #undef MIDL_CONST_ID
 #define MIDL_CONST_ID const __declspec(selectany)
 
+
 // Header files for imported files
 #include "winrtbase.h"
-
-/*
- *
- * Class TestApp.Parity.AttributedClass
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IAttributedClass ** Default Interface **
- *
- * Class Threading Model:  both
- *
- * Class Marshaling Behavior:  agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_AttributedClass_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_AttributedClass_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_AttributedClass[] = L"TestApp.Parity.AttributedClass";
-#endif
-
-/*
- *
- * Class TestApp.Parity.OldClass
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IOldClass ** Default Interface **
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_OldClass_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_OldClass_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_OldClass[] = L"TestApp.Parity.OldClass";
-#endif
-
-/*
- *
- * Class TestApp.Parity.ComposableBase
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IComposableBase ** Default Interface **
- *    TestApp.Parity.IComposableBaseFactory
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_ComposableBase_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_ComposableBase_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableBase[] = L"TestApp.Parity.ComposableBase";
-#endif
-
-/*
- *
- * Class TestApp.Parity.ActivatableWidget
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IActivatableWidget ** Default Interface **
- *    TestApp.Parity.IActivatableWidgetFactory
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_ActivatableWidget_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_ActivatableWidget_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ActivatableWidget[] = L"TestApp.Parity.ActivatableWidget";
-#endif
-
-/*
- *
- * Class TestApp.Parity.SettingsHelper
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.ISettingsHelperStatics
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_SettingsHelper_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_SettingsHelper_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_SettingsHelper[] = L"TestApp.Parity.SettingsHelper";
-#endif
-
-EXTERN_C const IID IID___x_TestApp_CParity_CIMarkedInterface;
-EXTERN_C const IID IID___x_TestApp_CParity_CIAttributedClass;
-EXTERN_C const IID IID___x_TestApp_CParity_CIOldClass;
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableBase;
-EXTERN_C const IID IID___x_TestApp_CParity_CIComposableBaseFactory;
-EXTERN_C const IID IID___x_TestApp_CParity_CIActivatableWidget;
-EXTERN_C const IID IID___x_TestApp_CParity_CIActivatableWidgetFactory;
-EXTERN_C const IID IID___x_TestApp_CParity_CISettingsHelperStatics;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -240,6 +148,10 @@ namespace TestApp {
 #define __x_TestApp_CParity_CISettingsHelperStatics TestApp::Parity::ISettingsHelperStatics
 
 #endif // ____x_TestApp_CParity_CISettingsHelperStatics_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
 
 namespace TestApp {
     namespace Parity {
@@ -547,6 +459,93 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CISettingsHelperStatics_INTERFACE_DEFINED__
 
+/*
+ *
+ * Class TestApp.Parity.AttributedClass
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IAttributedClass ** Default Interface **
+ *
+ * Class Threading Model:  both
+ *
+ * Class Marshaling Behavior:  agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_AttributedClass_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_AttributedClass_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_AttributedClass[] = L"TestApp.Parity.AttributedClass";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.OldClass
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IOldClass ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_OldClass_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_OldClass_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_OldClass[] = L"TestApp.Parity.OldClass";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.ComposableBase
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IComposableBase ** Default Interface **
+ *    TestApp.Parity.IComposableBaseFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ComposableBase_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ComposableBase_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableBase[] = L"TestApp.Parity.ComposableBase";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.ActivatableWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IActivatableWidget ** Default Interface **
+ *    TestApp.Parity.IActivatableWidgetFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ActivatableWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ActivatableWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ActivatableWidget[] = L"TestApp.Parity.ActivatableWidget";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.SettingsHelper
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.ISettingsHelperStatics
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_SettingsHelper_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_SettingsHelper_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_SettingsHelper[] = L"TestApp.Parity.SettingsHelper";
+#endif
+
 #else // !defined(__cplusplus)
 
 /* Forward Declarations */
@@ -589,6 +588,10 @@ typedef interface __x_TestApp_CParity_CIActivatableWidgetFactory __x_TestApp_CPa
 #define ____x_TestApp_CParity_CISettingsHelperStatics_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CISettingsHelperStatics __x_TestApp_CParity_CISettingsHelperStatics;
 #endif // ____x_TestApp_CParity_CISettingsHelperStatics_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
 
 #if !defined(____x_TestApp_CParity_CIMarkedInterface_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CIMarkedInterface_INTERFACE_DEFINED__
@@ -986,7 +989,94 @@ interface __x_TestApp_CParity_CISettingsHelperStatics
 
 #endif // ____x_TestApp_CParity_CISettingsHelperStatics_INTERFACE_DEFINED__
 
-#endif // defined(__cplusplus) && !defined(CINTERFACE)
+/*
+ *
+ * Class TestApp.Parity.AttributedClass
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IAttributedClass ** Default Interface **
+ *
+ * Class Threading Model:  both
+ *
+ * Class Marshaling Behavior:  agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_AttributedClass_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_AttributedClass_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_AttributedClass[] = L"TestApp.Parity.AttributedClass";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.OldClass
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IOldClass ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_OldClass_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_OldClass_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_OldClass[] = L"TestApp.Parity.OldClass";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.ComposableBase
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IComposableBase ** Default Interface **
+ *    TestApp.Parity.IComposableBaseFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ComposableBase_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ComposableBase_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ComposableBase[] = L"TestApp.Parity.ComposableBase";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.ActivatableWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IActivatableWidget ** Default Interface **
+ *    TestApp.Parity.IActivatableWidgetFactory
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_ActivatableWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ActivatableWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ActivatableWidget[] = L"TestApp.Parity.ActivatableWidget";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.SettingsHelper
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.ISettingsHelperStatics
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_SettingsHelper_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_SettingsHelper_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_SettingsHelper[] = L"TestApp.Parity.SettingsHelper";
+#endif
+
+#endif // defined(__cplusplus)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

@@ -2,7 +2,9 @@
 /*
  * File built with WinMIDL Compiler
  */
+
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
+
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -24,11 +26,11 @@
 #include <windows.h>
 #include <ole2.h>
 #endif /*COM_NO_WINDOWS_H*/
-
 #ifndef __TestApp_Parity_h__
 #define __TestApp_Parity_h__
 #ifndef __TestApp_Parity_p_h__
 #define __TestApp_Parity_p_h__
+
 
 #pragma once
 
@@ -39,89 +41,16 @@
 #define CHECK_NS_PREFIX_STATE "never"
 #endif // !defined(DISABLE_NS_PREFIX_CHECKS)
 
+
 #pragma push_macro("MIDL_CONST_ID")
 #undef MIDL_CONST_ID
 #define MIDL_CONST_ID const __declspec(selectany)
 
+
 // Header files for imported files
 #include "winrtbase.h"
 
-/*
- *
- * Class TestApp.Parity.DeprecatedWidget
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IDeprecatedWidget ** Default Interface **
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_DeprecatedWidget_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_DeprecatedWidget_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DeprecatedWidget[] = L"TestApp.Parity.DeprecatedWidget";
-#endif
-
-/*
- *
- * Class TestApp.Parity.MixedDeprecation
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IMixedDeprecation ** Default Interface **
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_MixedDeprecation_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_MixedDeprecation_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MixedDeprecation[] = L"TestApp.Parity.MixedDeprecation";
-#endif
-
-/*
- *
- * Class TestApp.Parity.RemovedService
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.IRemovedService ** Default Interface **
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_RemovedService_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_RemovedService_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_RemovedService[] = L"TestApp.Parity.RemovedService";
-#endif
-
-EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedInterface;
-EXTERN_C const IID IID___x_TestApp_CParity_CIDeprecatedWidget;
-EXTERN_C const IID IID___x_TestApp_CParity_CIMixedDeprecation;
-EXTERN_C const IID IID___x_TestApp_CParity_CIRemovedService;
-
 #if defined(__cplusplus) && !defined(CINTERFACE)
-
-#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_USE
-#define DEF___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_USE
-#if !defined(RO_NO_TEMPLATE_NAME)
-namespace Windows {     namespace Foundation { 
-        template <>
-        struct __declspec(uuid("5429526c-4b00-8651-ade3-22eb5b76bfa7"))
-        TypedEventHandler<TestApp::Parity::MixedDeprecation*,IInspectable*> : TypedEventHandler_impl<TestApp::Parity::MixedDeprecation*,IInspectable*>
-        {
-            static const wchar_t* z_get_rc_name_impl()
-            {
-                return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.MixedDeprecation, Object>";
-            }
-        };
-        typedef TypedEventHandler<TestApp::Parity::MixedDeprecation*,IInspectable*> __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_t;
-#define __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_t
-/* Foundation */ } /* Windows */ } 
-#endif // !defined(RO_NO_TEMPLATE_NAME)
-#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_USE */
 
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIDeprecatedInterface_FWD_DEFINED__
@@ -172,6 +101,10 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIRemovedService_FWD_DEFINED__
 
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
+
 namespace TestApp {
     namespace Parity {
         class DeprecatedWidget;
@@ -189,6 +122,25 @@ namespace TestApp {
         class RemovedService;
     } /* Parity */
 } /* TestApp */
+
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("5429526c-4b00-8651-ade3-22eb5b76bfa7"))
+        TypedEventHandler<TestApp::Parity::MixedDeprecation*,IInspectable*> : TypedEventHandler_impl<TestApp::Parity::MixedDeprecation*,IInspectable*>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.MixedDeprecation, Object>";
+            }
+        };
+        typedef TypedEventHandler<TestApp::Parity::MixedDeprecation*,IInspectable*> __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_USE */
 
 /*
  *
@@ -354,6 +306,57 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIRemovedService_INTERFACE_DEFINED__
 
+/*
+ *
+ * Class TestApp.Parity.DeprecatedWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IDeprecatedWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_DeprecatedWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_DeprecatedWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DeprecatedWidget[] = L"TestApp.Parity.DeprecatedWidget";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.MixedDeprecation
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IMixedDeprecation ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_MixedDeprecation_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_MixedDeprecation_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MixedDeprecation[] = L"TestApp.Parity.MixedDeprecation";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.RemovedService
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IRemovedService ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_RemovedService_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_RemovedService_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_RemovedService[] = L"TestApp.Parity.RemovedService";
+#endif
+
 #else // !defined(__cplusplus)
 
 /* Forward Declarations */
@@ -376,6 +379,10 @@ typedef interface __x_TestApp_CParity_CIMixedDeprecation __x_TestApp_CParity_CIM
 #define ____x_TestApp_CParity_CIRemovedService_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIRemovedService __x_TestApp_CParity_CIRemovedService;
 #endif // ____x_TestApp_CParity_CIRemovedService_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
 
 #if !defined(______FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_INTERFACE_DEFINED__)
 #define ______FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_INTERFACE_DEFINED__
@@ -652,7 +659,58 @@ interface __x_TestApp_CParity_CIRemovedService
 
 #endif // ____x_TestApp_CParity_CIRemovedService_INTERFACE_DEFINED__
 
-#endif // defined(__cplusplus) && !defined(CINTERFACE)
+/*
+ *
+ * Class TestApp.Parity.DeprecatedWidget
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IDeprecatedWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_DeprecatedWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_DeprecatedWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_DeprecatedWidget[] = L"TestApp.Parity.DeprecatedWidget";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.MixedDeprecation
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IMixedDeprecation ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_MixedDeprecation_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_MixedDeprecation_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_MixedDeprecation[] = L"TestApp.Parity.MixedDeprecation";
+#endif
+
+/*
+ *
+ * Class TestApp.Parity.RemovedService
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IRemovedService ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_RemovedService_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_RemovedService_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_RemovedService[] = L"TestApp.Parity.RemovedService";
+#endif
+
+#endif // defined(__cplusplus)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

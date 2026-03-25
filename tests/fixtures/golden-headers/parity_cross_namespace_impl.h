@@ -2,7 +2,9 @@
 /*
  * File built with WinMIDL Compiler
  */
+
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
+
 /* verify that the <rpcndr.h> version is high enough to compile this file*/
 #ifndef __REQUIRED_RPCNDR_H_VERSION__
 #define __REQUIRED_RPCNDR_H_VERSION__ 500
@@ -24,11 +26,11 @@
 #include <windows.h>
 #include <ole2.h>
 #endif /*COM_NO_WINDOWS_H*/
-
 #ifndef __TestApp_Parity_Contracts_h__
 #define __TestApp_Parity_Contracts_h__
 #ifndef __TestApp_Parity_Contracts_p_h__
 #define __TestApp_Parity_Contracts_p_h__
+
 
 #pragma once
 
@@ -39,32 +41,14 @@
 #define CHECK_NS_PREFIX_STATE "never"
 #endif // !defined(DISABLE_NS_PREFIX_CHECKS)
 
+
 #pragma push_macro("MIDL_CONST_ID")
 #undef MIDL_CONST_ID
 #define MIDL_CONST_ID const __declspec(selectany)
 
+
 // Header files for imported files
 #include "winrtbase.h"
-
-/*
- *
- * Class TestApp.Parity.Impl.DataService
- *
- * Class implements the following interfaces:
- *    TestApp.Parity.Impl.IDataService ** Default Interface **
- *
- * Class Threading Model:  Both Single and Multi Threaded Apartment
- *
- * Class Marshaling Behavior:  Agile - Class is agile
- *
- */
-#ifndef RUNTIMECLASS_TestApp_Parity_Impl_DataService_DEFINED
-#define RUNTIMECLASS_TestApp_Parity_Impl_DataService_DEFINED
-extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Impl_DataService[] = L"TestApp.Parity.Impl.DataService";
-#endif
-
-EXTERN_C const IID IID___x_TestApp_CParity_CContracts_CDataNotification;
-EXTERN_C const IID IID___x_TestApp_CParity_CImpl_CIDataService;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
@@ -82,6 +66,10 @@ namespace TestApp {
 #define __x_TestApp_CParity_CImpl_CIDataService TestApp::Parity::Impl::IDataService
 
 #endif // ____x_TestApp_CParity_CImpl_CIDataService_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
 
 namespace TestApp {
     namespace Parity {
@@ -172,6 +160,23 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CImpl_CIDataService_INTERFACE_DEFINED__
 
+/*
+ *
+ * Class TestApp.Parity.Impl.DataService
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.Impl.IDataService ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_Impl_DataService_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_Impl_DataService_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Impl_DataService[] = L"TestApp.Parity.Impl.DataService";
+#endif
+
 #else // !defined(__cplusplus)
 
 /* Forward Declarations */
@@ -184,6 +189,10 @@ typedef interface __x_TestApp_CParity_CContracts_CDataNotification __x_TestApp_C
 #define ____x_TestApp_CParity_CImpl_CIDataService_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CImpl_CIDataService __x_TestApp_CParity_CImpl_CIDataService;
 #endif // ____x_TestApp_CParity_CImpl_CIDataService_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
 
 #if !defined(____x_TestApp_CParity_CContracts_CDataNotification_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CContracts_CDataNotification_INTERFACE_DEFINED__
@@ -289,7 +298,24 @@ interface __x_TestApp_CParity_CImpl_CIDataService
 
 #endif // ____x_TestApp_CParity_CImpl_CIDataService_INTERFACE_DEFINED__
 
-#endif // defined(__cplusplus) && !defined(CINTERFACE)
+/*
+ *
+ * Class TestApp.Parity.Impl.DataService
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.Impl.IDataService ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_Impl_DataService_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_Impl_DataService_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_Impl_DataService[] = L"TestApp.Parity.Impl.DataService";
+#endif
+
+#endif // defined(__cplusplus)
 
 #pragma pop_macro("MIDL_CONST_ID")
 

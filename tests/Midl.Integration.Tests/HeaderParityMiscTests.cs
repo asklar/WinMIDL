@@ -53,7 +53,7 @@ public partial class HeaderParityTests
     }
 
     [Fact]
-    public void Parity_BasicClass_NoExtraBlankLineAfterPragmaWarning()
+    public void Parity_BasicClass_BlankLineAfterPragmaWarning_MatchesMidl()
     {
         var source = File.ReadAllText(Path.Combine(FixturesDir, "parity_basic_class.idl"));
         var compilation = CompilationHelper.Compile(source);
@@ -65,8 +65,8 @@ public partial class HeaderParityTests
         var nextLineStart = header.IndexOf('\n', pragmaIdx) + 1;
         var nextLine = header.Substring(nextLineStart, header.IndexOf('\n', nextLineStart) - nextLineStart).Trim();
 
-        Assert.NotEqual("", nextLine);
-        Assert.StartsWith("/* verify", nextLine);
+        // Real midl.exe has a blank line after #pragma warning
+        Assert.Equal("", nextLine);
     }
 
     [Fact]
