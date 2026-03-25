@@ -154,6 +154,129 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIMultiActivatableWidgetFactory_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIMultiActivatableWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMultiActivatableWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMultiActivatableWidget __x_TestApp_CParity_CIMultiActivatableWidget;
+#endif // ____x_TestApp_CParity_CIMultiActivatableWidget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMultiActivatableWidgetFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMultiActivatableWidgetFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMultiActivatableWidgetFactory __x_TestApp_CParity_CIMultiActivatableWidgetFactory;
+#endif // ____x_TestApp_CParity_CIMultiActivatableWidgetFactory_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMultiActivatableWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMultiActivatableWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMultiActivatableWidget[] = L"TestApp.Parity.IMultiActivatableWidget";
+
+typedef struct __x_TestApp_CParity_CIMultiActivatableWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIMultiActivatableWidget * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIMultiActivatableWidget * This, /* [out, retval] */ int* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMultiActivatableWidgetVtbl;
+
+interface __x_TestApp_CParity_CIMultiActivatableWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMultiActivatableWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMultiActivatableWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidget_get_Name(This,value) \
+    ( (This)->lpVtbl->get_Name(This,value) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidget_get_Id(This,value) \
+    ( (This)->lpVtbl->get_Id(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMultiActivatableWidget_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMultiActivatableWidgetFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMultiActivatableWidgetFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMultiActivatableWidgetFactory[] = L"TestApp.Parity.IMultiActivatableWidgetFactory";
+
+typedef struct __x_TestApp_CParity_CIMultiActivatableWidgetFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidgetFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidgetFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidgetFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidgetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidgetFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiActivatableWidgetFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiActivatableWidgetFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ MultiActivatableWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiActivatableWidgetFactory * This, /* [in] */ HSTRING name, /* [in] */ int id, /* [out, retval] */ MultiActivatableWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiActivatableWidgetFactory * This, /* [in] */ HSTRING name, /* [in] */ int id, /* [in] */ ::boolean active, /* [out, retval] */ MultiActivatableWidget* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMultiActivatableWidgetFactoryVtbl;
+
+interface __x_TestApp_CParity_CIMultiActivatableWidgetFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMultiActivatableWidgetFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMultiActivatableWidgetFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidgetFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidgetFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidgetFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidgetFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidgetFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidgetFactory_CreateInstance(This,name,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidgetFactory_CreateInstance(This,name,id,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,id,returnValue) )
+
+#define __x_TestApp_CParity_CIMultiActivatableWidgetFactory_CreateInstance(This,name,id,active,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,id,active,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMultiActivatableWidgetFactory_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

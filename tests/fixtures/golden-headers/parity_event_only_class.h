@@ -218,6 +218,275 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIEventSourceWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CItemAddedHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_CItemAddedHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CItemAddedHandler __x_TestApp_CParity_CItemAddedHandler;
+#endif // ____x_TestApp_CParity_CItemAddedHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CItemRemovedHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_CItemRemovedHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CItemRemovedHandler __x_TestApp_CParity_CItemRemovedHandler;
+#endif // ____x_TestApp_CParity_CItemRemovedHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CCollectionClearedHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_CCollectionClearedHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CCollectionClearedHandler __x_TestApp_CParity_CCollectionClearedHandler;
+#endif // ____x_TestApp_CParity_CCollectionClearedHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CItemMovedHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_CItemMovedHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CItemMovedHandler __x_TestApp_CParity_CItemMovedHandler;
+#endif // ____x_TestApp_CParity_CItemMovedHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIEventSourceWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIEventSourceWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIEventSourceWidget __x_TestApp_CParity_CIEventSourceWidget;
+#endif // ____x_TestApp_CParity_CIEventSourceWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CItemAddedHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CItemAddedHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CItemAddedHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CItemAddedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CItemAddedHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CItemAddedHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CItemAddedHandler * This, /* [in] */ HSTRING item, /* [in] */ int index);
+    END_INTERFACE
+} __x_TestApp_CParity_CItemAddedHandlerVtbl;
+
+interface __x_TestApp_CParity_CItemAddedHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_CItemAddedHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CItemAddedHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CItemAddedHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CItemAddedHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CItemAddedHandler_Invoke(This,item,index) \
+    ( (This)->lpVtbl->Invoke(This,item,index) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CItemAddedHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CItemRemovedHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CItemRemovedHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CItemRemovedHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CItemRemovedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CItemRemovedHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CItemRemovedHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CItemRemovedHandler * This, /* [in] */ HSTRING item);
+    END_INTERFACE
+} __x_TestApp_CParity_CItemRemovedHandlerVtbl;
+
+interface __x_TestApp_CParity_CItemRemovedHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_CItemRemovedHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CItemRemovedHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CItemRemovedHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CItemRemovedHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CItemRemovedHandler_Invoke(This,item) \
+    ( (This)->lpVtbl->Invoke(This,item) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CItemRemovedHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CCollectionClearedHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CCollectionClearedHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CCollectionClearedHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CCollectionClearedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CCollectionClearedHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CCollectionClearedHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CCollectionClearedHandler * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CCollectionClearedHandlerVtbl;
+
+interface __x_TestApp_CParity_CCollectionClearedHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_CCollectionClearedHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CCollectionClearedHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CCollectionClearedHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CCollectionClearedHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CCollectionClearedHandler_Invoke(This) \
+    ( (This)->lpVtbl->Invoke(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CCollectionClearedHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CItemMovedHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CItemMovedHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CItemMovedHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CItemMovedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CItemMovedHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CItemMovedHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CItemMovedHandler * This, /* [in] */ int oldIndex, /* [in] */ int newIndex);
+    END_INTERFACE
+} __x_TestApp_CParity_CItemMovedHandlerVtbl;
+
+interface __x_TestApp_CParity_CItemMovedHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_CItemMovedHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CItemMovedHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CItemMovedHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CItemMovedHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CItemMovedHandler_Invoke(This,oldIndex,newIndex) \
+    ( (This)->lpVtbl->Invoke(This,oldIndex,newIndex) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CItemMovedHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIEventSourceWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIEventSourceWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IEventSourceWidget[] = L"TestApp.Parity.IEventSourceWidget";
+
+typedef struct __x_TestApp_CParity_CIEventSourceWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIEventSourceWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIEventSourceWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIEventSourceWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIEventSourceWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIEventSourceWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIEventSourceWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ItemAdded )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_TestApp_CParity_CItemAddedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ItemAdded )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ItemRemoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_TestApp_CParity_CItemRemovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ItemRemoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CollectionCleared )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_TestApp_CParity_CCollectionClearedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CollectionCleared )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ItemMoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_TestApp_CParity_CItemMovedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ItemMoved )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_StateChanged )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_StateChanged )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ EventRegistrationToken token);
+    HRESULT ( STDMETHODCALLTYPE *AddItem )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ HSTRING item);
+    HRESULT ( STDMETHODCALLTYPE *RemoveItem )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ HSTRING item);
+    HRESULT ( STDMETHODCALLTYPE *Clear )(__x_TestApp_CParity_CIEventSourceWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *MoveItem )(__x_TestApp_CParity_CIEventSourceWidget * This, /* [in] */ int fromIndex, /* [in] */ int toIndex);
+    END_INTERFACE
+} __x_TestApp_CParity_CIEventSourceWidgetVtbl;
+
+interface __x_TestApp_CParity_CIEventSourceWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIEventSourceWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIEventSourceWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_add_ItemAdded(This,handler,token) \
+    ( (This)->lpVtbl->add_ItemAdded(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_remove_ItemAdded(This,token) \
+    ( (This)->lpVtbl->remove_ItemAdded(This,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_add_ItemRemoved(This,handler,token) \
+    ( (This)->lpVtbl->add_ItemRemoved(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_remove_ItemRemoved(This,token) \
+    ( (This)->lpVtbl->remove_ItemRemoved(This,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_add_CollectionCleared(This,handler,token) \
+    ( (This)->lpVtbl->add_CollectionCleared(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_remove_CollectionCleared(This,token) \
+    ( (This)->lpVtbl->remove_CollectionCleared(This,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_add_ItemMoved(This,handler,token) \
+    ( (This)->lpVtbl->add_ItemMoved(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_remove_ItemMoved(This,token) \
+    ( (This)->lpVtbl->remove_ItemMoved(This,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_add_StateChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_StateChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_remove_StateChanged(This,token) \
+    ( (This)->lpVtbl->remove_StateChanged(This,token) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_AddItem(This,item) \
+    ( (This)->lpVtbl->AddItem(This,item) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_RemoveItem(This,item) \
+    ( (This)->lpVtbl->RemoveItem(This,item) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_Clear(This) \
+    ( (This)->lpVtbl->Clear(This) )
+
+#define __x_TestApp_CParity_CIEventSourceWidget_MoveItem(This,fromIndex,toIndex) \
+    ( (This)->lpVtbl->MoveItem(This,fromIndex,toIndex) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIEventSourceWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

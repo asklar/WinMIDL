@@ -332,6 +332,361 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIFullStream2_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIReadable2_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIReadable2_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIReadable2 __x_TestApp_CParity_CIReadable2;
+#endif // ____x_TestApp_CParity_CIReadable2_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIWritable2_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIWritable2_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIWritable2 __x_TestApp_CParity_CIWritable2;
+#endif // ____x_TestApp_CParity_CIWritable2_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CISeekable_FWD_DEFINED__
+#define ____x_TestApp_CParity_CISeekable_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CISeekable __x_TestApp_CParity_CISeekable;
+#endif // ____x_TestApp_CParity_CISeekable_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIClosable2_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIClosable2_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIClosable2 __x_TestApp_CParity_CIClosable2;
+#endif // ____x_TestApp_CParity_CIClosable2_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIFullStream_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIFullStream_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIFullStream __x_TestApp_CParity_CIFullStream;
+#endif // ____x_TestApp_CParity_CIFullStream_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIFullStream2_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIFullStream2_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIFullStream2 __x_TestApp_CParity_CIFullStream2;
+#endif // ____x_TestApp_CParity_CIFullStream2_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIReadable2_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIReadable2_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IReadable2[] = L"TestApp.Parity.IReadable2";
+
+typedef struct __x_TestApp_CParity_CIReadable2Vtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIReadable2 * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIReadable2 * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIReadable2 * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIReadable2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIReadable2 * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIReadable2 * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CIReadable2 * This, /* [out, retval] */ HSTRING* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIReadable2Vtbl;
+
+interface __x_TestApp_CParity_CIReadable2
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIReadable2Vtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIReadable2_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIReadable2_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIReadable2_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIReadable2_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIReadable2_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIReadable2_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIReadable2_Read(This,returnValue) \
+    ( (This)->lpVtbl->Read(This,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIReadable2_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIWritable2_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIWritable2_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IWritable2[] = L"TestApp.Parity.IWritable2";
+
+typedef struct __x_TestApp_CParity_CIWritable2Vtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIWritable2 * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIWritable2 * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIWritable2 * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIWritable2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIWritable2 * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIWritable2 * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CIWritable2 * This, /* [in] */ HSTRING data);
+    END_INTERFACE
+} __x_TestApp_CParity_CIWritable2Vtbl;
+
+interface __x_TestApp_CParity_CIWritable2
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIWritable2Vtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIWritable2_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIWritable2_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIWritable2_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIWritable2_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIWritable2_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIWritable2_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIWritable2_Write(This,data) \
+    ( (This)->lpVtbl->Write(This,data) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIWritable2_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CISeekable_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CISeekable_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ISeekable[] = L"TestApp.Parity.ISeekable";
+
+typedef struct __x_TestApp_CParity_CISeekableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CISeekable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CISeekable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CISeekable * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISeekable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISeekable * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISeekable * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Seek )(__x_TestApp_CParity_CISeekable * This, /* [in] */ int position);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Position )(__x_TestApp_CParity_CISeekable * This, /* [out, retval] */ int* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CISeekableVtbl;
+
+interface __x_TestApp_CParity_CISeekable
+{
+    CONST_VTBL struct __x_TestApp_CParity_CISeekableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CISeekable_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CISeekable_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CISeekable_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CISeekable_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CISeekable_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CISeekable_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CISeekable_Seek(This,position) \
+    ( (This)->lpVtbl->Seek(This,position) )
+
+#define __x_TestApp_CParity_CISeekable_get_Position(This,value) \
+    ( (This)->lpVtbl->get_Position(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CISeekable_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIClosable2_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIClosable2_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IClosable2[] = L"TestApp.Parity.IClosable2";
+
+typedef struct __x_TestApp_CParity_CIClosable2Vtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIClosable2 * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIClosable2 * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIClosable2 * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIClosable2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIClosable2 * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIClosable2 * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Close )(__x_TestApp_CParity_CIClosable2 * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIClosable2Vtbl;
+
+interface __x_TestApp_CParity_CIClosable2
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIClosable2Vtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIClosable2_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIClosable2_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIClosable2_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIClosable2_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIClosable2_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIClosable2_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIClosable2_Close(This) \
+    ( (This)->lpVtbl->Close(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIClosable2_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIFullStream_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIFullStream_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IFullStream[] = L"TestApp.Parity.IFullStream";
+
+typedef struct __x_TestApp_CParity_CIFullStreamVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIFullStream * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIFullStream * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIFullStream * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFullStream * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFullStream * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFullStream * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Length )(__x_TestApp_CParity_CIFullStream * This, /* [out, retval] */ int* value);
+    HRESULT ( STDMETHODCALLTYPE *Flush )(__x_TestApp_CParity_CIFullStream * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIFullStreamVtbl;
+
+interface __x_TestApp_CParity_CIFullStream
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIFullStreamVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIFullStream_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIFullStream_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIFullStream_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIFullStream_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIFullStream_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIFullStream_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIFullStream_get_Length(This,value) \
+    ( (This)->lpVtbl->get_Length(This,value) )
+
+#define __x_TestApp_CParity_CIFullStream_Flush(This) \
+    ( (This)->lpVtbl->Flush(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIFullStream_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIFullStream2_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIFullStream2_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IFullStream2[] = L"TestApp.Parity.IFullStream2";
+
+typedef struct __x_TestApp_CParity_CIFullStream2Vtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIFullStream2 * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIFullStream2 * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIFullStream2 * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFullStream2 * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFullStream2 * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFullStream2 * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CIFullStream2 * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CIFullStream2 * This, /* [in] */ HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *Seek )(__x_TestApp_CParity_CIFullStream2 * This, /* [in] */ int position);
+    HRESULT ( STDMETHODCALLTYPE *Close )(__x_TestApp_CParity_CIFullStream2 * This);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Length )(__x_TestApp_CParity_CIFullStream2 * This, /* [out, retval] */ int* value);
+    HRESULT ( STDMETHODCALLTYPE *Flush )(__x_TestApp_CParity_CIFullStream2 * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIFullStream2Vtbl;
+
+interface __x_TestApp_CParity_CIFullStream2
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIFullStream2Vtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIFullStream2_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIFullStream2_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIFullStream2_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIFullStream2_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIFullStream2_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIFullStream2_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIFullStream2_Read(This,returnValue) \
+    ( (This)->lpVtbl->Read(This,returnValue) )
+
+#define __x_TestApp_CParity_CIFullStream2_Write(This,data) \
+    ( (This)->lpVtbl->Write(This,data) )
+
+#define __x_TestApp_CParity_CIFullStream2_Seek(This,position) \
+    ( (This)->lpVtbl->Seek(This,position) )
+
+#define __x_TestApp_CParity_CIFullStream2_Close(This) \
+    ( (This)->lpVtbl->Close(This) )
+
+#define __x_TestApp_CParity_CIFullStream2_get_Length(This,value) \
+    ( (This)->lpVtbl->get_Length(This,value) )
+
+#define __x_TestApp_CParity_CIFullStream2_Flush(This) \
+    ( (This)->lpVtbl->Flush(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIFullStream2_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

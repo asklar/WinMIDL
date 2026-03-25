@@ -124,6 +124,139 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CICollectionManager_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CICollectionManager_FWD_DEFINED__
+#define ____x_TestApp_CParity_CICollectionManager_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CICollectionManager __x_TestApp_CParity_CICollectionManager;
+#endif // ____x_TestApp_CParity_CICollectionManager_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CICollectionManager_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CICollectionManager_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ICollectionManager[] = L"TestApp.Parity.ICollectionManager";
+
+typedef struct __x_TestApp_CParity_CICollectionManagerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CICollectionManager * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CICollectionManager * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CICollectionManager * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CICollectionManager * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CICollectionManager * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CICollectionManager * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetNames )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetIds )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetItems )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetNameView )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetIdView )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetStringMap )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetCountMap )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetObjectMap )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetReadOnlyMap )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMapView** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetReadOnlyCounts )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMapView** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *EnumerateNames )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *EnumerateValues )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *FetchNameAsync )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ComputeAsync )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ValidateAsync )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *InitializeAsync )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ResetAsync )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_AllNames )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Metadata )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ReadOnlyIds )(__x_TestApp_CParity_CICollectionManager * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** value);
+    END_INTERFACE
+} __x_TestApp_CParity_CICollectionManagerVtbl;
+
+interface __x_TestApp_CParity_CICollectionManager
+{
+    CONST_VTBL struct __x_TestApp_CParity_CICollectionManagerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CICollectionManager_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CICollectionManager_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CICollectionManager_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetNames(This,returnValue) \
+    ( (This)->lpVtbl->GetNames(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetIds(This,returnValue) \
+    ( (This)->lpVtbl->GetIds(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetItems(This,returnValue) \
+    ( (This)->lpVtbl->GetItems(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetNameView(This,returnValue) \
+    ( (This)->lpVtbl->GetNameView(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetIdView(This,returnValue) \
+    ( (This)->lpVtbl->GetIdView(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetStringMap(This,returnValue) \
+    ( (This)->lpVtbl->GetStringMap(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetCountMap(This,returnValue) \
+    ( (This)->lpVtbl->GetCountMap(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetObjectMap(This,returnValue) \
+    ( (This)->lpVtbl->GetObjectMap(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetReadOnlyMap(This,returnValue) \
+    ( (This)->lpVtbl->GetReadOnlyMap(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_GetReadOnlyCounts(This,returnValue) \
+    ( (This)->lpVtbl->GetReadOnlyCounts(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_EnumerateNames(This,returnValue) \
+    ( (This)->lpVtbl->EnumerateNames(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_EnumerateValues(This,returnValue) \
+    ( (This)->lpVtbl->EnumerateValues(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_FetchNameAsync(This,returnValue) \
+    ( (This)->lpVtbl->FetchNameAsync(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_ComputeAsync(This,returnValue) \
+    ( (This)->lpVtbl->ComputeAsync(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_ValidateAsync(This,returnValue) \
+    ( (This)->lpVtbl->ValidateAsync(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_InitializeAsync(This,returnValue) \
+    ( (This)->lpVtbl->InitializeAsync(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_ResetAsync(This,returnValue) \
+    ( (This)->lpVtbl->ResetAsync(This,returnValue) )
+
+#define __x_TestApp_CParity_CICollectionManager_get_AllNames(This,value) \
+    ( (This)->lpVtbl->get_AllNames(This,value) )
+
+#define __x_TestApp_CParity_CICollectionManager_get_Metadata(This,value) \
+    ( (This)->lpVtbl->get_Metadata(This,value) )
+
+#define __x_TestApp_CParity_CICollectionManager_get_ReadOnlyIds(This,value) \
+    ( (This)->lpVtbl->get_ReadOnlyIds(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CICollectionManager_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

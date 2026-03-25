@@ -201,6 +201,195 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CInterfaceOnly_CIReader_FWD_DEFINED__
+#define ____x_TestApp_CParity_CInterfaceOnly_CIReader_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CInterfaceOnly_CIReader __x_TestApp_CParity_CInterfaceOnly_CIReader;
+#endif // ____x_TestApp_CParity_CInterfaceOnly_CIReader_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CInterfaceOnly_CIWriter_FWD_DEFINED__
+#define ____x_TestApp_CParity_CInterfaceOnly_CIWriter_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CInterfaceOnly_CIWriter __x_TestApp_CParity_CInterfaceOnly_CIWriter;
+#endif // ____x_TestApp_CParity_CInterfaceOnly_CIWriter_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_FWD_DEFINED__
+#define ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter;
+#endif // ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CInterfaceOnly_CIReader_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CInterfaceOnly_CIReader_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_InterfaceOnly_IReader[] = L"TestApp.Parity.InterfaceOnly.IReader";
+
+typedef struct __x_TestApp_CParity_CInterfaceOnly_CIReaderVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReader * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Read )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ReadInt )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */ int* returnValue);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanRead )(__x_TestApp_CParity_CInterfaceOnly_CIReader * This, /* [out, retval] */ ::boolean* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CInterfaceOnly_CIReaderVtbl;
+
+interface __x_TestApp_CParity_CInterfaceOnly_CIReader
+{
+    CONST_VTBL struct __x_TestApp_CParity_CInterfaceOnly_CIReaderVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_Read(This,returnValue) \
+    ( (This)->lpVtbl->Read(This,returnValue) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_ReadInt(This,returnValue) \
+    ( (This)->lpVtbl->ReadInt(This,returnValue) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReader_get_CanRead(This,value) \
+    ( (This)->lpVtbl->get_CanRead(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CInterfaceOnly_CIReader_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CInterfaceOnly_CIWriter_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CInterfaceOnly_CIWriter_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_InterfaceOnly_IWriter[] = L"TestApp.Parity.InterfaceOnly.IWriter";
+
+typedef struct __x_TestApp_CParity_CInterfaceOnly_CIWriterVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIWriter * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Write )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [in] */ HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *WriteInt )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [in] */ int value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_CanWrite )(__x_TestApp_CParity_CInterfaceOnly_CIWriter * This, /* [out, retval] */ ::boolean* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CInterfaceOnly_CIWriterVtbl;
+
+interface __x_TestApp_CParity_CInterfaceOnly_CIWriter
+{
+    CONST_VTBL struct __x_TestApp_CParity_CInterfaceOnly_CIWriterVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_Write(This,data) \
+    ( (This)->lpVtbl->Write(This,data) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_WriteInt(This,value) \
+    ( (This)->lpVtbl->WriteInt(This,value) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIWriter_get_CanWrite(This,value) \
+    ( (This)->lpVtbl->get_CanWrite(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CInterfaceOnly_CIWriter_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_InterfaceOnly_IReaderWriter[] = L"TestApp.Parity.InterfaceOnly.IReaderWriter";
+
+typedef struct __x_TestApp_CParity_CInterfaceOnly_CIReaderWriterVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Flush )(__x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Position )(__x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, /* [out, retval] */ int* value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Position )(__x_TestApp_CParity_CInterfaceOnly_CIReaderWriter * This, /* [in] */ int value);
+    END_INTERFACE
+} __x_TestApp_CParity_CInterfaceOnly_CIReaderWriterVtbl;
+
+interface __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter
+{
+    CONST_VTBL struct __x_TestApp_CParity_CInterfaceOnly_CIReaderWriterVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_Flush(This) \
+    ( (This)->lpVtbl->Flush(This) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_get_Position(This,value) \
+    ( (This)->lpVtbl->get_Position(This,value) )
+
+#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_put_Position(This,value) \
+    ( (This)->lpVtbl->put_Position(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

@@ -110,6 +110,83 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIGuidWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIGuidWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIGuidWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIGuidWidget __x_TestApp_CParity_CIGuidWidget;
+#endif // ____x_TestApp_CParity_CIGuidWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIGuidWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIGuidWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IGuidWidget[] = L"TestApp.Parity.IGuidWidget";
+
+typedef struct __x_TestApp_CParity_CIGuidWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIGuidWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIGuidWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIGuidWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGuidWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGuidWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGuidWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */ GUID* value);
+    HRESULT ( STDMETHODCALLTYPE *GenerateId )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */ GUID* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *SetId )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */ GUID id);
+    HRESULT ( STDMETHODCALLTYPE *CompareIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */ GUID a, /* [in] */ GUID b, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ProcessIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [in] */ GUID id1, /* [in] */ GUID id2, /* [in] */ GUID id3);
+    HRESULT ( STDMETHODCALLTYPE *GetAllIds )(__x_TestApp_CParity_CIGuidWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIGuidWidgetVtbl;
+
+interface __x_TestApp_CParity_CIGuidWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIGuidWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIGuidWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIGuidWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIGuidWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIGuidWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIGuidWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIGuidWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIGuidWidget_get_Id(This,value) \
+    ( (This)->lpVtbl->get_Id(This,value) )
+
+#define __x_TestApp_CParity_CIGuidWidget_GenerateId(This,returnValue) \
+    ( (This)->lpVtbl->GenerateId(This,returnValue) )
+
+#define __x_TestApp_CParity_CIGuidWidget_SetId(This,id) \
+    ( (This)->lpVtbl->SetId(This,id) )
+
+#define __x_TestApp_CParity_CIGuidWidget_CompareIds(This,a,b,returnValue) \
+    ( (This)->lpVtbl->CompareIds(This,a,b,returnValue) )
+
+#define __x_TestApp_CParity_CIGuidWidget_ProcessIds(This,id1,id2,id3) \
+    ( (This)->lpVtbl->ProcessIds(This,id1,id2,id3) )
+
+#define __x_TestApp_CParity_CIGuidWidget_GetAllIds(This,returnValue) \
+    ( (This)->lpVtbl->GetAllIds(This,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIGuidWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

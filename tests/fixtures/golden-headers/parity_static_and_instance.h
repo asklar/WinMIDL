@@ -201,6 +201,187 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIStaticInstanceWidgetStatics_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIStaticInstanceWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIStaticInstanceWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIStaticInstanceWidget __x_TestApp_CParity_CIStaticInstanceWidget;
+#endif // ____x_TestApp_CParity_CIStaticInstanceWidget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIStaticInstanceWidgetFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIStaticInstanceWidgetFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIStaticInstanceWidgetFactory __x_TestApp_CParity_CIStaticInstanceWidgetFactory;
+#endif // ____x_TestApp_CParity_CIStaticInstanceWidgetFactory_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIStaticInstanceWidgetStatics_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIStaticInstanceWidgetStatics_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIStaticInstanceWidgetStatics __x_TestApp_CParity_CIStaticInstanceWidgetStatics;
+#endif // ____x_TestApp_CParity_CIStaticInstanceWidgetStatics_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIStaticInstanceWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIStaticInstanceWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IStaticInstanceWidget[] = L"TestApp.Parity.IStaticInstanceWidget";
+
+typedef struct __x_TestApp_CParity_CIStaticInstanceWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIStaticInstanceWidget * This, /* [out, retval] */ HSTRING* value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Name )(__x_TestApp_CParity_CIStaticInstanceWidget * This, /* [in] */ HSTRING value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIStaticInstanceWidget * This, /* [out, retval] */ int* value);
+    HRESULT ( STDMETHODCALLTYPE *DoWork )(__x_TestApp_CParity_CIStaticInstanceWidget * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIStaticInstanceWidgetVtbl;
+
+interface __x_TestApp_CParity_CIStaticInstanceWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIStaticInstanceWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIStaticInstanceWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidget_get_Name(This,value) \
+    ( (This)->lpVtbl->get_Name(This,value) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidget_put_Name(This,value) \
+    ( (This)->lpVtbl->put_Name(This,value) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidget_get_Id(This,value) \
+    ( (This)->lpVtbl->get_Id(This,value) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidget_DoWork(This) \
+    ( (This)->lpVtbl->DoWork(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIStaticInstanceWidget_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIStaticInstanceWidgetFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIStaticInstanceWidgetFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IStaticInstanceWidgetFactory[] = L"TestApp.Parity.IStaticInstanceWidgetFactory";
+
+typedef struct __x_TestApp_CParity_CIStaticInstanceWidgetFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIStaticInstanceWidgetFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ StaticInstanceWidget* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIStaticInstanceWidgetFactoryVtbl;
+
+interface __x_TestApp_CParity_CIStaticInstanceWidgetFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIStaticInstanceWidgetFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetFactory_CreateInstance(This,name,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIStaticInstanceWidgetFactory_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIStaticInstanceWidgetStatics_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIStaticInstanceWidgetStatics_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IStaticInstanceWidgetStatics[] = L"TestApp.Parity.IStaticInstanceWidgetStatics";
+
+typedef struct __x_TestApp_CParity_CIStaticInstanceWidgetStaticsVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetStatics * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetStatics * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetInstanceCount )(__x_TestApp_CParity_CIStaticInstanceWidgetStatics * This, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ResetAll )(__x_TestApp_CParity_CIStaticInstanceWidgetStatics * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIStaticInstanceWidgetStaticsVtbl;
+
+interface __x_TestApp_CParity_CIStaticInstanceWidgetStatics
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIStaticInstanceWidgetStaticsVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_GetInstanceCount(This,returnValue) \
+    ( (This)->lpVtbl->GetInstanceCount(This,returnValue) )
+
+#define __x_TestApp_CParity_CIStaticInstanceWidgetStatics_ResetAll(This) \
+    ( (This)->lpVtbl->ResetAll(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIStaticInstanceWidgetStatics_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

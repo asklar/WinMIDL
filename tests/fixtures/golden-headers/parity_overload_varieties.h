@@ -112,6 +112,91 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIOverloadVarietyWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIOverloadVarietyWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIOverloadVarietyWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIOverloadVarietyWidget __x_TestApp_CParity_CIOverloadVarietyWidget;
+#endif // ____x_TestApp_CParity_CIOverloadVarietyWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIOverloadVarietyWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIOverloadVarietyWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IOverloadVarietyWidget[] = L"TestApp.Parity.IOverloadVarietyWidget";
+
+typedef struct __x_TestApp_CParity_CIOverloadVarietyWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIOverloadVarietyWidget * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ int value, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING query, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING key);
+    HRESULT ( STDMETHODCALLTYPE *Process )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING data, /* [in] */ ::boolean verbose);
+    HRESULT ( STDMETHODCALLTYPE *Format )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ double value, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Search )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING query, /* [in] */ int maxResults, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIOverloadVarietyWidget * This, /* [in] */ HSTRING key, /* [in] */ HSTRING value);
+    END_INTERFACE
+} __x_TestApp_CParity_CIOverloadVarietyWidgetVtbl;
+
+interface __x_TestApp_CParity_CIOverloadVarietyWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIOverloadVarietyWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Process(This,data) \
+    ( (This)->lpVtbl->Process(This,data) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Format(This,value,returnValue) \
+    ( (This)->lpVtbl->Format(This,value,returnValue) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Search(This,query,returnValue) \
+    ( (This)->lpVtbl->Search(This,query,returnValue) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Configure(This,key) \
+    ( (This)->lpVtbl->Configure(This,key) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Process(This,data,verbose) \
+    ( (This)->lpVtbl->Process(This,data,verbose) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Format(This,value,returnValue) \
+    ( (This)->lpVtbl->Format(This,value,returnValue) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Search(This,query,maxResults,returnValue) \
+    ( (This)->lpVtbl->Search(This,query,maxResults,returnValue) )
+
+#define __x_TestApp_CParity_CIOverloadVarietyWidget_Configure(This,key,value) \
+    ( (This)->lpVtbl->Configure(This,key,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIOverloadVarietyWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

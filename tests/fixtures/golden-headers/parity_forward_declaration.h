@@ -208,6 +208,183 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIFwdTargetFactory_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIFwdUser_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIFwdUser_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIFwdUser __x_TestApp_CParity_CIFwdUser;
+#endif // ____x_TestApp_CParity_CIFwdUser_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIFwdTarget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIFwdTarget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIFwdTarget __x_TestApp_CParity_CIFwdTarget;
+#endif // ____x_TestApp_CParity_CIFwdTarget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIFwdTargetFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIFwdTargetFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIFwdTargetFactory __x_TestApp_CParity_CIFwdTargetFactory;
+#endif // ____x_TestApp_CParity_CIFwdTargetFactory_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIFwdUser_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIFwdUser_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IFwdUser[] = L"TestApp.Parity.IFwdUser";
+
+typedef struct __x_TestApp_CParity_CIFwdUserVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIFwdUser * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIFwdUser * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIFwdUser * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFwdUser * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFwdUser * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFwdUser * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *SetTargetName )(__x_TestApp_CParity_CIFwdUser * This, /* [in] */ HSTRING name);
+    HRESULT ( STDMETHODCALLTYPE *GetTargetName )(__x_TestApp_CParity_CIFwdUser * This, /* [out, retval] */ HSTRING* returnValue);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_HasTarget )(__x_TestApp_CParity_CIFwdUser * This, /* [out, retval] */ ::boolean* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CIFwdUserVtbl;
+
+interface __x_TestApp_CParity_CIFwdUser
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIFwdUserVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIFwdUser_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIFwdUser_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIFwdUser_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIFwdUser_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIFwdUser_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIFwdUser_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIFwdUser_SetTargetName(This,name) \
+    ( (This)->lpVtbl->SetTargetName(This,name) )
+
+#define __x_TestApp_CParity_CIFwdUser_GetTargetName(This,returnValue) \
+    ( (This)->lpVtbl->GetTargetName(This,returnValue) )
+
+#define __x_TestApp_CParity_CIFwdUser_get_HasTarget(This,value) \
+    ( (This)->lpVtbl->get_HasTarget(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIFwdUser_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIFwdTarget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIFwdTarget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IFwdTarget[] = L"TestApp.Parity.IFwdTarget";
+
+typedef struct __x_TestApp_CParity_CIFwdTargetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIFwdTarget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIFwdTarget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIFwdTarget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFwdTarget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFwdTarget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFwdTarget * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Data )(__x_TestApp_CParity_CIFwdTarget * This, /* [out, retval] */ HSTRING* value);
+    HRESULT ( STDMETHODCALLTYPE *LinkTo )(__x_TestApp_CParity_CIFwdTarget * This, /* [in] */ FwdUser user);
+    END_INTERFACE
+} __x_TestApp_CParity_CIFwdTargetVtbl;
+
+interface __x_TestApp_CParity_CIFwdTarget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIFwdTargetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIFwdTarget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIFwdTarget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIFwdTarget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIFwdTarget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIFwdTarget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIFwdTarget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIFwdTarget_get_Data(This,value) \
+    ( (This)->lpVtbl->get_Data(This,value) )
+
+#define __x_TestApp_CParity_CIFwdTarget_LinkTo(This,user) \
+    ( (This)->lpVtbl->LinkTo(This,user) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIFwdTarget_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIFwdTargetFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIFwdTargetFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IFwdTargetFactory[] = L"TestApp.Parity.IFwdTargetFactory";
+
+typedef struct __x_TestApp_CParity_CIFwdTargetFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIFwdTargetFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIFwdTargetFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIFwdTargetFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIFwdTargetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIFwdTargetFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIFwdTargetFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIFwdTargetFactory * This, /* [in] */ HSTRING data, /* [out, retval] */ FwdTarget* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIFwdTargetFactoryVtbl;
+
+interface __x_TestApp_CParity_CIFwdTargetFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIFwdTargetFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIFwdTargetFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIFwdTargetFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIFwdTargetFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIFwdTargetFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIFwdTargetFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIFwdTargetFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIFwdTargetFactory_CreateInstance(This,data,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,data,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIFwdTargetFactory_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

@@ -79,7 +79,10 @@ public partial class HeaderEmitterTests
 
         var header = _emitter.Emit(compilation);
 
-        Assert.DoesNotContain("typedef interface", header);
+        // The C++ forward declarations section should not use typedef interface.
+        // (The C block does legitimately use "typedef interface".)
+        var cppSection = ExtractCppSection(header);
+        Assert.DoesNotContain("typedef interface", cppSection);
     }
 
     [Fact]
@@ -215,8 +218,9 @@ public partial class HeaderEmitterTests
         // Runtime class forward declaration as class
         Assert.Contains("class Widget;", header);
 
-        // No old-style typedef
-        Assert.DoesNotContain("typedef interface", header);
+        // No old-style typedef in C++ section
+        var cppSection = ExtractCppSection(header);
+        Assert.DoesNotContain("typedef interface", cppSection);
     }
 
     [Fact]
@@ -234,5 +238,24 @@ public partial class HeaderEmitterTests
         Assert.DoesNotContain("/* Forward Declarations */", header);
         Assert.DoesNotContain("typedef interface", header);
         Assert.DoesNotContain("FWD_DEFINED", header);
+    }
+
+    /// <summary>
+    /// Extracts just the C++ section (between #if defined(__cplusplus) and #else).
+    /// </summary>
+    private static string ExtractCppSection(string header)
+    {
+        var start = header.IndexOf("#if defined(__cplusplus)", StringComparison.Ordinal);
+        if (start < 0) return header;
+
+        var elseMarker = "#else // !defined(__cplusplus)";
+        var end = header.IndexOf(elseMarker, start, StringComparison.Ordinal);
+        if (end < 0)
+        {
+            var endifMarker = "#endif // defined(__cplusplus)";
+            end = header.IndexOf(endifMarker, start, StringComparison.Ordinal);
+        }
+        if (end < 0) return header[start..];
+        return header[start..end];
     }
 }

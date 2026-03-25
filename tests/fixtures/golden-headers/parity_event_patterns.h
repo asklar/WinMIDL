@@ -226,6 +226,307 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIEventEmitter_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CSimpleNotify_FWD_DEFINED__
+#define ____x_TestApp_CParity_CSimpleNotify_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CSimpleNotify __x_TestApp_CParity_CSimpleNotify;
+#endif // ____x_TestApp_CParity_CSimpleNotify_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CValueUpdated_FWD_DEFINED__
+#define ____x_TestApp_CParity_CValueUpdated_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CValueUpdated __x_TestApp_CParity_CValueUpdated;
+#endif // ____x_TestApp_CParity_CValueUpdated_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CProgressHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_CProgressHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CProgressHandler __x_TestApp_CParity_CProgressHandler;
+#endif // ____x_TestApp_CParity_CProgressHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CErrorHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_CErrorHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CErrorHandler __x_TestApp_CParity_CErrorHandler;
+#endif // ____x_TestApp_CParity_CErrorHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIEventEmitter_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIEventEmitter_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIEventEmitter __x_TestApp_CParity_CIEventEmitter;
+#endif // ____x_TestApp_CParity_CIEventEmitter_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CSimpleNotify_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CSimpleNotify_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CSimpleNotifyVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CSimpleNotify * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CSimpleNotify * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CSimpleNotify * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CSimpleNotify * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CSimpleNotifyVtbl;
+
+interface __x_TestApp_CParity_CSimpleNotify
+{
+    CONST_VTBL struct __x_TestApp_CParity_CSimpleNotifyVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CSimpleNotify_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CSimpleNotify_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CSimpleNotify_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CSimpleNotify_Invoke(This) \
+    ( (This)->lpVtbl->Invoke(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CSimpleNotify_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CValueUpdated_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CValueUpdated_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CValueUpdatedVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CValueUpdated * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CValueUpdated * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CValueUpdated * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CValueUpdated * This, /* [in] */ HSTRING propertyName, /* [in] */ IInspectable* newValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CValueUpdatedVtbl;
+
+interface __x_TestApp_CParity_CValueUpdated
+{
+    CONST_VTBL struct __x_TestApp_CParity_CValueUpdatedVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CValueUpdated_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CValueUpdated_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CValueUpdated_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CValueUpdated_Invoke(This,propertyName,newValue) \
+    ( (This)->lpVtbl->Invoke(This,propertyName,newValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CValueUpdated_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CProgressHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CProgressHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CProgressHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CProgressHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CProgressHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CProgressHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CProgressHandler * This, /* [in] */ int percent, /* [in] */ HSTRING message);
+    END_INTERFACE
+} __x_TestApp_CParity_CProgressHandlerVtbl;
+
+interface __x_TestApp_CParity_CProgressHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_CProgressHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CProgressHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CProgressHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CProgressHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CProgressHandler_Invoke(This,percent,message) \
+    ( (This)->lpVtbl->Invoke(This,percent,message) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CProgressHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CErrorHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CErrorHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CErrorHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CErrorHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CErrorHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CErrorHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CErrorHandler * This, /* [in] */ int code, /* [in] */ HSTRING description, /* [in] */ ::boolean isFatal);
+    END_INTERFACE
+} __x_TestApp_CParity_CErrorHandlerVtbl;
+
+interface __x_TestApp_CParity_CErrorHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_CErrorHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CErrorHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CErrorHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CErrorHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CErrorHandler_Invoke(This,code,description,isFatal) \
+    ( (This)->lpVtbl->Invoke(This,code,description,isFatal) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CErrorHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIEventEmitter_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIEventEmitter_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IEventEmitter[] = L"TestApp.Parity.IEventEmitter";
+
+typedef struct __x_TestApp_CParity_CIEventEmitterVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIEventEmitter * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIEventEmitter * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIEventEmitter * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIEventEmitter * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIEventEmitter * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIEventEmitter * This, __RPC__out TrustLevel *trustLevel);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_GenericEvent )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_GenericEvent )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_NameChanged )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_NameChanged )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CountChanged )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CountChanged )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_EnabledChanged )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_EnabledChanged )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_SimpleObjectEvent )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_SimpleObjectEvent )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_IntEvent )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_IntEvent )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_StringEvent )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_StringEvent )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Notified )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_TestApp_CParity_CSimpleNotify* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Notified )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_PropertyChanged )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_TestApp_CParity_CValueUpdated* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_PropertyChanged )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ProgressUpdated )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_TestApp_CParity_CProgressHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ProgressUpdated )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ErrorOccurred )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ __x_TestApp_CParity_CErrorHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ErrorOccurred )(__x_TestApp_CParity_CIEventEmitter * This, /* [in] */ EventRegistrationToken token);
+    END_INTERFACE
+} __x_TestApp_CParity_CIEventEmitterVtbl;
+
+interface __x_TestApp_CParity_CIEventEmitter
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIEventEmitterVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIEventEmitter_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIEventEmitter_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIEventEmitter_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIEventEmitter_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIEventEmitter_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIEventEmitter_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_GenericEvent(This,handler,token) \
+    ( (This)->lpVtbl->add_GenericEvent(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_GenericEvent(This,token) \
+    ( (This)->lpVtbl->remove_GenericEvent(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_NameChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_NameChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_NameChanged(This,token) \
+    ( (This)->lpVtbl->remove_NameChanged(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_CountChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_CountChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_CountChanged(This,token) \
+    ( (This)->lpVtbl->remove_CountChanged(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_EnabledChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_EnabledChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_EnabledChanged(This,token) \
+    ( (This)->lpVtbl->remove_EnabledChanged(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_SimpleObjectEvent(This,handler,token) \
+    ( (This)->lpVtbl->add_SimpleObjectEvent(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_SimpleObjectEvent(This,token) \
+    ( (This)->lpVtbl->remove_SimpleObjectEvent(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_IntEvent(This,handler,token) \
+    ( (This)->lpVtbl->add_IntEvent(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_IntEvent(This,token) \
+    ( (This)->lpVtbl->remove_IntEvent(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_StringEvent(This,handler,token) \
+    ( (This)->lpVtbl->add_StringEvent(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_StringEvent(This,token) \
+    ( (This)->lpVtbl->remove_StringEvent(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_Notified(This,handler,token) \
+    ( (This)->lpVtbl->add_Notified(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_Notified(This,token) \
+    ( (This)->lpVtbl->remove_Notified(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_PropertyChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_PropertyChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_PropertyChanged(This,token) \
+    ( (This)->lpVtbl->remove_PropertyChanged(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_ProgressUpdated(This,handler,token) \
+    ( (This)->lpVtbl->add_ProgressUpdated(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_ProgressUpdated(This,token) \
+    ( (This)->lpVtbl->remove_ProgressUpdated(This,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_add_ErrorOccurred(This,handler,token) \
+    ( (This)->lpVtbl->add_ErrorOccurred(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventEmitter_remove_ErrorOccurred(This,token) \
+    ( (This)->lpVtbl->remove_ErrorOccurred(This,token) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIEventEmitter_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

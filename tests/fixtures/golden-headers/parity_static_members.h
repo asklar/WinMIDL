@@ -121,6 +121,127 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIStaticServiceStatics_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIStaticServiceStatics_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIStaticServiceStatics __x_TestApp_CParity_CIStaticServiceStatics;
+#endif // ____x_TestApp_CParity_CIStaticServiceStatics_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IStaticServiceStatics[] = L"TestApp.Parity.IStaticServiceStatics";
+
+typedef struct __x_TestApp_CParity_CIStaticServiceStaticsVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetVersion )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ComputeHash )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */ HSTRING input, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *IsSupported )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Initialize )(__x_TestApp_CParity_CIStaticServiceStatics * This);
+    HRESULT ( STDMETHODCALLTYPE *Shutdown )(__x_TestApp_CParity_CIStaticServiceStatics * This);
+    HRESULT ( STDMETHODCALLTYPE *Configure )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */ HSTRING key, /* [in] */ HSTRING value);
+    HRESULT ( STDMETHODCALLTYPE *ComputeRatio )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */ int numerator, /* [in] */ int denominator, /* [out, retval] */ double* returnValue);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DefaultName )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */ HSTRING* value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_DefaultName )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */ HSTRING value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_InstanceCount )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Verbose )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */ ::boolean* value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Verbose )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */ ::boolean value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Threshold )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [out, retval] */ double* value);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_GlobalChanged )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_GlobalChanged )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CountUpdated )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */ __x_Windows_CFoundation_CEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CountUpdated )(__x_TestApp_CParity_CIStaticServiceStatics * This, /* [in] */ EventRegistrationToken token);
+    END_INTERFACE
+} __x_TestApp_CParity_CIStaticServiceStaticsVtbl;
+
+interface __x_TestApp_CParity_CIStaticServiceStatics
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIStaticServiceStaticsVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIStaticServiceStatics_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_GetVersion(This,returnValue) \
+    ( (This)->lpVtbl->GetVersion(This,returnValue) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_ComputeHash(This,input,returnValue) \
+    ( (This)->lpVtbl->ComputeHash(This,input,returnValue) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_IsSupported(This,returnValue) \
+    ( (This)->lpVtbl->IsSupported(This,returnValue) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_Initialize(This) \
+    ( (This)->lpVtbl->Initialize(This) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_Shutdown(This) \
+    ( (This)->lpVtbl->Shutdown(This) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_Configure(This,key,value) \
+    ( (This)->lpVtbl->Configure(This,key,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_ComputeRatio(This,numerator,denominator,returnValue) \
+    ( (This)->lpVtbl->ComputeRatio(This,numerator,denominator,returnValue) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_get_DefaultName(This,value) \
+    ( (This)->lpVtbl->get_DefaultName(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_put_DefaultName(This,value) \
+    ( (This)->lpVtbl->put_DefaultName(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_get_InstanceCount(This,value) \
+    ( (This)->lpVtbl->get_InstanceCount(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_get_Verbose(This,value) \
+    ( (This)->lpVtbl->get_Verbose(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_put_Verbose(This,value) \
+    ( (This)->lpVtbl->put_Verbose(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_get_Threshold(This,value) \
+    ( (This)->lpVtbl->get_Threshold(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_add_GlobalChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_GlobalChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_remove_GlobalChanged(This,token) \
+    ( (This)->lpVtbl->remove_GlobalChanged(This,token) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_add_CountUpdated(This,handler,token) \
+    ( (This)->lpVtbl->add_CountUpdated(This,handler,token) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_remove_CountUpdated(This,token) \
+    ( (This)->lpVtbl->remove_CountUpdated(This,token) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

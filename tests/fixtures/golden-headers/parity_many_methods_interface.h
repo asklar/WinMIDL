@@ -120,6 +120,123 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CILargeInterfaceImpl_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CILargeInterfaceImpl_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILargeInterfaceImpl_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CILargeInterfaceImpl __x_TestApp_CParity_CILargeInterfaceImpl;
+#endif // ____x_TestApp_CParity_CILargeInterfaceImpl_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CILargeInterfaceImpl_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CILargeInterfaceImpl_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILargeInterfaceImpl[] = L"TestApp.Parity.ILargeInterfaceImpl";
+
+typedef struct __x_TestApp_CParity_CILargeInterfaceImplVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CILargeInterfaceImpl * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CILargeInterfaceImpl * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CILargeInterfaceImpl * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CILargeInterfaceImpl * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CILargeInterfaceImpl * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CILargeInterfaceImpl * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Method1 )(__x_TestApp_CParity_CILargeInterfaceImpl * This);
+    HRESULT ( STDMETHODCALLTYPE *Method2 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ HSTRING a);
+    HRESULT ( STDMETHODCALLTYPE *Method3 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ int a, /* [in] */ int b);
+    HRESULT ( STDMETHODCALLTYPE *Method4 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method5 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method6 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method7 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ double x, /* [out, retval] */ double* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method8 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ float y, /* [out, retval] */ float* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method9 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ HSTRING a, /* [in] */ int b, /* [in] */ ::boolean c);
+    HRESULT ( STDMETHODCALLTYPE *Method10 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ int id, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method11 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ HSTRING name, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method12 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ HSTRING key, /* [in] */ int defaultValue, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method13 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ ::boolean flag);
+    HRESULT ( STDMETHODCALLTYPE *Method14 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ int a, /* [in] */ int b, /* [out, retval] */ double* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method15 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ HSTRING prefix, /* [in] */ HSTRING suffix, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Method16 )(__x_TestApp_CParity_CILargeInterfaceImpl * This, /* [in] */ HSTRING a, /* [in] */ HSTRING b, /* [in] */ HSTRING c, /* [in] */ int d);
+    END_INTERFACE
+} __x_TestApp_CParity_CILargeInterfaceImplVtbl;
+
+interface __x_TestApp_CParity_CILargeInterfaceImpl
+{
+    CONST_VTBL struct __x_TestApp_CParity_CILargeInterfaceImplVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CILargeInterfaceImpl_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method1(This) \
+    ( (This)->lpVtbl->Method1(This) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method2(This,a) \
+    ( (This)->lpVtbl->Method2(This,a) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method3(This,a,b) \
+    ( (This)->lpVtbl->Method3(This,a,b) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method4(This,returnValue) \
+    ( (This)->lpVtbl->Method4(This,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method5(This,returnValue) \
+    ( (This)->lpVtbl->Method5(This,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method6(This,returnValue) \
+    ( (This)->lpVtbl->Method6(This,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method7(This,x,returnValue) \
+    ( (This)->lpVtbl->Method7(This,x,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method8(This,y,returnValue) \
+    ( (This)->lpVtbl->Method8(This,y,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method9(This,a,b,c) \
+    ( (This)->lpVtbl->Method9(This,a,b,c) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method10(This,id,returnValue) \
+    ( (This)->lpVtbl->Method10(This,id,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method11(This,name,returnValue) \
+    ( (This)->lpVtbl->Method11(This,name,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method12(This,key,defaultValue,returnValue) \
+    ( (This)->lpVtbl->Method12(This,key,defaultValue,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method13(This,flag) \
+    ( (This)->lpVtbl->Method13(This,flag) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method14(This,a,b,returnValue) \
+    ( (This)->lpVtbl->Method14(This,a,b,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method15(This,prefix,suffix,returnValue) \
+    ( (This)->lpVtbl->Method15(This,prefix,suffix,returnValue) )
+
+#define __x_TestApp_CParity_CILargeInterfaceImpl_Method16(This,a,b,c,d) \
+    ( (This)->lpVtbl->Method16(This,a,b,c,d) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CILargeInterfaceImpl_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

@@ -108,6 +108,75 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CINestedGenericWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CINestedGenericWidget __x_TestApp_CParity_CINestedGenericWidget;
+#endif // ____x_TestApp_CParity_CINestedGenericWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CINestedGenericWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CINestedGenericWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_INestedGenericWidget[] = L"TestApp.Parity.INestedGenericWidget";
+
+typedef struct __x_TestApp_CParity_CINestedGenericWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CINestedGenericWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CINestedGenericWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CINestedGenericWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CINestedGenericWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CINestedGenericWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CINestedGenericWidget * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetCategorizedCounts )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetGroupedNames )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *FetchNamesAsync )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *FetchCountsAsync )(__x_TestApp_CParity_CINestedGenericWidget * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CINestedGenericWidgetVtbl;
+
+interface __x_TestApp_CParity_CINestedGenericWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CINestedGenericWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CINestedGenericWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CINestedGenericWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CINestedGenericWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CINestedGenericWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CINestedGenericWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CINestedGenericWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CINestedGenericWidget_GetCategorizedCounts(This,returnValue) \
+    ( (This)->lpVtbl->GetCategorizedCounts(This,returnValue) )
+
+#define __x_TestApp_CParity_CINestedGenericWidget_GetGroupedNames(This,returnValue) \
+    ( (This)->lpVtbl->GetGroupedNames(This,returnValue) )
+
+#define __x_TestApp_CParity_CINestedGenericWidget_FetchNamesAsync(This,returnValue) \
+    ( (This)->lpVtbl->FetchNamesAsync(This,returnValue) )
+
+#define __x_TestApp_CParity_CINestedGenericWidget_FetchCountsAsync(This,returnValue) \
+    ( (This)->lpVtbl->FetchCountsAsync(This,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CINestedGenericWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

@@ -301,6 +301,295 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIMixedAccessDerivedFactory_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIMixedAccessBase_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessBase_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMixedAccessBase __x_TestApp_CParity_CIMixedAccessBase;
+#endif // ____x_TestApp_CParity_CIMixedAccessBase_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMixedAccessBaseFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessBaseFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMixedAccessBaseFactory __x_TestApp_CParity_CIMixedAccessBaseFactory;
+#endif // ____x_TestApp_CParity_CIMixedAccessBaseFactory_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMixedAccessBaseOverrides_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessBaseOverrides_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMixedAccessBaseOverrides __x_TestApp_CParity_CIMixedAccessBaseOverrides;
+#endif // ____x_TestApp_CParity_CIMixedAccessBaseOverrides_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMixedAccessDerived_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessDerived_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMixedAccessDerived __x_TestApp_CParity_CIMixedAccessDerived;
+#endif // ____x_TestApp_CParity_CIMixedAccessDerived_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMixedAccessDerivedFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMixedAccessDerivedFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMixedAccessDerivedFactory __x_TestApp_CParity_CIMixedAccessDerivedFactory;
+#endif // ____x_TestApp_CParity_CIMixedAccessDerivedFactory_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMixedAccessBase_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMixedAccessBase_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMixedAccessBase[] = L"TestApp.Parity.IMixedAccessBase";
+
+typedef struct __x_TestApp_CParity_CIMixedAccessBaseVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMixedAccessBase * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMixedAccessBase * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMixedAccessBase * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedAccessBase * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedAccessBase * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessBase * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIMixedAccessBase * This, /* [out, retval] */ HSTRING* value);
+    HRESULT ( STDMETHODCALLTYPE *PublicMethod )(__x_TestApp_CParity_CIMixedAccessBase * This);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_PublicProperty )(__x_TestApp_CParity_CIMixedAccessBase * This, /* [out, retval] */ int* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMixedAccessBaseVtbl;
+
+interface __x_TestApp_CParity_CIMixedAccessBase
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMixedAccessBaseVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMixedAccessBase_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMixedAccessBase_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessBase_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessBase_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMixedAccessBase_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMixedAccessBase_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMixedAccessBase_get_Name(This,value) \
+    ( (This)->lpVtbl->get_Name(This,value) )
+
+#define __x_TestApp_CParity_CIMixedAccessBase_PublicMethod(This) \
+    ( (This)->lpVtbl->PublicMethod(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessBase_get_PublicProperty(This,value) \
+    ( (This)->lpVtbl->get_PublicProperty(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMixedAccessBase_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMixedAccessBaseFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMixedAccessBaseFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMixedAccessBaseFactory[] = L"TestApp.Parity.IMixedAccessBaseFactory";
+
+typedef struct __x_TestApp_CParity_CIMixedAccessBaseFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMixedAccessBaseFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ MixedAccessBase* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMixedAccessBaseFactoryVtbl;
+
+interface __x_TestApp_CParity_CIMixedAccessBaseFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMixedAccessBaseFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMixedAccessBaseFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseFactory_CreateInstance(This,name,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMixedAccessBaseFactory_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMixedAccessBaseOverrides_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMixedAccessBaseOverrides_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMixedAccessBaseOverrides[] = L"TestApp.Parity.IMixedAccessBaseOverrides";
+
+typedef struct __x_TestApp_CParity_CIMixedAccessBaseOverridesVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseOverrides * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseOverrides * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseOverrides * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseOverrides * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseOverrides * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessBaseOverrides * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *OnLoad )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This);
+    HRESULT ( STDMETHODCALLTYPE *OnSave )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This);
+    HRESULT ( STDMETHODCALLTYPE *CanProcess )(__x_TestApp_CParity_CIMixedAccessBaseOverrides * This, /* [out, retval] */ ::boolean* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMixedAccessBaseOverridesVtbl;
+
+interface __x_TestApp_CParity_CIMixedAccessBaseOverrides
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMixedAccessBaseOverridesVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_OnLoad(This) \
+    ( (This)->lpVtbl->OnLoad(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_OnSave(This) \
+    ( (This)->lpVtbl->OnSave(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessBaseOverrides_CanProcess(This,returnValue) \
+    ( (This)->lpVtbl->CanProcess(This,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMixedAccessBaseOverrides_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMixedAccessDerived_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMixedAccessDerived_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMixedAccessDerived[] = L"TestApp.Parity.IMixedAccessDerived";
+
+typedef struct __x_TestApp_CParity_CIMixedAccessDerivedVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerived * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerived * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerived * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerived * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerived * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerived * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DerivedLabel )(__x_TestApp_CParity_CIMixedAccessDerived * This, /* [out, retval] */ HSTRING* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMixedAccessDerivedVtbl;
+
+interface __x_TestApp_CParity_CIMixedAccessDerived
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMixedAccessDerivedVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMixedAccessDerived_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerived_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerived_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerived_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerived_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerived_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerived_get_DerivedLabel(This,value) \
+    ( (This)->lpVtbl->get_DerivedLabel(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMixedAccessDerived_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMixedAccessDerivedFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMixedAccessDerivedFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMixedAccessDerivedFactory[] = L"TestApp.Parity.IMixedAccessDerivedFactory";
+
+typedef struct __x_TestApp_CParity_CIMixedAccessDerivedFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerivedFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerivedFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerivedFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerivedFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerivedFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedAccessDerivedFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMixedAccessDerivedFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ MixedAccessDerived* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMixedAccessDerivedFactoryVtbl;
+
+interface __x_TestApp_CParity_CIMixedAccessDerivedFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMixedAccessDerivedFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMixedAccessDerivedFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerivedFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerivedFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerivedFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerivedFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerivedFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMixedAccessDerivedFactory_CreateInstance(This,name,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMixedAccessDerivedFactory_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

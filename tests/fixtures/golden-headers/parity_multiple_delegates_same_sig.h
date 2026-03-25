@@ -216,6 +216,267 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CILifecycleWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_COnStartHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_COnStartHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_COnStartHandler __x_TestApp_CParity_COnStartHandler;
+#endif // ____x_TestApp_CParity_COnStartHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_COnStopHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_COnStopHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_COnStopHandler __x_TestApp_CParity_COnStopHandler;
+#endif // ____x_TestApp_CParity_COnStopHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_COnPauseHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_COnPauseHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_COnPauseHandler __x_TestApp_CParity_COnPauseHandler;
+#endif // ____x_TestApp_CParity_COnPauseHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_COnResumeHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_COnResumeHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_COnResumeHandler __x_TestApp_CParity_COnResumeHandler;
+#endif // ____x_TestApp_CParity_COnResumeHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CILifecycleWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CILifecycleWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CILifecycleWidget __x_TestApp_CParity_CILifecycleWidget;
+#endif // ____x_TestApp_CParity_CILifecycleWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_COnStartHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_COnStartHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_COnStartHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_COnStartHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_COnStartHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_COnStartHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_COnStartHandler * This, /* [in] */ HSTRING name);
+    END_INTERFACE
+} __x_TestApp_CParity_COnStartHandlerVtbl;
+
+interface __x_TestApp_CParity_COnStartHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_COnStartHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_COnStartHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_COnStartHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_COnStartHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_COnStartHandler_Invoke(This,name) \
+    ( (This)->lpVtbl->Invoke(This,name) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_COnStartHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_COnStopHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_COnStopHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_COnStopHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_COnStopHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_COnStopHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_COnStopHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_COnStopHandler * This, /* [in] */ HSTRING name);
+    END_INTERFACE
+} __x_TestApp_CParity_COnStopHandlerVtbl;
+
+interface __x_TestApp_CParity_COnStopHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_COnStopHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_COnStopHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_COnStopHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_COnStopHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_COnStopHandler_Invoke(This,name) \
+    ( (This)->lpVtbl->Invoke(This,name) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_COnStopHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_COnPauseHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_COnPauseHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_COnPauseHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_COnPauseHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_COnPauseHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_COnPauseHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_COnPauseHandler * This, /* [in] */ HSTRING name);
+    END_INTERFACE
+} __x_TestApp_CParity_COnPauseHandlerVtbl;
+
+interface __x_TestApp_CParity_COnPauseHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_COnPauseHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_COnPauseHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_COnPauseHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_COnPauseHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_COnPauseHandler_Invoke(This,name) \
+    ( (This)->lpVtbl->Invoke(This,name) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_COnPauseHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_COnResumeHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_COnResumeHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_COnResumeHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_COnResumeHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_COnResumeHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_COnResumeHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_COnResumeHandler * This, /* [in] */ HSTRING name);
+    END_INTERFACE
+} __x_TestApp_CParity_COnResumeHandlerVtbl;
+
+interface __x_TestApp_CParity_COnResumeHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_COnResumeHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_COnResumeHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_COnResumeHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_COnResumeHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_COnResumeHandler_Invoke(This,name) \
+    ( (This)->lpVtbl->Invoke(This,name) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_COnResumeHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CILifecycleWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CILifecycleWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ILifecycleWidget[] = L"TestApp.Parity.ILifecycleWidget";
+
+typedef struct __x_TestApp_CParity_CILifecycleWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CILifecycleWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CILifecycleWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CILifecycleWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CILifecycleWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CILifecycleWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CILifecycleWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Started )(__x_TestApp_CParity_CILifecycleWidget * This, /* [in] */ __x_TestApp_CParity_COnStartHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Started )(__x_TestApp_CParity_CILifecycleWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Stopped )(__x_TestApp_CParity_CILifecycleWidget * This, /* [in] */ __x_TestApp_CParity_COnStopHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Stopped )(__x_TestApp_CParity_CILifecycleWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Paused )(__x_TestApp_CParity_CILifecycleWidget * This, /* [in] */ __x_TestApp_CParity_COnPauseHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Paused )(__x_TestApp_CParity_CILifecycleWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Resumed )(__x_TestApp_CParity_CILifecycleWidget * This, /* [in] */ __x_TestApp_CParity_COnResumeHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Resumed )(__x_TestApp_CParity_CILifecycleWidget * This, /* [in] */ EventRegistrationToken token);
+    HRESULT ( STDMETHODCALLTYPE *Start )(__x_TestApp_CParity_CILifecycleWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *Stop )(__x_TestApp_CParity_CILifecycleWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *Pause )(__x_TestApp_CParity_CILifecycleWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *Resume )(__x_TestApp_CParity_CILifecycleWidget * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CILifecycleWidgetVtbl;
+
+interface __x_TestApp_CParity_CILifecycleWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CILifecycleWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CILifecycleWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_add_Started(This,handler,token) \
+    ( (This)->lpVtbl->add_Started(This,handler,token) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_remove_Started(This,token) \
+    ( (This)->lpVtbl->remove_Started(This,token) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_add_Stopped(This,handler,token) \
+    ( (This)->lpVtbl->add_Stopped(This,handler,token) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_remove_Stopped(This,token) \
+    ( (This)->lpVtbl->remove_Stopped(This,token) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_add_Paused(This,handler,token) \
+    ( (This)->lpVtbl->add_Paused(This,handler,token) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_remove_Paused(This,token) \
+    ( (This)->lpVtbl->remove_Paused(This,token) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_add_Resumed(This,handler,token) \
+    ( (This)->lpVtbl->add_Resumed(This,handler,token) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_remove_Resumed(This,token) \
+    ( (This)->lpVtbl->remove_Resumed(This,token) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_Start(This) \
+    ( (This)->lpVtbl->Start(This) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_Stop(This) \
+    ( (This)->lpVtbl->Stop(This) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_Pause(This) \
+    ( (This)->lpVtbl->Pause(This) )
+
+#define __x_TestApp_CParity_CILifecycleWidget_Resume(This) \
+    ( (This)->lpVtbl->Resume(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CILifecycleWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

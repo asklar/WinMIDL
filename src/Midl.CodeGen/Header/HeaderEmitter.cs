@@ -10,7 +10,7 @@ namespace Midl.CodeGen.Header;
 /// <summary>
 /// Generates C/C++ header files from a MIDL compilation's symbol table.
 /// </summary>
-public class HeaderEmitter
+public partial class HeaderEmitter
 {
     private static readonly Dictionary<string, string> TypeMap = new(StringComparer.Ordinal)
     {
@@ -95,6 +95,8 @@ public class HeaderEmitter
                         break;
                 }
             }
+
+            EmitCBlock(sb, cppTypes);
 
             sb.AppendLine("#endif // defined(__cplusplus) && !defined(CINTERFACE)");
             sb.AppendLine();

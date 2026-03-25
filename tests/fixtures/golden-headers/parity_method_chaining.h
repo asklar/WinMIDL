@@ -108,6 +108,75 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIBuilderWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIBuilderWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIBuilderWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIBuilderWidget __x_TestApp_CParity_CIBuilderWidget;
+#endif // ____x_TestApp_CParity_CIBuilderWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIBuilderWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIBuilderWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IBuilderWidget[] = L"TestApp.Parity.IBuilderWidget";
+
+typedef struct __x_TestApp_CParity_CIBuilderWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIBuilderWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIBuilderWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIBuilderWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIBuilderWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIBuilderWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIBuilderWidget * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *WithName )(__x_TestApp_CParity_CIBuilderWidget * This, /* [in] */ HSTRING name, /* [out, retval] */ BuilderWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *WithId )(__x_TestApp_CParity_CIBuilderWidget * This, /* [in] */ int id, /* [out, retval] */ BuilderWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *WithFlag )(__x_TestApp_CParity_CIBuilderWidget * This, /* [in] */ ::boolean flag, /* [out, retval] */ BuilderWidget* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Build )(__x_TestApp_CParity_CIBuilderWidget * This, /* [out, retval] */ HSTRING* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIBuilderWidgetVtbl;
+
+interface __x_TestApp_CParity_CIBuilderWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIBuilderWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIBuilderWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIBuilderWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIBuilderWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIBuilderWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIBuilderWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIBuilderWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIBuilderWidget_WithName(This,name,returnValue) \
+    ( (This)->lpVtbl->WithName(This,name,returnValue) )
+
+#define __x_TestApp_CParity_CIBuilderWidget_WithId(This,id,returnValue) \
+    ( (This)->lpVtbl->WithId(This,id,returnValue) )
+
+#define __x_TestApp_CParity_CIBuilderWidget_WithFlag(This,flag,returnValue) \
+    ( (This)->lpVtbl->WithFlag(This,flag,returnValue) )
+
+#define __x_TestApp_CParity_CIBuilderWidget_Build(This,returnValue) \
+    ( (This)->lpVtbl->Build(This,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIBuilderWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

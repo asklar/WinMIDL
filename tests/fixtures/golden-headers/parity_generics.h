@@ -109,6 +109,79 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIGenericConsumer_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIGenericConsumer_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIGenericConsumer_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIGenericConsumer __x_TestApp_CParity_CIGenericConsumer;
+#endif // ____x_TestApp_CParity_CIGenericConsumer_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIGenericConsumer_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIGenericConsumer_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IGenericConsumer[] = L"TestApp.Parity.IGenericConsumer";
+
+typedef struct __x_TestApp_CParity_CIGenericConsumerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIGenericConsumer * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIGenericConsumer * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIGenericConsumer * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGenericConsumer * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGenericConsumer * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGenericConsumer * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetNames )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVector** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetIds )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIVectorView** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetMetadata )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIMap** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ValidateAsync )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncOperation** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *EnumerateItems )(__x_TestApp_CParity_CIGenericConsumer * This, /* [out, retval] */ __x_Windows_CFoundation_CCollections_CIIterable** returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIGenericConsumerVtbl;
+
+interface __x_TestApp_CParity_CIGenericConsumer
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIGenericConsumerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIGenericConsumer_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_GetNames(This,returnValue) \
+    ( (This)->lpVtbl->GetNames(This,returnValue) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_GetIds(This,returnValue) \
+    ( (This)->lpVtbl->GetIds(This,returnValue) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_GetMetadata(This,returnValue) \
+    ( (This)->lpVtbl->GetMetadata(This,returnValue) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_ValidateAsync(This,returnValue) \
+    ( (This)->lpVtbl->ValidateAsync(This,returnValue) )
+
+#define __x_TestApp_CParity_CIGenericConsumer_EnumerateItems(This,returnValue) \
+    ( (This)->lpVtbl->EnumerateItems(This,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIGenericConsumer_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")
