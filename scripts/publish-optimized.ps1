@@ -31,6 +31,9 @@ param(
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path $PSScriptRoot -Parent
 
+# Clear LIB to avoid stale paths from previous runs or dev cmd
+$env:LIB = ""
+
 Write-Host "Building optimized WinMIDL binary" -ForegroundColor Cyan
 Write-Host "  Configuration: $Configuration"
 Write-Host "  Runtime: $Runtime"
