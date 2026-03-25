@@ -180,12 +180,12 @@ public class ProxyGenerator
 
         // Out-of-class definitions — offsetof requires a complete type
         var rcName = runtimeClassName ?? iface.ExclusiveToClass ?? iface.FullName;
-        sb.AppendLine($"inline const winmidl::qi_entry_t {className}::kQIEntries[] = {{");
+        sb.AppendLine($"const winmidl::qi_entry_t {className}::kQIEntries[] = {{");
         sb.AppendLine($"    {{ IID_IUnknown, 0, false }},");
         sb.AppendLine($"    {{ IID_IRpcProxyBuffer, 0, false }},");
         sb.AppendLine($"    {{ {iidName}, static_cast<uint32_t>(offsetof({className}, m_face)), true }},");
         sb.AppendLine($"}};");
-        sb.AppendLine($"inline const winmidl::type_info_t {className}::kTypeInfo = {{ {className}::Face::kIIDs, L\"{rcName}\", {className}::kQIEntries }};");
+        sb.AppendLine($"const winmidl::type_info_t {className}::kTypeInfo = {{ {className}::Face::kIIDs, L\"{rcName}\", {className}::kQIEntries }};");
         sb.AppendLine();
     }
 
@@ -226,7 +226,7 @@ public class ProxyGenerator
     {
         var iidList = string.Join(", ", iidNames);
         sb.AppendLine("        // IInspectable — static data via shared helpers");
-        sb.AppendLine($"        static inline const IID kIIDs[] = {{ {iidList} }};");
+        sb.AppendLine($"        static constexpr IID kIIDs[] = {{ {iidList} }};");
         sb.AppendLine();
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {");
         sb.AppendLine("            return winmidl::get_iids(kTypeInfo, iidCount, iids);");

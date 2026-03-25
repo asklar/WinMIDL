@@ -87,7 +87,7 @@ public class StubGenerator
         EmitInvokeDispatch(sb, iface, slots, iidName);
 
         // Static type info for this interface
-        sb.AppendLine($"    static inline const IID kIIDs[] = {{ {iidName} }};");
+        sb.AppendLine($"    static constexpr IID kIIDs[] = {{ {iidName} }};");
         sb.AppendLine($"    static inline const winmidl::type_info_t kTypeInfo = {{ kIIDs, L\"{iface.FullName}\" }};");
         sb.AppendLine();
 

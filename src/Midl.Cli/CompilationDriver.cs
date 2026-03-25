@@ -415,9 +415,8 @@ public class CompilationDriver
         sb.AppendLine($"#include \"{Path.GetFileName(headerFile)}\"");
         sb.AppendLine();
 
-        // Embed IID definitions so the proxy DLL is self-contained
-        var iidEmitter = new IidEmitter();
-        sb.Append(iidEmitter.Emit(compilation));
+        // Emit inline constexpr IID definitions (no _i.c needed)
+        EmitInlineConstexprIIDs(sb, compilation);
         sb.AppendLine();
 
         // Proxy classes (IRpcProxyBuffer implementations)
@@ -435,6 +434,37 @@ public class CompilationDriver
         sb.Append(factoryGen.Generate(compilation));
 
         return sb.ToString();
+    }
+
+    private static void EmitInlineConstexprIIDs(System.Text.StringBuilder sb, Compilation compilation)
+    {
+        sb.AppendLine("// Inline constexpr IID definitions — no _i.c needed");
+        foreach (var symbol in compilation.GetAllTypes().Where(t => !t.IsExternal))
+        {
+            Guid guid;
+            string mangledName;
+            if (symbol is InterfaceSymbol iface)
+            {
+                guid = AbiGuidComputer.ComputeGuid(iface);
+                mangledName = HeaderEmitter.MangleName(iface.FullName);
+            }
+            else if (symbol is DelegateSymbol d)
+            {
+                guid = AbiGuidComputer.ComputeGuid(d);
+                mangledName = HeaderEmitter.MangleName(d.FullName);
+            }
+            else continue;
+
+            var bytes = guid.ToByteArray();
+            uint a = BitConverter.ToUInt32(bytes, 0);
+            ushort b = BitConverter.ToUInt16(bytes, 4);
+            ushort c = BitConverter.ToUInt16(bytes, 6);
+            sb.AppendLine($"// {{{guid.ToString("D").ToUpperInvariant()}}}");
+            sb.Append($"inline constexpr IID IID_{mangledName} = {{0x{a:X8}, 0x{b:X4}, 0x{c:X4}, {{");
+            sb.Append($"0x{bytes[8]:X2}, 0x{bytes[9]:X2}, 0x{bytes[10]:X2}, 0x{bytes[11]:X2}, ");
+            sb.Append($"0x{bytes[12]:X2}, 0x{bytes[13]:X2}, 0x{bytes[14]:X2}, 0x{bytes[15]:X2}");
+            sb.AppendLine("}};");
+        }
     }
 
     private void PrintSummary(int errors, int warnings)

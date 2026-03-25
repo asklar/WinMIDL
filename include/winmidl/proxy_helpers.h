@@ -59,7 +59,8 @@ inline HRESULT qi_check(type_info_t const& info,
 }
 
 // Overload for stub-side QI (no type_info, just QI entries)
-inline HRESULT qi_check(std::span<const qi_entry_t> entries,
+template<size_t N>
+inline HRESULT qi_check(const qi_entry_t (&entries)[N],
                          void* pThis, IUnknown* pOuter,
                          REFIID riid, void** ppv) {
     for (auto& e : entries) {
