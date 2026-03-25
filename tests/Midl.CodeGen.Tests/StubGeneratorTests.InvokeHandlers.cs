@@ -30,7 +30,7 @@ public partial class StubGeneratorTests
         // Void no-param method: reply is just HRESULT, constexpr
         Assert.Contains("m_pServer->DoWork()", output);
         Assert.Contains("constexpr", output);
-        Assert.Contains("memcpy(pMsg->Buffer, &hr, 4)", output);
+        Assert.Contains("memcpy(pMsg->Buffer, &hr, sizeof(HRESULT))", output);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public partial class StubGeneratorTests
         Assert.Contains("Invoke_SetPriority(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         // Should deserialize Int32 input
         Assert.Contains("INT32 priority;", output);
-        Assert.Contains("memcpy(&priority, p, 4)", output);
+        Assert.Contains("memcpy(&priority, p, sizeof(INT32))", output);
         Assert.Contains("m_pServer->SetPriority(priority)", output);
     }
 
@@ -78,7 +78,7 @@ public partial class StubGeneratorTests
         Assert.Contains("WindowsGetStringRawBuffer(returnValue, &len)", output);
         Assert.Contains("WindowsDeleteString(returnValue)", output);
         // Length-prefixed serialization
-        Assert.Contains("memcpy(p, &len, 4)", output);
+        Assert.Contains("memcpy(p, &len, sizeof(UINT32))", output);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public partial class StubGeneratorTests
         Assert.Contains("INT32 errorCode;", output);
         Assert.Contains("m_pServer->TryReset(&errorCode)", output);
         // Out param serialized into reply
-        Assert.Contains("memcpy(p, &errorCode, 4)", output);
+        Assert.Contains("memcpy(p, &errorCode, sizeof(INT32))", output);
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_SetId(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("GUID id;", output);
-        Assert.Contains("memcpy(&id, p, 16)", output);
+        Assert.Contains("memcpy(&id, p, sizeof(GUID))", output);
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_SetPriority(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("Priority level;", output);
-        Assert.Contains("memcpy(&level, p, 4)", output);
+        Assert.Contains("memcpy(&level, p, sizeof(INT32))", output);
     }
 
     [Fact]
@@ -245,8 +245,8 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_TryParse(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         // in param: HSTRING deserialized from buffer
-        Assert.Contains("HSTRING input;", output);
-        Assert.Contains("WindowsCreateString(", output);
+        Assert.Contains("HSTRING input = nullptr;", output);
+        Assert.Contains("WindowsCreateStringReference(", output);
         // out param: allocated locally
         Assert.Contains("INT32 result;", output);
         // Server call with mixed params
@@ -270,9 +270,9 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_SetName(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        Assert.Contains("HSTRING name;", output);
-        // Uses WindowsCreateString for safe deserialization
-        Assert.Contains("WindowsCreateString(", output);
+        Assert.Contains("HSTRING name = nullptr;", output);
+        // Uses WindowsCreateStringReference for zero-copy deserialization
+        Assert.Contains("WindowsCreateStringReference(", output);
         Assert.Contains("WindowsDeleteString(name)", output);
     }
 
@@ -292,9 +292,9 @@ public partial class StubGeneratorTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        // Reply should contain: [errorCode (4)] [returnValue (1)] [HRESULT (4)]
-        Assert.Contains("memcpy(p, &errorCode, 4)", output);
-        Assert.Contains("memcpy(p, &returnValue, 1)", output);
-        Assert.Contains("memcpy(p, &hr, 4)", output);
+        // Reply should contain: [errorCode (sizeof(INT32))] [returnValue (sizeof(boolean))] [HRESULT (sizeof(HRESULT))]
+        Assert.Contains("memcpy(p, &errorCode, sizeof(INT32))", output);
+        Assert.Contains("memcpy(p, &returnValue, sizeof(boolean))", output);
+        Assert.Contains("memcpy(p, &hr, sizeof(HRESULT))", output);
     }
 }

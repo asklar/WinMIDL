@@ -366,7 +366,7 @@ public class ProxyGenerator
         }
 
         // Deserialize trailing HRESULT
-        sb.AppendLine("            HRESULT retHr; memcpy(&retHr, pReply, 4);");
+        sb.AppendLine("            HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));");
         sb.AppendLine("            m_owner->m_pChannel->FreeBuffer(&msg);");
         sb.AppendLine("            return retHr;");
         sb.AppendLine("        }");
@@ -488,7 +488,7 @@ public class ProxyGenerator
         }
 
         // Deserialize trailing HRESULT
-        sb.AppendLine("        HRESULT retHr; memcpy(&retHr, pReply, 4);");
+        sb.AppendLine("        HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));");
         sb.AppendLine("        m_pChannel->FreeBuffer(&msg);");
         sb.AppendLine("        return retHr;");
         sb.AppendLine("    }");

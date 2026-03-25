@@ -225,8 +225,8 @@ public class StubGenerator
             {
                 foreach (var field in structSym.Fields)
                 {
-                    var fieldSize = WireFormat.GetWireSize(field.Type);
-                    sb.AppendLine($"        memcpy(&{name}.{field.Name}, p, {fieldSize}); p += {fieldSize};");
+                    var fieldSizeExpr = WireFormat.GetCppSizeExpression(field.Type);
+                    sb.AppendLine($"        memcpy(&{name}.{field.Name}, p, {fieldSizeExpr}); p += {fieldSizeExpr};");
                 }
             }
         }
@@ -234,19 +234,19 @@ public class StubGenerator
         {
             var cType = MapType(typeRef);
             sb.AppendLine($"        {cType} {name};");
-            sb.AppendLine($"        memcpy(&{name}, p, 4); p += 4;");
+            sb.AppendLine($"        memcpy(&{name}, p, sizeof(INT32)); p += sizeof(INT32);");
         }
         else if (typeRef.Name == "Guid")
         {
             sb.AppendLine($"        GUID {name};");
-            sb.AppendLine($"        memcpy(&{name}, p, 16); p += 16;");
+            sb.AppendLine($"        memcpy(&{name}, p, sizeof(GUID)); p += sizeof(GUID);");
         }
         else
         {
             var cType = MapType(typeRef);
-            var size = WireFormat.GetWireSize(typeRef);
+            var sizeExpr = WireFormat.GetCppSizeExpression(typeRef);
             sb.AppendLine($"        {cType} {name};");
-            sb.AppendLine($"        memcpy(&{name}, p, {size}); p += {size};");
+            sb.AppendLine($"        memcpy(&{name}, p, {sizeExpr}); p += {sizeExpr};");
         }
     }
 
@@ -324,11 +324,11 @@ public class StubGenerator
         // Serialize HRESULT
         if (needsPointer)
         {
-            sb.AppendLine("        memcpy(p, &hr, 4);");
+            sb.AppendLine("        memcpy(p, &hr, sizeof(HRESULT));");
         }
         else
         {
-            sb.AppendLine("        memcpy(pMsg->Buffer, &hr, 4);");
+            sb.AppendLine("        memcpy(pMsg->Buffer, &hr, sizeof(HRESULT));");
         }
 
         // Clean up HSTRING locals
@@ -346,10 +346,9 @@ public class StubGenerator
     private static void EmitSerializeHStringReturn(StringBuilder sb)
     {
         sb.AppendLine("        UINT32 len = 0;");
-        sb.AppendLine("        PCWSTR raw = nullptr;");
-        sb.AppendLine("        if (returnValue) { raw = WindowsGetStringRawBuffer(returnValue, &len); }");
-        sb.AppendLine("        memcpy(p, &len, 4); p += 4;");
-        sb.AppendLine("        if (len > 0) { memcpy(p, raw, len * 2); p += len * 2; }");
+        sb.AppendLine("        PCWSTR raw = WindowsGetStringRawBuffer(returnValue, &len);");
+        sb.AppendLine("        memcpy(p, &len, sizeof(UINT32)); p += sizeof(UINT32);");
+        sb.AppendLine("        memcpy(p, raw, (len + 1) * sizeof(WCHAR)); p += (len + 1) * sizeof(WCHAR);");
     }
 
     /// <summary>

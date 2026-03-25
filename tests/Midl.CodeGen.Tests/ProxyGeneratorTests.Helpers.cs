@@ -38,7 +38,7 @@ public partial class ProxyGeneratorTests
     public void GetTypeSize_Guid_Returns16()
     {
         var typeRef = new TypeRef("Guid");
-        Assert.Equal("16", ProxyGenerator.GetTypeSize(typeRef));
+        Assert.Equal("sizeof(GUID)", ProxyGenerator.GetTypeSize(typeRef));
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public partial class ProxyGeneratorTests
     {
         var enumSym = new EnumSymbol("Status", null);
         var typeRef = new TypeRef("Status") { ResolvedSymbol = enumSym };
-        Assert.Equal("4", ProxyGenerator.GetTypeSize(typeRef));
+        Assert.Equal("sizeof(INT32)", ProxyGenerator.GetTypeSize(typeRef));
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public partial class ProxyGeneratorTests
         structSym.AddField(fy);
 
         var typeRef = new TypeRef("Point") { ResolvedSymbol = structSym };
-        Assert.Equal("8", ProxyGenerator.GetTypeSize(typeRef));
+        Assert.Equal("sizeof(FLOAT) + sizeof(FLOAT)", ProxyGenerator.GetTypeSize(typeRef));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public partial class ProxyGeneratorTests
         {
             new("count", new TypeRef("Int32"), ParamDirection.In)
         };
-        Assert.Equal("4", ProxyGenerator.ComputeBufferSize(parms));
+        Assert.Equal("sizeof(INT32)", ProxyGenerator.ComputeBufferSize(parms));
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public partial class ProxyGeneratorTests
             new("x", new TypeRef("Single"), ParamDirection.In),
             new("y", new TypeRef("Single"), ParamDirection.In)
         };
-        Assert.Equal("4 + 4", ProxyGenerator.ComputeBufferSize(parms));
+        Assert.Equal("sizeof(FLOAT) + sizeof(FLOAT)", ProxyGenerator.ComputeBufferSize(parms));
     }
 
     [Fact]

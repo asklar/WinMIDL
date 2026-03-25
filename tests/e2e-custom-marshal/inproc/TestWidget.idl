@@ -1,0 +1,1 @@
+namespace TestApp.InProc{    enum Priority { Low, Medium, High };    struct Point { Single X; Single Y; };    interface IWidget    {        String Name { get; };        Priority GetPriority();        void SetPosition(Point pos);        Boolean TryReset(out Int32 errorCode);    };}

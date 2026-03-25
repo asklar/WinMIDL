@@ -24,9 +24,9 @@ public partial class StubGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // Stub input deserialization uses WindowsCreateString (safe for wire format without null terminator)
-        Assert.Contains("WindowsCreateString(", output);
-        Assert.Contains("HSTRING name;", output);
+        // Stub input deserialization uses WindowsCreateStringReference (zero-copy)
+        Assert.Contains("WindowsCreateStringReference(", output);
+        Assert.Contains("HSTRING name = nullptr;", output);
     }
 
     [Fact]

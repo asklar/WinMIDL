@@ -193,8 +193,8 @@ public partial class ProxyGeneratorIntegrationTests
 
         Assert.Contains("GetDimensions(INT32* width, INT32* height)", output);
         Assert.Contains("msg.cbBuffer = kGetDimensions_RequestSize;", output); // no in params
-        Assert.Contains("memcpy(width, pReply, 4);", output);
-        Assert.Contains("memcpy(height, pReply, 4);", output);
+        Assert.Contains("memcpy(width, pReply, sizeof(INT32));", output);
+        Assert.Contains("memcpy(height, pReply, sizeof(INT32));", output);
     }
 
     [Fact]
@@ -295,7 +295,7 @@ public partial class ProxyGeneratorIntegrationTests
         // HSTRING serialization pattern
         Assert.Contains("WindowsGetStringLen(name)", output);
         Assert.Contains("WindowsGetStringRawBuffer(name", output);
-        Assert.Contains("memcpy(p, &name_len, 4); p += 4;", output);
+        Assert.Contains("memcpy(p, &name_len, sizeof(UINT32)); p += sizeof(UINT32);", output);
     }
 
     [Fact]
@@ -314,7 +314,7 @@ public partial class ProxyGeneratorIntegrationTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("msg.cbBuffer = kRegister_RequestSize;", output);
-        Assert.Contains("memcpy(p, &id, 16); p += 16;", output);
+        Assert.Contains("memcpy(p, &id, sizeof(GUID)); p += sizeof(GUID);", output);
     }
 
     [Fact]

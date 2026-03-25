@@ -64,10 +64,10 @@ public static class WireFormat
     public static string GetWireSizeExpression(TypeRef typeRef)
     {
         if (typeRef.Name == "String")
-            return "4 + len * 2";
+            return "sizeof(UINT32) + (len + 1) * sizeof(WCHAR)";
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
-            return structSym.Fields.Sum(f => GetWireSize(f.Type)).ToString();
-        return GetWireSize(typeRef).ToString();
+            return string.Join(" + ", structSym.Fields.Select(f => GetCppSizeExpression(f.Type)));
+        return GetCppSizeExpression(typeRef);
     }
 
     /// <summary>
@@ -76,19 +76,38 @@ public static class WireFormat
     /// </summary>
     public static string GetTypeSizeExpression(TypeRef type)
     {
-        var name = type.Name;
-
-        if (name is "Boolean" or "UInt8") return "1";
-        if (name is "Int16" or "UInt16" or "Char") return "2";
-        if (name is "Int32" or "UInt32" or "Single" or "HRESULT") return "4";
-        if (name is "Int64" or "UInt64" or "Double") return "8";
-        if (name is "Guid") return "16";
-        if (name is "EventRegistrationToken") return "8";
-        if (type.ResolvedSymbol is EnumSymbol) return "4";
-        if (name is "String") return "4 + WindowsGetStringLen({0}) * 2";
+        if (type.Name == "String")
+            return "sizeof(UINT32) + (WindowsGetStringLen({0}) + 1) * sizeof(WCHAR)";
         if (type.ResolvedSymbol is StructSymbol structSym)
-            return structSym.Fields.Sum(f => GetWireSize(f.Type)).ToString();
-        return "sizeof(void*)";
+            return string.Join(" + ", structSym.Fields.Select(f => GetCppSizeExpression(f.Type)));
+        return GetCppSizeExpression(type);
+    }
+
+    /// <summary>
+    /// Returns the C++ sizeof(...) expression for a type, suitable for use in memcpy calls
+    /// and constexpr buffer size computations.
+    /// </summary>
+    public static string GetCppSizeExpression(TypeRef typeRef)
+    {
+        return typeRef.Name switch
+        {
+            "Boolean" => "sizeof(boolean)",
+            "UInt8" => "sizeof(BYTE)",
+            "Char" => "sizeof(WCHAR)",
+            "Int16" => "sizeof(INT16)",
+            "UInt16" => "sizeof(UINT16)",
+            "Int32" => "sizeof(INT32)",
+            "UInt32" => "sizeof(UINT32)",
+            "Single" => "sizeof(FLOAT)",
+            "HRESULT" => "sizeof(HRESULT)",
+            "Int64" => "sizeof(INT64)",
+            "UInt64" => "sizeof(UINT64)",
+            "Double" => "sizeof(DOUBLE)",
+            "Guid" => "sizeof(GUID)",
+            "EventRegistrationToken" => "sizeof(EventRegistrationToken)",
+            _ when typeRef.ResolvedSymbol is EnumSymbol => "sizeof(INT32)",
+            _ => $"sizeof({typeRef.Name})",
+        };
     }
 
     /// <summary>
@@ -103,8 +122,8 @@ public static class WireFormat
         foreach (var p in inParams)
         {
             var expr = GetTypeSizeExpression(p.Type);
-            // Replace placeholder {0} with actual variable name (for HSTRING)
-            expr = expr.Replace("{0}", p.Name);
+            if (expr.Contains("{0}"))
+                expr = string.Format(expr, p.Name);
             parts.Add(expr);
         }
 
@@ -135,14 +154,14 @@ public static class WireFormat
 
         if (typeRef.Name == "Guid")
         {
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, 16); {bufferPtr} += 16;");
+            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, sizeof(GUID)); {bufferPtr} += sizeof(GUID);");
             return;
         }
 
         if (typeRef.ResolvedSymbol is EnumSymbol)
         {
             sb.AppendLine($"{indent}INT32 {SanitizeVarName(varName)}_val = static_cast<INT32>({varName});");
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{SanitizeVarName(varName)}_val, 4); {bufferPtr} += 4;");
+            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{SanitizeVarName(varName)}_val, sizeof(INT32)); {bufferPtr} += sizeof(INT32);");
             return;
         }
 
@@ -165,14 +184,14 @@ public static class WireFormat
 
         if (typeRef.Name == "EventRegistrationToken")
         {
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, 8); {bufferPtr} += 8;");
+            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, sizeof(EventRegistrationToken)); {bufferPtr} += sizeof(EventRegistrationToken);");
             return;
         }
 
-        var size = GetWireSize(typeRef);
-        if (size > 0)
+        var sizeExpr = GetCppSizeExpression(typeRef);
+        if (sizeExpr != null)
         {
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, {size}); {bufferPtr} += {size};");
+            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
             return;
         }
 
@@ -193,13 +212,13 @@ public static class WireFormat
 
         if (typeRef.Name == "Guid")
         {
-            sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, 16); {bufferPtr} += 16;");
+            sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, sizeof(GUID)); {bufferPtr} += sizeof(GUID);");
             return;
         }
 
         if (typeRef.ResolvedSymbol is EnumSymbol)
         {
-            sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, 4); {bufferPtr} += 4;");
+            sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, sizeof(INT32)); {bufferPtr} += sizeof(INT32);");
             return;
         }
 
@@ -214,8 +233,8 @@ public static class WireFormat
             {
                 foreach (var field in structSym.Fields)
                 {
-                    var fieldSize = GetWireSize(field.Type);
-                    sb.AppendLine($"{indent}memcpy(&{varName}.{field.Name}, {bufferPtr}, {fieldSize}); {bufferPtr} += {fieldSize};");
+                    var fieldSizeExpr = GetCppSizeExpression(field.Type);
+                    sb.AppendLine($"{indent}memcpy(&{varName}.{field.Name}, {bufferPtr}, {fieldSizeExpr}); {bufferPtr} += {fieldSizeExpr};");
                 }
             }
             return;
@@ -223,12 +242,12 @@ public static class WireFormat
 
         if (typeRef.Name == "EventRegistrationToken")
         {
-            sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, 8); {bufferPtr} += 8;");
+            sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, sizeof(EventRegistrationToken)); {bufferPtr} += sizeof(EventRegistrationToken);");
             return;
         }
 
-        var size = GetWireSize(typeRef);
-        sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, {size}); {bufferPtr} += {size};");
+        var sizeExpr = GetCppSizeExpression(typeRef);
+        sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
     }
 
     /// <summary>
@@ -241,21 +260,22 @@ public static class WireFormat
 
         if (typeRef.Name == "String")
         {
-            sb.AppendLine($"{indent}UINT32 {targetName}_len; memcpy(&{targetName}_len, {bufferPtr}, 4); {bufferPtr} += 4;");
-            sb.AppendLine($"{indent}WindowsCreateString((PCWSTR){bufferPtr}, {targetName}_len, {(isPointer ? targetName : $"&{targetName}")}); {bufferPtr} += {targetName}_len * 2;");
+            sb.AppendLine($"{indent}UINT32 {targetName}_len; memcpy(&{targetName}_len, {bufferPtr}, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
+            sb.AppendLine($"{indent}WindowsCreateString((PCWSTR){bufferPtr}, {targetName}_len, {(isPointer ? targetName : $"&{targetName}")}); {bufferPtr} += ({targetName}_len + 1) * sizeof(WCHAR);");
             return;
         }
 
         if (typeRef.Name == "Guid")
         {
-            sb.AppendLine($"{indent}memcpy({(isPointer ? targetName : $"&{targetName}")}, {bufferPtr}, 16); {bufferPtr} += 16;");
+            sb.AppendLine($"{indent}memcpy({(isPointer ? targetName : $"&{targetName}")}, {bufferPtr}, sizeof(GUID)); {bufferPtr} += sizeof(GUID);");
             return;
         }
 
-        if (typeRef.ResolvedSymbol is EnumSymbol)
+        if (typeRef.ResolvedSymbol is EnumSymbol enumSym)
         {
-            sb.AppendLine($"{indent}INT32 {targetName}_val; memcpy(&{targetName}_val, {bufferPtr}, 4); {bufferPtr} += 4;");
-            sb.AppendLine($"{indent}{deref} = static_cast<decltype({deref})>({targetName}_val);");
+            var enumName = enumSym.Name;
+            sb.AppendLine($"{indent}INT32 {targetName}_val; memcpy(&{targetName}_val, {bufferPtr}, sizeof(INT32)); {bufferPtr} += sizeof(INT32);");
+            sb.AppendLine($"{indent}{deref} = static_cast<{enumName}>({targetName}_val);");
             return;
         }
 
@@ -278,9 +298,8 @@ public static class WireFormat
             return;
         }
 
-        var size = GetWireSize(typeRef);
-        if (typeRef.Name == "EventRegistrationToken") size = 8;
-        sb.AppendLine($"{indent}memcpy({(isPointer ? targetName : $"&{targetName}")}, {bufferPtr}, {size}); {bufferPtr} += {size};");
+        var sizeExpr2 = GetCppSizeExpression(typeRef);
+        sb.AppendLine($"{indent}memcpy({(isPointer ? targetName : $"&{targetName}")}, {bufferPtr}, {sizeExpr2}); {bufferPtr} += {sizeExpr2};");
     }
 
     /// <summary>
@@ -290,9 +309,9 @@ public static class WireFormat
     {
         var safeName = SanitizeVarName(varName);
         sb.AppendLine($"{indent}UINT32 {safeName}_len = WindowsGetStringLen({varName});");
-        sb.AppendLine($"{indent}memcpy({bufferPtr}, &{safeName}_len, 4); {bufferPtr} += 4;");
+        sb.AppendLine($"{indent}memcpy({bufferPtr}, &{safeName}_len, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
         sb.AppendLine($"{indent}PCWSTR {safeName}_raw = WindowsGetStringRawBuffer({varName}, nullptr);");
-        sb.AppendLine($"{indent}memcpy({bufferPtr}, {safeName}_raw, {safeName}_len * 2); {bufferPtr} += {safeName}_len * 2;");
+        sb.AppendLine($"{indent}memcpy({bufferPtr}, {safeName}_raw, ({safeName}_len + 1) * sizeof(WCHAR)); {bufferPtr} += ({safeName}_len + 1) * sizeof(WCHAR);");
     }
 
     /// <summary>
@@ -302,14 +321,13 @@ public static class WireFormat
     public static void EmitDeserializeHString(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
     {
         sb.AppendLine($"{indent}UINT32 {varName}_len;");
-        sb.AppendLine($"{indent}memcpy(&{varName}_len, {bufferPtr}, 4); {bufferPtr} += 4;");
-        sb.AppendLine($"{indent}HSTRING {varName};");
+        sb.AppendLine($"{indent}memcpy(&{varName}_len, {bufferPtr}, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
+        sb.AppendLine($"{indent}HSTRING {varName} = nullptr;");
+        sb.AppendLine($"{indent}HSTRING_HEADER {varName}_header;");
         sb.AppendLine($"{indent}if ({varName}_len > 0) {{");
-        sb.AppendLine($"{indent}    WindowsCreateString((PCNZWCH){bufferPtr}, {varName}_len, &{varName});");
-        sb.AppendLine($"{indent}    {bufferPtr} += {varName}_len * 2;");
-        sb.AppendLine($"{indent}}} else {{");
-        sb.AppendLine($"{indent}    {varName} = nullptr;");
+        sb.AppendLine($"{indent}    WindowsCreateStringReference((PCWSTR){bufferPtr}, {varName}_len, &{varName}_header, &{varName});");
         sb.AppendLine($"{indent}}}");
+        sb.AppendLine($"{indent}{bufferPtr} += ({varName}_len + 1) * sizeof(WCHAR);");
     }
 
     /// <summary>
@@ -319,10 +337,9 @@ public static class WireFormat
     public static void EmitSerializeHStringReply(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
     {
         sb.AppendLine($"{indent}UINT32 {varName}_len = 0;");
-        sb.AppendLine($"{indent}PCWSTR {varName}_raw = nullptr;");
-        sb.AppendLine($"{indent}if ({varName}) {{ {varName}_raw = WindowsGetStringRawBuffer({varName}, &{varName}_len); }}");
-        sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}_len, 4); {bufferPtr} += 4;");
-        sb.AppendLine($"{indent}if ({varName}_len > 0) {{ memcpy({bufferPtr}, {varName}_raw, {varName}_len * 2); {bufferPtr} += {varName}_len * 2; }}");
+        sb.AppendLine($"{indent}PCWSTR {varName}_raw = WindowsGetStringRawBuffer({varName}, &{varName}_len);");
+        sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}_len, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
+        sb.AppendLine($"{indent}memcpy({bufferPtr}, {varName}_raw, ({varName}_len + 1) * sizeof(WCHAR)); {bufferPtr} += ({varName}_len + 1) * sizeof(WCHAR);");
     }
 
     /// <summary>
@@ -341,8 +358,8 @@ public static class WireFormat
             {
                 foreach (var field in structSym.Fields)
                 {
-                    var fieldSize = GetWireSize(field.Type);
-                    sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}.{field.Name}, {fieldSize}); {bufferPtr} += {fieldSize};");
+                    var fieldSizeExpr = GetCppSizeExpression(field.Type);
+                    sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}.{field.Name}, {fieldSizeExpr}); {bufferPtr} += {fieldSizeExpr};");
                 }
             }
         }
@@ -352,8 +369,8 @@ public static class WireFormat
         }
         else
         {
-            var size = GetWireSize(typeRef);
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, {size}); {bufferPtr} += {size};");
+            var sizeExpr = GetCppSizeExpression(typeRef);
+            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
         }
     }
 
@@ -375,7 +392,7 @@ public static class WireFormat
             parts.Add(GetWireSizeExpression(returnType));
         }
 
-        parts.Add(HResultSize.ToString());
+        parts.Add("sizeof(HRESULT)");
 
         return string.Join(" + ", parts);
     }
@@ -456,12 +473,12 @@ public static class WireFormat
     public static void EmitDeserializeHStringZeroCopy(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
     {
         sb.AppendLine($"{indent}UINT32 {varName}_len;");
-        sb.AppendLine($"{indent}memcpy(&{varName}_len, {bufferPtr}, 4); {bufferPtr} += 4;");
+        sb.AppendLine($"{indent}memcpy(&{varName}_len, {bufferPtr}, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
         sb.AppendLine($"{indent}HSTRING_HEADER {varName}_hdr;");
         sb.AppendLine($"{indent}HSTRING {varName};");
         sb.AppendLine($"{indent}if ({varName}_len > 0) {{");
         sb.AppendLine($"{indent}    WindowsCreateStringReference(reinterpret_cast<PCWSTR>({bufferPtr}), {varName}_len, &{varName}_hdr, &{varName});");
-        sb.AppendLine($"{indent}    {bufferPtr} += {varName}_len * 2;");
+        sb.AppendLine($"{indent}    {bufferPtr} += ({varName}_len + 1) * sizeof(WCHAR);");
         sb.AppendLine($"{indent}}} else {{");
         sb.AppendLine($"{indent}    {varName} = nullptr;");
         sb.AppendLine($"{indent}}}");

@@ -102,8 +102,8 @@ public class StubGeneratorIntegrationTests
         Assert.Contains("HSTRING returnValue;", output);
         Assert.Contains("m_pServer->GetName(&returnValue)", output);
         Assert.Contains("WindowsGetStringRawBuffer(returnValue, &len)", output);
-        // Reply: [4B len][N*2B chars][4B HRESULT]
-        Assert.Contains("4 + len * 2 + 4", output);
+        // Reply: [sizeof(UINT32) len][N*sizeof(WCHAR) chars][sizeof(HRESULT)]
+        Assert.Contains("sizeof(UINT32) + (len + 1) * sizeof(WCHAR) + sizeof(HRESULT)", output);
         Assert.Contains("pChannel->GetBuffer(pMsg, IID___x_Widgets_IWidget)", output);
         Assert.Contains("WindowsDeleteString(returnValue)", output);
     }
@@ -160,9 +160,9 @@ public class StubGeneratorIntegrationTests
         Assert.Contains("boolean returnValue;", output);
         Assert.Contains("m_pServer->TryReset(&errorCode, &returnValue)", output);
         // Reply: [errorCode][returnValue][HRESULT]
-        Assert.Contains("memcpy(p, &errorCode, 4)", output);
-        Assert.Contains("memcpy(p, &returnValue, 1)", output);
-        Assert.Contains("memcpy(p, &hr, 4)", output);
+        Assert.Contains("memcpy(p, &errorCode, sizeof(INT32))", output);
+        Assert.Contains("memcpy(p, &returnValue, sizeof(boolean))", output);
+        Assert.Contains("memcpy(p, &hr, sizeof(HRESULT))", output);
     }
 
     [Fact]
@@ -235,10 +235,10 @@ public class StubGeneratorIntegrationTests
         Assert.Contains("static_assert(std::is_trivially_copyable_v<Rect>)", output);
         // Enum deserialization
         Assert.Contains("Alignment align;", output);
-        Assert.Contains("memcpy(&align, p, 4)", output);
+        Assert.Contains("memcpy(&align, p, sizeof(INT32))", output);
         // HSTRING deserialization
-        Assert.Contains("HSTRING label;", output);
-        Assert.Contains("WindowsCreateString(", output);
+        Assert.Contains("HSTRING label = nullptr;", output);
+        Assert.Contains("WindowsCreateStringReference(", output);
     }
 
     [Fact]

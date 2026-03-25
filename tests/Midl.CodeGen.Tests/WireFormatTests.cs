@@ -97,7 +97,7 @@ public partial class WireFormatTests
     public void GetWireSizeExpression_Primitive_ReturnsNumericString()
     {
         var typeRef = new TypeRef("Int32");
-        Assert.Equal("4", WireFormat.GetWireSizeExpression(typeRef));
+        Assert.Equal("sizeof(INT32)", WireFormat.GetWireSizeExpression(typeRef));
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public partial class WireFormatTests
         var typeRef = new TypeRef("String");
         var result = WireFormat.GetWireSizeExpression(typeRef);
         Assert.Contains("len", result);
-        Assert.Contains("2", result);
+        Assert.Contains("sizeof(WCHAR)", result);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public partial class WireFormatTests
         structSym.AddField(new FieldSymbol("Y", structSym) { Type = new TypeRef("Single") });
         var typeRef = new TypeRef("Point") { ResolvedSymbol = structSym };
 
-        Assert.Equal("8", WireFormat.GetWireSizeExpression(typeRef));
+        Assert.Equal("sizeof(FLOAT) + sizeof(FLOAT)", WireFormat.GetWireSizeExpression(typeRef));
     }
 
     // ─── ComputeBufferSize ───
@@ -135,7 +135,7 @@ public partial class WireFormatTests
         {
             new("count", new TypeRef("Int32"), ParamDirection.In)
         };
-        Assert.Equal("4", WireFormat.ComputeBufferSize(parms));
+        Assert.Equal("sizeof(INT32)", WireFormat.ComputeBufferSize(parms));
     }
 
     [Fact]
@@ -146,24 +146,24 @@ public partial class WireFormatTests
             new("x", new TypeRef("Single"), ParamDirection.In),
             new("y", new TypeRef("Single"), ParamDirection.In)
         };
-        Assert.Equal("4 + 4", WireFormat.ComputeBufferSize(parms));
+        Assert.Equal("sizeof(FLOAT) + sizeof(FLOAT)", WireFormat.ComputeBufferSize(parms));
     }
 
     // ─── EmitSerialize / EmitDeserialize symmetry ───
 
     [Theory]
-    [InlineData("Boolean", 1)]
-    [InlineData("UInt8", 1)]
-    [InlineData("Int16", 2)]
-    [InlineData("UInt16", 2)]
-    [InlineData("Char", 2)]
-    [InlineData("Int32", 4)]
-    [InlineData("UInt32", 4)]
-    [InlineData("Single", 4)]
-    [InlineData("Int64", 8)]
-    [InlineData("UInt64", 8)]
-    [InlineData("Double", 8)]
-    public void EmitSerializeDeserialize_Primitive_Symmetric(string typeName, int size)
+    [InlineData("Boolean", "sizeof(boolean)")]
+    [InlineData("UInt8", "sizeof(BYTE)")]
+    [InlineData("Int16", "sizeof(INT16)")]
+    [InlineData("UInt16", "sizeof(UINT16)")]
+    [InlineData("Char", "sizeof(WCHAR)")]
+    [InlineData("Int32", "sizeof(INT32)")]
+    [InlineData("UInt32", "sizeof(UINT32)")]
+    [InlineData("Single", "sizeof(FLOAT)")]
+    [InlineData("Int64", "sizeof(INT64)")]
+    [InlineData("UInt64", "sizeof(UINT64)")]
+    [InlineData("Double", "sizeof(DOUBLE)")]
+    public void EmitSerializeDeserialize_Primitive_Symmetric(string typeName, string sizeExpr)
     {
         var typeRef = new TypeRef(typeName);
 
@@ -176,12 +176,12 @@ public partial class WireFormatTests
         var deserCode = deserSb.ToString();
 
         // Serialize writes `size` bytes from val
-        Assert.Contains($"memcpy(p, &val, {size})", serCode);
-        Assert.Contains($"p += {size}", serCode);
+        Assert.Contains($"memcpy(p, &val, {sizeExpr})", serCode);
+        Assert.Contains($"p += {sizeExpr}", serCode);
 
         // Deserialize reads `size` bytes into val
-        Assert.Contains($"memcpy(&val, pReply, {size})", deserCode);
-        Assert.Contains($"pReply += {size}", deserCode);
+        Assert.Contains($"memcpy(&val, pReply, {sizeExpr})", deserCode);
+        Assert.Contains($"pReply += {sizeExpr}", deserCode);
     }
 
     [Fact]
@@ -197,8 +197,8 @@ public partial class WireFormatTests
         WireFormat.EmitDeserialize(deserSb, typeRef, "id", "pReply");
         var deserCode = deserSb.ToString();
 
-        Assert.Contains("memcpy(p, &id, 16)", serCode);
-        Assert.Contains("memcpy(&id, pReply, 16)", deserCode);
+        Assert.Contains("memcpy(p, &id, sizeof(GUID))", serCode);
+        Assert.Contains("memcpy(&id, pReply, sizeof(GUID))", deserCode);
     }
 
     [Fact]
@@ -215,9 +215,9 @@ public partial class WireFormatTests
         WireFormat.EmitDeserialize(deserSb, typeRef, "level", "pReply");
         var deserCode = deserSb.ToString();
 
-        // Both use 4 bytes
-        Assert.Contains("4", serCode);
-        Assert.Contains("4", deserCode);
+        // Both use sizeof(INT32)
+        Assert.Contains("sizeof(INT32)", serCode);
+        Assert.Contains("sizeof(INT32)", deserCode);
     }
 
     [Fact]
@@ -230,9 +230,9 @@ public partial class WireFormatTests
         var code = sb.ToString();
 
         Assert.Contains("WindowsGetStringLen(name)", code);
-        Assert.Contains("memcpy(p, &name_len, 4)", code);
+        Assert.Contains("memcpy(p, &name_len, sizeof(UINT32))", code);
         Assert.Contains("WindowsGetStringRawBuffer(name", code);
-        Assert.Contains("name_len * 2", code);
+        Assert.Contains("(name_len + 1) * sizeof(WCHAR)", code);
     }
 
     [Fact]
@@ -244,9 +244,9 @@ public partial class WireFormatTests
         WireFormat.EmitDeserialize(sb, typeRef, "name", "pReply");
         var code = sb.ToString();
 
-        Assert.Contains("memcpy(&name_len, pReply, 4)", code);
-        Assert.Contains("WindowsCreateString", code);
-        Assert.Contains("name_len * 2", code);
+        Assert.Contains("memcpy(&name_len, pReply, sizeof(UINT32))", code);
+        Assert.Contains("WindowsCreateStringReference", code);
+        Assert.Contains("(name_len + 1) * sizeof(WCHAR)", code);
     }
 
     [Fact]
@@ -294,7 +294,7 @@ public partial class WireFormatTests
         WireFormat.EmitSerialize(sb, typeRef, "token", "p");
         var code = sb.ToString();
 
-        Assert.Contains("memcpy(p, &token, 8)", code);
+        Assert.Contains("memcpy(p, &token, sizeof(EventRegistrationToken))", code);
     }
 
     // ─── GetFirstUserSlot ───
@@ -325,7 +325,7 @@ public partial class WireFormatTests
     public void BuildReplySizeExpression_NoOutNoRetval_JustHresult()
     {
         var result = WireFormat.BuildReplySizeExpression([], hasRetval: false, TypeRef.Void);
-        Assert.Equal("4", result); // just HRESULT
+        Assert.Equal("sizeof(HRESULT)", result); // just HRESULT
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public partial class WireFormatTests
             (new TypeRef("Int32"), "errorCode"),
         };
         var result = WireFormat.BuildReplySizeExpression(outParams, hasRetval: true, new TypeRef("Boolean"));
-        // [errorCode=4] + [retval=1] + [HRESULT=4]
-        Assert.Equal("4 + 1 + 4", result);
+        // [errorCode=sizeof(INT32)] + [retval=sizeof(boolean)] + [HRESULT=sizeof(HRESULT)]
+        Assert.Equal("sizeof(INT32) + sizeof(boolean) + sizeof(HRESULT)", result);
     }
 }

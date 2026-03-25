@@ -273,7 +273,7 @@ public partial class WireFormatTests
         WireFormat.EmitDeserializeHStringZeroCopy(sb, "str", "p");
         var code = sb.ToString();
 
-        Assert.Contains("p += str_len * 2", code);
+        Assert.Contains("(str_len + 1) * sizeof(WCHAR)", code);
     }
 
     // ─── ComputeFixedBufferSize ───
