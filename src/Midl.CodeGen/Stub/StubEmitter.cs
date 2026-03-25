@@ -76,6 +76,11 @@ public class StubEmitter
             sb.AppendLine();
         }
 
+        // Emit DLL registration plumbing
+        var interfaceNames = interfaceData.Select(d => d.Interface.Name).ToList();
+        var plumbingBuilder = new DllPlumbingBuilder();
+        sb.AppendLine(plumbingBuilder.EmitAll(interfaceNames));
+
         sb.AppendLine("// End of generated proxy file");
 
         return sb.ToString();
