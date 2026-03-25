@@ -32,6 +32,17 @@ public static class WireFormat
     };
 
     /// <summary>
+    /// Set of primitive type names that are blittable (directly memcpy-able without casting).
+    /// Enums require a cast so are not blittable. Strings are variable-length.
+    /// </summary>
+    private static readonly HashSet<string> BlittablePrimitives = new(StringComparer.Ordinal)
+    {
+        "Boolean", "UInt8", "Char", "Int16", "UInt16",
+        "Int32", "UInt32", "Single", "Int64", "UInt64",
+        "Double", "Guid", "EventRegistrationToken",
+    };
+
+    /// <summary>
     /// Returns the fixed wire size in bytes for a type.
     /// For structs, recursively sums field sizes.
     /// </summary>
@@ -134,9 +145,17 @@ public static class WireFormat
 
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
         {
-            foreach (var field in structSym.Fields)
+            if (IsBlittable(structSym))
             {
-                EmitSerialize(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                sb.AppendLine($"{indent}static_assert(std::is_trivially_copyable_v<{structSym.Name}>);");
+                sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, sizeof({structSym.Name})); {bufferPtr} += sizeof({structSym.Name});");
+            }
+            else
+            {
+                foreach (var field in structSym.Fields)
+                {
+                    EmitSerialize(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                }
             }
             return;
         }
@@ -183,10 +202,18 @@ public static class WireFormat
 
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
         {
-            foreach (var field in structSym.Fields)
+            if (IsBlittable(structSym))
             {
-                var fieldSize = GetWireSize(field.Type);
-                sb.AppendLine($"{indent}memcpy(&{varName}.{field.Name}, {bufferPtr}, {fieldSize}); {bufferPtr} += {fieldSize};");
+                sb.AppendLine($"{indent}static_assert(std::is_trivially_copyable_v<{structSym.Name}>);");
+                sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, sizeof({structSym.Name})); {bufferPtr} += sizeof({structSym.Name});");
+            }
+            else
+            {
+                foreach (var field in structSym.Fields)
+                {
+                    var fieldSize = GetWireSize(field.Type);
+                    sb.AppendLine($"{indent}memcpy(&{varName}.{field.Name}, {bufferPtr}, {fieldSize}); {bufferPtr} += {fieldSize};");
+                }
             }
             return;
         }
@@ -231,11 +258,19 @@ public static class WireFormat
 
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
         {
-            var prefix = isPointer ? $"{targetName}->" : $"{targetName}.";
-            foreach (var field in structSym.Fields)
+            if (IsBlittable(structSym))
             {
-                var fieldTarget = $"{prefix}{field.Name}";
-                EmitDeserializeReply(sb, field.Type, fieldTarget, bufferPtr, isPointer: false, indent);
+                sb.AppendLine($"{indent}static_assert(std::is_trivially_copyable_v<{structSym.Name}>);");
+                sb.AppendLine($"{indent}memcpy({(isPointer ? targetName : $"&{targetName}")}, {bufferPtr}, sizeof({structSym.Name})); {bufferPtr} += sizeof({structSym.Name});");
+            }
+            else
+            {
+                var prefix = isPointer ? $"{targetName}->" : $"{targetName}.";
+                foreach (var field in structSym.Fields)
+                {
+                    var fieldTarget = $"{prefix}{field.Name}";
+                    EmitDeserializeReply(sb, field.Type, fieldTarget, bufferPtr, isPointer: false, indent);
+                }
             }
             return;
         }
@@ -294,10 +329,18 @@ public static class WireFormat
     {
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
         {
-            foreach (var field in structSym.Fields)
+            if (IsBlittable(structSym))
             {
-                var fieldSize = GetWireSize(field.Type);
-                sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}.{field.Name}, {fieldSize}); {bufferPtr} += {fieldSize};");
+                sb.AppendLine($"{indent}static_assert(std::is_trivially_copyable_v<{structSym.Name}>);");
+                sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, sizeof({structSym.Name})); {bufferPtr} += sizeof({structSym.Name});");
+            }
+            else
+            {
+                foreach (var field in structSym.Fields)
+                {
+                    var fieldSize = GetWireSize(field.Type);
+                    sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}.{field.Name}, {fieldSize}); {bufferPtr} += {fieldSize};");
+                }
             }
         }
         else if (typeRef.Name == "String")
@@ -333,6 +376,94 @@ public static class WireFormat
 
         return string.Join(" + ", parts);
     }
+
+    /// <summary>
+    /// Returns true if the type has a fixed wire size (no strings or variable-length types).
+    /// </summary>
+    public static bool IsFixedSize(TypeRef typeRef)
+    {
+        if (typeRef.Name == "String")
+            return false;
+        if (WireSizeMap.ContainsKey(typeRef.Name))
+            return true;
+        if (typeRef.ResolvedSymbol is EnumSymbol)
+            return true;
+        if (typeRef.ResolvedSymbol is StructSymbol structSym)
+            return structSym.Fields.All(f => IsFixedSize(f.Type));
+        return true; // unknown types treated as fixed-size (pointer-sized fallback)
+    }
+
+    /// <summary>
+    /// Returns true if a struct is blittable: all fields are primitive types that can be
+    /// memcpy'd without casting. Enums are NOT blittable (require INT32 cast).
+    /// Strings are NOT blittable (variable length). Empty structs are NOT blittable.
+    /// Nested structs are blittable only if all their fields are also blittable.
+    /// </summary>
+    public static bool IsBlittable(StructSymbol structSym)
+    {
+        if (structSym.Fields.Count == 0)
+            return false;
+        return structSym.Fields.All(f => IsFieldBlittable(f.Type));
+    }
+
+    private static bool IsFieldBlittable(TypeRef typeRef)
+    {
+        if (BlittablePrimitives.Contains(typeRef.Name))
+            return true;
+        if (typeRef.ResolvedSymbol is StructSymbol nested)
+            return IsBlittable(nested);
+        return false;
+    }
+
+    /// <summary>
+    /// Returns true if all parameters have fixed wire sizes.
+    /// </summary>
+    public static bool AllParamsFixedSize(List<ProxyParam> parms)
+    {
+        return parms.All(p => IsFixedSize(p.Type));
+    }
+
+    /// <summary>
+    /// Computes the total fixed buffer size in bytes for a list of fixed-size parameters.
+    /// </summary>
+    public static int ComputeFixedBufferSize(List<ProxyParam> parms)
+    {
+        return parms.Sum(p => GetWireSize(p.Type));
+    }
+
+    /// <summary>
+    /// Emits C++ static_assert statements verifying struct layout matches expected offsets and size.
+    /// </summary>
+    public static void EmitStructLayoutAsserts(StringBuilder sb, StructSymbol structSym, string cTypeName, string indent = "")
+    {
+        int offset = 0;
+        foreach (var field in structSym.Fields)
+        {
+            sb.AppendLine($"{indent}static_assert(offsetof({cTypeName}, {field.Name}) == {offset});");
+            offset += GetWireSize(field.Type);
+        }
+        sb.AppendLine($"{indent}static_assert(sizeof({cTypeName}) == {offset});");
+    }
+
+    /// <summary>
+    /// Emits C++ code to deserialize an HSTRING using zero-copy WindowsCreateStringReference.
+    /// Creates a non-owning string reference into the existing buffer.
+    /// The string is valid as long as the buffer is alive (during Invoke).
+    /// </summary>
+    public static void EmitDeserializeHStringZeroCopy(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
+    {
+        sb.AppendLine($"{indent}UINT32 {varName}_len;");
+        sb.AppendLine($"{indent}memcpy(&{varName}_len, {bufferPtr}, 4); {bufferPtr} += 4;");
+        sb.AppendLine($"{indent}HSTRING_HEADER {varName}_hdr;");
+        sb.AppendLine($"{indent}HSTRING {varName};");
+        sb.AppendLine($"{indent}if ({varName}_len > 0) {{");
+        sb.AppendLine($"{indent}    WindowsCreateStringReference(reinterpret_cast<PCWSTR>({bufferPtr}), {varName}_len, &{varName}_hdr, &{varName});");
+        sb.AppendLine($"{indent}    {bufferPtr} += {varName}_len * 2;");
+        sb.AppendLine($"{indent}}} else {{");
+        sb.AppendLine($"{indent}    {varName} = nullptr;");
+        sb.AppendLine($"{indent}}}");
+    }
+
 
     /// <summary>
     /// Sanitizes a variable name for use as a prefix in generated locals

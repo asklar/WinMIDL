@@ -10,7 +10,7 @@ namespace Midl.CodeGen.Tests;
 /// Verifies type sizes, buffer size computation, serialize/deserialize symmetry,
 /// vtable slot constants, and reply layout ordering.
 /// </summary>
-public class WireFormatTests
+public partial class WireFormatTests
 {
     // ─── GetWireSize ───
 
@@ -252,33 +252,37 @@ public class WireFormatTests
     [Fact]
     public void EmitSerialize_Struct_EmitsFieldByField()
     {
-        var structSym = new StructSymbol("Point", null);
-        structSym.AddField(new FieldSymbol("X", structSym) { Type = new TypeRef("Single") });
-        structSym.AddField(new FieldSymbol("Y", structSym) { Type = new TypeRef("Single") });
-        var typeRef = new TypeRef("Point") { ResolvedSymbol = structSym };
+        // Non-blittable struct (has enum field) should still do field-by-field
+        var enumSym = new EnumSymbol("Status", null);
+        var structSym = new StructSymbol("Item", null);
+        structSym.AddField(new FieldSymbol("Id", structSym) { Type = new TypeRef("Int32") });
+        structSym.AddField(new FieldSymbol("State", structSym) { Type = new TypeRef("Status") { ResolvedSymbol = enumSym } });
+        var typeRef = new TypeRef("Item") { ResolvedSymbol = structSym };
 
         var sb = new StringBuilder();
-        WireFormat.EmitSerialize(sb, typeRef, "pos", "p");
+        WireFormat.EmitSerialize(sb, typeRef, "item", "p");
         var code = sb.ToString();
 
-        Assert.Contains("pos.X", code);
-        Assert.Contains("pos.Y", code);
+        Assert.Contains("item.Id", code);
+        Assert.Contains("item.State", code);
     }
 
     [Fact]
     public void EmitDeserialize_Struct_EmitsFieldByField()
     {
-        var structSym = new StructSymbol("Point", null);
-        structSym.AddField(new FieldSymbol("X", structSym) { Type = new TypeRef("Single") });
-        structSym.AddField(new FieldSymbol("Y", structSym) { Type = new TypeRef("Single") });
-        var typeRef = new TypeRef("Point") { ResolvedSymbol = structSym };
+        // Non-blittable struct (has enum field) should still do field-by-field
+        var enumSym = new EnumSymbol("Status", null);
+        var structSym = new StructSymbol("Item", null);
+        structSym.AddField(new FieldSymbol("Id", structSym) { Type = new TypeRef("Int32") });
+        structSym.AddField(new FieldSymbol("State", structSym) { Type = new TypeRef("Status") { ResolvedSymbol = enumSym } });
+        var typeRef = new TypeRef("Item") { ResolvedSymbol = structSym };
 
         var sb = new StringBuilder();
-        WireFormat.EmitDeserialize(sb, typeRef, "pos", "pReply");
+        WireFormat.EmitDeserialize(sb, typeRef, "item", "pReply");
         var code = sb.ToString();
 
-        Assert.Contains("pos.X", code);
-        Assert.Contains("pos.Y", code);
+        Assert.Contains("item.Id", code);
+        Assert.Contains("item.State", code);
     }
 
     [Fact]

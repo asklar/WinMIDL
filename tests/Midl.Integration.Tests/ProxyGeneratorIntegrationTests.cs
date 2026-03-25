@@ -51,9 +51,7 @@ public partial class ProxyGeneratorIntegrationTests
 
         // Method with param
         Assert.Contains("DoWork(INT32 count)", output);
-        Assert.Contains("msg.cbBuffer = 4;", output);
-
-        // Method with return
+        Assert.Contains("msg.cbBuffer = kDoWork_RequestSize;", output);
         Assert.Contains("IsActive(boolean* result)", output);
 
         // Vtable slots in order
@@ -115,10 +113,10 @@ public partial class ProxyGeneratorIntegrationTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        // Struct field serialization
-        Assert.Contains("memcpy(p, &pos.X, 4); p += 4;", output);
-        Assert.Contains("memcpy(p, &pos.Y, 4); p += 4;", output);
-        Assert.Contains("msg.cbBuffer = 8;", output);
+        // Blittable struct uses single memcpy
+        Assert.Contains("memcpy(p, &pos, sizeof(Point))", output);
+        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", output);
+        Assert.Contains("msg.cbBuffer = kDrawAt_RequestSize;", output);
     }
 
     [Fact]
@@ -144,7 +142,7 @@ public partial class ProxyGeneratorIntegrationTests
         var output = _generator.Generate(compilation);
 
         // Enum serialized as INT32
-        Assert.Contains("msg.cbBuffer = 4;", output);
+        Assert.Contains("msg.cbBuffer = kSetColor_RequestSize;", output);
         Assert.Contains("static_cast<INT32>(c)", output);
     }
 
@@ -194,7 +192,7 @@ public partial class ProxyGeneratorIntegrationTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("GetDimensions(INT32* width, INT32* height)", output);
-        Assert.Contains("msg.cbBuffer = 0;", output); // no in params
+        Assert.Contains("msg.cbBuffer = kGetDimensions_RequestSize;", output); // no in params
         Assert.Contains("memcpy(width, pReply, 4);", output);
         Assert.Contains("memcpy(height, pReply, 4);", output);
     }
@@ -315,7 +313,7 @@ public partial class ProxyGeneratorIntegrationTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("msg.cbBuffer = 16;", output);
+        Assert.Contains("msg.cbBuffer = kRegister_RequestSize;", output);
         Assert.Contains("memcpy(p, &id, 16); p += 16;", output);
     }
 

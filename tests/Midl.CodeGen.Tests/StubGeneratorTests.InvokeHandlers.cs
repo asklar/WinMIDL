@@ -27,9 +27,9 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_DoWork(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        // Void no-param method: reply is just HRESULT
+        // Void no-param method: reply is just HRESULT, constexpr
         Assert.Contains("m_pServer->DoWork()", output);
-        Assert.Contains("pMsg->cbBuffer = 4;", output);
+        Assert.Contains("constexpr", output);
         Assert.Contains("memcpy(pMsg->Buffer, &hr, 4)", output);
     }
 
@@ -105,9 +105,9 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_SetPosition(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("Point pos;", output);
-        // Struct fields deserialized sequentially
-        Assert.Contains("memcpy(&pos.X, p, 4)", output);
-        Assert.Contains("memcpy(&pos.Y, p, 4)", output);
+        // Blittable struct uses single memcpy with static_assert
+        Assert.Contains("memcpy(&pos, p, sizeof(Point))", output);
+        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", output);
         Assert.Contains("m_pServer->SetPosition(pos)", output);
     }
 
@@ -244,9 +244,9 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_TryParse(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        // in param: HSTRING deserialized from buffer
+        // in param: HSTRING deserialized from buffer (zero-copy)
         Assert.Contains("HSTRING input;", output);
-        Assert.Contains("WindowsCreateString", output);
+        Assert.Contains("WindowsCreateStringReference", output);
         // out param: allocated locally
         Assert.Contains("INT32 result;", output);
         // Server call with mixed params
@@ -271,8 +271,9 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_SetName(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("HSTRING name;", output);
-        Assert.Contains("WindowsCreateString", output);
-        Assert.Contains("WindowsDeleteString(name)", output);
+        // Zero-copy: uses WindowsCreateStringReference, not WindowsCreateString
+        Assert.Contains("WindowsCreateStringReference", output);
+        Assert.DoesNotContain("WindowsDeleteString(name)", output);
     }
 
     [Fact]

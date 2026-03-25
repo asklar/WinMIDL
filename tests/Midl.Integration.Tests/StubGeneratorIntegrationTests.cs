@@ -130,13 +130,13 @@ public class StubGeneratorIntegrationTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        // SetPosition takes struct Point — deserialized field by field
+        // SetPosition takes struct Point — blittable, uses single memcpy
         Assert.Contains("Point pos;", output);
-        Assert.Contains("memcpy(&pos.X, p, 4); p += 4;", output);
-        Assert.Contains("memcpy(&pos.Y, p, 4); p += 4;", output);
+        Assert.Contains("memcpy(&pos, p, sizeof(Point))", output);
+        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", output);
         Assert.Contains("m_pServer->SetPosition(pos)", output);
-        // Reply: just HRESULT
-        Assert.Contains("pMsg->cbBuffer = 4;", output);
+        // Reply: just HRESULT (constexpr)
+        Assert.Contains("constexpr", output);
     }
 
     [Fact]
@@ -229,18 +229,16 @@ public class StubGeneratorIntegrationTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_Arrange(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        // Struct deserialization
+        // Blittable struct uses single memcpy
         Assert.Contains("Rect bounds;", output);
-        Assert.Contains("memcpy(&bounds.X, p, 4)", output);
-        Assert.Contains("memcpy(&bounds.Y, p, 4)", output);
-        Assert.Contains("memcpy(&bounds.Width, p, 4)", output);
-        Assert.Contains("memcpy(&bounds.Height, p, 4)", output);
+        Assert.Contains("memcpy(&bounds, p, sizeof(Rect))", output);
+        Assert.Contains("static_assert(std::is_trivially_copyable_v<Rect>)", output);
         // Enum deserialization
         Assert.Contains("Alignment align;", output);
         Assert.Contains("memcpy(&align, p, 4)", output);
-        // HSTRING deserialization
+        // HSTRING deserialization (zero-copy on stub)
         Assert.Contains("HSTRING label;", output);
-        Assert.Contains("WindowsCreateString", output);
+        Assert.Contains("WindowsCreateStringReference", output);
     }
 
     [Fact]

@@ -208,17 +208,26 @@ public class StubGenerator
     {
         if (typeRef.Name == "String")
         {
-            // HSTRING: WireFormat handles declaration + deserialization
-            WireFormat.EmitDeserializeHString(sb, name, "p");
+            // Zero-copy: use WindowsCreateStringReference for non-owning view into buffer
+            WireFormat.EmitDeserializeHStringZeroCopy(sb, name, "p");
         }
         else if (typeRef.ResolvedSymbol is StructSymbol structSym)
         {
             var cType = MapType(typeRef);
             sb.AppendLine($"        {cType} {name};");
-            foreach (var field in structSym.Fields)
+            if (WireFormat.IsBlittable(structSym))
             {
-                var fieldSize = WireFormat.GetWireSize(field.Type);
-                sb.AppendLine($"        memcpy(&{name}.{field.Name}, p, {fieldSize}); p += {fieldSize};");
+                WireFormat.EmitStructLayoutAsserts(sb, structSym, cType, "        ");
+                sb.AppendLine($"        static_assert(std::is_trivially_copyable_v<{cType}>);");
+                sb.AppendLine($"        memcpy(&{name}, p, sizeof({cType})); p += sizeof({cType});");
+            }
+            else
+            {
+                foreach (var field in structSym.Fields)
+                {
+                    var fieldSize = WireFormat.GetWireSize(field.Type);
+                    sb.AppendLine($"        memcpy(&{name}.{field.Name}, p, {fieldSize}); p += {fieldSize};");
+                }
             }
         }
         else if (typeRef.ResolvedSymbol is EnumSymbol)
@@ -266,8 +275,24 @@ public class StubGenerator
     {
         // Calculate reply size using WireFormat
         var replyParams = outParams.Select(p => (p.Type, p.Name)).ToList();
-        var sizeExpr = WireFormat.BuildReplySizeExpression(replyParams, hasRetval, slot.ReturnType);
-        sb.AppendLine($"        pMsg->cbBuffer = {sizeExpr};");
+
+        // Check if reply is fixed-size for constexpr optimization
+        bool replyFixed = outParams.All(p => WireFormat.IsFixedSize(p.Type))
+            && (!hasRetval || WireFormat.IsFixedSize(slot.ReturnType));
+
+        if (replyFixed)
+        {
+            int replySize = outParams.Sum(p => WireFormat.GetWireSize(p.Type))
+                + (hasRetval ? WireFormat.GetWireSize(slot.ReturnType) : 0)
+                + WireFormat.HResultSize;
+            sb.AppendLine($"        static constexpr UINT32 kReplySize = {replySize};");
+            sb.AppendLine($"        pMsg->cbBuffer = kReplySize;");
+        }
+        else
+        {
+            var sizeExpr = WireFormat.BuildReplySizeExpression(replyParams, hasRetval, slot.ReturnType);
+            sb.AppendLine($"        pMsg->cbBuffer = {sizeExpr};");
+        }
         sb.AppendLine($"        pChannel->GetBuffer(pMsg, {iidName});");
 
         // Check if we need a pointer
@@ -306,12 +331,8 @@ public class StubGenerator
             sb.AppendLine("        memcpy(pMsg->Buffer, &hr, 4);");
         }
 
-        // Clean up HSTRING locals
-        foreach (var param in inParams)
-        {
-            if (param.Type.Name == "String")
-                sb.AppendLine($"        WindowsDeleteString({param.Name});");
-        }
+        // Clean up HSTRING locals — only for non-zero-copy (return values)
+        // Input HSTRINGs created via WindowsCreateStringReference are non-owning, no cleanup needed
         if (hasRetval && slot.ReturnType.Name == "String")
         {
             sb.AppendLine("        WindowsDeleteString(returnValue);");

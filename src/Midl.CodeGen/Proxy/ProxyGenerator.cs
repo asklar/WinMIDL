@@ -255,15 +255,45 @@ public class ProxyGenerator
         var iidName = $"IID_{mangledName}";
 
         sb.AppendLine($"    // {methodName} (vtable slot {vtableSlot})");
+
+        // Compute buffer size for input params
+        var inParams = parameters.Where(p => p.Direction == ParamDirection.In).ToList();
+        bool requestFixed = WireFormat.AllParamsFixedSize(inParams);
+
+        // Emit constexpr buffer size constants for fixed-size signatures
+        if (requestFixed)
+        {
+            var fixedSize = WireFormat.ComputeFixedBufferSize(inParams);
+            sb.AppendLine($"    static constexpr UINT32 k{methodName}_RequestSize = {fixedSize};");
+        }
+
+        // Check if reply is also fixed-size
+        var outParams = parameters.Where(p => p.Direction == ParamDirection.Out).ToList();
+        var replyParts = outParams.Select(p => p.Type).ToList();
+        bool replyFixed = replyParts.All(t => WireFormat.IsFixedSize(t))
+            && (!hasRetval || WireFormat.IsFixedSize(returnType));
+        if (replyFixed)
+        {
+            int replySize = outParams.Sum(p => WireFormat.GetWireSize(p.Type))
+                + (hasRetval ? WireFormat.GetWireSize(returnType) : 0)
+                + WireFormat.HResultSize;
+            sb.AppendLine($"    static constexpr UINT32 k{methodName}_ReplySize = {replySize};");
+        }
+
         sb.AppendLine($"    HRESULT STDMETHODCALLTYPE {methodName}({signature}) override {{");
         sb.AppendLine("        if (!m_pChannel) return RPC_E_DISCONNECTED;");
         sb.AppendLine("        RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"        msg.iMethod = {vtableSlot};");
 
-        // Compute buffer size for input params
-        var inParams = parameters.Where(p => p.Direction == ParamDirection.In).ToList();
-        var bufferSizeExpr = ComputeBufferSize(inParams);
-        sb.AppendLine($"        msg.cbBuffer = {bufferSizeExpr};");
+        if (requestFixed)
+        {
+            sb.AppendLine($"        msg.cbBuffer = k{methodName}_RequestSize;");
+        }
+        else
+        {
+            var bufferSizeExpr = ComputeBufferSize(inParams);
+            sb.AppendLine($"        msg.cbBuffer = {bufferSizeExpr};");
+        }
 
         sb.AppendLine($"        HRESULT hr = m_pChannel->GetBuffer(&msg, {iidName});");
         sb.AppendLine("        if (FAILED(hr)) return hr;");
@@ -283,7 +313,6 @@ public class ProxyGenerator
         sb.AppendLine("        if (FAILED(hr)) return hr;");
 
         // Deserialize reply
-        var outParams = parameters.Where(p => p.Direction == ParamDirection.Out).ToList();
         bool needsReadPointer = hasRetval || outParams.Count > 0;
 
         if (needsReadPointer)

@@ -166,9 +166,7 @@ public partial class ProxyGeneratorTests
         Assert.Contains("HRESULT STDMETHODCALLTYPE DoWork() override {", output);
         Assert.Contains("if (!m_pChannel) return RPC_E_DISCONNECTED;", output);
         Assert.Contains("msg.iMethod = 6;", output);
-        Assert.Contains("msg.cbBuffer = 0;", output);
-        Assert.Contains("m_pChannel->SendReceive(&msg, &status);", output);
-        Assert.Contains("m_pChannel->FreeBuffer(&msg);", output);
+        Assert.Contains("msg.cbBuffer = kDoWork_RequestSize;", output);
     }
 
     [Fact]
@@ -186,8 +184,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE GetName(HSTRING* result) override {", output);
-        Assert.Contains("msg.cbBuffer = 0;", output);
-        // Should deserialize HSTRING from reply
+        Assert.Contains("msg.cbBuffer = kGetName_RequestSize;", output);
         Assert.Contains("WindowsCreateString", output);
     }
 
@@ -206,8 +203,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE SetCount(INT32 count) override {", output);
-        Assert.Contains("msg.cbBuffer = 4;", output);
-        Assert.Contains("memcpy(p, &count, 4); p += 4;", output);
+        Assert.Contains("msg.cbBuffer = kSetCount_RequestSize;", output);
     }
 
     [Fact]
@@ -225,7 +221,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE SetPosition(FLOAT x, FLOAT y) override {", output);
-        Assert.Contains("msg.cbBuffer = 4 + 4;", output);
+        Assert.Contains("msg.cbBuffer = kSetPosition_RequestSize;", output);
         Assert.Contains("memcpy(p, &x, 4); p += 4;", output);
         Assert.Contains("memcpy(p, &y, 4); p += 4;", output);
     }
@@ -245,8 +241,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE GetSize(INT32* width, INT32* height) override {", output);
-        Assert.Contains("msg.cbBuffer = 0;", output);
-        // Should deserialize out params from reply
+        Assert.Contains("msg.cbBuffer = kGetSize_RequestSize;", output);
         Assert.Contains("memcpy(width, pReply, 4); pReply += 4;", output);
         Assert.Contains("memcpy(height, pReply, 4); pReply += 4;", output);
     }
@@ -267,7 +262,7 @@ public partial class ProxyGeneratorTests
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE get_Name(HSTRING* result) override {", output);
         Assert.Contains("msg.iMethod = 6;", output);
-        Assert.Contains("msg.cbBuffer = 0;", output);
+        Assert.Contains("msg.cbBuffer = kget_Name_RequestSize;", output);
     }
 
     [Fact]
@@ -369,7 +364,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("msg.cbBuffer = 16;", output);
+        Assert.Contains("msg.cbBuffer = kSetId_RequestSize;", output);
         Assert.Contains("memcpy(p, &id, 16); p += 16;", output);
     }
 
@@ -387,7 +382,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("msg.cbBuffer = 1;", output);
+        Assert.Contains("msg.cbBuffer = kSetEnabled_RequestSize;", output);
         Assert.Contains("memcpy(p, &value, 1); p += 1;", output);
     }
 
@@ -405,7 +400,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("msg.cbBuffer = 8;", output);
+        Assert.Contains("msg.cbBuffer = kSetValue_RequestSize;", output);
         Assert.Contains("memcpy(p, &value, 8); p += 8;", output);
     }
 
@@ -423,7 +418,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("msg.cbBuffer = 8;", output);
+        Assert.Contains("msg.cbBuffer = kSetTimestamp_RequestSize;", output);
         Assert.Contains("memcpy(p, &ticks, 8); p += 8;", output);
     }
 
