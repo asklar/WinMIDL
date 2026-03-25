@@ -363,6 +363,9 @@ public class CompilationDriver
             Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
             File.WriteAllText(path, proxyContent);
             filesWritten.Add(path);
+
+            // Copy runtime helper headers alongside the generated proxy
+            CopyRuntimeHeaders(outDir);
         }
 
         // Print what was generated
@@ -630,5 +633,33 @@ public class CompilationDriver
         _out.WriteLine("  --profile              Print compilation phase timing breakdown");
         _out.WriteLine("  /no_def_idir           Don't add default SDK include directories");
         _out.WriteLine("  @<file>                Read options from response file");
+    }
+
+    /// <summary>
+    /// Extract embedded runtime helper headers (proxy_helpers.h, wil_compat.h) to the output directory.
+    /// These are needed by the generated proxy .cpp file.
+    /// </summary>
+    private static void CopyRuntimeHeaders(string outDir)
+    {
+        var targetDir = Path.Combine(outDir, "winmidl");
+        Directory.CreateDirectory(targetDir);
+
+        var assembly = typeof(CompilationDriver).Assembly;
+        var headers = new[] { "proxy_helpers.h", "wil_compat.h" };
+
+        foreach (var name in headers)
+        {
+            var resourceName = $"winmidl.{name}";
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
+            {
+                MidlTrace.Cli($"Warning: Embedded resource '{resourceName}' not found");
+                continue;
+            }
+
+            var dst = Path.Combine(targetDir, name);
+            using var fs = File.Create(dst);
+            stream.CopyTo(fs);
+        }
     }
 }

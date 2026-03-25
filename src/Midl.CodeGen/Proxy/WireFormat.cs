@@ -559,7 +559,7 @@ public static class WireFormat
         sb.AppendLine("#include <type_traits>");
         sb.AppendLine("#include <array>");
         sb.AppendLine("// WIL compatibility");
-        sb.AppendLine("#include <winmidl/wil_compat.h>");
+        sb.AppendLine("#include \"winmidl/wil_compat.h\"");
         if (headerFile != null)
         {
             sb.AppendLine("// Generated header");
