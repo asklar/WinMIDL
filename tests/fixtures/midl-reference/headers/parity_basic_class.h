@@ -1,0 +1,781 @@
+/* Header file automatically generated from parity_basic_class.idl */
+/*
+ * File built with Microsoft(R) MIDLRT Compiler Engine Version 10.00.0231 
+ */
+
+#pragma warning( disable: 4049 )  /* more than 64k source lines */
+
+/* verify that the <rpcndr.h> version is high enough to compile this file*/
+#ifndef __REQUIRED_RPCNDR_H_VERSION__
+#define __REQUIRED_RPCNDR_H_VERSION__ 500
+#endif
+
+/* verify that the <rpcsal.h> version is high enough to compile this file*/
+#ifndef __REQUIRED_RPCSAL_H_VERSION__
+#define __REQUIRED_RPCSAL_H_VERSION__ 100
+#endif
+
+#include <rpc.h>
+#include <rpcndr.h>
+
+#ifndef __RPCNDR_H_VERSION__
+#error this stub requires an updated version of <rpcndr.h>
+#endif /* __RPCNDR_H_VERSION__ */
+
+#ifndef COM_NO_WINDOWS_H
+#include <windows.h>
+#include <ole2.h>
+#endif /*COM_NO_WINDOWS_H*/
+#ifndef __parity_basic_class_h__
+#define __parity_basic_class_h__
+#ifndef __parity_basic_class_p_h__
+#define __parity_basic_class_p_h__
+
+
+#pragma once
+
+// Ensure that the setting of the /ns_prefix command line switch is consistent for all headers.
+// If you get an error from the compiler indicating "warning C4005: 'CHECK_NS_PREFIX_STATE': macro redefinition", this
+// indicates that you have included two different headers with different settings for the /ns_prefix MIDL command line switch
+#if !defined(DISABLE_NS_PREFIX_CHECKS)
+#define CHECK_NS_PREFIX_STATE "never"
+#endif // !defined(DISABLE_NS_PREFIX_CHECKS)
+
+
+#pragma push_macro("MIDL_CONST_ID")
+#undef MIDL_CONST_ID
+#define MIDL_CONST_ID const __declspec(selectany)
+
+
+// Header files for imported files
+#include "winrtbase.h"
+#include "C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.22621.0\Windows.h"
+// Importing Collections header
+#include <windows.foundation.collections.h>
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIBasicWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIBasicWidget_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IBasicWidget;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIBasicWidget TestApp::Parity::IBasicWidget
+
+#endif // ____x_TestApp_CParity_CIBasicWidget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIBasicWidgetFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIBasicWidgetFactory_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IBasicWidgetFactory;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIBasicWidgetFactory TestApp::Parity::IBasicWidgetFactory
+
+#endif // ____x_TestApp_CParity_CIBasicWidgetFactory_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
+
+namespace TestApp {
+    namespace Parity {
+        class BasicWidget;
+    } /* Parity */
+} /* TestApp */
+
+
+
+
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows { namespace Foundation {
+template <>
+struct __declspec(uuid("1a1a8df8-5883-50c9-8df0-95a52d64c620"))
+ITypedEventHandler<TestApp::Parity::BasicWidget*,IInspectable*> : ITypedEventHandler_impl<Windows::Foundation::Internal::AggregateType<TestApp::Parity::BasicWidget*, TestApp::Parity::IBasicWidget*>,IInspectable*> 
+{
+    static const wchar_t* z_get_rc_name_impl() 
+    {
+        return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.BasicWidget, Object>"; 
+    }
+};
+// Define a typedef for the parameterized interface specialization's mangled name.
+// This allows code which uses the mangled name for the parameterized interface to access the
+// correct parameterized interface specialization.
+typedef ITypedEventHandler<TestApp::Parity::BasicWidget*,IInspectable*> __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_t
+/* Foundation */ } /* Windows */ } 
+
+////  Define an alias for the C version of the interface for compatibility purposes.
+//#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable Windows::Foundation::ITypedEventHandler<TestApp::Parity::IBasicWidget*,IInspectable*>
+//#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_t Windows::Foundation::ITypedEventHandler<TestApp::Parity::IBasicWidget*,IInspectable*>
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_USE */
+
+
+
+
+
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows { namespace Foundation {
+template <>
+struct __declspec(uuid("fc08667d-89e4-5186-9e42-f31d17efe586"))
+ITypedEventHandler<TestApp::Parity::BasicWidget*,HSTRING> : ITypedEventHandler_impl<Windows::Foundation::Internal::AggregateType<TestApp::Parity::BasicWidget*, TestApp::Parity::IBasicWidget*>,HSTRING> 
+{
+    static const wchar_t* z_get_rc_name_impl() 
+    {
+        return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.BasicWidget, String>"; 
+    }
+};
+// Define a typedef for the parameterized interface specialization's mangled name.
+// This allows code which uses the mangled name for the parameterized interface to access the
+// correct parameterized interface specialization.
+typedef ITypedEventHandler<TestApp::Parity::BasicWidget*,HSTRING> __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_t
+/* Foundation */ } /* Windows */ } 
+
+////  Define an alias for the C version of the interface for compatibility purposes.
+//#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING Windows::Foundation::ITypedEventHandler<TestApp::Parity::IBasicWidget*,HSTRING>
+//#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_t Windows::Foundation::ITypedEventHandler<TestApp::Parity::IBasicWidget*,HSTRING>
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_USE */
+
+
+
+
+
+
+
+/*
+ *
+ * Interface TestApp.Parity.IBasicWidget
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.BasicWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IBasicWidget:HRESULT GetName(String*);HRESULT GetCount(Int32*);HRESULT IsActive(Boolean*);HRESULT GetValue(Double*);HRESULT GetRatio(Single*);HRESULT Reset();HRESULT SetName(String);HRESULT Configure(String,Int32,Boolean);HRESULT get_WidgetName(String*);HRESULT get_WidgetId(Int32*);HRESULT get_IsEnabled(Boolean*);HRESULT put_IsEnabled(Boolean);HRESULT get_Factor(Double*);HRESULT put_Factor(Double);HRESULT get_Priority(Int32*);HRESULT put_Priority(Int32);HRESULT add_Changed(Windows.Foundation.TypedEventHandler`2<TestApp.Parity.BasicWidget, Object>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_Changed(EventRegistrationToken);HRESULT add_NameChanged(Windows.Foundation.TypedEventHandler`2<TestApp.Parity.BasicWidget, String>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_NameChanged(EventRegistrationToken);
+ *
+ *
+ */
+#if !defined(____x_TestApp_CParity_CIBasicWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIBasicWidget_INTERFACE_DEFINED__
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IBasicWidget[] = L"TestApp.Parity.IBasicWidget";
+
+namespace TestApp {
+    namespace Parity {
+        /* [uuid("55dbe203-ced8-5f0c-b3c1-bc70c944db28"), version, object, exclusiveto] */
+        MIDL_INTERFACE("55dbe203-ced8-5f0c-b3c1-bc70c944db28")
+        IBasicWidget : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE GetName(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetCount(
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE IsActive(
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetValue(
+                /* [out, retval] */double * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetRatio(
+                /* [out, retval] */float * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Reset(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE SetName(
+                /* [in] */HSTRING name
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Configure(
+                /* [in] */HSTRING name,
+                /* [in] */int count,
+                /* [in] */::boolean enabled
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_WidgetName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_WidgetId(
+                /* [out, retval] */int * value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_IsEnabled(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_IsEnabled(
+                /* [in] */::boolean value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Factor(
+                /* [out, retval] */double * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_Factor(
+                /* [in] */double value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Priority(
+                /* [out, retval] */int * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_Priority(
+                /* [in] */int value
+                ) = 0;
+            /* [eventadd] */virtual HRESULT STDMETHODCALLTYPE add_Changed(
+                /* [in] */__FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * handler,
+                /* [retval, out] */EventRegistrationToken * token
+                ) = 0;
+            /* [eventremove] */virtual HRESULT STDMETHODCALLTYPE remove_Changed(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            /* [eventadd] */virtual HRESULT STDMETHODCALLTYPE add_NameChanged(
+                /* [in] */__FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING * handler,
+                /* [retval, out] */EventRegistrationToken * token
+                ) = 0;
+            /* [eventremove] */virtual HRESULT STDMETHODCALLTYPE remove_NameChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            
+        };
+
+        MIDL_CONST_ID IID & IID_IBasicWidget=__uuidof(IBasicWidget);
+        
+    } /* Parity */
+} /* TestApp */
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIBasicWidget;
+#endif /* !defined(____x_TestApp_CParity_CIBasicWidget_INTERFACE_DEFINED__) */
+
+
+/*
+ *
+ * Interface TestApp.Parity.IBasicWidgetFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.BasicWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IBasicWidgetFactory:HRESULT CreateInstance(String,TestApp.Parity.BasicWidget**);
+ *
+ *
+ */
+#if !defined(____x_TestApp_CParity_CIBasicWidgetFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIBasicWidgetFactory_INTERFACE_DEFINED__
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IBasicWidgetFactory[] = L"TestApp.Parity.IBasicWidgetFactory";
+
+namespace TestApp {
+    namespace Parity {
+        /* [uuid("4b447d0d-331b-548f-85b8-bb2cd7a05654"), version, object, exclusiveto] */
+        MIDL_INTERFACE("4b447d0d-331b-548f-85b8-bb2cd7a05654")
+        IBasicWidgetFactory : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE CreateInstance(
+                /* [in] */HSTRING name,
+                /* [retval, out] */TestApp::Parity::IBasicWidget * * value
+                ) = 0;
+            
+        };
+
+        MIDL_CONST_ID IID & IID_IBasicWidgetFactory=__uuidof(IBasicWidgetFactory);
+        
+    } /* Parity */
+} /* TestApp */
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIBasicWidgetFactory;
+#endif /* !defined(____x_TestApp_CParity_CIBasicWidgetFactory_INTERFACE_DEFINED__) */
+
+
+/*
+ *
+ * Class TestApp.Parity.BasicWidget
+ *
+ * RuntimeClass can be activated.
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IBasicWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+
+#ifndef RUNTIMECLASS_TestApp_Parity_BasicWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_BasicWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_BasicWidget[] = L"TestApp.Parity.BasicWidget";
+#endif
+
+
+#else // !defined(__cplusplus)
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIBasicWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIBasicWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIBasicWidget __x_TestApp_CParity_CIBasicWidget;
+
+#endif // ____x_TestApp_CParity_CIBasicWidget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIBasicWidgetFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIBasicWidgetFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIBasicWidgetFactory __x_TestApp_CParity_CIBasicWidgetFactory;
+
+#endif // ____x_TestApp_CParity_CIBasicWidgetFactory_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
+
+
+#if !defined(____FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_INTERFACE_DEFINED__)
+#define ____FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable;
+
+//  Declare the parameterized interface IID.
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * This,
+        /* [in] */ __RPC__in REFIID riid,
+        /* [annotation][iid_is][out] */ 
+        _COM_Outptr_  void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * This);
+
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * This,/* [in] */ __RPC__in_opt __x_TestApp_CParity_CIBasicWidget * sender,/* [in] */ __RPC__in_opt IInspectable * e);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectableVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_Invoke(This,sender,e)	\
+    ( (This)->lpVtbl -> Invoke(This,sender,e) ) 
+#endif /* COBJMACROS */
+
+
+
+#endif // ____FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable_INTERFACE_DEFINED__
+
+
+
+#if !defined(____FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_INTERFACE_DEFINED__)
+#define ____FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING;
+
+//  Declare the parameterized interface IID.
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING * This,
+        /* [in] */ __RPC__in REFIID riid,
+        /* [annotation][iid_is][out] */ 
+        _COM_Outptr_  void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING * This);
+
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING * This,/* [in] */ __RPC__in_opt __x_TestApp_CParity_CIBasicWidget * sender,/* [in] */ __RPC__in_opt HSTRING e);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRINGVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define __FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_Invoke(This,sender,e)	\
+    ( (This)->lpVtbl -> Invoke(This,sender,e) ) 
+#endif /* COBJMACROS */
+
+
+
+#endif // ____FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING_INTERFACE_DEFINED__
+
+
+
+
+
+/*
+ *
+ * Interface TestApp.Parity.IBasicWidget
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.BasicWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IBasicWidget:HRESULT GetName(String*);HRESULT GetCount(Int32*);HRESULT IsActive(Boolean*);HRESULT GetValue(Double*);HRESULT GetRatio(Single*);HRESULT Reset();HRESULT SetName(String);HRESULT Configure(String,Int32,Boolean);HRESULT get_WidgetName(String*);HRESULT get_WidgetId(Int32*);HRESULT get_IsEnabled(Boolean*);HRESULT put_IsEnabled(Boolean);HRESULT get_Factor(Double*);HRESULT put_Factor(Double);HRESULT get_Priority(Int32*);HRESULT put_Priority(Int32);HRESULT add_Changed(Windows.Foundation.TypedEventHandler`2<TestApp.Parity.BasicWidget, Object>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_Changed(EventRegistrationToken);HRESULT add_NameChanged(Windows.Foundation.TypedEventHandler`2<TestApp.Parity.BasicWidget, String>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_NameChanged(EventRegistrationToken);
+ *
+ *
+ */
+#if !defined(____x_TestApp_CParity_CIBasicWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIBasicWidget_INTERFACE_DEFINED__
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IBasicWidget[] = L"TestApp.Parity.IBasicWidget";
+/* [uuid("55dbe203-ced8-5f0c-b3c1-bc70c944db28"), version, object, exclusiveto] */
+typedef struct __x_TestApp_CParity_CIBasicWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface)(
+    __RPC__in __x_TestApp_CParity_CIBasicWidget * This,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [annotation][iid_is][out] */
+    _COM_Outptr_  void **ppvObject
+    );
+
+ULONG ( STDMETHODCALLTYPE *AddRef )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidget * This
+    );
+
+ULONG ( STDMETHODCALLTYPE *Release )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidget * This
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetIids )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidget * This,
+    /* [out] */ __RPC__out ULONG *iidCount,
+    /* [size_is][size_is][out] */ __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidget * This,
+    /* [out] */ __RPC__deref_out_opt HSTRING *className
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidget * This,
+    /* [OUT ] */ __RPC__out TrustLevel *trustLevel
+    );
+HRESULT ( STDMETHODCALLTYPE *GetName )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */HSTRING * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *GetCount )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */int * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *IsActive )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */boolean * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *GetValue )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */double * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *GetRatio )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */float * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *Reset )(
+        __x_TestApp_CParity_CIBasicWidget * This
+        );
+    HRESULT ( STDMETHODCALLTYPE *SetName )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [in] */HSTRING name
+        );
+    HRESULT ( STDMETHODCALLTYPE *Configure )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [in] */HSTRING name,
+        /* [in] */int count,
+        /* [in] */boolean enabled
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_WidgetName )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */HSTRING * value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_WidgetId )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */int * value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsEnabled )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */boolean * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsEnabled )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [in] */boolean value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Factor )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */double * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Factor )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [in] */double value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [out, retval] */int * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Priority )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [in] */int value
+        );
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Changed )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [in] */__FITypedEventHandler_2_TestApp__CParity__CBasicWidget_IInspectable * handler,
+        /* [retval, out] */EventRegistrationToken * token
+        );
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Changed )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [in] */EventRegistrationToken token
+        );
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_NameChanged )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [in] */__FITypedEventHandler_2_TestApp__CParity__CBasicWidget_HSTRING * handler,
+        /* [retval, out] */EventRegistrationToken * token
+        );
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_NameChanged )(
+        __x_TestApp_CParity_CIBasicWidget * This,
+        /* [in] */EventRegistrationToken token
+        );
+    END_INTERFACE
+    
+} __x_TestApp_CParity_CIBasicWidgetVtbl;
+
+interface __x_TestApp_CParity_CIBasicWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIBasicWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIBasicWidget_QueryInterface(This,riid,ppvObject) \
+( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIBasicWidget_AddRef(This) \
+        ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIBasicWidget_Release(This) \
+        ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIBasicWidget_GetIids(This,iidCount,iids) \
+        ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIBasicWidget_GetRuntimeClassName(This,className) \
+        ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIBasicWidget_GetTrustLevel(This,trustLevel) \
+        ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIBasicWidget_GetName(This,result) \
+    ( (This)->lpVtbl->GetName(This,result) )
+
+#define __x_TestApp_CParity_CIBasicWidget_GetCount(This,result) \
+    ( (This)->lpVtbl->GetCount(This,result) )
+
+#define __x_TestApp_CParity_CIBasicWidget_IsActive(This,result) \
+    ( (This)->lpVtbl->IsActive(This,result) )
+
+#define __x_TestApp_CParity_CIBasicWidget_GetValue(This,result) \
+    ( (This)->lpVtbl->GetValue(This,result) )
+
+#define __x_TestApp_CParity_CIBasicWidget_GetRatio(This,result) \
+    ( (This)->lpVtbl->GetRatio(This,result) )
+
+#define __x_TestApp_CParity_CIBasicWidget_Reset(This) \
+    ( (This)->lpVtbl->Reset(This) )
+
+#define __x_TestApp_CParity_CIBasicWidget_SetName(This,name) \
+    ( (This)->lpVtbl->SetName(This,name) )
+
+#define __x_TestApp_CParity_CIBasicWidget_Configure(This,name,count,enabled) \
+    ( (This)->lpVtbl->Configure(This,name,count,enabled) )
+
+#define __x_TestApp_CParity_CIBasicWidget_get_WidgetName(This,value) \
+    ( (This)->lpVtbl->get_WidgetName(This,value) )
+
+#define __x_TestApp_CParity_CIBasicWidget_get_WidgetId(This,value) \
+    ( (This)->lpVtbl->get_WidgetId(This,value) )
+
+#define __x_TestApp_CParity_CIBasicWidget_get_IsEnabled(This,value) \
+    ( (This)->lpVtbl->get_IsEnabled(This,value) )
+
+#define __x_TestApp_CParity_CIBasicWidget_put_IsEnabled(This,value) \
+    ( (This)->lpVtbl->put_IsEnabled(This,value) )
+
+#define __x_TestApp_CParity_CIBasicWidget_get_Factor(This,value) \
+    ( (This)->lpVtbl->get_Factor(This,value) )
+
+#define __x_TestApp_CParity_CIBasicWidget_put_Factor(This,value) \
+    ( (This)->lpVtbl->put_Factor(This,value) )
+
+#define __x_TestApp_CParity_CIBasicWidget_get_Priority(This,value) \
+    ( (This)->lpVtbl->get_Priority(This,value) )
+
+#define __x_TestApp_CParity_CIBasicWidget_put_Priority(This,value) \
+    ( (This)->lpVtbl->put_Priority(This,value) )
+
+#define __x_TestApp_CParity_CIBasicWidget_add_Changed(This,handler,token) \
+    ( (This)->lpVtbl->add_Changed(This,handler,token) )
+
+#define __x_TestApp_CParity_CIBasicWidget_remove_Changed(This,token) \
+    ( (This)->lpVtbl->remove_Changed(This,token) )
+
+#define __x_TestApp_CParity_CIBasicWidget_add_NameChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_NameChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIBasicWidget_remove_NameChanged(This,token) \
+    ( (This)->lpVtbl->remove_NameChanged(This,token) )
+
+
+#endif /* COBJMACROS */
+
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIBasicWidget;
+#endif /* !defined(____x_TestApp_CParity_CIBasicWidget_INTERFACE_DEFINED__) */
+
+
+/*
+ *
+ * Interface TestApp.Parity.IBasicWidgetFactory
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.BasicWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IBasicWidgetFactory:HRESULT CreateInstance(String,TestApp.Parity.BasicWidget**);
+ *
+ *
+ */
+#if !defined(____x_TestApp_CParity_CIBasicWidgetFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIBasicWidgetFactory_INTERFACE_DEFINED__
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IBasicWidgetFactory[] = L"TestApp.Parity.IBasicWidgetFactory";
+/* [uuid("4b447d0d-331b-548f-85b8-bb2cd7a05654"), version, object, exclusiveto] */
+typedef struct __x_TestApp_CParity_CIBasicWidgetFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface)(
+    __RPC__in __x_TestApp_CParity_CIBasicWidgetFactory * This,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [annotation][iid_is][out] */
+    _COM_Outptr_  void **ppvObject
+    );
+
+ULONG ( STDMETHODCALLTYPE *AddRef )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidgetFactory * This
+    );
+
+ULONG ( STDMETHODCALLTYPE *Release )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidgetFactory * This
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetIids )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidgetFactory * This,
+    /* [out] */ __RPC__out ULONG *iidCount,
+    /* [size_is][size_is][out] */ __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidgetFactory * This,
+    /* [out] */ __RPC__deref_out_opt HSTRING *className
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(
+    __RPC__in __x_TestApp_CParity_CIBasicWidgetFactory * This,
+    /* [OUT ] */ __RPC__out TrustLevel *trustLevel
+    );
+HRESULT ( STDMETHODCALLTYPE *CreateInstance )(
+        __x_TestApp_CParity_CIBasicWidgetFactory * This,
+        /* [in] */HSTRING name,
+        /* [retval, out] */__x_TestApp_CParity_CIBasicWidget * * value
+        );
+    END_INTERFACE
+    
+} __x_TestApp_CParity_CIBasicWidgetFactoryVtbl;
+
+interface __x_TestApp_CParity_CIBasicWidgetFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIBasicWidgetFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIBasicWidgetFactory_QueryInterface(This,riid,ppvObject) \
+( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIBasicWidgetFactory_AddRef(This) \
+        ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIBasicWidgetFactory_Release(This) \
+        ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIBasicWidgetFactory_GetIids(This,iidCount,iids) \
+        ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIBasicWidgetFactory_GetRuntimeClassName(This,className) \
+        ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIBasicWidgetFactory_GetTrustLevel(This,trustLevel) \
+        ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIBasicWidgetFactory_CreateInstance(This,name,value) \
+    ( (This)->lpVtbl->CreateInstance(This,name,value) )
+
+
+#endif /* COBJMACROS */
+
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIBasicWidgetFactory;
+#endif /* !defined(____x_TestApp_CParity_CIBasicWidgetFactory_INTERFACE_DEFINED__) */
+
+
+/*
+ *
+ * Class TestApp.Parity.BasicWidget
+ *
+ * RuntimeClass can be activated.
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IBasicWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+
+#ifndef RUNTIMECLASS_TestApp_Parity_BasicWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_BasicWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_BasicWidget[] = L"TestApp.Parity.BasicWidget";
+#endif
+
+
+#endif // defined(__cplusplus)
+#pragma pop_macro("MIDL_CONST_ID")
+#endif // __parity_basic_class_p_h__
+
+#endif // __parity_basic_class_h__

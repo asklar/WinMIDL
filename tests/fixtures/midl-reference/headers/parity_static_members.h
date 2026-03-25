@@ -1,0 +1,573 @@
+/* Header file automatically generated from parity_static_members.idl */
+/*
+ * File built with Microsoft(R) MIDLRT Compiler Engine Version 10.00.0231 
+ */
+
+#pragma warning( disable: 4049 )  /* more than 64k source lines */
+
+/* verify that the <rpcndr.h> version is high enough to compile this file*/
+#ifndef __REQUIRED_RPCNDR_H_VERSION__
+#define __REQUIRED_RPCNDR_H_VERSION__ 500
+#endif
+
+/* verify that the <rpcsal.h> version is high enough to compile this file*/
+#ifndef __REQUIRED_RPCSAL_H_VERSION__
+#define __REQUIRED_RPCSAL_H_VERSION__ 100
+#endif
+
+#include <rpc.h>
+#include <rpcndr.h>
+
+#ifndef __RPCNDR_H_VERSION__
+#error this stub requires an updated version of <rpcndr.h>
+#endif /* __RPCNDR_H_VERSION__ */
+
+#ifndef COM_NO_WINDOWS_H
+#include <windows.h>
+#include <ole2.h>
+#endif /*COM_NO_WINDOWS_H*/
+#ifndef __parity_static_members_h__
+#define __parity_static_members_h__
+#ifndef __parity_static_members_p_h__
+#define __parity_static_members_p_h__
+
+
+#pragma once
+
+// Ensure that the setting of the /ns_prefix command line switch is consistent for all headers.
+// If you get an error from the compiler indicating "warning C4005: 'CHECK_NS_PREFIX_STATE': macro redefinition", this
+// indicates that you have included two different headers with different settings for the /ns_prefix MIDL command line switch
+#if !defined(DISABLE_NS_PREFIX_CHECKS)
+#define CHECK_NS_PREFIX_STATE "never"
+#endif // !defined(DISABLE_NS_PREFIX_CHECKS)
+
+
+#pragma push_macro("MIDL_CONST_ID")
+#undef MIDL_CONST_ID
+#define MIDL_CONST_ID const __declspec(selectany)
+
+
+// Header files for imported files
+#include "winrtbase.h"
+#include "C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.22621.0\Windows.h"
+// Importing Collections header
+#include <windows.foundation.collections.h>
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIStaticServiceStatics_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIStaticServiceStatics_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IStaticServiceStatics;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIStaticServiceStatics TestApp::Parity::IStaticServiceStatics
+
+#endif // ____x_TestApp_CParity_CIStaticServiceStatics_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
+
+
+#ifndef DEF___FIEventHandler_1_IInspectable_USE
+#define DEF___FIEventHandler_1_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows { namespace Foundation {
+template <>
+struct __declspec(uuid("c50898f6-c536-5f47-8583-8b2c2438a13b"))
+IEventHandler<IInspectable*> : IEventHandler_impl<IInspectable*> 
+{
+    static const wchar_t* z_get_rc_name_impl() 
+    {
+        return L"Windows.Foundation.EventHandler`1<Object>"; 
+    }
+};
+// Define a typedef for the parameterized interface specialization's mangled name.
+// This allows code which uses the mangled name for the parameterized interface to access the
+// correct parameterized interface specialization.
+typedef IEventHandler<IInspectable*> __FIEventHandler_1_IInspectable_t;
+#define __FIEventHandler_1_IInspectable Windows::Foundation::__FIEventHandler_1_IInspectable_t
+/* Foundation */ } /* Windows */ } 
+
+////  Define an alias for the C version of the interface for compatibility purposes.
+//#define __FIEventHandler_1_IInspectable Windows::Foundation::IEventHandler<IInspectable*>
+//#define __FIEventHandler_1_IInspectable_t Windows::Foundation::IEventHandler<IInspectable*>
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIEventHandler_1_IInspectable_USE */
+
+
+
+
+#ifndef DEF___FIEventHandler_1_int_USE
+#define DEF___FIEventHandler_1_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows { namespace Foundation {
+template <>
+struct __declspec(uuid("12ecedac-1aee-5ba5-bd66-959a0fb2b1ff"))
+IEventHandler<int> : IEventHandler_impl<int> 
+{
+    static const wchar_t* z_get_rc_name_impl() 
+    {
+        return L"Windows.Foundation.EventHandler`1<Int32>"; 
+    }
+};
+// Define a typedef for the parameterized interface specialization's mangled name.
+// This allows code which uses the mangled name for the parameterized interface to access the
+// correct parameterized interface specialization.
+typedef IEventHandler<int> __FIEventHandler_1_int_t;
+#define __FIEventHandler_1_int Windows::Foundation::__FIEventHandler_1_int_t
+/* Foundation */ } /* Windows */ } 
+
+////  Define an alias for the C version of the interface for compatibility purposes.
+//#define __FIEventHandler_1_int Windows::Foundation::IEventHandler<int>
+//#define __FIEventHandler_1_int_t Windows::Foundation::IEventHandler<int>
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIEventHandler_1_int_USE */
+
+
+
+
+
+
+
+/*
+ *
+ * Interface TestApp.Parity.IStaticServiceStatics
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.StaticService
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IStaticServiceStatics:HRESULT GetVersion(String*);HRESULT ComputeHash(String,Int32*);HRESULT IsSupported(Boolean*);HRESULT Initialize();HRESULT Shutdown();HRESULT Configure(String,String);HRESULT ComputeRatio(Int32,Int32,Double*);HRESULT get_DefaultName(String*);HRESULT put_DefaultName(String);HRESULT get_InstanceCount(Int32*);HRESULT get_Verbose(Boolean*);HRESULT put_Verbose(Boolean);HRESULT get_Threshold(Double*);HRESULT add_GlobalChanged(Windows.Foundation.EventHandler`1<Object>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_GlobalChanged(EventRegistrationToken);HRESULT add_CountUpdated(Windows.Foundation.EventHandler`1<Int32>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_CountUpdated(EventRegistrationToken);
+ *
+ *
+ */
+#if !defined(____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IStaticServiceStatics[] = L"TestApp.Parity.IStaticServiceStatics";
+
+namespace TestApp {
+    namespace Parity {
+        /* [uuid("8421b4fa-bb45-5008-bb4d-bb18df1e9725"), version, object, exclusiveto] */
+        MIDL_INTERFACE("8421b4fa-bb45-5008-bb4d-bb18df1e9725")
+        IStaticServiceStatics : public IInspectable
+        {
+        public:
+            virtual HRESULT STDMETHODCALLTYPE GetVersion(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ComputeHash(
+                /* [in] */HSTRING input,
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE IsSupported(
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Initialize(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Shutdown(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Configure(
+                /* [in] */HSTRING key,
+                /* [in] */HSTRING value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ComputeRatio(
+                /* [in] */int numerator,
+                /* [in] */int denominator,
+                /* [out, retval] */double * result
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_DefaultName(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_DefaultName(
+                /* [in] */HSTRING value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_InstanceCount(
+                /* [out, retval] */int * value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Verbose(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_Verbose(
+                /* [in] */::boolean value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Threshold(
+                /* [out, retval] */double * value
+                ) = 0;
+            /* [eventadd] */virtual HRESULT STDMETHODCALLTYPE add_GlobalChanged(
+                /* [in] */__FIEventHandler_1_IInspectable * handler,
+                /* [retval, out] */EventRegistrationToken * token
+                ) = 0;
+            /* [eventremove] */virtual HRESULT STDMETHODCALLTYPE remove_GlobalChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            /* [eventadd] */virtual HRESULT STDMETHODCALLTYPE add_CountUpdated(
+                /* [in] */__FIEventHandler_1_int * handler,
+                /* [retval, out] */EventRegistrationToken * token
+                ) = 0;
+            /* [eventremove] */virtual HRESULT STDMETHODCALLTYPE remove_CountUpdated(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            
+        };
+
+        MIDL_CONST_ID IID & IID_IStaticServiceStatics=__uuidof(IStaticServiceStatics);
+        
+    } /* Parity */
+} /* TestApp */
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIStaticServiceStatics;
+#endif /* !defined(____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__) */
+
+
+/*
+ *
+ * Class TestApp.Parity.StaticService
+ *
+ * RuntimeClass contains static methods.
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_StaticService_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_StaticService_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_StaticService[] = L"TestApp.Parity.StaticService";
+#endif
+
+
+#else // !defined(__cplusplus)
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIStaticServiceStatics_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIStaticServiceStatics_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIStaticServiceStatics __x_TestApp_CParity_CIStaticServiceStatics;
+
+#endif // ____x_TestApp_CParity_CIStaticServiceStatics_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
+
+#if !defined(____FIEventHandler_1_IInspectable_INTERFACE_DEFINED__)
+#define ____FIEventHandler_1_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FIEventHandler_1_IInspectable __FIEventHandler_1_IInspectable;
+
+//  Declare the parameterized interface IID.
+EXTERN_C const IID IID___FIEventHandler_1_IInspectable;
+
+typedef struct __FIEventHandler_1_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIEventHandler_1_IInspectable * This,
+        /* [in] */ __RPC__in REFIID riid,
+        /* [annotation][iid_is][out] */ 
+        _COM_Outptr_  void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIEventHandler_1_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIEventHandler_1_IInspectable * This);
+
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__RPC__in __FIEventHandler_1_IInspectable * This,/* [in] */ __RPC__in_opt IInspectable *sender,/* [in] */ __RPC__in_opt IInspectable * *e);
+    END_INTERFACE
+} __FIEventHandler_1_IInspectableVtbl;
+
+interface __FIEventHandler_1_IInspectable
+{
+    CONST_VTBL struct __FIEventHandler_1_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIEventHandler_1_IInspectable_QueryInterface(This,riid,ppvObject)	\
+        ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+#define __FIEventHandler_1_IInspectable_AddRef(This)	\
+        ( (This)->lpVtbl -> AddRef(This) ) 
+#define __FIEventHandler_1_IInspectable_Release(This)	\
+        ( (This)->lpVtbl -> Release(This) ) 
+
+#define __FIEventHandler_1_IInspectable_Invoke(This,sender,e)	\
+        ( (This)->lpVtbl -> Invoke(This,sender,e) ) 
+#endif /* COBJMACROS */
+
+
+#endif // ____FIEventHandler_1_IInspectable_INTERFACE_DEFINED__
+
+
+#if !defined(____FIEventHandler_1_int_INTERFACE_DEFINED__)
+#define ____FIEventHandler_1_int_INTERFACE_DEFINED__
+
+typedef interface __FIEventHandler_1_int __FIEventHandler_1_int;
+
+//  Declare the parameterized interface IID.
+EXTERN_C const IID IID___FIEventHandler_1_int;
+
+typedef struct __FIEventHandler_1_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIEventHandler_1_int * This,
+        /* [in] */ __RPC__in REFIID riid,
+        /* [annotation][iid_is][out] */ 
+        _COM_Outptr_  void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIEventHandler_1_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIEventHandler_1_int * This);
+
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__RPC__in __FIEventHandler_1_int * This,/* [in] */ __RPC__in_opt IInspectable *sender,/* [in] */ __RPC__in_opt int *e);
+    END_INTERFACE
+} __FIEventHandler_1_intVtbl;
+
+interface __FIEventHandler_1_int
+{
+    CONST_VTBL struct __FIEventHandler_1_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIEventHandler_1_int_QueryInterface(This,riid,ppvObject)	\
+        ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+#define __FIEventHandler_1_int_AddRef(This)	\
+        ( (This)->lpVtbl -> AddRef(This) ) 
+#define __FIEventHandler_1_int_Release(This)	\
+        ( (This)->lpVtbl -> Release(This) ) 
+
+#define __FIEventHandler_1_int_Invoke(This,sender,e)	\
+        ( (This)->lpVtbl -> Invoke(This,sender,e) ) 
+#endif /* COBJMACROS */
+
+
+#endif // ____FIEventHandler_1_int_INTERFACE_DEFINED__
+
+
+
+
+
+/*
+ *
+ * Interface TestApp.Parity.IStaticServiceStatics
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.StaticService
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IStaticServiceStatics:HRESULT GetVersion(String*);HRESULT ComputeHash(String,Int32*);HRESULT IsSupported(Boolean*);HRESULT Initialize();HRESULT Shutdown();HRESULT Configure(String,String);HRESULT ComputeRatio(Int32,Int32,Double*);HRESULT get_DefaultName(String*);HRESULT put_DefaultName(String);HRESULT get_InstanceCount(Int32*);HRESULT get_Verbose(Boolean*);HRESULT put_Verbose(Boolean);HRESULT get_Threshold(Double*);HRESULT add_GlobalChanged(Windows.Foundation.EventHandler`1<Object>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_GlobalChanged(EventRegistrationToken);HRESULT add_CountUpdated(Windows.Foundation.EventHandler`1<Int32>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_CountUpdated(EventRegistrationToken);
+ *
+ *
+ */
+#if !defined(____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IStaticServiceStatics[] = L"TestApp.Parity.IStaticServiceStatics";
+/* [uuid("8421b4fa-bb45-5008-bb4d-bb18df1e9725"), version, object, exclusiveto] */
+typedef struct __x_TestApp_CParity_CIStaticServiceStaticsVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface)(
+    __RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [annotation][iid_is][out] */
+    _COM_Outptr_  void **ppvObject
+    );
+
+ULONG ( STDMETHODCALLTYPE *AddRef )(
+    __RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This
+    );
+
+ULONG ( STDMETHODCALLTYPE *Release )(
+    __RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetIids )(
+    __RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This,
+    /* [out] */ __RPC__out ULONG *iidCount,
+    /* [size_is][size_is][out] */ __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(
+    __RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This,
+    /* [out] */ __RPC__deref_out_opt HSTRING *className
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(
+    __RPC__in __x_TestApp_CParity_CIStaticServiceStatics * This,
+    /* [OUT ] */ __RPC__out TrustLevel *trustLevel
+    );
+HRESULT ( STDMETHODCALLTYPE *GetVersion )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [out, retval] */HSTRING * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *ComputeHash )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [in] */HSTRING input,
+        /* [out, retval] */int * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *IsSupported )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [out, retval] */boolean * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *Initialize )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This
+        );
+    HRESULT ( STDMETHODCALLTYPE *Shutdown )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This
+        );
+    HRESULT ( STDMETHODCALLTYPE *Configure )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [in] */HSTRING key,
+        /* [in] */HSTRING value
+        );
+    HRESULT ( STDMETHODCALLTYPE *ComputeRatio )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [in] */int numerator,
+        /* [in] */int denominator,
+        /* [out, retval] */double * result
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DefaultName )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [out, retval] */HSTRING * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_DefaultName )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [in] */HSTRING value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_InstanceCount )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [out, retval] */int * value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Verbose )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [out, retval] */boolean * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Verbose )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [in] */boolean value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Threshold )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [out, retval] */double * value
+        );
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_GlobalChanged )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [in] */__FIEventHandler_1_IInspectable * handler,
+        /* [retval, out] */EventRegistrationToken * token
+        );
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_GlobalChanged )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [in] */EventRegistrationToken token
+        );
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CountUpdated )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [in] */__FIEventHandler_1_int * handler,
+        /* [retval, out] */EventRegistrationToken * token
+        );
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CountUpdated )(
+        __x_TestApp_CParity_CIStaticServiceStatics * This,
+        /* [in] */EventRegistrationToken token
+        );
+    END_INTERFACE
+    
+} __x_TestApp_CParity_CIStaticServiceStaticsVtbl;
+
+interface __x_TestApp_CParity_CIStaticServiceStatics
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIStaticServiceStaticsVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIStaticServiceStatics_QueryInterface(This,riid,ppvObject) \
+( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_AddRef(This) \
+        ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_Release(This) \
+        ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_GetIids(This,iidCount,iids) \
+        ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_GetRuntimeClassName(This,className) \
+        ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_GetTrustLevel(This,trustLevel) \
+        ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_GetVersion(This,result) \
+    ( (This)->lpVtbl->GetVersion(This,result) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_ComputeHash(This,input,result) \
+    ( (This)->lpVtbl->ComputeHash(This,input,result) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_IsSupported(This,result) \
+    ( (This)->lpVtbl->IsSupported(This,result) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_Initialize(This) \
+    ( (This)->lpVtbl->Initialize(This) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_Shutdown(This) \
+    ( (This)->lpVtbl->Shutdown(This) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_Configure(This,key,value) \
+    ( (This)->lpVtbl->Configure(This,key,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_ComputeRatio(This,numerator,denominator,result) \
+    ( (This)->lpVtbl->ComputeRatio(This,numerator,denominator,result) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_get_DefaultName(This,value) \
+    ( (This)->lpVtbl->get_DefaultName(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_put_DefaultName(This,value) \
+    ( (This)->lpVtbl->put_DefaultName(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_get_InstanceCount(This,value) \
+    ( (This)->lpVtbl->get_InstanceCount(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_get_Verbose(This,value) \
+    ( (This)->lpVtbl->get_Verbose(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_put_Verbose(This,value) \
+    ( (This)->lpVtbl->put_Verbose(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_get_Threshold(This,value) \
+    ( (This)->lpVtbl->get_Threshold(This,value) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_add_GlobalChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_GlobalChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_remove_GlobalChanged(This,token) \
+    ( (This)->lpVtbl->remove_GlobalChanged(This,token) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_add_CountUpdated(This,handler,token) \
+    ( (This)->lpVtbl->add_CountUpdated(This,handler,token) )
+
+#define __x_TestApp_CParity_CIStaticServiceStatics_remove_CountUpdated(This,token) \
+    ( (This)->lpVtbl->remove_CountUpdated(This,token) )
+
+
+#endif /* COBJMACROS */
+
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIStaticServiceStatics;
+#endif /* !defined(____x_TestApp_CParity_CIStaticServiceStatics_INTERFACE_DEFINED__) */
+
+
+/*
+ *
+ * Class TestApp.Parity.StaticService
+ *
+ * RuntimeClass contains static methods.
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+#ifndef RUNTIMECLASS_TestApp_Parity_StaticService_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_StaticService_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_StaticService[] = L"TestApp.Parity.StaticService";
+#endif
+
+
+#endif // defined(__cplusplus)
+#pragma pop_macro("MIDL_CONST_ID")
+#endif // __parity_static_members_p_h__
+
+#endif // __parity_static_members_h__

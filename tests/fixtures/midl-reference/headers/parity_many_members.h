@@ -1,0 +1,748 @@
+/* Header file automatically generated from parity_many_members.idl */
+/*
+ * File built with Microsoft(R) MIDLRT Compiler Engine Version 10.00.0231 
+ */
+
+#pragma warning( disable: 4049 )  /* more than 64k source lines */
+
+/* verify that the <rpcndr.h> version is high enough to compile this file*/
+#ifndef __REQUIRED_RPCNDR_H_VERSION__
+#define __REQUIRED_RPCNDR_H_VERSION__ 500
+#endif
+
+/* verify that the <rpcsal.h> version is high enough to compile this file*/
+#ifndef __REQUIRED_RPCSAL_H_VERSION__
+#define __REQUIRED_RPCSAL_H_VERSION__ 100
+#endif
+
+#include <rpc.h>
+#include <rpcndr.h>
+
+#ifndef __RPCNDR_H_VERSION__
+#error this stub requires an updated version of <rpcndr.h>
+#endif /* __RPCNDR_H_VERSION__ */
+
+#ifndef COM_NO_WINDOWS_H
+#include <windows.h>
+#include <ole2.h>
+#endif /*COM_NO_WINDOWS_H*/
+#ifndef __parity_many_members_h__
+#define __parity_many_members_h__
+#ifndef __parity_many_members_p_h__
+#define __parity_many_members_p_h__
+
+
+#pragma once
+
+// Ensure that the setting of the /ns_prefix command line switch is consistent for all headers.
+// If you get an error from the compiler indicating "warning C4005: 'CHECK_NS_PREFIX_STATE': macro redefinition", this
+// indicates that you have included two different headers with different settings for the /ns_prefix MIDL command line switch
+#if !defined(DISABLE_NS_PREFIX_CHECKS)
+#define CHECK_NS_PREFIX_STATE "never"
+#endif // !defined(DISABLE_NS_PREFIX_CHECKS)
+
+
+#pragma push_macro("MIDL_CONST_ID")
+#undef MIDL_CONST_ID
+#define MIDL_CONST_ID const __declspec(selectany)
+
+
+// Header files for imported files
+#include "winrtbase.h"
+#include "C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.22621.0\Windows.h"
+// Importing Collections header
+#include <windows.foundation.collections.h>
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIManyMemberWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIManyMemberWidget_FWD_DEFINED__
+
+namespace TestApp {
+    namespace Parity {
+        interface IManyMemberWidget;
+    } /* Parity */
+} /* TestApp */
+#define __x_TestApp_CParity_CIManyMemberWidget TestApp::Parity::IManyMemberWidget
+
+#endif // ____x_TestApp_CParity_CIManyMemberWidget_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C++)
+
+// Collection interface definitions
+
+namespace TestApp {
+    namespace Parity {
+        class ManyMemberWidget;
+    } /* Parity */
+} /* TestApp */
+
+
+
+
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows { namespace Foundation {
+template <>
+struct __declspec(uuid("6c2d35f3-9f3c-565f-9f09-67d12698602e"))
+ITypedEventHandler<TestApp::Parity::ManyMemberWidget*,IInspectable*> : ITypedEventHandler_impl<Windows::Foundation::Internal::AggregateType<TestApp::Parity::ManyMemberWidget*, TestApp::Parity::IManyMemberWidget*>,IInspectable*> 
+{
+    static const wchar_t* z_get_rc_name_impl() 
+    {
+        return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.ManyMemberWidget, Object>"; 
+    }
+};
+// Define a typedef for the parameterized interface specialization's mangled name.
+// This allows code which uses the mangled name for the parameterized interface to access the
+// correct parameterized interface specialization.
+typedef ITypedEventHandler<TestApp::Parity::ManyMemberWidget*,IInspectable*> __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_t
+/* Foundation */ } /* Windows */ } 
+
+////  Define an alias for the C version of the interface for compatibility purposes.
+//#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable Windows::Foundation::ITypedEventHandler<TestApp::Parity::IManyMemberWidget*,IInspectable*>
+//#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_t Windows::Foundation::ITypedEventHandler<TestApp::Parity::IManyMemberWidget*,IInspectable*>
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_USE */
+
+
+
+
+
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows { namespace Foundation {
+template <>
+struct __declspec(uuid("ede24204-dcf0-52e4-8898-b8d2a1d9233e"))
+ITypedEventHandler<TestApp::Parity::ManyMemberWidget*,HSTRING> : ITypedEventHandler_impl<Windows::Foundation::Internal::AggregateType<TestApp::Parity::ManyMemberWidget*, TestApp::Parity::IManyMemberWidget*>,HSTRING> 
+{
+    static const wchar_t* z_get_rc_name_impl() 
+    {
+        return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.ManyMemberWidget, String>"; 
+    }
+};
+// Define a typedef for the parameterized interface specialization's mangled name.
+// This allows code which uses the mangled name for the parameterized interface to access the
+// correct parameterized interface specialization.
+typedef ITypedEventHandler<TestApp::Parity::ManyMemberWidget*,HSTRING> __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_t
+/* Foundation */ } /* Windows */ } 
+
+////  Define an alias for the C version of the interface for compatibility purposes.
+//#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING Windows::Foundation::ITypedEventHandler<TestApp::Parity::IManyMemberWidget*,HSTRING>
+//#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_t Windows::Foundation::ITypedEventHandler<TestApp::Parity::IManyMemberWidget*,HSTRING>
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_USE */
+
+
+
+
+
+
+
+/*
+ *
+ * Interface TestApp.Parity.IManyMemberWidget
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.ManyMemberWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IManyMemberWidget:HRESULT get_Name(String*);HRESULT put_Name(String);HRESULT get_Id(Int32*);HRESULT get_IsActive(Boolean*);HRESULT put_IsActive(Boolean);HRESULT get_Value(Double*);HRESULT put_Value(Double);HRESULT get_Ratio(Single*);HRESULT get_Description(String*);HRESULT put_Description(String);HRESULT get_Priority(Int32*);HRESULT put_Priority(Int32);HRESULT get_IsVisible(Boolean*);HRESULT put_IsVisible(Boolean);HRESULT get_Category(String*);HRESULT get_SortOrder(Int32*);HRESULT put_SortOrder(Int32);HRESULT Reset();HRESULT Initialize(String);HRESULT GetLabel(String*);HRESULT ComputeHash(Int32*);HRESULT Validate(Boolean*);HRESULT Measure(Double*);HRESULT Enable();HRESULT Disable();HRESULT Toggle();HRESULT Serialize(String*);HRESULT Deserialize(String);HRESULT CompareTo(TestApp.Parity.ManyMemberWidget*,Int32*);HRESULT add_Changed(Windows.Foundation.TypedEventHandler`2<TestApp.Parity.ManyMemberWidget, Object>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_Changed(EventRegistrationToken);HRESULT add_NameChanged(Windows.Foundation.TypedEventHandler`2<TestApp.Parity.ManyMemberWidget, String>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_NameChanged(EventRegistrationToken);
+ *
+ *
+ */
+#if !defined(____x_TestApp_CParity_CIManyMemberWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIManyMemberWidget_INTERFACE_DEFINED__
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IManyMemberWidget[] = L"TestApp.Parity.IManyMemberWidget";
+
+namespace TestApp {
+    namespace Parity {
+        /* [uuid("28a758e2-7b13-573b-9318-6f0707d8dcd1"), version, object, exclusiveto] */
+        MIDL_INTERFACE("28a758e2-7b13-573b-9318-6f0707d8dcd1")
+        IManyMemberWidget : public IInspectable
+        {
+        public:
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Name(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_Name(
+                /* [in] */HSTRING value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Id(
+                /* [out, retval] */int * value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_IsActive(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_IsActive(
+                /* [in] */::boolean value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Value(
+                /* [out, retval] */double * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_Value(
+                /* [in] */double value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Ratio(
+                /* [out, retval] */float * value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Description(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_Description(
+                /* [in] */HSTRING value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Priority(
+                /* [out, retval] */int * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_Priority(
+                /* [in] */int value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_IsVisible(
+                /* [out, retval] */::boolean * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_IsVisible(
+                /* [in] */::boolean value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_Category(
+                /* [out, retval] */HSTRING * value
+                ) = 0;
+            /* [propget] */virtual HRESULT STDMETHODCALLTYPE get_SortOrder(
+                /* [out, retval] */int * value
+                ) = 0;
+            /* [propput] */virtual HRESULT STDMETHODCALLTYPE put_SortOrder(
+                /* [in] */int value
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Reset(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Initialize(
+                /* [in] */HSTRING name
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetLabel(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE ComputeHash(
+                /* [out, retval] */int * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Validate(
+                /* [out, retval] */::boolean * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Measure(
+                /* [out, retval] */double * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Enable(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Disable(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Toggle(void) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Serialize(
+                /* [out, retval] */HSTRING * result
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Deserialize(
+                /* [in] */HSTRING data
+                ) = 0;
+            virtual HRESULT STDMETHODCALLTYPE CompareTo(
+                /* [in] */TestApp::Parity::IManyMemberWidget * other,
+                /* [out, retval] */int * result
+                ) = 0;
+            /* [eventadd] */virtual HRESULT STDMETHODCALLTYPE add_Changed(
+                /* [in] */__FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * handler,
+                /* [retval, out] */EventRegistrationToken * token
+                ) = 0;
+            /* [eventremove] */virtual HRESULT STDMETHODCALLTYPE remove_Changed(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            /* [eventadd] */virtual HRESULT STDMETHODCALLTYPE add_NameChanged(
+                /* [in] */__FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING * handler,
+                /* [retval, out] */EventRegistrationToken * token
+                ) = 0;
+            /* [eventremove] */virtual HRESULT STDMETHODCALLTYPE remove_NameChanged(
+                /* [in] */EventRegistrationToken token
+                ) = 0;
+            
+        };
+
+        MIDL_CONST_ID IID & IID_IManyMemberWidget=__uuidof(IManyMemberWidget);
+        
+    } /* Parity */
+} /* TestApp */
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIManyMemberWidget;
+#endif /* !defined(____x_TestApp_CParity_CIManyMemberWidget_INTERFACE_DEFINED__) */
+
+
+/*
+ *
+ * Class TestApp.Parity.ManyMemberWidget
+ *
+ * RuntimeClass can be activated.
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IManyMemberWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+
+#ifndef RUNTIMECLASS_TestApp_Parity_ManyMemberWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ManyMemberWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ManyMemberWidget[] = L"TestApp.Parity.ManyMemberWidget";
+#endif
+
+
+#else // !defined(__cplusplus)
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIManyMemberWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIManyMemberWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIManyMemberWidget __x_TestApp_CParity_CIManyMemberWidget;
+
+#endif // ____x_TestApp_CParity_CIManyMemberWidget_FWD_DEFINED__
+
+// Parameterized interface forward declarations (C)
+
+// Collection interface definitions
+
+
+#if !defined(____FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_INTERFACE_DEFINED__)
+#define ____FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable;
+
+//  Declare the parameterized interface IID.
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * This,
+        /* [in] */ __RPC__in REFIID riid,
+        /* [annotation][iid_is][out] */ 
+        _COM_Outptr_  void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * This);
+
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * This,/* [in] */ __RPC__in_opt __x_TestApp_CParity_CIManyMemberWidget * sender,/* [in] */ __RPC__in_opt IInspectable * e);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectableVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_Invoke(This,sender,e)	\
+    ( (This)->lpVtbl -> Invoke(This,sender,e) ) 
+#endif /* COBJMACROS */
+
+
+
+#endif // ____FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable_INTERFACE_DEFINED__
+
+
+
+#if !defined(____FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_INTERFACE_DEFINED__)
+#define ____FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING;
+
+//  Declare the parameterized interface IID.
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING * This,
+        /* [in] */ __RPC__in REFIID riid,
+        /* [annotation][iid_is][out] */ 
+        _COM_Outptr_  void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING * This);
+
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING * This,/* [in] */ __RPC__in_opt __x_TestApp_CParity_CIManyMemberWidget * sender,/* [in] */ __RPC__in_opt HSTRING e);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRINGVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define __FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_Invoke(This,sender,e)	\
+    ( (This)->lpVtbl -> Invoke(This,sender,e) ) 
+#endif /* COBJMACROS */
+
+
+
+#endif // ____FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING_INTERFACE_DEFINED__
+
+
+
+
+
+/*
+ *
+ * Interface TestApp.Parity.IManyMemberWidget
+ *
+ * Interface is a part of the implementation of type TestApp.Parity.ManyMemberWidget
+ *
+ *
+ * The IID for this interface was automatically generated by MIDLRT.
+ *
+ * Interface IID generation seed: TestApp.Parity.IManyMemberWidget:HRESULT get_Name(String*);HRESULT put_Name(String);HRESULT get_Id(Int32*);HRESULT get_IsActive(Boolean*);HRESULT put_IsActive(Boolean);HRESULT get_Value(Double*);HRESULT put_Value(Double);HRESULT get_Ratio(Single*);HRESULT get_Description(String*);HRESULT put_Description(String);HRESULT get_Priority(Int32*);HRESULT put_Priority(Int32);HRESULT get_IsVisible(Boolean*);HRESULT put_IsVisible(Boolean);HRESULT get_Category(String*);HRESULT get_SortOrder(Int32*);HRESULT put_SortOrder(Int32);HRESULT Reset();HRESULT Initialize(String);HRESULT GetLabel(String*);HRESULT ComputeHash(Int32*);HRESULT Validate(Boolean*);HRESULT Measure(Double*);HRESULT Enable();HRESULT Disable();HRESULT Toggle();HRESULT Serialize(String*);HRESULT Deserialize(String);HRESULT CompareTo(TestApp.Parity.ManyMemberWidget*,Int32*);HRESULT add_Changed(Windows.Foundation.TypedEventHandler`2<TestApp.Parity.ManyMemberWidget, Object>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_Changed(EventRegistrationToken);HRESULT add_NameChanged(Windows.Foundation.TypedEventHandler`2<TestApp.Parity.ManyMemberWidget, String>*,Windows.Foundation.EventRegistrationToken*);HRESULT remove_NameChanged(EventRegistrationToken);
+ *
+ *
+ */
+#if !defined(____x_TestApp_CParity_CIManyMemberWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIManyMemberWidget_INTERFACE_DEFINED__
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IManyMemberWidget[] = L"TestApp.Parity.IManyMemberWidget";
+/* [uuid("28a758e2-7b13-573b-9318-6f0707d8dcd1"), version, object, exclusiveto] */
+typedef struct __x_TestApp_CParity_CIManyMemberWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface)(
+    __RPC__in __x_TestApp_CParity_CIManyMemberWidget * This,
+    /* [in] */ __RPC__in REFIID riid,
+    /* [annotation][iid_is][out] */
+    _COM_Outptr_  void **ppvObject
+    );
+
+ULONG ( STDMETHODCALLTYPE *AddRef )(
+    __RPC__in __x_TestApp_CParity_CIManyMemberWidget * This
+    );
+
+ULONG ( STDMETHODCALLTYPE *Release )(
+    __RPC__in __x_TestApp_CParity_CIManyMemberWidget * This
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetIids )(
+    __RPC__in __x_TestApp_CParity_CIManyMemberWidget * This,
+    /* [out] */ __RPC__out ULONG *iidCount,
+    /* [size_is][size_is][out] */ __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(
+    __RPC__in __x_TestApp_CParity_CIManyMemberWidget * This,
+    /* [out] */ __RPC__deref_out_opt HSTRING *className
+    );
+
+HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(
+    __RPC__in __x_TestApp_CParity_CIManyMemberWidget * This,
+    /* [OUT ] */ __RPC__out TrustLevel *trustLevel
+    );
+/* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */HSTRING * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Name )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */HSTRING value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */int * value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsActive )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */boolean * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsActive )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */boolean value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Value )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */double * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Value )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */double value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Ratio )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */float * value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Description )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */HSTRING * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Description )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */HSTRING value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Priority )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */int * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Priority )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */int value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsVisible )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */boolean * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_IsVisible )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */boolean value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Category )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */HSTRING * value
+        );
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_SortOrder )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */int * value
+        );
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_SortOrder )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */int value
+        );
+    HRESULT ( STDMETHODCALLTYPE *Reset )(
+        __x_TestApp_CParity_CIManyMemberWidget * This
+        );
+    HRESULT ( STDMETHODCALLTYPE *Initialize )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */HSTRING name
+        );
+    HRESULT ( STDMETHODCALLTYPE *GetLabel )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */HSTRING * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *ComputeHash )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */int * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *Validate )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */boolean * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *Measure )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */double * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *Enable )(
+        __x_TestApp_CParity_CIManyMemberWidget * This
+        );
+    HRESULT ( STDMETHODCALLTYPE *Disable )(
+        __x_TestApp_CParity_CIManyMemberWidget * This
+        );
+    HRESULT ( STDMETHODCALLTYPE *Toggle )(
+        __x_TestApp_CParity_CIManyMemberWidget * This
+        );
+    HRESULT ( STDMETHODCALLTYPE *Serialize )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [out, retval] */HSTRING * result
+        );
+    HRESULT ( STDMETHODCALLTYPE *Deserialize )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */HSTRING data
+        );
+    HRESULT ( STDMETHODCALLTYPE *CompareTo )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */__x_TestApp_CParity_CIManyMemberWidget * other,
+        /* [out, retval] */int * result
+        );
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Changed )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */__FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_IInspectable * handler,
+        /* [retval, out] */EventRegistrationToken * token
+        );
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Changed )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */EventRegistrationToken token
+        );
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_NameChanged )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */__FITypedEventHandler_2_TestApp__CParity__CManyMemberWidget_HSTRING * handler,
+        /* [retval, out] */EventRegistrationToken * token
+        );
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_NameChanged )(
+        __x_TestApp_CParity_CIManyMemberWidget * This,
+        /* [in] */EventRegistrationToken token
+        );
+    END_INTERFACE
+    
+} __x_TestApp_CParity_CIManyMemberWidgetVtbl;
+
+interface __x_TestApp_CParity_CIManyMemberWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIManyMemberWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIManyMemberWidget_QueryInterface(This,riid,ppvObject) \
+( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_AddRef(This) \
+        ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Release(This) \
+        ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_GetIids(This,iidCount,iids) \
+        ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_GetRuntimeClassName(This,className) \
+        ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_GetTrustLevel(This,trustLevel) \
+        ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_Name(This,value) \
+    ( (This)->lpVtbl->get_Name(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_put_Name(This,value) \
+    ( (This)->lpVtbl->put_Name(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_Id(This,value) \
+    ( (This)->lpVtbl->get_Id(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_IsActive(This,value) \
+    ( (This)->lpVtbl->get_IsActive(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_put_IsActive(This,value) \
+    ( (This)->lpVtbl->put_IsActive(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_Value(This,value) \
+    ( (This)->lpVtbl->get_Value(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_put_Value(This,value) \
+    ( (This)->lpVtbl->put_Value(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_Ratio(This,value) \
+    ( (This)->lpVtbl->get_Ratio(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_Description(This,value) \
+    ( (This)->lpVtbl->get_Description(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_put_Description(This,value) \
+    ( (This)->lpVtbl->put_Description(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_Priority(This,value) \
+    ( (This)->lpVtbl->get_Priority(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_put_Priority(This,value) \
+    ( (This)->lpVtbl->put_Priority(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_IsVisible(This,value) \
+    ( (This)->lpVtbl->get_IsVisible(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_put_IsVisible(This,value) \
+    ( (This)->lpVtbl->put_IsVisible(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_Category(This,value) \
+    ( (This)->lpVtbl->get_Category(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_get_SortOrder(This,value) \
+    ( (This)->lpVtbl->get_SortOrder(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_put_SortOrder(This,value) \
+    ( (This)->lpVtbl->put_SortOrder(This,value) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Reset(This) \
+    ( (This)->lpVtbl->Reset(This) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Initialize(This,name) \
+    ( (This)->lpVtbl->Initialize(This,name) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_GetLabel(This,result) \
+    ( (This)->lpVtbl->GetLabel(This,result) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_ComputeHash(This,result) \
+    ( (This)->lpVtbl->ComputeHash(This,result) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Validate(This,result) \
+    ( (This)->lpVtbl->Validate(This,result) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Measure(This,result) \
+    ( (This)->lpVtbl->Measure(This,result) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Enable(This) \
+    ( (This)->lpVtbl->Enable(This) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Disable(This) \
+    ( (This)->lpVtbl->Disable(This) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Toggle(This) \
+    ( (This)->lpVtbl->Toggle(This) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Serialize(This,result) \
+    ( (This)->lpVtbl->Serialize(This,result) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_Deserialize(This,data) \
+    ( (This)->lpVtbl->Deserialize(This,data) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_CompareTo(This,other,result) \
+    ( (This)->lpVtbl->CompareTo(This,other,result) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_add_Changed(This,handler,token) \
+    ( (This)->lpVtbl->add_Changed(This,handler,token) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_remove_Changed(This,token) \
+    ( (This)->lpVtbl->remove_Changed(This,token) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_add_NameChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_NameChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIManyMemberWidget_remove_NameChanged(This,token) \
+    ( (This)->lpVtbl->remove_NameChanged(This,token) )
+
+
+#endif /* COBJMACROS */
+
+
+EXTERN_C const IID IID___x_TestApp_CParity_CIManyMemberWidget;
+#endif /* !defined(____x_TestApp_CParity_CIManyMemberWidget_INTERFACE_DEFINED__) */
+
+
+/*
+ *
+ * Class TestApp.Parity.ManyMemberWidget
+ *
+ * RuntimeClass can be activated.
+ *
+ * Class implements the following interfaces:
+ *    TestApp.Parity.IManyMemberWidget ** Default Interface **
+ *
+ * Class Threading Model:  Both Single and Multi Threaded Apartment
+ *
+ * Class Marshaling Behavior:  Agile - Class is agile
+ *
+ */
+
+#ifndef RUNTIMECLASS_TestApp_Parity_ManyMemberWidget_DEFINED
+#define RUNTIMECLASS_TestApp_Parity_ManyMemberWidget_DEFINED
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Parity_ManyMemberWidget[] = L"TestApp.Parity.ManyMemberWidget";
+#endif
+
+
+#endif // defined(__cplusplus)
+#pragma pop_macro("MIDL_CONST_ID")
+#endif // __parity_many_members_p_h__
+
+#endif // __parity_many_members_h__

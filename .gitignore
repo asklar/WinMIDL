@@ -33,6 +33,7 @@ TestResults/
 *.winmd
 *.h
 !tests/fixtures/golden-headers/*.h
+!tests/fixtures/midl-reference/headers/*.h
 *.c
 tests/golden/
 
