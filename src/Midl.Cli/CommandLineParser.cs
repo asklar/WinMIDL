@@ -50,6 +50,7 @@ public class CommandLineOptions
     public bool DebugTrace { get; set; }               // /debug (enable trace output)
     public bool NoDefIdir { get; set; }                // /no_def_idir — don't add default include dirs
     public bool Profile { get; set; }                  // /profile (emit timing data)
+    public bool UseExceptions { get; set; }             // /exceptions (try/catch error handling)
     public List<string> UnknownSwitches { get; } = new();
     public List<string> Errors { get; } = new();
 }
@@ -397,6 +398,11 @@ public static class CommandLineParser
 
             case "no_def_idir":
                 options.NoDefIdir = true;
+                i++;
+                return true;
+
+            case "exceptions":
+                options.UseExceptions = true;
                 i++;
                 return true;
 
