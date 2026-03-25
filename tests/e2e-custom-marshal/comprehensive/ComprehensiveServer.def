@@ -1,0 +1,4 @@
+LIBRARY ComprehensiveServer
+EXPORTS
+    DllGetClassObject   PRIVATE
+    DllCanUnloadNow     PRIVATE

@@ -106,6 +106,8 @@ public static class WireFormat
             "Guid" => "sizeof(GUID)",
             "EventRegistrationToken" => "sizeof(EventRegistrationToken)",
             _ when typeRef.ResolvedSymbol is EnumSymbol => "sizeof(INT32)",
+            _ when typeRef.ResolvedSymbol is StructSymbol s && !IsBlittable(s) =>
+                string.Join(" + ", s.Fields.Select(f => GetCppSizeExpression(f.Type))),
             _ => $"sizeof({typeRef.Name})",
         };
     }
@@ -275,8 +277,9 @@ public static class WireFormat
         if (typeRef.ResolvedSymbol is EnumSymbol enumSym)
         {
             var enumName = enumSym.Name;
-            sb.AppendLine($"{indent}INT32 {targetName}_val; memcpy(&{targetName}_val, {bufferPtr}, sizeof(INT32)); {bufferPtr} += sizeof(INT32);");
-            sb.AppendLine($"{indent}{deref} = static_cast<{enumName}>({targetName}_val);");
+            var safeName = SanitizeVarName(targetName);
+            sb.AppendLine($"{indent}INT32 {safeName}_val; memcpy(&{safeName}_val, {bufferPtr}, sizeof(INT32)); {bufferPtr} += sizeof(INT32);");
+            sb.AppendLine($"{indent}{deref} = static_cast<{enumName}>({safeName}_val);");
             return;
         }
 

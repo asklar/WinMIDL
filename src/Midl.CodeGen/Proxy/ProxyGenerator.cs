@@ -210,8 +210,8 @@ public class ProxyGenerator
     private static void EmitFaceIInspectable(StringBuilder sb, string fullName, List<string> iidNames)
     {
         var iidList = string.Join(", ", iidNames);
-        sb.AppendLine("        // IInspectable — constexpr static data");
-        sb.AppendLine($"        static constexpr IID kImplementedIIDs[] = {{ {iidList} }};");
+        sb.AppendLine("        // IInspectable — static data");
+        sb.AppendLine($"        static inline const IID kImplementedIIDs[] = {{ {iidList} }};");
         sb.AppendLine($"        static constexpr wchar_t kRuntimeClassName[] = L\"{fullName}\";");
         sb.AppendLine("        HSTRING_HEADER m_hdrClassName{};");
         sb.AppendLine();
@@ -257,7 +257,7 @@ public class ProxyGenerator
         sb.AppendLine("    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup");
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
         sb.AppendLine("        // Constexpr IID table for fast comparison");
-        sb.AppendLine("        static constexpr IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };");
+        sb.AppendLine("        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };");
         sb.AppendLine("        for (const auto& iid : kNonDelegatingIIDs) {");
         sb.AppendLine("            if (iid == riid) {");
         sb.AppendLine("                *ppv = static_cast<IRpcProxyBuffer*>(this);");
@@ -448,10 +448,8 @@ public class ProxyGenerator
         // Deserialize reply
         bool needsReadPointer = hasRetval || outParams.Count > 0;
 
-        if (needsReadPointer)
-        {
-            sb.AppendLine("            BYTE* pReply = (BYTE*)msg.Buffer;");
-        }
+        // Always declare pReply — needed for trailing HRESULT even when no out/retval params
+        sb.AppendLine("            BYTE* pReply = (BYTE*)msg.Buffer;");
 
         // Deserialize out params
         foreach (var p in outParams)
@@ -575,10 +573,8 @@ public class ProxyGenerator
         // Deserialize reply
         bool needsReadPointer = hasRetval || outParams.Count > 0;
 
-        if (needsReadPointer)
-        {
-            sb.AppendLine("        BYTE* pReply = (BYTE*)msg.Buffer;");
-        }
+        // Always declare pReply — needed for trailing HRESULT even when no out/retval params
+        sb.AppendLine("        BYTE* pReply = (BYTE*)msg.Buffer;");
 
         // Deserialize out params
         foreach (var p in outParams)

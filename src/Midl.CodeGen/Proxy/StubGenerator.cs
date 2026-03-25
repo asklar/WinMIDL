@@ -107,7 +107,7 @@ public class StubGenerator
 
         // QueryInterface — constexpr IID lookup
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
-        sb.AppendLine("        static constexpr IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };");
+        sb.AppendLine("        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };");
         sb.AppendLine("        for (const auto& iid : kSupportedIIDs) {");
         sb.AppendLine("            if (iid == riid) {");
         sb.AppendLine("                *ppv = static_cast<IRpcStubBuffer*>(this);");
@@ -343,13 +343,13 @@ public class StubGenerator
         bool needsPointer = outParams.Count > 0 || hasRetval;
         if (needsPointer)
         {
-            sb.AppendLine("        BYTE* p = (BYTE*)pMsg->Buffer;");
+            sb.AppendLine("        BYTE* pOut = (BYTE*)pMsg->Buffer;");
         }
 
         // Serialize out params
         foreach (var param in outParams)
         {
-            WireFormat.EmitSerializeReplyValue(sb, param.Type, param.Name, "p");
+            WireFormat.EmitSerializeReplyValue(sb, param.Type, param.Name, "pOut");
         }
 
         // Serialize return value
@@ -361,14 +361,14 @@ public class StubGenerator
             }
             else
             {
-                WireFormat.EmitSerializeReplyValue(sb, slot.ReturnType, "returnValue", "p");
+                WireFormat.EmitSerializeReplyValue(sb, slot.ReturnType, "returnValue", "pOut");
             }
         }
 
         // Serialize HRESULT
         if (needsPointer)
         {
-            sb.AppendLine("        memcpy(p, &hr, sizeof(HRESULT));");
+            sb.AppendLine("        memcpy(pOut, &hr, sizeof(HRESULT));");
         }
         else
         {
@@ -391,8 +391,8 @@ public class StubGenerator
     {
         sb.AppendLine("        UINT32 len = 0;");
         sb.AppendLine("        PCWSTR raw = WindowsGetStringRawBuffer(returnValue, &len);");
-        sb.AppendLine("        memcpy(p, &len, sizeof(UINT32)); p += sizeof(UINT32);");
-        sb.AppendLine("        memcpy(p, raw, len * sizeof(WCHAR)); p += len * sizeof(WCHAR);");
+        sb.AppendLine("        memcpy(pOut, &len, sizeof(UINT32)); pOut += sizeof(UINT32);");
+        sb.AppendLine("        memcpy(pOut, raw, len * sizeof(WCHAR)); pOut += len * sizeof(WCHAR);");
     }
 
     /// <summary>
