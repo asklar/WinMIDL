@@ -90,27 +90,36 @@ try {
     }
 } catch { }
 
-# For cross-compilation, ensure the cross-compiler tools are on PATH
-if ($targetArch -ne $hostArch) {
-    try {
-        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-        $vsPath = & $vswhere -prerelease -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
-        if ($vsPath) {
-            $vcVersion = (Get-ChildItem "$vsPath\VC\Tools\MSVC" -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name
+# Ensure MSVC tools and VC lib paths are available
+try {
+    $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    $vsPath = & $vswhere -prerelease -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+    if ($vsPath) {
+        $vcVersion = (Get-ChildItem "$vsPath\VC\Tools\MSVC" -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name
+
+        if ($targetArch -ne $hostArch) {
+            # Cross-compilation: add cross-compiler tools to PATH
             $crossToolPath = "$vsPath\VC\Tools\MSVC\$vcVersion\bin\Host$hostArch\$targetArch"
             $hostToolPath = "$vsPath\VC\Tools\MSVC\$vcVersion\bin\Host$hostArch\$hostArch"
             if (Test-Path $crossToolPath) {
                 $env:PATH = "$crossToolPath;$hostToolPath;$env:PATH"
-                # Also add VC lib for target arch
-                $vcLibPath = "$vsPath\VC\Tools\MSVC\$vcVersion\lib\$targetArch"
-                if (Test-Path $vcLibPath) {
-                    $env:LIB = if ($env:LIB) { "$vcLibPath;$env:LIB" } else { $vcLibPath }
-                }
                 Write-Host "  Cross-compile: $hostArch → $targetArch" -ForegroundColor DarkGray
             }
+        } else {
+            # Native build: ensure host tools on PATH
+            $hostToolPath = "$vsPath\VC\Tools\MSVC\$vcVersion\bin\Host$hostArch\$hostArch"
+            if (Test-Path $hostToolPath) {
+                $env:PATH = "$hostToolPath;$env:PATH"
+            }
         }
-    } catch { }
-}
+
+        # Add VC lib for target arch (needed for both native and cross builds)
+        $vcLibPath = "$vsPath\VC\Tools\MSVC\$vcVersion\lib\$targetArch"
+        if (Test-Path $vcLibPath) {
+            $env:LIB = if ($env:LIB) { "$vcLibPath;$env:LIB" } else { $vcLibPath }
+        }
+    }
+} catch { }
 
 $instructionSet = if ($Native) { "native" } elseif ($targetArch -eq 'arm64') { "" } else { "x86-64-v2" }
 if ($instructionSet) {
