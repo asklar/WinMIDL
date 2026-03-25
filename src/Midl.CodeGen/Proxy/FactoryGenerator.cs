@@ -122,7 +122,6 @@ public class FactoryGenerator
         sb.AppendLine();
         sb.AppendLine("#include <windows.h>");
         sb.AppendLine("#include <objidl.h>");
-        sb.AppendLine("#include <rpcproxy.h>");
         sb.AppendLine();
     }
 
@@ -204,7 +203,9 @@ public class FactoryGenerator
             sb.AppendLine($"        if (riid == {iidName}) {{");
             sb.AppendLine($"            auto* proxy = new {proxyClass}(pUnkOuter);");
             sb.AppendLine("            *ppProxy = proxy;");
-            sb.AppendLine("            return proxy->QueryInterface(riid, ppv);");
+            sb.AppendLine("            *ppv = proxy->GetFace();");
+            sb.AppendLine("            pUnkOuter->AddRef();");
+            sb.AppendLine("            return S_OK;");
             sb.AppendLine("        }");
         }
 

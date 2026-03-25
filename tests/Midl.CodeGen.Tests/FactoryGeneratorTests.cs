@@ -95,7 +95,7 @@ public partial class FactoryGeneratorTests
         Assert.Contains("riid == IID___x_TestApp_IWidget", output);
         Assert.Contains("new CIWidgetProxy(pUnkOuter)", output);
         Assert.Contains("*ppProxy = proxy;", output);
-        Assert.Contains("proxy->QueryInterface(riid, ppv)", output);
+        Assert.Contains("*ppv = proxy->GetFace()", output);
     }
 
     [Fact]

@@ -102,7 +102,10 @@ public static class WireFormat
         var parts = new List<string>();
         foreach (var p in inParams)
         {
-            parts.Add(GetTypeSizeExpression(p.Type));
+            var expr = GetTypeSizeExpression(p.Type);
+            // Replace placeholder {0} with actual variable name (for HSTRING)
+            expr = expr.Replace("{0}", p.Name);
+            parts.Add(expr);
         }
 
         return string.Join(" + ", parts);

@@ -244,9 +244,9 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_TryParse(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        // in param: HSTRING deserialized from buffer (zero-copy)
+        // in param: HSTRING deserialized from buffer
         Assert.Contains("HSTRING input;", output);
-        Assert.Contains("WindowsCreateStringReference", output);
+        Assert.Contains("WindowsCreateString(", output);
         // out param: allocated locally
         Assert.Contains("INT32 result;", output);
         // Server call with mixed params
@@ -271,9 +271,9 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_SetName(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("HSTRING name;", output);
-        // Zero-copy: uses WindowsCreateStringReference, not WindowsCreateString
-        Assert.Contains("WindowsCreateStringReference", output);
-        Assert.DoesNotContain("WindowsDeleteString(name)", output);
+        // Uses WindowsCreateString for safe deserialization
+        Assert.Contains("WindowsCreateString(", output);
+        Assert.Contains("WindowsDeleteString(name)", output);
     }
 
     [Fact]

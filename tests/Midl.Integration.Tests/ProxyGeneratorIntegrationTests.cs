@@ -31,7 +31,7 @@ public partial class ProxyGeneratorIntegrationTests
         var output = _generator.Generate(compilation);
 
         // Class declaration
-        Assert.Contains("class CIWidgetProxy : public __x_Widgets_IWidget, public IRpcProxyBuffer {", output);
+        Assert.Contains("class CIWidgetProxy : public IRpcProxyBuffer {", output);
 
         // IRpcProxyBuffer plumbing
         Assert.Contains("Connect(IRpcChannelBuffer* pChannel)", output);
@@ -46,13 +46,13 @@ public partial class ProxyGeneratorIntegrationTests
         Assert.Contains("GetTrustLevel(", output);
 
         // Property getter/setter
-        Assert.Contains("get_Name(HSTRING* result)", output);
+        Assert.Contains("get_Name(HSTRING* returnValue)", output);
         Assert.Contains("put_Name(HSTRING name)", output);
 
         // Method with param
         Assert.Contains("DoWork(INT32 count)", output);
         Assert.Contains("msg.cbBuffer = kDoWork_RequestSize;", output);
-        Assert.Contains("IsActive(boolean* result)", output);
+        Assert.Contains("IsActive(boolean* returnValue)", output);
 
         // Vtable slots in order
         Assert.Contains("msg.iMethod = 6;", output); // get_Name
@@ -84,7 +84,7 @@ public partial class ProxyGeneratorIntegrationTests
         Assert.Contains("remove_Click(", output);
 
         // Property after event
-        Assert.Contains("get_Label(HSTRING* result)", output);
+        Assert.Contains("get_Label(HSTRING* returnValue)", output);
 
         // Vtable ordering: add_Click=6, remove_Click=7, get_Label=8
         Assert.Contains("msg.iMethod = 6;", output);
@@ -268,7 +268,7 @@ public partial class ProxyGeneratorIntegrationTests
             Assert.True(File.Exists(filePath));
             var content = File.ReadAllText(filePath);
             Assert.Contains("CIWidgetProxy", content);
-            Assert.Contains("#include <rpcproxy.h>", content);
+            Assert.Contains("#include <objidl.h>", content);
         }
         finally
         {

@@ -130,6 +130,6 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         // Reply deserialization should also use single memcpy for blittable
-        Assert.Contains("memcpy(result, pReply, sizeof(Point))", output);
+        Assert.Contains("memcpy(returnValue, pReply, sizeof(Point))", output);
     }
 }

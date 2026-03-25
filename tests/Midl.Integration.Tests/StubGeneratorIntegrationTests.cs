@@ -236,9 +236,9 @@ public class StubGeneratorIntegrationTests
         // Enum deserialization
         Assert.Contains("Alignment align;", output);
         Assert.Contains("memcpy(&align, p, 4)", output);
-        // HSTRING deserialization (zero-copy on stub)
+        // HSTRING deserialization
         Assert.Contains("HSTRING label;", output);
-        Assert.Contains("WindowsCreateStringReference", output);
+        Assert.Contains("WindowsCreateString(", output);
     }
 
     [Fact]

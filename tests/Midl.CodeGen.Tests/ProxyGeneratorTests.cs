@@ -28,7 +28,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("class CIWidgetProxy : public __x_TestApp_IWidget, public IRpcProxyBuffer {", output);
+        Assert.Contains("class CIWidgetProxy : public IRpcProxyBuffer {", output);
         Assert.Contains("IUnknown* m_pUnkOuter;", output);
         Assert.Contains("IRpcChannelBuffer* m_pChannel;", output);
         Assert.Contains("LONG m_cRef;", output);
@@ -48,7 +48,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("CIWidgetProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1) {}", output);
+        Assert.Contains("CIWidgetProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}", output);
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public partial class ProxyGeneratorTests
         Assert.Contains("riid == IID_IUnknown || riid == IID_IRpcProxyBuffer", output);
         Assert.Contains("static_cast<IRpcProxyBuffer*>(this)", output);
         Assert.Contains("riid == IID___x_TestApp_IWidget", output);
-        Assert.Contains("static_cast<__x_TestApp_IWidget*>(this)", output);
+        Assert.Contains("static_cast<__x_TestApp_IWidget*>(&m_face)", output);
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE DoWork() override {", output);
-        Assert.Contains("if (!m_pChannel) return RPC_E_DISCONNECTED;", output);
+        Assert.Contains("if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;", output);
         Assert.Contains("msg.iMethod = 6;", output);
         Assert.Contains("msg.cbBuffer = kDoWork_RequestSize;", output);
     }
@@ -183,7 +183,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("HRESULT STDMETHODCALLTYPE GetName(HSTRING* result) override {", output);
+        Assert.Contains("HRESULT STDMETHODCALLTYPE GetName(HSTRING* returnValue) override {", output);
         Assert.Contains("msg.cbBuffer = kGetName_RequestSize;", output);
         Assert.Contains("WindowsCreateString", output);
     }
@@ -260,7 +260,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("HRESULT STDMETHODCALLTYPE get_Name(HSTRING* result) override {", output);
+        Assert.Contains("HRESULT STDMETHODCALLTYPE get_Name(HSTRING* returnValue) override {", output);
         Assert.Contains("msg.iMethod = 6;", output);
         Assert.Contains("msg.cbBuffer = kget_Name_RequestSize;", output);
     }
@@ -279,7 +279,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("HRESULT STDMETHODCALLTYPE get_Name(HSTRING* result) override {", output);
+        Assert.Contains("HRESULT STDMETHODCALLTYPE get_Name(HSTRING* returnValue) override {", output);
         Assert.Contains("msg.iMethod = 6;", output);
         Assert.Contains("HRESULT STDMETHODCALLTYPE put_Name(HSTRING name) override {", output);
         Assert.Contains("msg.iMethod = 7;", output);
@@ -340,7 +340,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         // get_Name = slot 6, put_Name = slot 7, DoWork = slot 8, Reset = slot 9
-        Assert.Contains("get_Name(HSTRING* result) override {", output);
+        Assert.Contains("get_Name(HSTRING* returnValue) override {", output);
         Assert.Contains("msg.iMethod = 6;", output);
         Assert.Contains("put_Name(HSTRING name) override {", output);
         Assert.Contains("msg.iMethod = 7;", output);
@@ -460,7 +460,7 @@ public partial class ProxyGeneratorTests
 
         Assert.Contains("#include <windows.h>", output);
         Assert.Contains("#include <objidl.h>", output);
-        Assert.Contains("#include <rpcproxy.h>", output);
+        Assert.DoesNotContain("#include <rpcproxy.h>", output);
         Assert.Contains("#include <winstring.h>", output);
         Assert.Contains("#include <inspectable.h>", output);
         Assert.Contains("// End of generated proxy file", output);
@@ -480,7 +480,7 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("if (!m_pChannel) return RPC_E_DISCONNECTED;", output);
+        Assert.Contains("if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;", output);
     }
 
     [Fact]
@@ -516,8 +516,8 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         // Deserialize HSTRING: read length, then create string
-        Assert.Contains("result_len", output);
-        Assert.Contains("WindowsCreateString((PCWSTR)pReply, result_len, result)", output);
+        Assert.Contains("returnValue_len", output);
+        Assert.Contains("WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue)", output);
     }
 
     [Fact]

@@ -46,7 +46,6 @@ public class ProxyGenerator
         sb.AppendLine();
         sb.AppendLine("#include <windows.h>");
         sb.AppendLine("#include <objidl.h>");
-        sb.AppendLine("#include <rpcproxy.h>");
         sb.AppendLine("#include <winstring.h>");
         sb.AppendLine("#include <inspectable.h>");
         sb.AppendLine();
@@ -64,37 +63,87 @@ public class ProxyGenerator
         var iidName = $"IID_{mangledName}";
 
         sb.AppendLine($"// Proxy for {iface.FullName}");
-        sb.AppendLine($"class {className} : public {mangledName}, public IRpcProxyBuffer {{");
+        sb.AppendLine($"class {className} : public IRpcProxyBuffer {{");
         sb.AppendLine("    IUnknown* m_pUnkOuter;");
         sb.AppendLine("    IRpcChannelBuffer* m_pChannel;");
         sb.AppendLine("    LONG m_cRef;");
         sb.AppendLine();
+
+        // Emit the nested Face class that implements the interface with delegating IUnknown
+        EmitFaceClass(sb, iface, mangledName, iidName, className);
+
+        sb.AppendLine("    Face m_face;");
+        sb.AppendLine("    friend struct Face;");
+        sb.AppendLine();
         sb.AppendLine("public:");
 
         // Constructor
-        sb.AppendLine($"    {className}(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1) {{}}");
+        sb.AppendLine($"    {className}(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {{}}");
+        sb.AppendLine();
+        sb.AppendLine($"    {mangledName}* GetFace() {{ return &m_face; }}");
         sb.AppendLine();
 
         // IRpcProxyBuffer methods
         EmitConnect(sb);
         EmitDisconnect(sb);
-        EmitQueryInterface(sb, mangledName, iidName);
+        EmitNonDelegatingQI(sb, mangledName, iidName);
         EmitAddRef(sb);
         EmitRelease(sb, className);
 
+        sb.AppendLine("};");
+        sb.AppendLine();
+    }
+
+    private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName)
+    {
+        sb.AppendLine($"    struct Face : public {mangledName} {{");
+        sb.AppendLine($"        {outerClassName}* m_owner;");
+        sb.AppendLine($"        Face({outerClassName}* owner) : m_owner(owner) {{}}");
+        sb.AppendLine();
+
+        // Delegating IUnknown — forwards to outer unknown
+        sb.AppendLine("        // Delegating IUnknown — forwards to outer unknown");
+        sb.AppendLine("        HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
+        sb.AppendLine("            return m_owner->m_pUnkOuter->QueryInterface(riid, ppv);");
+        sb.AppendLine("        }");
+        sb.AppendLine("        ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }");
+        sb.AppendLine("        ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }");
+        sb.AppendLine();
+
         // IInspectable forwarding
-        EmitIInspectable(sb);
+        EmitFaceIInspectable(sb);
 
         // Interface methods
         var methods = CollectInterfaceMethods(iface);
         int slot = UserMethodStartSlot;
         foreach (var (methodName, parameters, returnType, memberKind) in methods)
         {
-            EmitProxyMethod(sb, iface, methodName, parameters, returnType, memberKind, mangledName, slot);
+            EmitFaceProxyMethod(sb, iface, methodName, parameters, returnType, memberKind, mangledName, slot);
             slot++;
         }
 
-        sb.AppendLine("};");
+        sb.AppendLine("    };");
+        sb.AppendLine();
+    }
+
+    private static void EmitFaceIInspectable(StringBuilder sb)
+    {
+        sb.AppendLine("        // IInspectable (forwarded to outer)");
+        sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {");
+        sb.AppendLine("            IInspectable* pInsp; HRESULT hr = m_owner->m_pUnkOuter->QueryInterface(IID_IInspectable, (void**)&pInsp);");
+        sb.AppendLine("            if (SUCCEEDED(hr)) { hr = pInsp->GetIids(iidCount, iids); pInsp->Release(); }");
+        sb.AppendLine("            return hr;");
+        sb.AppendLine("        }");
+        sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {");
+        sb.AppendLine("            IInspectable* pInsp; HRESULT hr = m_owner->m_pUnkOuter->QueryInterface(IID_IInspectable, (void**)&pInsp);");
+        sb.AppendLine("            if (SUCCEEDED(hr)) { hr = pInsp->GetRuntimeClassName(className); pInsp->Release(); }");
+        sb.AppendLine("        return hr;");
+        sb.AppendLine("        }");
+        sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {");
+        sb.AppendLine("            IInspectable* pInsp; HRESULT hr = m_owner->m_pUnkOuter->QueryInterface(IID_IInspectable, (void**)&pInsp);");
+        sb.AppendLine("            if (SUCCEEDED(hr)) { hr = pInsp->GetTrustLevel(trustLevel); pInsp->Release(); }");
+        sb.AppendLine("            return hr;");
+        sb.AppendLine("        }");
         sb.AppendLine();
     }
 
@@ -118,14 +167,14 @@ public class ProxyGenerator
         sb.AppendLine();
     }
 
-    private static void EmitQueryInterface(StringBuilder sb, string mangledName, string iidName)
+    private static void EmitNonDelegatingQI(StringBuilder sb, string mangledName, string iidName)
     {
-        sb.AppendLine("    // IUnknown::QueryInterface");
+        sb.AppendLine("    // Non-delegating IUnknown::QueryInterface");
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
         sb.AppendLine("        if (riid == IID_IUnknown || riid == IID_IRpcProxyBuffer)");
         sb.AppendLine("            { *ppv = static_cast<IRpcProxyBuffer*>(this); AddRef(); return S_OK; }");
         sb.AppendLine($"        if (riid == {iidName})");
-        sb.AppendLine($"            {{ *ppv = static_cast<{mangledName}*>(this); AddRef(); return S_OK; }}");
+        sb.AppendLine($"            {{ *ppv = static_cast<{mangledName}*>(&m_face); m_pUnkOuter->AddRef(); return S_OK; }}");
         sb.AppendLine("        *ppv = nullptr; return E_NOINTERFACE;");
         sb.AppendLine("    }");
         sb.AppendLine();
@@ -145,27 +194,6 @@ public class ProxyGenerator
         sb.AppendLine("        ULONG c = InterlockedDecrement(&m_cRef);");
         sb.AppendLine("        if (c == 0) delete this;");
         sb.AppendLine("        return c;");
-        sb.AppendLine("    }");
-        sb.AppendLine();
-    }
-
-    private static void EmitIInspectable(StringBuilder sb)
-    {
-        sb.AppendLine("    // IInspectable (forwarded to outer)");
-        sb.AppendLine("    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {");
-        sb.AppendLine("        IInspectable* pInsp; HRESULT hr = m_pUnkOuter->QueryInterface(IID_IInspectable, (void**)&pInsp);");
-        sb.AppendLine("        if (SUCCEEDED(hr)) { hr = pInsp->GetIids(iidCount, iids); pInsp->Release(); }");
-        sb.AppendLine("        return hr;");
-        sb.AppendLine("    }");
-        sb.AppendLine("    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {");
-        sb.AppendLine("        IInspectable* pInsp; HRESULT hr = m_pUnkOuter->QueryInterface(IID_IInspectable, (void**)&pInsp);");
-        sb.AppendLine("        if (SUCCEEDED(hr)) { hr = pInsp->GetRuntimeClassName(className); pInsp->Release(); }");
-        sb.AppendLine("        return hr;");
-        sb.AppendLine("    }");
-        sb.AppendLine("    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {");
-        sb.AppendLine("        IInspectable* pInsp; HRESULT hr = m_pUnkOuter->QueryInterface(IID_IInspectable, (void**)&pInsp);");
-        sb.AppendLine("        if (SUCCEEDED(hr)) { hr = pInsp->GetTrustLevel(trustLevel); pInsp->Release(); }");
-        sb.AppendLine("        return hr;");
         sb.AppendLine("    }");
         sb.AppendLine();
     }
@@ -223,6 +251,128 @@ public class ProxyGenerator
         return methods;
     }
 
+    private static void EmitFaceProxyMethod(
+        StringBuilder sb,
+        InterfaceSymbol iface,
+        string methodName,
+        List<ProxyParam> parameters,
+        TypeRef returnType,
+        MemberKind memberKind,
+        string mangledName,
+        int vtableSlot)
+    {
+        // Build C++ signature
+        var sigParts = new List<string>();
+        foreach (var p in parameters)
+        {
+            var cType = HeaderEmitter.MapType(p.Type);
+            if (p.Direction == ParamDirection.Out)
+                sigParts.Add($"{cType}* {p.Name}");
+            else
+                sigParts.Add($"{cType} {p.Name}");
+        }
+
+        bool hasRetval = returnType.Name != "void";
+        string retvalName = "returnValue";
+        if (hasRetval)
+        {
+            var retCType = HeaderEmitter.MapType(returnType);
+            // Avoid collision with out params
+            var paramNames = new HashSet<string>(parameters.Select(p => p.Name));
+            while (paramNames.Contains(retvalName))
+                retvalName = "_" + retvalName;
+            sigParts.Add($"{retCType}* {retvalName}");
+        }
+
+        var signature = string.Join(", ", sigParts);
+        var iidName = $"IID_{mangledName}";
+
+        sb.AppendLine($"        // {methodName} (vtable slot {vtableSlot})");
+
+        // Compute buffer size for input params
+        var inParams = parameters.Where(p => p.Direction == ParamDirection.In).ToList();
+        bool requestFixed = WireFormat.AllParamsFixedSize(inParams);
+
+        // Emit constexpr buffer size constants for fixed-size signatures
+        if (requestFixed)
+        {
+            var fixedSize = WireFormat.ComputeFixedBufferSize(inParams);
+            sb.AppendLine($"        static constexpr UINT32 k{methodName}_RequestSize = {fixedSize};");
+        }
+
+        // Check if reply is also fixed-size
+        var outParams = parameters.Where(p => p.Direction == ParamDirection.Out).ToList();
+        var replyParts = outParams.Select(p => p.Type).ToList();
+        bool replyFixed = replyParts.All(t => WireFormat.IsFixedSize(t))
+            && (!hasRetval || WireFormat.IsFixedSize(returnType));
+        if (replyFixed)
+        {
+            int replySize = outParams.Sum(p => WireFormat.GetWireSize(p.Type))
+                + (hasRetval ? WireFormat.GetWireSize(returnType) : 0)
+                + WireFormat.HResultSize;
+            sb.AppendLine($"        static constexpr UINT32 k{methodName}_ReplySize = {replySize};");
+        }
+
+        sb.AppendLine($"        HRESULT STDMETHODCALLTYPE {methodName}({signature}) override {{");
+        sb.AppendLine("            if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;");
+        sb.AppendLine("            RPCOLEMESSAGE msg = {};");
+        sb.AppendLine($"            msg.iMethod = {vtableSlot};");
+
+        if (requestFixed)
+        {
+            sb.AppendLine($"            msg.cbBuffer = k{methodName}_RequestSize;");
+        }
+        else
+        {
+            var bufferSizeExpr = ComputeBufferSize(inParams);
+            sb.AppendLine($"            msg.cbBuffer = {bufferSizeExpr};");
+        }
+
+        sb.AppendLine($"            HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, {iidName});");
+        sb.AppendLine("            if (FAILED(hr)) return hr;");
+
+        // Serialize input params
+        if (inParams.Count > 0)
+        {
+            sb.AppendLine("            BYTE* p = (BYTE*)msg.Buffer;");
+            foreach (var p in inParams)
+            {
+                EmitSerialize(sb, p.Name, p.Type, "            ");
+            }
+        }
+
+        sb.AppendLine("            ULONG status;");
+        sb.AppendLine("            hr = m_owner->m_pChannel->SendReceive(&msg, &status);");
+        sb.AppendLine("            if (FAILED(hr)) return hr;");
+
+        // Deserialize reply
+        bool needsReadPointer = hasRetval || outParams.Count > 0;
+
+        if (needsReadPointer)
+        {
+            sb.AppendLine("            BYTE* pReply = (BYTE*)msg.Buffer;");
+        }
+
+        // Deserialize out params
+        foreach (var p in outParams)
+        {
+            EmitDeserialize(sb, p.Name, p.Type, isPointer: true, indent: "            ");
+        }
+
+        // Deserialize retval
+        if (hasRetval)
+        {
+            EmitDeserialize(sb, retvalName, returnType, isPointer: true, indent: "            ");
+        }
+
+        // Deserialize trailing HRESULT
+        sb.AppendLine("            HRESULT retHr; memcpy(&retHr, pReply, 4);");
+        sb.AppendLine("            m_owner->m_pChannel->FreeBuffer(&msg);");
+        sb.AppendLine("            return retHr;");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+    }
+
     private static void EmitProxyMethod(
         StringBuilder sb,
         InterfaceSymbol iface,
@@ -245,10 +395,15 @@ public class ProxyGenerator
         }
 
         bool hasRetval = returnType.Name != "void";
+        string retvalName = "returnValue";
         if (hasRetval)
         {
             var retCType = HeaderEmitter.MapType(returnType);
-            sigParts.Add($"{retCType}* result");
+            // Avoid collision with out params
+            var paramNames = new HashSet<string>(parameters.Select(p => p.Name));
+            while (paramNames.Contains(retvalName))
+                retvalName = "_" + retvalName;
+            sigParts.Add($"{retCType}* {retvalName}");
         }
 
         var signature = string.Join(", ", sigParts);
@@ -329,7 +484,7 @@ public class ProxyGenerator
         // Deserialize retval
         if (hasRetval)
         {
-            EmitDeserialize(sb, "result", returnType, isPointer: true);
+            EmitDeserialize(sb, retvalName, returnType, isPointer: true);
         }
 
         // Deserialize trailing HRESULT
@@ -374,18 +529,18 @@ public class ProxyGenerator
     /// Emits C++ code to serialize a parameter into the RPC buffer.
     /// Delegates to <see cref="WireFormat.EmitSerialize"/>.
     /// </summary>
-    internal static void EmitSerialize(StringBuilder sb, string paramName, TypeRef type)
+    internal static void EmitSerialize(StringBuilder sb, string paramName, TypeRef type, string indent = "        ")
     {
-        WireFormat.EmitSerialize(sb, type, paramName, "p");
+        WireFormat.EmitSerialize(sb, type, paramName, "p", indent);
     }
 
     /// <summary>
     /// Emits C++ code to deserialize a value from the RPC reply buffer.
     /// Delegates to <see cref="WireFormat.EmitDeserializeReply"/>.
     /// </summary>
-    internal static void EmitDeserialize(StringBuilder sb, string targetName, TypeRef type, bool isPointer)
+    internal static void EmitDeserialize(StringBuilder sb, string targetName, TypeRef type, bool isPointer, string indent = "        ")
     {
-        WireFormat.EmitDeserializeReply(sb, type, targetName, "pReply", isPointer);
+        WireFormat.EmitDeserializeReply(sb, type, targetName, "pReply", isPointer, indent);
     }
 
     /// <summary>

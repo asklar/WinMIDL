@@ -10,6 +10,7 @@ public class CommandLineOptions
     public string? HeaderFile { get; set; }            // /h, /header
     public string? IidFile { get; set; }               // /iid
     public string? ProxyFile { get; set; }             // /proxy
+    public string? CppProxyFile { get; set; }          // /cppproxy
     public string? DllDataFile { get; set; }           // /dlldata
     public string? WinMdFile { get; set; }             // /winmd
     public string? AcfFile { get; set; }               // /acf
@@ -178,6 +179,13 @@ public static class CommandLineParser
                     options.ProxyFile = proxyFile;
                 else
                     options.Errors.Add("Missing value for /proxy");
+                return true;
+
+            case "cppproxy":
+                if (TryConsumeValue(args, ref i, out var cppProxyFile))
+                    options.CppProxyFile = cppProxyFile;
+                else
+                    options.Errors.Add("Missing value for /cppproxy");
                 return true;
 
             case "dlldata":

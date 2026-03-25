@@ -14,7 +14,7 @@ public partial class StubGeneratorTests
     // ─── Zero-copy HSTRING ───
 
     [Fact]
-    public void Stub_HStringInput_UsesWindowsCreateStringReference()
+    public void Stub_HStringInput_UsesWindowsCreateString()
     {
         var compilation = Compile(@"
             namespace TestApp {
@@ -24,15 +24,13 @@ public partial class StubGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // Stub input deserialization should use zero-copy
-        Assert.Contains("WindowsCreateStringReference", output);
-        Assert.Contains("HSTRING_HEADER", output);
-        // Should NOT use WindowsCreateString for input (that allocates + copies)
-        Assert.DoesNotContain("WindowsCreateString(", output);
+        // Stub input deserialization uses WindowsCreateString (safe for wire format without null terminator)
+        Assert.Contains("WindowsCreateString(", output);
+        Assert.Contains("HSTRING name;", output);
     }
 
     [Fact]
-    public void Stub_HStringInput_DoesNotNeedWindowsDeleteString()
+    public void Stub_HStringInput_NeedsWindowsDeleteString()
     {
         var compilation = Compile(@"
             namespace TestApp {
@@ -42,9 +40,9 @@ public partial class StubGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // WindowsCreateStringReference creates a non-owning reference,
-        // so no WindowsDeleteString needed for input params
-        Assert.DoesNotContain("WindowsDeleteString(name)", output);
+        // WindowsCreateString creates an owning HSTRING,
+        // so WindowsDeleteString is needed for input params
+        Assert.Contains("WindowsDeleteString(name)", output);
     }
 
     [Fact]
