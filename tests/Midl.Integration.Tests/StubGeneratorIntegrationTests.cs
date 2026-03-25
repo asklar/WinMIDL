@@ -103,7 +103,7 @@ public class StubGeneratorIntegrationTests
         Assert.Contains("m_pServer->GetName(&returnValue)", output);
         Assert.Contains("WindowsGetStringRawBuffer(returnValue, &len)", output);
         // Reply: [sizeof(UINT32) len][N*sizeof(WCHAR) chars][sizeof(HRESULT)]
-        Assert.Contains("sizeof(UINT32) + (len + 1) * sizeof(WCHAR) + sizeof(HRESULT)", output);
+        Assert.Contains("sizeof(UINT32) + len * sizeof(WCHAR) + sizeof(HRESULT)", output);
         Assert.Contains("pChannel->GetBuffer(pMsg, IID___x_Widgets_IWidget)", output);
         Assert.Contains("WindowsDeleteString(returnValue)", output);
     }
