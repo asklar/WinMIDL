@@ -1,1 +1,6 @@
-LIBRARY TestWidgetProxyEXPORTS    DllGetClassObject   PRIVATE    DllCanUnloadNow     PRIVATE    DllRegisterServer   PRIVATE    DllUnregisterServer PRIVATE
+LIBRARY TestWidgetProxy
+EXPORTS
+    DllGetClassObject   PRIVATE
+    DllCanUnloadNow     PRIVATE
+    DllRegisterServer   PRIVATE
+    DllUnregisterServer PRIVATE

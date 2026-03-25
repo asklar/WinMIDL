@@ -1,1 +1,391 @@
-<#.SYNOPSIS    Build and run the in-proc WinRT proxy/stub e2e test..DESCRIPTION    1. Runs our MIDL CLI to generate header, IID, and proxy code from the IDL    2. Discovers MSVC via vswhere    3. Compiles server DLL (WidgetServer.dll)    4. Compiles proxy DLL (TestWidgetProxy.dll) from generated code    5. Registers both DLLs (per-user, no admin required)    6. Runs test client    7. Unregisters DLLs    8. Reports results    Exit code 0 = pass, non-zero = failure.#>param(    [switch]$KeepRegistration,    [switch]$Verbose)$ErrorActionPreference = 'Stop'$scriptDir = $PSScriptRoot$repoRoot = Resolve-Path "$scriptDir/../../.."$outDir = "$scriptDir/generated"$buildDir = "$scriptDir/build"# Ensure clean outputif (Test-Path $outDir) { Remove-Item $outDir -Recurse -Force }if (Test-Path $buildDir) { Remove-Item $buildDir -Recurse -Force }New-Item -ItemType Directory -Path $outDir -Force | Out-NullNew-Item -ItemType Directory -Path $buildDir -Force | Out-Nullfunction Write-Step($msg) { Write-Host "`n>> $msg" -ForegroundColor Cyan }# ΓöÇΓöÇ Step 1: Generate code from IDL ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇWrite-Step "Generating header + proxy code from TestWidget.idl"# Kill any lingering Midl.Cli processesGet-Process -Name "Midl.Cli" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinueStart-Sleep -Milliseconds 500$cliProject = "$repoRoot/src/Midl.Cli"$idlFile = "$scriptDir/TestWidget.idl"& dotnet run --project $cliProject -- `    /winrt `    /h TestWidget.h `    /iid TestWidget_i.c `    /proxy TestWidget_proxy.cpp `    /out $outDir `    /nologo `    /no_dlldata `    $idlFile 2>&1 | ForEach-Object { if ($Verbose) { Write-Host "  $_" } }if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1) {    Write-Host "FAIL: MIDL CLI failed with exit code $LASTEXITCODE" -ForegroundColor Red    exit 1}foreach ($f in @("TestWidget.h", "TestWidget_i.c", "TestWidget_proxy.cpp")) {    if (-not (Test-Path "$outDir/$f")) {        Write-Host "FAIL: Expected generated file not found: $f" -ForegroundColor Red        exit 1    }}Write-Host "  Generated: TestWidget.h, TestWidget_i.c, TestWidget_proxy.cpp"# Extract IID definitions from the proxy file into a standalone C file# (The CLI's /iid only emits explicit [uuid()] attributes; for computed WinRT# UUIDs the definitions live in the combined proxy file.)$proxyContent = Get-Content "$outDir/TestWidget_proxy.cpp"$iidLines = @()foreach ($line in $proxyContent) {    if ($line -match '^EXTERN_C const IID ') { $iidLines += $line }    if ($line -match '^// \{[0-9a-f-]+\}$') { $iidLines += $line }}if ($iidLines.Count -eq 0) {    Write-Host "FAIL: No IID definitions found in generated proxy" -ForegroundColor Red    exit 1}$iidFileContent = @("// IID definitions extracted from generated proxy", "#include <windows.h>", "") + $iidLines$iidFileContent | Set-Content "$outDir/TestWidget_iid.c" -Encoding UTF8Write-Host "  Extracted: TestWidget_iid.c ($($iidLines.Count) lines)"# ΓöÇΓöÇ Step 2: Discover MSVC ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇWrite-Step "Discovering MSVC toolchain"$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"if (-not (Test-Path $vswhere)) {    $vswhere = "${env:ProgramFiles}\Microsoft Visual Studio\Installer\vswhere.exe"}if (-not (Test-Path $vswhere)) {    Write-Host "SKIP: vswhere not found ΓÇö MSVC not installed" -ForegroundColor Yellow    exit 0}$vsPath = & $vswhere -latest -property installationPath -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64if (-not $vsPath) {    Write-Host "SKIP: No Visual Studio with C++ tools found" -ForegroundColor Yellow    exit 0}# Find MSVC tools$vcToolsVersion = Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt" -ErrorAction Stop$vcToolsVersion = $vcToolsVersion.Trim()$vcToolsDir = "$vsPath\VC\Tools\MSVC\$vcToolsVersion"$cl = "$vcToolsDir\bin\Hostx64\x64\cl.exe"$link = "$vcToolsDir\bin\Hostx64\x64\link.exe"if (-not (Test-Path $cl)) {    Write-Host "SKIP: cl.exe not found at $cl" -ForegroundColor Yellow    exit 0}# Find Windows SDK$sdkRoot = $null$sdkVersion = $null$sdkRegPath = "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots"if (Test-Path $sdkRegPath) {    $sdkRoot = (Get-ItemProperty $sdkRegPath -Name KitsRoot10 -ErrorAction SilentlyContinue).KitsRoot10    if ($sdkRoot) {        $sdkVersions = Get-ChildItem "$sdkRoot\Include" -Directory | Where-Object { $_.Name -match '^\d+\.' } | Sort-Object Name -Descending        if ($sdkVersions) {            $sdkVersion = $sdkVersions[0].Name        }    }}if (-not $sdkRoot -or -not $sdkVersion) {    Write-Host "SKIP: Windows SDK not found" -ForegroundColor Yellow    exit 0}Write-Host "  MSVC: $vcToolsVersion"Write-Host "  SDK:  $sdkVersion"# Build environment$vcInclude = "$vcToolsDir\include"$vcLib = "$vcToolsDir\lib\x64"$sdkIncUcrt = "$sdkRoot\Include\$sdkVersion\ucrt"$sdkIncShared = "$sdkRoot\Include\$sdkVersion\shared"$sdkIncUm = "$sdkRoot\Include\$sdkVersion\um"$sdkIncWinrt = "$sdkRoot\Include\$sdkVersion\winrt"$sdkLibUcrt = "$sdkRoot\Lib\$sdkVersion\ucrt\x64"$sdkLibUm = "$sdkRoot\Lib\$sdkVersion\um\x64"$env:INCLUDE = "$vcInclude;$sdkIncUcrt;$sdkIncShared;$sdkIncUm;$sdkIncWinrt"$env:LIB = "$vcLib;$sdkLibUcrt;$sdkLibUm"$env:PATH = "$vcToolsDir\bin\Hostx64\x64;$sdkRoot\bin\$sdkVersion\x64;$env:PATH"$commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/W3", "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE")# ΓöÇΓöÇ Step 3: Compile IID definitions ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇWrite-Step "Compiling TestWidget_iid.obj"$iidObj = "$buildDir\TestWidget_iid.obj"& $cl @commonFlags /c /Fo"$iidObj" /TP "$outDir\TestWidget_iid.c" /I"$outDir" 2>&1 |    ForEach-Object { Write-Host "  $_" }if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: IID compilation failed" -ForegroundColor Red; exit 1 }# ΓöÇΓöÇ Step 4: Compile server DLL ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇWrite-Step "Compiling WidgetServer.dll"$serverObj = "$buildDir\WidgetServer.obj"$serverDll = "$buildDir\WidgetServer.dll"& $cl @commonFlags /c /Fo"$serverObj" "$scriptDir\WidgetServer.cpp" /I"$scriptDir" 2>&1 |    ForEach-Object { Write-Host "  $_" }if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Server compilation failed" -ForegroundColor Red; exit 1 }& $link /nologo /DLL /OUT:"$serverDll" /DEF:"$scriptDir\WidgetServer.def" `    "$serverObj" "$iidObj" ole32.lib oleaut32.lib advapi32.lib user32.lib runtimeobject.lib 2>&1 |    ForEach-Object { Write-Host "  $_" }if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Server link failed" -ForegroundColor Red; exit 1 }Write-Host "  -> $serverDll"# ΓöÇΓöÇ Step 5: Compile proxy DLL ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇWrite-Step "Compiling TestWidgetProxy.dll"$proxyObj = "$buildDir\TestWidget_proxy.obj"$proxyDll = "$buildDir\TestWidgetProxy.dll"& $cl @commonFlags /c /Fo"$proxyObj" "$outDir\TestWidget_proxy.cpp" /I"$outDir" 2>&1 |    ForEach-Object { Write-Host "  $_" }if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Proxy compilation failed" -ForegroundColor Red; exit 1 }& $link /nologo /DLL /OUT:"$proxyDll" /DEF:"$scriptDir\TestWidgetProxy.def" `    "$proxyObj" ole32.lib oleaut32.lib advapi32.lib user32.lib runtimeobject.lib 2>&1 |    ForEach-Object { Write-Host "  $_" }if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Proxy link failed" -ForegroundColor Red; exit 1 }Write-Host "  -> $proxyDll"# ΓöÇΓöÇ Step 6: Compile test client ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇWrite-Step "Compiling TestClient.exe"$clientObj = "$buildDir\TestClient.obj"$clientExe = "$buildDir\TestClient.exe"& $cl @commonFlags /c /Fo"$clientObj" "$scriptDir\TestClient.cpp" /I"$scriptDir" 2>&1 |    ForEach-Object { Write-Host "  $_" }if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Client compilation failed" -ForegroundColor Red; exit 1 }& $link /nologo /OUT:"$clientExe" "$clientObj" "$iidObj" ole32.lib oleaut32.lib user32.lib runtimeobject.lib 2>&1 |    ForEach-Object { Write-Host "  $_" }if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Client link failed" -ForegroundColor Red; exit 1 }Write-Host "  -> $clientExe"# ΓöÇΓöÇ Step 7: Register DLLs (per-user, no admin) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇWrite-Step "Registering COM classes (HKCU)"$serverDllFull = (Resolve-Path $serverDll).Path$proxyDllFull = (Resolve-Path $proxyDll).Path# CLSID_Widget = {3871B1F8-C7D1-7D56-BD7F-98C98895B576}$clsidWidget = "{3871B1F8-C7D1-7D56-BD7F-98C98895B576}"# IID_IWidget = {32B15975-8CF8-1558-864A-17EF2A830690}$iidWidget = "{32B15975-8CF8-1558-864A-17EF2A830690}"# CLSID_PSFactoryBuffer ΓÇö read from the generated proxy to stay in sync# We extract it from the generated proxy code$proxyContent = Get-Content "$outDir\TestWidget_proxy.cpp" -Rawif ($proxyContent -match 'CLSID_PSFactoryBuffer\s*=\s*\{\s*0x([0-9a-f]+)\s*,\s*0x([0-9a-f]+)\s*,\s*0x([0-9a-f]+)\s*,\s*\{\s*0x([0-9a-f]+)\s*,\s*0x([0-9a-f]+)\s*,\s*0x([0-9a-f]+)\s*,\s*0x([0-9a-f]+)\s*,\s*0x([0-9a-f]+)\s*,\s*0x([0-9a-f]+)\s*,\s*0x([0-9a-f]+)\s*,\s*0x([0-9a-f]+)') {    $clsidPS = "{$($Matches[1])-$($Matches[2])-$($Matches[3])-$($Matches[4])$($Matches[5])-$($Matches[6])$($Matches[7])$($Matches[8])$($Matches[9])$($Matches[10])$($Matches[11])}"    $clsidPS = $clsidPS.ToUpper()} else {    Write-Host "FAIL: Could not extract CLSID_PSFactoryBuffer from generated proxy" -ForegroundColor Red    exit 1}Write-Host "  CLSID_Widget:          $clsidWidget"Write-Host "  IID_IWidget:           $iidWidget"Write-Host "  CLSID_PSFactoryBuffer: $clsidPS"# Register Widget server$regBase = "HKCU:\Software\Classes"$serverKeyPath = "$regBase\CLSID\$clsidWidget\InprocServer32"New-Item -Path $serverKeyPath -Force | Out-NullSet-ItemProperty -Path $serverKeyPath -Name "(Default)" -Value $serverDllFullSet-ItemProperty -Path $serverKeyPath -Name "ThreadingModel" -Value "Apartment"# Register proxy/stub factory$psKeyPath = "$regBase\CLSID\$clsidPS\InprocServer32"New-Item -Path $psKeyPath -Force | Out-NullSet-ItemProperty -Path $psKeyPath -Name "(Default)" -Value $proxyDllFull# Register IID ΓåÆ ProxyStubClsid32$iidKeyPath = "$regBase\Interface\$iidWidget\ProxyStubClsid32"New-Item -Path $iidKeyPath -Force | Out-NullSet-ItemProperty -Path $iidKeyPath -Name "(Default)" -Value $clsidPSWrite-Host "  Registration complete"# ΓöÇΓöÇ Step 8: Run test ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇWrite-Step "Running TestClient.exe"Write-Host ""$testExitCode= 0try {    $stdoutFile = "$buildDir\test_stdout.txt"    $stderrFile = "$buildDir\test_stderr.txt"    $proc = Start-Process -FilePath $clientExe -Wait -PassThru `        -RedirectStandardOutput $stdoutFile `        -RedirectStandardError $stderrFile    $testExitCode = $proc.ExitCode    if (Test-Path $stdoutFile) { Get-Content $stdoutFile }    if (Test-Path $stderrFile) {        $errContent = Get-Content $stderrFile -Raw        if ($errContent -and $errContent.Trim()) { Write-Host $errContent }    }} catch {    Write-Host "FAIL: TestClient.exe threw an exception: $_" -ForegroundColor Red    $testExitCode = 1}# ΓöÇΓöÇ Step 9: Unregister ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇif (-not $KeepRegistration) {    Write-Step "Cleaning up registration"    Remove-Item "$regBase\CLSID\$clsidWidget" -Recurse -Force -ErrorAction SilentlyContinue    Remove-Item "$regBase\CLSID\$clsidPS" -Recurse -Force -ErrorAction SilentlyContinue    Remove-Item "$regBase\Interface\$iidWidget" -Recurse -Force -ErrorAction SilentlyContinue    Write-Host "  Unregistered"}# ΓöÇΓöÇ Summary ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇWrite-Host ""if ($testExitCode -eq 0) {    Write-Host "SUCCESS: All proxy/stub e2e tests passed!" -ForegroundColor Green} else {    Write-Host "FAILURE: Some tests failed (exit code $testExitCode)" -ForegroundColor Red}exit $testExitCode
+<#
+.SYNOPSIS
+    Build and run the in-proc WinRT proxy/stub e2e test.
+
+.DESCRIPTION
+    1. Runs WinMIDL CLI to generate header, IID, and C++ proxy code
+    2. Discovers MSVC via vswhere
+    3. Compiles server DLL + proxy DLL + client EXE
+    4. Registers in HKCU (no admin needed)
+    5. Runs test client
+    6. Unregisters
+    7. Reports results
+
+    Exit code 0 = pass, non-zero = failure.
+#>
+param(
+    [switch]$KeepRegistration,
+    [switch]$Verbose
+)
+
+$ErrorActionPreference = 'Stop'
+
+$scriptDir  = $PSScriptRoot
+$repoRoot   = (Resolve-Path "$scriptDir/../../..").Path
+$outDir     = "$scriptDir/generated"
+$buildDir   = "$scriptDir/build"
+
+# Ensure clean output
+if (Test-Path $outDir)   { Remove-Item $outDir -Recurse -Force }
+if (Test-Path $buildDir) { Remove-Item $buildDir -Recurse -Force }
+New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+New-Item -ItemType Directory -Path $buildDir -Force | Out-Null
+
+function Write-Step($msg) { Write-Host "`n>> $msg" -ForegroundColor Cyan }
+
+# ---------------------------------------------------------------------------
+# Helper: parse a C-style GUID initializer into a registry-format string.
+# Accepts 11 hex values (d1, d2, d3, b1..b8) stripped of the 0x prefix.
+# Returns e.g. "{3871B1F8-C7D1-7D56-BD7F-98C98895B576}"
+# ---------------------------------------------------------------------------
+function Format-Guid {
+    param([string[]]$Parts)
+    $h = $Parts | ForEach-Object { ($_ -replace '^0x','').Trim() }
+    $d1 = $h[0].PadLeft(8,'0')
+    $d2 = $h[1].PadLeft(4,'0')
+    $d3 = $h[2].PadLeft(4,'0')
+    $b  = $h[3..10] | ForEach-Object { $_.PadLeft(2,'0') }
+    return "{$d1-$d2-$d3-$($b[0])$($b[1])-$($b[2])$($b[3])$($b[4])$($b[5])$($b[6])$($b[7])}".ToUpper()
+}
+
+# ---------------------------------------------------------------------------
+# Helper: extract all IID definitions from a generated _i.c or proxy file.
+# Returns a hashtable: name -> GUID string.
+# ---------------------------------------------------------------------------
+function Get-IidsFromFile($path) {
+    $content = Get-Content $path -Raw
+    $iids = @{}
+    $regex = 'MIDL_DEFINE_GUID\(\s*IID\s*,\s*(\w+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*\)'
+    foreach ($match in [regex]::Matches($content, $regex)) {
+        $name = $match.Groups[1].Value
+        $parts = @(2..12 | ForEach-Object { $match.Groups[$_].Value })
+        $iids[$name] = Format-Guid -Parts $parts
+    }
+    return $iids
+}
+
+# ---------------------------------------------------------------------------
+# Helper: extract CLSID_PSFactoryBuffer from the generated proxy.
+# ---------------------------------------------------------------------------
+function Get-ClsidPSFactory($path) {
+    $content = Get-Content $path -Raw
+    $regex = 'CLSID_PSFactoryBuffer\s*=\s*\{' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,\s*\{' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)'
+    if ($content -match $regex) {
+        $parts = @(1..11 | ForEach-Object { $Matches[$_] })
+        return Format-Guid -Parts $parts
+    }
+    return $null
+}
+
+# ---------------------------------------------------------------------------
+# Helper: extract CLSID_Widget from WidgetServer.cpp source.
+# ---------------------------------------------------------------------------
+function Get-ClsidWidget($path) {
+    $content = Get-Content $path -Raw
+    $regex = 'CLSID_Widget\s*=\s*\{' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,\s*\{' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)\s*,' +
+             '\s*0x([0-9a-fA-F]+)\s*,\s*0x([0-9a-fA-F]+)'
+    if ($content -match $regex) {
+        $parts = @(1..11 | ForEach-Object { $Matches[$_] })
+        return Format-Guid -Parts $parts
+    }
+    return $null
+}
+
+# ── Step 1: Generate code from IDL ─────────────────────────────────────────
+Write-Step "Generating header + proxy code from TestWidget.idl"
+
+# Kill any lingering Midl.Cli processes
+Get-Process -Name "Midl.Cli" -ErrorAction SilentlyContinue |
+    ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
+Start-Sleep -Milliseconds 500
+
+$cliProject = "$repoRoot/src/Midl.Cli/Midl.Cli.csproj"
+$idlFile    = "$scriptDir/TestWidget.idl"
+
+& dotnet run --project $cliProject -- `
+    /winrt `
+    /h TestWidget.h `
+    /iid TestWidget_i.c `
+    /cppproxy TestWidget_proxy.cpp `
+    /noproxy /no_dlldata `
+    /out $outDir `
+    /nologo `
+    $idlFile 2>&1 | ForEach-Object { if ($Verbose) { Write-Host "  $_" } }
+
+if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1) {
+    Write-Host "FAIL: MIDL CLI failed with exit code $LASTEXITCODE" -ForegroundColor Red
+    exit 1
+}
+
+foreach ($f in @("TestWidget.h", "TestWidget_i.c", "TestWidget_proxy.cpp")) {
+    if (-not (Test-Path "$outDir/$f")) {
+        Write-Host "FAIL: Expected generated file not found: $f" -ForegroundColor Red
+        exit 1
+    }
+}
+
+Write-Host "  Generated: TestWidget.h, TestWidget_i.c, TestWidget_proxy.cpp"
+
+# ── Step 2: Discover MSVC ──────────────────────────────────────────────────
+Write-Step "Discovering MSVC toolchain"
+
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+if (-not (Test-Path $vswhere)) {
+    $vswhere = "${env:ProgramFiles}\Microsoft Visual Studio\Installer\vswhere.exe"
+}
+if (-not (Test-Path $vswhere)) {
+    Write-Host "SKIP: vswhere not found - MSVC not installed" -ForegroundColor Yellow
+    exit 0
+}
+
+$vsPath = & $vswhere -latest -property installationPath `
+    -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64
+if (-not $vsPath) {
+    Write-Host "SKIP: No Visual Studio with C++ tools found" -ForegroundColor Yellow
+    exit 0
+}
+
+# Find MSVC tools
+$vcToolsVersion = (Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt" `
+    -ErrorAction Stop).Trim()
+$vcToolsDir = "$vsPath\VC\Tools\MSVC\$vcToolsVersion"
+$cl   = "$vcToolsDir\bin\Hostx64\x64\cl.exe"
+$link = "$vcToolsDir\bin\Hostx64\x64\link.exe"
+
+if (-not (Test-Path $cl)) {
+    Write-Host "SKIP: cl.exe not found at $cl" -ForegroundColor Yellow
+    exit 0
+}
+
+# Find Windows SDK
+$sdkRoot    = $null
+$sdkVersion = $null
+$sdkRegPath = "HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots"
+if (Test-Path $sdkRegPath) {
+    $sdkRoot = (Get-ItemProperty $sdkRegPath -Name KitsRoot10 -ErrorAction SilentlyContinue).KitsRoot10
+    if ($sdkRoot) {
+        $sdkVersions = Get-ChildItem "$sdkRoot\Include" -Directory |
+            Where-Object { $_.Name -match '^\d+\.' } |
+            Sort-Object Name -Descending
+        if ($sdkVersions) { $sdkVersion = $sdkVersions[0].Name }
+    }
+}
+if (-not $sdkRoot -or -not $sdkVersion) {
+    Write-Host "SKIP: Windows SDK not found" -ForegroundColor Yellow
+    exit 0
+}
+
+Write-Host "  MSVC: $vcToolsVersion"
+Write-Host "  SDK:  $sdkVersion"
+
+# Build environment
+$vcInclude    = "$vcToolsDir\include"
+$vcLib        = "$vcToolsDir\lib\x64"
+$sdkIncUcrt   = "$sdkRoot\Include\$sdkVersion\ucrt"
+$sdkIncShared = "$sdkRoot\Include\$sdkVersion\shared"
+$sdkIncUm     = "$sdkRoot\Include\$sdkVersion\um"
+$sdkIncWinrt  = "$sdkRoot\Include\$sdkVersion\winrt"
+$sdkLibUcrt   = "$sdkRoot\Lib\$sdkVersion\ucrt\x64"
+$sdkLibUm     = "$sdkRoot\Lib\$sdkVersion\um\x64"
+
+$env:INCLUDE = "$vcInclude;$sdkIncUcrt;$sdkIncShared;$sdkIncUm;$sdkIncWinrt"
+$env:LIB     = "$vcLib;$sdkLibUcrt;$sdkLibUm"
+$env:PATH    = "$vcToolsDir\bin\Hostx64\x64;$sdkRoot\bin\$sdkVersion\x64;$env:PATH"
+
+$commonFlags = @(
+    "/nologo", "/std:c++latest", "/EHsc", "/W3",
+    "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE"
+)
+
+# ── Step 3: Compile IID definitions ────────────────────────────────────────
+Write-Step "Compiling TestWidget_i.obj"
+
+$iidObj = "$buildDir\TestWidget_i.obj"
+& $cl @commonFlags /c /Fo"$iidObj" /TP /I"$outDir" "$outDir\TestWidget_i.c" 2>&1 |
+    ForEach-Object { Write-Host "  $_" }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: IID compilation failed" -ForegroundColor Red
+    exit 1
+}
+
+# ── Step 4: Compile server DLL ─────────────────────────────────────────────
+Write-Step "Compiling WidgetServer.dll"
+
+$serverObj = "$buildDir\WidgetServer.obj"
+$serverDll = "$buildDir\WidgetServer.dll"
+
+& $cl @commonFlags /c /Fo"$serverObj" /I"$outDir" "$scriptDir\WidgetServer.cpp" 2>&1 |
+    ForEach-Object { Write-Host "  $_" }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Server compilation failed" -ForegroundColor Red
+    exit 1
+}
+
+& $link /nologo /DLL /OUT:"$serverDll" /DEF:"$scriptDir\WidgetServer.def" `
+    "$serverObj" "$iidObj" `
+    ole32.lib oleaut32.lib advapi32.lib user32.lib runtimeobject.lib 2>&1 |
+    ForEach-Object { Write-Host "  $_" }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Server link failed" -ForegroundColor Red
+    exit 1
+}
+Write-Host "  -> $serverDll"
+
+# ── Step 5: Compile proxy DLL ──────────────────────────────────────────────
+Write-Step "Compiling TestWidgetProxy.dll"
+
+$proxyObj = "$buildDir\TestWidget_proxy.obj"
+$proxyDll = "$buildDir\TestWidgetProxy.dll"
+
+& $cl @commonFlags /c /Fo"$proxyObj" /I"$outDir" "$outDir\TestWidget_proxy.cpp" 2>&1 |
+    ForEach-Object { Write-Host "  $_" }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Proxy compilation failed" -ForegroundColor Red
+    exit 1
+}
+
+& $link /nologo /DLL /OUT:"$proxyDll" /DEF:"$scriptDir\TestWidgetProxy.def" `
+    "$proxyObj" `
+    ole32.lib oleaut32.lib advapi32.lib user32.lib runtimeobject.lib 2>&1 |
+    ForEach-Object { Write-Host "  $_" }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Proxy link failed" -ForegroundColor Red
+    exit 1
+}
+Write-Host "  -> $proxyDll"
+
+# ── Step 6: Compile test client ────────────────────────────────────────────
+Write-Step "Compiling TestClient.exe"
+
+$clientObj = "$buildDir\TestClient.obj"
+$clientExe = "$buildDir\TestClient.exe"
+
+& $cl @commonFlags /c /Fo"$clientObj" /I"$outDir" "$scriptDir\TestClient.cpp" 2>&1 |
+    ForEach-Object { Write-Host "  $_" }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Client compilation failed" -ForegroundColor Red
+    exit 1
+}
+
+& $link /nologo /OUT:"$clientExe" `
+    "$clientObj" "$iidObj" `
+    ole32.lib oleaut32.lib user32.lib runtimeobject.lib 2>&1 |
+    ForEach-Object { Write-Host "  $_" }
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Client link failed" -ForegroundColor Red
+    exit 1
+}
+Write-Host "  -> $clientExe"
+
+# ── Step 7: Register DLLs (per-user, no admin) ────────────────────────────
+Write-Step "Registering COM classes (HKCU)"
+
+$serverDllFull = (Resolve-Path $serverDll).Path
+$proxyDllFull  = (Resolve-Path $proxyDll).Path
+
+# Extract GUIDs dynamically from generated and source files
+$clsidWidget = Get-ClsidWidget "$scriptDir\WidgetServer.cpp"
+if (-not $clsidWidget) {
+    Write-Host "FAIL: Could not extract CLSID_Widget from WidgetServer.cpp" -ForegroundColor Red
+    exit 1
+}
+
+$iids = Get-IidsFromFile "$outDir\TestWidget_i.c"
+if ($iids.Count -eq 0) {
+    Write-Host "FAIL: No IID definitions found in generated TestWidget_i.c" -ForegroundColor Red
+    exit 1
+}
+
+$clsidPS = Get-ClsidPSFactory "$outDir\TestWidget_proxy.cpp"
+if (-not $clsidPS) {
+    Write-Host "FAIL: Could not extract CLSID_PSFactoryBuffer from proxy" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "  CLSID_Widget:          $clsidWidget"
+Write-Host "  CLSID_PSFactoryBuffer: $clsidPS"
+foreach ($entry in $iids.GetEnumerator()) {
+    Write-Host "  $($entry.Key): $($entry.Value)"
+}
+
+# Register Widget server CLSID -> InprocServer32
+$regBase = "HKCU:\Software\Classes"
+$serverKeyPath = "$regBase\CLSID\$clsidWidget\InprocServer32"
+New-Item -Path $serverKeyPath -Force | Out-Null
+Set-ItemProperty -Path $serverKeyPath -Name "(Default)" -Value $serverDllFull
+Set-ItemProperty -Path $serverKeyPath -Name "ThreadingModel" -Value "Apartment"
+
+# Register proxy/stub factory CLSID -> InprocServer32
+$psKeyPath = "$regBase\CLSID\$clsidPS\InprocServer32"
+New-Item -Path $psKeyPath -Force | Out-Null
+Set-ItemProperty -Path $psKeyPath -Name "(Default)" -Value $proxyDllFull
+
+# Register each IID -> ProxyStubClsid32
+foreach ($entry in $iids.GetEnumerator()) {
+    $iidGuid = $entry.Value
+    $iidKeyPath = "$regBase\Interface\$iidGuid\ProxyStubClsid32"
+    New-Item -Path $iidKeyPath -Force | Out-Null
+    Set-ItemProperty -Path $iidKeyPath -Name "(Default)" -Value $clsidPS
+}
+
+Write-Host "  Registration complete"
+
+# ── Step 8: Run test ───────────────────────────────────────────────────────
+Write-Step "Running TestClient.exe"
+Write-Host ""
+
+$testExitCode = 0
+try {
+    $stdoutFile = "$buildDir\test_stdout.txt"
+    $stderrFile = "$buildDir\test_stderr.txt"
+
+    $proc = Start-Process -FilePath $clientExe -Wait -PassThru `
+        -RedirectStandardOutput $stdoutFile `
+        -RedirectStandardError $stderrFile
+
+    $testExitCode = $proc.ExitCode
+
+    if (Test-Path $stdoutFile) { Get-Content $stdoutFile }
+    if (Test-Path $stderrFile) {
+        $errContent = Get-Content $stderrFile -Raw
+        if ($errContent -and $errContent.Trim()) { Write-Host $errContent }
+    }
+} catch {
+    Write-Host "FAIL: TestClient.exe threw an exception: $_" -ForegroundColor Red
+    $testExitCode = 1
+}
+
+# ── Step 9: Unregister ─────────────────────────────────────────────────────
+if (-not $KeepRegistration) {
+    Write-Step "Cleaning up registration"
+    Remove-Item "$regBase\CLSID\$clsidWidget" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item "$regBase\CLSID\$clsidPS" -Recurse -Force -ErrorAction SilentlyContinue
+    foreach ($entry in $iids.GetEnumerator()) {
+        Remove-Item "$regBase\Interface\$($entry.Value)" -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Write-Host "  Unregistered"
+}
+
+# ── Summary ────────────────────────────────────────────────────────────────
+Write-Host ""
+if ($testExitCode -eq 0) {
+    Write-Host "SUCCESS: All proxy/stub e2e tests passed!" -ForegroundColor Green
+} else {
+    Write-Host "FAILURE: Some tests failed (exit code $testExitCode)" -ForegroundColor Red
+}
+
+exit $testExitCode

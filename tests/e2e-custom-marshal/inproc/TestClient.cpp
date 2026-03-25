@@ -1,1 +1,204 @@
-// TestClient.cpp ΓÇö Cross-apartment proxy/stub validation//// Creates a Widget in the main STA, then exercises it from an MTA thread.// COM interposes our generated proxy/stub, validating the full roundtrip://   MTA caller ΓåÆ proxy ΓåÆ RPC channel ΓåÆ stub ΓåÆ server ΓåÆ reply path//// Exit code 0 = all tests passed, 1 = at least one failure.#include <windows.h>#include <objbase.h>#include <winstring.h>#include <inspectable.h>#include <stdio.h>#include "generated/TestWidget.h"// IID definition is provided by TestWidget_iid.obj (extracted from proxy output)// Same CLSID as WidgetServer.cpp// {3871B1F8-C7D1-7D56-BD7F-98C98895B576}static const CLSID CLSID_Widget = {    0x3871b1f8, 0xc7d1, 0x7d56,    {0xbd, 0x7f, 0x98, 0xc9, 0x88, 0x95, 0xb5, 0x76}};static int g_passed = 0;static int g_failed = 0;static void Check(bool condition, const char* testName) {    if (condition) {        printf("  PASS: %s\n", testName);        g_passed++;    } else {        printf("  FAIL: %s\n", testName);        g_failed++;    }}// MTA worker thread ΓÇö runs tests through the proxystruct WorkerArgs {    HANDLE hDone;};static DWORD WINAPI MtaWorkerThread(LPVOID param) {    auto* args = static_cast<WorkerArgs*>(param);    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);    if (FAILED(hr)) {        printf("FAIL: CoInitializeEx(MTA) failed: 0x%08lX\n", hr);        SetEvent(args->hDone);        return 1;    }    printf("[MTA] CoCreateInstance(CLSID_Widget, IID_IWidget)...\n");    __x_TestApp_InProc_IWidget* pWidget = nullptr;    hr = CoCreateInstance(CLSID_Widget, nullptr, CLSCTX_INPROC_SERVER,                          IID___x_TestApp_InProc_IWidget, (void**)&pWidget);    if (FAILED(hr)) {        printf("FAIL: CoCreateInstance failed: 0x%08lX\n", hr);        CoUninitialize();        SetEvent(args->hDone);        return 1;    }    printf("[MTA] Running proxy roundtrip tests...\n\n");    // Test 1: get_Name ΓÇö HSTRING round-trip    {        HSTRING name = nullptr;        hr = pWidget->get_Name(&name);        Check(SUCCEEDED(hr), "get_Name HRESULT");        UINT32 len = 0;        PCWSTR raw = WindowsGetStringRawBuffer(name, &len);        bool match = (len == 10) && (wcsncmp(raw, L"TestWidget", 10) == 0);        Check(match, "get_Name value == \"TestWidget\"");        if (name) WindowsDeleteString(name);    }    // Test 2: GetPriority ΓÇö enum round-trip    {        Priority prio = (Priority)0xFF;        hr = pWidget->GetPriority(&prio);        Check(SUCCEEDED(hr), "GetPriority HRESULT");        Check(prio == Priority_Medium, "GetPriority value == Medium");    }    // Test 3: SetPosition ΓÇö struct round-trip    {        Point pos;        pos.X = 3.14f;        pos.Y = 2.72f;        hr = pWidget->SetPosition(pos);        Check(SUCCEEDED(hr), "SetPosition HRESULT");        // After SetPosition, GetPriority should return High        Priority prio = Priority_Low;        hr = pWidget->GetPriority(&prio);        Check(SUCCEEDED(hr), "GetPriority after SetPosition HRESULT");        Check(prio == Priority_High, "GetPriority after SetPosition == High");    }    // Test 4: TryReset ΓÇö out params + retval round-trip    {        INT32 errorCode = -1;        boolean resetOk = FALSE;        hr = pWidget->TryReset(&errorCode, &resetOk);        Check(SUCCEEDED(hr), "TryReset HRESULT");        Check(errorCode == 0, "TryReset errorCode == 0");        Check(resetOk == TRUE, "TryReset returnValue == TRUE");    }    // Test 5: After TryReset, priority should be Low again    {        Priority prio = Priority_High;        hr = pWidget->GetPriority(&prio);        Check(SUCCEEDED(hr), "GetPriority after TryReset HRESULT");        Check(prio == Priority_Low, "GetPriority after TryReset == Low");    }    pWidget->Release();    CoUninitialize();    printf("\n[MTA] Tests complete.\n");    SetEvent(args->hDone);    return 0;}int main() {    printf("=== E2E InProc Custom Marshal Test ===\n\n");    // Initialize COM as STA on main thread    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);    if (FAILED(hr)) {        printf("FAIL: CoInitializeEx(STA) failed: 0x%08lX\n", hr);        return 1;    }    printf("[STA] COM initialized (apartment-threaded)\n");    // Launch MTA worker    WorkerArgs args;    args.hDone = CreateEvent(nullptr, TRUE, FALSE, nullptr);    HANDLE hThread = CreateThread(nullptr, 0, MtaWorkerThread, &args, 0, nullptr);    if (!hThread) {        printf("FAIL: CreateThread failed\n");        CloseHandle(args.hDone);        CoUninitialize();        return 1;    }    // Pump messages until the MTA thread signals completion.    // The STA message pump is essential: COM marshals cross-apartment calls    // as window messages to the STA thread.    printf("[STA] Pumping messages for cross-apartment calls...\n\n");    DWORD waitResult;    while (true) {        waitResult = MsgWaitForMultipleObjects(1, &args.hDone, FALSE, INFINITE, QS_ALLINPUT);        if (waitResult == WAIT_OBJECT_0) {            break; // Worker thread done        }        if (waitResult == WAIT_OBJECT_0 + 1) {            MSG msg;            while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {                TranslateMessage(&msg);                DispatchMessageW(&msg);            }        } else {            break; // Error        }    }    WaitForSingleObject(hThread, INFINITE);    CloseHandle(hThread);    CloseHandle(args.hDone);    CoUninitialize();    // Summary    printf("\n=== Results: %d passed, %d failed ===\n", g_passed, g_failed);    return g_failed > 0 ? 1 : 0;}
+// TestClient.cpp - Cross-apartment proxy/stub validation
+//
+// Creates a Widget in the main STA, then exercises it from an MTA thread.
+// COM interposes our generated proxy/stub, validating the full roundtrip:
+//   MTA caller -> proxy -> RPC channel -> stub -> server -> reply path
+//
+// Exit code 0 = all tests passed, 1 = at least one failure.
+
+#include <windows.h>
+#include <objbase.h>
+#include <winstring.h>
+#include <inspectable.h>
+#include <stdio.h>
+#include "TestWidget.h"
+
+// IID definitions are provided by TestWidget_i.obj (generated by MIDL)
+
+// Same CLSID as WidgetServer.cpp
+// {3871B1F8-C7D1-7D56-BD7F-98C98895B576}
+static const CLSID CLSID_Widget = {
+    0x3871b1f8, 0xc7d1, 0x7d56,
+    {0xbd, 0x7f, 0x98, 0xc9, 0x88, 0x95, 0xb5, 0x76}
+};
+
+static int g_passed = 0;
+static int g_failed = 0;
+
+static void Check(bool condition, const char* testName) {
+    if (condition) {
+        printf("  PASS: %s\n", testName);
+        g_passed++;
+    } else {
+        printf("  FAIL: %s\n", testName);
+        g_failed++;
+    }
+}
+
+// MTA worker thread - runs tests through the proxy
+struct WorkerArgs {
+    HANDLE hDone;
+};
+
+static DWORD WINAPI MtaWorkerThread(LPVOID param) {
+    auto* args = static_cast<WorkerArgs*>(param);
+
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    if (FAILED(hr)) {
+        printf("FAIL: CoInitializeEx(MTA) failed: 0x%08lX\n", hr);
+        SetEvent(args->hDone);
+        return 1;
+    }
+
+    printf("[MTA] CoCreateInstance(CLSID_Widget, IID_IWidget)...\n");
+    __x_TestApp_InProc_IWidget* pWidget = nullptr;
+    hr = CoCreateInstance(CLSID_Widget, nullptr, CLSCTX_INPROC_SERVER,
+                          IID___x_TestApp_InProc_IWidget, (void**)&pWidget);
+    if (FAILED(hr)) {
+        printf("FAIL: CoCreateInstance failed: 0x%08lX\n", hr);
+        CoUninitialize();
+        SetEvent(args->hDone);
+        return 1;
+    }
+
+    printf("[MTA] Running proxy roundtrip tests...\n\n");
+
+    // Test 1: get_Name - HSTRING round-trip
+    {
+        HSTRING name = nullptr;
+        hr = pWidget->get_Name(&name);
+        Check(SUCCEEDED(hr), "get_Name HRESULT");
+        UINT32 len = 0;
+        PCWSTR raw = WindowsGetStringRawBuffer(name, &len);
+        bool match = (len == 10) && (wcsncmp(raw, L"TestWidget", 10) == 0);
+        Check(match, "get_Name value == \"TestWidget\"");
+        if (name) WindowsDeleteString(name);
+    }
+
+    // Test 2: GetPriority - enum round-trip
+    {
+        Priority prio = (Priority)0xFF;
+        hr = pWidget->GetPriority(&prio);
+        Check(SUCCEEDED(hr), "GetPriority HRESULT");
+        Check(prio == Priority_Medium, "GetPriority value == Medium");
+    }
+
+    // Test 3: SetPosition - struct round-trip
+    {
+        Point pos;
+        pos.X = 3.14f;
+        pos.Y = 2.72f;
+        hr = pWidget->SetPosition(pos);
+        Check(SUCCEEDED(hr), "SetPosition HRESULT");
+
+        // After SetPosition, GetPriority should return High
+        Priority prio = Priority_Low;
+        hr = pWidget->GetPriority(&prio);
+        Check(SUCCEEDED(hr), "GetPriority after SetPosition HRESULT");
+        Check(prio == Priority_High, "GetPriority after SetPosition == High");
+    }
+
+    // Test 4: TryReset - out params + retval round-trip
+    {
+        INT32 errorCode = -1;
+        boolean resetOk = FALSE;
+        hr = pWidget->TryReset(&errorCode, &resetOk);
+        Check(SUCCEEDED(hr), "TryReset HRESULT");
+        Check(errorCode == 0, "TryReset errorCode == 0");
+        Check(resetOk == TRUE, "TryReset returnValue == TRUE");
+    }
+
+    // Test 5: After TryReset, priority should be Low again
+    {
+        Priority prio = Priority_High;
+        hr = pWidget->GetPriority(&prio);
+        Check(SUCCEEDED(hr), "GetPriority after TryReset HRESULT");
+        Check(prio == Priority_Low, "GetPriority after TryReset == Low");
+    }
+
+    // Test 6: IPuppy via QueryInterface - property round-trip
+    {
+        __x_TestApp_InProc_IPuppy* pPuppy = nullptr;
+        hr = pWidget->QueryInterface(IID___x_TestApp_InProc_IPuppy, (void**)&pPuppy);
+        Check(SUCCEEDED(hr), "QI(IPuppy) HRESULT");
+        if (SUCCEEDED(hr)) {
+            INT32 x = -1;
+            hr = pPuppy->get_X(&x);
+            Check(SUCCEEDED(hr), "IPuppy get_X HRESULT");
+            Check(x == 0, "IPuppy get_X initial == 0");
+
+            hr = pPuppy->put_X(42);
+            Check(SUCCEEDED(hr), "IPuppy put_X(42) HRESULT");
+
+            x = -1;
+            hr = pPuppy->get_X(&x);
+            Check(SUCCEEDED(hr), "IPuppy get_X after put HRESULT");
+            Check(x == 42, "IPuppy get_X after put == 42");
+
+            pPuppy->Release();
+        }
+    }
+
+    pWidget->Release();
+    CoUninitialize();
+
+    printf("\n[MTA] Tests complete.\n");
+    SetEvent(args->hDone);
+    return 0;
+}
+
+int main() {
+    printf("=== E2E InProc Custom Marshal Test ===\n\n");
+
+    // Initialize COM as STA on main thread
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    if (FAILED(hr)) {
+        printf("FAIL: CoInitializeEx(STA) failed: 0x%08lX\n", hr);
+        return 1;
+    }
+
+    printf("[STA] COM initialized (apartment-threaded)\n");
+
+    // Launch MTA worker
+    WorkerArgs args;
+    args.hDone = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+
+    HANDLE hThread = CreateThread(nullptr, 0, MtaWorkerThread, &args, 0, nullptr);
+    if (!hThread) {
+        printf("FAIL: CreateThread failed\n");
+        CloseHandle(args.hDone);
+        CoUninitialize();
+        return 1;
+    }
+
+    // Pump messages until the MTA thread signals completion.
+    // The STA message pump is essential: COM marshals cross-apartment calls
+    // as window messages to the STA thread.
+    printf("[STA] Pumping messages for cross-apartment calls...\n\n");
+
+    DWORD waitResult;
+    while (true) {
+        waitResult = MsgWaitForMultipleObjects(1, &args.hDone, FALSE, INFINITE, QS_ALLINPUT);
+        if (waitResult == WAIT_OBJECT_0) {
+            break; // Worker thread done
+        }
+        if (waitResult == WAIT_OBJECT_0 + 1) {
+            MSG msg;
+            while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+            }
+        } else {
+            break; // Error
+        }
+    }
+
+    WaitForSingleObject(hThread, INFINITE);
+    CloseHandle(hThread);
+    CloseHandle(args.hDone);
+    CoUninitialize();
+
+    // Summary
+    printf("\n=== Results: %d passed, %d failed ===\n", g_passed, g_failed);
+    return g_failed > 0 ? 1 : 0;
+}

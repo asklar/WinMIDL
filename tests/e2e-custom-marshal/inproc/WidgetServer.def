@@ -1,1 +1,6 @@
-LIBRARY WidgetServerEXPORTS    DllGetClassObject   PRIVATE    DllCanUnloadNow     PRIVATE    DllRegisterServer   PRIVATE    DllUnregisterServer PRIVATE
+LIBRARY WidgetServer
+EXPORTS
+    DllGetClassObject   PRIVATE
+    DllCanUnloadNow     PRIVATE
+    DllRegisterServer   PRIVATE
+    DllUnregisterServer PRIVATE
