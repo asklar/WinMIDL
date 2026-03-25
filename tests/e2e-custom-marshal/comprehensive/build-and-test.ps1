@@ -161,7 +161,8 @@ $env:LIB = "$vcLib;$sdkLibUcrt;$sdkLibUm"
 $env:PATH = "$vcToolsDir\bin\Hostx64\x64;$sdkRoot\bin\$sdkVersion\x64;$env:PATH"
 
 $commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/W3",
-                  "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE")
+                  "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",
+                  "/Zi")
 
 # ── Step 3: Compile IID definitions ─────────────────────────────────────
 Write-Step "Compiling TestComprehensive_iid.obj"
@@ -181,7 +182,7 @@ $serverDll = "$buildDir\ComprehensiveServer.dll"
     ForEach-Object { Write-Host "  $_" }
 if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Server compilation failed" -ForegroundColor Red; exit 1 }
 
-& $link /nologo /DLL /OUT:"$serverDll" /DEF:"$scriptDir\ComprehensiveServer.def" `
+& $link /nologo /DLL /DEBUG /OUT:"$serverDll" /DEF:"$scriptDir\ComprehensiveServer.def" `
     "$serverObj" "$iidObj" ole32.lib oleaut32.lib advapi32.lib user32.lib runtimeobject.lib 2>&1 |
     ForEach-Object { Write-Host "  $_" }
 if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Server link failed" -ForegroundColor Red; exit 1 }
@@ -196,7 +197,7 @@ $proxyDll = "$buildDir\TestComprehensiveProxy.dll"
     ForEach-Object { Write-Host "  $_" }
 if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Proxy compilation failed" -ForegroundColor Red; exit 1 }
 
-& $link /nologo /DLL /OUT:"$proxyDll" /DEF:"$scriptDir\TestComprehensiveProxy.def" `
+& $link /nologo /DLL /DEBUG /OUT:"$proxyDll" /DEF:"$scriptDir\TestComprehensiveProxy.def" `
     "$proxyObj" ole32.lib oleaut32.lib advapi32.lib user32.lib runtimeobject.lib 2>&1 |
     ForEach-Object { Write-Host "  $_" }
 if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Proxy link failed" -ForegroundColor Red; exit 1 }
@@ -211,7 +212,7 @@ $clientExe = "$buildDir\ComprehensiveClient.exe"
     ForEach-Object { Write-Host "  $_" }
 if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Client compilation failed" -ForegroundColor Red; exit 1 }
 
-& $link /nologo /OUT:"$clientExe" "$clientObj" "$iidObj" `
+& $link /nologo /DEBUG /OUT:"$clientExe" "$clientObj" "$iidObj" `
     ole32.lib oleaut32.lib user32.lib runtimeobject.lib 2>&1 |
     ForEach-Object { Write-Host "  $_" }
 if ($LASTEXITCODE -ne 0) { Write-Host "FAIL: Client link failed" -ForegroundColor Red; exit 1 }
