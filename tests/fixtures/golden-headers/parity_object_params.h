@@ -67,6 +67,44 @@ EXTERN_C const IID IID___x_TestApp_CParity_CIObjectWidget;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FIVector_1_IInspectable_USE
+#define DEF___FIVector_1_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("b1ec3d8b-3792-335f-98ec-44727f423df0"))
+            IVector<IInspectable*> : IVector_impl<IInspectable*>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IVector`1<Object>";
+                }
+            };
+            typedef IVector<IInspectable*> __FIVector_1_IInspectable_t;
+#define __FIVector_1_IInspectable Windows::Foundation::Collections::__FIVector_1_IInspectable_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIVector_1_IInspectable_USE */
+
+#ifndef DEF___FIMap_2_HSTRING_IInspectable_USE
+#define DEF___FIMap_2_HSTRING_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("ce3afba9-4124-a850-a176-bec0b02bd606"))
+            IMap<HSTRING,IInspectable*> : IMap_impl<HSTRING,IInspectable*>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IMap`2<String, Object>";
+                }
+            };
+            typedef IMap<HSTRING,IInspectable*> __FIMap_2_HSTRING_IInspectable_t;
+#define __FIMap_2_HSTRING_IInspectable Windows::Foundation::Collections::__FIMap_2_HSTRING_IInspectable_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIMap_2_HSTRING_IInspectable_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIObjectWidget_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIObjectWidget_FWD_DEFINED__
@@ -147,6 +185,176 @@ namespace TestApp {
 #define ____x_TestApp_CParity_CIObjectWidget_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIObjectWidget __x_TestApp_CParity_CIObjectWidget;
 #endif // ____x_TestApp_CParity_CIObjectWidget_FWD_DEFINED__
+
+#if !defined(______FIVector_1_IInspectable_INTERFACE_DEFINED__)
+#define ______FIVector_1_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FIVector_1_IInspectable __FIVector_1_IInspectable;
+
+EXTERN_C const IID IID___FIVector_1_IInspectable;
+
+typedef struct __FIVector_1_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIVector_1_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIVector_1_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIVector_1_IInspectable * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIVector_1_IInspectable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIVector_1_IInspectable * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIVector_1_IInspectable * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVector_1_IInspectable * This, unsigned int index, IInspectable * * result);
+    HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIVector_1_IInspectable * This, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *GetView )(__FIVector_1_IInspectable * This, __FIVectorView_1_* * result);
+    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVector_1_IInspectable * This, IInspectable * value, unsigned int * index, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *SetAt )(__FIVector_1_IInspectable * This, unsigned int index, IInspectable * value);
+    HRESULT ( STDMETHODCALLTYPE *InsertAt )(__FIVector_1_IInspectable * This, unsigned int index, IInspectable * value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAt )(__FIVector_1_IInspectable * This, unsigned int index);
+    HRESULT ( STDMETHODCALLTYPE *Append )(__FIVector_1_IInspectable * This, IInspectable * value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAtEnd )(__FIVector_1_IInspectable * This);
+    HRESULT ( STDMETHODCALLTYPE *Clear )(__FIVector_1_IInspectable * This);
+    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVector_1_IInspectable * This, unsigned int startIndex, unsigned int itemsLength, IInspectable * * items, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *ReplaceAll )(__FIVector_1_IInspectable * This, unsigned int countItems, IInspectable * * items);
+    END_INTERFACE
+} __FIVector_1_IInspectableVtbl;
+
+interface __FIVector_1_IInspectable
+{
+    CONST_VTBL struct __FIVector_1_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIVector_1_IInspectable_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIVector_1_IInspectable_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIVector_1_IInspectable_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIVector_1_IInspectable_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIVector_1_IInspectable_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIVector_1_IInspectable_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIVector_1_IInspectable_GetAt(This,index,result) \
+    ( (This)->lpVtbl->GetAt(This,index,result) )
+
+#define __FIVector_1_IInspectable_get_Size(This,result) \
+    ( (This)->lpVtbl->get_Size(This,result) )
+
+#define __FIVector_1_IInspectable_GetView(This,result) \
+    ( (This)->lpVtbl->GetView(This,result) )
+
+#define __FIVector_1_IInspectable_IndexOf(This,value,index,result) \
+    ( (This)->lpVtbl->IndexOf(This,value,index,result) )
+
+#define __FIVector_1_IInspectable_SetAt(This,index,value) \
+    ( (This)->lpVtbl->SetAt(This,index,value) )
+
+#define __FIVector_1_IInspectable_InsertAt(This,index,value) \
+    ( (This)->lpVtbl->InsertAt(This,index,value) )
+
+#define __FIVector_1_IInspectable_RemoveAt(This,index) \
+    ( (This)->lpVtbl->RemoveAt(This,index) )
+
+#define __FIVector_1_IInspectable_Append(This,value) \
+    ( (This)->lpVtbl->Append(This,value) )
+
+#define __FIVector_1_IInspectable_RemoveAtEnd(This) \
+    ( (This)->lpVtbl->RemoveAtEnd(This) )
+
+#define __FIVector_1_IInspectable_Clear(This) \
+    ( (This)->lpVtbl->Clear(This) )
+
+#define __FIVector_1_IInspectable_GetMany(This,startIndex,itemsLength,items,result) \
+    ( (This)->lpVtbl->GetMany(This,startIndex,itemsLength,items,result) )
+
+#define __FIVector_1_IInspectable_ReplaceAll(This,countItems,items) \
+    ( (This)->lpVtbl->ReplaceAll(This,countItems,items) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIVector_1_IInspectable_INTERFACE_DEFINED__
+
+#if !defined(______FIMap_2_HSTRING_IInspectable_INTERFACE_DEFINED__)
+#define ______FIMap_2_HSTRING_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FIMap_2_HSTRING_IInspectable __FIMap_2_HSTRING_IInspectable;
+
+EXTERN_C const IID IID___FIMap_2_HSTRING_IInspectable;
+
+typedef struct __FIMap_2_HSTRING_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIMap_2_HSTRING_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIMap_2_HSTRING_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIMap_2_HSTRING_IInspectable * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIMap_2_HSTRING_IInspectable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIMap_2_HSTRING_IInspectable * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIMap_2_HSTRING_IInspectable * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Lookup )(__FIMap_2_HSTRING_IInspectable * This, HSTRING key, IInspectable * * result);
+    HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIMap_2_HSTRING_IInspectable * This, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *HasKey )(__FIMap_2_HSTRING_IInspectable * This, HSTRING key, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *GetView )(__FIMap_2_HSTRING_IInspectable * This, __FIMapView_2_* * result);
+    HRESULT ( STDMETHODCALLTYPE *Insert )(__FIMap_2_HSTRING_IInspectable * This, HSTRING key, IInspectable * value, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Remove )(__FIMap_2_HSTRING_IInspectable * This, HSTRING key);
+    HRESULT ( STDMETHODCALLTYPE *Clear )(__FIMap_2_HSTRING_IInspectable * This);
+    END_INTERFACE
+} __FIMap_2_HSTRING_IInspectableVtbl;
+
+interface __FIMap_2_HSTRING_IInspectable
+{
+    CONST_VTBL struct __FIMap_2_HSTRING_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIMap_2_HSTRING_IInspectable_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIMap_2_HSTRING_IInspectable_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIMap_2_HSTRING_IInspectable_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIMap_2_HSTRING_IInspectable_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIMap_2_HSTRING_IInspectable_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIMap_2_HSTRING_IInspectable_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIMap_2_HSTRING_IInspectable_Lookup(This,key,result) \
+    ( (This)->lpVtbl->Lookup(This,key,result) )
+
+#define __FIMap_2_HSTRING_IInspectable_get_Size(This,result) \
+    ( (This)->lpVtbl->get_Size(This,result) )
+
+#define __FIMap_2_HSTRING_IInspectable_HasKey(This,key,result) \
+    ( (This)->lpVtbl->HasKey(This,key,result) )
+
+#define __FIMap_2_HSTRING_IInspectable_GetView(This,result) \
+    ( (This)->lpVtbl->GetView(This,result) )
+
+#define __FIMap_2_HSTRING_IInspectable_Insert(This,key,value,result) \
+    ( (This)->lpVtbl->Insert(This,key,value,result) )
+
+#define __FIMap_2_HSTRING_IInspectable_Remove(This,key) \
+    ( (This)->lpVtbl->Remove(This,key) )
+
+#define __FIMap_2_HSTRING_IInspectable_Clear(This) \
+    ( (This)->lpVtbl->Clear(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIMap_2_HSTRING_IInspectable_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CIObjectWidget_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CIObjectWidget_INTERFACE_DEFINED__

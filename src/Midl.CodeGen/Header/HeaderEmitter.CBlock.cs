@@ -12,12 +12,17 @@ public partial class HeaderEmitter
     /// <summary>
     /// Emits the full C compatibility block (#else branch) for all interfaces and delegates.
     /// </summary>
-    private static void EmitCBlock(StringBuilder sb, List<ISymbol> cppTypes)
+    private static void EmitCBlock(StringBuilder sb, List<ISymbol> cppTypes,
+        List<TypeRef>? parameterizedInstantiations = null)
     {
         sb.AppendLine("#else // !defined(__cplusplus)");
         sb.AppendLine();
 
         EmitCForwardDeclarations(sb, cppTypes);
+
+        // Parameterized interface C vtable structs
+        if (parameterizedInstantiations != null)
+            EmitParameterizedInterfacesCBlock(sb, parameterizedInstantiations);
 
         foreach (var symbol in cppTypes)
         {

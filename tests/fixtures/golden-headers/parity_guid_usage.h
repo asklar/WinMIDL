@@ -67,6 +67,25 @@ EXTERN_C const IID IID___x_TestApp_CParity_CIGuidWidget;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FIVector_1_GUID_USE
+#define DEF___FIVector_1_GUID_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("356c217d-6e34-1a54-9dd5-c9490fe0ffea"))
+            IVector<GUID> : IVector_impl<GUID>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IVector`1<Guid>";
+                }
+            };
+            typedef IVector<GUID> __FIVector_1_GUID_t;
+#define __FIVector_1_GUID Windows::Foundation::Collections::__FIVector_1_GUID_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIVector_1_GUID_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIGuidWidget_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIGuidWidget_FWD_DEFINED__
@@ -147,6 +166,101 @@ namespace TestApp {
 #define ____x_TestApp_CParity_CIGuidWidget_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIGuidWidget __x_TestApp_CParity_CIGuidWidget;
 #endif // ____x_TestApp_CParity_CIGuidWidget_FWD_DEFINED__
+
+#if !defined(______FIVector_1_GUID_INTERFACE_DEFINED__)
+#define ______FIVector_1_GUID_INTERFACE_DEFINED__
+
+typedef interface __FIVector_1_GUID __FIVector_1_GUID;
+
+EXTERN_C const IID IID___FIVector_1_GUID;
+
+typedef struct __FIVector_1_GUIDVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIVector_1_GUID * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIVector_1_GUID * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIVector_1_GUID * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIVector_1_GUID * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIVector_1_GUID * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIVector_1_GUID * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVector_1_GUID * This, unsigned int index, GUID * result);
+    HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIVector_1_GUID * This, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *GetView )(__FIVector_1_GUID * This, __FIVectorView_1_* * result);
+    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVector_1_GUID * This, GUID value, unsigned int * index, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *SetAt )(__FIVector_1_GUID * This, unsigned int index, GUID value);
+    HRESULT ( STDMETHODCALLTYPE *InsertAt )(__FIVector_1_GUID * This, unsigned int index, GUID value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAt )(__FIVector_1_GUID * This, unsigned int index);
+    HRESULT ( STDMETHODCALLTYPE *Append )(__FIVector_1_GUID * This, GUID value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAtEnd )(__FIVector_1_GUID * This);
+    HRESULT ( STDMETHODCALLTYPE *Clear )(__FIVector_1_GUID * This);
+    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVector_1_GUID * This, unsigned int startIndex, unsigned int itemsLength, GUID * items, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *ReplaceAll )(__FIVector_1_GUID * This, unsigned int countItems, GUID * items);
+    END_INTERFACE
+} __FIVector_1_GUIDVtbl;
+
+interface __FIVector_1_GUID
+{
+    CONST_VTBL struct __FIVector_1_GUIDVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIVector_1_GUID_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIVector_1_GUID_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIVector_1_GUID_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIVector_1_GUID_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIVector_1_GUID_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIVector_1_GUID_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIVector_1_GUID_GetAt(This,index,result) \
+    ( (This)->lpVtbl->GetAt(This,index,result) )
+
+#define __FIVector_1_GUID_get_Size(This,result) \
+    ( (This)->lpVtbl->get_Size(This,result) )
+
+#define __FIVector_1_GUID_GetView(This,result) \
+    ( (This)->lpVtbl->GetView(This,result) )
+
+#define __FIVector_1_GUID_IndexOf(This,value,index,result) \
+    ( (This)->lpVtbl->IndexOf(This,value,index,result) )
+
+#define __FIVector_1_GUID_SetAt(This,index,value) \
+    ( (This)->lpVtbl->SetAt(This,index,value) )
+
+#define __FIVector_1_GUID_InsertAt(This,index,value) \
+    ( (This)->lpVtbl->InsertAt(This,index,value) )
+
+#define __FIVector_1_GUID_RemoveAt(This,index) \
+    ( (This)->lpVtbl->RemoveAt(This,index) )
+
+#define __FIVector_1_GUID_Append(This,value) \
+    ( (This)->lpVtbl->Append(This,value) )
+
+#define __FIVector_1_GUID_RemoveAtEnd(This) \
+    ( (This)->lpVtbl->RemoveAtEnd(This) )
+
+#define __FIVector_1_GUID_Clear(This) \
+    ( (This)->lpVtbl->Clear(This) )
+
+#define __FIVector_1_GUID_GetMany(This,startIndex,itemsLength,items,result) \
+    ( (This)->lpVtbl->GetMany(This,startIndex,itemsLength,items,result) )
+
+#define __FIVector_1_GUID_ReplaceAll(This,countItems,items) \
+    ( (This)->lpVtbl->ReplaceAll(This,countItems,items) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIVector_1_GUID_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CIGuidWidget_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CIGuidWidget_INTERFACE_DEFINED__

@@ -67,6 +67,139 @@ EXTERN_C const IID IID___x_TestApp_CParity_CIAsyncGenericWidget;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FIVector_1_HSTRING_USE
+#define DEF___FIVector_1_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("600da974-b393-fa59-80ed-c8e2b9e186e6"))
+            IVector<HSTRING> : IVector_impl<HSTRING>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IVector`1<String>";
+                }
+            };
+            typedef IVector<HSTRING> __FIVector_1_HSTRING_t;
+#define __FIVector_1_HSTRING Windows::Foundation::Collections::__FIVector_1_HSTRING_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIVector_1_HSTRING_USE */
+
+#ifndef DEF___FIAsyncOperation_1___FIVector_1_HSTRING_USE
+#define DEF___FIAsyncOperation_1___FIVector_1_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("ac6970bd-8422-865e-8f46-4efc8911590e"))
+        IAsyncOperation<Windows::Foundation::Collections::IVector<HSTRING>> : IAsyncOperation_impl<Windows::Foundation::Collections::IVector<HSTRING>>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IAsyncOperation`1<Windows.Foundation.Collections.IVector`1<String>>";
+            }
+        };
+        typedef IAsyncOperation<Windows::Foundation::Collections::IVector<HSTRING>> __FIAsyncOperation_1___FIVector_1_HSTRING_t;
+#define __FIAsyncOperation_1___FIVector_1_HSTRING Windows::Foundation::__FIAsyncOperation_1___FIVector_1_HSTRING_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIAsyncOperation_1___FIVector_1_HSTRING_USE */
+
+#ifndef DEF___FIMap_2_HSTRING_int_USE
+#define DEF___FIMap_2_HSTRING_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("d3dd9682-f007-655d-9178-8307c1fe32c7"))
+            IMap<HSTRING,int> : IMap_impl<HSTRING,int>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IMap`2<String, Int32>";
+                }
+            };
+            typedef IMap<HSTRING,int> __FIMap_2_HSTRING_int_t;
+#define __FIMap_2_HSTRING_int Windows::Foundation::Collections::__FIMap_2_HSTRING_int_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIMap_2_HSTRING_int_USE */
+
+#ifndef DEF___FIAsyncOperation_1___FIMap_2_HSTRING_int_USE
+#define DEF___FIAsyncOperation_1___FIMap_2_HSTRING_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("d43a1035-910f-e556-aae5-9317cbdfb90e"))
+        IAsyncOperation<Windows::Foundation::Collections::IMap<HSTRING,int>> : IAsyncOperation_impl<Windows::Foundation::Collections::IMap<HSTRING,int>>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IAsyncOperation`1<Windows.Foundation.Collections.IMap`2<String, Int32>>";
+            }
+        };
+        typedef IAsyncOperation<Windows::Foundation::Collections::IMap<HSTRING,int>> __FIAsyncOperation_1___FIMap_2_HSTRING_int_t;
+#define __FIAsyncOperation_1___FIMap_2_HSTRING_int Windows::Foundation::__FIAsyncOperation_1___FIMap_2_HSTRING_int_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIAsyncOperation_1___FIMap_2_HSTRING_int_USE */
+
+#ifndef DEF___FIVectorView_1_int_USE
+#define DEF___FIVectorView_1_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("f9d41036-c375-ff52-aecc-2cd87a546e04"))
+            IVectorView<int> : IVectorView_impl<int>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IVectorView`1<Int32>";
+                }
+            };
+            typedef IVectorView<int> __FIVectorView_1_int_t;
+#define __FIVectorView_1_int Windows::Foundation::Collections::__FIVectorView_1_int_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIVectorView_1_int_USE */
+
+#ifndef DEF___FIAsyncOperation_1___FIVectorView_1_int_USE
+#define DEF___FIAsyncOperation_1___FIVectorView_1_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("833216d5-06e5-b45f-8995-8f4ac53b144a"))
+        IAsyncOperation<Windows::Foundation::Collections::IVectorView<int>> : IAsyncOperation_impl<Windows::Foundation::Collections::IVectorView<int>>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IAsyncOperation`1<Windows.Foundation.Collections.IVectorView`1<Int32>>";
+            }
+        };
+        typedef IAsyncOperation<Windows::Foundation::Collections::IVectorView<int>> __FIAsyncOperation_1___FIVectorView_1_int_t;
+#define __FIAsyncOperation_1___FIVectorView_1_int Windows::Foundation::__FIAsyncOperation_1___FIVectorView_1_int_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIAsyncOperation_1___FIVectorView_1_int_USE */
+
+#ifndef DEF___FIAsyncOperation_1_boolean_USE
+#define DEF___FIAsyncOperation_1_boolean_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("aadbf5d2-e849-0956-834f-a5f6dccb5728"))
+        IAsyncOperation<boolean> : IAsyncOperation_impl<boolean>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IAsyncOperation`1<Boolean>";
+            }
+        };
+        typedef IAsyncOperation<boolean> __FIAsyncOperation_1_boolean_t;
+#define __FIAsyncOperation_1_boolean Windows::Foundation::__FIAsyncOperation_1_boolean_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIAsyncOperation_1_boolean_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIAsyncGenericWidget_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIAsyncGenericWidget_FWD_DEFINED__
@@ -140,6 +273,443 @@ namespace TestApp {
 #define ____x_TestApp_CParity_CIAsyncGenericWidget_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIAsyncGenericWidget __x_TestApp_CParity_CIAsyncGenericWidget;
 #endif // ____x_TestApp_CParity_CIAsyncGenericWidget_FWD_DEFINED__
+
+#if !defined(______FIVector_1_HSTRING_INTERFACE_DEFINED__)
+#define ______FIVector_1_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FIVector_1_HSTRING __FIVector_1_HSTRING;
+
+EXTERN_C const IID IID___FIVector_1_HSTRING;
+
+typedef struct __FIVector_1_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIVector_1_HSTRING * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIVector_1_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIVector_1_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIVector_1_HSTRING * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIVector_1_HSTRING * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIVector_1_HSTRING * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVector_1_HSTRING * This, unsigned int index, HSTRING * result);
+    HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIVector_1_HSTRING * This, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *GetView )(__FIVector_1_HSTRING * This, __FIVectorView_1_* * result);
+    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVector_1_HSTRING * This, HSTRING value, unsigned int * index, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *SetAt )(__FIVector_1_HSTRING * This, unsigned int index, HSTRING value);
+    HRESULT ( STDMETHODCALLTYPE *InsertAt )(__FIVector_1_HSTRING * This, unsigned int index, HSTRING value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAt )(__FIVector_1_HSTRING * This, unsigned int index);
+    HRESULT ( STDMETHODCALLTYPE *Append )(__FIVector_1_HSTRING * This, HSTRING value);
+    HRESULT ( STDMETHODCALLTYPE *RemoveAtEnd )(__FIVector_1_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *Clear )(__FIVector_1_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVector_1_HSTRING * This, unsigned int startIndex, unsigned int itemsLength, HSTRING * items, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *ReplaceAll )(__FIVector_1_HSTRING * This, unsigned int countItems, HSTRING * items);
+    END_INTERFACE
+} __FIVector_1_HSTRINGVtbl;
+
+interface __FIVector_1_HSTRING
+{
+    CONST_VTBL struct __FIVector_1_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIVector_1_HSTRING_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIVector_1_HSTRING_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIVector_1_HSTRING_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIVector_1_HSTRING_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIVector_1_HSTRING_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIVector_1_HSTRING_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIVector_1_HSTRING_GetAt(This,index,result) \
+    ( (This)->lpVtbl->GetAt(This,index,result) )
+
+#define __FIVector_1_HSTRING_get_Size(This,result) \
+    ( (This)->lpVtbl->get_Size(This,result) )
+
+#define __FIVector_1_HSTRING_GetView(This,result) \
+    ( (This)->lpVtbl->GetView(This,result) )
+
+#define __FIVector_1_HSTRING_IndexOf(This,value,index,result) \
+    ( (This)->lpVtbl->IndexOf(This,value,index,result) )
+
+#define __FIVector_1_HSTRING_SetAt(This,index,value) \
+    ( (This)->lpVtbl->SetAt(This,index,value) )
+
+#define __FIVector_1_HSTRING_InsertAt(This,index,value) \
+    ( (This)->lpVtbl->InsertAt(This,index,value) )
+
+#define __FIVector_1_HSTRING_RemoveAt(This,index) \
+    ( (This)->lpVtbl->RemoveAt(This,index) )
+
+#define __FIVector_1_HSTRING_Append(This,value) \
+    ( (This)->lpVtbl->Append(This,value) )
+
+#define __FIVector_1_HSTRING_RemoveAtEnd(This) \
+    ( (This)->lpVtbl->RemoveAtEnd(This) )
+
+#define __FIVector_1_HSTRING_Clear(This) \
+    ( (This)->lpVtbl->Clear(This) )
+
+#define __FIVector_1_HSTRING_GetMany(This,startIndex,itemsLength,items,result) \
+    ( (This)->lpVtbl->GetMany(This,startIndex,itemsLength,items,result) )
+
+#define __FIVector_1_HSTRING_ReplaceAll(This,countItems,items) \
+    ( (This)->lpVtbl->ReplaceAll(This,countItems,items) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIVector_1_HSTRING_INTERFACE_DEFINED__
+
+#if !defined(______FIAsyncOperation_1___FIVector_1_HSTRING_INTERFACE_DEFINED__)
+#define ______FIAsyncOperation_1___FIVector_1_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FIAsyncOperation_1___FIVector_1_HSTRING __FIAsyncOperation_1___FIVector_1_HSTRING;
+
+EXTERN_C const IID IID___FIAsyncOperation_1___FIVector_1_HSTRING;
+
+typedef struct __FIAsyncOperation_1___FIVector_1_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIAsyncOperation_1___FIVector_1_HSTRING * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIAsyncOperation_1___FIVector_1_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIAsyncOperation_1___FIVector_1_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1___FIVector_1_HSTRING * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1___FIVector_1_HSTRING * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1___FIVector_1_HSTRING * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1___FIVector_1_HSTRING * This, __FIVector_1_HSTRING * * result);
+    END_INTERFACE
+} __FIAsyncOperation_1___FIVector_1_HSTRINGVtbl;
+
+interface __FIAsyncOperation_1___FIVector_1_HSTRING
+{
+    CONST_VTBL struct __FIAsyncOperation_1___FIVector_1_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIAsyncOperation_1___FIVector_1_HSTRING_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIAsyncOperation_1___FIVector_1_HSTRING_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIAsyncOperation_1___FIVector_1_HSTRING_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIAsyncOperation_1___FIVector_1_HSTRING_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIAsyncOperation_1___FIVector_1_HSTRING_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIAsyncOperation_1___FIVector_1_HSTRING_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIAsyncOperation_1___FIVector_1_HSTRING_GetResults(This,result) \
+    ( (This)->lpVtbl->GetResults(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIAsyncOperation_1___FIVector_1_HSTRING_INTERFACE_DEFINED__
+
+#if !defined(______FIMap_2_HSTRING_int_INTERFACE_DEFINED__)
+#define ______FIMap_2_HSTRING_int_INTERFACE_DEFINED__
+
+typedef interface __FIMap_2_HSTRING_int __FIMap_2_HSTRING_int;
+
+EXTERN_C const IID IID___FIMap_2_HSTRING_int;
+
+typedef struct __FIMap_2_HSTRING_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIMap_2_HSTRING_int * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIMap_2_HSTRING_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIMap_2_HSTRING_int * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIMap_2_HSTRING_int * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIMap_2_HSTRING_int * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIMap_2_HSTRING_int * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Lookup )(__FIMap_2_HSTRING_int * This, HSTRING key, int * result);
+    HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIMap_2_HSTRING_int * This, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *HasKey )(__FIMap_2_HSTRING_int * This, HSTRING key, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *GetView )(__FIMap_2_HSTRING_int * This, __FIMapView_2_* * result);
+    HRESULT ( STDMETHODCALLTYPE *Insert )(__FIMap_2_HSTRING_int * This, HSTRING key, int value, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *Remove )(__FIMap_2_HSTRING_int * This, HSTRING key);
+    HRESULT ( STDMETHODCALLTYPE *Clear )(__FIMap_2_HSTRING_int * This);
+    END_INTERFACE
+} __FIMap_2_HSTRING_intVtbl;
+
+interface __FIMap_2_HSTRING_int
+{
+    CONST_VTBL struct __FIMap_2_HSTRING_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIMap_2_HSTRING_int_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIMap_2_HSTRING_int_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIMap_2_HSTRING_int_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIMap_2_HSTRING_int_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIMap_2_HSTRING_int_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIMap_2_HSTRING_int_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIMap_2_HSTRING_int_Lookup(This,key,result) \
+    ( (This)->lpVtbl->Lookup(This,key,result) )
+
+#define __FIMap_2_HSTRING_int_get_Size(This,result) \
+    ( (This)->lpVtbl->get_Size(This,result) )
+
+#define __FIMap_2_HSTRING_int_HasKey(This,key,result) \
+    ( (This)->lpVtbl->HasKey(This,key,result) )
+
+#define __FIMap_2_HSTRING_int_GetView(This,result) \
+    ( (This)->lpVtbl->GetView(This,result) )
+
+#define __FIMap_2_HSTRING_int_Insert(This,key,value,result) \
+    ( (This)->lpVtbl->Insert(This,key,value,result) )
+
+#define __FIMap_2_HSTRING_int_Remove(This,key) \
+    ( (This)->lpVtbl->Remove(This,key) )
+
+#define __FIMap_2_HSTRING_int_Clear(This) \
+    ( (This)->lpVtbl->Clear(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIMap_2_HSTRING_int_INTERFACE_DEFINED__
+
+#if !defined(______FIAsyncOperation_1___FIMap_2_HSTRING_int_INTERFACE_DEFINED__)
+#define ______FIAsyncOperation_1___FIMap_2_HSTRING_int_INTERFACE_DEFINED__
+
+typedef interface __FIAsyncOperation_1___FIMap_2_HSTRING_int __FIAsyncOperation_1___FIMap_2_HSTRING_int;
+
+EXTERN_C const IID IID___FIAsyncOperation_1___FIMap_2_HSTRING_int;
+
+typedef struct __FIAsyncOperation_1___FIMap_2_HSTRING_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIAsyncOperation_1___FIMap_2_HSTRING_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIAsyncOperation_1___FIMap_2_HSTRING_int * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1___FIMap_2_HSTRING_int * This, __FIMap_2_HSTRING_int * * result);
+    END_INTERFACE
+} __FIAsyncOperation_1___FIMap_2_HSTRING_intVtbl;
+
+interface __FIAsyncOperation_1___FIMap_2_HSTRING_int
+{
+    CONST_VTBL struct __FIAsyncOperation_1___FIMap_2_HSTRING_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIAsyncOperation_1___FIMap_2_HSTRING_int_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIAsyncOperation_1___FIMap_2_HSTRING_int_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIAsyncOperation_1___FIMap_2_HSTRING_int_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIAsyncOperation_1___FIMap_2_HSTRING_int_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIAsyncOperation_1___FIMap_2_HSTRING_int_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIAsyncOperation_1___FIMap_2_HSTRING_int_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIAsyncOperation_1___FIMap_2_HSTRING_int_GetResults(This,result) \
+    ( (This)->lpVtbl->GetResults(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIAsyncOperation_1___FIMap_2_HSTRING_int_INTERFACE_DEFINED__
+
+#if !defined(______FIVectorView_1_int_INTERFACE_DEFINED__)
+#define ______FIVectorView_1_int_INTERFACE_DEFINED__
+
+typedef interface __FIVectorView_1_int __FIVectorView_1_int;
+
+EXTERN_C const IID IID___FIVectorView_1_int;
+
+typedef struct __FIVectorView_1_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIVectorView_1_int * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIVectorView_1_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIVectorView_1_int * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIVectorView_1_int * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIVectorView_1_int * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIVectorView_1_int * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetAt )(__FIVectorView_1_int * This, unsigned int index, int * result);
+    HRESULT ( STDMETHODCALLTYPE *get_Size )(__FIVectorView_1_int * This, unsigned int * result);
+    HRESULT ( STDMETHODCALLTYPE *IndexOf )(__FIVectorView_1_int * This, int value, unsigned int * index, boolean * result);
+    HRESULT ( STDMETHODCALLTYPE *GetMany )(__FIVectorView_1_int * This, unsigned int startIndex, unsigned int itemsLength, int * items, unsigned int * result);
+    END_INTERFACE
+} __FIVectorView_1_intVtbl;
+
+interface __FIVectorView_1_int
+{
+    CONST_VTBL struct __FIVectorView_1_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIVectorView_1_int_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIVectorView_1_int_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIVectorView_1_int_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIVectorView_1_int_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIVectorView_1_int_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIVectorView_1_int_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIVectorView_1_int_GetAt(This,index,result) \
+    ( (This)->lpVtbl->GetAt(This,index,result) )
+
+#define __FIVectorView_1_int_get_Size(This,result) \
+    ( (This)->lpVtbl->get_Size(This,result) )
+
+#define __FIVectorView_1_int_IndexOf(This,value,index,result) \
+    ( (This)->lpVtbl->IndexOf(This,value,index,result) )
+
+#define __FIVectorView_1_int_GetMany(This,startIndex,itemsLength,items,result) \
+    ( (This)->lpVtbl->GetMany(This,startIndex,itemsLength,items,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIVectorView_1_int_INTERFACE_DEFINED__
+
+#if !defined(______FIAsyncOperation_1___FIVectorView_1_int_INTERFACE_DEFINED__)
+#define ______FIAsyncOperation_1___FIVectorView_1_int_INTERFACE_DEFINED__
+
+typedef interface __FIAsyncOperation_1___FIVectorView_1_int __FIAsyncOperation_1___FIVectorView_1_int;
+
+EXTERN_C const IID IID___FIAsyncOperation_1___FIVectorView_1_int;
+
+typedef struct __FIAsyncOperation_1___FIVectorView_1_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIAsyncOperation_1___FIVectorView_1_int * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIAsyncOperation_1___FIVectorView_1_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIAsyncOperation_1___FIVectorView_1_int * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1___FIVectorView_1_int * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1___FIVectorView_1_int * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1___FIVectorView_1_int * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1___FIVectorView_1_int * This, __FIVectorView_1_int * * result);
+    END_INTERFACE
+} __FIAsyncOperation_1___FIVectorView_1_intVtbl;
+
+interface __FIAsyncOperation_1___FIVectorView_1_int
+{
+    CONST_VTBL struct __FIAsyncOperation_1___FIVectorView_1_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIAsyncOperation_1___FIVectorView_1_int_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIAsyncOperation_1___FIVectorView_1_int_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIAsyncOperation_1___FIVectorView_1_int_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIAsyncOperation_1___FIVectorView_1_int_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIAsyncOperation_1___FIVectorView_1_int_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIAsyncOperation_1___FIVectorView_1_int_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIAsyncOperation_1___FIVectorView_1_int_GetResults(This,result) \
+    ( (This)->lpVtbl->GetResults(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIAsyncOperation_1___FIVectorView_1_int_INTERFACE_DEFINED__
+
+#if !defined(______FIAsyncOperation_1_boolean_INTERFACE_DEFINED__)
+#define ______FIAsyncOperation_1_boolean_INTERFACE_DEFINED__
+
+typedef interface __FIAsyncOperation_1_boolean __FIAsyncOperation_1_boolean;
+
+EXTERN_C const IID IID___FIAsyncOperation_1_boolean;
+
+typedef struct __FIAsyncOperation_1_booleanVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIAsyncOperation_1_boolean * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIAsyncOperation_1_boolean * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIAsyncOperation_1_boolean * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIAsyncOperation_1_boolean * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIAsyncOperation_1_boolean * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIAsyncOperation_1_boolean * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetResults )(__FIAsyncOperation_1_boolean * This, boolean * result);
+    END_INTERFACE
+} __FIAsyncOperation_1_booleanVtbl;
+
+interface __FIAsyncOperation_1_boolean
+{
+    CONST_VTBL struct __FIAsyncOperation_1_booleanVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIAsyncOperation_1_boolean_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIAsyncOperation_1_boolean_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIAsyncOperation_1_boolean_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIAsyncOperation_1_boolean_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIAsyncOperation_1_boolean_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIAsyncOperation_1_boolean_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIAsyncOperation_1_boolean_GetResults(This,result) \
+    ( (This)->lpVtbl->GetResults(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIAsyncOperation_1_boolean_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CIAsyncGenericWidget_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CIAsyncGenericWidget_INTERFACE_DEFINED__

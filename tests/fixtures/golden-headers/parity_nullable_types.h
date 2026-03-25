@@ -67,6 +67,101 @@ EXTERN_C const IID IID___x_TestApp_CParity_CINullableWidget;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FIReference_1_int_USE
+#define DEF___FIReference_1_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("22d4fdac-9e60-4e55-b88f-e2e1b0740627"))
+        IReference<int> : IReference_impl<int>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IReference`1<Int32>";
+            }
+        };
+        typedef IReference<int> __FIReference_1_int_t;
+#define __FIReference_1_int Windows::Foundation::__FIReference_1_int_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIReference_1_int_USE */
+
+#ifndef DEF___FIReference_1_boolean_USE
+#define DEF___FIReference_1_boolean_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("b56065f0-32fa-5d5f-97de-d17edfe1e68f"))
+        IReference<boolean> : IReference_impl<boolean>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IReference`1<Boolean>";
+            }
+        };
+        typedef IReference<boolean> __FIReference_1_boolean_t;
+#define __FIReference_1_boolean Windows::Foundation::__FIReference_1_boolean_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIReference_1_boolean_USE */
+
+#ifndef DEF___FIReference_1_double_USE
+#define DEF___FIReference_1_double_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("2de290f6-80cc-545e-a84a-470613752de9"))
+        IReference<double> : IReference_impl<double>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IReference`1<Double>";
+            }
+        };
+        typedef IReference<double> __FIReference_1_double_t;
+#define __FIReference_1_double Windows::Foundation::__FIReference_1_double_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIReference_1_double_USE */
+
+#ifndef DEF___FIReference_1_float_USE
+#define DEF___FIReference_1_float_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("7a2d02e0-1c44-c156-aecb-963baf2a8cdd"))
+        IReference<float> : IReference_impl<float>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IReference`1<Single>";
+            }
+        };
+        typedef IReference<float> __FIReference_1_float_t;
+#define __FIReference_1_float Windows::Foundation::__FIReference_1_float_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIReference_1_float_USE */
+
+#ifndef DEF___FIReference_1_GUID_USE
+#define DEF___FIReference_1_GUID_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("3f167d31-e994-b757-95d9-c00e894bec27"))
+        IReference<GUID> : IReference_impl<GUID>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.IReference`1<Guid>";
+            }
+        };
+        typedef IReference<GUID> __FIReference_1_GUID_t;
+#define __FIReference_1_GUID Windows::Foundation::__FIReference_1_GUID_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIReference_1_GUID_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CINullableWidget_FWD_DEFINED__
 #define ____x_TestApp_CParity_CINullableWidget_FWD_DEFINED__
@@ -158,6 +253,261 @@ namespace TestApp {
 #define ____x_TestApp_CParity_CINullableWidget_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CINullableWidget __x_TestApp_CParity_CINullableWidget;
 #endif // ____x_TestApp_CParity_CINullableWidget_FWD_DEFINED__
+
+#if !defined(______FIReference_1_int_INTERFACE_DEFINED__)
+#define ______FIReference_1_int_INTERFACE_DEFINED__
+
+typedef interface __FIReference_1_int __FIReference_1_int;
+
+EXTERN_C const IID IID___FIReference_1_int;
+
+typedef struct __FIReference_1_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIReference_1_int * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIReference_1_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIReference_1_int * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIReference_1_int * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIReference_1_int * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIReference_1_int * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *get_Value )(__FIReference_1_int * This, int * result);
+    END_INTERFACE
+} __FIReference_1_intVtbl;
+
+interface __FIReference_1_int
+{
+    CONST_VTBL struct __FIReference_1_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIReference_1_int_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIReference_1_int_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIReference_1_int_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIReference_1_int_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIReference_1_int_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIReference_1_int_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIReference_1_int_get_Value(This,result) \
+    ( (This)->lpVtbl->get_Value(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIReference_1_int_INTERFACE_DEFINED__
+
+#if !defined(______FIReference_1_boolean_INTERFACE_DEFINED__)
+#define ______FIReference_1_boolean_INTERFACE_DEFINED__
+
+typedef interface __FIReference_1_boolean __FIReference_1_boolean;
+
+EXTERN_C const IID IID___FIReference_1_boolean;
+
+typedef struct __FIReference_1_booleanVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIReference_1_boolean * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIReference_1_boolean * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIReference_1_boolean * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIReference_1_boolean * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIReference_1_boolean * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIReference_1_boolean * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *get_Value )(__FIReference_1_boolean * This, boolean * result);
+    END_INTERFACE
+} __FIReference_1_booleanVtbl;
+
+interface __FIReference_1_boolean
+{
+    CONST_VTBL struct __FIReference_1_booleanVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIReference_1_boolean_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIReference_1_boolean_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIReference_1_boolean_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIReference_1_boolean_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIReference_1_boolean_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIReference_1_boolean_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIReference_1_boolean_get_Value(This,result) \
+    ( (This)->lpVtbl->get_Value(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIReference_1_boolean_INTERFACE_DEFINED__
+
+#if !defined(______FIReference_1_double_INTERFACE_DEFINED__)
+#define ______FIReference_1_double_INTERFACE_DEFINED__
+
+typedef interface __FIReference_1_double __FIReference_1_double;
+
+EXTERN_C const IID IID___FIReference_1_double;
+
+typedef struct __FIReference_1_doubleVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIReference_1_double * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIReference_1_double * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIReference_1_double * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIReference_1_double * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIReference_1_double * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIReference_1_double * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *get_Value )(__FIReference_1_double * This, double * result);
+    END_INTERFACE
+} __FIReference_1_doubleVtbl;
+
+interface __FIReference_1_double
+{
+    CONST_VTBL struct __FIReference_1_doubleVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIReference_1_double_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIReference_1_double_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIReference_1_double_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIReference_1_double_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIReference_1_double_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIReference_1_double_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIReference_1_double_get_Value(This,result) \
+    ( (This)->lpVtbl->get_Value(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIReference_1_double_INTERFACE_DEFINED__
+
+#if !defined(______FIReference_1_float_INTERFACE_DEFINED__)
+#define ______FIReference_1_float_INTERFACE_DEFINED__
+
+typedef interface __FIReference_1_float __FIReference_1_float;
+
+EXTERN_C const IID IID___FIReference_1_float;
+
+typedef struct __FIReference_1_floatVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIReference_1_float * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIReference_1_float * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIReference_1_float * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIReference_1_float * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIReference_1_float * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIReference_1_float * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *get_Value )(__FIReference_1_float * This, float * result);
+    END_INTERFACE
+} __FIReference_1_floatVtbl;
+
+interface __FIReference_1_float
+{
+    CONST_VTBL struct __FIReference_1_floatVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIReference_1_float_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIReference_1_float_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIReference_1_float_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIReference_1_float_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIReference_1_float_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIReference_1_float_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIReference_1_float_get_Value(This,result) \
+    ( (This)->lpVtbl->get_Value(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIReference_1_float_INTERFACE_DEFINED__
+
+#if !defined(______FIReference_1_GUID_INTERFACE_DEFINED__)
+#define ______FIReference_1_GUID_INTERFACE_DEFINED__
+
+typedef interface __FIReference_1_GUID __FIReference_1_GUID;
+
+EXTERN_C const IID IID___FIReference_1_GUID;
+
+typedef struct __FIReference_1_GUIDVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIReference_1_GUID * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIReference_1_GUID * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIReference_1_GUID * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIReference_1_GUID * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIReference_1_GUID * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIReference_1_GUID * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *get_Value )(__FIReference_1_GUID * This, GUID * result);
+    END_INTERFACE
+} __FIReference_1_GUIDVtbl;
+
+interface __FIReference_1_GUID
+{
+    CONST_VTBL struct __FIReference_1_GUIDVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIReference_1_GUID_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIReference_1_GUID_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIReference_1_GUID_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIReference_1_GUID_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIReference_1_GUID_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIReference_1_GUID_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIReference_1_GUID_get_Value(This,result) \
+    ( (This)->lpVtbl->get_Value(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIReference_1_GUID_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CINullableWidget_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CINullableWidget_INTERFACE_DEFINED__

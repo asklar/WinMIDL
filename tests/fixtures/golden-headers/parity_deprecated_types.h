@@ -104,6 +104,25 @@ EXTERN_C const IID IID___x_TestApp_CParity_CIRemovedService;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_USE
+#define DEF___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation { 
+        template <>
+        struct __declspec(uuid("5429526c-4b00-8651-ade3-22eb5b76bfa7"))
+        TypedEventHandler<TestApp::Parity::MixedDeprecation*,IInspectable*> : TypedEventHandler_impl<TestApp::Parity::MixedDeprecation*,IInspectable*>
+        {
+            static const wchar_t* z_get_rc_name_impl()
+            {
+                return L"Windows.Foundation.TypedEventHandler`2<TestApp.Parity.MixedDeprecation, Object>";
+            }
+        };
+        typedef TypedEventHandler<TestApp::Parity::MixedDeprecation*,IInspectable*> __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_t;
+#define __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable Windows::Foundation::__FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_t
+/* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIDeprecatedInterface_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIDeprecatedInterface_FWD_DEFINED__
@@ -357,6 +376,45 @@ typedef interface __x_TestApp_CParity_CIMixedDeprecation __x_TestApp_CParity_CIM
 #define ____x_TestApp_CParity_CIRemovedService_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIRemovedService __x_TestApp_CParity_CIRemovedService;
 #endif // ____x_TestApp_CParity_CIRemovedService_FWD_DEFINED__
+
+#if !defined(______FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_INTERFACE_DEFINED__)
+#define ______FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable;
+
+EXTERN_C const IID IID___FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable;
+
+typedef struct __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable * This, MixedDeprecation sender, IInspectable * args);
+    END_INTERFACE
+} __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectableVtbl;
+
+interface __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable
+{
+    CONST_VTBL struct __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_Invoke(This,sender,args) \
+    ( (This)->lpVtbl->Invoke(This,sender,args) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FITypedEventHandler_2_TestApp__CParity__CMixedDeprecation_IInspectable_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CIDeprecatedInterface_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CIDeprecatedInterface_INTERFACE_DEFINED__

@@ -67,6 +67,63 @@ EXTERN_C const IID IID___x_TestApp_CParity_CIObservableWidget;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
 
+#ifndef DEF___FIObservableVector_1_HSTRING_USE
+#define DEF___FIObservableVector_1_HSTRING_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("3db9f989-ffa3-845a-85f4-27b2735b1c37"))
+            IObservableVector<HSTRING> : IObservableVector_impl<HSTRING>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IObservableVector`1<String>";
+                }
+            };
+            typedef IObservableVector<HSTRING> __FIObservableVector_1_HSTRING_t;
+#define __FIObservableVector_1_HSTRING Windows::Foundation::Collections::__FIObservableVector_1_HSTRING_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIObservableVector_1_HSTRING_USE */
+
+#ifndef DEF___FIObservableMap_2_HSTRING_int_USE
+#define DEF___FIObservableMap_2_HSTRING_int_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("86d56822-046d-fd56-ae16-68e9669dbd3a"))
+            IObservableMap<HSTRING,int> : IObservableMap_impl<HSTRING,int>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IObservableMap`2<String, Int32>";
+                }
+            };
+            typedef IObservableMap<HSTRING,int> __FIObservableMap_2_HSTRING_int_t;
+#define __FIObservableMap_2_HSTRING_int Windows::Foundation::Collections::__FIObservableMap_2_HSTRING_int_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIObservableMap_2_HSTRING_int_USE */
+
+#ifndef DEF___FIObservableVector_1_IInspectable_USE
+#define DEF___FIObservableVector_1_IInspectable_USE
+#if !defined(RO_NO_TEMPLATE_NAME)
+namespace Windows {     namespace Foundation {         namespace Collections { 
+            template <>
+            struct __declspec(uuid("485f6519-3190-865a-989b-cb9f99c1bed2"))
+            IObservableVector<IInspectable*> : IObservableVector_impl<IInspectable*>
+            {
+                static const wchar_t* z_get_rc_name_impl()
+                {
+                    return L"Windows.Foundation.Collections.IObservableVector`1<Object>";
+                }
+            };
+            typedef IObservableVector<IInspectable*> __FIObservableVector_1_IInspectable_t;
+#define __FIObservableVector_1_IInspectable Windows::Foundation::Collections::__FIObservableVector_1_IInspectable_t
+/* Collections */ } /* Foundation */ } /* Windows */ } 
+#endif // !defined(RO_NO_TEMPLATE_NAME)
+#endif /* DEF___FIObservableVector_1_IInspectable_USE */
+
 /* Forward Declarations */
 #ifndef ____x_TestApp_CParity_CIObservableWidget_FWD_DEFINED__
 #define ____x_TestApp_CParity_CIObservableWidget_FWD_DEFINED__
@@ -134,6 +191,171 @@ namespace TestApp {
 #define ____x_TestApp_CParity_CIObservableWidget_FWD_DEFINED__
 typedef interface __x_TestApp_CParity_CIObservableWidget __x_TestApp_CParity_CIObservableWidget;
 #endif // ____x_TestApp_CParity_CIObservableWidget_FWD_DEFINED__
+
+#if !defined(______FIObservableVector_1_HSTRING_INTERFACE_DEFINED__)
+#define ______FIObservableVector_1_HSTRING_INTERFACE_DEFINED__
+
+typedef interface __FIObservableVector_1_HSTRING __FIObservableVector_1_HSTRING;
+
+EXTERN_C const IID IID___FIObservableVector_1_HSTRING;
+
+typedef struct __FIObservableVector_1_HSTRINGVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIObservableVector_1_HSTRING * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIObservableVector_1_HSTRING * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIObservableVector_1_HSTRING * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIObservableVector_1_HSTRING * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIObservableVector_1_HSTRING * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIObservableVector_1_HSTRING * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *add_VectorChanged )(__FIObservableVector_1_HSTRING * This, __FIVectorChangedEventHandler_1_* handler, EventRegistrationToken * token);
+    HRESULT ( STDMETHODCALLTYPE *remove_VectorChanged )(__FIObservableVector_1_HSTRING * This, EventRegistrationToken token);
+    END_INTERFACE
+} __FIObservableVector_1_HSTRINGVtbl;
+
+interface __FIObservableVector_1_HSTRING
+{
+    CONST_VTBL struct __FIObservableVector_1_HSTRINGVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIObservableVector_1_HSTRING_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIObservableVector_1_HSTRING_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIObservableVector_1_HSTRING_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIObservableVector_1_HSTRING_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIObservableVector_1_HSTRING_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIObservableVector_1_HSTRING_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIObservableVector_1_HSTRING_add_VectorChanged(This) \
+    ( (This)->lpVtbl->add_VectorChanged(This) )
+
+#define __FIObservableVector_1_HSTRING_remove_VectorChanged(This) \
+    ( (This)->lpVtbl->remove_VectorChanged(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIObservableVector_1_HSTRING_INTERFACE_DEFINED__
+
+#if !defined(______FIObservableMap_2_HSTRING_int_INTERFACE_DEFINED__)
+#define ______FIObservableMap_2_HSTRING_int_INTERFACE_DEFINED__
+
+typedef interface __FIObservableMap_2_HSTRING_int __FIObservableMap_2_HSTRING_int;
+
+EXTERN_C const IID IID___FIObservableMap_2_HSTRING_int;
+
+typedef struct __FIObservableMap_2_HSTRING_intVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIObservableMap_2_HSTRING_int * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIObservableMap_2_HSTRING_int * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIObservableMap_2_HSTRING_int * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIObservableMap_2_HSTRING_int * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIObservableMap_2_HSTRING_int * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIObservableMap_2_HSTRING_int * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *add_MapChanged )(__FIObservableMap_2_HSTRING_int * This, __FIMapChangedEventHandler_2_* handler, EventRegistrationToken * token);
+    HRESULT ( STDMETHODCALLTYPE *remove_MapChanged )(__FIObservableMap_2_HSTRING_int * This, EventRegistrationToken token);
+    END_INTERFACE
+} __FIObservableMap_2_HSTRING_intVtbl;
+
+interface __FIObservableMap_2_HSTRING_int
+{
+    CONST_VTBL struct __FIObservableMap_2_HSTRING_intVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIObservableMap_2_HSTRING_int_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIObservableMap_2_HSTRING_int_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIObservableMap_2_HSTRING_int_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIObservableMap_2_HSTRING_int_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIObservableMap_2_HSTRING_int_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIObservableMap_2_HSTRING_int_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIObservableMap_2_HSTRING_int_add_MapChanged(This) \
+    ( (This)->lpVtbl->add_MapChanged(This) )
+
+#define __FIObservableMap_2_HSTRING_int_remove_MapChanged(This) \
+    ( (This)->lpVtbl->remove_MapChanged(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIObservableMap_2_HSTRING_int_INTERFACE_DEFINED__
+
+#if !defined(______FIObservableVector_1_IInspectable_INTERFACE_DEFINED__)
+#define ______FIObservableVector_1_IInspectable_INTERFACE_DEFINED__
+
+typedef interface __FIObservableVector_1_IInspectable __FIObservableVector_1_IInspectable;
+
+EXTERN_C const IID IID___FIObservableVector_1_IInspectable;
+
+typedef struct __FIObservableVector_1_IInspectableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __FIObservableVector_1_IInspectable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __FIObservableVector_1_IInspectable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __FIObservableVector_1_IInspectable * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __FIObservableVector_1_IInspectable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __FIObservableVector_1_IInspectable * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __FIObservableVector_1_IInspectable * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *add_VectorChanged )(__FIObservableVector_1_IInspectable * This, __FIVectorChangedEventHandler_1_* handler, EventRegistrationToken * token);
+    HRESULT ( STDMETHODCALLTYPE *remove_VectorChanged )(__FIObservableVector_1_IInspectable * This, EventRegistrationToken token);
+    END_INTERFACE
+} __FIObservableVector_1_IInspectableVtbl;
+
+interface __FIObservableVector_1_IInspectable
+{
+    CONST_VTBL struct __FIObservableVector_1_IInspectableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __FIObservableVector_1_IInspectable_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __FIObservableVector_1_IInspectable_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __FIObservableVector_1_IInspectable_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __FIObservableVector_1_IInspectable_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __FIObservableVector_1_IInspectable_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __FIObservableVector_1_IInspectable_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __FIObservableVector_1_IInspectable_add_VectorChanged(This) \
+    ( (This)->lpVtbl->add_VectorChanged(This) )
+
+#define __FIObservableVector_1_IInspectable_remove_VectorChanged(This) \
+    ( (This)->lpVtbl->remove_VectorChanged(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ______FIObservableVector_1_IInspectable_INTERFACE_DEFINED__
 
 #if !defined(____x_TestApp_CParity_CIObservableWidget_INTERFACE_DEFINED__)
 #define ____x_TestApp_CParity_CIObservableWidget_INTERFACE_DEFINED__

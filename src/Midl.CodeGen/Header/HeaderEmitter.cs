@@ -79,10 +79,16 @@ public partial class HeaderEmitter
             sb.AppendLine();
         }
 
-        if (cppTypes.Count > 0 || hasForwardDecls)
+        // Collect parameterized interface instantiations for __FI blocks
+        var parameterizedInstantiations = CollectParameterizedInstantiations(compilation);
+
+        if (cppTypes.Count > 0 || hasForwardDecls || parameterizedInstantiations.Count > 0)
         {
             sb.AppendLine("#if defined(__cplusplus) && !defined(CINTERFACE)");
             sb.AppendLine();
+
+            // Parameterized interface C++ template specializations (before forward decls)
+            EmitParameterizedInterfacesCpp(sb, parameterizedInstantiations);
 
             // Forward declarations (with FWD_DEFINED guards and namespace blocks)
             EmitForwardDeclarations(sb, allTypes);
@@ -100,7 +106,7 @@ public partial class HeaderEmitter
                 }
             }
 
-            EmitCBlock(sb, cppTypes);
+            EmitCBlock(sb, cppTypes, parameterizedInstantiations);
 
             sb.AppendLine("#endif // defined(__cplusplus) && !defined(CINTERFACE)");
             sb.AppendLine();
