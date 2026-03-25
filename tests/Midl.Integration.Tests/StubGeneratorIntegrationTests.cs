@@ -101,10 +101,10 @@ public class StubGeneratorIntegrationTests
         // GetName returns HSTRING — no input params
         Assert.Contains("HSTRING returnValue;", output);
         Assert.Contains("m_pServer->GetName(&returnValue)", output);
-        Assert.Contains("WindowsGetStringRawBuffer(returnValue, &len)", output);
+        Assert.Contains("WindowsGetStringRawBuffer(returnValue, &returnValue_len)", output);
         // Reply: [sizeof(UINT32) len][N*sizeof(WCHAR) chars][sizeof(HRESULT)]
-        Assert.Contains("sizeof(UINT32) + (len + 1) * sizeof(WCHAR) + sizeof(HRESULT)", output);
-        Assert.Contains("pChannel->GetBuffer(pMsg, IID___x_Widgets_IWidget)", output);
+        Assert.Contains("sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT)", output);
+        Assert.Contains("pChannel->GetBuffer(pMsg,", output);
         Assert.Contains("WindowsDeleteString(returnValue)", output);
     }
 

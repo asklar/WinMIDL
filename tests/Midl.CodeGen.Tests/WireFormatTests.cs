@@ -232,7 +232,7 @@ public partial class WireFormatTests
         Assert.Contains("WindowsGetStringLen(name)", code);
         Assert.Contains("memcpy(p, &name_len, sizeof(UINT32))", code);
         Assert.Contains("WindowsGetStringRawBuffer(name", code);
-        Assert.Contains("(name_len + 1) * sizeof(WCHAR)", code);
+        Assert.Contains("name_len * sizeof(WCHAR)", code);
     }
 
     [Fact]
@@ -246,7 +246,7 @@ public partial class WireFormatTests
 
         Assert.Contains("memcpy(&name_len, pReply, sizeof(UINT32))", code);
         Assert.Contains("WindowsCreateStringReference", code);
-        Assert.Contains("(name_len + 1) * sizeof(WCHAR)", code);
+        Assert.Contains("name_len * sizeof(WCHAR)", code);
     }
 
     [Fact]

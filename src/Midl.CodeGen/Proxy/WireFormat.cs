@@ -64,7 +64,7 @@ public static class WireFormat
     public static string GetWireSizeExpression(TypeRef typeRef)
     {
         if (typeRef.Name == "String")
-            return "sizeof(UINT32) + (len + 1) * sizeof(WCHAR)";
+            return "sizeof(UINT32) + len * sizeof(WCHAR)";
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
             return string.Join(" + ", structSym.Fields.Select(f => GetCppSizeExpression(f.Type)));
         return GetCppSizeExpression(typeRef);
@@ -77,7 +77,7 @@ public static class WireFormat
     public static string GetTypeSizeExpression(TypeRef type)
     {
         if (type.Name == "String")
-            return "sizeof(UINT32) + (WindowsGetStringLen({0}) + 1) * sizeof(WCHAR)";
+            return "sizeof(UINT32) + WindowsGetStringLen({0}) * sizeof(WCHAR)";
         if (type.ResolvedSymbol is StructSymbol structSym)
             return string.Join(" + ", structSym.Fields.Select(f => GetCppSizeExpression(f.Type)));
         return GetCppSizeExpression(type);
@@ -261,7 +261,8 @@ public static class WireFormat
         if (typeRef.Name == "String")
         {
             sb.AppendLine($"{indent}UINT32 {targetName}_len; memcpy(&{targetName}_len, {bufferPtr}, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
-            sb.AppendLine($"{indent}WindowsCreateString((PCWSTR){bufferPtr}, {targetName}_len, {(isPointer ? targetName : $"&{targetName}")}); {bufferPtr} += ({targetName}_len + 1) * sizeof(WCHAR);");
+            sb.AppendLine($"{indent}hr = WindowsCreateString((PCWSTR){bufferPtr}, {targetName}_len, {(isPointer ? targetName : $"&{targetName}")}); if (FAILED(hr)) return hr;");
+            sb.AppendLine($"{indent}{bufferPtr} += {targetName}_len * sizeof(WCHAR);");
             return;
         }
 
@@ -304,6 +305,7 @@ public static class WireFormat
 
     /// <summary>
     /// Emits C++ code to serialize an HSTRING value (length-prefixed UTF-16).
+    /// Wire format: [uint32_t char_count][wchar_t chars * char_count]
     /// </summary>
     public static void EmitSerializeHString(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
     {
@@ -311,12 +313,12 @@ public static class WireFormat
         sb.AppendLine($"{indent}UINT32 {safeName}_len = WindowsGetStringLen({varName});");
         sb.AppendLine($"{indent}memcpy({bufferPtr}, &{safeName}_len, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
         sb.AppendLine($"{indent}PCWSTR {safeName}_raw = WindowsGetStringRawBuffer({varName}, nullptr);");
-        sb.AppendLine($"{indent}memcpy({bufferPtr}, {safeName}_raw, ({safeName}_len + 1) * sizeof(WCHAR)); {bufferPtr} += ({safeName}_len + 1) * sizeof(WCHAR);");
+        sb.AppendLine($"{indent}memcpy({bufferPtr}, {safeName}_raw, {safeName}_len * sizeof(WCHAR)); {bufferPtr} += {safeName}_len * sizeof(WCHAR);");
     }
 
     /// <summary>
     /// Emits C++ code to deserialize an HSTRING value (length-prefixed UTF-16).
-    /// Declares the HSTRING variable.
+    /// Uses zero-copy WindowsCreateStringReference. Declares the HSTRING variable.
     /// </summary>
     public static void EmitDeserializeHString(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
     {
@@ -327,19 +329,20 @@ public static class WireFormat
         sb.AppendLine($"{indent}if ({varName}_len > 0) {{");
         sb.AppendLine($"{indent}    WindowsCreateStringReference((PCWSTR){bufferPtr}, {varName}_len, &{varName}_header, &{varName});");
         sb.AppendLine($"{indent}}}");
-        sb.AppendLine($"{indent}{bufferPtr} += ({varName}_len + 1) * sizeof(WCHAR);");
+        sb.AppendLine($"{indent}{bufferPtr} += {varName}_len * sizeof(WCHAR);");
     }
 
     /// <summary>
     /// Emits C++ code to serialize an HSTRING for reply (using WindowsGetStringRawBuffer).
     /// Used by StubGenerator for serializing HSTRING out params or return values.
+    /// Wire format: [uint32_t char_count][wchar_t chars * char_count]
     /// </summary>
     public static void EmitSerializeHStringReply(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
     {
         sb.AppendLine($"{indent}UINT32 {varName}_len = 0;");
         sb.AppendLine($"{indent}PCWSTR {varName}_raw = WindowsGetStringRawBuffer({varName}, &{varName}_len);");
         sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}_len, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
-        sb.AppendLine($"{indent}memcpy({bufferPtr}, {varName}_raw, ({varName}_len + 1) * sizeof(WCHAR)); {bufferPtr} += ({varName}_len + 1) * sizeof(WCHAR);");
+        sb.AppendLine($"{indent}memcpy({bufferPtr}, {varName}_raw, {varName}_len * sizeof(WCHAR)); {bufferPtr} += {varName}_len * sizeof(WCHAR);");
     }
 
     /// <summary>
@@ -469,6 +472,7 @@ public static class WireFormat
     /// Emits C++ code to deserialize an HSTRING using zero-copy WindowsCreateStringReference.
     /// Creates a non-owning string reference into the existing buffer.
     /// The string is valid as long as the buffer is alive (during Invoke).
+    /// Wire format: [uint32_t char_count][wchar_t chars * char_count]
     /// </summary>
     public static void EmitDeserializeHStringZeroCopy(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
     {
@@ -478,7 +482,7 @@ public static class WireFormat
         sb.AppendLine($"{indent}HSTRING {varName};");
         sb.AppendLine($"{indent}if ({varName}_len > 0) {{");
         sb.AppendLine($"{indent}    WindowsCreateStringReference(reinterpret_cast<PCWSTR>({bufferPtr}), {varName}_len, &{varName}_hdr, &{varName});");
-        sb.AppendLine($"{indent}    {bufferPtr} += ({varName}_len + 1) * sizeof(WCHAR);");
+        sb.AppendLine($"{indent}    {bufferPtr} += {varName}_len * sizeof(WCHAR);");
         sb.AppendLine($"{indent}}} else {{");
         sb.AppendLine($"{indent}    {varName} = nullptr;");
         sb.AppendLine($"{indent}}}");
@@ -492,5 +496,70 @@ public static class WireFormat
     private static string SanitizeVarName(string name)
     {
         return name.Replace(".", "_").Replace("->", "_");
+    }
+
+    /// <summary>
+    /// Returns a C++ sizeof-composed expression for the total buffer size of fixed-size params.
+    /// Unlike <see cref="ComputeFixedBufferSize"/> which returns an int, this returns
+    /// an expression like "sizeof(FLOAT) + sizeof(FLOAT)" for use in constexpr definitions.
+    /// </summary>
+    public static string ComputeFixedBufferSizeExpression(List<ProxyParam> parms)
+    {
+        if (parms.Count == 0)
+            return "0";
+        return string.Join(" + ", parms.Select(p => GetCppSizeExpression(p.Type)));
+    }
+
+    /// <summary>
+    /// Returns true if the return type indicates an async method (IAsyncOperation, IAsyncAction, etc.).
+    /// Async methods must not use zero-copy HSTRING deserialization because the server
+    /// may capture parameters beyond the call lifetime.
+    /// </summary>
+    public static bool IsAsyncReturnType(TypeRef returnType)
+    {
+        return returnType.Name is "IAsyncOperation" or "IAsyncAction"
+            or "IAsyncOperationWithProgress" or "IAsyncActionWithProgress";
+    }
+
+    /// <summary>
+    /// Emits C++ code to deserialize an HSTRING using allocating WindowsCreateString.
+    /// Unlike <see cref="EmitDeserializeHString"/> which uses zero-copy WindowsCreateStringReference,
+    /// this creates an owning copy that is safe to capture beyond the RPC buffer lifetime.
+    /// Used for async method parameters in stubs.
+    /// </summary>
+    public static void EmitDeserializeHStringAllocating(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
+    {
+        sb.AppendLine($"{indent}UINT32 {varName}_len;");
+        sb.AppendLine($"{indent}memcpy(&{varName}_len, {bufferPtr}, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
+        sb.AppendLine($"{indent}HSTRING {varName} = nullptr;");
+        sb.AppendLine($"{indent}if ({varName}_len > 0) {{");
+        sb.AppendLine($"{indent}    HRESULT hr = WindowsCreateString((PCWSTR){bufferPtr}, {varName}_len, &{varName});");
+        sb.AppendLine($"{indent}    if (FAILED(hr)) return hr;");
+        sb.AppendLine($"{indent}}}");
+        sb.AppendLine($"{indent}{bufferPtr} += {varName}_len * sizeof(WCHAR);");
+    }
+
+    /// <summary>
+    /// Emits a consolidated set of #include directives for proxy/stub/factory files.
+    /// Groups headers by category: system, WinRT, and optionally a generated header.
+    /// </summary>
+    public static void EmitConsolidatedIncludes(StringBuilder sb, string? headerFile = null)
+    {
+        sb.AppendLine("// System headers");
+        sb.AppendLine("#include <windows.h>");
+        sb.AppendLine("#include <objidl.h>");
+        sb.AppendLine("// WinRT headers");
+        sb.AppendLine("#include <hstring.h>");
+        sb.AppendLine("#include <winstring.h>");
+        sb.AppendLine("#include <inspectable.h>");
+        sb.AppendLine("// C++ standard headers");
+        sb.AppendLine("#include <type_traits>");
+        sb.AppendLine("#include <array>");
+        if (headerFile != null)
+        {
+            sb.AppendLine("// Generated header");
+            sb.AppendLine($"#include \"{headerFile}\"");
+        }
+        sb.AppendLine();
     }
 }

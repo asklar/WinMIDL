@@ -103,9 +103,12 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {", output);
-        Assert.Contains("riid == IID_IUnknown || riid == IID_IRpcProxyBuffer", output);
+        // Uses array-based IID lookup
+        Assert.Contains("kSupportedIIDs", output);
+        Assert.Contains("IID_IUnknown", output);
+        Assert.Contains("IID_IRpcProxyBuffer", output);
         Assert.Contains("static_cast<IRpcProxyBuffer*>(this)", output);
-        Assert.Contains("riid == IID___x_TestApp_IWidget", output);
+        Assert.Contains("IID___x_TestApp_IWidget", output);
         Assert.Contains("static_cast<__x_TestApp_IWidget*>(&m_face)", output);
     }
 
