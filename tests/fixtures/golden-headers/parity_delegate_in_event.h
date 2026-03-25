@@ -176,6 +176,171 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIEventSourceImpl_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CDataHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_CDataHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CDataHandler __x_TestApp_CParity_CDataHandler;
+#endif // ____x_TestApp_CParity_CDataHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CValidationHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_CValidationHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CValidationHandler __x_TestApp_CParity_CValidationHandler;
+#endif // ____x_TestApp_CParity_CValidationHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIEventSourceImpl_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIEventSourceImpl_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIEventSourceImpl __x_TestApp_CParity_CIEventSourceImpl;
+#endif // ____x_TestApp_CParity_CIEventSourceImpl_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CDataHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CDataHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CDataHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CDataHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CDataHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CDataHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CDataHandler * This, /* [in] */ IInspectable* sender, /* [in] */ HSTRING data);
+    END_INTERFACE
+} __x_TestApp_CParity_CDataHandlerVtbl;
+
+interface __x_TestApp_CParity_CDataHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_CDataHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CDataHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CDataHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CDataHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CDataHandler_Invoke(This,sender,data) \
+    ( (This)->lpVtbl->Invoke(This,sender,data) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CDataHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CValidationHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CValidationHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CValidationHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CValidationHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CValidationHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CValidationHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CValidationHandler * This, /* [in] */ HSTRING input, /* [out] */ HSTRING* error, /* [out] */ ::boolean* isValid);
+    END_INTERFACE
+} __x_TestApp_CParity_CValidationHandlerVtbl;
+
+interface __x_TestApp_CParity_CValidationHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_CValidationHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CValidationHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CValidationHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CValidationHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CValidationHandler_Invoke(This,input,error,isValid) \
+    ( (This)->lpVtbl->Invoke(This,input,error,isValid) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CValidationHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIEventSourceImpl_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIEventSourceImpl_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IEventSourceImpl[] = L"TestApp.Parity.IEventSourceImpl";
+
+typedef struct __x_TestApp_CParity_CIEventSourceImplVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIEventSourceImpl * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIEventSourceImpl * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIEventSourceImpl * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIEventSourceImpl * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIEventSourceImpl * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIEventSourceImpl * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *SendData )(__x_TestApp_CParity_CIEventSourceImpl * This, /* [in] */ HSTRING data);
+    HRESULT ( STDMETHODCALLTYPE *ReceiveData )(__x_TestApp_CParity_CIEventSourceImpl * This);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_DataReceived )(__x_TestApp_CParity_CIEventSourceImpl * This, /* [in] */ __x_TestApp_CParity_CDataHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_DataReceived )(__x_TestApp_CParity_CIEventSourceImpl * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_DataSent )(__x_TestApp_CParity_CIEventSourceImpl * This, /* [in] */ __x_TestApp_CParity_CDataHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_DataSent )(__x_TestApp_CParity_CIEventSourceImpl * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_StatusChanged )(__x_TestApp_CParity_CIEventSourceImpl * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_StatusChanged )(__x_TestApp_CParity_CIEventSourceImpl * This, /* [in] */ EventRegistrationToken token);
+    END_INTERFACE
+} __x_TestApp_CParity_CIEventSourceImplVtbl;
+
+interface __x_TestApp_CParity_CIEventSourceImpl
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIEventSourceImplVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIEventSourceImpl_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_SendData(This,data) \
+    ( (This)->lpVtbl->SendData(This,data) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_ReceiveData(This) \
+    ( (This)->lpVtbl->ReceiveData(This) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_add_DataReceived(This,handler,token) \
+    ( (This)->lpVtbl->add_DataReceived(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_remove_DataReceived(This,token) \
+    ( (This)->lpVtbl->remove_DataReceived(This,token) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_add_DataSent(This,handler,token) \
+    ( (This)->lpVtbl->add_DataSent(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_remove_DataSent(This,token) \
+    ( (This)->lpVtbl->remove_DataSent(This,token) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_add_StatusChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_StatusChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIEventSourceImpl_remove_StatusChanged(This,token) \
+    ( (This)->lpVtbl->remove_StatusChanged(This,token) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIEventSourceImpl_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

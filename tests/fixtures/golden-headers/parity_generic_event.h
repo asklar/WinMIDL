@@ -176,6 +176,171 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIGenericEventWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CNamesChangedDelegate_FWD_DEFINED__
+#define ____x_TestApp_CParity_CNamesChangedDelegate_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CNamesChangedDelegate __x_TestApp_CParity_CNamesChangedDelegate;
+#endif // ____x_TestApp_CParity_CNamesChangedDelegate_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CMappingsChangedDelegate_FWD_DEFINED__
+#define ____x_TestApp_CParity_CMappingsChangedDelegate_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CMappingsChangedDelegate __x_TestApp_CParity_CMappingsChangedDelegate;
+#endif // ____x_TestApp_CParity_CMappingsChangedDelegate_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIGenericEventWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIGenericEventWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIGenericEventWidget __x_TestApp_CParity_CIGenericEventWidget;
+#endif // ____x_TestApp_CParity_CIGenericEventWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CNamesChangedDelegate_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CNamesChangedDelegate_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CNamesChangedDelegateVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CNamesChangedDelegate * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CNamesChangedDelegate * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CNamesChangedDelegate * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CNamesChangedDelegate * This, /* [in] */ __x_Windows_CFoundation_CCollections_CIVector* names);
+    END_INTERFACE
+} __x_TestApp_CParity_CNamesChangedDelegateVtbl;
+
+interface __x_TestApp_CParity_CNamesChangedDelegate
+{
+    CONST_VTBL struct __x_TestApp_CParity_CNamesChangedDelegateVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CNamesChangedDelegate_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CNamesChangedDelegate_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CNamesChangedDelegate_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CNamesChangedDelegate_Invoke(This,names) \
+    ( (This)->lpVtbl->Invoke(This,names) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CNamesChangedDelegate_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CMappingsChangedDelegate_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CMappingsChangedDelegate_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CMappingsChangedDelegateVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CMappingsChangedDelegate * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CMappingsChangedDelegate * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CMappingsChangedDelegate * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CMappingsChangedDelegate * This, /* [in] */ __x_Windows_CFoundation_CCollections_CIMap* mappings);
+    END_INTERFACE
+} __x_TestApp_CParity_CMappingsChangedDelegateVtbl;
+
+interface __x_TestApp_CParity_CMappingsChangedDelegate
+{
+    CONST_VTBL struct __x_TestApp_CParity_CMappingsChangedDelegateVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CMappingsChangedDelegate_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CMappingsChangedDelegate_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CMappingsChangedDelegate_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CMappingsChangedDelegate_Invoke(This,mappings) \
+    ( (This)->lpVtbl->Invoke(This,mappings) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CMappingsChangedDelegate_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIGenericEventWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIGenericEventWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IGenericEventWidget[] = L"TestApp.Parity.IGenericEventWidget";
+
+typedef struct __x_TestApp_CParity_CIGenericEventWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIGenericEventWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIGenericEventWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIGenericEventWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIGenericEventWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIGenericEventWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIGenericEventWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_NamesChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ __x_TestApp_CParity_CNamesChangedDelegate* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_NamesChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_MappingsChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ __x_TestApp_CParity_CMappingsChangedDelegate* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_MappingsChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CountChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CountChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_ActiveChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_ActiveChanged )(__x_TestApp_CParity_CIGenericEventWidget * This, /* [in] */ EventRegistrationToken token);
+    END_INTERFACE
+} __x_TestApp_CParity_CIGenericEventWidgetVtbl;
+
+interface __x_TestApp_CParity_CIGenericEventWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIGenericEventWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIGenericEventWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_add_NamesChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_NamesChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_remove_NamesChanged(This,token) \
+    ( (This)->lpVtbl->remove_NamesChanged(This,token) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_add_MappingsChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_MappingsChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_remove_MappingsChanged(This,token) \
+    ( (This)->lpVtbl->remove_MappingsChanged(This,token) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_add_CountChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_CountChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_remove_CountChanged(This,token) \
+    ( (This)->lpVtbl->remove_CountChanged(This,token) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_add_ActiveChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_ActiveChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIGenericEventWidget_remove_ActiveChanged(This,token) \
+    ( (This)->lpVtbl->remove_ActiveChanged(This,token) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIGenericEventWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

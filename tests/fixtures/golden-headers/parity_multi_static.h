@@ -124,6 +124,83 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIMultiStaticServiceStatics_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIMultiStaticServiceStatics_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMultiStaticServiceStatics_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMultiStaticServiceStatics __x_TestApp_CParity_CIMultiStaticServiceStatics;
+#endif // ____x_TestApp_CParity_CIMultiStaticServiceStatics_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMultiStaticServiceStatics_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMultiStaticServiceStatics_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMultiStaticServiceStatics[] = L"TestApp.Parity.IMultiStaticServiceStatics";
+
+typedef struct __x_TestApp_CParity_CIMultiStaticServiceStaticsVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMultiStaticServiceStatics * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMultiStaticServiceStatics * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMultiStaticServiceStatics * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMultiStaticServiceStatics * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMultiStaticServiceStatics * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiStaticServiceStatics * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetVersion )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Initialize )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This);
+    HRESULT ( STDMETHODCALLTYPE *GetBuildNumber )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *IsFeatureEnabled )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This, /* [in] */ HSTRING feature, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ResetAll )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This);
+    HRESULT ( STDMETHODCALLTYPE *GetDiagnostics )(__x_TestApp_CParity_CIMultiStaticServiceStatics * This, /* [out, retval] */ HSTRING* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMultiStaticServiceStaticsVtbl;
+
+interface __x_TestApp_CParity_CIMultiStaticServiceStatics
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMultiStaticServiceStaticsVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_GetVersion(This,returnValue) \
+    ( (This)->lpVtbl->GetVersion(This,returnValue) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_Initialize(This) \
+    ( (This)->lpVtbl->Initialize(This) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_GetBuildNumber(This,returnValue) \
+    ( (This)->lpVtbl->GetBuildNumber(This,returnValue) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_IsFeatureEnabled(This,feature,returnValue) \
+    ( (This)->lpVtbl->IsFeatureEnabled(This,feature,returnValue) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_ResetAll(This) \
+    ( (This)->lpVtbl->ResetAll(This) )
+
+#define __x_TestApp_CParity_CIMultiStaticServiceStatics_GetDiagnostics(This,returnValue) \
+    ( (This)->lpVtbl->GetDiagnostics(This,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMultiStaticServiceStatics_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

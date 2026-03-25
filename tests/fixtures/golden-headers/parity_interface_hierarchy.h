@@ -347,6 +347,365 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CITreeNodeFactory_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIBaseNode_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIBaseNode_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIBaseNode __x_TestApp_CParity_CIBaseNode;
+#endif // ____x_TestApp_CParity_CIBaseNode_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CINamedNode_FWD_DEFINED__
+#define ____x_TestApp_CParity_CINamedNode_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CINamedNode __x_TestApp_CParity_CINamedNode;
+#endif // ____x_TestApp_CParity_CINamedNode_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIOrderedNode_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIOrderedNode_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIOrderedNode __x_TestApp_CParity_CIOrderedNode;
+#endif // ____x_TestApp_CParity_CIOrderedNode_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CITaggable_FWD_DEFINED__
+#define ____x_TestApp_CParity_CITaggable_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CITaggable __x_TestApp_CParity_CITaggable;
+#endif // ____x_TestApp_CParity_CITaggable_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CICompositeNode_FWD_DEFINED__
+#define ____x_TestApp_CParity_CICompositeNode_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CICompositeNode __x_TestApp_CParity_CICompositeNode;
+#endif // ____x_TestApp_CParity_CICompositeNode_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CITreeNodeFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CITreeNodeFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CITreeNodeFactory __x_TestApp_CParity_CITreeNodeFactory;
+#endif // ____x_TestApp_CParity_CITreeNodeFactory_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIBaseNode_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIBaseNode_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IBaseNode[] = L"TestApp.Parity.IBaseNode";
+
+typedef struct __x_TestApp_CParity_CIBaseNodeVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIBaseNode * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIBaseNode * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIBaseNode * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIBaseNode * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIBaseNode * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIBaseNode * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Id )(__x_TestApp_CParity_CIBaseNode * This, /* [out, retval] */ HSTRING* value);
+    HRESULT ( STDMETHODCALLTYPE *Initialize )(__x_TestApp_CParity_CIBaseNode * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIBaseNodeVtbl;
+
+interface __x_TestApp_CParity_CIBaseNode
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIBaseNodeVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIBaseNode_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIBaseNode_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIBaseNode_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIBaseNode_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIBaseNode_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIBaseNode_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIBaseNode_get_Id(This,value) \
+    ( (This)->lpVtbl->get_Id(This,value) )
+
+#define __x_TestApp_CParity_CIBaseNode_Initialize(This) \
+    ( (This)->lpVtbl->Initialize(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIBaseNode_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CINamedNode_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CINamedNode_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_INamedNode[] = L"TestApp.Parity.INamedNode";
+
+typedef struct __x_TestApp_CParity_CINamedNodeVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CINamedNode * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CINamedNode * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CINamedNode * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CINamedNode * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CINamedNode * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CINamedNode * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DisplayName )(__x_TestApp_CParity_CINamedNode * This, /* [out, retval] */ HSTRING* value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_DisplayName )(__x_TestApp_CParity_CINamedNode * This, /* [in] */ HSTRING value);
+    END_INTERFACE
+} __x_TestApp_CParity_CINamedNodeVtbl;
+
+interface __x_TestApp_CParity_CINamedNode
+{
+    CONST_VTBL struct __x_TestApp_CParity_CINamedNodeVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CINamedNode_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CINamedNode_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CINamedNode_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CINamedNode_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CINamedNode_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CINamedNode_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CINamedNode_get_DisplayName(This,value) \
+    ( (This)->lpVtbl->get_DisplayName(This,value) )
+
+#define __x_TestApp_CParity_CINamedNode_put_DisplayName(This,value) \
+    ( (This)->lpVtbl->put_DisplayName(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CINamedNode_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIOrderedNode_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIOrderedNode_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IOrderedNode[] = L"TestApp.Parity.IOrderedNode";
+
+typedef struct __x_TestApp_CParity_CIOrderedNodeVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIOrderedNode * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIOrderedNode * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIOrderedNode * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIOrderedNode * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIOrderedNode * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIOrderedNode * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_SortOrder )(__x_TestApp_CParity_CIOrderedNode * This, /* [out, retval] */ int* value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_SortOrder )(__x_TestApp_CParity_CIOrderedNode * This, /* [in] */ int value);
+    HRESULT ( STDMETHODCALLTYPE *MoveUp )(__x_TestApp_CParity_CIOrderedNode * This);
+    HRESULT ( STDMETHODCALLTYPE *MoveDown )(__x_TestApp_CParity_CIOrderedNode * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIOrderedNodeVtbl;
+
+interface __x_TestApp_CParity_CIOrderedNode
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIOrderedNodeVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIOrderedNode_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIOrderedNode_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIOrderedNode_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIOrderedNode_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIOrderedNode_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIOrderedNode_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIOrderedNode_get_SortOrder(This,value) \
+    ( (This)->lpVtbl->get_SortOrder(This,value) )
+
+#define __x_TestApp_CParity_CIOrderedNode_put_SortOrder(This,value) \
+    ( (This)->lpVtbl->put_SortOrder(This,value) )
+
+#define __x_TestApp_CParity_CIOrderedNode_MoveUp(This) \
+    ( (This)->lpVtbl->MoveUp(This) )
+
+#define __x_TestApp_CParity_CIOrderedNode_MoveDown(This) \
+    ( (This)->lpVtbl->MoveDown(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIOrderedNode_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CITaggable_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CITaggable_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ITaggable[] = L"TestApp.Parity.ITaggable";
+
+typedef struct __x_TestApp_CParity_CITaggableVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CITaggable * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CITaggable * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CITaggable * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CITaggable * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CITaggable * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CITaggable * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Tag )(__x_TestApp_CParity_CITaggable * This, /* [out, retval] */ HSTRING* value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Tag )(__x_TestApp_CParity_CITaggable * This, /* [in] */ HSTRING value);
+    END_INTERFACE
+} __x_TestApp_CParity_CITaggableVtbl;
+
+interface __x_TestApp_CParity_CITaggable
+{
+    CONST_VTBL struct __x_TestApp_CParity_CITaggableVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CITaggable_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CITaggable_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CITaggable_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CITaggable_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CITaggable_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CITaggable_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CITaggable_get_Tag(This,value) \
+    ( (This)->lpVtbl->get_Tag(This,value) )
+
+#define __x_TestApp_CParity_CITaggable_put_Tag(This,value) \
+    ( (This)->lpVtbl->put_Tag(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CITaggable_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CICompositeNode_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CICompositeNode_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ICompositeNode[] = L"TestApp.Parity.ICompositeNode";
+
+typedef struct __x_TestApp_CParity_CICompositeNodeVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CICompositeNode * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CICompositeNode * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CICompositeNode * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CICompositeNode * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CICompositeNode * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CICompositeNode * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ChildCount )(__x_TestApp_CParity_CICompositeNode * This, /* [out, retval] */ int* value);
+    HRESULT ( STDMETHODCALLTYPE *AddChild )(__x_TestApp_CParity_CICompositeNode * This, /* [in] */ __x_TestApp_CParity_CIBaseNode* child);
+    HRESULT ( STDMETHODCALLTYPE *RemoveChild )(__x_TestApp_CParity_CICompositeNode * This, /* [in] */ HSTRING id);
+    END_INTERFACE
+} __x_TestApp_CParity_CICompositeNodeVtbl;
+
+interface __x_TestApp_CParity_CICompositeNode
+{
+    CONST_VTBL struct __x_TestApp_CParity_CICompositeNodeVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CICompositeNode_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CICompositeNode_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CICompositeNode_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CICompositeNode_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CICompositeNode_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CICompositeNode_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CICompositeNode_get_ChildCount(This,value) \
+    ( (This)->lpVtbl->get_ChildCount(This,value) )
+
+#define __x_TestApp_CParity_CICompositeNode_AddChild(This,child) \
+    ( (This)->lpVtbl->AddChild(This,child) )
+
+#define __x_TestApp_CParity_CICompositeNode_RemoveChild(This,id) \
+    ( (This)->lpVtbl->RemoveChild(This,id) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CICompositeNode_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CITreeNodeFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CITreeNodeFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ITreeNodeFactory[] = L"TestApp.Parity.ITreeNodeFactory";
+
+typedef struct __x_TestApp_CParity_CITreeNodeFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CITreeNodeFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CITreeNodeFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CITreeNodeFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CITreeNodeFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CITreeNodeFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CITreeNodeFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CITreeNodeFactory * This, /* [in] */ HSTRING id, /* [out, retval] */ TreeNode* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CITreeNodeFactoryVtbl;
+
+interface __x_TestApp_CParity_CITreeNodeFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CITreeNodeFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CITreeNodeFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CITreeNodeFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CITreeNodeFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CITreeNodeFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CITreeNodeFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CITreeNodeFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CITreeNodeFactory_CreateInstance(This,id,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,id,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CITreeNodeFactory_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

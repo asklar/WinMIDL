@@ -302,6 +302,225 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CBase_CICrossNsBase_FWD_DEFINED__
+#define ____x_TestApp_CParity_CBase_CICrossNsBase_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CBase_CICrossNsBase __x_TestApp_CParity_CBase_CICrossNsBase;
+#endif // ____x_TestApp_CParity_CBase_CICrossNsBase_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CBase_CICrossNsBaseOverrides_FWD_DEFINED__
+#define ____x_TestApp_CParity_CBase_CICrossNsBaseOverrides_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CBase_CICrossNsBaseOverrides __x_TestApp_CParity_CBase_CICrossNsBaseOverrides;
+#endif // ____x_TestApp_CParity_CBase_CICrossNsBaseOverrides_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CDerived_CICrossNsDerived_FWD_DEFINED__
+#define ____x_TestApp_CParity_CDerived_CICrossNsDerived_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CDerived_CICrossNsDerived __x_TestApp_CParity_CDerived_CICrossNsDerived;
+#endif // ____x_TestApp_CParity_CDerived_CICrossNsDerived_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory;
+#endif // ____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CBase_CICrossNsBase_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CBase_CICrossNsBase_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_Base_ICrossNsBase[] = L"TestApp.Parity.Base.ICrossNsBase";
+
+typedef struct __x_TestApp_CParity_CBase_CICrossNsBaseVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBase * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBase * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBase * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBase * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBase * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBase * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_BaseName )(__x_TestApp_CParity_CBase_CICrossNsBase * This, /* [out, retval] */ HSTRING* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CBase_CICrossNsBaseVtbl;
+
+interface __x_TestApp_CParity_CBase_CICrossNsBase
+{
+    CONST_VTBL struct __x_TestApp_CParity_CBase_CICrossNsBaseVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CBase_CICrossNsBase_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBase_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBase_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBase_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBase_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBase_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBase_get_BaseName(This,value) \
+    ( (This)->lpVtbl->get_BaseName(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CBase_CICrossNsBase_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CBase_CICrossNsBaseOverrides_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CBase_CICrossNsBaseOverrides_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_Base_ICrossNsBaseOverrides[] = L"TestApp.Parity.Base.ICrossNsBaseOverrides";
+
+typedef struct __x_TestApp_CParity_CBase_CICrossNsBaseOverridesVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBaseOverrides * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBaseOverrides * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBaseOverrides * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBaseOverrides * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBaseOverrides * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CBase_CICrossNsBaseOverrides * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *OnCreate )(__x_TestApp_CParity_CBase_CICrossNsBaseOverrides * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CBase_CICrossNsBaseOverridesVtbl;
+
+interface __x_TestApp_CParity_CBase_CICrossNsBaseOverrides
+{
+    CONST_VTBL struct __x_TestApp_CParity_CBase_CICrossNsBaseOverridesVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CBase_CICrossNsBaseOverrides_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBaseOverrides_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBaseOverrides_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBaseOverrides_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBaseOverrides_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBaseOverrides_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CBase_CICrossNsBaseOverrides_OnCreate(This) \
+    ( (This)->lpVtbl->OnCreate(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CBase_CICrossNsBaseOverrides_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CDerived_CICrossNsDerived_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CDerived_CICrossNsDerived_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_Derived_ICrossNsDerived[] = L"TestApp.Parity.Derived.ICrossNsDerived";
+
+typedef struct __x_TestApp_CParity_CDerived_CICrossNsDerivedVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerived * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerived * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerived * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerived * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerived * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerived * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DerivedId )(__x_TestApp_CParity_CDerived_CICrossNsDerived * This, /* [out, retval] */ int* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CDerived_CICrossNsDerivedVtbl;
+
+interface __x_TestApp_CParity_CDerived_CICrossNsDerived
+{
+    CONST_VTBL struct __x_TestApp_CParity_CDerived_CICrossNsDerivedVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CDerived_CICrossNsDerived_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerived_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerived_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerived_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerived_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerived_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerived_get_DerivedId(This,value) \
+    ( (This)->lpVtbl->get_DerivedId(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CDerived_CICrossNsDerived_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_Derived_ICrossNsDerivedFactory[] = L"TestApp.Parity.Derived.ICrossNsDerivedFactory";
+
+typedef struct __x_TestApp_CParity_CDerived_CICrossNsDerivedFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CDerived_CICrossNsDerivedFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ CrossNsDerived* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CDerived_CICrossNsDerivedFactoryVtbl;
+
+interface __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CDerived_CICrossNsDerivedFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_CreateInstance(This,name,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CDerived_CICrossNsDerivedFactory_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

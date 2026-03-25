@@ -170,6 +170,133 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CISealedMultiWidgetFactory_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CISealedMultiWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CISealedMultiWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CISealedMultiWidget __x_TestApp_CParity_CISealedMultiWidget;
+#endif // ____x_TestApp_CParity_CISealedMultiWidget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CISealedMultiWidgetFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CISealedMultiWidgetFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CISealedMultiWidgetFactory __x_TestApp_CParity_CISealedMultiWidgetFactory;
+#endif // ____x_TestApp_CParity_CISealedMultiWidgetFactory_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CISealedMultiWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CISealedMultiWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ISealedMultiWidget[] = L"TestApp.Parity.ISealedMultiWidget";
+
+typedef struct __x_TestApp_CParity_CISealedMultiWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISealedMultiWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_SortKey )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */ int* value);
+    HRESULT ( STDMETHODCALLTYPE *MatchesFilter )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [in] */ HSTRING filter, /* [out, retval] */ ::boolean* returnValue);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_DisplayText )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */ HSTRING* value);
+    HRESULT ( STDMETHODCALLTYPE *ToShortString )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *ToDetailString )(__x_TestApp_CParity_CISealedMultiWidget * This, /* [out, retval] */ HSTRING* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CISealedMultiWidgetVtbl;
+
+interface __x_TestApp_CParity_CISealedMultiWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CISealedMultiWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CISealedMultiWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_get_SortKey(This,value) \
+    ( (This)->lpVtbl->get_SortKey(This,value) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_MatchesFilter(This,filter,returnValue) \
+    ( (This)->lpVtbl->MatchesFilter(This,filter,returnValue) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_get_DisplayText(This,value) \
+    ( (This)->lpVtbl->get_DisplayText(This,value) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_ToShortString(This,returnValue) \
+    ( (This)->lpVtbl->ToShortString(This,returnValue) )
+
+#define __x_TestApp_CParity_CISealedMultiWidget_ToDetailString(This,returnValue) \
+    ( (This)->lpVtbl->ToDetailString(This,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CISealedMultiWidget_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CISealedMultiWidgetFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CISealedMultiWidgetFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ISealedMultiWidgetFactory[] = L"TestApp.Parity.ISealedMultiWidgetFactory";
+
+typedef struct __x_TestApp_CParity_CISealedMultiWidgetFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CISealedMultiWidgetFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CISealedMultiWidgetFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CISealedMultiWidgetFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISealedMultiWidgetFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISealedMultiWidgetFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISealedMultiWidgetFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CISealedMultiWidgetFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ SealedMultiWidget* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CISealedMultiWidgetFactoryVtbl;
+
+interface __x_TestApp_CParity_CISealedMultiWidgetFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CISealedMultiWidgetFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CISealedMultiWidgetFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CISealedMultiWidgetFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CISealedMultiWidgetFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CISealedMultiWidgetFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CISealedMultiWidgetFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CISealedMultiWidgetFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CISealedMultiWidgetFactory_CreateInstance(This,name,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CISealedMultiWidgetFactory_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

@@ -327,6 +327,301 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CISecondaryService_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CApiCallback_FWD_DEFINED__
+#define ____x_TestApp_CParity_CApiCallback_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CApiCallback __x_TestApp_CParity_CApiCallback;
+#endif // ____x_TestApp_CParity_CApiCallback_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIApiEndpoint_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIApiEndpoint_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIApiEndpoint __x_TestApp_CParity_CIApiEndpoint;
+#endif // ____x_TestApp_CParity_CIApiEndpoint_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIApiService_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIApiService_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIApiService __x_TestApp_CParity_CIApiService;
+#endif // ____x_TestApp_CParity_CIApiService_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIApiServiceStatics_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIApiServiceStatics_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIApiServiceStatics __x_TestApp_CParity_CIApiServiceStatics;
+#endif // ____x_TestApp_CParity_CIApiServiceStatics_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CISecondaryService_FWD_DEFINED__
+#define ____x_TestApp_CParity_CISecondaryService_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CISecondaryService __x_TestApp_CParity_CISecondaryService;
+#endif // ____x_TestApp_CParity_CISecondaryService_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CApiCallback_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CApiCallback_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CApiCallbackVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CApiCallback * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CApiCallback * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CApiCallback * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CApiCallback * This, /* [in] */ HSTRING result);
+    END_INTERFACE
+} __x_TestApp_CParity_CApiCallbackVtbl;
+
+interface __x_TestApp_CParity_CApiCallback
+{
+    CONST_VTBL struct __x_TestApp_CParity_CApiCallbackVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CApiCallback_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CApiCallback_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CApiCallback_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CApiCallback_Invoke(This,result) \
+    ( (This)->lpVtbl->Invoke(This,result) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CApiCallback_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIApiEndpoint_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIApiEndpoint_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IApiEndpoint[] = L"TestApp.Parity.IApiEndpoint";
+
+typedef struct __x_TestApp_CParity_CIApiEndpointVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIApiEndpoint * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIApiEndpoint * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIApiEndpoint * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIApiEndpoint * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIApiEndpoint * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIApiEndpoint * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Url )(__x_TestApp_CParity_CIApiEndpoint * This, /* [out, retval] */ HSTRING* value);
+    HRESULT ( STDMETHODCALLTYPE *Connect )(__x_TestApp_CParity_CIApiEndpoint * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIApiEndpointVtbl;
+
+interface __x_TestApp_CParity_CIApiEndpoint
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIApiEndpointVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIApiEndpoint_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIApiEndpoint_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIApiEndpoint_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIApiEndpoint_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIApiEndpoint_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIApiEndpoint_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIApiEndpoint_get_Url(This,value) \
+    ( (This)->lpVtbl->get_Url(This,value) )
+
+#define __x_TestApp_CParity_CIApiEndpoint_Connect(This) \
+    ( (This)->lpVtbl->Connect(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIApiEndpoint_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIApiService_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIApiService_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IApiService[] = L"TestApp.Parity.IApiService";
+
+typedef struct __x_TestApp_CParity_CIApiServiceVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIApiService * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIApiService * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIApiService * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIApiService * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIApiService * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIApiService * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ServiceName )(__x_TestApp_CParity_CIApiService * This, /* [out, retval] */ HSTRING* value);
+    HRESULT ( STDMETHODCALLTYPE *Start )(__x_TestApp_CParity_CIApiService * This);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_ConnectionCount )(__x_TestApp_CParity_CIApiService * This, /* [out, retval] */ int* value);
+    HRESULT ( STDMETHODCALLTYPE *Restart )(__x_TestApp_CParity_CIApiService * This);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_Restarted )(__x_TestApp_CParity_CIApiService * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_Restarted )(__x_TestApp_CParity_CIApiService * This, /* [in] */ EventRegistrationToken token);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsHealthy )(__x_TestApp_CParity_CIApiService * This, /* [out, retval] */ ::boolean* value);
+    HRESULT ( STDMETHODCALLTYPE *GetStatus )(__x_TestApp_CParity_CIApiService * This, /* [out, retval] */ ApiStatus* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIApiServiceVtbl;
+
+interface __x_TestApp_CParity_CIApiService
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIApiServiceVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIApiService_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIApiService_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIApiService_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIApiService_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIApiService_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIApiService_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIApiService_get_ServiceName(This,value) \
+    ( (This)->lpVtbl->get_ServiceName(This,value) )
+
+#define __x_TestApp_CParity_CIApiService_Start(This) \
+    ( (This)->lpVtbl->Start(This) )
+
+#define __x_TestApp_CParity_CIApiService_get_ConnectionCount(This,value) \
+    ( (This)->lpVtbl->get_ConnectionCount(This,value) )
+
+#define __x_TestApp_CParity_CIApiService_Restart(This) \
+    ( (This)->lpVtbl->Restart(This) )
+
+#define __x_TestApp_CParity_CIApiService_add_Restarted(This,handler,token) \
+    ( (This)->lpVtbl->add_Restarted(This,handler,token) )
+
+#define __x_TestApp_CParity_CIApiService_remove_Restarted(This,token) \
+    ( (This)->lpVtbl->remove_Restarted(This,token) )
+
+#define __x_TestApp_CParity_CIApiService_get_IsHealthy(This,value) \
+    ( (This)->lpVtbl->get_IsHealthy(This,value) )
+
+#define __x_TestApp_CParity_CIApiService_GetStatus(This,returnValue) \
+    ( (This)->lpVtbl->GetStatus(This,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIApiService_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIApiServiceStatics_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIApiServiceStatics_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IApiServiceStatics[] = L"TestApp.Parity.IApiServiceStatics";
+
+typedef struct __x_TestApp_CParity_CIApiServiceStaticsVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIApiServiceStatics * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIApiServiceStatics * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIApiServiceStatics * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIApiServiceStatics * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIApiServiceStatics * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIApiServiceStatics * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateWithSettings )(__x_TestApp_CParity_CIApiServiceStatics * This, /* [in] */ ApiSettings settings, /* [out, retval] */ ApiService* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIApiServiceStaticsVtbl;
+
+interface __x_TestApp_CParity_CIApiServiceStatics
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIApiServiceStaticsVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIApiServiceStatics_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIApiServiceStatics_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIApiServiceStatics_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIApiServiceStatics_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIApiServiceStatics_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIApiServiceStatics_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIApiServiceStatics_CreateWithSettings(This,settings,returnValue) \
+    ( (This)->lpVtbl->CreateWithSettings(This,settings,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIApiServiceStatics_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CISecondaryService_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CISecondaryService_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ISecondaryService[] = L"TestApp.Parity.ISecondaryService";
+
+typedef struct __x_TestApp_CParity_CISecondaryServiceVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CISecondaryService * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CISecondaryService * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CISecondaryService * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CISecondaryService * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CISecondaryService * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CISecondaryService * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *Execute )(__x_TestApp_CParity_CISecondaryService * This);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Result )(__x_TestApp_CParity_CISecondaryService * This, /* [out, retval] */ HSTRING* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CISecondaryServiceVtbl;
+
+interface __x_TestApp_CParity_CISecondaryService
+{
+    CONST_VTBL struct __x_TestApp_CParity_CISecondaryServiceVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CISecondaryService_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CISecondaryService_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CISecondaryService_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CISecondaryService_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CISecondaryService_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CISecondaryService_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CISecondaryService_Execute(This) \
+    ( (This)->lpVtbl->Execute(This) )
+
+#define __x_TestApp_CParity_CISecondaryService_get_Result(This,value) \
+    ( (This)->lpVtbl->get_Result(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CISecondaryService_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

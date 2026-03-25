@@ -172,6 +172,141 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIMultiCtorItemFactory_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIMultiCtorItem_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMultiCtorItem_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMultiCtorItem __x_TestApp_CParity_CIMultiCtorItem;
+#endif // ____x_TestApp_CParity_CIMultiCtorItem_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMultiCtorItemFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMultiCtorItemFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMultiCtorItemFactory __x_TestApp_CParity_CIMultiCtorItemFactory;
+#endif // ____x_TestApp_CParity_CIMultiCtorItemFactory_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMultiCtorItem_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMultiCtorItem_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMultiCtorItem[] = L"TestApp.Parity.IMultiCtorItem";
+
+typedef struct __x_TestApp_CParity_CIMultiCtorItemVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMultiCtorItem * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMultiCtorItem * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMultiCtorItem * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMultiCtorItem * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMultiCtorItem * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiCtorItem * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIMultiCtorItem * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Count )(__x_TestApp_CParity_CIMultiCtorItem * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Enabled )(__x_TestApp_CParity_CIMultiCtorItem * This, /* [out, retval] */ ::boolean* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Factor )(__x_TestApp_CParity_CIMultiCtorItem * This, /* [out, retval] */ double* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMultiCtorItemVtbl;
+
+interface __x_TestApp_CParity_CIMultiCtorItem
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMultiCtorItemVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMultiCtorItem_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMultiCtorItem_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMultiCtorItem_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMultiCtorItem_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMultiCtorItem_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMultiCtorItem_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMultiCtorItem_get_Name(This,value) \
+    ( (This)->lpVtbl->get_Name(This,value) )
+
+#define __x_TestApp_CParity_CIMultiCtorItem_get_Count(This,value) \
+    ( (This)->lpVtbl->get_Count(This,value) )
+
+#define __x_TestApp_CParity_CIMultiCtorItem_get_Enabled(This,value) \
+    ( (This)->lpVtbl->get_Enabled(This,value) )
+
+#define __x_TestApp_CParity_CIMultiCtorItem_get_Factor(This,value) \
+    ( (This)->lpVtbl->get_Factor(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMultiCtorItem_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMultiCtorItemFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMultiCtorItemFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMultiCtorItemFactory[] = L"TestApp.Parity.IMultiCtorItemFactory";
+
+typedef struct __x_TestApp_CParity_CIMultiCtorItemFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMultiCtorItemFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMultiCtorItemFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMultiCtorItemFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMultiCtorItemFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMultiCtorItemFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMultiCtorItemFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ MultiCtorItem* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */ HSTRING name, /* [in] */ int count, /* [out, retval] */ MultiCtorItem* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean enabled, /* [out, retval] */ MultiCtorItem* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIMultiCtorItemFactory * This, /* [in] */ HSTRING name, /* [in] */ int count, /* [in] */ ::boolean enabled, /* [in] */ double factor, /* [out, retval] */ MultiCtorItem* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMultiCtorItemFactoryVtbl;
+
+interface __x_TestApp_CParity_CIMultiCtorItemFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMultiCtorItemFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_CreateInstance(This,name,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_CreateInstance(This,name,count,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,count,returnValue) )
+
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_CreateInstance(This,name,count,enabled,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,count,enabled,returnValue) )
+
+#define __x_TestApp_CParity_CIMultiCtorItemFactory_CreateInstance(This,name,count,enabled,factor,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,count,enabled,factor,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMultiCtorItemFactory_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

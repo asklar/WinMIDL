@@ -215,6 +215,185 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIConnectionManagerFactory_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CConnectionChangedHandler_FWD_DEFINED__
+#define ____x_TestApp_CParity_CConnectionChangedHandler_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CConnectionChangedHandler __x_TestApp_CParity_CConnectionChangedHandler;
+#endif // ____x_TestApp_CParity_CConnectionChangedHandler_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIConnectionManager_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIConnectionManager_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIConnectionManager __x_TestApp_CParity_CIConnectionManager;
+#endif // ____x_TestApp_CParity_CIConnectionManager_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIConnectionManagerFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIConnectionManagerFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIConnectionManagerFactory __x_TestApp_CParity_CIConnectionManagerFactory;
+#endif // ____x_TestApp_CParity_CIConnectionManagerFactory_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CConnectionChangedHandler_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CConnectionChangedHandler_INTERFACE_DEFINED__
+
+typedef struct __x_TestApp_CParity_CConnectionChangedHandlerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CConnectionChangedHandler * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CConnectionChangedHandler * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CConnectionChangedHandler * This);
+    HRESULT ( STDMETHODCALLTYPE *Invoke )(__x_TestApp_CParity_CConnectionChangedHandler * This, /* [in] */ ConnectionInfo info, /* [in] */ ConnectionState oldState);
+    END_INTERFACE
+} __x_TestApp_CParity_CConnectionChangedHandlerVtbl;
+
+interface __x_TestApp_CParity_CConnectionChangedHandler
+{
+    CONST_VTBL struct __x_TestApp_CParity_CConnectionChangedHandlerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CConnectionChangedHandler_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CConnectionChangedHandler_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CConnectionChangedHandler_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CConnectionChangedHandler_Invoke(This,info,oldState) \
+    ( (This)->lpVtbl->Invoke(This,info,oldState) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CConnectionChangedHandler_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIConnectionManager_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIConnectionManager_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IConnectionManager[] = L"TestApp.Parity.IConnectionManager";
+
+typedef struct __x_TestApp_CParity_CIConnectionManagerVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIConnectionManager * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsConnected )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ ::boolean* value);
+    HRESULT ( STDMETHODCALLTYPE *GetInfo )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ ConnectionInfo* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetState )(__x_TestApp_CParity_CIConnectionManager * This, /* [out, retval] */ ConnectionState* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Connect )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */ HSTRING host, /* [in] */ int port);
+    HRESULT ( STDMETHODCALLTYPE *Disconnect )(__x_TestApp_CParity_CIConnectionManager * This);
+    HRESULT ( STDMETHODCALLTYPE *ConnectAsync )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ __x_Windows_CFoundation_CIAsyncAction** returnValue);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_StateChanged )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */ __x_TestApp_CParity_CConnectionChangedHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_StateChanged )(__x_TestApp_CParity_CIConnectionManager * This, /* [in] */ EventRegistrationToken token);
+    END_INTERFACE
+} __x_TestApp_CParity_CIConnectionManagerVtbl;
+
+interface __x_TestApp_CParity_CIConnectionManager
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIConnectionManagerVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIConnectionManager_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIConnectionManager_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIConnectionManager_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIConnectionManager_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIConnectionManager_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIConnectionManager_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIConnectionManager_get_IsConnected(This,value) \
+    ( (This)->lpVtbl->get_IsConnected(This,value) )
+
+#define __x_TestApp_CParity_CIConnectionManager_GetInfo(This,returnValue) \
+    ( (This)->lpVtbl->GetInfo(This,returnValue) )
+
+#define __x_TestApp_CParity_CIConnectionManager_GetState(This,returnValue) \
+    ( (This)->lpVtbl->GetState(This,returnValue) )
+
+#define __x_TestApp_CParity_CIConnectionManager_Connect(This,host,port) \
+    ( (This)->lpVtbl->Connect(This,host,port) )
+
+#define __x_TestApp_CParity_CIConnectionManager_Disconnect(This) \
+    ( (This)->lpVtbl->Disconnect(This) )
+
+#define __x_TestApp_CParity_CIConnectionManager_ConnectAsync(This,host,port,returnValue) \
+    ( (This)->lpVtbl->ConnectAsync(This,host,port,returnValue) )
+
+#define __x_TestApp_CParity_CIConnectionManager_add_StateChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_StateChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIConnectionManager_remove_StateChanged(This,token) \
+    ( (This)->lpVtbl->remove_StateChanged(This,token) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIConnectionManager_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIConnectionManagerFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIConnectionManagerFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IConnectionManagerFactory[] = L"TestApp.Parity.IConnectionManagerFactory";
+
+typedef struct __x_TestApp_CParity_CIConnectionManagerFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIConnectionManagerFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIConnectionManagerFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIConnectionManagerFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIConnectionManagerFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIConnectionManagerFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIConnectionManagerFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIConnectionManagerFactory * This, /* [in] */ HSTRING host, /* [in] */ int port, /* [out, retval] */ ConnectionManager* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIConnectionManagerFactoryVtbl;
+
+interface __x_TestApp_CParity_CIConnectionManagerFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIConnectionManagerFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIConnectionManagerFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIConnectionManagerFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIConnectionManagerFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIConnectionManagerFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIConnectionManagerFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIConnectionManagerFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIConnectionManagerFactory_CreateInstance(This,host,port,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,host,port,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIConnectionManagerFactory_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

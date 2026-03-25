@@ -145,6 +145,167 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIAllPrimitivesWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIAllPrimitivesWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIAllPrimitivesWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIAllPrimitivesWidget __x_TestApp_CParity_CIAllPrimitivesWidget;
+#endif // ____x_TestApp_CParity_CIAllPrimitivesWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIAllPrimitivesWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIAllPrimitivesWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IAllPrimitivesWidget[] = L"TestApp.Parity.IAllPrimitivesWidget";
+
+typedef struct __x_TestApp_CParity_CIAllPrimitivesWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIAllPrimitivesWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIAllPrimitivesWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIAllPrimitivesWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIAllPrimitivesWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIAllPrimitivesWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIAllPrimitivesWidget * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetByte )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ ::byte* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetShort )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ short* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetUShort )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ unsigned short* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetInt )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetUInt )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ unsigned int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetLong )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ __int64* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetULong )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ unsigned __int64* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetFloat )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ float* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetDouble )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ double* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetBool )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetChar )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ wchar_t* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetString )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetGuid )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ GUID* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetObject )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [out, retval] */ IInspectable** returnValue);
+    HRESULT ( STDMETHODCALLTYPE *SetByte )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ ::byte v);
+    HRESULT ( STDMETHODCALLTYPE *SetShort )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ short v);
+    HRESULT ( STDMETHODCALLTYPE *SetUShort )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ unsigned short v);
+    HRESULT ( STDMETHODCALLTYPE *SetInt )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ int v);
+    HRESULT ( STDMETHODCALLTYPE *SetUInt )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ unsigned int v);
+    HRESULT ( STDMETHODCALLTYPE *SetLong )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ __int64 v);
+    HRESULT ( STDMETHODCALLTYPE *SetULong )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ unsigned __int64 v);
+    HRESULT ( STDMETHODCALLTYPE *SetFloat )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ float v);
+    HRESULT ( STDMETHODCALLTYPE *SetDouble )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ double v);
+    HRESULT ( STDMETHODCALLTYPE *SetBool )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ ::boolean v);
+    HRESULT ( STDMETHODCALLTYPE *SetChar )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ wchar_t v);
+    HRESULT ( STDMETHODCALLTYPE *SetString )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ HSTRING v);
+    HRESULT ( STDMETHODCALLTYPE *SetGuid )(__x_TestApp_CParity_CIAllPrimitivesWidget * This, /* [in] */ GUID v);
+    END_INTERFACE
+} __x_TestApp_CParity_CIAllPrimitivesWidgetVtbl;
+
+interface __x_TestApp_CParity_CIAllPrimitivesWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIAllPrimitivesWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetByte(This,returnValue) \
+    ( (This)->lpVtbl->GetByte(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetShort(This,returnValue) \
+    ( (This)->lpVtbl->GetShort(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetUShort(This,returnValue) \
+    ( (This)->lpVtbl->GetUShort(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetInt(This,returnValue) \
+    ( (This)->lpVtbl->GetInt(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetUInt(This,returnValue) \
+    ( (This)->lpVtbl->GetUInt(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetLong(This,returnValue) \
+    ( (This)->lpVtbl->GetLong(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetULong(This,returnValue) \
+    ( (This)->lpVtbl->GetULong(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetFloat(This,returnValue) \
+    ( (This)->lpVtbl->GetFloat(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetDouble(This,returnValue) \
+    ( (This)->lpVtbl->GetDouble(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetBool(This,returnValue) \
+    ( (This)->lpVtbl->GetBool(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetChar(This,returnValue) \
+    ( (This)->lpVtbl->GetChar(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetString(This,returnValue) \
+    ( (This)->lpVtbl->GetString(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetGuid(This,returnValue) \
+    ( (This)->lpVtbl->GetGuid(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_GetObject(This,returnValue) \
+    ( (This)->lpVtbl->GetObject(This,returnValue) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetByte(This,v) \
+    ( (This)->lpVtbl->SetByte(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetShort(This,v) \
+    ( (This)->lpVtbl->SetShort(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetUShort(This,v) \
+    ( (This)->lpVtbl->SetUShort(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetInt(This,v) \
+    ( (This)->lpVtbl->SetInt(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetUInt(This,v) \
+    ( (This)->lpVtbl->SetUInt(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetLong(This,v) \
+    ( (This)->lpVtbl->SetLong(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetULong(This,v) \
+    ( (This)->lpVtbl->SetULong(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetFloat(This,v) \
+    ( (This)->lpVtbl->SetFloat(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetDouble(This,v) \
+    ( (This)->lpVtbl->SetDouble(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetBool(This,v) \
+    ( (This)->lpVtbl->SetBool(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetChar(This,v) \
+    ( (This)->lpVtbl->SetChar(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetString(This,v) \
+    ( (This)->lpVtbl->SetString(This,v) )
+
+#define __x_TestApp_CParity_CIAllPrimitivesWidget_SetGuid(This,v) \
+    ( (This)->lpVtbl->SetGuid(This,v) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIAllPrimitivesWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

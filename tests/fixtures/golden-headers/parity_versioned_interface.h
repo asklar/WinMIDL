@@ -171,6 +171,137 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIVersionedServiceFactory_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIVersionedService_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIVersionedService_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIVersionedService __x_TestApp_CParity_CIVersionedService;
+#endif // ____x_TestApp_CParity_CIVersionedService_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIVersionedServiceFactory_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIVersionedServiceFactory_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIVersionedServiceFactory __x_TestApp_CParity_CIVersionedServiceFactory;
+#endif // ____x_TestApp_CParity_CIVersionedServiceFactory_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIVersionedService_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIVersionedService_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IVersionedService[] = L"TestApp.Parity.IVersionedService";
+
+typedef struct __x_TestApp_CParity_CIVersionedServiceVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIVersionedService * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIVersionedService * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIVersionedService * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIVersionedService * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIVersionedService * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIVersionedService * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetName )(__x_TestApp_CParity_CIVersionedService * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Start )(__x_TestApp_CParity_CIVersionedService * This);
+    HRESULT ( STDMETHODCALLTYPE *Stop )(__x_TestApp_CParity_CIVersionedService * This);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_IsRunning )(__x_TestApp_CParity_CIVersionedService * This, /* [out, retval] */ ::boolean* value);
+    HRESULT ( STDMETHODCALLTYPE *GetDiagnostics )(__x_TestApp_CParity_CIVersionedService * This, /* [out, retval] */ HSTRING* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *Restart )(__x_TestApp_CParity_CIVersionedService * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIVersionedServiceVtbl;
+
+interface __x_TestApp_CParity_CIVersionedService
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIVersionedServiceVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIVersionedService_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIVersionedService_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIVersionedService_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIVersionedService_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIVersionedService_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIVersionedService_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIVersionedService_GetName(This,returnValue) \
+    ( (This)->lpVtbl->GetName(This,returnValue) )
+
+#define __x_TestApp_CParity_CIVersionedService_Start(This) \
+    ( (This)->lpVtbl->Start(This) )
+
+#define __x_TestApp_CParity_CIVersionedService_Stop(This) \
+    ( (This)->lpVtbl->Stop(This) )
+
+#define __x_TestApp_CParity_CIVersionedService_get_IsRunning(This,value) \
+    ( (This)->lpVtbl->get_IsRunning(This,value) )
+
+#define __x_TestApp_CParity_CIVersionedService_GetDiagnostics(This,returnValue) \
+    ( (This)->lpVtbl->GetDiagnostics(This,returnValue) )
+
+#define __x_TestApp_CParity_CIVersionedService_Restart(This) \
+    ( (This)->lpVtbl->Restart(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIVersionedService_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIVersionedServiceFactory_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIVersionedServiceFactory_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IVersionedServiceFactory[] = L"TestApp.Parity.IVersionedServiceFactory";
+
+typedef struct __x_TestApp_CParity_CIVersionedServiceFactoryVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIVersionedServiceFactory * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIVersionedServiceFactory * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIVersionedServiceFactory * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIVersionedServiceFactory * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIVersionedServiceFactory * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIVersionedServiceFactory * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *CreateInstance )(__x_TestApp_CParity_CIVersionedServiceFactory * This, /* [in] */ HSTRING name, /* [out, retval] */ VersionedService* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CIVersionedServiceFactoryVtbl;
+
+interface __x_TestApp_CParity_CIVersionedServiceFactory
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIVersionedServiceFactoryVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIVersionedServiceFactory_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIVersionedServiceFactory_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIVersionedServiceFactory_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIVersionedServiceFactory_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIVersionedServiceFactory_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIVersionedServiceFactory_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIVersionedServiceFactory_CreateInstance(This,name,returnValue) \
+    ( (This)->lpVtbl->CreateInstance(This,name,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIVersionedServiceFactory_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

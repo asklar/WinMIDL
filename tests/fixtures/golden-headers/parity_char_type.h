@@ -125,6 +125,87 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CICharWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CICharWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CICharWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CICharWidget __x_TestApp_CParity_CICharWidget;
+#endif // ____x_TestApp_CParity_CICharWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CICharWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CICharWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_ICharWidget[] = L"TestApp.Parity.ICharWidget";
+
+typedef struct __x_TestApp_CParity_CICharWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CICharWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CICharWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CICharWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CICharWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CICharWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CICharWidget * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetSeparator )(__x_TestApp_CParity_CICharWidget * This, /* [out, retval] */ wchar_t* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *SetSeparator )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t c);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Separator )(__x_TestApp_CParity_CICharWidget * This, /* [out, retval] */ wchar_t* value);
+    /* [propput] */HRESULT ( STDMETHODCALLTYPE *put_Separator )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t value);
+    HRESULT ( STDMETHODCALLTYPE *IsLetter )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t c, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *IsDigit )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t c, /* [out, retval] */ ::boolean* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *CharToString )(__x_TestApp_CParity_CICharWidget * This, /* [in] */ wchar_t c, /* [out, retval] */ HSTRING* returnValue);
+    END_INTERFACE
+} __x_TestApp_CParity_CICharWidgetVtbl;
+
+interface __x_TestApp_CParity_CICharWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CICharWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CICharWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CICharWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CICharWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CICharWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CICharWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CICharWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CICharWidget_GetSeparator(This,returnValue) \
+    ( (This)->lpVtbl->GetSeparator(This,returnValue) )
+
+#define __x_TestApp_CParity_CICharWidget_SetSeparator(This,c) \
+    ( (This)->lpVtbl->SetSeparator(This,c) )
+
+#define __x_TestApp_CParity_CICharWidget_get_Separator(This,value) \
+    ( (This)->lpVtbl->get_Separator(This,value) )
+
+#define __x_TestApp_CParity_CICharWidget_put_Separator(This,value) \
+    ( (This)->lpVtbl->put_Separator(This,value) )
+
+#define __x_TestApp_CParity_CICharWidget_IsLetter(This,c,returnValue) \
+    ( (This)->lpVtbl->IsLetter(This,c,returnValue) )
+
+#define __x_TestApp_CParity_CICharWidget_IsDigit(This,c,returnValue) \
+    ( (This)->lpVtbl->IsDigit(This,c,returnValue) )
+
+#define __x_TestApp_CParity_CICharWidget_CharToString(This,c,returnValue) \
+    ( (This)->lpVtbl->CharToString(This,c,returnValue) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CICharWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

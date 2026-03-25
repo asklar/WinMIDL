@@ -32,8 +32,9 @@ public partial class HeaderParityTests
         // Runtime class forward declaration as class
         Assert.Contains("        class BasicWidget;", header);
 
-        // No old-style typedef
-        Assert.DoesNotContain("typedef interface", header);
+        // No old-style typedef in C++ forward declarations section
+        var cppFwdSection = ExtractBeforeCppGuard(header);
+        Assert.DoesNotContain("typedef interface", cppFwdSection);
     }
 
     [Fact]
@@ -52,7 +53,8 @@ public partial class HeaderParityTests
         Assert.Contains("#ifndef ____x_TestApp_CParity_CInterfaceOnly_CIReaderWriter_FWD_DEFINED__", header);
         Assert.Contains("#define __x_TestApp_CParity_CInterfaceOnly_CIReaderWriter TestApp::Parity::InterfaceOnly::IReaderWriter", header);
 
-        Assert.DoesNotContain("typedef interface", header);
+        var cppFwdSection = ExtractBeforeCppGuard(header);
+        Assert.DoesNotContain("typedef interface", cppFwdSection);
     }
 
     [Fact]
@@ -72,7 +74,8 @@ public partial class HeaderParityTests
         Assert.Contains("namespace Level5 {", header);
         Assert.Contains("interface IDeepWidget;", header);
 
-        Assert.DoesNotContain("typedef interface", header);
+        var cppFwdSection = ExtractBeforeCppGuard(header);
+        Assert.DoesNotContain("typedef interface", cppFwdSection);
     }
 
     [Fact]
@@ -93,5 +96,15 @@ public partial class HeaderParityTests
 
         // Section header
         Assert.Contains("/* Forward Declarations */", header);
+    }
+
+    /// <summary>
+    /// Extracts the section of header before the C++ guard (#if defined(__cplusplus)).
+    /// This contains the C++ forward declarations with namespace blocks.
+    /// </summary>
+    private static string ExtractBeforeCppGuard(string header)
+    {
+        var idx = header.IndexOf("#if defined(__cplusplus)", StringComparison.Ordinal);
+        return idx >= 0 ? header[..idx] : header;
     }
 }

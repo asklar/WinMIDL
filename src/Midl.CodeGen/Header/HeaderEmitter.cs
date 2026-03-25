@@ -100,6 +100,8 @@ public partial class HeaderEmitter
                 }
             }
 
+            EmitCBlock(sb, cppTypes);
+
             sb.AppendLine("#endif // defined(__cplusplus) && !defined(CINTERFACE)");
             sb.AppendLine();
         }

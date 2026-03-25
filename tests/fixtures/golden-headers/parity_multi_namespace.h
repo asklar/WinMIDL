@@ -275,6 +275,171 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CNsGamma_CIGammaWidget_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CNsAlpha_CIAlphaWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CNsAlpha_CIAlphaWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CNsAlpha_CIAlphaWidget __x_TestApp_CParity_CNsAlpha_CIAlphaWidget;
+#endif // ____x_TestApp_CParity_CNsAlpha_CIAlphaWidget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CNsBeta_CIBetaWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CNsBeta_CIBetaWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CNsBeta_CIBetaWidget __x_TestApp_CParity_CNsBeta_CIBetaWidget;
+#endif // ____x_TestApp_CParity_CNsBeta_CIBetaWidget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CNsGamma_CIGammaWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CNsGamma_CIGammaWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CNsGamma_CIGammaWidget __x_TestApp_CParity_CNsGamma_CIGammaWidget;
+#endif // ____x_TestApp_CParity_CNsGamma_CIGammaWidget_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CNsAlpha_CIAlphaWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CNsAlpha_CIAlphaWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_NsAlpha_IAlphaWidget[] = L"TestApp.Parity.NsAlpha.IAlphaWidget";
+
+typedef struct __x_TestApp_CParity_CNsAlpha_CIAlphaWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CNsAlpha_CIAlphaWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CNsAlpha_CIAlphaWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CNsAlpha_CIAlphaWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CNsAlpha_CIAlphaWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CNsAlpha_CIAlphaWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CNsAlpha_CIAlphaWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Label )(__x_TestApp_CParity_CNsAlpha_CIAlphaWidget * This, /* [out, retval] */ HSTRING* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CNsAlpha_CIAlphaWidgetVtbl;
+
+interface __x_TestApp_CParity_CNsAlpha_CIAlphaWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CNsAlpha_CIAlphaWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CNsAlpha_CIAlphaWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CNsAlpha_CIAlphaWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CNsAlpha_CIAlphaWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CNsAlpha_CIAlphaWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CNsAlpha_CIAlphaWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CNsAlpha_CIAlphaWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CNsAlpha_CIAlphaWidget_get_Label(This,value) \
+    ( (This)->lpVtbl->get_Label(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CNsAlpha_CIAlphaWidget_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CNsBeta_CIBetaWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CNsBeta_CIBetaWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_NsBeta_IBetaWidget[] = L"TestApp.Parity.NsBeta.IBetaWidget";
+
+typedef struct __x_TestApp_CParity_CNsBeta_CIBetaWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CNsBeta_CIBetaWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CNsBeta_CIBetaWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CNsBeta_CIBetaWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CNsBeta_CIBetaWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CNsBeta_CIBetaWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CNsBeta_CIBetaWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Count )(__x_TestApp_CParity_CNsBeta_CIBetaWidget * This, /* [out, retval] */ int* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CNsBeta_CIBetaWidgetVtbl;
+
+interface __x_TestApp_CParity_CNsBeta_CIBetaWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CNsBeta_CIBetaWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CNsBeta_CIBetaWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CNsBeta_CIBetaWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CNsBeta_CIBetaWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CNsBeta_CIBetaWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CNsBeta_CIBetaWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CNsBeta_CIBetaWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CNsBeta_CIBetaWidget_get_Count(This,value) \
+    ( (This)->lpVtbl->get_Count(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CNsBeta_CIBetaWidget_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CNsGamma_CIGammaWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CNsGamma_CIGammaWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_NsGamma_IGammaWidget[] = L"TestApp.Parity.NsGamma.IGammaWidget";
+
+typedef struct __x_TestApp_CParity_CNsGamma_CIGammaWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CNsGamma_CIGammaWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CNsGamma_CIGammaWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CNsGamma_CIGammaWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CNsGamma_CIGammaWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CNsGamma_CIGammaWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CNsGamma_CIGammaWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Active )(__x_TestApp_CParity_CNsGamma_CIGammaWidget * This, /* [out, retval] */ ::boolean* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CNsGamma_CIGammaWidgetVtbl;
+
+interface __x_TestApp_CParity_CNsGamma_CIGammaWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CNsGamma_CIGammaWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CNsGamma_CIGammaWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CNsGamma_CIGammaWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CNsGamma_CIGammaWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CNsGamma_CIGammaWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CNsGamma_CIGammaWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CNsGamma_CIGammaWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CNsGamma_CIGammaWidget_get_Active(This,value) \
+    ( (This)->lpVtbl->get_Active(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CNsGamma_CIGammaWidget_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")

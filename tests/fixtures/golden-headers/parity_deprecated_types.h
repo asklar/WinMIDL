@@ -311,6 +311,265 @@ namespace TestApp {
 
 #endif // ____x_TestApp_CParity_CIRemovedService_INTERFACE_DEFINED__
 
+#else // !defined(__cplusplus)
+
+/* Forward Declarations */
+#ifndef ____x_TestApp_CParity_CIDeprecatedInterface_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIDeprecatedInterface_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIDeprecatedInterface __x_TestApp_CParity_CIDeprecatedInterface;
+#endif // ____x_TestApp_CParity_CIDeprecatedInterface_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIDeprecatedWidget_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIDeprecatedWidget_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIDeprecatedWidget __x_TestApp_CParity_CIDeprecatedWidget;
+#endif // ____x_TestApp_CParity_CIDeprecatedWidget_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIMixedDeprecation_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIMixedDeprecation_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIMixedDeprecation __x_TestApp_CParity_CIMixedDeprecation;
+#endif // ____x_TestApp_CParity_CIMixedDeprecation_FWD_DEFINED__
+
+#ifndef ____x_TestApp_CParity_CIRemovedService_FWD_DEFINED__
+#define ____x_TestApp_CParity_CIRemovedService_FWD_DEFINED__
+typedef interface __x_TestApp_CParity_CIRemovedService __x_TestApp_CParity_CIRemovedService;
+#endif // ____x_TestApp_CParity_CIRemovedService_FWD_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIDeprecatedInterface_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIDeprecatedInterface_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IDeprecatedInterface[] = L"TestApp.Parity.IDeprecatedInterface";
+
+typedef struct __x_TestApp_CParity_CIDeprecatedInterfaceVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIDeprecatedInterface * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIDeprecatedInterface * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIDeprecatedInterface * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIDeprecatedInterface * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIDeprecatedInterface * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDeprecatedInterface * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *OldMethod )(__x_TestApp_CParity_CIDeprecatedInterface * This);
+    HRESULT ( STDMETHODCALLTYPE *NewMethod )(__x_TestApp_CParity_CIDeprecatedInterface * This);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_OldProp )(__x_TestApp_CParity_CIDeprecatedInterface * This, /* [out, retval] */ HSTRING* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewProp )(__x_TestApp_CParity_CIDeprecatedInterface * This, /* [out, retval] */ HSTRING* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CIDeprecatedInterfaceVtbl;
+
+interface __x_TestApp_CParity_CIDeprecatedInterface
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIDeprecatedInterfaceVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIDeprecatedInterface_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIDeprecatedInterface_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIDeprecatedInterface_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIDeprecatedInterface_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIDeprecatedInterface_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIDeprecatedInterface_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIDeprecatedInterface_OldMethod(This) \
+    ( (This)->lpVtbl->OldMethod(This) )
+
+#define __x_TestApp_CParity_CIDeprecatedInterface_NewMethod(This) \
+    ( (This)->lpVtbl->NewMethod(This) )
+
+#define __x_TestApp_CParity_CIDeprecatedInterface_get_OldProp(This,value) \
+    ( (This)->lpVtbl->get_OldProp(This,value) )
+
+#define __x_TestApp_CParity_CIDeprecatedInterface_get_NewProp(This,value) \
+    ( (This)->lpVtbl->get_NewProp(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIDeprecatedInterface_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIDeprecatedWidget_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIDeprecatedWidget_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IDeprecatedWidget[] = L"TestApp.Parity.IDeprecatedWidget";
+
+typedef struct __x_TestApp_CParity_CIDeprecatedWidgetVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIDeprecatedWidget * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIDeprecatedWidget * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIDeprecatedWidget * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIDeprecatedWidget * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIDeprecatedWidget * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIDeprecatedWidget * This, __RPC__out TrustLevel *trustLevel);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_Name )(__x_TestApp_CParity_CIDeprecatedWidget * This, /* [out, retval] */ HSTRING* value);
+    END_INTERFACE
+} __x_TestApp_CParity_CIDeprecatedWidgetVtbl;
+
+interface __x_TestApp_CParity_CIDeprecatedWidget
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIDeprecatedWidgetVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIDeprecatedWidget_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIDeprecatedWidget_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIDeprecatedWidget_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIDeprecatedWidget_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIDeprecatedWidget_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIDeprecatedWidget_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIDeprecatedWidget_get_Name(This,value) \
+    ( (This)->lpVtbl->get_Name(This,value) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIDeprecatedWidget_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIMixedDeprecation_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIMixedDeprecation_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IMixedDeprecation[] = L"TestApp.Parity.IMixedDeprecation";
+
+typedef struct __x_TestApp_CParity_CIMixedDeprecationVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIMixedDeprecation * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIMixedDeprecation * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIMixedDeprecation * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIMixedDeprecation * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIMixedDeprecation * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIMixedDeprecation * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *GetOldValue )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */ int* returnValue);
+    HRESULT ( STDMETHODCALLTYPE *GetNewValue )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */ int* returnValue);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_OldCount )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */ int* value);
+    /* [propget] */HRESULT ( STDMETHODCALLTYPE *get_NewCount )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [out, retval] */ int* value);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_LegacyChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_LegacyChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */ EventRegistrationToken token);
+    /* [eventadd] */HRESULT ( STDMETHODCALLTYPE *add_CurrentChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */ __x_Windows_CFoundation_CTypedEventHandler* handler, /* [out, retval] */ EventRegistrationToken* token);
+    /* [eventremove] */HRESULT ( STDMETHODCALLTYPE *remove_CurrentChanged )(__x_TestApp_CParity_CIMixedDeprecation * This, /* [in] */ EventRegistrationToken token);
+    END_INTERFACE
+} __x_TestApp_CParity_CIMixedDeprecationVtbl;
+
+interface __x_TestApp_CParity_CIMixedDeprecation
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIMixedDeprecationVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIMixedDeprecation_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_GetOldValue(This,returnValue) \
+    ( (This)->lpVtbl->GetOldValue(This,returnValue) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_GetNewValue(This,returnValue) \
+    ( (This)->lpVtbl->GetNewValue(This,returnValue) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_get_OldCount(This,value) \
+    ( (This)->lpVtbl->get_OldCount(This,value) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_get_NewCount(This,value) \
+    ( (This)->lpVtbl->get_NewCount(This,value) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_add_LegacyChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_LegacyChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_remove_LegacyChanged(This,token) \
+    ( (This)->lpVtbl->remove_LegacyChanged(This,token) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_add_CurrentChanged(This,handler,token) \
+    ( (This)->lpVtbl->add_CurrentChanged(This,handler,token) )
+
+#define __x_TestApp_CParity_CIMixedDeprecation_remove_CurrentChanged(This,token) \
+    ( (This)->lpVtbl->remove_CurrentChanged(This,token) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIMixedDeprecation_INTERFACE_DEFINED__
+
+#if !defined(____x_TestApp_CParity_CIRemovedService_INTERFACE_DEFINED__)
+#define ____x_TestApp_CParity_CIRemovedService_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR InterfaceName_TestApp_Parity_IRemovedService[] = L"TestApp.Parity.IRemovedService";
+
+typedef struct __x_TestApp_CParity_CIRemovedServiceVtbl
+{
+    BEGIN_INTERFACE
+    HRESULT ( STDMETHODCALLTYPE *QueryInterface )(__RPC__in __x_TestApp_CParity_CIRemovedService * This, __RPC__in REFIID riid, _COM_Outptr_ void **ppvObject);
+    ULONG ( STDMETHODCALLTYPE *AddRef )(__RPC__in __x_TestApp_CParity_CIRemovedService * This);
+    ULONG ( STDMETHODCALLTYPE *Release )(__RPC__in __x_TestApp_CParity_CIRemovedService * This);
+    HRESULT ( STDMETHODCALLTYPE *GetIids )(__RPC__in __x_TestApp_CParity_CIRemovedService * This, __RPC__out ULONG *iidCount, __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids);
+    HRESULT ( STDMETHODCALLTYPE *GetRuntimeClassName )(__RPC__in __x_TestApp_CParity_CIRemovedService * This, __RPC__deref_out_opt HSTRING *className);
+    HRESULT ( STDMETHODCALLTYPE *GetTrustLevel )(__RPC__in __x_TestApp_CParity_CIRemovedService * This, __RPC__out TrustLevel *trustLevel);
+    HRESULT ( STDMETHODCALLTYPE *DoWork )(__x_TestApp_CParity_CIRemovedService * This);
+    END_INTERFACE
+} __x_TestApp_CParity_CIRemovedServiceVtbl;
+
+interface __x_TestApp_CParity_CIRemovedService
+{
+    CONST_VTBL struct __x_TestApp_CParity_CIRemovedServiceVtbl *lpVtbl;
+};
+
+#ifdef COBJMACROS
+#define __x_TestApp_CParity_CIRemovedService_QueryInterface(This,riid,ppvObject) \
+    ( (This)->lpVtbl->QueryInterface(This,riid,ppvObject) )
+
+#define __x_TestApp_CParity_CIRemovedService_AddRef(This) \
+    ( (This)->lpVtbl->AddRef(This) )
+
+#define __x_TestApp_CParity_CIRemovedService_Release(This) \
+    ( (This)->lpVtbl->Release(This) )
+
+#define __x_TestApp_CParity_CIRemovedService_GetIids(This,iidCount,iids) \
+    ( (This)->lpVtbl->GetIids(This,iidCount,iids) )
+
+#define __x_TestApp_CParity_CIRemovedService_GetRuntimeClassName(This,className) \
+    ( (This)->lpVtbl->GetRuntimeClassName(This,className) )
+
+#define __x_TestApp_CParity_CIRemovedService_GetTrustLevel(This,trustLevel) \
+    ( (This)->lpVtbl->GetTrustLevel(This,trustLevel) )
+
+#define __x_TestApp_CParity_CIRemovedService_DoWork(This) \
+    ( (This)->lpVtbl->DoWork(This) )
+
+#endif /* COBJMACROS */
+
+#endif // ____x_TestApp_CParity_CIRemovedService_INTERFACE_DEFINED__
+
 #endif // defined(__cplusplus) && !defined(CINTERFACE)
 
 #pragma pop_macro("MIDL_CONST_ID")
