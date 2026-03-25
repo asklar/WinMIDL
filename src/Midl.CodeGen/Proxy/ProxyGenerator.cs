@@ -26,6 +26,7 @@ public class ProxyGenerator
         var ifaceToRcName = new Dictionary<string, string>();
         var rcToAllIids = new Dictionary<string, List<string>>();
 
+        // First pass: collect direct IIDs for each runtimeclass
         foreach (var sym in allTypes)
         {
             if (sym is RuntimeClassSymbol rc)
@@ -40,7 +41,7 @@ public class ProxyGenerator
                     ifaceToRcName[impl.FullName] = rc.FullName;
                 }
 
-                // Declared base class (may be an interface in WinRT: `runtimeclass Widget : IPuppy`)
+                // Declared base class — may be an interface (`: IPuppy`)
                 if (rc.BaseClass?.ResolvedSymbol is InterfaceSymbol baseIface)
                 {
                     var iid = $"IID_{HeaderEmitter.MangleName(baseIface.FullName)}";
@@ -71,6 +72,28 @@ public class ProxyGenerator
                 }
 
                 rcToAllIids[rc.FullName] = iids;
+            }
+        }
+
+        // Second pass: inherit IIDs from base runtimeclasses (composable/unsealed)
+        // Walk up the full inheritance chain for each runtimeclass
+        foreach (var sym in allTypes)
+        {
+            if (sym is RuntimeClassSymbol rc && rcToAllIids.ContainsKey(rc.FullName))
+            {
+                var derivedIids = rcToAllIids[rc.FullName];
+                var current = rc;
+                while (current.BaseClass?.ResolvedSymbol is RuntimeClassSymbol baseRc)
+                {
+                    if (rcToAllIids.TryGetValue(baseRc.FullName, out var baseIids))
+                    {
+                        foreach (var iid in baseIids)
+                        {
+                            if (!derivedIids.Contains(iid)) derivedIids.Add(iid);
+                        }
+                    }
+                    current = baseRc;
+                }
             }
         }
 
