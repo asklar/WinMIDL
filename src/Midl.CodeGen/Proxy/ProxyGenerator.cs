@@ -48,6 +48,7 @@ public class ProxyGenerator
         sb.AppendLine("#include <objidl.h>");
         sb.AppendLine("#include <winstring.h>");
         sb.AppendLine("#include <inspectable.h>");
+        sb.AppendLine("#include <type_traits>");
         sb.AppendLine();
     }
 
@@ -348,10 +349,8 @@ public class ProxyGenerator
         // Deserialize reply
         bool needsReadPointer = hasRetval || outParams.Count > 0;
 
-        if (needsReadPointer)
-        {
-            sb.AppendLine("            BYTE* pReply = (BYTE*)msg.Buffer;");
-        }
+        // Always need pReply for the trailing HRESULT
+        sb.AppendLine("            BYTE* pReply = (BYTE*)msg.Buffer;");
 
         // Deserialize out params
         foreach (var p in outParams)

@@ -133,7 +133,7 @@ $linkArgs = @(
     "/nologo", "/DLL",
     "/OUT:$dllFile"
 ) + $libArgs + @(
-    "ole32.lib", "oleaut32.lib", "uuid.lib", "runtimeobject.lib", "advapi32.lib",
+    "ole32.lib", "oleaut32.lib", "uuid.lib", "runtimeobject.lib", "advapi32.lib", "user32.lib",
     $objFile
 )
 

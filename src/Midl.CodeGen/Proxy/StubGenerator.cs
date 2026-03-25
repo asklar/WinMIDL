@@ -273,6 +273,19 @@ public class StubGenerator
     private void EmitSerializeReply(StringBuilder sb, StubSlot slot, List<ParameterSymbol> outParams,
         bool hasRetval, string iidName, List<ParameterSymbol> inParams)
     {
+        // For HSTRING out params/retval, we need to get their lengths before computing buffer size
+        // Emit WindowsGetStringRawBuffer calls for any HSTRING results
+        foreach (var p in outParams.Where(p => p.Type.Name == "String"))
+        {
+            sb.AppendLine($"        UINT32 {p.Name}_len = 0;");
+            sb.AppendLine($"        PCWSTR {p.Name}_raw = WindowsGetStringRawBuffer({p.Name}, &{p.Name}_len);");
+        }
+        if (hasRetval && slot.ReturnType.Name == "String")
+        {
+            sb.AppendLine("        UINT32 returnValue_len = 0;");
+            sb.AppendLine("        PCWSTR returnValue_raw = WindowsGetStringRawBuffer(returnValue, &returnValue_len);");
+        }
+
         // Calculate reply size using WireFormat
         var replyParams = outParams.Select(p => (p.Type, p.Name)).ToList();
 
@@ -290,8 +303,24 @@ public class StubGenerator
         }
         else
         {
-            var sizeExpr = WireFormat.BuildReplySizeExpression(replyParams, hasRetval, slot.ReturnType);
-            sb.AppendLine($"        pMsg->cbBuffer = {sizeExpr};");
+            // Build size expression using the _len variables we just declared
+            var sizeParts = new List<string>();
+            foreach (var p in outParams)
+            {
+                if (p.Type.Name == "String")
+                    sizeParts.Add($"sizeof(UINT32) + {p.Name}_len * sizeof(WCHAR)");
+                else
+                    sizeParts.Add(WireFormat.GetCppSizeExpression(p.Type));
+            }
+            if (hasRetval)
+            {
+                if (slot.ReturnType.Name == "String")
+                    sizeParts.Add("sizeof(UINT32) + returnValue_len * sizeof(WCHAR)");
+                else
+                    sizeParts.Add(WireFormat.GetCppSizeExpression(slot.ReturnType));
+            }
+            sizeParts.Add("sizeof(HRESULT)");
+            sb.AppendLine($"        pMsg->cbBuffer = {string.Join(" + ", sizeParts)};");
         }
         sb.AppendLine($"        pChannel->GetBuffer(pMsg, {iidName});");
 

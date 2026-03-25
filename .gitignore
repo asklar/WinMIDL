@@ -34,3 +34,7 @@ TestResults/
 *.h
 *.c
 tests/golden/
+.worktrees/
+*.obj
+_test_*
+TestWidget_proxy*
