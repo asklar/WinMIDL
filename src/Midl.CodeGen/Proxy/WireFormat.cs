@@ -263,7 +263,7 @@ public static class WireFormat
         if (typeRef.Name == "String")
         {
             sb.AppendLine($"{indent}UINT32 {targetName}_len; memcpy(&{targetName}_len, {bufferPtr}, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
-            sb.AppendLine($"{indent}hr = WindowsCreateString((PCWSTR){bufferPtr}, {targetName}_len, {(isPointer ? targetName : $"&{targetName}")}); if (FAILED(hr)) return hr;");
+            sb.AppendLine($"{indent}hr = WindowsCreateString((PCWSTR){bufferPtr}, {targetName}_len, {(isPointer ? targetName : $"&{targetName}")}); RETURN_IF_FAILED(hr);");
             sb.AppendLine($"{indent}{bufferPtr} += {targetName}_len * sizeof(WCHAR);");
             return;
         }
@@ -537,7 +537,7 @@ public static class WireFormat
         sb.AppendLine($"{indent}HSTRING {varName} = nullptr;");
         sb.AppendLine($"{indent}if ({varName}_len > 0) {{");
         sb.AppendLine($"{indent}    HRESULT hr = WindowsCreateString((PCWSTR){bufferPtr}, {varName}_len, &{varName});");
-        sb.AppendLine($"{indent}    if (FAILED(hr)) return hr;");
+        sb.AppendLine($"{indent}    RETURN_IF_FAILED(hr);");
         sb.AppendLine($"{indent}}}");
         sb.AppendLine($"{indent}{bufferPtr} += {varName}_len * sizeof(WCHAR);");
     }
@@ -558,6 +558,8 @@ public static class WireFormat
         sb.AppendLine("// C++ standard headers");
         sb.AppendLine("#include <type_traits>");
         sb.AppendLine("#include <array>");
+        sb.AppendLine("// WIL compatibility");
+        sb.AppendLine("#include <winmidl/wil_compat.h>");
         if (headerFile != null)
         {
             sb.AppendLine("// Generated header");

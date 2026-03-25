@@ -276,7 +276,7 @@ Write-Step "Compiling TestWidgetProxy.dll"
 $proxyObj = "$buildDir\TestWidget_proxy.obj"
 $proxyDll = "$buildDir\TestWidgetProxy.dll"
 
-& $cl @commonFlags /c /Fo"$proxyObj" /I"$outDir" "$outDir\TestWidget_proxy.cpp" 2>&1 |
+& $cl @commonFlags /c /Fo"$proxyObj" /I"$outDir" /I"$repoRoot\include" "$outDir\TestWidget_proxy.cpp" 2>&1 |
     ForEach-Object { Write-Host "  $_" }
 if ($LASTEXITCODE -ne 0) {
     Write-Host "FAIL: Proxy compilation failed" -ForegroundColor Red
