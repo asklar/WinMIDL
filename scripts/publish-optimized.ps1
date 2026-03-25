@@ -56,6 +56,10 @@ if (-not $SkipTests) {
 $outDir = Join-Path $repoRoot $OutputDir $Runtime
 $cliProject = Join-Path $repoRoot "src" "Midl.Cli"
 
+# Determine target architecture from RID
+$targetArch = if ($Runtime -match 'arm64') { 'arm64' } else { 'x64' }
+$hostArch = 'x64'  # we're always building on x64
+
 # Find a working Windows SDK version for the native linker
 # Some SDK versions may be broken; probe for advapi32.lib to verify
 $sdkVersion = $null
@@ -67,8 +71,8 @@ try {
             Sort-Object Name -Descending
         foreach ($sv in $sdkVersions) {
             $v = $sv.Name
-            $umPath = "$sdkRoot\Lib\$v\um\x64"
-            $ucrtPath = "$sdkRoot\Lib\$v\ucrt\x64"
+            $umPath = "$sdkRoot\Lib\$v\um\$targetArch"
+            $ucrtPath = "$sdkRoot\Lib\$v\ucrt\$targetArch"
             if ((Test-Path "$umPath\advapi32.lib") -and (Test-Path "$ucrtPath\ucrt.lib")) {
                 $sdkVersion = $v
                 # Ensure both paths are in LIB
@@ -79,18 +83,44 @@ try {
                     $addPaths = $missing -join ";"
                     $env:LIB = if ($env:LIB) { "$addPaths;$env:LIB" } else { $addPaths }
                 }
-                Write-Host "  Using SDK $v" -ForegroundColor DarkGray
+                Write-Host "  Using SDK $v ($targetArch)" -ForegroundColor DarkGray
                 break
             }
         }
     }
 } catch { }
 
-$instructionSet = if ($Native) { "native" } else { "x86-64-v2" }
-if ($Native) {
-    Write-Host "  Instruction set: native (optimized for this machine — NOT portable)" -ForegroundColor Yellow
+# For cross-compilation, ensure the cross-compiler tools are on PATH
+if ($targetArch -ne $hostArch) {
+    try {
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        $vsPath = & $vswhere -prerelease -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+        if ($vsPath) {
+            $vcVersion = (Get-ChildItem "$vsPath\VC\Tools\MSVC" -Directory | Sort-Object Name -Descending | Select-Object -First 1).Name
+            $crossToolPath = "$vsPath\VC\Tools\MSVC\$vcVersion\bin\Host$hostArch\$targetArch"
+            $hostToolPath = "$vsPath\VC\Tools\MSVC\$vcVersion\bin\Host$hostArch\$hostArch"
+            if (Test-Path $crossToolPath) {
+                $env:PATH = "$crossToolPath;$hostToolPath;$env:PATH"
+                # Also add VC lib for target arch
+                $vcLibPath = "$vsPath\VC\Tools\MSVC\$vcVersion\lib\$targetArch"
+                if (Test-Path $vcLibPath) {
+                    $env:LIB = if ($env:LIB) { "$vcLibPath;$env:LIB" } else { $vcLibPath }
+                }
+                Write-Host "  Cross-compile: $hostArch → $targetArch" -ForegroundColor DarkGray
+            }
+        }
+    } catch { }
+}
+
+$instructionSet = if ($Native) { "native" } elseif ($targetArch -eq 'arm64') { "" } else { "x86-64-v2" }
+if ($instructionSet) {
+    if ($Native) {
+        Write-Host "  Instruction set: native (optimized for this machine — NOT portable)" -ForegroundColor Yellow
+    } else {
+        Write-Host "  Instruction set: $instructionSet (portable)" -ForegroundColor DarkGray
+    }
 } else {
-    Write-Host "  Instruction set: x86-64-v2 (portable)" -ForegroundColor DarkGray
+    Write-Host "  Instruction set: default ($targetArch)" -ForegroundColor DarkGray
 }
 
 Write-Host "Attempting NativeAOT publish..." -ForegroundColor Yellow
@@ -102,12 +132,18 @@ $aotArgs = @(
     "--self-contained"
     "-o", $outDir
     "/p:PublishAot=true"
-    "/p:IlcInstructionSet=$instructionSet"
 )
-# Pass the verified SDK um\x64 path so the linker can find advapi32.lib etc.
+if ($instructionSet) {
+    $aotArgs += "/p:IlcInstructionSet=$instructionSet"
+}
+# Pass the verified SDK um path so the linker can find advapi32.lib etc.
 if ($sdkVersion -and $sdkRoot) {
-    $umPath = "$sdkRoot\Lib\$sdkVersion\um\x64"
+    $umPath = "$sdkRoot\Lib\$sdkVersion\um\$targetArch"
     $aotArgs += "/p:LinkerArg=/LIBPATH:`"$umPath`""
+}
+# For cross-compilation, tell ILC to use the right tools
+if ($targetArch -ne $hostArch) {
+    $aotArgs += "/p:IlcUseEnvironmentalTools=true"
 }
 
 $aotResult = & dotnet @aotArgs 2>&1

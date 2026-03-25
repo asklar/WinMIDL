@@ -28,42 +28,56 @@ $repoRoot = Split-Path $PSScriptRoot -Parent
 $extensionDir = Join-Path $repoRoot "editors" "vscode"
 $publishDir = Join-Path $repoRoot "publish"
 
-# Step 1: Build the server binary (unless skipped)
+# Step 1: Build server binaries (unless skipped)
 if (-not $SkipBuild) {
-    Write-Host "Building server binary..." -ForegroundColor Cyan
-    & "$PSScriptRoot\publish-optimized.ps1" -SkipTests
+    Write-Host "Building server binaries..." -ForegroundColor Cyan
+
+    # Build x64
+    Write-Host "  Building win-x64..." -ForegroundColor Yellow
+    & "$PSScriptRoot\publish-optimized.ps1" -SkipTests -Runtime win-x64
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "Server binary build failed."
+        Write-Error "x64 build failed."
         exit 1
+    }
+
+    # Cross-compile ARM64
+    Write-Host "  Building win-arm64 (cross-compile)..." -ForegroundColor Yellow
+    & "$PSScriptRoot\publish-optimized.ps1" -SkipTests -Runtime win-arm64
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "  ARM64 build failed — VSIX will be x64-only" -ForegroundColor Yellow
     }
     Write-Host ""
 }
 
-# Verify binary exists
-$rid = "win-x64"
-$serverExe = Join-Path $publishDir $rid "Midl.Cli.exe"
+# Verify x64 binary exists
+$serverExe = Join-Path $publishDir "win-x64" "Midl.Cli.exe"
 if (-not (Test-Path $serverExe)) {
     Write-Error "Server binary not found at $serverExe. Run without -SkipBuild or build manually first."
     exit 1
 }
 $sizeMB = [math]::Round((Get-Item $serverExe).Length / 1MB, 1)
-Write-Host "Server binary: $serverExe ($sizeMB MB)" -ForegroundColor Green
+Write-Host "Server binary (x64): $serverExe ($sizeMB MB)" -ForegroundColor Green
 
 # Step 2: Bundle into extension
 Write-Host ""
-Write-Host "Bundling server binary into extension..." -ForegroundColor Cyan
-$serverDir = Join-Path $extensionDir "server" $rid
-New-Item -ItemType Directory -Force -Path $serverDir | Out-Null
-Copy-Item $serverExe -Destination $serverDir -Force
-Write-Host "  Copied to $serverDir"
+Write-Host "Bundling server binaries into extension..." -ForegroundColor Cyan
 
-# Also bundle ARM64 if available
+# Bundle x64
+$x64Dir = Join-Path $extensionDir "server" "win-x64"
+New-Item -ItemType Directory -Force -Path $x64Dir | Out-Null
+Copy-Item $serverExe -Destination $x64Dir -Force
+Write-Host "  Copied x64 to $x64Dir"
+
+# Bundle ARM64
 $arm64Exe = Join-Path $publishDir "win-arm64" "Midl.Cli.exe"
 if (Test-Path $arm64Exe) {
+    $arm64SizeMB = [math]::Round((Get-Item $arm64Exe).Length / 1MB, 1)
     $arm64Dir = Join-Path $extensionDir "server" "win-arm64"
     New-Item -ItemType Directory -Force -Path $arm64Dir | Out-Null
     Copy-Item $arm64Exe -Destination $arm64Dir -Force
-    Write-Host "  Copied ARM64 to $arm64Dir"
+    Write-Host "  Copied ARM64 to $arm64Dir ($arm64SizeMB MB)"
+} else {
+    Write-Host "  ARM64 binary not found — skipping" -ForegroundColor Yellow
 }
 
 # Step 3: Set version if specified
