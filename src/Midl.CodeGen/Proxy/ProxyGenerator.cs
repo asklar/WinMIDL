@@ -20,20 +20,57 @@ public class ProxyGenerator
         var sb = new StringBuilder();
         EmitPrologue(sb);
 
-        // Build runtimeclass → interface IIDs map
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
-        var rcInterfaceMap = new Dictionary<string, List<string>>();
+
+        // Build interface → runtimeclass reverse map, and runtimeclass → all IIDs map
+        var ifaceToRcName = new Dictionary<string, string>();
+        var rcToAllIids = new Dictionary<string, List<string>>();
+
         foreach (var sym in allTypes)
         {
             if (sym is RuntimeClassSymbol rc)
             {
                 var iids = new List<string>();
-                foreach (var iface in allTypes.OfType<InterfaceSymbol>()
-                    .Where(i => i.ExclusiveToClass == rc.FullName))
+
+                // Synthesized exclusive interfaces (from ImplementedInterfaces)
+                foreach (var impl in rc.ImplementedInterfaces)
                 {
-                    iids.Add($"IID_{HeaderEmitter.MangleName(iface.FullName)}");
+                    var iid = $"IID_{HeaderEmitter.MangleName(impl.FullName)}";
+                    if (!iids.Contains(iid)) iids.Add(iid);
+                    ifaceToRcName[impl.FullName] = rc.FullName;
                 }
-                rcInterfaceMap[rc.FullName] = iids;
+
+                // Declared base class (may be an interface in WinRT: `runtimeclass Widget : IPuppy`)
+                if (rc.BaseClass?.ResolvedSymbol is InterfaceSymbol baseIface)
+                {
+                    var iid = $"IID_{HeaderEmitter.MangleName(baseIface.FullName)}";
+                    if (!iids.Contains(iid)) iids.Add(iid);
+                    ifaceToRcName[baseIface.FullName] = rc.FullName;
+                }
+
+                // Declared interfaces (from Interfaces TypeRef list)
+                foreach (var ifaceRef in rc.Interfaces)
+                {
+                    if (ifaceRef.ResolvedSymbol is InterfaceSymbol resolved)
+                    {
+                        var iid = $"IID_{HeaderEmitter.MangleName(resolved.FullName)}";
+                        if (!iids.Contains(iid)) iids.Add(iid);
+                        ifaceToRcName[resolved.FullName] = rc.FullName;
+                    }
+                }
+
+                // Default/factory/statics/protected/overrides interfaces
+                foreach (var special in new[] { rc.DefaultInterface, rc.FactoryInterface, rc.StaticsInterface, rc.ProtectedInterface, rc.OverridesInterface })
+                {
+                    if (special != null)
+                    {
+                        var iid = $"IID_{HeaderEmitter.MangleName(special.FullName)}";
+                        if (!iids.Contains(iid)) iids.Add(iid);
+                        ifaceToRcName[special.FullName] = rc.FullName;
+                    }
+                }
+
+                rcToAllIids[rc.FullName] = iids;
             }
         }
 
@@ -43,9 +80,10 @@ public class ProxyGenerator
             {
                 // Find all sibling IIDs if this interface belongs to a runtimeclass
                 List<string>? allIids = null;
-                if (iface.ExclusiveToClass != null)
-                    rcInterfaceMap.TryGetValue(iface.ExclusiveToClass, out allIids);
-                EmitProxyClass(sb, iface, allIids);
+                string? rcName = null;
+                if (ifaceToRcName.TryGetValue(iface.FullName, out rcName))
+                    rcToAllIids.TryGetValue(rcName, out allIids);
+                EmitProxyClass(sb, iface, allIids, rcName);
             }
         }
 
@@ -73,7 +111,7 @@ public class ProxyGenerator
         sb.AppendLine("// End of generated proxy file");
     }
 
-    internal static void EmitProxyClass(StringBuilder sb, InterfaceSymbol iface, List<string>? allRuntimeClassIids = null)
+    internal static void EmitProxyClass(StringBuilder sb, InterfaceSymbol iface, List<string>? allRuntimeClassIids = null, string? runtimeClassName = null)
     {
         var mangledName = HeaderEmitter.MangleName(iface.FullName);
         var className = $"C{iface.Name}Proxy";
@@ -87,7 +125,7 @@ public class ProxyGenerator
         sb.AppendLine();
 
         // Emit the nested Face class that implements the interface with delegating IUnknown
-        EmitFaceClass(sb, iface, mangledName, iidName, className, allRuntimeClassIids);
+        EmitFaceClass(sb, iface, mangledName, iidName, className, allRuntimeClassIids, runtimeClassName);
 
         sb.AppendLine("    Face m_face;");
         sb.AppendLine("    friend struct Face;");
@@ -111,7 +149,7 @@ public class ProxyGenerator
         sb.AppendLine();
     }
 
-    private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName, List<string>? allRuntimeClassIids)
+    private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName, List<string>? allRuntimeClassIids, string? runtimeClassName)
     {
         sb.AppendLine($"    struct Face : public {mangledName} {{");
         sb.AppendLine($"        {outerClassName}* m_owner;");
@@ -128,10 +166,10 @@ public class ProxyGenerator
         sb.AppendLine();
 
         // IInspectable — static constexpr data, no forwarding
-        // Use runtimeclass name if this is an exclusive interface, otherwise interface name
-        var runtimeClassName = iface.ExclusiveToClass ?? iface.FullName;
+        // Use runtimeclass name if known, otherwise interface name
+        var rcName = runtimeClassName ?? iface.ExclusiveToClass ?? iface.FullName;
         var iidList = allRuntimeClassIids ?? new List<string> { iidName };
-        EmitFaceIInspectable(sb, runtimeClassName, iidList);
+        EmitFaceIInspectable(sb, rcName, iidList);
 
         // Interface methods
         var methods = CollectInterfaceMethods(iface);
