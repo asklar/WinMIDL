@@ -107,7 +107,9 @@ public class ProxyGenerator
         sb.AppendLine();
 
         // IInspectable — static constexpr data, no forwarding
-        EmitFaceIInspectable(sb, iface.FullName, iidName);
+        // Use runtimeclass name if this is an exclusive interface, otherwise interface name
+        var runtimeClassName = iface.ExclusiveToClass ?? iface.FullName;
+        EmitFaceIInspectable(sb, runtimeClassName, iidName);
 
         // Interface methods
         var methods = CollectInterfaceMethods(iface);
