@@ -149,7 +149,7 @@ public partial class ProxyGeneratorTests
         Assert.Contains("GetRuntimeClassName(HSTRING* className) override", output);
         Assert.Contains("GetTrustLevel(TrustLevel* trustLevel) override", output);
         // Uses shared helpers via kTypeInfo
-        Assert.Contains("inline const IID kIIDs[]", output);
+        Assert.Contains("constexpr IID kIIDs[]", output);
         Assert.Contains("winmidl::type_info_t kTypeInfo", output);
         Assert.Contains("winmidl::get_iids(kTypeInfo", output);
         Assert.Contains("winmidl::get_runtime_class_name(kTypeInfo", output);

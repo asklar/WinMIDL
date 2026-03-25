@@ -31,7 +31,7 @@
 #include <rpcndr.h>
 
 #define MIDL_DEFINE_GUID(type,name,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
-    const type name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+    EXTERN_C const type name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 
 #endif
 
@@ -86,6 +86,10 @@ MIDL_DEFINE_GUID(IID,IID___x_TestApp_Comprehensive_ICalculator2,0xC042FFC1,0xFA2
 // C++ standard headers
 #include <type_traits>
 #include <array>
+// WIL compatibility
+#include <winmidl/wil_compat.h>
+
+#include "winmidl/proxy_helpers.h"
 
 // Proxy for TestApp.Comprehensive.ILogger
 class CILoggerProxy : public IRpcProxyBuffer {
@@ -104,24 +108,17 @@ class CILoggerProxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_ILogger };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.ILogger";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_ILogger };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
         // Log (vtable slot 6)
@@ -132,7 +129,7 @@ class CILoggerProxy : public IRpcProxyBuffer {
             msg.iMethod = 6;
             msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(message) * sizeof(WCHAR);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ILogger);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
             UINT32 message_len = WindowsGetStringLen(message);
             memcpy(p, &message_len, sizeof(UINT32)); p += sizeof(UINT32);
@@ -140,11 +137,11 @@ class CILoggerProxy : public IRpcProxyBuffer {
             memcpy(p, message_raw, message_len * sizeof(WCHAR)); p += message_len * sizeof(WCHAR);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -156,17 +153,17 @@ class CILoggerProxy : public IRpcProxyBuffer {
             msg.iMethod = 7;
             msg.cbBuffer = kget_LastMessage_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ILogger);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             UINT32 returnValue_len; memcpy(&returnValue_len, pReply, sizeof(UINT32)); pReply += sizeof(UINT32);
-            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); if (FAILED(hr)) return hr;
+            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); RETURN_IF_FAILED(hr);
             pReply += returnValue_len * sizeof(WCHAR);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -174,6 +171,9 @@ class CILoggerProxy : public IRpcProxyBuffer {
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CILoggerProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -192,24 +192,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_ILogger) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_ILogger*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -223,6 +208,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CILoggerProxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_ILogger, static_cast<uint32_t>(offsetof(CILoggerProxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CILoggerProxy::kTypeInfo = { CILoggerProxy::Face::kIIDs, L"TestApp.Comprehensive.ILogger", CILoggerProxy::kQIEntries };
 
 // Proxy for TestApp.Comprehensive.IAnimal
 class CIAnimalProxy : public IRpcProxyBuffer {
@@ -241,24 +233,17 @@ class CIAnimalProxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_IAnimal2, IID___x_TestApp_Comprehensive_IAnimal };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.Animal";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IAnimal2, IID___x_TestApp_Comprehensive_IAnimal };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
         // get_Name (vtable slot 6)
@@ -269,17 +254,17 @@ class CIAnimalProxy : public IRpcProxyBuffer {
             msg.iMethod = 6;
             msg.cbBuffer = kget_Name_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IAnimal);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             UINT32 returnValue_len; memcpy(&returnValue_len, pReply, sizeof(UINT32)); pReply += sizeof(UINT32);
-            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); if (FAILED(hr)) return hr;
+            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); RETURN_IF_FAILED(hr);
             pReply += returnValue_len * sizeof(WCHAR);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -292,15 +277,15 @@ class CIAnimalProxy : public IRpcProxyBuffer {
             msg.iMethod = 7;
             msg.cbBuffer = kget_LegCount_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IAnimal);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             memcpy(returnValue, pReply, sizeof(INT32)); pReply += sizeof(INT32);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -308,6 +293,9 @@ class CIAnimalProxy : public IRpcProxyBuffer {
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CIAnimalProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -326,24 +314,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_IAnimal) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_IAnimal*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -357,6 +330,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CIAnimalProxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_IAnimal, static_cast<uint32_t>(offsetof(CIAnimalProxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CIAnimalProxy::kTypeInfo = { CIAnimalProxy::Face::kIIDs, L"TestApp.Comprehensive.Animal", CIAnimalProxy::kQIEntries };
 
 // Proxy for TestApp.Comprehensive.ISerializable
 class CISerializableProxy : public IRpcProxyBuffer {
@@ -375,24 +355,17 @@ class CISerializableProxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_IDocument, IID___x_TestApp_Comprehensive_ISerializable, IID___x_TestApp_Comprehensive_ICloneable };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.Document";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IDocument, IID___x_TestApp_Comprehensive_ISerializable, IID___x_TestApp_Comprehensive_ICloneable };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
         // Serialize (vtable slot 6)
@@ -403,17 +376,17 @@ class CISerializableProxy : public IRpcProxyBuffer {
             msg.iMethod = 6;
             msg.cbBuffer = kSerialize_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ISerializable);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             UINT32 returnValue_len; memcpy(&returnValue_len, pReply, sizeof(UINT32)); pReply += sizeof(UINT32);
-            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); if (FAILED(hr)) return hr;
+            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); RETURN_IF_FAILED(hr);
             pReply += returnValue_len * sizeof(WCHAR);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -421,6 +394,9 @@ class CISerializableProxy : public IRpcProxyBuffer {
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CISerializableProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -439,24 +415,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_ISerializable) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_ISerializable*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -470,6 +431,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CISerializableProxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_ISerializable, static_cast<uint32_t>(offsetof(CISerializableProxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CISerializableProxy::kTypeInfo = { CISerializableProxy::Face::kIIDs, L"TestApp.Comprehensive.Document", CISerializableProxy::kQIEntries };
 
 // Proxy for TestApp.Comprehensive.ICloneable
 class CICloneableProxy : public IRpcProxyBuffer {
@@ -488,24 +456,17 @@ class CICloneableProxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_IDocument, IID___x_TestApp_Comprehensive_ISerializable, IID___x_TestApp_Comprehensive_ICloneable };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.Document";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IDocument, IID___x_TestApp_Comprehensive_ISerializable, IID___x_TestApp_Comprehensive_ICloneable };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
         // CloneAsString (vtable slot 6)
@@ -516,17 +477,17 @@ class CICloneableProxy : public IRpcProxyBuffer {
             msg.iMethod = 6;
             msg.cbBuffer = kCloneAsString_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICloneable);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             UINT32 returnValue_len; memcpy(&returnValue_len, pReply, sizeof(UINT32)); pReply += sizeof(UINT32);
-            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); if (FAILED(hr)) return hr;
+            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); RETURN_IF_FAILED(hr);
             pReply += returnValue_len * sizeof(WCHAR);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -534,6 +495,9 @@ class CICloneableProxy : public IRpcProxyBuffer {
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CICloneableProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -552,24 +516,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_ICloneable) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_ICloneable*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -583,6 +532,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CICloneableProxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_ICloneable, static_cast<uint32_t>(offsetof(CICloneableProxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CICloneableProxy::kTypeInfo = { CICloneableProxy::Face::kIIDs, L"TestApp.Comprehensive.Document", CICloneableProxy::kQIEntries };
 
 // Proxy for TestApp.Comprehensive.ICalculator
 class CICalculatorProxy : public IRpcProxyBuffer {
@@ -601,24 +557,17 @@ class CICalculatorProxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_ICalculator2, IID___x_TestApp_Comprehensive_ICalculator };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.Calculator";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_ICalculator2, IID___x_TestApp_Comprehensive_ICalculator };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
         // Add (vtable slot 6)
@@ -630,18 +579,18 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             msg.iMethod = 6;
             msg.cbBuffer = kAdd_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICalculator);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
             memcpy(p, &a, sizeof(DOUBLE)); p += sizeof(DOUBLE);
             memcpy(p, &b, sizeof(DOUBLE)); p += sizeof(DOUBLE);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             memcpy(returnValue, pReply, sizeof(DOUBLE)); pReply += sizeof(DOUBLE);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -654,19 +603,19 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             msg.iMethod = 7;
             msg.cbBuffer = kTryDivide_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICalculator);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
             memcpy(p, &num, sizeof(DOUBLE)); p += sizeof(DOUBLE);
             memcpy(p, &denom, sizeof(DOUBLE)); p += sizeof(DOUBLE);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             memcpy(result, pReply, sizeof(DOUBLE)); pReply += sizeof(DOUBLE);
             memcpy(returnValue, pReply, sizeof(boolean)); pReply += sizeof(boolean);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -679,19 +628,19 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             msg.iMethod = 8;
             msg.cbBuffer = kMakePoint_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICalculator);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
             memcpy(p, &x, sizeof(FLOAT)); p += sizeof(FLOAT);
             memcpy(p, &y, sizeof(FLOAT)); p += sizeof(FLOAT);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             static_assert(std::is_trivially_copyable_v<Point>);
             memcpy(returnValue, pReply, sizeof(Point)); pReply += sizeof(Point);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -704,17 +653,17 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             msg.iMethod = 9;
             msg.cbBuffer = kSetPermissions_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICalculator);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
             INT32 perms_val = static_cast<INT32>(perms);
             memcpy(p, &perms_val, sizeof(INT32)); p += sizeof(INT32);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -727,16 +676,16 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             msg.iMethod = 10;
             msg.cbBuffer = kGetPermissions_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICalculator);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             INT32 returnValue_val; memcpy(&returnValue_val, pReply, sizeof(INT32)); pReply += sizeof(INT32);
             *returnValue = static_cast<Permissions>(returnValue_val);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -749,7 +698,7 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             msg.iMethod = 11;
             msg.cbBuffer = kTranslate_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICalculator);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
             static_assert(std::is_trivially_copyable_v<Point>);
             memcpy(p, &pt.Position, sizeof(Point)); p += sizeof(Point);
@@ -759,7 +708,7 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             memcpy(p, &dy, sizeof(FLOAT)); p += sizeof(FLOAT);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             static_assert(std::is_trivially_copyable_v<Point>);
             memcpy(&returnValue->Position, pReply, sizeof(Point)); pReply += sizeof(Point);
@@ -767,7 +716,7 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             returnValue->PointColor = static_cast<Color>(returnValue_PointColor_val);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -775,6 +724,9 @@ class CICalculatorProxy : public IRpcProxyBuffer {
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CICalculatorProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -793,24 +745,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_ICalculator) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_ICalculator*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -824,6 +761,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CICalculatorProxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_ICalculator, static_cast<uint32_t>(offsetof(CICalculatorProxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CICalculatorProxy::kTypeInfo = { CICalculatorProxy::Face::kIIDs, L"TestApp.Comprehensive.Calculator", CICalculatorProxy::kQIEntries };
 
 // Proxy for TestApp.Comprehensive.IAnimal2
 class CIAnimal2Proxy : public IRpcProxyBuffer {
@@ -842,30 +786,26 @@ class CIAnimal2Proxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_IAnimal2, IID___x_TestApp_Comprehensive_IAnimal };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.Animal";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IAnimal2, IID___x_TestApp_Comprehensive_IAnimal };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
     };
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CIAnimal2Proxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -884,24 +824,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_IAnimal2) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_IAnimal2*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -915,6 +840,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CIAnimal2Proxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_IAnimal2, static_cast<uint32_t>(offsetof(CIAnimal2Proxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CIAnimal2Proxy::kTypeInfo = { CIAnimal2Proxy::Face::kIIDs, L"TestApp.Comprehensive.Animal", CIAnimal2Proxy::kQIEntries };
 
 // Proxy for TestApp.Comprehensive.IShape
 class CIShapeProxy : public IRpcProxyBuffer {
@@ -933,24 +865,17 @@ class CIShapeProxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_IShape };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.Shape";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IShape };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
         // get_Kind (vtable slot 6)
@@ -961,17 +886,17 @@ class CIShapeProxy : public IRpcProxyBuffer {
             msg.iMethod = 6;
             msg.cbBuffer = kget_Kind_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IShape);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             UINT32 returnValue_len; memcpy(&returnValue_len, pReply, sizeof(UINT32)); pReply += sizeof(UINT32);
-            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); if (FAILED(hr)) return hr;
+            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); RETURN_IF_FAILED(hr);
             pReply += returnValue_len * sizeof(WCHAR);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -984,15 +909,15 @@ class CIShapeProxy : public IRpcProxyBuffer {
             msg.iMethod = 7;
             msg.cbBuffer = kget_Area_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IShape);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             memcpy(returnValue, pReply, sizeof(DOUBLE)); pReply += sizeof(DOUBLE);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -1000,6 +925,9 @@ class CIShapeProxy : public IRpcProxyBuffer {
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CIShapeProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -1018,24 +946,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_IShape) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_IShape*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -1049,6 +962,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CIShapeProxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_IShape, static_cast<uint32_t>(offsetof(CIShapeProxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CIShapeProxy::kTypeInfo = { CIShapeProxy::Face::kIIDs, L"TestApp.Comprehensive.Shape", CIShapeProxy::kQIEntries };
 
 // Proxy for TestApp.Comprehensive.ICircle
 class CICircleProxy : public IRpcProxyBuffer {
@@ -1067,24 +987,17 @@ class CICircleProxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_ICircle, IID___x_TestApp_Comprehensive_IShape };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.Circle";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_ICircle, IID___x_TestApp_Comprehensive_IShape };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
         // get_Radius (vtable slot 6)
@@ -1096,15 +1009,15 @@ class CICircleProxy : public IRpcProxyBuffer {
             msg.iMethod = 6;
             msg.cbBuffer = kget_Radius_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICircle);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             memcpy(returnValue, pReply, sizeof(DOUBLE)); pReply += sizeof(DOUBLE);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -1112,6 +1025,9 @@ class CICircleProxy : public IRpcProxyBuffer {
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CICircleProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -1130,24 +1046,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_ICircle) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_ICircle*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -1161,6 +1062,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CICircleProxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_ICircle, static_cast<uint32_t>(offsetof(CICircleProxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CICircleProxy::kTypeInfo = { CICircleProxy::Face::kIIDs, L"TestApp.Comprehensive.Circle", CICircleProxy::kQIEntries };
 
 // Proxy for TestApp.Comprehensive.IDocument
 class CIDocumentProxy : public IRpcProxyBuffer {
@@ -1179,24 +1087,17 @@ class CIDocumentProxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_IDocument, IID___x_TestApp_Comprehensive_ISerializable, IID___x_TestApp_Comprehensive_ICloneable };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.Document";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IDocument, IID___x_TestApp_Comprehensive_ISerializable, IID___x_TestApp_Comprehensive_ICloneable };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
         // get_Title (vtable slot 6)
@@ -1207,17 +1108,17 @@ class CIDocumentProxy : public IRpcProxyBuffer {
             msg.iMethod = 6;
             msg.cbBuffer = kget_Title_RequestSize;
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IDocument);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             UINT32 returnValue_len; memcpy(&returnValue_len, pReply, sizeof(UINT32)); pReply += sizeof(UINT32);
-            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); if (FAILED(hr)) return hr;
+            hr = WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue); RETURN_IF_FAILED(hr);
             pReply += returnValue_len * sizeof(WCHAR);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
-            if (FAILED(hr)) return hr;
+            RETURN_IF_FAILED(hr);
             return retHr;
         }
 
@@ -1225,6 +1126,9 @@ class CIDocumentProxy : public IRpcProxyBuffer {
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CIDocumentProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -1243,24 +1147,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_IDocument) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_IDocument*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -1274,6 +1163,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CIDocumentProxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_IDocument, static_cast<uint32_t>(offsetof(CIDocumentProxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CIDocumentProxy::kTypeInfo = { CIDocumentProxy::Face::kIIDs, L"TestApp.Comprehensive.Document", CIDocumentProxy::kQIEntries };
 
 // Proxy for TestApp.Comprehensive.ICalculator2
 class CICalculator2Proxy : public IRpcProxyBuffer {
@@ -1292,30 +1188,26 @@ class CICalculator2Proxy : public IRpcProxyBuffer {
         ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
         ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
 
-        // IInspectable — static data
-        static inline const IID kImplementedIIDs[] = { IID___x_TestApp_Comprehensive_ICalculator2, IID___x_TestApp_Comprehensive_ICalculator };
-        static constexpr wchar_t kRuntimeClassName[] = L"TestApp.Comprehensive.Calculator";
-        HSTRING_HEADER m_hdrClassName{};
+        // IInspectable — static data via shared helpers
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_ICalculator2, IID___x_TestApp_Comprehensive_ICalculator };
 
         HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-            *iidCount = _countof(kImplementedIIDs);
-            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));
-            if (!*iids) return E_OUTOFMEMORY;
-            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));
-            return S_OK;
+            return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-            *trustLevel = BaseTrust;
-            return S_OK;
+            return winmidl::get_trust_level(trustLevel);
         }
 
     };
 
     Face m_face;
     friend struct Face;
+
+    static constexpr winmidl::qi_entry_t kQIEntries[];
+    static constexpr winmidl::type_info_t kTypeInfo;
 
 public:
     CICalculator2Proxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
@@ -1334,24 +1226,9 @@ public:
         if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
     }
 
-    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        // Constexpr IID table for fast comparison
-        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };
-        for (const auto& iid : kNonDelegatingIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcProxyBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        if (riid == IID___x_TestApp_Comprehensive_ICalculator2) {
-            *ppv = static_cast<__x_TestApp_Comprehensive_ICalculator2*>(&m_face);
-            m_pUnkOuter->AddRef();
-            return S_OK;
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
     }
 
     // IUnknown::AddRef
@@ -1365,6 +1242,13 @@ public:
     }
 
 };
+
+inline constexpr winmidl::qi_entry_t CICalculator2Proxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_ICalculator2, static_cast<uint32_t>(offsetof(CICalculator2Proxy, m_face)), true },
+};
+inline constexpr winmidl::type_info_t CICalculator2Proxy::kTypeInfo = { CICalculator2Proxy::Face::kIIDs, L"TestApp.Comprehensive.Calculator", CICalculator2Proxy::kQIEntries };
 
 // End of generated proxy file
 
@@ -1381,6 +1265,8 @@ public:
 // C++ standard headers
 #include <type_traits>
 #include <array>
+// WIL compatibility
+#include <winmidl/wil_compat.h>
 
 class CStub___x_TestApp_Comprehensive_ILogger : public IRpcStubBuffer {
     __x_TestApp_Comprehensive_ILogger* m_pServer;
@@ -1402,8 +1288,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_ILogger };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.ILogger" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_ILogger) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -1413,17 +1304,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -1449,7 +1336,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ILogger);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         memcpy(pMsg->Buffer, &hr, sizeof(HRESULT));
         WindowsDeleteString(message);
         return S_OK;
@@ -1461,7 +1348,7 @@ private:
         PCWSTR returnValue_raw = WindowsGetStringRawBuffer(returnValue, &returnValue_len);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ILogger);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         UINT32 len = 0;
         PCWSTR raw = WindowsGetStringRawBuffer(returnValue, &len);
@@ -1493,8 +1380,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_IAnimal };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.IAnimal" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_IAnimal) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -1504,17 +1396,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -1533,7 +1421,7 @@ private:
         PCWSTR returnValue_raw = WindowsGetStringRawBuffer(returnValue, &returnValue_len);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IAnimal);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         UINT32 len = 0;
         PCWSTR raw = WindowsGetStringRawBuffer(returnValue, &len);
@@ -1549,7 +1437,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(INT32) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IAnimal);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         memcpy(pOut, &returnValue, sizeof(INT32)); pOut += sizeof(INT32);
         memcpy(pOut, &hr, sizeof(HRESULT));
@@ -1576,8 +1464,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_ISerializable };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.ISerializable" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_ISerializable) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -1587,17 +1480,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -1616,7 +1505,7 @@ private:
         PCWSTR returnValue_raw = WindowsGetStringRawBuffer(returnValue, &returnValue_len);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ISerializable);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         UINT32 len = 0;
         PCWSTR raw = WindowsGetStringRawBuffer(returnValue, &len);
@@ -1647,8 +1536,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_ICloneable };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.ICloneable" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_ICloneable) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -1658,17 +1552,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -1687,7 +1577,7 @@ private:
         PCWSTR returnValue_raw = WindowsGetStringRawBuffer(returnValue, &returnValue_len);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICloneable);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         UINT32 len = 0;
         PCWSTR raw = WindowsGetStringRawBuffer(returnValue, &len);
@@ -1723,8 +1613,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_ICalculator };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.ICalculator" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_ICalculator) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -1734,17 +1629,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -1767,7 +1658,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(DOUBLE) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICalculator);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         memcpy(pOut, &returnValue, sizeof(DOUBLE)); pOut += sizeof(DOUBLE);
         memcpy(pOut, &hr, sizeof(HRESULT));
@@ -1785,7 +1676,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(DOUBLE) + sizeof(boolean) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICalculator);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         memcpy(pOut, &result, sizeof(DOUBLE)); pOut += sizeof(DOUBLE);
         memcpy(pOut, &returnValue, sizeof(boolean)); pOut += sizeof(boolean);
@@ -1803,7 +1694,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(Point) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICalculator);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         static_assert(std::is_trivially_copyable_v<Point>);
         memcpy(pOut, &returnValue, sizeof(Point)); pOut += sizeof(Point);
@@ -1818,7 +1709,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICalculator);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         memcpy(pMsg->Buffer, &hr, sizeof(HRESULT));
         return S_OK;
     }
@@ -1828,7 +1719,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(INT32) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICalculator);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         memcpy(pOut, &returnValue, sizeof(INT32)); pOut += sizeof(INT32);
         memcpy(pOut, &hr, sizeof(HRESULT));
@@ -1848,7 +1739,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(Point) + sizeof(INT32) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICalculator);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         memcpy(pOut, &returnValue.Position, sizeof(Point)); pOut += sizeof(Point);
         memcpy(pOut, &returnValue.PointColor, sizeof(INT32)); pOut += sizeof(INT32);
@@ -1875,8 +1766,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_IAnimal2 };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.IAnimal2" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_IAnimal2) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -1886,17 +1782,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -1930,8 +1822,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_IShape };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.IShape" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_IShape) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -1941,17 +1838,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -1970,7 +1863,7 @@ private:
         PCWSTR returnValue_raw = WindowsGetStringRawBuffer(returnValue, &returnValue_len);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IShape);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         UINT32 len = 0;
         PCWSTR raw = WindowsGetStringRawBuffer(returnValue, &len);
@@ -1986,7 +1879,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(DOUBLE) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IShape);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         memcpy(pOut, &returnValue, sizeof(DOUBLE)); pOut += sizeof(DOUBLE);
         memcpy(pOut, &hr, sizeof(HRESULT));
@@ -2013,8 +1906,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_ICircle };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.ICircle" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_ICircle) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -2024,17 +1922,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -2052,7 +1946,7 @@ private:
         static constexpr UINT32 kReplySize = sizeof(DOUBLE) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICircle);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         memcpy(pOut, &returnValue, sizeof(DOUBLE)); pOut += sizeof(DOUBLE);
         memcpy(pOut, &hr, sizeof(HRESULT));
@@ -2079,8 +1973,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_IDocument };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.IDocument" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_IDocument) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -2090,17 +1989,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -2119,7 +2014,7 @@ private:
         PCWSTR returnValue_raw = WindowsGetStringRawBuffer(returnValue, &returnValue_len);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IDocument);
-        if (FAILED(hrBuf)) return hrBuf;
+        RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         UINT32 len = 0;
         PCWSTR raw = WindowsGetStringRawBuffer(returnValue, &len);
@@ -2149,8 +2044,13 @@ public:
             default: return E_UNEXPECTED;
         }
     }
+    static inline const IID kIIDs[] = { IID___x_TestApp_Comprehensive_ICalculator2 };
+    static constexpr winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.ICalculator2" };
+
     IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
-        if (riid == IID___x_TestApp_Comprehensive_ICalculator2) { AddRef(); return this; }
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
         return nullptr;
     }
     ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
@@ -2160,17 +2060,13 @@ public:
     void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
         if (pv) ((IUnknown*)pv)->Release();
     }
+    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        static const IID kSupportedIIDs[] = { IID_IUnknown, IID_IRpcStubBuffer };
-        for (const auto& iid : kSupportedIIDs) {
-            if (iid == riid) {
-                *ppv = static_cast<IRpcStubBuffer*>(this);
-                AddRef();
-                return S_OK;
-            }
-        }
-        *ppv = nullptr;
-        return E_NOINTERFACE;
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
     }
     ULONG STDMETHODCALLTYPE AddRef() override {
         return InterlockedIncrement(&m_cRef);
@@ -2198,6 +2094,8 @@ private:
 // C++ standard headers
 #include <type_traits>
 #include <array>
+// WIL compatibility
+#include <winmidl/wil_compat.h>
 
 static const CLSID CLSID_PSFactoryBuffer = { 0x86dc0081, 0xde86, 0x5561, { 0xbc, 0xb7, 0x71, 0x4e, 0xd4, 0x0c, 0x84, 0xef } };
 
