@@ -208,7 +208,8 @@ $env:PATH    = "$vcToolsDir\bin\Hostx64\x64;$sdkRoot\bin\$sdkVersion\x64;$env:PA
 
 $commonFlags = @(
     "/nologo", "/std:c++latest", "/EHsc", "/W3",
-    "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE"
+    "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",
+    "/Zi"
 )
 
 # ── Step 3: Compile IID definitions ────────────────────────────────────────
@@ -235,7 +236,7 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-& $link /nologo /DLL /OUT:"$serverDll" /DEF:"$scriptDir\WidgetServer.def" `
+& $link /nologo /DLL /DEBUG /OUT:"$serverDll" /DEF:"$scriptDir\WidgetServer.def" `
     "$serverObj" "$iidObj" `
     ole32.lib oleaut32.lib advapi32.lib user32.lib runtimeobject.lib 2>&1 |
     ForEach-Object { Write-Host "  $_" }
@@ -258,7 +259,7 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-& $link /nologo /DLL /OUT:"$proxyDll" /DEF:"$scriptDir\TestWidgetProxy.def" `
+& $link /nologo /DLL /DEBUG /OUT:"$proxyDll" /DEF:"$scriptDir\TestWidgetProxy.def" `
     "$proxyObj" `
     ole32.lib oleaut32.lib advapi32.lib user32.lib runtimeobject.lib 2>&1 |
     ForEach-Object { Write-Host "  $_" }
@@ -281,7 +282,7 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-& $link /nologo /OUT:"$clientExe" `
+& $link /nologo /DEBUG /OUT:"$clientExe" `
     "$clientObj" "$iidObj" `
     ole32.lib oleaut32.lib user32.lib runtimeobject.lib 2>&1 |
     ForEach-Object { Write-Host "  $_" }
