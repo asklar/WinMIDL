@@ -5,7 +5,7 @@ using Midl.Analysis.Symbols;
 namespace Midl.CodeGen.Stub;
 
 /// <summary>
-/// Generates proxy/stub skeleton (_p.c) files with NDR type format strings.
+/// Generates proxy/stub skeleton (_p.c) files with NDR type and procedure format strings.
 /// </summary>
 public class StubEmitter
 {
@@ -25,11 +25,14 @@ public class StubEmitter
         sb.AppendLine("#include <rpcproxy.h>");
         sb.AppendLine();
 
-        // Build the type format string from all types used in interfaces
-        var builder = new NdrTypeFormatBuilder();
-        CollectTypes(compilation, builder);
+        // Build the type and proc format strings from all types used in interfaces
+        var typeBuilder = new NdrTypeFormatBuilder();
+        var procBuilder = new NdrProcFormatBuilder();
+        CollectTypesAndProcs(compilation, typeBuilder, procBuilder);
 
-        sb.AppendLine(builder.EmitTypeFormatString(filePrefix));
+        sb.AppendLine(procBuilder.EmitProcFormatString(filePrefix));
+        sb.AppendLine();
+        sb.AppendLine(typeBuilder.EmitTypeFormatString(filePrefix));
         sb.AppendLine();
         sb.AppendLine("// End of generated proxy file");
 
@@ -45,33 +48,35 @@ public class StubEmitter
 
     /// <summary>
     /// Walks all interfaces in the compilation and adds their parameter types
-    /// to the NdrTypeFormatBuilder.
+    /// to the NdrTypeFormatBuilder and procedures to the NdrProcFormatBuilder.
     /// </summary>
-    private static void CollectTypes(Compilation compilation, NdrTypeFormatBuilder builder)
+    private static void CollectTypesAndProcs(
+        Compilation compilation,
+        NdrTypeFormatBuilder typeBuilder,
+        NdrProcFormatBuilder procBuilder)
     {
         foreach (var iface in compilation.GetAllTypes().OfType<InterfaceSymbol>())
         {
             if (iface.IsExternal) continue;
 
-            foreach (var method in iface.Members.OfType<MethodSymbol>())
+            // Determine base vtable slot: IInspectable-derived = 6, IUnknown-derived = 3
+            bool isInspectable = iface.RequiredInterfaces
+                .Any(r => r.Name == "IInspectable");
+            int methodNumber = isInspectable ? 6 : 3;
+
+            foreach (var member in iface.Members)
             {
-                foreach (var param in method.Parameters)
+                switch (member)
                 {
-                    bool isOut = param.Direction == ParameterDirection.Out
-                        || param.Attributes.Any(a => a.Name == "out");
-
-                    var primFc = NdrTypeFormatBuilder.GetPrimitiveFormatChar(param.Type.Name);
-
-                    if (primFc != null && isOut)
-                    {
-                        // [out] base type pointer → FC_RP [simple_pointer]
-                        builder.EmitRefPointerToBaseType(primFc.Value);
-                    }
-                    else if (primFc == null)
-                    {
-                        // Complex type → add to type format string
-                        builder.GetOrAddType(param.Type);
-                    }
+                    case MethodSymbol method:
+                        procBuilder.AddMethod(method, methodNumber++, typeBuilder);
+                        break;
+                    case PropertySymbol prop:
+                        procBuilder.AddProperty(prop, ref methodNumber, typeBuilder);
+                        break;
+                    case EventSymbol evt:
+                        procBuilder.AddEvent(evt, ref methodNumber, typeBuilder);
+                        break;
                 }
             }
         }
