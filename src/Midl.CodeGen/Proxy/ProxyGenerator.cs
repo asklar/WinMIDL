@@ -127,6 +127,8 @@ public class ProxyGenerator
         sb.AppendLine("// Direct compiled serialization — replaces NDR format strings");
         sb.AppendLine();
         WireFormat.EmitConsolidatedIncludes(sb);
+        sb.AppendLine("#include \"winmidl/proxy_helpers.h\"");
+        sb.AppendLine();
     }
 
     private static void EmitEpilogue(StringBuilder sb)
@@ -210,24 +212,18 @@ public class ProxyGenerator
     private static void EmitFaceIInspectable(StringBuilder sb, string fullName, List<string> iidNames)
     {
         var iidList = string.Join(", ", iidNames);
-        sb.AppendLine("        // IInspectable — static data");
-        sb.AppendLine($"        static inline const IID kImplementedIIDs[] = {{ {iidList} }};");
-        sb.AppendLine($"        static constexpr wchar_t kRuntimeClassName[] = L\"{fullName}\";");
-        sb.AppendLine("        HSTRING_HEADER m_hdrClassName{};");
+        sb.AppendLine("        // IInspectable — static data via shared helpers");
+        sb.AppendLine($"        static inline const IID kIIDs[] = {{ {iidList} }};");
+        sb.AppendLine($"        static constexpr winmidl::type_info_t kTypeInfo = {{ kIIDs, L\"{fullName}\" }};");
         sb.AppendLine();
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {");
-        sb.AppendLine("            *iidCount = _countof(kImplementedIIDs);");
-        sb.AppendLine("            *iids = static_cast<IID*>(CoTaskMemAlloc(sizeof(kImplementedIIDs)));");
-        sb.AppendLine("            if (!*iids) return E_OUTOFMEMORY;");
-        sb.AppendLine("            memcpy(*iids, kImplementedIIDs, sizeof(kImplementedIIDs));");
-        sb.AppendLine("            return S_OK;");
+        sb.AppendLine("            return winmidl::get_iids(kTypeInfo, iidCount, iids);");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {");
-        sb.AppendLine("            return WindowsCreateStringReference(kRuntimeClassName, _countof(kRuntimeClassName) - 1, &m_hdrClassName, className);");
+        sb.AppendLine("            return winmidl::get_runtime_class_name(kTypeInfo, className);");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {");
-        sb.AppendLine("            *trustLevel = BaseTrust;");
-        sb.AppendLine("            return S_OK;");
+        sb.AppendLine("            return winmidl::get_trust_level(trustLevel);");
         sb.AppendLine("        }");
         sb.AppendLine();
     }
@@ -254,24 +250,15 @@ public class ProxyGenerator
 
     private static void EmitNonDelegatingQI(StringBuilder sb, string mangledName, string iidName)
     {
-        sb.AppendLine("    // Non-delegating IUnknown::QueryInterface — constexpr IID lookup");
+        sb.AppendLine("    // Non-delegating IUnknown::QueryInterface — qi_check lookup");
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
-        sb.AppendLine("        // Constexpr IID table for fast comparison");
-        sb.AppendLine("        static const IID kNonDelegatingIIDs[] = { IID_IUnknown, IID_IRpcProxyBuffer };");
-        sb.AppendLine("        for (const auto& iid : kNonDelegatingIIDs) {");
-        sb.AppendLine("            if (iid == riid) {");
-        sb.AppendLine("                *ppv = static_cast<IRpcProxyBuffer*>(this);");
-        sb.AppendLine("                AddRef();");
-        sb.AppendLine("                return S_OK;");
-        sb.AppendLine("            }");
-        sb.AppendLine("        }");
-        sb.AppendLine($"        if (riid == {iidName}) {{");
-        sb.AppendLine($"            *ppv = static_cast<{mangledName}*>(&m_face);");
-        sb.AppendLine("            m_pUnkOuter->AddRef();");
-        sb.AppendLine("            return S_OK;");
-        sb.AppendLine("        }");
-        sb.AppendLine("        *ppv = nullptr;");
-        sb.AppendLine("        return E_NOINTERFACE;");
+        sb.AppendLine($"        const uint32_t faceOff = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(&m_face) - reinterpret_cast<uintptr_t>(this));");
+        sb.AppendLine($"        const winmidl::qi_entry_t kQIEntries[] = {{");
+        sb.AppendLine($"            {{ IID_IUnknown, 0, false }},");
+        sb.AppendLine($"            {{ IID_IRpcProxyBuffer, 0, false }},");
+        sb.AppendLine($"            {{ {iidName}, faceOff, true }},");
+        sb.AppendLine($"        }};");
+        sb.AppendLine("        return winmidl::qi_check(kQIEntries, this, m_pUnkOuter, riid, ppv);");
         sb.AppendLine("    }");
         sb.AppendLine();
     }

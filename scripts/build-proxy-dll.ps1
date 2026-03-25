@@ -87,7 +87,8 @@ $includePaths = @(
     "$sdkRoot\Include\$sv\um",
     "$sdkRoot\Include\$sv\shared",
     "$sdkRoot\Include\$sv\winrt",
-    $srcDir
+    $srcDir,
+    (Join-Path (Split-Path $PSScriptRoot) "include")
 )
 $libPaths = @(
     "$vcTools\lib\x64",
