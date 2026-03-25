@@ -88,7 +88,7 @@ public class StubGenerator
 
         // Static type info for this interface
         sb.AppendLine($"    static inline const IID kIIDs[] = {{ {iidName} }};");
-        sb.AppendLine($"    static constexpr winmidl::type_info_t kTypeInfo = {{ kIIDs, L\"{iface.FullName}\" }};");
+        sb.AppendLine($"    static inline const winmidl::type_info_t kTypeInfo = {{ kIIDs, L\"{iface.FullName}\" }};");
         sb.AppendLine();
 
         // IsIIDSupported — data-driven via type_info
@@ -113,7 +113,7 @@ public class StubGenerator
         sb.AppendLine("    }");
 
         // QueryInterface — table-driven via qi_check
-        sb.AppendLine("    static constexpr winmidl::qi_entry_t kStubQIEntries[] = {");
+        sb.AppendLine("    static inline const winmidl::qi_entry_t kStubQIEntries[] = {");
         sb.AppendLine("        { IID_IUnknown, 0, false },");
         sb.AppendLine("        { IID_IRpcStubBuffer, 0, false },");
         sb.AppendLine("    };");

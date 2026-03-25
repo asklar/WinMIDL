@@ -10,7 +10,7 @@
 namespace winmidl {
 
 struct qi_entry_t {
-    const IID& iid;
+    IID iid;
     uint32_t offset;
     bool delegating;
 };
@@ -50,6 +50,22 @@ inline HRESULT qi_check(type_info_t const& info,
         if (e.iid == riid) {
             *ppv = reinterpret_cast<std::byte*>(pThis) + e.offset;
             if (e.delegating) pOuter->AddRef();
+            else static_cast<IUnknown*>(*ppv)->AddRef();
+            return S_OK;
+        }
+    }
+    *ppv = nullptr;
+    return E_NOINTERFACE;
+}
+
+// Overload for stub-side QI (no type_info, just QI entries)
+inline HRESULT qi_check(std::span<const qi_entry_t> entries,
+                         void* pThis, IUnknown* pOuter,
+                         REFIID riid, void** ppv) {
+    for (auto& e : entries) {
+        if (e.iid == riid) {
+            *ppv = reinterpret_cast<std::byte*>(pThis) + e.offset;
+            if (pOuter) pOuter->AddRef();
             else static_cast<IUnknown*>(*ppv)->AddRef();
             return S_OK;
         }
