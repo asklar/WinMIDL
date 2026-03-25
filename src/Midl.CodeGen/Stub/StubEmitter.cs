@@ -9,6 +9,14 @@ namespace Midl.CodeGen.Stub;
 /// </summary>
 public class StubEmitter
 {
+    /// <summary>
+    /// Per-interface data collected during type/proc format string building.
+    /// </summary>
+    internal record InterfaceProxyData(
+        InterfaceSymbol Interface,
+        bool IsInspectable,
+        List<ProxyVtableBuilder.MethodEntry> Methods);
+
     public string Emit(Compilation compilation)
     {
         return Emit(compilation, "proxy_stub");
@@ -28,44 +36,45 @@ public class StubEmitter
         // Build the type and proc format strings from all types used in interfaces
         var typeBuilder = new NdrTypeFormatBuilder();
         var procBuilder = new NdrProcFormatBuilder();
-        var interfaceOffsets = CollectTypesAndProcs(compilation, typeBuilder, procBuilder);
+        var interfaceData = CollectTypesAndProcs(compilation, typeBuilder, procBuilder);
 
         sb.AppendLine(procBuilder.EmitProcFormatString(filePrefix));
         sb.AppendLine();
         sb.AppendLine(typeBuilder.EmitTypeFormatString(filePrefix));
         sb.AppendLine();
 
-        // Emit per-interface stub dispatch structures
+        // Emit shared stub descriptor
         var dispatchBuilder = new StubDispatchBuilder(filePrefix);
-        var interfaces = compilation.GetAllTypes().OfType<InterfaceSymbol>()
-            .Where(i => !i.IsExternal)
-            .ToList();
+        sb.AppendLine(dispatchBuilder.EmitStubDesc());
+        sb.AppendLine();
 
-        foreach (var iface in interfaces)
+        // Emit per-interface proxy/stub structures
+        var vtableBuilder = new ProxyVtableBuilder();
+        foreach (var data in interfaceData)
         {
-            if (interfaceOffsets.TryGetValue(iface.Name, out var offsets))
-            {
-                sb.AppendLine(dispatchBuilder.EmitFormatStringOffsetTable(iface, offsets));
-                sb.AppendLine();
-            }
+            var name = data.Interface.Name;
+            var methods = data.Methods;
+            var isInsp = data.IsInspectable;
 
-            sb.AppendLine(dispatchBuilder.EmitServerInfo(iface));
+            sb.AppendLine(vtableBuilder.EmitFormatStringOffsetTable(name, methods, isInsp));
+            sb.AppendLine();
+            sb.AppendLine(vtableBuilder.EmitProxyInfo(name, isInsp, filePrefix));
+            sb.AppendLine();
+            sb.AppendLine(vtableBuilder.EmitServerInfo(name, isInsp, filePrefix));
             sb.AppendLine();
 
-            var stubTable = dispatchBuilder.EmitStubFunctionTable(iface);
+            var stubTable = vtableBuilder.EmitStubTable(name, methods, isInsp);
             if (stubTable != null)
             {
                 sb.AppendLine(stubTable);
                 sb.AppendLine();
             }
 
-            sb.AppendLine(dispatchBuilder.EmitStubVtbl(iface));
+            sb.AppendLine(vtableBuilder.EmitProxyVtable(name, methods, isInsp));
+            sb.AppendLine();
+            sb.AppendLine(vtableBuilder.EmitStubVtable(name, methods, isInsp));
             sb.AppendLine();
         }
-
-        // Emit the shared MIDL_STUB_DESC (after per-interface structures, matching MIDL output order)
-        sb.AppendLine(dispatchBuilder.EmitStubDesc());
-        sb.AppendLine();
 
         sb.AppendLine("// End of generated proxy file");
 
@@ -82,14 +91,14 @@ public class StubEmitter
     /// <summary>
     /// Walks all interfaces in the compilation and adds their parameter types
     /// to the NdrTypeFormatBuilder and procedures to the NdrProcFormatBuilder.
-    /// Returns a dictionary of interface name → list of method offsets for the FormatStringOffsetTable.
+    /// Returns per-interface method data for proxy/stub emission.
     /// </summary>
-    private static Dictionary<string, List<int>> CollectTypesAndProcs(
+    internal static List<InterfaceProxyData> CollectTypesAndProcs(
         Compilation compilation,
         NdrTypeFormatBuilder typeBuilder,
         NdrProcFormatBuilder procBuilder)
     {
-        var interfaceOffsets = new Dictionary<string, List<int>>();
+        var result = new List<InterfaceProxyData>();
 
         foreach (var iface in compilation.GetAllTypes().OfType<InterfaceSymbol>())
         {
@@ -100,28 +109,118 @@ public class StubEmitter
                 .Any(r => r.Name == "IInspectable");
             int methodNumber = isInspectable ? 6 : 3;
 
-            var offsets = new List<int>();
+            var methods = new List<ProxyVtableBuilder.MethodEntry>();
 
             foreach (var member in iface.Members)
             {
                 switch (member)
                 {
                     case MethodSymbol method:
-                        offsets.Add(procBuilder.AddMethod(method, methodNumber++, typeBuilder));
+                    {
+                        int offset = procBuilder.AddMethod(method, methodNumber++, typeBuilder);
+                        methods.Add(new ProxyVtableBuilder.MethodEntry(method.Name, offset));
                         break;
+                    }
                     case PropertySymbol prop:
-                        offsets.Add(procBuilder.AddProperty(prop, ref methodNumber, typeBuilder));
+                    {
+                        // Expand property into individual method calls to track offsets
+                        if (prop.HasGetter)
+                        {
+                            var getter = CreatePropertyGetter(prop);
+                            int offset = procBuilder.AddMethod(getter, methodNumber++, typeBuilder);
+                            methods.Add(new ProxyVtableBuilder.MethodEntry($"get_{prop.Name}", offset));
+                        }
+                        if (prop.HasSetter)
+                        {
+                            var setter = CreatePropertySetter(prop);
+                            int offset = procBuilder.AddMethod(setter, methodNumber++, typeBuilder);
+                            methods.Add(new ProxyVtableBuilder.MethodEntry($"put_{prop.Name}", offset));
+                        }
                         break;
+                    }
                     case EventSymbol evt:
-                        offsets.Add(procBuilder.AddEvent(evt, ref methodNumber, typeBuilder));
+                    {
+                        // Expand event into add/remove method calls to track offsets
+                        var addMethod = CreateEventAdd(evt);
+                        int addOffset = procBuilder.AddMethod(addMethod, methodNumber++, typeBuilder);
+                        methods.Add(new ProxyVtableBuilder.MethodEntry($"add_{evt.Name}", addOffset));
+
+                        var removeMethod = CreateEventRemove(evt);
+                        int removeOffset = procBuilder.AddMethod(removeMethod, methodNumber++, typeBuilder);
+                        methods.Add(new ProxyVtableBuilder.MethodEntry($"remove_{evt.Name}", removeOffset));
                         break;
+                    }
                 }
             }
 
-            if (offsets.Count > 0)
-                interfaceOffsets[iface.Name] = offsets;
+            result.Add(new InterfaceProxyData(iface, isInspectable, methods));
         }
 
-        return interfaceOffsets;
+        return result;
+    }
+
+    private static MethodSymbol CreatePropertyGetter(PropertySymbol prop)
+    {
+        var getter = new MethodSymbol($"get_{prop.Name}", prop.ContainingSymbol)
+        {
+            ReturnType = new TypeRef("HRESULT"),
+        };
+        var outParam = new ParameterSymbol("value", getter)
+        {
+            Type = prop.Type,
+            Direction = ParameterDirection.Out,
+        };
+        outParam.Attributes.Add(new AttributeData { Name = "retval" });
+        getter.Parameters.Add(outParam);
+        return getter;
+    }
+
+    private static MethodSymbol CreatePropertySetter(PropertySymbol prop)
+    {
+        var setter = new MethodSymbol($"put_{prop.Name}", prop.ContainingSymbol)
+        {
+            ReturnType = new TypeRef("HRESULT"),
+        };
+        setter.Parameters.Add(new ParameterSymbol("value", setter)
+        {
+            Type = prop.Type,
+            Direction = ParameterDirection.In,
+        });
+        return setter;
+    }
+
+    private static MethodSymbol CreateEventAdd(EventSymbol evt)
+    {
+        var method = new MethodSymbol($"add_{evt.Name}", evt.ContainingSymbol)
+        {
+            ReturnType = new TypeRef("HRESULT"),
+        };
+        method.Parameters.Add(new ParameterSymbol("handler", method)
+        {
+            Type = evt.DelegateType,
+            Direction = ParameterDirection.In,
+        });
+        var tokenParam = new ParameterSymbol("token", method)
+        {
+            Type = new TypeRef("Int64"),
+            Direction = ParameterDirection.Out,
+        };
+        tokenParam.Attributes.Add(new AttributeData { Name = "retval" });
+        method.Parameters.Add(tokenParam);
+        return method;
+    }
+
+    private static MethodSymbol CreateEventRemove(EventSymbol evt)
+    {
+        var method = new MethodSymbol($"remove_{evt.Name}", evt.ContainingSymbol)
+        {
+            ReturnType = new TypeRef("HRESULT"),
+        };
+        method.Parameters.Add(new ParameterSymbol("token", method)
+        {
+            Type = new TypeRef("Int64"),
+            Direction = ParameterDirection.In,
+        });
+        return method;
     }
 }
