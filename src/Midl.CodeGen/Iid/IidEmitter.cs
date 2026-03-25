@@ -37,7 +37,7 @@ public class IidEmitter
         sb.AppendLine("#include <rpcndr.h>");
         sb.AppendLine();
         sb.AppendLine("#define MIDL_DEFINE_GUID(type,name,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \\");
-        sb.AppendLine("    const type name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}");
+        sb.AppendLine("    EXTERN_C const type name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}");
         sb.AppendLine();
         sb.AppendLine("#endif");
         sb.AppendLine();
