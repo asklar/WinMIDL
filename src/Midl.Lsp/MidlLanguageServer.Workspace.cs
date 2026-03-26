@@ -40,6 +40,12 @@ public sealed partial class MidlLanguageServer
     }
 
     private const int MaxWorkspaceFiles = 100;
+    private const long MaxFileSizeBytes = 100 * 1024; // 100 KB — skip huge generated files
+
+    private static readonly HashSet<string> SkipDirectories = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "node_modules", ".git", "bin", "obj", "tools", ".vs", "packages", "AppData",
+    };
 
     internal async Task ScanWorkspaceAsync()
     {
@@ -48,7 +54,7 @@ public sealed partial class MidlLanguageServer
 
         try
         {
-            var idlFiles = Directory.EnumerateFiles(_workspaceRoot, "*.idl", SearchOption.AllDirectories)
+            var idlFiles = EnumerateIdlFiles(_workspaceRoot)
                 .Take(MaxWorkspaceFiles)
                 .ToList();
 
@@ -73,6 +79,51 @@ public sealed partial class MidlLanguageServer
         }
         catch (Exception)
         {
+        }
+    }
+
+    /// <summary>
+    /// Enumerate .idl files, skipping known non-source directories and files over the size limit.
+    /// </summary>
+    private static IEnumerable<string> EnumerateIdlFiles(string root)
+    {
+        Queue<string> dirs = new();
+        dirs.Enqueue(root);
+
+        while (dirs.Count > 0)
+        {
+            var dir = dirs.Dequeue();
+
+            // Enqueue subdirectories, skipping known non-source ones
+            try
+            {
+                foreach (var subDir in Directory.EnumerateDirectories(dir))
+                {
+                    var dirName = Path.GetFileName(subDir);
+                    if (!SkipDirectories.Contains(dirName))
+                        dirs.Enqueue(subDir);
+                }
+            }
+            catch { /* access denied, etc. */ }
+
+            // Yield .idl files under size limit
+            IEnumerable<string> files;
+            try { files = Directory.EnumerateFiles(dir, "*.idl"); }
+            catch { continue; }
+
+            foreach (var file in files)
+            {
+                long length = 0;
+                try { length = new FileInfo(file).Length; }
+                catch { continue; }
+
+                if (length > MaxFileSizeBytes)
+                {
+                    MidlTrace.Lsp($"  Skipping large file ({length / 1024} KB): {file}");
+                    continue;
+                }
+                yield return file;
+            }
         }
     }
 
