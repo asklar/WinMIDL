@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Lsp.Handlers;
+using Midl.Lsp.Protocol;
 using Midl.Syntax;
 
 namespace Midl.Lsp;
@@ -24,6 +25,7 @@ public sealed partial class MidlLanguageServer
     private bool _enableQualityHints = true;
     private bool _useWindowsSdk = true;
     private bool _flatSdkTypeCompletions;
+    private bool _clientSupportsMarkdown = true; // VS Code sends markdown; VS sends plaintext only
     private ProjectFile? _projectFile;
     private string? _workspaceRoot;
 
@@ -171,7 +173,14 @@ public sealed partial class MidlLanguageServer
                     var hoverUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
                     Compilation? hoverComp = null;
                     if (hoverUri != null) _lastCompilation.TryGetValue(hoverUri, out hoverComp);
-                    await _writer.SendResponseAsync(id, HoverHandler.Handle(@params, _docManager, hoverComp));
+                    var hoverResult = HoverHandler.Handle(@params, _docManager, hoverComp);
+                    // Strip markdown for clients that only support plaintext (e.g. VS)
+                    if (!_clientSupportsMarkdown && hoverResult is HoverResult hr)
+                    {
+                        var plain = StripMarkdown(hr.Contents.Value);
+                        hoverResult = new HoverResult(new MarkupContent("plaintext", plain), hr.Range);
+                    }
+                    await _writer.SendResponseAsync(id, hoverResult);
                 }
                 break;
 
@@ -276,8 +285,47 @@ public sealed partial class MidlLanguageServer
         }
     }
 
+    /// <summary>
+    /// Strips markdown formatting for clients that only support plaintext hover.
+    /// </summary>
+    private static string StripMarkdown(string md)
+    {
+        var result = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "$1");
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"__(.+?)__", "$1");
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"`([^`]+)`", "$1");
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"\[([^\]]+)\]\([^)]+\)", "$1");
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"^#{1,6}\s+", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"^---+$", "────────────────", System.Text.RegularExpressions.RegexOptions.Multiline);
+        return result;
+    }
+
     private async Task HandleInitializeAsync(object? id, JsonElement? @params)
     {
+        // Check client capabilities for markdown support in hover
+        if (@params is not null)
+        {
+            try
+            {
+                if (@params.Value.TryGetProperty("capabilities", out var caps) &&
+                    caps.TryGetProperty("textDocument", out var textDoc) &&
+                    textDoc.TryGetProperty("hover", out var hoverCaps) &&
+                    hoverCaps.TryGetProperty("contentFormat", out var formats))
+                {
+                    _clientSupportsMarkdown = false;
+                    foreach (var fmt in formats.EnumerateArray())
+                    {
+                        if (fmt.GetString() == "markdown")
+                        {
+                            _clientSupportsMarkdown = true;
+                            break;
+                        }
+                    }
+                    MidlTrace.Lsp($"Client hover markdown support: {_clientSupportsMarkdown}");
+                }
+            }
+            catch { }
+        }
+
         // Read midl.strictMode from initialization options
         if (@params is not null)
         {
