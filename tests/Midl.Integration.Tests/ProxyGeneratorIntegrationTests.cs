@@ -113,9 +113,8 @@ public partial class ProxyGeneratorIntegrationTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        // Blittable struct uses single memcpy
-        Assert.Contains("memcpy(p, &pos, sizeof(Point))", output);
-        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", output);
+        // Blittable struct uses marshal helper
+        Assert.Contains("winmidl::marshal_struct(p, pos);", output);
         Assert.Contains("msg.cbBuffer = kDrawAt_RequestSize;", output);
     }
 
@@ -141,9 +140,9 @@ public partial class ProxyGeneratorIntegrationTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        // Enum serialized as INT32
+        // Enum serialized via marshal helper
         Assert.Contains("msg.cbBuffer = kSetColor_RequestSize;", output);
-        Assert.Contains("static_cast<INT32>(c)", output);
+        Assert.Contains("winmidl::marshal_enum(p, c);", output);
     }
 
     [Fact]
@@ -193,8 +192,8 @@ public partial class ProxyGeneratorIntegrationTests
 
         Assert.Contains("GetDimensions(INT32* width, INT32* height)", output);
         Assert.Contains("msg.cbBuffer = kGetDimensions_RequestSize;", output); // no in params
-        Assert.Contains("memcpy(width, pReply, sizeof(INT32));", output);
-        Assert.Contains("memcpy(height, pReply, sizeof(INT32));", output);
+        Assert.Contains("winmidl::unmarshal_int32(pReply, *width);", output);
+        Assert.Contains("winmidl::unmarshal_int32(pReply, *height);", output);
     }
 
     [Fact]
@@ -292,10 +291,8 @@ public partial class ProxyGeneratorIntegrationTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        // HSTRING serialization pattern
-        Assert.Contains("WindowsGetStringLen(name)", output);
-        Assert.Contains("WindowsGetStringRawBuffer(name", output);
-        Assert.Contains("memcpy(p, &name_len, sizeof(UINT32)); p += sizeof(UINT32);", output);
+        // HSTRING serialization via marshal helper
+        Assert.Contains("winmidl::marshal_hstring(p, name);", output);
     }
 
     [Fact]
@@ -314,7 +311,7 @@ public partial class ProxyGeneratorIntegrationTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("msg.cbBuffer = kRegister_RequestSize;", output);
-        Assert.Contains("memcpy(p, &id, sizeof(GUID)); p += sizeof(GUID);", output);
+        Assert.Contains("winmidl::marshal_guid(p, id);", output);
     }
 
     [Fact]

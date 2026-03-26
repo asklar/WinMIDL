@@ -101,7 +101,7 @@ public class StubGeneratorIntegrationTests
         // GetName returns HSTRING — no input params
         Assert.Contains("HSTRING returnValue;", output);
         Assert.Contains("m_pServer->GetName(&returnValue)", output);
-        Assert.Contains("WindowsGetStringRawBuffer(returnValue, &returnValue_len)", output);
+        Assert.Contains("winmidl::marshal_hstring(pOut, returnValue);", output);
         // Reply: [sizeof(UINT32) len][N*sizeof(WCHAR) chars][sizeof(HRESULT)]
         Assert.Contains("sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT)", output);
         Assert.Contains("pChannel->GetBuffer(pMsg,", output);
@@ -130,10 +130,9 @@ public class StubGeneratorIntegrationTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        // SetPosition takes struct Point — blittable, uses single memcpy
+        // SetPosition takes struct Point — blittable, uses unmarshal helper
         Assert.Contains("Point pos;", output);
-        Assert.Contains("memcpy(&pos, p, sizeof(Point))", output);
-        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", output);
+        Assert.Contains("winmidl::unmarshal_struct(p, pos);", output);
         Assert.Contains("m_pServer->SetPosition(pos)", output);
         // Reply: just HRESULT (constexpr)
         Assert.Contains("constexpr", output);
@@ -160,9 +159,9 @@ public class StubGeneratorIntegrationTests
         Assert.Contains("boolean returnValue;", output);
         Assert.Contains("m_pServer->TryReset(&errorCode, &returnValue)", output);
         // Reply: [errorCode][returnValue][HRESULT]
-        Assert.Contains("memcpy(pOut, &errorCode, sizeof(INT32))", output);
-        Assert.Contains("memcpy(pOut, &returnValue, sizeof(boolean))", output);
-        Assert.Contains("memcpy(pOut, &hr, sizeof(HRESULT))", output);
+        Assert.Contains("winmidl::marshal_int32(pOut, errorCode);", output);
+        Assert.Contains("winmidl::marshal_bool(pOut, returnValue);", output);
+        Assert.Contains("winmidl::marshal_int32(pOut, hr);", output);
     }
 
     [Fact]
@@ -229,16 +228,14 @@ public class StubGeneratorIntegrationTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_Arrange(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        // Blittable struct uses single memcpy
+        // Blittable struct uses unmarshal helper
         Assert.Contains("Rect bounds;", output);
-        Assert.Contains("memcpy(&bounds, p, sizeof(Rect))", output);
-        Assert.Contains("static_assert(std::is_trivially_copyable_v<Rect>)", output);
+        Assert.Contains("winmidl::unmarshal_struct(p, bounds);", output);
         // Enum deserialization
         Assert.Contains("Alignment align;", output);
-        Assert.Contains("memcpy(&align, p, sizeof(INT32))", output);
+        Assert.Contains("winmidl::unmarshal_enum(p, align);", output);
         // HSTRING deserialization
-        Assert.Contains("HSTRING label = nullptr;", output);
-        Assert.Contains("WindowsCreateStringReference(", output);
+        Assert.Contains("winmidl::unmarshal_hstring_ref(p, label_header);", output);
     }
 
     [Fact]
