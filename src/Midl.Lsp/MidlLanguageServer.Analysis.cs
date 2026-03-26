@@ -127,7 +127,8 @@ public sealed partial class MidlLanguageServer
             // Cache compilation for reuse by code action / completion handlers
             _lastCompilation[uri] = compilation;
 
-            MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics");
+            var memAfter = GC.GetTotalMemory(false) / (1024 * 1024);
+            MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics, mem={memAfter}MB, providers={_winmdProviderCache.Count}");
             await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
             MidlTrace.Lsp($"Diagnostics published");
         }

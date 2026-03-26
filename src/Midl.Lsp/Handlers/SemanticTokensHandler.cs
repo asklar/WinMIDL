@@ -73,12 +73,14 @@ public static class SemanticTokensHandler
         var tokens = lexer.Lex();
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
 
-        // Use cached compilation if available; otherwise try to compile (but don't block on it)
+        // Use cached compilation if available (normal path — analysis runs on didOpen/didChange).
+        // Fall back to a lightweight compile (no SDK references) if cache is cold.
         Compilation? compilation = cachedCompilation;
         if (compilation == null)
         {
             try
             {
+                // Compile with no references to avoid loading SDK — just local types
                 compilation = CompilationHelper.Compile(sourceText);
             }
             catch

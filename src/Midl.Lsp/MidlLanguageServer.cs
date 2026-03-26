@@ -49,6 +49,15 @@ public sealed partial class MidlLanguageServer
         _reader = new JsonRpcReader(input);
         _writer = new JsonRpcWriter(output);
         _diagnostics = new DiagnosticsPublisher(_writer);
+
+        // Always enable trace logging to stderr for diagnostics
+        if (!MidlTrace.IsEnabled)
+        {
+            var logPath = Environment.GetEnvironmentVariable("MIDL_DEBUG_LOG")
+                ?? Path.Combine(Path.GetTempPath(), "midl-lsp.log");
+            MidlTrace.Enable(logPath);
+            MidlTrace.Lsp($"Server started, logging to {logPath}");
+        }
     }
 
     public async Task RunAsync(CancellationToken ct = default)
@@ -74,7 +83,8 @@ public sealed partial class MidlLanguageServer
             {
                 if (msg is null) break; // EOF or stream closed
                 var method = msg.RootElement.TryGetProperty("method", out var m) ? m.GetString() : "(response)";
-                MidlTrace.Lsp($"Received: {method}");
+                var memMB = GC.GetTotalMemory(false) / (1024 * 1024);
+                MidlTrace.Lsp($"Received: {method} (mem={memMB}MB, compilations={_lastCompilation.Count})");
                 await HandleMessageAsync(msg.RootElement);
             }
         }
@@ -206,6 +216,10 @@ public sealed partial class MidlLanguageServer
 
             case "textDocument/formatting":
                 await _writer.SendResponseAsync(id, FormattingHandler.Handle(@params, _docManager));
+                break;
+
+            case "textDocument/onTypeFormatting":
+                await _writer.SendResponseAsync(id, OnTypeFormattingHandler.Handle(@params, _docManager));
                 break;
 
             case "textDocument/rename":
@@ -429,6 +443,11 @@ public sealed partial class MidlLanguageServer
                     }
                 },
                 ["documentFormattingProvider"] = true,
+                ["documentOnTypeFormattingProvider"] = new Dictionary<string, object?>
+                {
+                    ["firstTriggerCharacter"] = "\n",
+                    ["moreTriggerCharacter"] = new[] { "}", "{", ";" }
+                },
                 ["renameProvider"] = new Dictionary<string, object?>
                 {
                     ["prepareProvider"] = true
