@@ -1931,8 +1931,14 @@ public class Binder
 
             if (slot is SyntaxToken token)
             {
-                // Find this token's position in the token stream
-                int pos = _posMap.GetPositionOf(token.Text, _strictTokenIndex);
+                // Skip error recovery tokens — they have empty text and would cause
+                // a full scan of the token list with no match
+                if (token.Kind == SyntaxKind.MissingToken) continue;
+
+                // Find this token's position in the token stream and advance the index
+                int idx = _posMap.FindToken(token.Text, _strictTokenIndex);
+                int pos = idx >= 0 ? _posMap.GetPosition(idx) : 0;
+                if (idx >= 0) _strictTokenIndex = idx + 1;
                 CheckStrictModeToken(token, pos);
             }
             else
