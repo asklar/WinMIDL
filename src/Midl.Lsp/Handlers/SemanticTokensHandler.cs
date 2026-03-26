@@ -49,7 +49,7 @@ public static class SemanticTokensHandler
     private const int TypeStruct = 13;
     private const int TypeDecorator = 14;
 
-    public static object? Handle(JsonElement? @params, DocumentManager docManager)
+    public static object? Handle(JsonElement? @params, DocumentManager docManager, Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -59,7 +59,7 @@ public static class SemanticTokensHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return new Dictionary<string, object?> { ["data"] = Array.Empty<int>() };
 
-        var (data, _, _) = HandleCore(text);
+        var (data, _, _) = HandleCore(text, cachedCompilation);
         return new Dictionary<string, object?> { ["data"] = data };
     }
 
@@ -67,21 +67,24 @@ public static class SemanticTokensHandler
     /// Core logic, testable without LSP JSON plumbing.
     /// Returns delta-encoded semantic tokens data, plus the legend arrays.
     /// </summary>
-    public static (int[] Data, string[] TokenTypeNames, string[] TokenModifierNames) HandleCore(string sourceText)
+    public static (int[] Data, string[] TokenTypeNames, string[] TokenModifierNames) HandleCore(string sourceText, Compilation? cachedCompilation = null)
     {
         var lexer = new Lexer.Lexer(sourceText);
         var tokens = lexer.Lex();
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
 
-        // Try to compile for symbol resolution; if it fails, classify without symbols
-        Compilation? compilation = null;
-        try
+        // Use cached compilation if available; otherwise try to compile (but don't block on it)
+        Compilation? compilation = cachedCompilation;
+        if (compilation == null)
         {
-            compilation = CompilationHelper.Compile(sourceText);
-        }
-        catch
-        {
-            // Continue without symbol info
+            try
+            {
+                compilation = CompilationHelper.Compile(sourceText);
+            }
+            catch
+            {
+                // Continue without symbol info
+            }
         }
 
         var allTypes = compilation?.GetAllTypes().ToList();

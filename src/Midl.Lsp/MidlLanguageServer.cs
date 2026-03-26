@@ -196,7 +196,12 @@ public sealed partial class MidlLanguageServer
                 break;
 
             case "textDocument/semanticTokens/full":
-                await _writer.SendResponseAsync(id, SemanticTokensHandler.Handle(@params, _docManager));
+                {
+                    var stUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? stComp = null;
+                    if (stUri != null) _lastCompilation.TryGetValue(stUri, out stComp);
+                    await _writer.SendResponseAsync(id, SemanticTokensHandler.Handle(@params, _docManager, stComp));
+                }
                 break;
 
             case "textDocument/formatting":
