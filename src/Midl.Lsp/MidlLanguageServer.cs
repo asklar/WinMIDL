@@ -24,7 +24,6 @@ public sealed partial class MidlLanguageServer
     private bool _enableQualityHints = true;
     private bool _useWindowsSdk = true;
     private bool _flatSdkTypeCompletions;
-    private string? _preprocessorPath;
     private ProjectFile? _projectFile;
     private string? _workspaceRoot;
 
@@ -324,19 +323,6 @@ public sealed partial class MidlLanguageServer
                              fetchProp2.ValueKind == JsonValueKind.False)
                     {
                         HoverHandler.FetchSdkDocs = false;
-                    }
-
-                    if (initOpts.TryGetProperty("midl.preprocessorPath", out var cppProp) &&
-                        cppProp.GetString() is { Length: > 0 } cppPath)
-                    {
-                        _preprocessorPath = cppPath;
-                        MidlTrace.Lsp($"Using external preprocessor: {_preprocessorPath}");
-                    }
-                    else if (initOpts.TryGetProperty("preprocessorPath", out var cppProp2) &&
-                             cppProp2.GetString() is { Length: > 0 } cppPath2)
-                    {
-                        _preprocessorPath = cppPath2;
-                        MidlTrace.Lsp($"Using external preprocessor: {_preprocessorPath}");
                     }
                 }
 
