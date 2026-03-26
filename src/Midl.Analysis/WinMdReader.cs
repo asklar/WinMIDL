@@ -471,6 +471,49 @@ public class WinMdReader
             SourceWinMdPath = sourcePath,
         };
 
+        // Read custom attributes on the attribute type (attribute_name, attributeusage)
+        foreach (var attrHandle in typeDef.GetCustomAttributes())
+        {
+            var attr = mdReader.GetCustomAttribute(attrHandle);
+            var attrName = GetAttributeTypeName(mdReader, attr.Constructor);
+            if (attrName == null) continue;
+
+            var blob = mdReader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) continue;
+            blob.ReadUInt16(); // prolog
+
+            switch (attrName)
+            {
+                case "AttributeNameAttribute":
+                    // [attribute_name("short_name")] — the display name used in IDL
+                    try
+                    {
+                        if (blob.RemainingBytes >= 4)
+                        {
+                            var shortName = blob.ReadSerializedString();
+                            if (!string.IsNullOrEmpty(shortName))
+                                symbol.AttributeNameOverride = shortName;
+                        }
+                    }
+                    catch { }
+                    break;
+
+                case "AttributeUsageAttribute":
+                    // [attributeusage(target_runtimeclass | target_method | ...)]
+                    // The value is an enum (AttributeTargets) stored as Int32
+                    try
+                    {
+                        if (blob.RemainingBytes >= 4)
+                        {
+                            var targets = blob.ReadInt32();
+                            ApplyAttributeUsageTargets(symbol, targets);
+                        }
+                    }
+                    catch { }
+                    break;
+            }
+        }
+
         // Read fields from the .ctor parameters (attribute ctor params = attribute fields in WinRT)
         foreach (var methodHandle in typeDef.GetMethods())
         {
@@ -501,6 +544,37 @@ public class WinMdReader
         }
 
         return symbol;
+    }
+
+    /// <summary>
+    /// Maps WinRT AttributeTargets enum flags to MIDL target strings.
+    /// </summary>
+    private static void ApplyAttributeUsageTargets(AttributeTypeSymbol symbol, int targets)
+    {
+        // WinRT AttributeTargets flags (from Windows.Foundation.Metadata.AttributeTargets)
+        const int TargetDelegate = 1;
+        const int TargetEnum = 2;
+        const int TargetEvent = 4;
+        const int TargetField = 8;
+        const int TargetInterface = 16;
+        const int TargetMethod = 64;
+        const int TargetParameter = 128;
+        const int TargetProperty = 256;
+        const int TargetRuntimeClass = 512;
+        const int TargetStruct = 1024;
+        const int TargetApiContract = 8192;
+
+        if ((targets & TargetDelegate) != 0) symbol.ValidTargets.Add("target_delegate");
+        if ((targets & TargetEnum) != 0) symbol.ValidTargets.Add("target_enum");
+        if ((targets & TargetEvent) != 0) symbol.ValidTargets.Add("target_event");
+        if ((targets & TargetField) != 0) symbol.ValidTargets.Add("target_field");
+        if ((targets & TargetInterface) != 0) symbol.ValidTargets.Add("target_interface");
+        if ((targets & TargetMethod) != 0) symbol.ValidTargets.Add("target_method");
+        if ((targets & TargetParameter) != 0) symbol.ValidTargets.Add("target_parameter");
+        if ((targets & TargetProperty) != 0) symbol.ValidTargets.Add("target_property");
+        if ((targets & TargetRuntimeClass) != 0) symbol.ValidTargets.Add("target_runtimeclass");
+        if ((targets & TargetStruct) != 0) symbol.ValidTargets.Add("target_struct");
+        if ((targets & TargetApiContract) != 0) symbol.ValidTargets.Add("target_apicontract");
     }
 
     #endregion
