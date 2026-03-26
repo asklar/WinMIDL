@@ -50,15 +50,16 @@ public class StubGenerator
             .Where(i => !i.IsExternal)
             .ToList();
 
+        var emittedDescriptors = new HashSet<string>();
         foreach (var iface in interfaces)
         {
-            EmitStubClass(sb, iface, useExceptions);
+            EmitStubClass(sb, iface, useExceptions, emittedDescriptors);
         }
 
         return sb.ToString();
     }
 
-    private void EmitStubClass(StringBuilder sb, InterfaceSymbol iface, bool useExceptions)
+    private void EmitStubClass(StringBuilder sb, InterfaceSymbol iface, bool useExceptions, HashSet<string>? emittedDescriptorsGlobal = null)
     {
         var mangledName = MangleName(iface.FullName);
         var className = $"CStub_{mangledName}";
@@ -160,8 +161,12 @@ public class StubGenerator
         sb.AppendLine("};");
         sb.AppendLine();
 
-        // Emit method descriptor tables after the class (file-scope)
-        EmitDescriptorTables(sb, iface, slots, mangledName, iidName);
+        // Emit method descriptor tables after the class (file-scope) — deduplicated
+        var descSet = emittedDescriptorsGlobal ?? new HashSet<string>();
+        if (descSet.Add(mangledName))
+        {
+            EmitDescriptorTables(sb, iface, slots, mangledName, iidName);
+        }
     }
 
     private void EmitInvokeDispatch(StringBuilder sb, InterfaceSymbol iface, List<StubSlot> slots, string iidName)
@@ -411,6 +416,12 @@ public class StubGenerator
 
     private void EmitDescriptorTables(StringBuilder sb, InterfaceSymbol iface, List<StubSlot> slots, string mangledName, string iidName)
     {
+        if (slots.Count == 0)
+            return;
+
+        // Use "stub_" prefix to avoid collision with proxy descriptor tables
+        var prefix = $"stub_{mangledName}";
+
         // Per-method param descriptor arrays
         foreach (var slot in slots)
         {
@@ -427,7 +438,7 @@ public class StubGenerator
 
             if (allParams.Count > 0)
             {
-                sb.AppendLine($"static constexpr winmidl::param_descriptor {mangledName}_{slot.Name}_params[] = {{");
+                sb.AppendLine($"static constexpr winmidl::param_descriptor {prefix}_{slot.Name}_params[] = {{");
                 foreach (var (type, dir) in allParams)
                 {
                     var typeEnum = WireFormat.GetParamTypeEnum(type) ?? "winmidl::param_type::t_int32";
@@ -438,18 +449,18 @@ public class StubGenerator
         }
 
         // Method descriptor table
-        sb.AppendLine($"static constexpr winmidl::method_descriptor {mangledName}_methods[] = {{");
+        sb.AppendLine($"static constexpr winmidl::method_descriptor {prefix}_methods[] = {{");
         foreach (var slot in slots)
         {
             var paramCount = slot.Parameters.Count + (slot.ReturnType.Name != "void" ? 1 : 0);
-            var paramsRef = paramCount > 0 ? $"{mangledName}_{slot.Name}_params" : "nullptr";
+            var paramsRef = paramCount > 0 ? $"{prefix}_{slot.Name}_params" : "nullptr";
             sb.AppendLine($"    {{ {slot.Index}, \"{slot.Name}\", {paramsRef}, {paramCount} }},");
         }
         sb.AppendLine("};");
 
         // Interface descriptor
-        sb.AppendLine($"static constexpr winmidl::interface_descriptor {mangledName}_desc = {{");
-        sb.AppendLine($"    &{iidName}, {mangledName}_methods, {slots.Count}");
+        sb.AppendLine($"static constexpr winmidl::interface_descriptor {prefix}_desc = {{");
+        sb.AppendLine($"    &{iidName}, {prefix}_methods, {slots.Count}");
         sb.AppendLine("};");
         sb.AppendLine();
     }

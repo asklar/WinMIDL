@@ -3,9 +3,11 @@
 #include <objidl.h>
 #include <winstring.h>
 #include <inspectable.h>
+#include <eventtoken.h>
 #include <span>
 #include <string_view>
 #include <cstdint>
+#include <type_traits>
 
 namespace winmidl {
 

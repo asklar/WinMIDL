@@ -97,6 +97,10 @@ public class ProxyGenerator
             }
         }
 
+        // Track emitted shape functions and descriptor tables at file level to avoid duplicates
+        var emittedShapesGlobal = new HashSet<string>();
+        var emittedDescriptorsGlobal = new HashSet<string>();
+
         foreach (var symbol in allTypes)
         {
             if (symbol is InterfaceSymbol iface)
@@ -106,7 +110,7 @@ public class ProxyGenerator
                 string? rcName = null;
                 if (ifaceToRcName.TryGetValue(iface.FullName, out rcName))
                     rcToAllIids.TryGetValue(rcName, out allIids);
-                EmitProxyClass(sb, iface, allIids, rcName, useExceptions);
+                EmitProxyClass(sb, iface, allIids, rcName, useExceptions, emittedShapesGlobal, emittedDescriptorsGlobal);
             }
         }
 
@@ -138,6 +142,9 @@ public class ProxyGenerator
 
     private static void EmitMethodDescriptorTables(StringBuilder sb, List<(string Name, List<ProxyParam> Params, TypeRef ReturnType, MemberKind Kind)> methods, string mangledName, string iidName)
     {
+        if (methods.Count == 0)
+            return;
+
         int slot = UserMethodStartSlot;
         foreach (var (methodName, parameters, returnType, _) in methods)
         {
@@ -321,7 +328,7 @@ public class ProxyGenerator
         sb.AppendLine();
     }
 
-    internal static void EmitProxyClass(StringBuilder sb, InterfaceSymbol iface, List<string>? allRuntimeClassIids = null, string? runtimeClassName = null, bool useExceptions = false)
+    internal static void EmitProxyClass(StringBuilder sb, InterfaceSymbol iface, List<string>? allRuntimeClassIids = null, string? runtimeClassName = null, bool useExceptions = false, HashSet<string>? emittedShapesGlobal = null, HashSet<string>? emittedDescriptorsGlobal = null)
     {
         var mangledName = HeaderEmitter.MangleName(iface.FullName);
         var className = $"C{iface.Name}Proxy";
@@ -329,11 +336,11 @@ public class ProxyGenerator
 
         // Phase 6: Signature folding — emit shared shape functions before the class
         var methods = CollectInterfaceMethods(iface);
-        var emittedShapes = new HashSet<string>();
+        var shapeSet = emittedShapesGlobal ?? new HashSet<string>();
         foreach (var (_, parameters, returnType, _) in methods)
         {
             var shapeKey = ComputeShapeKey(parameters, returnType);
-            if (emittedShapes.Add(shapeKey))
+            if (shapeSet.Add(shapeKey))
             {
                 EmitShapeFunction(sb, shapeKey, parameters, returnType, useExceptions, isProxy: true);
             }
@@ -386,7 +393,11 @@ public class ProxyGenerator
         sb.AppendLine();
 
         // Emit method descriptor tables (Phase 5) — reuse methods from signature folding
-        EmitMethodDescriptorTables(sb, methods, mangledName, iidName);
+        var descSet = emittedDescriptorsGlobal ?? new HashSet<string>();
+        if (descSet.Add(mangledName))
+        {
+            EmitMethodDescriptorTables(sb, methods, mangledName, iidName);
+        }
     }
 
     private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName, List<string>? allRuntimeClassIids, string? runtimeClassName, bool useExceptions)
