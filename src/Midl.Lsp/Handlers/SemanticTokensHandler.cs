@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
@@ -49,6 +50,9 @@ public static class SemanticTokensHandler
     private const int TypeStruct = 13;
     private const int TypeDecorator = 14;
 
+    // Cache: avoid re-lexing/re-classifying when the document hasn't changed
+    private static readonly ConcurrentDictionary<string, (int hash, int[] data)> _cache = new();
+
     public static object? Handle(JsonElement? @params, DocumentManager docManager, Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
@@ -59,7 +63,14 @@ public static class SemanticTokensHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return new Dictionary<string, object?> { ["data"] = Array.Empty<int>() };
 
+        var hash = text.GetHashCode();
+        if (_cache.TryGetValue(uri, out var cached) && cached.hash == hash)
+        {
+            return new Dictionary<string, object?> { ["data"] = cached.data };
+        }
+
         var (data, _, _) = HandleCore(text, cachedCompilation);
+        _cache[uri] = (hash, data);
         return new Dictionary<string, object?> { ["data"] = data };
     }
 
