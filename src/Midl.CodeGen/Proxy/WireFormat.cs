@@ -143,27 +143,15 @@ public static class WireFormat
     }
 
     /// <summary>
-    /// Emits C++ code to serialize a value into a buffer.
+    /// Emits C++ code to serialize a value into a buffer using winmidl:: helper functions.
     /// Assumes a BYTE* variable named <paramref name="bufferPtr"/> is in scope and will be advanced.
     /// </summary>
     public static void EmitSerialize(StringBuilder sb, TypeRef typeRef, string varName, string bufferPtr, string indent = "        ")
     {
-        if (typeRef.Name == "String")
+        var helper = GetMarshalHelper(typeRef);
+        if (helper != null)
         {
-            EmitSerializeHString(sb, varName, bufferPtr, indent);
-            return;
-        }
-
-        if (typeRef.Name == "Guid")
-        {
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, sizeof(GUID)); {bufferPtr} += sizeof(GUID);");
-            return;
-        }
-
-        if (typeRef.ResolvedSymbol is EnumSymbol)
-        {
-            sb.AppendLine($"{indent}INT32 {SanitizeVarName(varName)}_val = static_cast<INT32>({varName});");
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{SanitizeVarName(varName)}_val, sizeof(INT32)); {bufferPtr} += sizeof(INT32);");
+            sb.AppendLine($"{indent}winmidl::{helper}({bufferPtr}, {varName});");
             return;
         }
 
@@ -171,8 +159,7 @@ public static class WireFormat
         {
             if (IsBlittable(structSym))
             {
-                sb.AppendLine($"{indent}static_assert(std::is_trivially_copyable_v<{structSym.Name}>);");
-                sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, sizeof({structSym.Name})); {bufferPtr} += sizeof({structSym.Name});");
+                sb.AppendLine($"{indent}winmidl::marshal_struct({bufferPtr}, {varName});");
             }
             else
             {
@@ -184,43 +171,111 @@ public static class WireFormat
             return;
         }
 
-        if (typeRef.Name == "EventRegistrationToken")
-        {
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, sizeof(EventRegistrationToken)); {bufferPtr} += sizeof(EventRegistrationToken);");
-            return;
-        }
-
-        var sizeExpr = GetCppSizeExpression(typeRef);
-        if (sizeExpr != null)
-        {
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
-            return;
-        }
-
         sb.AppendLine($"{indent}// TODO: marshal {varName} of type {typeRef.Name}");
     }
 
     /// <summary>
-    /// Emits C++ code to deserialize a value from a buffer into a local variable.
-    /// Used by StubGenerator for deserializing input parameters (declares the variable).
+    /// Returns the winmidl:: marshal helper function name for a type, or null if none.
+    /// </summary>
+    public static string? GetMarshalHelper(TypeRef typeRef)
+    {
+        return typeRef.Name switch
+        {
+            "Boolean" => "marshal_bool",
+            "UInt8" => "marshal_uint8",
+            "Char" => "marshal_char16",
+            "Int16" => "marshal_int16",
+            "UInt16" => "marshal_uint16",
+            "Int32" => "marshal_int32",
+            "UInt32" => "marshal_uint32",
+            "Single" => "marshal_float",
+            "Int64" => "marshal_int64",
+            "UInt64" => "marshal_uint64",
+            "Double" => "marshal_double",
+            "Guid" => "marshal_guid",
+            "String" => "marshal_hstring",
+            "EventRegistrationToken" => "marshal_event_token",
+            _ when typeRef.ResolvedSymbol is EnumSymbol => "marshal_enum",
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// Returns the winmidl:: unmarshal helper function name for a type, or null if none.
+    /// </summary>
+    public static string? GetUnmarshalHelper(TypeRef typeRef)
+    {
+        return typeRef.Name switch
+        {
+            "Boolean" => "unmarshal_bool",
+            "UInt8" => "unmarshal_uint8",
+            "Char" => "unmarshal_char16",
+            "Int16" => "unmarshal_int16",
+            "UInt16" => "unmarshal_uint16",
+            "Int32" => "unmarshal_int32",
+            "UInt32" => "unmarshal_uint32",
+            "Single" => "unmarshal_float",
+            "Int64" => "unmarshal_int64",
+            "UInt64" => "unmarshal_uint64",
+            "Double" => "unmarshal_double",
+            "Guid" => "unmarshal_guid",
+            "EventRegistrationToken" => "unmarshal_event_token",
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// Returns the winmidl::param_type enum value for a TypeRef, for method descriptor tables.
+    /// </summary>
+    public static string? GetParamTypeEnum(TypeRef typeRef)
+    {
+        return typeRef.Name switch
+        {
+            "Boolean" => "winmidl::param_type::t_bool",
+            "UInt8" => "winmidl::param_type::t_uint8",
+            "Char" => "winmidl::param_type::t_char16",
+            "Int16" => "winmidl::param_type::t_int16",
+            "UInt16" => "winmidl::param_type::t_uint16",
+            "Int32" => "winmidl::param_type::t_int32",
+            "UInt32" => "winmidl::param_type::t_uint32",
+            "Single" => "winmidl::param_type::t_float",
+            "Int64" => "winmidl::param_type::t_int64",
+            "UInt64" => "winmidl::param_type::t_uint64",
+            "Double" => "winmidl::param_type::t_double",
+            "Guid" => "winmidl::param_type::t_guid",
+            "String" => "winmidl::param_type::t_hstring",
+            "EventRegistrationToken" => "winmidl::param_type::t_event_token",
+            _ when typeRef.ResolvedSymbol is EnumSymbol => "winmidl::param_type::t_enum",
+            _ when typeRef.ResolvedSymbol is StructSymbol => "winmidl::param_type::t_struct",
+            _ when typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol => "winmidl::param_type::t_interface",
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// Emits C++ code to deserialize a value from a buffer into an existing variable.
+    /// Uses winmidl:: helper functions. Used by StubGenerator for deserializing input parameters.
     /// </summary>
     public static void EmitDeserialize(StringBuilder sb, TypeRef typeRef, string varName, string bufferPtr, string indent = "        ")
     {
         if (typeRef.Name == "String")
         {
+            // HSTRING deserialization is handled specially in StubGenerator
+            // (zero-copy ref vs allocating depending on async context)
             EmitDeserializeHString(sb, varName, bufferPtr, indent);
             return;
         }
 
-        if (typeRef.Name == "Guid")
+        var helper = GetUnmarshalHelper(typeRef);
+        if (helper != null)
         {
-            sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, sizeof(GUID)); {bufferPtr} += sizeof(GUID);");
+            sb.AppendLine($"{indent}winmidl::{helper}({bufferPtr}, {varName});");
             return;
         }
 
         if (typeRef.ResolvedSymbol is EnumSymbol)
         {
-            sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, sizeof(INT32)); {bufferPtr} += sizeof(INT32);");
+            sb.AppendLine($"{indent}winmidl::unmarshal_enum({bufferPtr}, {varName});");
             return;
         }
 
@@ -228,26 +283,19 @@ public static class WireFormat
         {
             if (IsBlittable(structSym))
             {
-                sb.AppendLine($"{indent}static_assert(std::is_trivially_copyable_v<{structSym.Name}>);");
-                sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, sizeof({structSym.Name})); {bufferPtr} += sizeof({structSym.Name});");
+                sb.AppendLine($"{indent}winmidl::unmarshal_struct({bufferPtr}, {varName});");
             }
             else
             {
                 foreach (var field in structSym.Fields)
                 {
-                    var fieldSizeExpr = GetCppSizeExpression(field.Type);
-                    sb.AppendLine($"{indent}memcpy(&{varName}.{field.Name}, {bufferPtr}, {fieldSizeExpr}); {bufferPtr} += {fieldSizeExpr};");
+                    EmitDeserialize(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
                 }
             }
             return;
         }
 
-        if (typeRef.Name == "EventRegistrationToken")
-        {
-            sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, sizeof(EventRegistrationToken)); {bufferPtr} += sizeof(EventRegistrationToken);");
-            return;
-        }
-
+        // Fallback for unknown types
         var sizeExpr = GetCppSizeExpression(typeRef);
         sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
     }
@@ -258,28 +306,23 @@ public static class WireFormat
     /// </summary>
     public static void EmitDeserializeReply(StringBuilder sb, TypeRef typeRef, string targetName, string bufferPtr, bool isPointer, string indent = "        ")
     {
-        var deref = isPointer ? $"*{targetName}" : targetName;
-
         if (typeRef.Name == "String")
         {
-            sb.AppendLine($"{indent}UINT32 {targetName}_len; memcpy(&{targetName}_len, {bufferPtr}, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
-            sb.AppendLine($"{indent}hr = WindowsCreateString((PCWSTR){bufferPtr}, {targetName}_len, {(isPointer ? targetName : $"&{targetName}")}); RETURN_IF_FAILED(hr);");
-            sb.AppendLine($"{indent}{bufferPtr} += {targetName}_len * sizeof(WCHAR);");
+            sb.AppendLine($"{indent}hr = winmidl::unmarshal_hstring({bufferPtr}, {(isPointer ? targetName : $"&{targetName}")}); RETURN_IF_FAILED(hr);");
             return;
         }
 
-        if (typeRef.Name == "Guid")
+        var helper = GetUnmarshalHelper(typeRef);
+        if (helper != null)
         {
-            sb.AppendLine($"{indent}memcpy({(isPointer ? targetName : $"&{targetName}")}, {bufferPtr}, sizeof(GUID)); {bufferPtr} += sizeof(GUID);");
+            sb.AppendLine($"{indent}winmidl::{helper}({bufferPtr}, {(isPointer ? $"*{targetName}" : targetName)});");
             return;
         }
 
         if (typeRef.ResolvedSymbol is EnumSymbol enumSym)
         {
             var enumName = enumSym.Name;
-            var safeName = SanitizeVarName(targetName);
-            sb.AppendLine($"{indent}INT32 {safeName}_val; memcpy(&{safeName}_val, {bufferPtr}, sizeof(INT32)); {bufferPtr} += sizeof(INT32);");
-            sb.AppendLine($"{indent}{deref} = static_cast<{enumName}>({safeName}_val);");
+            sb.AppendLine($"{indent}winmidl::unmarshal_enum({bufferPtr}, {(isPointer ? $"*{targetName}" : targetName)});");
             return;
         }
 
@@ -287,8 +330,7 @@ public static class WireFormat
         {
             if (IsBlittable(structSym))
             {
-                sb.AppendLine($"{indent}static_assert(std::is_trivially_copyable_v<{structSym.Name}>);");
-                sb.AppendLine($"{indent}memcpy({(isPointer ? targetName : $"&{targetName}")}, {bufferPtr}, sizeof({structSym.Name})); {bufferPtr} += sizeof({structSym.Name});");
+                sb.AppendLine($"{indent}winmidl::unmarshal_struct({bufferPtr}, {(isPointer ? $"*{targetName}" : targetName)});");
             }
             else
             {
@@ -349,35 +391,42 @@ public static class WireFormat
     }
 
     /// <summary>
-    /// Emits C++ serialization for a value in the reply buffer (used by StubGenerator).
+    /// Emits C++ serialization for a value in the reply buffer using winmidl:: helpers.
     /// </summary>
     public static void EmitSerializeReplyValue(StringBuilder sb, TypeRef typeRef, string varName, string bufferPtr, string indent = "        ")
     {
+        var helper = GetMarshalHelper(typeRef);
+        if (helper != null)
+        {
+            sb.AppendLine($"{indent}winmidl::{helper}({bufferPtr}, {varName});");
+            return;
+        }
+
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
         {
             if (IsBlittable(structSym))
             {
-                sb.AppendLine($"{indent}static_assert(std::is_trivially_copyable_v<{structSym.Name}>);");
-                sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, sizeof({structSym.Name})); {bufferPtr} += sizeof({structSym.Name});");
+                sb.AppendLine($"{indent}winmidl::marshal_struct({bufferPtr}, {varName});");
             }
             else
             {
                 foreach (var field in structSym.Fields)
                 {
-                    var fieldSizeExpr = GetCppSizeExpression(field.Type);
-                    sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}.{field.Name}, {fieldSizeExpr}); {bufferPtr} += {fieldSizeExpr};");
+                    EmitSerializeReplyValue(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
                 }
             }
+            return;
         }
-        else if (typeRef.Name == "String")
+
+        if (typeRef.ResolvedSymbol is EnumSymbol)
         {
-            EmitSerializeHStringReply(sb, varName, bufferPtr, indent);
+            sb.AppendLine($"{indent}winmidl::marshal_enum({bufferPtr}, {varName});");
+            return;
         }
-        else
-        {
-            var sizeExpr = GetCppSizeExpression(typeRef);
-            sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
-        }
+
+        // Fallback for unknown types
+        var sizeExpr = GetCppSizeExpression(typeRef);
+        sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
     }
 
     /// <summary>

@@ -20,7 +20,7 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("#include <winmidl/wil_compat.h>", output);
+        Assert.Contains("#include \"winmidl/wil_compat.h\"", output);
     }
 
     [Fact]
@@ -83,10 +83,10 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // WindowsCreateString in reply deserialization should use RETURN_IF_FAILED
-        var wcsIdx = output.IndexOf("WindowsCreateString(");
-        Assert.True(wcsIdx >= 0, "WindowsCreateString should be present");
-        var nextChunk = output.Substring(wcsIdx, Math.Min(200, output.Length - wcsIdx));
+        // unmarshal_hstring in reply deserialization should use RETURN_IF_FAILED
+        var umIdx = output.IndexOf("winmidl::unmarshal_hstring(");
+        Assert.True(umIdx >= 0, "unmarshal_hstring should be present");
+        var nextChunk = output.Substring(umIdx, Math.Min(200, output.Length - umIdx));
         Assert.Contains("RETURN_IF_FAILED(hr)", nextChunk);
     }
 

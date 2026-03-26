@@ -187,7 +187,7 @@ public partial class StubGeneratorTests
         Assert.Contains("Invoke_get_Priority(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("INT32 returnValue;", output);
         Assert.Contains("m_pServer->get_Priority(&returnValue)", output);
-        Assert.Contains("memcpy(pOut, &returnValue, sizeof(INT32))", output);
+        Assert.Contains("winmidl::marshal_int32(pOut, returnValue)", output);
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_put_Priority(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("INT32 value;", output);
-        Assert.Contains("memcpy(&value, p, sizeof(INT32))", output);
+        Assert.Contains("winmidl::unmarshal_int32(p, value)", output);
         Assert.Contains("m_pServer->put_Priority(value)", output);
     }
 }

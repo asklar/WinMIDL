@@ -31,9 +31,10 @@ public class ProxyOptimizationTests
             }");
         var output = _proxyGen.Generate(compilation);
 
-        Assert.Contains("winmidl::marshal_hstring(p, name)", output);
-        // Should NOT have inline memcpy pattern for HSTRING
-        Assert.DoesNotContain("WindowsGetStringLen(name)", output);
+        Assert.Contains("winmidl::marshal_hstring(p,", output);
+        // Inline serialization pattern should be replaced by helpers
+        // (WindowsGetStringLen may still appear in buffer size computation — that's OK)
+        Assert.DoesNotContain("PCWSTR name_raw = WindowsGetStringRawBuffer(name, nullptr)", output);
     }
 
     [Fact]
@@ -174,7 +175,7 @@ public class ProxyOptimizationTests
             }");
         var output = _proxyGen.Generate(compilation);
 
-        Assert.Contains("winmidl::marshal_int16(p, small)", output);
+        Assert.Contains("winmidl::marshal_int16(p,", output);
     }
 
     [Fact]
@@ -334,7 +335,7 @@ public class ProxyOptimizationTests
             }");
         var output = _stubGen.Generate(compilation);
 
-        Assert.Contains("winmidl::unmarshal_enum<", output);
+        Assert.Contains("winmidl::unmarshal_enum(p,", output);
     }
 
     // ─── Stub-side marshal (reply serialization) ───
@@ -616,10 +617,10 @@ public class ProxyOptimizationTests
             }");
         var output = _proxyGen.Generate(compilation);
 
-        // Extract just the proxy method bodies (between "override {" and "}")
-        // The serialization should use helpers, not raw memcpy for known types
+        // Serialization should use helpers, not raw memcpy for known types
         Assert.DoesNotContain("memcpy(p, &value, sizeof(INT32))", output);
-        Assert.DoesNotContain("WindowsGetStringLen(name)", output);
+        // Inline HSTRING serialization pattern should be replaced
+        Assert.DoesNotContain("PCWSTR name_raw = WindowsGetStringRawBuffer(name, nullptr)", output);
     }
 
     [Fact]

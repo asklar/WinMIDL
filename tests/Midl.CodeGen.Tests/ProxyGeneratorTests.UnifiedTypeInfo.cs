@@ -20,7 +20,7 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("static constexpr winmidl::qi_entry_t kQIEntries[]", output);
+        Assert.Contains("static const winmidl::qi_entry_t kQIEntries[]", output);
     }
 
     // ─── kTypeInfo includes kQIEntries ───

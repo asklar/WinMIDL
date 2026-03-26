@@ -208,10 +208,10 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // WindowsCreateString return must be checked
-        var wcsIdx = output.IndexOf("WindowsCreateString(");
-        Assert.True(wcsIdx >= 0, "WindowsCreateString should be present");
-        var nextLines = output.Substring(wcsIdx, Math.Min(200, output.Length - wcsIdx));
-        Assert.Contains("FAILED(", nextLines);
+        // unmarshal_hstring return must be checked
+        var umIdx = output.IndexOf("winmidl::unmarshal_hstring(");
+        Assert.True(umIdx >= 0, "unmarshal_hstring should be present");
+        var nextLines = output.Substring(umIdx, Math.Min(200, output.Length - umIdx));
+        Assert.Contains("RETURN_IF_FAILED(", nextLines);
     }
 }

@@ -152,18 +152,18 @@ public partial class WireFormatTests
     // ─── EmitSerialize / EmitDeserialize symmetry ───
 
     [Theory]
-    [InlineData("Boolean", "sizeof(boolean)")]
-    [InlineData("UInt8", "sizeof(BYTE)")]
-    [InlineData("Int16", "sizeof(INT16)")]
-    [InlineData("UInt16", "sizeof(UINT16)")]
-    [InlineData("Char", "sizeof(WCHAR)")]
-    [InlineData("Int32", "sizeof(INT32)")]
-    [InlineData("UInt32", "sizeof(UINT32)")]
-    [InlineData("Single", "sizeof(FLOAT)")]
-    [InlineData("Int64", "sizeof(INT64)")]
-    [InlineData("UInt64", "sizeof(UINT64)")]
-    [InlineData("Double", "sizeof(DOUBLE)")]
-    public void EmitSerializeDeserialize_Primitive_Symmetric(string typeName, string sizeExpr)
+    [InlineData("Boolean", "marshal_bool")]
+    [InlineData("UInt8", "marshal_uint8")]
+    [InlineData("Int16", "marshal_int16")]
+    [InlineData("UInt16", "marshal_uint16")]
+    [InlineData("Char", "marshal_char16")]
+    [InlineData("Int32", "marshal_int32")]
+    [InlineData("UInt32", "marshal_uint32")]
+    [InlineData("Single", "marshal_float")]
+    [InlineData("Int64", "marshal_int64")]
+    [InlineData("UInt64", "marshal_uint64")]
+    [InlineData("Double", "marshal_double")]
+    public void EmitSerializeDeserialize_Primitive_Symmetric(string typeName, string marshalFunc)
     {
         var typeRef = new TypeRef(typeName);
 
@@ -175,13 +175,12 @@ public partial class WireFormatTests
         WireFormat.EmitDeserialize(deserSb, typeRef, "val", "pReply");
         var deserCode = deserSb.ToString();
 
-        // Serialize writes `size` bytes from val
-        Assert.Contains($"memcpy(p, &val, {sizeExpr})", serCode);
-        Assert.Contains($"p += {sizeExpr}", serCode);
+        // Serialize uses marshal helper
+        Assert.Contains($"winmidl::{marshalFunc}(p, val)", serCode);
 
-        // Deserialize reads `size` bytes into val
-        Assert.Contains($"memcpy(&val, pReply, {sizeExpr})", deserCode);
-        Assert.Contains($"pReply += {sizeExpr}", deserCode);
+        // Deserialize uses unmarshal helper
+        var unmarshalFunc = marshalFunc.Replace("marshal_", "unmarshal_");
+        Assert.Contains($"winmidl::{unmarshalFunc}(pReply, val)", deserCode);
     }
 
     [Fact]
@@ -197,8 +196,8 @@ public partial class WireFormatTests
         WireFormat.EmitDeserialize(deserSb, typeRef, "id", "pReply");
         var deserCode = deserSb.ToString();
 
-        Assert.Contains("memcpy(p, &id, sizeof(GUID))", serCode);
-        Assert.Contains("memcpy(&id, pReply, sizeof(GUID))", deserCode);
+        Assert.Contains("winmidl::marshal_guid(p, id)", serCode);
+        Assert.Contains("winmidl::unmarshal_guid(pReply, id)", deserCode);
     }
 
     [Fact]
@@ -215,9 +214,9 @@ public partial class WireFormatTests
         WireFormat.EmitDeserialize(deserSb, typeRef, "level", "pReply");
         var deserCode = deserSb.ToString();
 
-        // Both use sizeof(INT32)
-        Assert.Contains("sizeof(INT32)", serCode);
-        Assert.Contains("sizeof(INT32)", deserCode);
+        // Both use marshal/unmarshal enum helpers
+        Assert.Contains("winmidl::marshal_enum(p, level)", serCode);
+        Assert.Contains("winmidl::unmarshal_enum(pReply, level)", deserCode);
     }
 
     [Fact]
@@ -229,10 +228,7 @@ public partial class WireFormatTests
         WireFormat.EmitSerialize(sb, typeRef, "name", "p");
         var code = sb.ToString();
 
-        Assert.Contains("WindowsGetStringLen(name)", code);
-        Assert.Contains("memcpy(p, &name_len, sizeof(UINT32))", code);
-        Assert.Contains("WindowsGetStringRawBuffer(name", code);
-        Assert.Contains("name_len * sizeof(WCHAR)", code);
+        Assert.Contains("winmidl::marshal_hstring(p, name)", code);
     }
 
     [Fact]
@@ -294,7 +290,7 @@ public partial class WireFormatTests
         WireFormat.EmitSerialize(sb, typeRef, "token", "p");
         var code = sb.ToString();
 
-        Assert.Contains("memcpy(p, &token, sizeof(EventRegistrationToken))", code);
+        Assert.Contains("winmidl::marshal_event_token(p, token)", code);
     }
 
     // ─── GetFirstUserSlot ───

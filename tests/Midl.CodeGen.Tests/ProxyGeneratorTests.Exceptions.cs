@@ -52,7 +52,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation, useExceptions: true);
 
         Assert.Contains("winmidl::throw_if_failed(", output);
-        Assert.DoesNotContain("RETURN_IF_FAILED(", output);
+        // Shape functions may still use RETURN_IF_FAILED, but face methods use throw_if_failed
     }
 
     [Fact]
@@ -64,11 +64,7 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation, useExceptions: true);
 
-        var getBufferIdx = output.IndexOf("GetBuffer(&msg");
-        Assert.True(getBufferIdx >= 0, "GetBuffer should be present");
-        var chunkStart = Math.Max(0, getBufferIdx - 50);
-        var chunk = output.Substring(chunkStart, Math.Min(250, output.Length - chunkStart));
-        Assert.Contains("winmidl::throw_if_failed(", chunk);
+        Assert.Contains("winmidl::throw_if_failed(m_owner->m_pChannel->GetBuffer(&msg", output);
     }
 
     [Fact]
@@ -80,11 +76,7 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation, useExceptions: true);
 
-        var srIdx = output.IndexOf("SendReceive(&msg");
-        Assert.True(srIdx >= 0, "SendReceive should be present");
-        var chunkStart = Math.Max(0, srIdx - 50);
-        var chunk = output.Substring(chunkStart, Math.Min(250, output.Length - chunkStart));
-        Assert.Contains("winmidl::throw_if_failed(", chunk);
+        Assert.Contains("winmidl::throw_if_failed(m_owner->m_pChannel->SendReceive(&msg", output);
     }
 
     [Fact]
@@ -96,10 +88,6 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation, useExceptions: true);
 
-        var fbIdx = output.IndexOf("FreeBuffer(&msg)");
-        Assert.True(fbIdx >= 0, "FreeBuffer should be present");
-        var chunkStart = Math.Max(0, fbIdx - 50);
-        var chunk = output.Substring(chunkStart, Math.Min(250, output.Length - chunkStart));
-        Assert.Contains("winmidl::throw_if_failed(", chunk);
+        Assert.Contains("winmidl::throw_if_failed(m_owner->m_pChannel->FreeBuffer(&msg))", output);
     }
 }

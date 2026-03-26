@@ -100,7 +100,7 @@ public partial class StubGeneratorTests
         var returnIdx = output.IndexOf("return S_OK;", invokeIdx);
         Assert.True(returnIdx >= 0, "return S_OK should be present");
         var handlerBody = output[invokeIdx..(returnIdx + 20)];
-        Assert.Contains("WindowsCreateString(", handlerBody);
+        Assert.Contains("winmidl::unmarshal_hstring_alloc(", handlerBody);
         Assert.DoesNotContain("WindowsCreateStringReference", handlerBody);
     }
 
@@ -115,8 +115,8 @@ public partial class StubGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // Non-async methods should still use zero-copy WindowsCreateStringReference
-        Assert.Contains("WindowsCreateStringReference(", output);
+        // Non-async methods should use unmarshal_hstring_ref for zero-copy
+        Assert.Contains("winmidl::unmarshal_hstring_ref(", output);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public partial class StubGeneratorTests
         var returnIdx = output.IndexOf("return S_OK;", invokeIdx);
         Assert.True(returnIdx >= 0, "return S_OK should be present");
         var handlerBody = output[invokeIdx..(returnIdx + 20)];
-        Assert.Contains("WindowsCreateString(", handlerBody);
+        Assert.Contains("winmidl::unmarshal_hstring_alloc(", handlerBody);
     }
 
     [Fact]

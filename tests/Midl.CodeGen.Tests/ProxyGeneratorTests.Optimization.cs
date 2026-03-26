@@ -109,9 +109,8 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // Should use single memcpy for blittable struct
-        Assert.Contains("memcpy(p, &pos, sizeof(Point))", output);
-        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", output);
+        // Should use marshal_struct helper for blittable struct
+        Assert.Contains("winmidl::marshal_struct(p, pos)", output);
         // Should NOT have field-by-field
         Assert.DoesNotContain("pos.X", output);
         Assert.DoesNotContain("pos.Y", output);
@@ -129,7 +128,7 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // Reply deserialization should also use single memcpy for blittable
-        Assert.Contains("memcpy(returnValue, pReply, sizeof(Point))", output);
+        // Reply deserialization should also use unmarshal_struct for blittable
+        Assert.Contains("winmidl::unmarshal_struct(pReply, *returnValue)", output);
     }
 }

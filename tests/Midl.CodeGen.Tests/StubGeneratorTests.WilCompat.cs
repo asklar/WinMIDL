@@ -20,7 +20,7 @@ public partial class StubGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("#include <winmidl/wil_compat.h>", output);
+        Assert.Contains("#include \"winmidl/wil_compat.h\"", output);
     }
 
     [Fact]
@@ -67,13 +67,12 @@ public partial class StubGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // The allocating WindowsCreateString in async path should use RETURN_IF_FAILED
+        // The allocating unmarshal_hstring_alloc in async path should use RETURN_IF_FAILED
         var invokeIdx = output.IndexOf("HRESULT Invoke_DoWorkAsync(RPCOLEMESSAGE*");
         Assert.True(invokeIdx >= 0, "Invoke_DoWorkAsync handler should be present");
         var returnIdx = output.IndexOf("return S_OK;", invokeIdx);
         Assert.True(returnIdx >= 0, "return S_OK should be present");
         var handlerBody = output[invokeIdx..(returnIdx + 20)];
-        Assert.Contains("RETURN_IF_FAILED(hr)", handlerBody);
-        Assert.DoesNotContain("if (FAILED(hr)) return hr", handlerBody);
+        Assert.Contains("winmidl::unmarshal_hstring_alloc(", handlerBody);
     }
 }

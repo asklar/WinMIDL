@@ -192,7 +192,7 @@ public partial class ProxyGeneratorTests
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE GetName(HSTRING* returnValue) override {", output);
         Assert.Contains("msg.cbBuffer = kGetName_RequestSize;", output);
-        Assert.Contains("WindowsCreateString", output);
+        Assert.Contains("winmidl::unmarshal_hstring(pReply,", output);
     }
 
     [Fact]
@@ -229,8 +229,8 @@ public partial class ProxyGeneratorTests
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE SetPosition(FLOAT x, FLOAT y) override {", output);
         Assert.Contains("msg.cbBuffer = kSetPosition_RequestSize;", output);
-        Assert.Contains("memcpy(p, &x, sizeof(FLOAT)); p += sizeof(FLOAT);", output);
-        Assert.Contains("memcpy(p, &y, sizeof(FLOAT)); p += sizeof(FLOAT);", output);
+        Assert.Contains("winmidl::marshal_float(p, x)", output);
+        Assert.Contains("winmidl::marshal_float(p, y)", output);
     }
 
     [Fact]
@@ -249,8 +249,8 @@ public partial class ProxyGeneratorTests
 
         Assert.Contains("HRESULT STDMETHODCALLTYPE GetSize(INT32* width, INT32* height) override {", output);
         Assert.Contains("msg.cbBuffer = kGetSize_RequestSize;", output);
-        Assert.Contains("memcpy(width, pReply, sizeof(INT32)); pReply += sizeof(INT32);", output);
-        Assert.Contains("memcpy(height, pReply, sizeof(INT32)); pReply += sizeof(INT32);", output);
+        Assert.Contains("winmidl::unmarshal_int32(pReply, *width)", output);
+        Assert.Contains("winmidl::unmarshal_int32(pReply, *height)", output);
     }
 
     [Fact]
@@ -307,8 +307,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         // put_Name should serialize the HSTRING
-        Assert.Contains("WindowsGetStringLen(name)", output);
-        Assert.Contains("WindowsGetStringRawBuffer(name", output);
+        Assert.Contains("winmidl::marshal_hstring(p, name)", output);
     }
 
     [Fact]
@@ -372,7 +371,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("msg.cbBuffer = kSetId_RequestSize;", output);
-        Assert.Contains("memcpy(p, &id, sizeof(GUID)); p += sizeof(GUID);", output);
+        Assert.Contains("winmidl::marshal_guid(p, id)", output);
     }
 
     [Fact]
@@ -390,7 +389,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("msg.cbBuffer = kSetEnabled_RequestSize;", output);
-        Assert.Contains("memcpy(p, &value, sizeof(boolean)); p += sizeof(boolean);", output);
+        Assert.Contains("winmidl::marshal_bool(p, value)", output);
     }
 
     [Fact]
@@ -408,7 +407,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("msg.cbBuffer = kSetValue_RequestSize;", output);
-        Assert.Contains("memcpy(p, &value, sizeof(DOUBLE)); p += sizeof(DOUBLE);", output);
+        Assert.Contains("winmidl::marshal_double(p, value)", output);
     }
 
     [Fact]
@@ -426,7 +425,7 @@ public partial class ProxyGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("msg.cbBuffer = kSetTimestamp_RequestSize;", output);
-        Assert.Contains("memcpy(p, &ticks, sizeof(INT64)); p += sizeof(INT64);", output);
+        Assert.Contains("winmidl::marshal_int64(p, ticks)", output);
     }
 
     [Fact]
@@ -522,9 +521,8 @@ public partial class ProxyGeneratorTests
 
         var output = _generator.Generate(compilation);
 
-        // Deserialize HSTRING: read length, then create string
-        Assert.Contains("returnValue_len", output);
-        Assert.Contains("WindowsCreateString((PCWSTR)pReply, returnValue_len, returnValue)", output);
+        // Deserialize HSTRING: uses unmarshal helper
+        Assert.Contains("winmidl::unmarshal_hstring(pReply,", output);
     }
 
     [Fact]

@@ -77,7 +77,7 @@ public partial class StubGeneratorTests
     {
         var output = GenerateSimpleWidget();
 
-        Assert.Contains("static constexpr winmidl::qi_entry_t kStubQIEntries[]", output);
+        Assert.Contains("static inline const winmidl::qi_entry_t kStubQIEntries[]", output);
     }
 
     [Fact]

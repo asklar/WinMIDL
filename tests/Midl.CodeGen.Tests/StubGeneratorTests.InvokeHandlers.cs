@@ -52,7 +52,7 @@ public partial class StubGeneratorTests
         Assert.Contains("Invoke_SetPriority(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         // Should deserialize Int32 input
         Assert.Contains("INT32 priority;", output);
-        Assert.Contains("memcpy(&priority, p, sizeof(INT32))", output);
+        Assert.Contains("winmidl::unmarshal_int32(p, priority)", output);
         Assert.Contains("m_pServer->SetPriority(priority)", output);
     }
 
@@ -75,10 +75,8 @@ public partial class StubGeneratorTests
         Assert.Contains("Invoke_GetName(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("HSTRING returnValue;", output);
         Assert.Contains("m_pServer->GetName(&returnValue)", output);
-        Assert.Contains("WindowsGetStringRawBuffer(returnValue, &len)", output);
+        Assert.Contains("winmidl::marshal_hstring(pOut, returnValue)", output);
         Assert.Contains("WindowsDeleteString(returnValue)", output);
-        // Length-prefixed serialization
-        Assert.Contains("memcpy(pOut, &len, sizeof(UINT32))", output);
     }
 
     [Fact]
@@ -105,9 +103,8 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_SetPosition(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("Point pos;", output);
-        // Blittable struct uses single memcpy with static_assert
-        Assert.Contains("memcpy(&pos, p, sizeof(Point))", output);
-        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", output);
+        // Blittable struct uses unmarshal_struct helper
+        Assert.Contains("winmidl::unmarshal_struct(p, pos)", output);
         Assert.Contains("m_pServer->SetPosition(pos)", output);
     }
 
@@ -131,7 +128,7 @@ public partial class StubGeneratorTests
         Assert.Contains("INT32 errorCode;", output);
         Assert.Contains("m_pServer->TryReset(&errorCode)", output);
         // Out param serialized into reply
-        Assert.Contains("memcpy(pOut, &errorCode, sizeof(INT32))", output);
+        Assert.Contains("winmidl::marshal_int32(pOut, errorCode)", output);
     }
 
     [Fact]
@@ -152,7 +149,7 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_SetId(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("GUID id;", output);
-        Assert.Contains("memcpy(&id, p, sizeof(GUID))", output);
+        Assert.Contains("winmidl::unmarshal_guid(p, id)", output);
     }
 
     [Fact]
@@ -180,7 +177,7 @@ public partial class StubGeneratorTests
 
         Assert.Contains("Invoke_SetPriority(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
         Assert.Contains("Priority level;", output);
-        Assert.Contains("memcpy(&level, p, sizeof(INT32))", output);
+        Assert.Contains("winmidl::unmarshal_enum(p, level)", output);
     }
 
     [Fact]
@@ -244,9 +241,9 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_TryParse(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        // in param: HSTRING deserialized from buffer
-        Assert.Contains("HSTRING input = nullptr;", output);
-        Assert.Contains("WindowsCreateStringReference(", output);
+        // in param: HSTRING deserialized from buffer using unmarshal_hstring_ref
+        Assert.Contains("HSTRING_HEADER input_header;", output);
+        Assert.Contains("winmidl::unmarshal_hstring_ref(p, input_header)", output);
         // out param: allocated locally
         Assert.Contains("INT32 result;", output);
         // Server call with mixed params
@@ -270,9 +267,9 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_SetName(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        Assert.Contains("HSTRING name = nullptr;", output);
-        // Uses WindowsCreateStringReference for zero-copy deserialization
-        Assert.Contains("WindowsCreateStringReference(", output);
+        Assert.Contains("HSTRING_HEADER name_header;", output);
+        // Uses unmarshal_hstring_ref for zero-copy deserialization
+        Assert.Contains("winmidl::unmarshal_hstring_ref(p, name_header)", output);
         Assert.Contains("WindowsDeleteString(name)", output);
     }
 
@@ -292,9 +289,9 @@ public partial class StubGeneratorTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        // Reply should contain: [errorCode (sizeof(INT32))] [returnValue (sizeof(boolean))] [HRESULT (sizeof(HRESULT))]
-        Assert.Contains("memcpy(pOut, &errorCode, sizeof(INT32))", output);
-        Assert.Contains("memcpy(pOut, &returnValue, sizeof(boolean))", output);
-        Assert.Contains("memcpy(pOut, &hr, sizeof(HRESULT))", output);
+        // Reply should contain: [errorCode] [returnValue] [HRESULT]
+        Assert.Contains("winmidl::marshal_int32(pOut, errorCode)", output);
+        Assert.Contains("winmidl::marshal_bool(pOut, returnValue)", output);
+        Assert.Contains("winmidl::marshal_int32(pOut, hr)", output);
     }
 }

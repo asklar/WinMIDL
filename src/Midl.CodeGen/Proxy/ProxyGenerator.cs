@@ -136,11 +136,208 @@ public class ProxyGenerator
         sb.AppendLine("// End of generated proxy file");
     }
 
+    private static void EmitMethodDescriptorTables(StringBuilder sb, List<(string Name, List<ProxyParam> Params, TypeRef ReturnType, MemberKind Kind)> methods, string mangledName, string iidName)
+    {
+        int slot = UserMethodStartSlot;
+        foreach (var (methodName, parameters, returnType, _) in methods)
+        {
+            var allParams = new List<(TypeRef Type, string Dir)>();
+            foreach (var p in parameters)
+            {
+                var dir = p.Direction == ParamDirection.Out ? "winmidl::param_dir::dir_out" : "winmidl::param_dir::dir_in";
+                allParams.Add((p.Type, dir));
+            }
+            if (returnType.Name != "void")
+            {
+                allParams.Add((returnType, "winmidl::param_dir::dir_retval"));
+            }
+
+            if (allParams.Count > 0)
+            {
+                sb.AppendLine($"static constexpr winmidl::param_descriptor {mangledName}_{methodName}_params[] = {{");
+                foreach (var (type, dir) in allParams)
+                {
+                    var typeEnum = WireFormat.GetParamTypeEnum(type) ?? "winmidl::param_type::t_int32";
+                    sb.AppendLine($"    {{ {typeEnum}, {dir} }},");
+                }
+                sb.AppendLine("};");
+            }
+            slot++;
+        }
+
+        // Method descriptor table
+        slot = UserMethodStartSlot;
+        sb.AppendLine($"static constexpr winmidl::method_descriptor {mangledName}_methods[] = {{");
+        foreach (var (methodName, parameters, returnType, _) in methods)
+        {
+            var paramCount = parameters.Count + (returnType.Name != "void" ? 1 : 0);
+            var paramsRef = paramCount > 0 ? $"{mangledName}_{methodName}_params" : "nullptr";
+            sb.AppendLine($"    {{ {slot}, \"{methodName}\", {paramsRef}, {paramCount} }},");
+            slot++;
+        }
+        sb.AppendLine("};");
+
+        // Interface descriptor
+        sb.AppendLine($"static constexpr winmidl::interface_descriptor {mangledName}_desc = {{");
+        sb.AppendLine($"    &{iidName}, {mangledName}_methods, {methods.Count}");
+        sb.AppendLine("};");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Computes a shape key for a method signature for signature folding.
+    /// Methods with identical shapes share proxy/stub implementations.
+    /// </summary>
+    internal static string ComputeShapeKey(List<ProxyParam> parameters, TypeRef returnType)
+    {
+        var parts = new List<string>();
+        foreach (var p in parameters.Where(p => p.Direction == ParamDirection.In))
+        {
+            parts.Add(GetShapeTypeName(p.Type));
+        }
+        var inSig = parts.Count > 0 ? string.Join("_", parts) : "void";
+        var outSig = returnType.Name != "void" ? GetShapeTypeName(returnType) : "void";
+        return $"{inSig}_to_{outSig}";
+    }
+
+    private static string GetShapeTypeName(TypeRef typeRef)
+    {
+        if (typeRef.ResolvedSymbol is EnumSymbol) return "enum";
+        if (typeRef.ResolvedSymbol is StructSymbol s) return $"struct_{s.Name}";
+        return typeRef.Name switch
+        {
+            "String" => "hstring",
+            "Int32" => "int32",
+            "UInt32" => "uint32",
+            "Int64" => "int64",
+            "UInt64" => "uint64",
+            "Boolean" => "bool",
+            "Single" => "float",
+            "Double" => "double",
+            "Guid" => "guid",
+            "Int16" => "int16",
+            "UInt16" => "uint16",
+            "UInt8" => "uint8",
+            "Char" => "char16",
+            "EventRegistrationToken" => "event_token",
+            _ => typeRef.Name.ToLowerInvariant(),
+        };
+    }
+
+    /// <summary>
+    /// Emits a shared static proxy function for a given method shape (signature).
+    /// Multiple methods with the same in/out type pattern share this single implementation.
+    /// </summary>
+    private static void EmitShapeFunction(StringBuilder sb, string shapeKey, List<ProxyParam> templateParams, TypeRef templateReturn, bool useExceptions, bool isProxy)
+    {
+        var shapeName = $"proxy_shape_{shapeKey}";
+        var inParams = templateParams.Where(p => p.Direction == ParamDirection.In).ToList();
+        var outParams = templateParams.Where(p => p.Direction == ParamDirection.Out).ToList();
+        bool hasRetval = templateReturn.Name != "void";
+
+        // Build parameter list for the shape function
+        var sigParts = new List<string> { "IRpcChannelBuffer* channel", "const GUID& iid", "UINT32 slot" };
+        int argIdx = 0;
+        foreach (var p in inParams)
+        {
+            var cType = HeaderEmitter.MapType(p.Type);
+            sigParts.Add($"{cType} arg{argIdx}");
+            argIdx++;
+        }
+        foreach (var p in outParams)
+        {
+            var cType = HeaderEmitter.MapType(p.Type);
+            sigParts.Add($"{cType}* out{argIdx}");
+            argIdx++;
+        }
+        if (hasRetval)
+        {
+            var retCType = HeaderEmitter.MapType(templateReturn);
+            sigParts.Add($"{retCType}* retval");
+        }
+
+        sb.AppendLine($"// Shared proxy shape: {shapeKey}");
+        sb.AppendLine($"static HRESULT {shapeName}({string.Join(", ", sigParts)}) {{");
+        sb.AppendLine("    RPCOLEMESSAGE msg = {};");
+        sb.AppendLine($"    msg.iMethod = slot;");
+
+        // Buffer size
+        bool requestFixed = WireFormat.AllParamsFixedSize(inParams);
+        if (requestFixed && inParams.Count > 0)
+        {
+            var fixedExpr = WireFormat.ComputeFixedBufferSizeExpression(inParams);
+            sb.AppendLine($"    msg.cbBuffer = {fixedExpr};");
+        }
+        else if (inParams.Count > 0)
+        {
+            var bufExpr = WireFormat.ComputeBufferSize(inParams.Select((p, i) => new ProxyParam($"arg{i}", p.Type, p.Direction)).ToList());
+            sb.AppendLine($"    msg.cbBuffer = {bufExpr};");
+        }
+        else
+        {
+            sb.AppendLine("    msg.cbBuffer = 0;");
+        }
+
+        sb.AppendLine("    HRESULT hr = channel->GetBuffer(&msg, iid);");
+        sb.AppendLine("    RETURN_IF_FAILED(hr);");
+
+        // Serialize input params
+        if (inParams.Count > 0)
+        {
+            sb.AppendLine("    BYTE* p = (BYTE*)msg.Buffer;");
+            argIdx = 0;
+            foreach (var p in inParams)
+            {
+                WireFormat.EmitSerialize(sb, p.Type, $"arg{argIdx}", "p", "    ");
+                argIdx++;
+            }
+        }
+
+        sb.AppendLine("    ULONG status;");
+        sb.AppendLine("    hr = channel->SendReceive(&msg, &status);");
+        sb.AppendLine("    RETURN_IF_FAILED(hr);");
+
+        sb.AppendLine("    BYTE* pReply = (BYTE*)msg.Buffer;");
+
+        // Deserialize out params
+        argIdx = inParams.Count;
+        foreach (var p in outParams)
+        {
+            WireFormat.EmitDeserializeReply(sb, p.Type, $"out{argIdx}", "pReply", isPointer: true, "    ");
+            argIdx++;
+        }
+
+        // Deserialize retval
+        if (hasRetval)
+        {
+            WireFormat.EmitDeserializeReply(sb, templateReturn, "retval", "pReply", isPointer: true, "    ");
+        }
+
+        sb.AppendLine("    HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));");
+        sb.AppendLine("    hr = channel->FreeBuffer(&msg);");
+        sb.AppendLine("    RETURN_IF_FAILED(hr);");
+        sb.AppendLine("    return retHr;");
+        sb.AppendLine("}");
+        sb.AppendLine();
+    }
+
     internal static void EmitProxyClass(StringBuilder sb, InterfaceSymbol iface, List<string>? allRuntimeClassIids = null, string? runtimeClassName = null, bool useExceptions = false)
     {
         var mangledName = HeaderEmitter.MangleName(iface.FullName);
         var className = $"C{iface.Name}Proxy";
         var iidName = $"IID_{mangledName}";
+
+        // Phase 6: Signature folding — emit shared shape functions before the class
+        var methods = CollectInterfaceMethods(iface);
+        var emittedShapes = new HashSet<string>();
+        foreach (var (_, parameters, returnType, _) in methods)
+        {
+            var shapeKey = ComputeShapeKey(parameters, returnType);
+            if (emittedShapes.Add(shapeKey))
+            {
+                EmitShapeFunction(sb, shapeKey, parameters, returnType, useExceptions, isProxy: true);
+            }
+        }
 
         sb.AppendLine($"// Proxy for {iface.FullName}");
         sb.AppendLine($"class {className} : public IRpcProxyBuffer {{");
@@ -187,6 +384,9 @@ public class ProxyGenerator
         sb.AppendLine($"}};");
         sb.AppendLine($"const winmidl::type_info_t {className}::kTypeInfo = {{ {className}::Face::kIIDs, L\"{rcName}\", {className}::kQIEntries }};");
         sb.AppendLine();
+
+        // Emit method descriptor tables (Phase 5) — reuse methods from signature folding
+        EmitMethodDescriptorTables(sb, methods, mangledName, iidName);
     }
 
     private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName, List<string>? allRuntimeClassIids, string? runtimeClassName, bool useExceptions)

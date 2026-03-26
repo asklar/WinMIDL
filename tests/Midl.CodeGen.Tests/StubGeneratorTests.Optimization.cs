@@ -24,9 +24,9 @@ public partial class StubGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // Stub input deserialization uses WindowsCreateStringReference (zero-copy)
-        Assert.Contains("WindowsCreateStringReference(", output);
-        Assert.Contains("HSTRING name = nullptr;", output);
+        // Stub input deserialization uses unmarshal_hstring_ref (zero-copy)
+        Assert.Contains("winmidl::unmarshal_hstring_ref(", output);
+        Assert.Contains("HSTRING_HEADER name_header;", output);
     }
 
     [Fact]
@@ -74,9 +74,8 @@ public partial class StubGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // Should use single memcpy for blittable struct deserialization
-        Assert.Contains("memcpy(&pos, p, sizeof(Point))", output);
-        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", output);
+        // Should use unmarshal_struct for blittable struct deserialization
+        Assert.Contains("winmidl::unmarshal_struct(p, pos)", output);
         // Should NOT have field-by-field
         Assert.DoesNotContain("pos.X", output);
         Assert.DoesNotContain("pos.Y", output);
@@ -94,8 +93,8 @@ public partial class StubGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        // Reply serialization should also use single memcpy for blittable
-        Assert.Contains("memcpy(pOut, &returnValue, sizeof(Point))", output);
+        // Reply serialization should also use marshal_struct for blittable
+        Assert.Contains("winmidl::marshal_struct(pOut, returnValue)", output);
     }
 
     // ─── Struct layout assertions ───

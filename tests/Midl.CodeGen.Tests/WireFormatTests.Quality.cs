@@ -133,7 +133,7 @@ public partial class WireFormatTests
         WireFormat.EmitDeserializeReply(sb, typeRef, "result", "pReply", isPointer: true);
         var code = sb.ToString();
 
-        Assert.Contains("result_len * sizeof(WCHAR)", code);
+        Assert.Contains("winmidl::unmarshal_hstring(pReply, result)", code);
         Assert.DoesNotContain("+ 1)", code);
     }
 

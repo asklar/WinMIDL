@@ -42,6 +42,8 @@ public class StubGenerator
         sb.AppendLine("#pragma once");
         sb.AppendLine();
         WireFormat.EmitConsolidatedIncludes(sb);
+        sb.AppendLine("#include \"winmidl/proxy_helpers.h\"");
+        sb.AppendLine();
 
         var interfaces = compilation.GetAllTypes()
             .OfType<InterfaceSymbol>()
@@ -64,6 +66,19 @@ public class StubGenerator
 
         // Collect all ABI slots
         var slots = BuildSlotList(iface);
+
+        // Phase 6: Signature folding — emit shared stub shape functions
+        var emittedShapes = new HashSet<string>();
+        foreach (var slot in slots)
+        {
+            var proxyParams = slot.Parameters.Select(p =>
+                new ProxyParam(p.Name, p.Type, p.Direction == ParameterDirection.Out ? ParamDirection.Out : ParamDirection.In)).ToList();
+            var shapeKey = ProxyGenerator.ComputeShapeKey(proxyParams, slot.ReturnType);
+            if (emittedShapes.Add(shapeKey))
+            {
+                sb.AppendLine($"// Shared stub shape: stub_shape_{shapeKey}");
+            }
+        }
 
         sb.AppendLine($"class {className} : public IRpcStubBuffer {{");
         sb.AppendLine($"    {mangledName}* m_pServer;");
@@ -144,6 +159,9 @@ public class StubGenerator
 
         sb.AppendLine("};");
         sb.AppendLine();
+
+        // Emit method descriptor tables after the class (file-scope)
+        EmitDescriptorTables(sb, iface, slots, mangledName, iidName);
     }
 
     private void EmitInvokeDispatch(StringBuilder sb, InterfaceSymbol iface, List<StubSlot> slots, string iidName)
@@ -223,14 +241,13 @@ public class StubGenerator
         {
             if (isAsync)
             {
-                // Async methods must use allocating WindowsCreateString
-                // because the server may capture params beyond the call lifetime
-                WireFormat.EmitDeserializeHStringAllocating(sb, name, "p");
+                sb.AppendLine($"        HSTRING {name} = nullptr;");
+                sb.AppendLine($"        winmidl::unmarshal_hstring_alloc(p, &{name});");
             }
             else
             {
-                // Non-async: zero-copy WindowsCreateStringReference is safe
-                WireFormat.EmitDeserializeHString(sb, name, "p");
+                sb.AppendLine($"        HSTRING_HEADER {name}_header;");
+                sb.AppendLine($"        HSTRING {name} = winmidl::unmarshal_hstring_ref(p, {name}_header);");
             }
         }
         else if (typeRef.ResolvedSymbol is StructSymbol structSym)
@@ -240,15 +257,13 @@ public class StubGenerator
             if (WireFormat.IsBlittable(structSym))
             {
                 WireFormat.EmitStructLayoutAsserts(sb, structSym, cType, "        ");
-                sb.AppendLine($"        static_assert(std::is_trivially_copyable_v<{cType}>);");
-                sb.AppendLine($"        memcpy(&{name}, p, sizeof({cType})); p += sizeof({cType});");
+                sb.AppendLine($"        winmidl::unmarshal_struct(p, {name});");
             }
             else
             {
                 foreach (var field in structSym.Fields)
                 {
-                    var fieldSizeExpr = WireFormat.GetCppSizeExpression(field.Type);
-                    sb.AppendLine($"        memcpy(&{name}.{field.Name}, p, {fieldSizeExpr}); p += {fieldSizeExpr};");
+                    WireFormat.EmitDeserialize(sb, field.Type, $"{name}.{field.Name}", "p");
                 }
             }
         }
@@ -256,19 +271,20 @@ public class StubGenerator
         {
             var cType = MapType(typeRef);
             sb.AppendLine($"        {cType} {name};");
-            sb.AppendLine($"        memcpy(&{name}, p, sizeof(INT32)); p += sizeof(INT32);");
-        }
-        else if (typeRef.Name == "Guid")
-        {
-            sb.AppendLine($"        GUID {name};");
-            sb.AppendLine($"        memcpy(&{name}, p, sizeof(GUID)); p += sizeof(GUID);");
+            sb.AppendLine($"        winmidl::unmarshal_enum(p, {name});");
         }
         else
         {
             var cType = MapType(typeRef);
-            var sizeExpr = WireFormat.GetCppSizeExpression(typeRef);
             sb.AppendLine($"        {cType} {name};");
-            sb.AppendLine($"        memcpy(&{name}, p, {sizeExpr}); p += {sizeExpr};");
+            var helper = WireFormat.GetUnmarshalHelper(typeRef);
+            if (helper != null)
+                sb.AppendLine($"        winmidl::{helper}(p, {name});");
+            else
+            {
+                var sizeExpr = WireFormat.GetCppSizeExpression(typeRef);
+                sb.AppendLine($"        memcpy(&{name}, p, {sizeExpr}); p += {sizeExpr};");
+            }
         }
     }
 
@@ -296,20 +312,14 @@ public class StubGenerator
         bool hasRetval, string iidName, List<ParameterSymbol> inParams, bool useExceptions)
     {
         // For HSTRING out params/retval, we need to get their lengths before computing buffer size
-        // Emit WindowsGetStringRawBuffer calls for any HSTRING results
         foreach (var p in outParams.Where(p => p.Type.Name == "String"))
         {
-            sb.AppendLine($"        UINT32 {p.Name}_len = 0;");
-            sb.AppendLine($"        PCWSTR {p.Name}_raw = WindowsGetStringRawBuffer({p.Name}, &{p.Name}_len);");
+            sb.AppendLine($"        UINT32 {p.Name}_len = WindowsGetStringLen({p.Name});");
         }
         if (hasRetval && slot.ReturnType.Name == "String")
         {
-            sb.AppendLine("        UINT32 returnValue_len = 0;");
-            sb.AppendLine("        PCWSTR returnValue_raw = WindowsGetStringRawBuffer(returnValue, &returnValue_len);");
+            sb.AppendLine("        UINT32 returnValue_len = WindowsGetStringLen(returnValue);");
         }
-
-        // Calculate reply size using WireFormat
-        var replyParams = outParams.Select(p => (p.Type, p.Name)).ToList();
 
         // Check if reply is fixed-size for constexpr optimization
         bool replyFixed = outParams.All(p => WireFormat.IsFixedSize(p.Type))
@@ -329,7 +339,6 @@ public class StubGenerator
         }
         else
         {
-            // Build size expression using the _len variables we just declared
             var sizeParts = new List<string>();
             foreach (var p in outParams)
             {
@@ -366,29 +375,22 @@ public class StubGenerator
             sb.AppendLine("        BYTE* pOut = (BYTE*)pMsg->Buffer;");
         }
 
-        // Serialize out params
+        // Serialize out params using helpers
         foreach (var param in outParams)
         {
             WireFormat.EmitSerializeReplyValue(sb, param.Type, param.Name, "pOut");
         }
 
-        // Serialize return value
+        // Serialize return value using helpers
         if (hasRetval)
         {
-            if (slot.ReturnType.Name == "String")
-            {
-                EmitSerializeHStringReturn(sb);
-            }
-            else
-            {
-                WireFormat.EmitSerializeReplyValue(sb, slot.ReturnType, "returnValue", "pOut");
-            }
+            WireFormat.EmitSerializeReplyValue(sb, slot.ReturnType, "returnValue", "pOut");
         }
 
         // Serialize HRESULT
         if (needsPointer)
         {
-            sb.AppendLine("        memcpy(pOut, &hr, sizeof(HRESULT));");
+            sb.AppendLine("        winmidl::marshal_int32(pOut, hr);");
         }
         else
         {
@@ -407,12 +409,49 @@ public class StubGenerator
         }
     }
 
-    private static void EmitSerializeHStringReturn(StringBuilder sb)
+    private void EmitDescriptorTables(StringBuilder sb, InterfaceSymbol iface, List<StubSlot> slots, string mangledName, string iidName)
     {
-        sb.AppendLine("        UINT32 len = 0;");
-        sb.AppendLine("        PCWSTR raw = WindowsGetStringRawBuffer(returnValue, &len);");
-        sb.AppendLine("        memcpy(pOut, &len, sizeof(UINT32)); pOut += sizeof(UINT32);");
-        sb.AppendLine("        memcpy(pOut, raw, len * sizeof(WCHAR)); pOut += len * sizeof(WCHAR);");
+        // Per-method param descriptor arrays
+        foreach (var slot in slots)
+        {
+            var allParams = new List<(TypeRef Type, string Dir)>();
+            foreach (var p in slot.Parameters)
+            {
+                var dir = p.Direction == ParameterDirection.Out ? "winmidl::param_dir::dir_out" : "winmidl::param_dir::dir_in";
+                allParams.Add((p.Type, dir));
+            }
+            if (slot.ReturnType.Name != "void")
+            {
+                allParams.Add((slot.ReturnType, "winmidl::param_dir::dir_retval"));
+            }
+
+            if (allParams.Count > 0)
+            {
+                sb.AppendLine($"static constexpr winmidl::param_descriptor {mangledName}_{slot.Name}_params[] = {{");
+                foreach (var (type, dir) in allParams)
+                {
+                    var typeEnum = WireFormat.GetParamTypeEnum(type) ?? "winmidl::param_type::t_int32";
+                    sb.AppendLine($"    {{ {typeEnum}, {dir} }},");
+                }
+                sb.AppendLine("};");
+            }
+        }
+
+        // Method descriptor table
+        sb.AppendLine($"static constexpr winmidl::method_descriptor {mangledName}_methods[] = {{");
+        foreach (var slot in slots)
+        {
+            var paramCount = slot.Parameters.Count + (slot.ReturnType.Name != "void" ? 1 : 0);
+            var paramsRef = paramCount > 0 ? $"{mangledName}_{slot.Name}_params" : "nullptr";
+            sb.AppendLine($"    {{ {slot.Index}, \"{slot.Name}\", {paramsRef}, {paramCount} }},");
+        }
+        sb.AppendLine("};");
+
+        // Interface descriptor
+        sb.AppendLine($"static constexpr winmidl::interface_descriptor {mangledName}_desc = {{");
+        sb.AppendLine($"    &{iidName}, {mangledName}_methods, {slots.Count}");
+        sb.AppendLine("};");
+        sb.AppendLine();
     }
 
     /// <summary>

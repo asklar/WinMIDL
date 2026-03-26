@@ -205,10 +205,8 @@ public partial class WireFormatTests
         WireFormat.EmitSerialize(sb, typeRef, "pos", "p");
         var code = sb.ToString();
 
-        // Should use single memcpy, not field-by-field
-        Assert.Contains("memcpy(p, &pos, sizeof(Point))", code);
-        Assert.Contains("p += sizeof(Point)", code);
-        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", code);
+        // Should use marshal_struct helper, not field-by-field
+        Assert.Contains("winmidl::marshal_struct(p, pos)", code);
         // Should NOT contain field-by-field copies
         Assert.DoesNotContain("pos.X", code);
         Assert.DoesNotContain("pos.Y", code);
@@ -245,9 +243,7 @@ public partial class WireFormatTests
         WireFormat.EmitDeserialize(sb, typeRef, "pos", "pReply");
         var code = sb.ToString();
 
-        Assert.Contains("memcpy(&pos, pReply, sizeof(Point))", code);
-        Assert.Contains("pReply += sizeof(Point)", code);
-        Assert.Contains("static_assert(std::is_trivially_copyable_v<Point>)", code);
+        Assert.Contains("winmidl::unmarshal_struct(pReply, pos)", code);
     }
 
     // ─── Zero-copy HSTRING ───
