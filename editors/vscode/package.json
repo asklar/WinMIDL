@@ -126,6 +126,11 @@
           "default": true,
           "description": "Fetch type descriptions from Microsoft Learn on hover. Requires internet access."
         },
+        "midl.preprocessorPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to an external C preprocessor (e.g. `cl.exe`). When set, the server uses this instead of the built-in preprocessor. Leave empty to use the built-in preprocessor."
+        },
         "midl.inlineDocsBrowser": {
           "type": "boolean",
           "default": true,
