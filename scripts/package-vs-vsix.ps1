@@ -68,13 +68,27 @@ if (-not (Test-Path $serverExe)) {
 $sizeMB = [math]::Round((Get-Item $serverExe).Length / 1MB, 1)
 Write-Host "Server binary: $serverExe ($sizeMB MB)" -ForegroundColor Green
 
-# Step 2: Copy server binary into VS extension project
+# Step 2: Copy server binaries into VS extension project
 Write-Host ""
-Write-Host "Bundling server binary..." -ForegroundColor Cyan
+Write-Host "Bundling server binaries..." -ForegroundColor Cyan
+
+# x64
 $serverDir = Join-Path $vsExtDir "server" "win-x64"
 New-Item -ItemType Directory -Force -Path $serverDir | Out-Null
 Copy-Item $serverExe -Destination $serverDir -Force
-Write-Host "  Copied to $serverDir"
+Write-Host "  x64: $sizeMB MB"
+
+# ARM64
+$arm64Exe = Join-Path $publishDir "win-arm64" "Midl.Cli.exe"
+if (Test-Path $arm64Exe) {
+    $arm64Size = [math]::Round((Get-Item $arm64Exe).Length / 1MB, 1)
+    $arm64Dir = Join-Path $vsExtDir "server" "win-arm64"
+    New-Item -ItemType Directory -Force -Path $arm64Dir | Out-Null
+    Copy-Item $arm64Exe -Destination $arm64Dir -Force
+    Write-Host "  ARM64: $arm64Size MB"
+} else {
+    Write-Host "  ARM64 binary not found — x64 only" -ForegroundColor Yellow
+}
 
 # Step 3: Update version in manifest (only the Identity element)
 $manifestPath = Join-Path $vsExtDir "source.extension.vsixmanifest"

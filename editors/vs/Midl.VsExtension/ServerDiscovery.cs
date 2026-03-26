@@ -19,11 +19,14 @@ namespace Midl.VsExtension
         public static string FindServerPath()
         {
             string extensionDir = Path.GetDirectoryName(typeof(ServerDiscovery).Assembly.Location);
+            string arch = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == 
+                System.Runtime.InteropServices.Architecture.Arm64 ? "win-arm64" : "win-x64";
 
             // 1. Bundled server binary (shipped inside the extension package)
             string[] bundledCandidates = new string[]
             {
-                Path.Combine(extensionDir, "server", "win-x64", ServerExeName),
+                Path.Combine(extensionDir, "server", arch, ServerExeName),
+                Path.Combine(extensionDir, "server", "win-x64", ServerExeName), // x64 fallback
                 Path.Combine(extensionDir, "server", ServerExeName),
             };
 
