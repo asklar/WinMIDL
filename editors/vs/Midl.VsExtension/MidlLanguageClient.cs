@@ -164,23 +164,7 @@ namespace Midl.VsExtension
 
         private static MidlOptionsPage GetOptionsPage()
         {
-            try
-            {
-                // Force-load our package so the options page is available
-                var shell = (IVsShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsShell));
-                if (shell != null)
-                {
-                    var packageGuid = new Guid(MidlPackage.PackageGuidString);
-                    shell.LoadPackage(ref packageGuid, out _);
-                }
-                var package = Package.GetGlobalService(typeof(MidlPackage)) as MidlPackage
-                    ?? (MidlPackage)ServiceProvider.GlobalProvider.GetService(typeof(MidlPackage));
-                return package?.GetDialogPage(typeof(MidlOptionsPage)) as MidlOptionsPage;
-            }
-            catch
-            {
-                return null;
-            }
+            return MidlPackage.Instance?.GetOptions();
         }
     }
 }
