@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Midl.Syntax;
 
 namespace Midl.Lsp.Handlers;
 
@@ -23,74 +24,68 @@ public static class OnTypeFormattingHandler
         if (text is null) return Array.Empty<object>();
 
         var lines = text.Split('\n');
+
+        MidlTrace.Lsp($"onTypeFormatting: ch='{(ch == "\n" ? "\\n" : ch)}' line={line} char={character} totalLines={lines.Length}");
+
         if (line < 0 || line >= lines.Length) return Array.Empty<object>();
 
         var edits = new List<object>();
 
         if (ch == "\n" && line > 0)
         {
-            // After pressing Enter, match the indentation of the previous line
-            // and increase it if the previous line ends with {
             var prevLineText = lines[line - 1].TrimEnd('\r');
-            int prevIndent = GetIndentLevel(prevLineText);
+            var currentLineText = lines[line].TrimEnd('\r');
+            int prevSpaces = CountLeadingSpaces(prevLineText);
+            var prevTrimmed = prevLineText.TrimEnd();
 
-            // If previous line ends with {, indent one more level
-            if (prevLineText.TrimEnd().EndsWith("{"))
-                prevIndent++;
+            // Desired indent = previous line's indent + 4 if prev ends with {
+            int desiredSpaces = prevSpaces;
+            if (prevTrimmed.EndsWith("{"))
+                desiredSpaces += 4;
 
-            var currentLineText = line < lines.Length ? lines[line].TrimEnd('\r') : "";
-            int currentIndent = GetIndentLevel(currentLineText);
+            // If current line starts with }, reduce by 4
+            if (currentLineText.TrimStart().StartsWith("}"))
+                desiredSpaces = Math.Max(0, desiredSpaces - 4);
 
-            if (currentIndent != prevIndent)
+            int currentSpaces = CountLeadingSpaces(currentLineText);
+            MidlTrace.Lsp($"  prevLine='{prevTrimmed}' prevSpaces={prevSpaces} desired={desiredSpaces} currentSpaces={currentSpaces}");
+
+            // Always emit an edit to set the indentation on the current line
+            edits.Add(new Dictionary<string, object?>
             {
-                string newIndent = new string(' ', prevIndent * 4);
-                string trimmedCurrent = currentLineText.TrimStart();
-
-                // If current line starts with }, outdent by one
-                if (trimmedCurrent.StartsWith("}"))
-                {
-                    prevIndent = Math.Max(0, prevIndent - 1);
-                    newIndent = new string(' ', prevIndent * 4);
-                }
-
-                edits.Add(new Dictionary<string, object?>
-                {
-                    ["range"] = MakeRange(line, 0, line, currentIndent * 4 + (currentLineText.Length - currentLineText.TrimStart().Length)),
-                    ["newText"] = newIndent
-                });
-            }
+                ["range"] = MakeRange(line, 0, line, currentSpaces),
+                ["newText"] = new string(' ', desiredSpaces)
+            });
         }
         else if (ch == "}")
         {
-            // When typing }, outdent the current line
             var currentLineText = lines[line].TrimEnd('\r');
-            int currentIndent = GetIndentLevel(currentLineText);
+            int currentSpaces = CountLeadingSpaces(currentLineText);
+            int desiredSpaces = Math.Max(0, currentSpaces - 4);
 
-            if (currentIndent > 0)
+            MidlTrace.Lsp($"  '}}' on line {line}: currentSpaces={currentSpaces} desired={desiredSpaces}");
+
+            edits.Add(new Dictionary<string, object?>
             {
-                int newIndent = currentIndent - 1;
-                int oldSpaces = currentLineText.Length - currentLineText.TrimStart().Length;
-                edits.Add(new Dictionary<string, object?>
-                {
-                    ["range"] = MakeRange(line, 0, line, oldSpaces),
-                    ["newText"] = new string(' ', newIndent * 4)
-                });
-            }
+                ["range"] = MakeRange(line, 0, line, currentSpaces),
+                ["newText"] = new string(' ', desiredSpaces)
+            });
         }
 
+        MidlTrace.Lsp($"  returning {edits.Count} edits");
         return edits;
     }
 
-    private static int GetIndentLevel(string line)
+    private static int CountLeadingSpaces(string line)
     {
-        int spaces = 0;
+        int count = 0;
         foreach (char c in line)
         {
-            if (c == ' ') spaces++;
-            else if (c == '\t') spaces += 4;
+            if (c == ' ') count++;
+            else if (c == '\t') count += 4;
             else break;
         }
-        return spaces / 4;
+        return count;
     }
 
     private static object MakeRange(int startLine, int startChar, int endLine, int endChar)

@@ -2,9 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServer.Client;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
@@ -28,17 +32,30 @@ namespace Midl.VsExtension
         public event AsyncEventHandler<EventArgs> StopAsync;
 
         private Process serverProcess;
+        private IVsOutputWindowPane outputPane;
 
         public async Task<Connection> ActivateAsync(CancellationToken token)
         {
             await Task.Yield();
 
+            // Create output window pane for server logging
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(token);
+            var outputWindow = (IVsOutputWindow)ServiceProvider.GlobalProvider.GetService(typeof(SVsOutputWindow));
+            var paneGuid = new Guid("A1B2C3D4-E5F6-7890-ABCD-EF1234567890");
+            outputWindow.CreatePane(ref paneGuid, "MIDL Language Server", 1, 1);
+            outputWindow.GetPane(ref paneGuid, out outputPane);
+            outputPane?.OutputStringThreadSafe("MIDL Language Server starting...\n");
+            await TaskScheduler.Default;
+
             string serverPath = ServerDiscovery.FindServerPath();
             if (serverPath == null)
             {
+                OutputLog("ERROR: Could not find Midl.Cli.exe");
                 throw new InvalidOperationException(
                     "Could not find Midl.Cli.exe. Ensure the MIDL CLI is built or bundled with the extension.");
             }
+
+            OutputLog($"Server path: {serverPath}");
 
             var startInfo = new ProcessStartInfo
             {
@@ -58,6 +75,16 @@ namespace Midl.VsExtension
                     $"Failed to start MIDL language server process: {serverPath}");
             }
 
+            OutputLog($"Server started (PID {serverProcess.Id})");
+
+            // Forward stderr to Output window
+            serverProcess.ErrorDataReceived += (sender, e) =>
+            {
+                if (e.Data != null)
+                    OutputLog(e.Data);
+            };
+            serverProcess.BeginErrorReadLine();
+
             return new Connection(
                 serverProcess.StandardOutput.BaseStream,
                 serverProcess.StandardInput.BaseStream);
@@ -73,11 +100,13 @@ namespace Midl.VsExtension
 
         public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationInfo)
         {
+            OutputLog($"Server initialization failed: {initializationInfo?.StatusMessage}");
             return Task.FromResult<InitializationFailureContext>(null);
         }
 
         public Task OnServerInitializedAsync()
         {
+            OutputLog("Server initialized successfully");
             return Task.CompletedTask;
         }
 
@@ -110,6 +139,11 @@ namespace Midl.VsExtension
             {
                 await StartAsync.InvokeAsync(this, EventArgs.Empty);
             }
+        }
+
+        private void OutputLog(string message)
+        {
+            outputPane?.OutputStringThreadSafe($"[MIDL] {message}\n");
         }
     }
 }

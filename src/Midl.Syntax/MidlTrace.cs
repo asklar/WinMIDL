@@ -24,7 +24,10 @@ public static class MidlTrace
             _enabled = true;
             if (logFilePath != null)
             {
-                _writer = new StreamWriter(logFilePath, append: true) { AutoFlush = true };
+                // Write to both file and stderr (stderr feeds VS Output window)
+                _writer = new TeeWriter(
+                    new StreamWriter(logFilePath, append: true) { AutoFlush = true },
+                    Console.Error);
             }
             else
             {
@@ -84,4 +87,37 @@ public static class MidlTrace
     public static void CodeGen(string message) => Write("CODEGEN", message);
     public static void Lsp(string message) => Write("LSP", message);
     public static void Cli(string message) => Write("CLI", message);
+
+    /// <summary>Writes to two TextWriters simultaneously.</summary>
+    private sealed class TeeWriter : TextWriter
+    {
+        private readonly TextWriter _a;
+        private readonly TextWriter _b;
+
+        public TeeWriter(TextWriter a, TextWriter b) { _a = a; _b = b; }
+
+        public override System.Text.Encoding Encoding => _a.Encoding;
+
+        public override void WriteLine(string? value)
+        {
+            _a.WriteLine(value);
+            try { _b.WriteLine(value); } catch { /* stderr may be closed */ }
+        }
+
+        public override void Flush()
+        {
+            _a.Flush();
+            try { _b.Flush(); } catch { }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _a.Dispose();
+                // Don't dispose _b (Console.Error)
+            }
+            base.Dispose(disposing);
+        }
+    }
 }
