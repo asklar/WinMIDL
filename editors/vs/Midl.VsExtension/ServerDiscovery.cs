@@ -45,6 +45,7 @@ namespace Midl.VsExtension
                     Path.Combine(repoRoot, "src", "Midl.Cli", "bin", "Debug", "net10.0", "win-x64", ServerExeName),
                     Path.Combine(repoRoot, "src", "Midl.Cli", "bin", "Release", "net10.0", ServerExeName),
                     Path.Combine(repoRoot, "src", "Midl.Cli", "bin", "Release", "net10.0", "win-x64", ServerExeName),
+                    Path.Combine(repoRoot, "publish", "win-x64", ServerExeName),
                     Path.Combine(repoRoot, "publish", ServerExeName),
                 };
 
@@ -53,6 +54,36 @@ namespace Midl.VsExtension
                     if (File.Exists(path))
                     {
                         return path;
+                    }
+                }
+            }
+
+            // 3. Fallback: check well-known repo locations
+            string[] fallbackRoots = new string[]
+            {
+                @"E:\midl",
+                @"D:\midl",
+                Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile), "source", "repos", "midl"),
+            };
+
+            foreach (string root in fallbackRoots)
+            {
+                if (Directory.Exists(root))
+                {
+                    string[] fallbackCandidates = new string[]
+                    {
+                        Path.Combine(root, "publish", "win-x64", ServerExeName),
+                        Path.Combine(root, "publish", ServerExeName),
+                        Path.Combine(root, "src", "Midl.Cli", "bin", "Debug", "net10.0", ServerExeName),
+                        Path.Combine(root, "src", "Midl.Cli", "bin", "Release", "net10.0", ServerExeName),
+                    };
+
+                    foreach (string path in fallbackCandidates)
+                    {
+                        if (File.Exists(path))
+                        {
+                            return path;
+                        }
                     }
                 }
             }
