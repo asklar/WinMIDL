@@ -49,6 +49,7 @@ public sealed partial class MidlLanguageServer
         try
         {
             var idlFiles = Directory.EnumerateFiles(_workspaceRoot, "*.idl", SearchOption.AllDirectories)
+                .Where(f => !IsExcludedPath(f))
                 .Take(MaxWorkspaceFiles)
                 .ToList();
 
@@ -74,6 +75,24 @@ public sealed partial class MidlLanguageServer
         catch (Exception)
         {
         }
+    }
+
+    /// <summary>
+    /// Exclude files in dependency/build directories from workspace scanning.
+    /// These are typically MIDL2/COM files from NuGet packages, not user-authored MIDL3.
+    /// </summary>
+    private static bool IsExcludedPath(string filePath)
+    {
+        var normalized = filePath.Replace('\\', '/');
+        // Exclude NuGet packages, build output, node_modules, .git, etc.
+        return normalized.Contains("/packages/", StringComparison.OrdinalIgnoreCase)
+            || normalized.Contains("/node_modules/", StringComparison.OrdinalIgnoreCase)
+            || normalized.Contains("/.git/", StringComparison.OrdinalIgnoreCase)
+            || normalized.Contains("/bin/", StringComparison.OrdinalIgnoreCase)
+            || normalized.Contains("/obj/", StringComparison.OrdinalIgnoreCase)
+            || normalized.Contains("/.vs/", StringComparison.OrdinalIgnoreCase)
+            || normalized.Contains("/Generated Files/", StringComparison.OrdinalIgnoreCase)
+            || normalized.Contains("/.nuget/", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task HandleWatchedFileChangesAsync(JsonElement? @params)
