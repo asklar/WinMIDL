@@ -49,9 +49,11 @@ namespace Midl.VsExtension
 
         private Process serverProcess;
         private IVsOutputWindowPane outputPane;
+        private static MidlLanguageClient _instance;
 
         public async Task<Connection> ActivateAsync(CancellationToken token)
         {
+            _instance = this;
             await Task.Yield();
 
             // Create output window pane for server logging
@@ -165,6 +167,51 @@ namespace Midl.VsExtension
         private static MidlOptionsPage GetOptionsPage()
         {
             return MidlPackage.Instance?.GetOptions();
+        }
+
+        /// <summary>
+        /// Sends workspace/didChangeConfiguration to the running server with current settings.
+        /// Called from MidlOptionsPage.OnApply when the user clicks OK/Apply.
+        /// </summary>
+        internal static void NotifySettingsChanged()
+        {
+            var instance = _instance;
+            if (instance?.serverProcess == null || instance.serverProcess.HasExited) return;
+
+            var options = GetOptionsPage();
+            if (options == null) return;
+
+            try
+            {
+                var settingsObj = new Newtonsoft.Json.Linq.JObject
+                {
+                    ["midl.strictMode"] = options.StrictMode,
+                    ["midl.codeQualityHints"] = options.CodeQualityHints,
+                    ["midl.useWindowsSdk"] = options.UseWindowsSdk,
+                    ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
+                    ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
+                };
+
+                var msg = new Newtonsoft.Json.Linq.JObject
+                {
+                    ["jsonrpc"] = "2.0",
+                    ["method"] = "workspace/didChangeConfiguration",
+                    ["params"] = new Newtonsoft.Json.Linq.JObject { ["settings"] = settingsObj }
+                };
+
+                var body = msg.ToString(Newtonsoft.Json.Formatting.None);
+                var header = $"Content-Length: {System.Text.Encoding.UTF8.GetByteCount(body)}\r\n\r\n";
+                var stream = instance.serverProcess.StandardInput;
+                stream.Write(header);
+                stream.Write(body);
+                stream.Flush();
+
+                instance.OutputLog("Sent workspace/didChangeConfiguration with updated settings");
+            }
+            catch (Exception ex)
+            {
+                instance.OutputLog($"Failed to send settings: {ex.Message}");
+            }
         }
     }
 }

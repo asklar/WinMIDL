@@ -73,5 +73,18 @@ namespace Midl.VsExtension
             get { return fetchSdkDocs; }
             set { fetchSdkDocs = value; }
         }
+
+        /// <summary>
+        /// Called when the user clicks OK/Apply in Tools > Options.
+        /// Notifies the running LSP client to push updated settings to the server.
+        /// </summary>
+        protected override void OnApply(PageApplyEventArgs e)
+        {
+            base.OnApply(e);
+            if (e.ApplyBehavior == ApplyKind.Apply)
+            {
+                MidlLanguageClient.NotifySettingsChanged();
+            }
+        }
     }
 }
