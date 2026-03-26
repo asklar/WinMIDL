@@ -1028,38 +1028,136 @@ public class Binder
             if (valSlot == null) continue;
             if (valSlot is SyntaxToken { Kind: SyntaxKind.CommaToken }) break;
 
-            // Unwrap expression nodes to find the actual token
-            var token = FindFirstToken(valSlot);
-            if (token == null) break;
+            member.ExplicitValueText = CollectNodeText(valSlot);
 
-            member.ExplicitValueText = token.Text;
-
-            if (token.Kind == SyntaxKind.NumericLiteralToken)
-            {
-                long v = 0;
-                bool parsed = false;
-                var txt = token.Text;
-                bool neg = txt.StartsWith('-');
-                var s = neg ? txt.AsSpan(1) : txt.AsSpan();
-                if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase) &&
-                    long.TryParse(s[2..], System.Globalization.NumberStyles.HexNumber, null, out v))
-                { if (neg) v = -v; parsed = true; }
-                else if (long.TryParse(txt, out v))
-                { parsed = true; }
-
-                if (parsed)
-                {
-                    member.ExplicitValue = v;
-                    ValidateEnumValueRange(v, txt, member.Name, parentEnum);
-                }
-            }
-            else if (token.Kind is SyntaxKind.FloatLiteralToken or SyntaxKind.StringLiteralToken)
+            // Check for float/string literals which are invalid for enum values
+            var firstToken = FindFirstToken(valSlot);
+            if (firstToken?.Kind is SyntaxKind.FloatLiteralToken or SyntaxKind.StringLiteralToken)
             {
                 _diagnostics.Add(DiagnosticDescriptors.EnumValueNotInteger(
-                    member.Name, parentEnum.Name, token.Text, _posMap.GetPositionOf(token.Text)));
+                    member.Name, parentEnum.Name, firstToken.Text, _posMap.GetPositionOf(firstToken.Text)));
+                break;
+            }
+
+            var result = EvaluateEnumExpression(valSlot, parentEnum);
+            if (result.HasValue)
+            {
+                member.ExplicitValue = result.Value;
+                ValidateEnumValueRange(result.Value, member.ExplicitValueText ?? "", member.Name, parentEnum);
             }
             break;
         }
+    }
+
+    /// <summary>Recursively evaluate an expression green node to a constant long value.</summary>
+    private long? EvaluateEnumExpression(GreenNode node, EnumSymbol parentEnum)
+    {
+        switch (node.Kind)
+        {
+            case SyntaxKind.NumericLiteralExpression:
+            {
+                var token = FindFirstToken(node);
+                if (token == null) return null;
+                return ParseNumericLiteral(token.Text);
+            }
+
+            case SyntaxKind.NumericLiteralToken:
+                return ParseNumericLiteral(((SyntaxToken)node).Text);
+
+            case SyntaxKind.UnaryExpression:
+            {
+                // children: op, operand
+                var op = node.GetSlot(0) as SyntaxToken;
+                var operand = node.GetSlot(1);
+                if (op == null || operand == null) return null;
+                var val = EvaluateEnumExpression(operand, parentEnum);
+                if (!val.HasValue) return null;
+                return op.Kind switch
+                {
+                    SyntaxKind.MinusToken => -val.Value,
+                    SyntaxKind.PlusToken => val.Value,
+                    SyntaxKind.TildeToken => ~val.Value,
+                    SyntaxKind.ExclamationToken => val.Value == 0 ? 1L : 0L,
+                    _ => null
+                };
+            }
+
+            case SyntaxKind.BinaryExpression:
+            {
+                // children: left, op, right
+                var left = node.GetSlot(0);
+                var op = node.GetSlot(1) as SyntaxToken;
+                var right = node.GetSlot(2);
+                if (left == null || op == null || right == null) return null;
+                var lv = EvaluateEnumExpression(left, parentEnum);
+                var rv = EvaluateEnumExpression(right, parentEnum);
+                if (!lv.HasValue || !rv.HasValue) return null;
+                return op.Kind switch
+                {
+                    SyntaxKind.PlusToken => lv.Value + rv.Value,
+                    SyntaxKind.MinusToken => lv.Value - rv.Value,
+                    SyntaxKind.AsteriskToken => lv.Value * rv.Value,
+                    SyntaxKind.SlashToken => rv.Value != 0 ? lv.Value / rv.Value : null,
+                    SyntaxKind.PercentToken => rv.Value != 0 ? lv.Value % rv.Value : null,
+                    SyntaxKind.PipeToken => lv.Value | rv.Value,
+                    SyntaxKind.AmpersandToken => lv.Value & rv.Value,
+                    SyntaxKind.CaretToken => lv.Value ^ rv.Value,
+                    SyntaxKind.LessThanLessThanToken => lv.Value << (int)rv.Value,
+                    SyntaxKind.GreaterThanGreaterThanToken => lv.Value >> (int)rv.Value,
+                    _ => null
+                };
+            }
+
+            case SyntaxKind.ParenthesizedExpression:
+            {
+                // children: open, expr, close
+                var inner = node.GetSlot(1);
+                if (inner == null) return null;
+                return EvaluateEnumExpression(inner, parentEnum);
+            }
+
+            case SyntaxKind.IdentifierExpression:
+            {
+                var text = CollectNodeText(node);
+                // Look up in already-bound enum members
+                foreach (var m in parentEnum.EnumMembers)
+                {
+                    if (string.Equals(m.Name, text, StringComparison.Ordinal) && m.ExplicitValue.HasValue)
+                        return m.ExplicitValue.Value;
+                }
+                // Try parsing as a numeric literal (preprocessor define already substituted)
+                return ParseNumericLiteral(text);
+            }
+
+            default:
+            {
+                // If it's a raw token, try to parse it
+                if (node is SyntaxToken rawToken && rawToken.Kind == SyntaxKind.NumericLiteralToken)
+                    return ParseNumericLiteral(rawToken.Text);
+                // Try recursing into single-child wrapper nodes
+                if (node.SlotCount == 1)
+                {
+                    var child = node.GetSlot(0);
+                    if (child != null) return EvaluateEnumExpression(child, parentEnum);
+                }
+                return null;
+            }
+        }
+    }
+
+    private static long? ParseNumericLiteral(string txt)
+    {
+        if (string.IsNullOrEmpty(txt)) return null;
+        bool neg = txt.StartsWith('-');
+        var s = neg ? txt.AsSpan(1) : txt.AsSpan();
+        if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase) &&
+            long.TryParse(s[2..], System.Globalization.NumberStyles.HexNumber, null, out long v))
+        {
+            return neg ? -v : v;
+        }
+        if (long.TryParse(txt, out v))
+            return v;
+        return null;
     }
 
     private static SyntaxToken? FindFirstToken(GreenNode node)
