@@ -23,6 +23,12 @@ public class ProjectFile
     /// <summary>If true, do not reference the Windows SDK WinMD automatically.</summary>
     public bool NoSdk { get; set; }
 
+    /// <summary>Whether the LSP workspace scan should recurse into subdirectories. Default true.</summary>
+    public bool ScanSubfolders { get; set; } = true;
+
+    /// <summary>Directory names to exclude from workspace scan (e.g. "tools", "generated").</summary>
+    public List<string> ExcludeDirectories { get; set; } = [];
+
     /// <summary>Directory containing the winmidl.json file.</summary>
     public string BaseDirectory { get; set; } = "";
 
@@ -82,6 +88,14 @@ public class ProjectFile
 
         if (root.TryGetProperty("noSdk", out var noSdk))
             project.NoSdk = noSdk.GetBoolean();
+
+        if (root.TryGetProperty("scanSubfolders", out var scanSub))
+            project.ScanSubfolders = scanSub.GetBoolean();
+
+        if (root.TryGetProperty("excludeDirectories", out var excludeDirs))
+            foreach (var item in excludeDirs.EnumerateArray())
+                if (item.GetString() is { } s)
+                    project.ExcludeDirectories.Add(s);
 
         return project;
     }
