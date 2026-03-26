@@ -134,6 +134,10 @@ public sealed partial class MidlLanguageServer
                 await HandleWatchedFileChangesAsync(@params);
                 break;
 
+            case "workspace/didChangeConfiguration":
+                HandleDidChangeConfiguration(@params);
+                break;
+
             case "shutdown":
                 _shutdownRequested = true;
                 await _writer.SendResponseAsync(id, null);
@@ -297,6 +301,85 @@ public sealed partial class MidlLanguageServer
         result = System.Text.RegularExpressions.Regex.Replace(result, @"^#{1,6}\s+", "", System.Text.RegularExpressions.RegexOptions.Multiline);
         result = System.Text.RegularExpressions.Regex.Replace(result, @"^---+$", "────────────────", System.Text.RegularExpressions.RegexOptions.Multiline);
         return result;
+    }
+
+    private void HandleDidChangeConfiguration(JsonElement? @params)
+    {
+        if (@params is null) return;
+
+        // Settings come in params.settings (flat keys or nested)
+        if (!@params.Value.TryGetProperty("settings", out var settings)) return;
+
+        MidlTrace.Lsp("Configuration changed, applying new settings");
+
+        if (TryGetBool(settings, "midl.strictMode", out var strict))
+        {
+#if WITH_COMPAT
+            _compilationMode = strict ? CompilationMode.Strict : CompilationMode.Compat;
+#endif
+            MidlTrace.Lsp($"  strictMode = {strict}");
+        }
+
+        if (TryGetBool(settings, "midl.codeQualityHints", out var quality))
+        {
+            _enableQualityHints = quality;
+            MidlTrace.Lsp($"  codeQualityHints = {quality}");
+        }
+
+        if (TryGetBool(settings, "midl.useWindowsSdk", out var useSdk))
+        {
+            _useWindowsSdk = useSdk;
+            MidlTrace.Lsp($"  useWindowsSdk = {useSdk}");
+        }
+
+        if (TryGetBool(settings, "midl.flatSdkTypeCompletions", out var flat))
+        {
+            _flatSdkTypeCompletions = flat;
+            MidlTrace.Lsp($"  flatSdkTypeCompletions = {flat}");
+        }
+
+        if (TryGetBool(settings, "midl.fetchSdkDocs", out var fetchDocs))
+        {
+            HoverHandler.FetchSdkDocs = fetchDocs;
+            MidlTrace.Lsp($"  fetchSdkDocs = {fetchDocs}");
+        }
+
+        // Invalidate all compilation caches so next analysis uses new settings
+        _lastAnalyzedHash.Clear();
+        _lastCompilation.Clear();
+
+        // Re-analyze all open documents with new settings
+        foreach (var uri in _docManager.GetOpenDocumentUris())
+        {
+            var text = _docManager.GetDocumentText(uri);
+            if (text != null)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try { await AnalyzeAndPublishAsync(uri, text); }
+                    catch { }
+                });
+            }
+        }
+    }
+
+    private static bool TryGetBool(JsonElement settings, string key, out bool value)
+    {
+        value = false;
+        // Try flat key: "midl.strictMode"
+        if (settings.TryGetProperty(key, out var prop))
+        {
+            if (prop.ValueKind == JsonValueKind.True) { value = true; return true; }
+            if (prop.ValueKind == JsonValueKind.False) { value = false; return true; }
+        }
+        // Try short key: "strictMode"
+        var shortKey = key.Contains(".") ? key[(key.LastIndexOf('.') + 1)..] : key;
+        if (settings.TryGetProperty(shortKey, out var prop2))
+        {
+            if (prop2.ValueKind == JsonValueKind.True) { value = true; return true; }
+            if (prop2.ValueKind == JsonValueKind.False) { value = false; return true; }
+        }
+        return false;
     }
 
     private async Task HandleInitializeAsync(object? id, JsonElement? @params)
