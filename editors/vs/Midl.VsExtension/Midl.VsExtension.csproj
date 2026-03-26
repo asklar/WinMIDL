@@ -51,6 +51,7 @@
     <Compile Include="MidlPackage.cs" />
     <Compile Include="MidlLanguageClient.cs" />
     <Compile Include="MidlContentTypeDefinitions.cs" />
+    <Compile Include="MidlSmartIndent.cs" />
     <Compile Include="MidlCommands.cs" />
     <Compile Include="ServerDiscovery.cs" />
     <Compile Include="WinMdDecompiler.cs" />
