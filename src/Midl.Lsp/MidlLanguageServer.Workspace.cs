@@ -42,9 +42,9 @@ public sealed partial class MidlLanguageServer
     private const int MaxWorkspaceFiles = 100;
     private const long MaxFileSizeBytes = 100 * 1024; // 100 KB — skip huge generated files
 
-    private static readonly HashSet<string> SkipDirectories = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> DefaultSkipDirectories = new(StringComparer.OrdinalIgnoreCase)
     {
-        "node_modules", ".git", "bin", "obj", "tools", ".vs", "packages", "AppData",
+        "node_modules", ".git", "bin", "obj", ".vs", "packages", "AppData",
     };
 
     internal async Task ScanWorkspaceAsync()
@@ -54,7 +54,14 @@ public sealed partial class MidlLanguageServer
 
         try
         {
-            var idlFiles = EnumerateIdlFiles(_workspaceRoot)
+            // Merge default skip list with project-level excludes
+            var skipDirs = new HashSet<string>(DefaultSkipDirectories, StringComparer.OrdinalIgnoreCase);
+            if (_projectFile?.ExcludeDirectories is { Count: > 0 } projExcludes)
+                foreach (var d in projExcludes) skipDirs.Add(d);
+
+            bool recurse = _projectFile?.ScanSubfolders ?? true;
+
+            var idlFiles = EnumerateIdlFiles(_workspaceRoot, skipDirs, recurse)
                 .Take(MaxWorkspaceFiles)
                 .ToList();
 
@@ -85,7 +92,7 @@ public sealed partial class MidlLanguageServer
     /// <summary>
     /// Enumerate .idl files, skipping known non-source directories and files over the size limit.
     /// </summary>
-    private static IEnumerable<string> EnumerateIdlFiles(string root)
+    private static IEnumerable<string> EnumerateIdlFiles(string root, HashSet<string> skipDirs, bool recurse)
     {
         Queue<string> dirs = new();
         dirs.Enqueue(root);
@@ -94,17 +101,23 @@ public sealed partial class MidlLanguageServer
         {
             var dir = dirs.Dequeue();
 
-            // Enqueue subdirectories, skipping known non-source ones
-            try
+            // Enqueue subdirectories, skipping excluded ones
+            if (recurse || dir == root) // always process root, recurse into children only if enabled
             {
-                foreach (var subDir in Directory.EnumerateDirectories(dir))
+                try
                 {
-                    var dirName = Path.GetFileName(subDir);
-                    if (!SkipDirectories.Contains(dirName))
-                        dirs.Enqueue(subDir);
+                    if (recurse)
+                    {
+                        foreach (var subDir in Directory.EnumerateDirectories(dir))
+                        {
+                            var dirName = Path.GetFileName(subDir);
+                            if (!skipDirs.Contains(dirName))
+                                dirs.Enqueue(subDir);
+                        }
+                    }
                 }
+                catch { /* access denied, etc. */ }
             }
-            catch { /* access denied, etc. */ }
 
             // Yield .idl files under size limit
             IEnumerable<string> files;
