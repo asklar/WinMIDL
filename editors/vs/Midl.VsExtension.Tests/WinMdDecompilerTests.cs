@@ -1,53 +1,54 @@
-namespace Midl.VsExtension.Tests;
+using System.Collections.Generic;
 
-/// <summary>
-/// Tests for the WinMD decompiler URI parsing logic.
-/// </summary>
-public class WinMdDecompilerTests
+namespace Midl.VsExtension.Tests
 {
-    [Theory]
-    [InlineData("midl-winmd:///C:/Program Files/Windows.winmd/Windows.Foundation.IAsyncAction")]
-    [InlineData("midl-winmd:///C:/sdk/Windows.winmd/Windows.UI.Xaml.Controls")]
-    [InlineData("midl-winmd:///C:/sdk/Windows.winmd")]
-    public void Decompile_ParsesUriCorrectly(string uri)
+    /// <summary>
+    /// Tests for WinMD decompiler URI parsing and SDK version discovery.
+    /// </summary>
+    public class WinMdDecompilerTests
     {
-        // We can't fully test decompilation without the CLI binary,
-        // but we verify URI parsing doesn't throw and returns content.
-        string? result = WinMdDecompiler.Decompile(uri);
-
-        // Should always return something (either content or error message)
-        Assert.NotNull(result);
-
-        if (ServerDiscovery.FindServerPath() is null)
+        [Theory]
+        [InlineData("midl-winmd:///C:/Program Files/Windows.winmd/Windows.Foundation.IAsyncAction")]
+        [InlineData("midl-winmd:///C:/sdk/Windows.winmd/Windows.UI.Xaml.Controls")]
+        [InlineData("midl-winmd:///C:/sdk/Windows.winmd")]
+        public void Decompile_ParsesUriCorrectly(string uri)
         {
-            Assert.Contains("MIDL server binary not found", result);
+            // We can't fully test decompilation without the CLI binary,
+            // but we verify URI parsing doesn't throw and returns content.
+            string result = WinMdDecompiler.Decompile(uri);
+
+            // Should always return something (either content or error message)
+            Assert.NotNull(result);
+
+            if (ServerDiscovery.FindServerPath() == null)
+            {
+                Assert.Contains("MIDL server binary not found", result);
+            }
         }
-    }
 
-    [Fact]
-    public void Decompile_HandlesEmptyUri()
-    {
-        string? result = WinMdDecompiler.Decompile("");
-        Assert.NotNull(result);
-    }
-
-    [Fact]
-    public void SelectSdkVersionCommand_DiscoverSdkVersions_DoesNotThrow()
-    {
-        var ex = Record.Exception(SelectSdkVersionCommand.DiscoverSdkVersions);
-        Assert.Null(ex);
-    }
-
-    [Fact]
-    public void SelectSdkVersionCommand_DiscoverSdkVersions_ReturnsListOfStrings()
-    {
-        List<string> versions = SelectSdkVersionCommand.DiscoverSdkVersions();
-        Assert.NotNull(versions);
-        // On machines with Windows SDK installed, we'd expect results.
-        // On CI without SDK, we expect an empty list.
-        foreach (string v in versions)
+        [Fact]
+        public void Decompile_HandlesEmptyUri()
         {
-            Assert.False(string.IsNullOrEmpty(v));
+            string result = WinMdDecompiler.Decompile("");
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void DiscoverSdkVersions_DoesNotThrow()
+        {
+            var ex = Record.Exception(() => MidlCommands.DiscoverSdkVersions());
+            Assert.Null(ex);
+        }
+
+        [Fact]
+        public void DiscoverSdkVersions_ReturnsListOfStrings()
+        {
+            List<string> versions = MidlCommands.DiscoverSdkVersions();
+            Assert.NotNull(versions);
+            foreach (string v in versions)
+            {
+                Assert.False(string.IsNullOrEmpty(v));
+            }
         }
     }
 }
