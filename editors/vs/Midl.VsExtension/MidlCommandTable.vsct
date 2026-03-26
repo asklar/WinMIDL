@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+
+  <Commands package="guidMidlPackage">
+    <Groups>
+      <Group guid="guidMidlCmdSet" id="MidlMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidMidlCmdSet" id="ToggleStrictModeCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidMidlCmdSet" id="MidlMenuGroup"/>
+        <Strings>
+          <ButtonText>MIDL: Toggle Strict MIDL3 Mode</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidMidlCmdSet" id="RestartServerCommandId" priority="0x0200" type="Button">
+        <Parent guid="guidMidlCmdSet" id="MidlMenuGroup"/>
+        <Strings>
+          <ButtonText>MIDL: Restart Language Server</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidMidlCmdSet" id="ShowServerLogCommandId" priority="0x0300" type="Button">
+        <Parent guid="guidMidlCmdSet" id="MidlMenuGroup"/>
+        <Strings>
+          <ButtonText>MIDL: Show Language Server Output</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidMidlCmdSet" id="SelectSdkVersionCommandId" priority="0x0400" type="Button">
+        <Parent guid="guidMidlCmdSet" id="MidlMenuGroup"/>
+        <Strings>
+          <ButtonText>MIDL: Select Windows SDK Version</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="guidMidlPackage" value="{b86d8fe3-55d1-4b94-a626-2a76b4d86567}" />
+    <GuidSymbol name="guidMidlCmdSet" value="{45dcbad2-91e4-4b26-b972-dc1ef49fbd27}">
+      <IDSymbol name="MidlMenuGroup" value="0x1020"/>
+      <IDSymbol name="ToggleStrictModeCommandId" value="0x0100"/>
+      <IDSymbol name="RestartServerCommandId" value="0x0200"/>
+      <IDSymbol name="ShowServerLogCommandId" value="0x0300"/>
+      <IDSymbol name="SelectSdkVersionCommandId" value="0x0400"/>
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

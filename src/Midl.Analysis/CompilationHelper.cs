@@ -99,7 +99,8 @@ public static class CompilationHelper
 #endif
                                         )
     {
-        MidlTrace.Write("COMPILE", $"Compiling {source.Length} chars, mode={mode}, {lazyProviders?.Count ?? 0} providers");
+        var fileName = currentFilePath != null ? Path.GetFileName(currentFilePath) : "<unknown>";
+        MidlTrace.Write("COMPILE", $"Compiling {fileName} ({source.Length} chars, mode={mode}, {lazyProviders?.Count ?? 0} providers)");
         var sw = profile != null ? Stopwatch.StartNew() : null;
 
         // Validate @ref directives before preprocessing (uses original source for accurate positions)

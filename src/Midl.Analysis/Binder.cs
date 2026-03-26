@@ -3240,9 +3240,6 @@ public class Binder
 
         _diagnostics.Add(DiagnosticDescriptors.EmptyRuntimeClassNoInterface(
             rc.Name, GetSymbolPosition(rc)));
-
-        _diagnostics.Add(DiagnosticDescriptors.EmptyRuntimeClassNoInterface(
-            rc.Name, GetSymbolPosition(rc)));
     }
 
     private void ValidateParameterConstraints(IReadOnlyList<ISymbol> members, string ownerName)

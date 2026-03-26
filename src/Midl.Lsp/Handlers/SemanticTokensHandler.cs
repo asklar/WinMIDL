@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
@@ -49,7 +50,10 @@ public static class SemanticTokensHandler
     private const int TypeStruct = 13;
     private const int TypeDecorator = 14;
 
-    public static object? Handle(JsonElement? @params, DocumentManager docManager)
+    // Cache: avoid re-lexing/re-classifying when the document hasn't changed
+    private static readonly ConcurrentDictionary<string, (int hash, int[] data)> _cache = new();
+
+    public static object? Handle(JsonElement? @params, DocumentManager docManager, Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -59,7 +63,14 @@ public static class SemanticTokensHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return new Dictionary<string, object?> { ["data"] = Array.Empty<int>() };
 
-        var (data, _, _) = HandleCore(text);
+        var hash = text.GetHashCode();
+        if (_cache.TryGetValue(uri, out var cached) && cached.hash == hash)
+        {
+            return new Dictionary<string, object?> { ["data"] = cached.data };
+        }
+
+        var (data, _, _) = HandleCore(text, cachedCompilation);
+        _cache[uri] = (hash, data);
         return new Dictionary<string, object?> { ["data"] = data };
     }
 
@@ -67,21 +78,26 @@ public static class SemanticTokensHandler
     /// Core logic, testable without LSP JSON plumbing.
     /// Returns delta-encoded semantic tokens data, plus the legend arrays.
     /// </summary>
-    public static (int[] Data, string[] TokenTypeNames, string[] TokenModifierNames) HandleCore(string sourceText)
+    public static (int[] Data, string[] TokenTypeNames, string[] TokenModifierNames) HandleCore(string sourceText, Compilation? cachedCompilation = null)
     {
         var lexer = new Lexer.Lexer(sourceText);
         var tokens = lexer.Lex();
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
 
-        // Try to compile for symbol resolution; if it fails, classify without symbols
-        Compilation? compilation = null;
-        try
+        // Use cached compilation if available (normal path — analysis runs on didOpen/didChange).
+        // Fall back to a lightweight compile (no SDK references) if cache is cold.
+        Compilation? compilation = cachedCompilation;
+        if (compilation == null)
         {
-            compilation = CompilationHelper.Compile(sourceText);
-        }
-        catch
-        {
-            // Continue without symbol info
+            try
+            {
+                // Compile with no references to avoid loading SDK — just local types
+                compilation = CompilationHelper.Compile(sourceText);
+            }
+            catch
+            {
+                // Continue without symbol info
+            }
         }
 
         var allTypes = compilation?.GetAllTypes().ToList();

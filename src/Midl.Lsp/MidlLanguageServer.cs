@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Lsp.Handlers;
+using Midl.Lsp.Protocol;
 using Midl.Syntax;
 
 namespace Midl.Lsp;
@@ -24,6 +25,7 @@ public sealed partial class MidlLanguageServer
     private bool _enableQualityHints = true;
     private bool _useWindowsSdk = true;
     private bool _flatSdkTypeCompletions;
+    private bool _clientSupportsMarkdown = true; // VS Code sends markdown; VS sends plaintext only
     private ProjectFile? _projectFile;
     private string? _workspaceRoot;
 
@@ -49,6 +51,15 @@ public sealed partial class MidlLanguageServer
         _reader = new JsonRpcReader(input);
         _writer = new JsonRpcWriter(output);
         _diagnostics = new DiagnosticsPublisher(_writer);
+
+        // Always enable trace logging to stderr for diagnostics
+        if (!MidlTrace.IsEnabled)
+        {
+            var logPath = Environment.GetEnvironmentVariable("MIDL_DEBUG_LOG")
+                ?? Path.Combine(Path.GetTempPath(), "midl-lsp.log");
+            MidlTrace.Enable(logPath);
+            MidlTrace.Lsp($"Server started, logging to {logPath}");
+        }
     }
 
     public async Task RunAsync(CancellationToken ct = default)
@@ -74,7 +85,8 @@ public sealed partial class MidlLanguageServer
             {
                 if (msg is null) break; // EOF or stream closed
                 var method = msg.RootElement.TryGetProperty("method", out var m) ? m.GetString() : "(response)";
-                MidlTrace.Lsp($"Received: {method}");
+                var memMB = GC.GetTotalMemory(false) / (1024 * 1024);
+                MidlTrace.Lsp($"Received: {method} (mem={memMB}MB, compilations={_lastCompilation.Count})");
                 await HandleMessageAsync(msg.RootElement);
             }
         }
@@ -122,6 +134,10 @@ public sealed partial class MidlLanguageServer
                 await HandleWatchedFileChangesAsync(@params);
                 break;
 
+            case "workspace/didChangeConfiguration":
+                HandleDidChangeConfiguration(@params);
+                break;
+
             case "shutdown":
                 _shutdownRequested = true;
                 await _writer.SendResponseAsync(id, null);
@@ -161,7 +177,14 @@ public sealed partial class MidlLanguageServer
                     var hoverUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
                     Compilation? hoverComp = null;
                     if (hoverUri != null) _lastCompilation.TryGetValue(hoverUri, out hoverComp);
-                    await _writer.SendResponseAsync(id, HoverHandler.Handle(@params, _docManager, hoverComp));
+                    var hoverResult = HoverHandler.Handle(@params, _docManager, hoverComp);
+                    // Strip markdown for clients that only support plaintext (e.g. VS)
+                    if (!_clientSupportsMarkdown && hoverResult is HoverResult hr)
+                    {
+                        var plain = StripMarkdown(hr.Contents.Value);
+                        hoverResult = new HoverResult(new MarkupContent("plaintext", plain), hr.Range);
+                    }
+                    await _writer.SendResponseAsync(id, hoverResult);
                 }
                 break;
 
@@ -196,11 +219,20 @@ public sealed partial class MidlLanguageServer
                 break;
 
             case "textDocument/semanticTokens/full":
-                await _writer.SendResponseAsync(id, SemanticTokensHandler.Handle(@params, _docManager));
+                {
+                    var stUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? stComp = null;
+                    if (stUri != null) _lastCompilation.TryGetValue(stUri, out stComp);
+                    await _writer.SendResponseAsync(id, SemanticTokensHandler.Handle(@params, _docManager, stComp));
+                }
                 break;
 
             case "textDocument/formatting":
                 await _writer.SendResponseAsync(id, FormattingHandler.Handle(@params, _docManager));
+                break;
+
+            case "textDocument/onTypeFormatting":
+                await _writer.SendResponseAsync(id, OnTypeFormattingHandler.Handle(@params, _docManager));
                 break;
 
             case "textDocument/rename":
@@ -257,8 +289,126 @@ public sealed partial class MidlLanguageServer
         }
     }
 
+    /// <summary>
+    /// Strips markdown formatting for clients that only support plaintext hover.
+    /// </summary>
+    private static string StripMarkdown(string md)
+    {
+        var result = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "$1");
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"__(.+?)__", "$1");
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"`([^`]+)`", "$1");
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"\[([^\]]+)\]\([^)]+\)", "$1");
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"^#{1,6}\s+", "", System.Text.RegularExpressions.RegexOptions.Multiline);
+        result = System.Text.RegularExpressions.Regex.Replace(result, @"^---+$", "────────────────", System.Text.RegularExpressions.RegexOptions.Multiline);
+        return result;
+    }
+
+    private void HandleDidChangeConfiguration(JsonElement? @params)
+    {
+        if (@params is null) return;
+
+        // Settings come in params.settings (flat keys or nested)
+        if (!@params.Value.TryGetProperty("settings", out var settings)) return;
+
+        MidlTrace.Lsp("Configuration changed, applying new settings");
+
+        if (TryGetBool(settings, "midl.strictMode", out var strict))
+        {
+#if WITH_COMPAT
+            _compilationMode = strict ? CompilationMode.Strict : CompilationMode.Compat;
+#endif
+            MidlTrace.Lsp($"  strictMode = {strict}");
+        }
+
+        if (TryGetBool(settings, "midl.codeQualityHints", out var quality))
+        {
+            _enableQualityHints = quality;
+            MidlTrace.Lsp($"  codeQualityHints = {quality}");
+        }
+
+        if (TryGetBool(settings, "midl.useWindowsSdk", out var useSdk))
+        {
+            _useWindowsSdk = useSdk;
+            MidlTrace.Lsp($"  useWindowsSdk = {useSdk}");
+        }
+
+        if (TryGetBool(settings, "midl.flatSdkTypeCompletions", out var flat))
+        {
+            _flatSdkTypeCompletions = flat;
+            MidlTrace.Lsp($"  flatSdkTypeCompletions = {flat}");
+        }
+
+        if (TryGetBool(settings, "midl.fetchSdkDocs", out var fetchDocs))
+        {
+            HoverHandler.FetchSdkDocs = fetchDocs;
+            MidlTrace.Lsp($"  fetchSdkDocs = {fetchDocs}");
+        }
+
+        // Invalidate all compilation caches so next analysis uses new settings
+        _lastAnalyzedHash.Clear();
+        _lastCompilation.Clear();
+
+        // Re-analyze all open documents with new settings
+        foreach (var uri in _docManager.GetOpenDocumentUris())
+        {
+            var text = _docManager.GetDocumentText(uri);
+            if (text != null)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try { await AnalyzeAndPublishAsync(uri, text); }
+                    catch { }
+                });
+            }
+        }
+    }
+
+    private static bool TryGetBool(JsonElement settings, string key, out bool value)
+    {
+        value = false;
+        // Try flat key: "midl.strictMode"
+        if (settings.TryGetProperty(key, out var prop))
+        {
+            if (prop.ValueKind == JsonValueKind.True) { value = true; return true; }
+            if (prop.ValueKind == JsonValueKind.False) { value = false; return true; }
+        }
+        // Try short key: "strictMode"
+        var shortKey = key.Contains(".") ? key[(key.LastIndexOf('.') + 1)..] : key;
+        if (settings.TryGetProperty(shortKey, out var prop2))
+        {
+            if (prop2.ValueKind == JsonValueKind.True) { value = true; return true; }
+            if (prop2.ValueKind == JsonValueKind.False) { value = false; return true; }
+        }
+        return false;
+    }
+
     private async Task HandleInitializeAsync(object? id, JsonElement? @params)
     {
+        // Check client capabilities for markdown support in hover
+        if (@params is not null)
+        {
+            try
+            {
+                if (@params.Value.TryGetProperty("capabilities", out var caps) &&
+                    caps.TryGetProperty("textDocument", out var textDoc) &&
+                    textDoc.TryGetProperty("hover", out var hoverCaps) &&
+                    hoverCaps.TryGetProperty("contentFormat", out var formats))
+                {
+                    _clientSupportsMarkdown = false;
+                    foreach (var fmt in formats.EnumerateArray())
+                    {
+                        if (fmt.GetString() == "markdown")
+                        {
+                            _clientSupportsMarkdown = true;
+                            break;
+                        }
+                    }
+                    MidlTrace.Lsp($"Client hover markdown support: {_clientSupportsMarkdown}");
+                }
+            }
+            catch { }
+        }
+
         // Read midl.strictMode from initialization options
         if (@params is not null)
         {
@@ -266,6 +416,7 @@ public sealed partial class MidlLanguageServer
             {
                 if (@params.Value.TryGetProperty("initializationOptions", out var initOpts))
                 {
+                    MidlTrace.Lsp($"InitializationOptions received: {initOpts}");
                     if (initOpts.TryGetProperty("midl.strictMode", out var strictProp) &&
                         strictProp.ValueKind == JsonValueKind.False)
                     {
@@ -424,6 +575,11 @@ public sealed partial class MidlLanguageServer
                     }
                 },
                 ["documentFormattingProvider"] = true,
+                ["documentOnTypeFormattingProvider"] = new Dictionary<string, object?>
+                {
+                    ["firstTriggerCharacter"] = "\n",
+                    ["moreTriggerCharacter"] = new[] { "}", "{", ";" }
+                },
                 ["renameProvider"] = new Dictionary<string, object?>
                 {
                     ["prepareProvider"] = true

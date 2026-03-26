@@ -130,6 +130,27 @@ export function activate(context: vscode.ExtensionContext) {
         if (serverPath) {
             console.log(`MIDL: Starting language server: ${serverPath}`);
             startLanguageServer(serverPath, context, outputChannel);
+
+            // Send settings to server when they change (no restart needed)
+            context.subscriptions.push(
+                vscode.workspace.onDidChangeConfiguration(e => {
+                    if (e.affectsConfiguration('midl')) {
+                        const client = getClient();
+                        if (client) {
+                            const config = vscode.workspace.getConfiguration('midl');
+                            client.sendNotification('workspace/didChangeConfiguration', {
+                                settings: {
+                                    'midl.strictMode': config.get<boolean>('strictMode', true),
+                                    'midl.codeQualityHints': config.get<boolean>('codeQualityHints', true),
+                                    'midl.useWindowsSdk': config.get<boolean>('useWindowsSdk', true),
+                                    'midl.flatSdkTypeCompletions': config.get<boolean>('flatSdkTypeCompletions', false),
+                                    'midl.fetchSdkDocs': config.get<boolean>('fetchSdkDocs', true),
+                                }
+                            });
+                        }
+                    }
+                })
+            );
         } else {
             console.log('MIDL: Language server binary not found.');
             vscode.window.showInformationMessage(
