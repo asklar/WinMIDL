@@ -27,15 +27,15 @@ namespace Midl.VsExtension
             get
             {
                 var options = GetOptionsPage();
-                // Return current settings or defaults if package not loaded yet
+                if (options == null) return null;
                 return new Dictionary<string, object>
                 {
-                    ["midl.strictMode"] = options?.StrictMode ?? true,
-                    ["midl.codeQualityHints"] = options?.CodeQualityHints ?? true,
-                    ["midl.useWindowsSdk"] = options?.UseWindowsSdk ?? true,
-                    ["midl.windowsSdkVersion"] = options?.WindowsSdkVersion ?? "latest",
-                    ["midl.flatSdkTypeCompletions"] = options?.FlatSdkTypeCompletions ?? false,
-                    ["midl.fetchSdkDocs"] = options?.FetchSdkDocs ?? true,
+                    ["midl.strictMode"] = options.StrictMode,
+                    ["midl.codeQualityHints"] = options.CodeQualityHints,
+                    ["midl.useWindowsSdk"] = options.UseWindowsSdk,
+                    ["midl.windowsSdkVersion"] = options.WindowsSdkVersion,
+                    ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
+                    ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
                 };
             }
         }
@@ -166,7 +166,15 @@ namespace Midl.VsExtension
         {
             try
             {
-                var package = Package.GetGlobalService(typeof(MidlPackage)) as MidlPackage;
+                // Force-load our package so the options page is available
+                var shell = (IVsShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsShell));
+                if (shell != null)
+                {
+                    var packageGuid = new Guid(MidlPackage.PackageGuidString);
+                    shell.LoadPackage(ref packageGuid, out _);
+                }
+                var package = Package.GetGlobalService(typeof(MidlPackage)) as MidlPackage
+                    ?? (MidlPackage)ServiceProvider.GlobalProvider.GetService(typeof(MidlPackage));
                 return package?.GetDialogPage(typeof(MidlOptionsPage)) as MidlOptionsPage;
             }
             catch
