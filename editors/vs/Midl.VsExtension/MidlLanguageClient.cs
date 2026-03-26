@@ -27,15 +27,15 @@ namespace Midl.VsExtension
             get
             {
                 var options = GetOptionsPage();
-                if (options == null) return null;
+                // Return current settings or defaults if package not loaded yet
                 return new Dictionary<string, object>
                 {
-                    ["midl.strictMode"] = options.StrictMode,
-                    ["midl.codeQualityHints"] = options.CodeQualityHints,
-                    ["midl.useWindowsSdk"] = options.UseWindowsSdk,
-                    ["midl.windowsSdkVersion"] = options.WindowsSdkVersion,
-                    ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
-                    ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
+                    ["midl.strictMode"] = options?.StrictMode ?? true,
+                    ["midl.codeQualityHints"] = options?.CodeQualityHints ?? true,
+                    ["midl.useWindowsSdk"] = options?.UseWindowsSdk ?? true,
+                    ["midl.windowsSdkVersion"] = options?.WindowsSdkVersion ?? "latest",
+                    ["midl.flatSdkTypeCompletions"] = options?.FlatSdkTypeCompletions ?? false,
+                    ["midl.fetchSdkDocs"] = options?.FetchSdkDocs ?? true,
                 };
             }
         }

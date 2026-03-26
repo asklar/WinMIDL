@@ -416,6 +416,7 @@ public sealed partial class MidlLanguageServer
             {
                 if (@params.Value.TryGetProperty("initializationOptions", out var initOpts))
                 {
+                    MidlTrace.Lsp($"InitializationOptions received: {initOpts}");
                     if (initOpts.TryGetProperty("midl.strictMode", out var strictProp) &&
                         strictProp.ValueKind == JsonValueKind.False)
                     {
