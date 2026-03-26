@@ -22,7 +22,23 @@ namespace Midl.VsExtension
 
         public IEnumerable<string> ConfigurationSections => null;
 
-        public object InitializationOptions => null;
+        public object InitializationOptions
+        {
+            get
+            {
+                var options = GetOptionsPage();
+                if (options == null) return null;
+                return new Dictionary<string, object>
+                {
+                    ["midl.strictMode"] = options.StrictMode,
+                    ["midl.codeQualityHints"] = options.CodeQualityHints,
+                    ["midl.useWindowsSdk"] = options.UseWindowsSdk,
+                    ["midl.windowsSdkVersion"] = options.WindowsSdkVersion,
+                    ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
+                    ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
+                };
+            }
+        }
 
         public IEnumerable<string> FilesToWatch => null;
 
@@ -144,6 +160,19 @@ namespace Midl.VsExtension
         private void OutputLog(string message)
         {
             outputPane?.OutputStringThreadSafe($"[MIDL] {message}\n");
+        }
+
+        private static MidlOptionsPage GetOptionsPage()
+        {
+            try
+            {
+                var package = Package.GetGlobalService(typeof(MidlPackage)) as MidlPackage;
+                return package?.GetDialogPage(typeof(MidlOptionsPage)) as MidlOptionsPage;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

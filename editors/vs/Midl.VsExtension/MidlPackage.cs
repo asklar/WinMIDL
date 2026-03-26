@@ -11,6 +11,7 @@ namespace Midl.VsExtension
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
+    [ProvideOptionPage(typeof(MidlOptionsPage), "MIDL", "General", 0, 0, true)]
     [Guid(PackageGuidString)]
     public sealed class MidlPackage : AsyncPackage
     {

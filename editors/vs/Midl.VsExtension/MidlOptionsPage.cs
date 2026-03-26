@@ -1,0 +1,77 @@
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell;
+
+namespace Midl.VsExtension
+{
+    [Guid("B8A3C4D5-E6F7-4890-ABCD-123456789ABC")]
+    public class MidlOptionsPage : DialogPage
+    {
+        private bool strictMode = true;
+        private bool codeQualityHints = true;
+        private bool useWindowsSdk = true;
+        private string windowsSdkVersion = "latest";
+        private bool flatSdkTypeCompletions = false;
+        private bool fetchSdkDocs = true;
+
+        [Category("MIDL Language Server")]
+        [DisplayName("Strict MIDL3 Mode")]
+        [Description("When enabled, only MIDL3 syntax is valid (no pointers, no classic MIDL2 constructs). Disable for compatibility mode.")]
+        [DefaultValue(true)]
+        public bool StrictMode
+        {
+            get { return strictMode; }
+            set { strictMode = value; }
+        }
+
+        [Category("MIDL Language Server")]
+        [DisplayName("Code Quality Hints")]
+        [Description("Show code quality diagnostics like naming conventions, property shorthand suggestions, and async suffix checks.")]
+        [DefaultValue(true)]
+        public bool CodeQualityHints
+        {
+            get { return codeQualityHints; }
+            set { codeQualityHints = value; }
+        }
+
+        [Category("Windows SDK")]
+        [DisplayName("Use Windows SDK")]
+        [Description("Automatically reference the Windows SDK for type completion and go-to-definition.")]
+        [DefaultValue(true)]
+        public bool UseWindowsSdk
+        {
+            get { return useWindowsSdk; }
+            set { useWindowsSdk = value; }
+        }
+
+        [Category("Windows SDK")]
+        [DisplayName("Windows SDK Version")]
+        [Description("Which Windows SDK version to use. Set to 'latest' for auto-detection, or a specific version like '10.0.22621.0'.")]
+        [DefaultValue("latest")]
+        public string WindowsSdkVersion
+        {
+            get { return windowsSdkVersion; }
+            set { windowsSdkVersion = value; }
+        }
+
+        [Category("IntelliSense")]
+        [DisplayName("Flat SDK Type Completions")]
+        [Description("Show all SDK types in a flat list instead of requiring namespace drill-down (Windows. → Foundation. → ...).")]
+        [DefaultValue(false)]
+        public bool FlatSdkTypeCompletions
+        {
+            get { return flatSdkTypeCompletions; }
+            set { flatSdkTypeCompletions = value; }
+        }
+
+        [Category("IntelliSense")]
+        [DisplayName("Fetch SDK Documentation")]
+        [Description("Fetch type documentation from Microsoft Learn for hover tooltips.")]
+        [DefaultValue(true)]
+        public bool FetchSdkDocs
+        {
+            get { return fetchSdkDocs; }
+            set { fetchSdkDocs = value; }
+        }
+    }
+}
