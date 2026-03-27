@@ -186,4 +186,20 @@ namespace TestApp.Comprehensive
     {
         Observable();
     }
+
+    // 17. Generic collection parameters
+    interface ICollectionOps
+    {
+        Windows.Foundation.Collections.IVector<String> GetNames();
+        void SetNames(Windows.Foundation.Collections.IVectorView<String> names);
+        Windows.Foundation.Collections.IMap<String, Int32> GetScores();
+        void SetScores(Windows.Foundation.Collections.IMapView<String, Int32> scores);
+        Windows.Foundation.Collections.IIterable<String> GetAllItems();
+    };
+
+    [default_interface]
+    runtimeclass CollectionOps : ICollectionOps
+    {
+        CollectionOps();
+    }
 }
