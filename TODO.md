@@ -1,6 +1,6 @@
 # TODO — MIDL Compiler Rewrite Status
 
-> **Last updated**: 2026-03-23T00:26Z
+> **Last updated**: 2026-03-27
 > This file tracks implementation status. Keep it current with every feature change.
 
 ## ✅ Implemented
@@ -16,6 +16,7 @@
 - [x] DllData skeleton generation
 - [x] Proxy/stub skeleton generation
 - [x] CLI with 30+ switches, response files, `/debug` tracing
+- [x] Custom proxy/stub C++ code generation (`/cppproxy` — direct C++ marshaling, no NDR)
 - [x] `--analyze` mode (Rust-style rich console output with squigglies)
 - [x] `--decompile` mode (WinMD to MIDL3 IDL — idiomatic properties, events, skips exclusive interfaces)
 - [x] LSP server (JSON-RPC over stdio, no external NuGet deps)
@@ -184,14 +185,17 @@
 - [x] Content-hash caching — skips recompilation if text unchanged
 - [x] Source-generated JSON types (Protocol/LspTypes.cs, AOT-compatible)
 
-### Testing (1,400+ tests)
-- [x] Lexer: 87 tests (tokens, trivia, edge cases, preprocessor, float/negative literals, line continuation)
+### Testing (1,800+ tests)
+- [x] Lexer: 104 tests (tokens, trivia, edge cases, preprocessor, float/negative literals, line continuation)
 - [x] Parser: 75 tests (structures, error recovery, completeness, classic MIDL, generic disambiguation, forward declarations, [default] base list)
-- [x] Analysis: 459 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, naming conventions, custom attribute types/ranges, protected accessor, feature gates, experimental refs, did-you-mean, default interface, CLR projection, circular requires, UUID format, void properties, static class)
-- [x] CodeGen: 182 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes, per-namespace output, parity fixtures, generic decompilation, namespace scoping, CLR projection, static members, overridable/protected, base class, version decoding, events, property shorthand)
-- [x] Integration: 620+ tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete, LSP handlers, WinMD parity, goto-definition, rename, workspace diagnostics)
+- [x] Analysis: 491 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, naming conventions, custom attribute types/ranges, protected accessor, feature gates, experimental refs, did-you-mean, default interface, CLR projection, circular requires, UUID format, void properties, static class, SDK attribute resolution)
+- [x] CodeGen: 212 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes, per-namespace output, parity fixtures, generic decompilation, namespace scoping, CLR projection, static members, overridable/protected, base class, version decoding, events, property shorthand)
+- [x] Integration: 660+ tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete, LSP handlers, WinMD parity, goto-definition, rename, workspace diagnostics, SDK attribute completions)
 - [x] IDL fixture suite (18 files with `.expected.json` + `.expected.tree` sidecars)
 - [x] OS fixture test script (`scripts/test-os-fixtures.ps1` — 1186 files, 0 crashes)
+- [x] Proxy/stub codegen: 689 tests (proxy generator, stub generator, wire format, signature folding, interface/delegate/nullable/collections marshaling, edge cases)
+- [x] E2E comprehensive in-proc: 89 tests (all WinRT type patterns across STA/MTA)
+- [x] E2E out-of-proc: 88 tests (12 groups: primitives, structs, enums, interfaces, delegates, events, IReference, Object, inheritance, QI, statics, error propagation)
 
 ### WinMD Decompiler (`--decompile`)
 - [x] Idiomatic MIDL3 property syntax (shorthand for read-write, `{ get; }` for read-only)
@@ -231,6 +235,27 @@
 - [x] ~~**Velocity/Feature API staging**~~ — `[feature(Name)]` + `[experimental]` validation (MIDL1104/1105), WinMD emission, `feature_name` declarations (WINDOWS_INTERNAL only)
 - [ ] **Generic custom attribute WinMD emission** — emitter uses whitelist; non-whitelisted attributes silently dropped (in progress)
 - [ ] **Versioned blocks in decompilation** — group members by version into `[contract(N)] { }` blocks (in progress)
+
+### Attribute WinMD Emission Gaps
+
+Audit of attributes that are parsed/validated but not fully emitted to WinMD or round-tripped through decompilation:
+
+| Attribute | Parse | Bind | Validate | WinMD Emit | Decompile | Gap |
+|-----------|-------|------|----------|------------|-----------|-----|
+| `composable` | ✅ | ✅ | ✅ | ❌ | ✅ (read) | **Not emitted** — classes won't be derivable |
+| `method_name` | ✅ | ✅ | ✅ | ❌ | ❌ | **Not emitted** — projected method names wrong |
+| `return_name` | ✅ | ✅ | ✅ | ❌ | ❌ | **Not emitted** — projected return param names wrong |
+| `noexcept` | ✅ | ✅ | ✅ | ❌ | ❌ | **Not emitted** — perf attribute lost |
+| `remote_async` | ✅ | ✅ | ✅ | ❌ | ❌ | **Not emitted** — projection hint lost |
+| `experimental` | ✅ | ✅ | ✅ | ✅ | ❌ | Decompiler doesn't show it |
+| `default_overload` | ✅ | ✅ | ✅ | ✅ | ❌ | Decompiler doesn't show it |
+| `allowforweb` | ✅ | ✅ | ✅ | ✅ | ❌ | Decompiler doesn't show it |
+| `contentproperty` | ✅ | ✅ | ✅ | ✅ | ❌ | Decompiler doesn't show it |
+| `bindable` | ✅ | ✅ | ✅ | ⚠️ | ❌ | No dedicated emit or decompile |
+| `exclusiveto` (explicit) | ✅ | ⚠️ | ✅ | ⚠️ | ✅ | Only works for synthesized, not explicit `[exclusiveto]` |
+| Multiple `[static]` | ✅ | ⚠️ | ✅ | ⚠️ | — | May only track one statics interface per class |
+
+**Priority**: `composable` > `method_name`/`return_name` > `noexcept` > `remote_async` > decompile gaps
 
 ### Nice to Have
 - [x] ~~**WinMD inspection**~~ — F12 into `.winmd` types (decompiled read-only view via `midl-winmd:` URI scheme)
