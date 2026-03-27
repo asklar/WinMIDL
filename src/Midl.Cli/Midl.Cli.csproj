@@ -43,4 +43,10 @@
     <SelfContained>true</SelfContained>
   </PropertyGroup>
 
+  <!-- Embed proxy runtime headers as resources -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\include\winmidl\proxy_helpers.h" LogicalName="winmidl.proxy_helpers.h" />
+    <EmbeddedResource Include="..\..\include\winmidl\wil_compat.h" LogicalName="winmidl.wil_compat.h" />
+  </ItemGroup>
+
 </Project>

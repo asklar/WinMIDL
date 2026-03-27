@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Midl.Syntax\Midl.Syntax.csproj" />
     <ProjectReference Include="..\Midl.Analysis\Midl.Analysis.csproj" />
     <InternalsVisibleTo Include="Midl.CodeGen.Tests" />
+    <InternalsVisibleTo Include="Midl.Cli" />
   </ItemGroup>
 
   <PropertyGroup>

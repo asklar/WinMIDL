@@ -20,7 +20,7 @@ public class StubEmitter
         sb.AppendLine();
         sb.AppendLine("#include <rpcproxy.h>");
         sb.AppendLine();
-        sb.AppendLine("// TODO: NDR format strings will be generated in a future phase");
+        sb.AppendLine("// NDR format strings are not used; see ProxyGenerator/StubGenerator for compiled marshaling.");
         sb.AppendLine();
         sb.AppendLine("// End of generated proxy file");
 

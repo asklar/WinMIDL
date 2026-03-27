@@ -47,6 +47,12 @@ public class HeaderEmitter
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         MidlTrace.CodeGen($"Generating header, {allTypes.Count} types");
 
+        // Emit system includes based on types used
+        EmitSystemIncludes(sb, allTypes);
+
+        // Forward declarations for external types referenced but not defined here
+        EmitExternalForwardDeclarations(sb, allTypes);
+
         // Forward declarations
         EmitForwardDeclarations(sb, allTypes);
 
@@ -103,6 +109,141 @@ public class HeaderEmitter
 
         var safeName = nsName.Replace(".", "_");
         return $"__{safeName}_h__";
+    }
+
+    private static void EmitSystemIncludes(StringBuilder sb, List<ISymbol> allTypes)
+    {
+        bool needsEventToken = false;
+        foreach (var symbol in allTypes)
+        {
+            if (symbol is InterfaceSymbol iface)
+            {
+                foreach (var m in iface.Members)
+                {
+                    if (m is EventSymbol) { needsEventToken = true; break; }
+                    if (m is MethodSymbol method)
+                    {
+                        if (method.ReturnType?.Name == "EventRegistrationToken") { needsEventToken = true; break; }
+                        if (method.Parameters.Any(p => p.Type.Name == "EventRegistrationToken")) { needsEventToken = true; break; }
+                    }
+                }
+            }
+            if (needsEventToken) break;
+        }
+
+        if (needsEventToken)
+        {
+            sb.AppendLine("#include <eventtoken.h>");
+            sb.AppendLine();
+        }
+    }
+
+    private static void EmitExternalForwardDeclarations(StringBuilder sb, List<ISymbol> allTypes)
+    {
+        // Collect external type names referenced by local interfaces
+        var externalTypes = new HashSet<string>();
+        foreach (var symbol in allTypes)
+        {
+            if (symbol is InterfaceSymbol iface)
+            {
+                foreach (var m in iface.Members)
+                {
+                    CollectExternalTypeRefs(m, externalTypes);
+                }
+            }
+            else if (symbol is RuntimeClassSymbol rc)
+            {
+                foreach (var m in rc.Members)
+                {
+                    CollectExternalTypeRefs(m, externalTypes);
+                }
+            }
+        }
+
+        if (externalTypes.Count > 0)
+        {
+            sb.AppendLine("// External interface definitions (for IUnknown* upcast in marshal calls)");
+            foreach (var typeName in externalTypes.OrderBy(t => t))
+            {
+                sb.AppendLine($"#ifndef __{typeName}_DEFINED__");
+                sb.AppendLine($"#define __{typeName}_DEFINED__");
+                sb.AppendLine($"struct {typeName} : public IInspectable {{}};");
+                sb.AppendLine($"#endif");
+            }
+            sb.AppendLine();
+        }
+    }
+
+    private static void CollectExternalTypeRefs(ISymbol member, HashSet<string> externalTypes)
+    {
+        void CheckTypeRef(TypeRef? typeRef)
+        {
+            // Skip parameterized instantiations — they project as IInspectable*
+            if (typeRef?.TypeArguments.Count > 0)
+                return;
+
+            if (typeRef?.ResolvedSymbol is InterfaceSymbol or DelegateSymbol && typeRef.ResolvedSymbol.IsExternal)
+            {
+                externalTypes.Add(MangleName(typeRef.ResolvedSymbol.FullName));
+            }
+        }
+
+        if (member is MethodSymbol method)
+        {
+            CheckTypeRef(method.ReturnType);
+            foreach (var p in method.Parameters)
+                CheckTypeRef(p.Type);
+        }
+        else if (member is PropertySymbol prop)
+        {
+            CheckTypeRef(prop.Type);
+        }
+        else if (member is EventSymbol evt)
+        {
+            CheckTypeRef(evt.DelegateType);
+        }
+    }
+
+    /// <summary>
+    /// Maps a mangled external type name to its Windows SDK ABI header.
+    /// </summary>
+    private static string? GetAbiHeaderForType(string mangledName)
+    {
+        // Map namespace prefix to SDK header
+        // __x_Windows_Foundation_ → windows.foundation.h
+        // __x_Windows_Foundation_Collections_ → windows.foundation.collections.h
+        // __x_Windows_UI_Xaml_ → windows.ui.xaml.h
+        // __x_Microsoft_UI_Xaml_ → microsoft.ui.xaml.h
+        if (mangledName.StartsWith("__x_Windows_Foundation_Collections_"))
+            return "windows.foundation.collections.h";
+        if (mangledName.StartsWith("__x_Windows_Foundation_"))
+            return "windows.foundation.h";
+        if (mangledName.StartsWith("__x_Windows_UI_"))
+        {
+            var parts = mangledName.Split('_');
+            // __x_Windows_UI_Xaml_Controls_ → windows.ui.xaml.controls.h
+            // Take namespace segments up to the type name
+            var nsParts = new List<string>();
+            for (int i = 2; i < parts.Length; i++) // skip __x
+            {
+                if (parts[i].Length > 0 && char.IsUpper(parts[i][0]))
+                    nsParts.Add(parts[i].ToLowerInvariant());
+                else
+                    break;
+            }
+            if (nsParts.Count >= 2)
+                return string.Join(".", nsParts) + ".h";
+        }
+        if (mangledName.StartsWith("__x_Microsoft_"))
+        {
+            // Similar mapping for WinAppSDK
+            if (mangledName.StartsWith("__x_Microsoft_UI_Xaml_"))
+                return "microsoft.ui.xaml.h";
+            if (mangledName.StartsWith("__x_Microsoft_UI_"))
+                return "microsoft.ui.h";
+        }
+
+        return null;
     }
 
     private static void EmitForwardDeclarations(StringBuilder sb, List<ISymbol> allTypes)
@@ -268,9 +409,18 @@ public class HeaderEmitter
         if (TypeMap.TryGetValue(typeRef.Name, out var mapped))
             return mapped;
 
+        // Parameterized interface/delegate instantiations (IReference<T>, EventHandler<T>, etc.)
+        // are projected as IInspectable* at the ABI level
+        if (typeRef.TypeArguments.Count > 0 && typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
+            return "IInspectable*";
+
         // For resolved user-defined types that are interfaces/delegates, use pointer
         if (typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
             return $"{MangleName(typeRef.ResolvedSymbol.FullName)}*";
+
+        // RuntimeClass: ABI uses the default interface pointer type
+        if (typeRef.ResolvedSymbol is RuntimeClassSymbol rc && rc.DefaultInterface is { } defaultIface)
+            return $"{MangleName(defaultIface.FullName)}*";
 
         // For enum/struct, use name directly
         if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol)

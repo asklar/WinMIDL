@@ -1,0 +1,208 @@
+namespace TestApp.Comprehensive
+{
+    // 1. Enum (simple + flags)
+    enum Color { Red, Green, Blue };
+    [flags] enum Permissions { None = 0, Read = 1, Write = 2, Execute = 4, All = 7 };
+
+    // 2. Structs (simple + nested enum field)
+    struct Point { Single X; Single Y; };
+    struct ColoredPoint { Point Position; Color PointColor; };
+
+    // 3. Standalone interface
+    interface ILogger
+    {
+        void Log(String message);
+        String LastMessage { get; };
+    };
+
+    // 4. Simple runtimeclass with default interface
+    interface IAnimal
+    {
+        String Name { get; };
+        Int32 LegCount { get; };
+    };
+
+    [default_interface]
+    runtimeclass Animal : IAnimal
+    {
+        Animal();
+    }
+
+    // 5. Unsealed (composable) runtimeclass
+    unsealed runtimeclass Shape
+    {
+        Shape();
+        String Kind { get; };
+        Double Area { get; };
+    }
+
+    // 6. Derived runtimeclass (inheritance)
+    runtimeclass Circle : Shape
+    {
+        Circle();
+        Double Radius { get; };
+    }
+
+    // 7. Multiple interface implementation
+    interface ISerializable
+    {
+        String Serialize();
+    };
+
+    interface ICloneable
+    {
+        String CloneAsString();
+    };
+
+    runtimeclass Document : ISerializable, ICloneable
+    {
+        Document();
+        String Title { get; };
+    }
+
+    // 8. Various parameter patterns
+    interface ICalculator
+    {
+        Double Add(Double a, Double b);
+        Boolean TryDivide(Double num, Double denom, out Double result);
+        Point MakePoint(Single x, Single y);
+        void SetPermissions(Permissions perms);
+        Permissions GetPermissions();
+        ColoredPoint Translate(ColoredPoint pt, Single dx, Single dy);
+    };
+
+    [default_interface]
+    runtimeclass Calculator : ICalculator
+    {
+        Calculator();
+    }
+
+    // 9. Interface pointer parameters
+    delegate void StatusCallback(String status);
+
+    interface INotifier
+    {
+        void Subscribe(ILogger logger);
+        ILogger GetLogger();
+    };
+
+    [default_interface]
+    runtimeclass Notifier : INotifier
+    {
+        Notifier();
+    }
+
+    // 10. Delegate parameters + events
+    interface IEventSource
+    {
+        EventRegistrationToken AddStatusChanged(StatusCallback handler);
+        void RemoveStatusChanged(EventRegistrationToken token);
+        event StatusCallback Completed;
+    };
+
+    [default_interface]
+    runtimeclass EventSource : IEventSource
+    {
+        EventSource();
+    }
+
+    // 11. Object (IInspectable*) parameters
+    interface IPropertyBag
+    {
+        void SetValue(String key, Object value);
+        Object GetValue(String key);
+    };
+
+    [default_interface]
+    runtimeclass PropertyBag : IPropertyBag
+    {
+        PropertyBag();
+    }
+
+    // 12. Nullable / IReference<T>
+    interface IOptional
+    {
+        Windows.Foundation.IReference<Int32> GetOptionalCount();
+        void SetOptionalCount(Windows.Foundation.IReference<Int32> count);
+        Windows.Foundation.IReference<Point> GetOptionalPosition();
+    };
+
+    [default_interface]
+    runtimeclass OptionalValues : IOptional
+    {
+        OptionalValues();
+    }
+
+    // 13. Additional primitive types + GUID
+    interface ITypeShowcase
+    {
+        Int64 GetBigNumber();
+        void SetBigNumber(Int64 value);
+        UInt64 GetUnsignedBig();
+        Guid GetId();
+        void SetId(Guid id);
+        Char GetInitial();
+        UInt8 GetByte();
+        Int16 GetSmallNumber();
+    };
+
+    [default_interface]
+    runtimeclass TypeShowcase : ITypeShowcase
+    {
+        TypeShowcase();
+    }
+
+    // 14. Many parameters + mixed in/out
+    interface IComplexOps
+    {
+        void MultiParam(String name, Int32 x, Int32 y, Double scale, Boolean visible);
+        Boolean TryParse(String input, out Int32 intResult, out Double floatResult);
+        void Swap(Int32 a, Int32 b, out Int32 outA, out Int32 outB);
+    };
+
+    [default_interface]
+    runtimeclass ComplexOps : IComplexOps
+    {
+        ComplexOps();
+    }
+
+    // 15. Static members
+    static runtimeclass MathHelpers
+    {
+        static Double Pi { get; };
+        static Double Square(Double x);
+        static Point Origin { get; };
+    }
+
+    // 16. Generic event delegate (Windows.Foundation.EventHandler<T>)
+    interface IObservable
+    {
+        event Windows.Foundation.EventHandler<String> ValueChanged;
+        String Value { get; set; };
+    };
+
+    [default_interface]
+    runtimeclass Observable : IObservable
+    {
+        Observable();
+    }
+
+    // 17. Generic collection parameters
+    interface ICollectionOps
+    {
+        Windows.Foundation.Collections.IVector<String> GetNames();
+        void SetNames(Windows.Foundation.Collections.IVectorView<String> names);
+        Windows.Foundation.Collections.IMap<String, Int32> GetScores();
+        void SetScores(Windows.Foundation.Collections.IMapView<String, Int32> scores);
+        Windows.Foundation.Collections.IIterable<String> GetAllItems();
+        Windows.Foundation.Collections.IVector<Animal> GetAnimals();
+        Windows.Foundation.Collections.IMap<String, Animal> GetAnimalsByName();
+        Windows.Foundation.Collections.IMap<String, Object> GetProperties();
+    };
+
+    [default_interface]
+    runtimeclass CollectionOps : ICollectionOps
+    {
+        CollectionOps();
+    }
+}

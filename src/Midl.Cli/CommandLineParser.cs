@@ -10,6 +10,7 @@ public class CommandLineOptions
     public string? HeaderFile { get; set; }            // /h, /header
     public string? IidFile { get; set; }               // /iid
     public string? ProxyFile { get; set; }             // /proxy
+    public string? CppProxyFile { get; set; }          // /cppproxy
     public string? DllDataFile { get; set; }           // /dlldata
     public string? WinMdFile { get; set; }             // /winmd
     public string? AcfFile { get; set; }               // /acf
@@ -49,6 +50,7 @@ public class CommandLineOptions
     public bool DebugTrace { get; set; }               // /debug (enable trace output)
     public bool NoDefIdir { get; set; }                // /no_def_idir — don't add default include dirs
     public bool Profile { get; set; }                  // /profile (emit timing data)
+    public bool UseExceptions { get; set; }             // /exceptions (try/catch error handling)
     public List<string> UnknownSwitches { get; } = new();
     public List<string> Errors { get; } = new();
 }
@@ -178,6 +180,13 @@ public static class CommandLineParser
                     options.ProxyFile = proxyFile;
                 else
                     options.Errors.Add("Missing value for /proxy");
+                return true;
+
+            case "cppproxy":
+                if (TryConsumeValue(args, ref i, out var cppProxyFile))
+                    options.CppProxyFile = cppProxyFile;
+                else
+                    options.Errors.Add("Missing value for /cppproxy");
                 return true;
 
             case "dlldata":
@@ -389,6 +398,11 @@ public static class CommandLineParser
 
             case "no_def_idir":
                 options.NoDefIdir = true;
+                i++;
+                return true;
+
+            case "exceptions":
+                options.UseExceptions = true;
                 i++;
                 return true;
 

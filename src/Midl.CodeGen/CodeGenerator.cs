@@ -5,5 +5,5 @@ namespace Midl.CodeGen;
 /// </summary>
 public static class CodeGenerator
 {
-    // TODO: Implement in Phase 2
+    // Placeholder — codegen entry points live in ProxyGenerator, StubGenerator, and HeaderEmitter.
 }

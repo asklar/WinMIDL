@@ -1,0 +1,207 @@
+namespace TestApp.OutOfProc
+{
+    // Enums (simple + flags)
+    enum Color { Red, Green, Blue };
+    [flags] enum Permissions { None = 0, Read = 1, Write = 2, Execute = 4, All = 7 };
+
+    // Structs (simple + nested with enum field)
+    struct MathResult
+    {
+        Double Value;
+        Boolean IsExact;
+    };
+
+    struct Point { Single X; Single Y; };
+    struct ColoredPoint { Point Position; Color PointColor; };
+
+    // Delegates
+    delegate void StatusNotifyHandler(Object sender, String message);
+    delegate void StringTransform(String input, out String result);
+
+    // 1. Calculator — basic params, struct return, out params
+    interface ICalculator
+    {
+        String Version { get; };
+        Double Add(Double a, Double b);
+        MathResult Divide(Double numerator, Double denominator);
+        Boolean TryParseNumber(String input, out Double result);
+    };
+
+    [default_interface]
+    runtimeclass Calculator
+    {
+        Calculator();
+        static Double Pi { get; };
+        static Boolean IsEven(Int32 value);
+    }
+
+    // 2. TypeShowcase — additional primitive types + GUID
+    interface ITypeShowcase
+    {
+        Int64 GetBigNumber();
+        void SetBigNumber(Int64 value);
+        Guid GetId();
+        void SetId(Guid id);
+        Char GetInitial();
+        UInt8 GetByte();
+        Int16 GetSmallNumber();
+    };
+
+    [default_interface]
+    runtimeclass TypeShowcase : ITypeShowcase
+    {
+        TypeShowcase();
+    }
+
+    // 3. Interface pointer params
+    interface ICallback
+    {
+        void OnComplete(String message);
+        String LastMessage { get; };
+    };
+
+    interface INotifier
+    {
+        void Subscribe(ICallback callback);
+        ICallback GetCallback();
+    };
+
+    [default_interface]
+    runtimeclass Notifier : INotifier
+    {
+        Notifier();
+    }
+
+    // 4. Object / IInspectable params
+    interface IPropertyBag
+    {
+        void SetValue(String key, Object value);
+        Object GetValue(String key);
+    };
+
+    [default_interface]
+    runtimeclass PropertyBag : IPropertyBag
+    {
+        PropertyBag();
+    }
+
+    // 5. Complex params — many parameters + mixed in/out
+    interface IComplexOps
+    {
+        void MultiParam(String name, Int32 x, Int32 y, Double scale, Boolean visible);
+        Boolean TryParse(String input, out Int32 intResult, out Double floatResult);
+        void Swap(Int32 a, Int32 b, out Int32 outA, out Int32 outB);
+        Point MakePoint(Single x, Single y);
+        void SetPermissions(Permissions perms);
+        Permissions GetPermissions();
+        ColoredPoint Translate(ColoredPoint pt, Single dx, Single dy);
+    };
+
+    [default_interface]
+    runtimeclass ComplexOps : IComplexOps
+    {
+        ComplexOps();
+    }
+
+    // 6. Nullable / IReference<T> — cross-process boxed value round-trip
+    interface IOptionalValues
+    {
+        Windows.Foundation.IReference<Int32> GetOptionalCount();
+        void SetOptionalCount(Windows.Foundation.IReference<Int32> count);
+        Windows.Foundation.IReference<Double> GetOptionalScore();
+        void SetOptionalScore(Windows.Foundation.IReference<Double> score);
+    };
+
+    [default_interface]
+    runtimeclass OptionalValues : IOptionalValues
+    {
+        OptionalValues();
+    }
+
+    // 7. Shape hierarchy (inheritance via requires)
+    interface IShape
+    {
+        String Kind { get; };
+        Double Area { get; };
+    };
+
+    interface ICircle requires IShape
+    {
+        Double Radius { get; };
+    };
+
+    [default_interface]
+    runtimeclass Circle : ICircle, IShape
+    {
+        Circle();
+    }
+
+    // 8. Event source (cross-process event callbacks)
+    interface IEventSource
+    {
+        event StatusNotifyHandler StatusChanged;
+        void RaiseStatus(String message);
+    };
+
+    [default_interface]
+    runtimeclass EventSource : IEventSource
+    {
+        EventSource();
+    }
+
+    // 9. Delegate invoker (cross-process delegate invocation)
+    interface IDelegateInvoker
+    {
+        String ApplyTransform(String input, StringTransform transform);
+    };
+
+    [default_interface]
+    runtimeclass DelegateInvoker : IDelegateInvoker
+    {
+        DelegateInvoker();
+    }
+
+    // 10. StringListProvider — custom collection interface with full vtable cross-process
+    interface IStringList
+    {
+        UInt32 Count { get; };
+        String GetItem(UInt32 index);
+        void Append(String value);
+        void Clear();
+    };
+
+    interface IStringListProvider
+    {
+        IStringList CreateList();
+    };
+
+    [default_interface]
+    runtimeclass StringListProvider : IStringListProvider
+    {
+        StringListProvider();
+    }
+
+    // 11. AsyncCalculator — async return types (IAsyncOperation<T>)
+    // 12. Async-like result — own interface so we generate proxy/stub for it
+    enum AsyncStatus { Started, Completed, Canceled, Error };
+
+    interface IAsyncResult
+    {
+        AsyncStatus Status { get; };
+        Int32 GetResult();
+    };
+
+    interface IAsyncCalculator
+    {
+        // Our own IAsyncResult — full vtable invocation cross-process
+        IAsyncResult ComputeAsync(Int32 a, Int32 b);
+        // System IAsyncOperation<Int32> — tests parameterized interface marshaling
+        Windows.Foundation.IAsyncOperation<Int32> ComputeSystemAsync(Int32 a, Int32 b);
+    };
+
+    [default_interface]
+    runtimeclass AsyncCalculator : IAsyncCalculator
+    {
+        AsyncCalculator();
+    }
+}

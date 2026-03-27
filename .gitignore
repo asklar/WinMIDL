@@ -22,6 +22,12 @@ editors/vscode/server/
 # Binaries
 *.exe
 !tools/winmd-dump/winmd-dump.exe
+*.dll
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.obj
 
 # OS
 Thumbs.db
@@ -33,9 +39,20 @@ TestResults/
 *.winmd
 *.h
 *.c
+# Include tracked runtime helpers
+!include/winmidl/*.h
 tests/golden/
+.worktrees/
+_test_*
+TestWidget_proxy*
 
 docs/email/
 
 # Generated decompiled IDL (can be huge)
 tools/winmd-dump/windows.idl
+
+*.tgz
+*.zip
+
+# Include e2e test headers
+!tests/e2e-custom-marshal/**/*.h
