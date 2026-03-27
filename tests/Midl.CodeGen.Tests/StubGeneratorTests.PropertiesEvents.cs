@@ -185,7 +185,7 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_get_Priority(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        Assert.Contains("INT32 returnValue;", output);
+        Assert.Contains("INT32 returnValue{};", output);
         Assert.Contains("m_pServer->get_Priority(&returnValue)", output);
         Assert.Contains("winmidl::marshal_int32(pOut, returnValue)", output);
     }

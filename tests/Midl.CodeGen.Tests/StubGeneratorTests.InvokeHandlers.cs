@@ -73,7 +73,7 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_GetName(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        Assert.Contains("HSTRING returnValue;", output);
+        Assert.Contains("HSTRING returnValue{};", output);
         Assert.Contains("m_pServer->GetName(&returnValue)", output);
         Assert.Contains("winmidl::marshal_hstring(pOut, returnValue)", output);
         Assert.Contains("WindowsDeleteString(returnValue)", output);
@@ -125,7 +125,7 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_TryReset(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        Assert.Contains("INT32 errorCode;", output);
+        Assert.Contains("INT32 errorCode{};", output);
         Assert.Contains("m_pServer->TryReset(&errorCode)", output);
         // Out param serialized into reply
         Assert.Contains("winmidl::marshal_int32(pOut, errorCode)", output);
@@ -197,7 +197,7 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("Invoke_IsActive(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel)", output);
-        Assert.Contains("boolean returnValue;", output);
+        Assert.Contains("boolean returnValue{};", output);
         Assert.Contains("m_pServer->IsActive(&returnValue)", output);
     }
 
@@ -245,7 +245,7 @@ public partial class StubGeneratorTests
         Assert.Contains("HSTRING_HEADER input_header;", output);
         Assert.Contains("winmidl::unmarshal_hstring_ref(p, input_header)", output);
         // out param: allocated locally
-        Assert.Contains("INT32 result;", output);
+        Assert.Contains("INT32 result{};", output);
         // Server call with mixed params
         Assert.Contains("m_pServer->TryParse(input, &result, &returnValue)", output);
     }
