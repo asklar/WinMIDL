@@ -308,7 +308,7 @@ inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID /*riid
     IStream* pStream = nullptr;
     HRESULT hr = CreateStreamOnHGlobal(nullptr, TRUE, &pStream);
     if (FAILED(hr)) return hr;
-    hr = CoMarshalInterface(pStream, IID_IUnknown, pInterface, MSHCTX_INPROC, nullptr, MSHLFLAGS_NORMAL);
+    hr = CoMarshalInterface(pStream, IID_IUnknown, pInterface, MSHCTX_LOCAL, nullptr, MSHLFLAGS_NORMAL);
     if (FAILED(hr)) { pStream->Release(); return hr; }
     STATSTG stat;
     pStream->Stat(&stat, STATFLAG_NONAME);
