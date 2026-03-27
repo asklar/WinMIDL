@@ -93,8 +93,15 @@ The array semantics are inferred from parameter direction and position:
 | MIDL3 syntax | Pattern | ABI expansion |
 |---|---|---|
 | `void Foo(Int32[] items)` | PassArray | `(UINT32 count, INT32* items)` |
-| `void Foo(out Int32[] items)` | FillArray | `(UINT32 capacity, INT32* items, UINT32* actual)` |
 | `Int32[] Foo()` | ReceiveArray | `(UINT32* count, INT32** items)` as trailing retval |
+| `void Foo(out Int32[] items)` | ReceiveArray | `(UINT32* count, INT32** items)` |
+| `void Foo(ref Int32[] items)` | FillArray | `(UINT32 capacity, INT32* items, UINT32* actual)` |
+
+- `T[]` in-param → **PassArray** (caller sends buffer, callee reads)
+- `T[]` return or `out T[]` → **ReceiveArray** (callee allocates with `CoTaskMemAlloc`, caller frees)
+- `ref T[]` → **FillArray** (caller allocates buffer of known capacity, callee fills and reports actual count)
+
+FillArray is uncommon in modern WinRT APIs and could be deferred to a later phase. Most APIs use PassArray or ReceiveArray.
 
 The count/capacity parameter is **implicit** in MIDL3 — the compiler synthesizes it. The `__` prefix convention (e.g., `__itemsSize`) prevents name collisions with user-defined parameters.
 
@@ -108,11 +115,14 @@ namespace MyApp
         // PassArray — caller sends data
         void ProcessItems(Int32[] items);
 
-        // ReceiveArray — callee returns data
+        // ReceiveArray — callee allocates and returns data
         Int32[] GetItems();
 
-        // Out array — callee fills caller-provided buffer
-        void ReadInto(out Int32[] buffer);
+        // ReceiveArray via out — same ABI as return
+        void GetScores(out Int32[] scores);
+
+        // FillArray — caller provides buffer, callee fills (rare)
+        void ReadInto(ref Int32[] buffer);
 
         // String arrays
         void SetNames(String[] names);
