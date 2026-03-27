@@ -468,7 +468,7 @@ public class StubGenerator
                         sizeParts.Add($"sizeof(UINT32) + __{p.Name}Size * {WireFormat.GetCppSizeExpression(elemType)}");
                 }
                 else if (p.Type.Name == "String")
-                    sizeParts.Add($"sizeof(UINT32) + {p.Name}_len * sizeof(WCHAR)");
+                    sizeParts.Add($"sizeof(UINT32) + {p.Name}_len * sizeof(WCHAR) + sizeof(WCHAR)");
                 else if (WireFormat.IsInterfaceType(p.Type))
                     sizeParts.Add($"{p.Name}_marshalSize");
                 else
@@ -485,7 +485,7 @@ public class StubGenerator
                         sizeParts.Add($"sizeof(UINT32) + __returnValueSize * {WireFormat.GetCppSizeExpression(retElemType)}");
                 }
                 else if (slot.ReturnType.Name == "String")
-                    sizeParts.Add("sizeof(UINT32) + returnValue_len * sizeof(WCHAR)");
+                    sizeParts.Add("sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR)");
                 else if (WireFormat.IsInterfaceType(slot.ReturnType))
                     sizeParts.Add("returnValue_marshalSize");
                 else
