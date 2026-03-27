@@ -14,9 +14,8 @@
 #include <math.h>
 #include "generated/TestCalculator.h"
 
-// IID definition — must match the server and proxy
-EXTERN_C const IID IID___x_TestApp_OutOfProc_ICalculator =
-    {0x5dda72af, 0xdacc, 0xad55, {0xa8, 0xf3, 0xf0, 0x08, 0x6a, 0x27, 0xd8, 0x58}};
+// IID definitions from generated code
+#include "generated/TestCalculator_i.c"
 
 // CLSID for Calculator — deterministic UUID v5 of "TestApp.OutOfProc.Calculator"
 // {B340F2FC-5C14-FD5E-A7F2-BE8DC2D67C04}
