@@ -623,6 +623,16 @@ public class ProxyGenerator
         sb.AppendLine("            RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"            msg.iMethod = {vtableSlot};");
 
+        // Pre-compute marshal sizes for interface-typed input params
+        var ifaceInParams = inParams.Where(p => WireFormat.IsInterfaceType(p.Type)).ToList();
+        bool hasIfaceInParams = ifaceInParams.Count > 0;
+        if (hasIfaceInParams)
+        {
+            sb.AppendLine("            HRESULT hr;");
+            WireFormat.EmitInterfaceMarshalSizeComputation(sb,
+                ifaceInParams.Select(p => (p.Name, p.Type)), "            ");
+        }
+
         if (requestFixed)
         {
             sb.AppendLine($"            msg.cbBuffer = k{methodName}_RequestSize;");
@@ -640,7 +650,10 @@ public class ProxyGenerator
         }
         else
         {
-            sb.AppendLine($"            HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, {iidName});");
+            if (hasIfaceInParams)
+                sb.AppendLine($"            hr = m_owner->m_pChannel->GetBuffer(&msg, {iidName});");
+            else
+                sb.AppendLine($"            HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, {iidName});");
             sb.AppendLine("            RETURN_IF_FAILED(hr);");
         }
 
@@ -775,6 +788,16 @@ public class ProxyGenerator
         sb.AppendLine("        RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"        msg.iMethod = {vtableSlot};");
 
+        // Pre-compute marshal sizes for interface-typed input params
+        var ifaceInParams2 = inParams.Where(p => WireFormat.IsInterfaceType(p.Type)).ToList();
+        bool hasIfaceInParams2 = ifaceInParams2.Count > 0;
+        if (hasIfaceInParams2)
+        {
+            sb.AppendLine("        HRESULT hr;");
+            WireFormat.EmitInterfaceMarshalSizeComputation(sb,
+                ifaceInParams2.Select(p => (p.Name, p.Type)));
+        }
+
         if (requestFixed)
         {
             sb.AppendLine($"        msg.cbBuffer = k{methodName}_RequestSize;");
@@ -785,7 +808,10 @@ public class ProxyGenerator
             sb.AppendLine($"        msg.cbBuffer = {bufferSizeExpr};");
         }
 
-        sb.AppendLine($"        HRESULT hr = m_pChannel->GetBuffer(&msg, {iidName});");
+        if (hasIfaceInParams2)
+            sb.AppendLine($"        hr = m_pChannel->GetBuffer(&msg, {iidName});");
+        else
+            sb.AppendLine($"        HRESULT hr = m_pChannel->GetBuffer(&msg, {iidName});");
         sb.AppendLine("        RETURN_IF_FAILED(hr);");
 
         // Serialize input params

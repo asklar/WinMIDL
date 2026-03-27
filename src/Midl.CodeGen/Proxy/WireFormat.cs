@@ -1,5 +1,6 @@
 using System.Text;
 using Midl.Analysis.Symbols;
+using Midl.CodeGen.Header;
 
 namespace Midl.CodeGen.Proxy;
 
@@ -65,6 +66,8 @@ public static class WireFormat
     {
         if (typeRef.Name == "String")
             return "sizeof(UINT32) + len * sizeof(WCHAR)";
+        if (IsInterfaceType(typeRef))
+            return "marshalSize";
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
             return string.Join(" + ", structSym.Fields.Select(f => GetCppSizeExpression(f.Type)));
         return GetCppSizeExpression(typeRef);
@@ -78,6 +81,8 @@ public static class WireFormat
     {
         if (type.Name == "String")
             return "sizeof(UINT32) + WindowsGetStringLen({0}) * sizeof(WCHAR)";
+        if (IsInterfaceType(type))
+            return "{0}_marshalSize";
         if (type.ResolvedSymbol is StructSymbol structSym)
             return string.Join(" + ", structSym.Fields.Select(f => GetCppSizeExpression(f.Type)));
         return GetCppSizeExpression(type);
@@ -168,6 +173,13 @@ public static class WireFormat
                     EmitSerialize(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
                 }
             }
+            return;
+        }
+
+        if (IsInterfaceType(typeRef))
+        {
+            var iidName = GetInterfaceIidName(typeRef);
+            sb.AppendLine($"{indent}hr = winmidl::marshal_interface({bufferPtr}, {varName}, {iidName}); RETURN_IF_FAILED(hr);");
             return;
         }
 
@@ -295,6 +307,13 @@ public static class WireFormat
             return;
         }
 
+        if (IsInterfaceType(typeRef))
+        {
+            var iidName = GetInterfaceIidName(typeRef);
+            sb.AppendLine($"{indent}hr = winmidl::unmarshal_interface({bufferPtr}, {iidName}, (void**)&{varName}); RETURN_IF_FAILED(hr);");
+            return;
+        }
+
         // Fallback for unknown types
         var sizeExpr = GetCppSizeExpression(typeRef);
         sb.AppendLine($"{indent}memcpy(&{varName}, {bufferPtr}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
@@ -341,6 +360,13 @@ public static class WireFormat
                     EmitDeserializeReply(sb, field.Type, fieldTarget, bufferPtr, isPointer: false, indent);
                 }
             }
+            return;
+        }
+
+        if (IsInterfaceType(typeRef))
+        {
+            var iidName = GetInterfaceIidName(typeRef);
+            sb.AppendLine($"{indent}hr = winmidl::unmarshal_interface({bufferPtr}, {iidName}, (void**){(isPointer ? targetName : $"&{targetName}")}); RETURN_IF_FAILED(hr);");
             return;
         }
 
@@ -424,6 +450,13 @@ public static class WireFormat
             return;
         }
 
+        if (IsInterfaceType(typeRef))
+        {
+            var iidName = GetInterfaceIidName(typeRef);
+            sb.AppendLine($"{indent}hr = winmidl::marshal_interface({bufferPtr}, {varName}, {iidName}); RETURN_IF_FAILED(hr);");
+            return;
+        }
+
         // Fallback for unknown types
         var sizeExpr = GetCppSizeExpression(typeRef);
         sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
@@ -458,6 +491,8 @@ public static class WireFormat
     public static bool IsFixedSize(TypeRef typeRef)
     {
         if (typeRef.Name == "String")
+            return false;
+        if (IsInterfaceType(typeRef))
             return false;
         if (WireSizeMap.ContainsKey(typeRef.Name))
             return true;
@@ -615,5 +650,47 @@ public static class WireFormat
             sb.AppendLine($"#include \"{headerFile}\"");
         }
         sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Returns true if the type represents an interface pointer (interface, delegate,
+    /// runtime class, or the special "Object" type / IInspectable).
+    /// </summary>
+    public static bool IsInterfaceType(TypeRef typeRef)
+    {
+        return typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol or RuntimeClassSymbol
+            || typeRef.Name == "Object";
+    }
+
+    /// <summary>
+    /// Returns the C++ IID constant name for an interface type (e.g. "IID___x_TestApp_IWidget").
+    /// For the special "Object" type, returns "IID_IInspectable".
+    /// </summary>
+    public static string GetInterfaceIidName(TypeRef typeRef)
+    {
+        if (typeRef.Name == "Object")
+            return "IID_IInspectable";
+
+        if (typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol or RuntimeClassSymbol)
+        {
+            var mangledName = HeaderEmitter.MangleName(typeRef.ResolvedSymbol.FullName);
+            return $"IID_{mangledName}";
+        }
+
+        return $"IID_{typeRef.Name}";
+    }
+
+    /// <summary>
+    /// Emits C++ code to pre-compute the marshaled size of interface-typed parameters.
+    /// Must be called before buffer size computation when interface params are present.
+    /// </summary>
+    public static void EmitInterfaceMarshalSizeComputation(StringBuilder sb, IEnumerable<(string Name, TypeRef Type)> interfaceParams, string indent = "        ")
+    {
+        foreach (var (name, type) in interfaceParams)
+        {
+            var iidName = GetInterfaceIidName(type);
+            sb.AppendLine($"{indent}UINT32 {name}_marshalSize = 0;");
+            sb.AppendLine($"{indent}hr = winmidl::get_marshal_size({name}, {iidName}, {name}_marshalSize); RETURN_IF_FAILED(hr);");
+        }
     }
 }

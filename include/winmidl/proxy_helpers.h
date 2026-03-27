@@ -1,6 +1,7 @@
 #pragma once
 #include <windows.h>
 #include <objidl.h>
+#include <objbase.h>
 #include <winstring.h>
 #include <inspectable.h>
 #include <eventtoken.h>
@@ -261,6 +262,84 @@ template<typename T>
 inline void unmarshal_struct(BYTE*& buf, T& out) {
     static_assert(std::is_trivially_copyable_v<T>);
     memcpy(&out, buf, sizeof(T)); buf += sizeof(T);
+}
+
+// Get the marshaled size of an interface pointer for buffer allocation.
+inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size) {
+    if (!pInterface) {
+        size = sizeof(UINT32);
+        return S_OK;
+    }
+    DWORD mshlSize = 0;
+    HRESULT hr = CoGetMarshalSizeMax(&mshlSize, riid, pInterface, MSHCTX_INPROC, nullptr, MSHLFLAGS_NORMAL);
+    if (FAILED(hr)) return hr;
+    size = sizeof(UINT32) + static_cast<UINT32>(mshlSize);
+    return S_OK;
+}
+
+// ════════════════════════════════════════════════════════════════
+// Interface pointer marshaling via CoMarshalInterface/CoUnmarshalInterface
+// Wire format: [uint32 streamSize][streamBytes...]
+// ════════════════════════════════════════════════════════════════
+
+// Marshal an interface pointer into the RPC buffer.
+// Returns S_OK on success. Advances buf past the written data.
+inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) {
+    if (!pInterface) {
+        UINT32 zero = 0;
+        memcpy(buf, &zero, sizeof(UINT32));
+        buf += sizeof(UINT32);
+        return S_OK;
+    }
+    IStream* pStream = nullptr;
+    HRESULT hr = CreateStreamOnHGlobal(nullptr, TRUE, &pStream);
+    if (FAILED(hr)) return hr;
+    hr = CoMarshalInterface(pStream, riid, pInterface, MSHCTX_INPROC, nullptr, MSHLFLAGS_NORMAL);
+    if (FAILED(hr)) { pStream->Release(); return hr; }
+    STATSTG stat;
+    pStream->Stat(&stat, STATFLAG_NONAME);
+    UINT32 streamSize = static_cast<UINT32>(stat.cbSize.QuadPart);
+    memcpy(buf, &streamSize, sizeof(UINT32));
+    buf += sizeof(UINT32);
+    LARGE_INTEGER zero_li = {};
+    pStream->Seek(zero_li, STREAM_SEEK_SET, nullptr);
+    ULONG bytesRead;
+    pStream->Read(buf, streamSize, &bytesRead);
+    buf += streamSize;
+    pStream->Release();
+    return S_OK;
+}
+
+// Unmarshal an interface pointer from the RPC buffer.
+// Returns S_OK on success. Advances buf past the read data.
+inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID riid, void** ppInterface) {
+    UINT32 streamSize;
+    memcpy(&streamSize, buf, sizeof(UINT32));
+    buf += sizeof(UINT32);
+    if (streamSize == 0) {
+        *ppInterface = nullptr;
+        return S_OK;
+    }
+    HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, streamSize);
+    if (!hGlobal) return E_OUTOFMEMORY;
+    void* pMem = GlobalLock(hGlobal);
+    memcpy(pMem, buf, streamSize);
+    GlobalUnlock(hGlobal);
+    buf += streamSize;
+    IStream* pStream = nullptr;
+    HRESULT hr = CreateStreamOnHGlobal(hGlobal, TRUE, &pStream);
+    if (FAILED(hr)) { GlobalFree(hGlobal); return hr; }
+    hr = CoUnmarshalInterface(pStream, riid, ppInterface);
+    pStream->Release();
+    return hr;
+}
+
+// Overload for mutable buf pointer (stub-side code that uses BYTE* not const BYTE*)
+inline HRESULT unmarshal_interface(BYTE*& buf, REFIID riid, void** ppInterface) {
+    const BYTE* cbuf = buf;
+    HRESULT hr = unmarshal_interface(cbuf, riid, ppInterface);
+    buf = const_cast<BYTE*>(cbuf);
+    return hr;
 }
 
 // ════════════════════════════════════════════════════════════════

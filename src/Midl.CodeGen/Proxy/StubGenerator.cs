@@ -196,6 +196,13 @@ public class StubGenerator
         var inParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.In).ToList();
         var outParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.Out).ToList();
         var hasRetval = slot.ReturnType.Name != "void";
+        bool hasIfaceInParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type));
+
+        // Declare hr early if needed for interface deserialization
+        if (hasIfaceInParams)
+        {
+            sb.AppendLine("        HRESULT hr;");
+        }
 
         // Deserialize input parameters
         if (inParams.Count > 0)
@@ -211,18 +218,24 @@ public class StubGenerator
         foreach (var param in outParams)
         {
             var cType = MapType(param.Type);
-            sb.AppendLine($"        {cType} {param.Name};");
+            if (WireFormat.IsInterfaceType(param.Type))
+                sb.AppendLine($"        {cType} {param.Name} = nullptr;");
+            else
+                sb.AppendLine($"        {cType} {param.Name};");
         }
 
         // Declare return value
         if (hasRetval)
         {
             var retType = MapType(slot.ReturnType);
-            sb.AppendLine($"        {retType} returnValue;");
+            if (WireFormat.IsInterfaceType(slot.ReturnType))
+                sb.AppendLine($"        {retType} returnValue = nullptr;");
+            else
+                sb.AppendLine($"        {retType} returnValue;");
         }
 
         // Build server call
-        EmitServerCall(sb, slot, inParams, outParams, hasRetval);
+        EmitServerCall(sb, slot, inParams, outParams, hasRetval, hrAlreadyDeclared: hasIfaceInParams);
 
         // Serialize reply
         EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams, useExceptions);
@@ -254,6 +267,13 @@ public class StubGenerator
                 sb.AppendLine($"        HSTRING_HEADER {name}_header;");
                 sb.AppendLine($"        HSTRING {name} = winmidl::unmarshal_hstring_ref(p, {name}_header);");
             }
+        }
+        else if (WireFormat.IsInterfaceType(typeRef))
+        {
+            var cType = MapType(typeRef);
+            var iidName = WireFormat.GetInterfaceIidName(typeRef);
+            sb.AppendLine($"        {cType} {name} = nullptr;");
+            sb.AppendLine($"        hr = winmidl::unmarshal_interface(p, {iidName}, (void**)&{name}); RETURN_IF_FAILED(hr);");
         }
         else if (typeRef.ResolvedSymbol is StructSymbol structSym)
         {
@@ -294,7 +314,7 @@ public class StubGenerator
     }
 
     private void EmitServerCall(StringBuilder sb, StubSlot slot, List<ParameterSymbol> inParams,
-        List<ParameterSymbol> outParams, bool hasRetval)
+        List<ParameterSymbol> outParams, bool hasRetval, bool hrAlreadyDeclared = false)
     {
         var callArgs = new List<string>();
 
@@ -310,7 +330,10 @@ public class StubGenerator
             callArgs.Add("&returnValue");
 
         var argStr = string.Join(", ", callArgs);
-        sb.AppendLine($"        HRESULT hr = m_pServer->{slot.Name}({argStr});");
+        if (hrAlreadyDeclared)
+            sb.AppendLine($"        hr = m_pServer->{slot.Name}({argStr});");
+        else
+            sb.AppendLine($"        HRESULT hr = m_pServer->{slot.Name}({argStr});");
     }
 
     private void EmitSerializeReply(StringBuilder sb, StubSlot slot, List<ParameterSymbol> outParams,
@@ -324,6 +347,16 @@ public class StubGenerator
         if (hasRetval && slot.ReturnType.Name == "String")
         {
             sb.AppendLine("        UINT32 returnValue_len = WindowsGetStringLen(returnValue);");
+        }
+
+        // Pre-compute marshal sizes for interface-typed out params/retval
+        var ifaceOutParams = outParams.Where(p => WireFormat.IsInterfaceType(p.Type))
+            .Select(p => (p.Name, p.Type)).ToList();
+        if (hasRetval && WireFormat.IsInterfaceType(slot.ReturnType))
+            ifaceOutParams.Add(("returnValue", slot.ReturnType));
+        if (ifaceOutParams.Count > 0)
+        {
+            WireFormat.EmitInterfaceMarshalSizeComputation(sb, ifaceOutParams);
         }
 
         // Check if reply is fixed-size for constexpr optimization
@@ -349,6 +382,8 @@ public class StubGenerator
             {
                 if (p.Type.Name == "String")
                     sizeParts.Add($"sizeof(UINT32) + {p.Name}_len * sizeof(WCHAR)");
+                else if (WireFormat.IsInterfaceType(p.Type))
+                    sizeParts.Add($"{p.Name}_marshalSize");
                 else
                     sizeParts.Add(WireFormat.GetCppSizeExpression(p.Type));
             }
@@ -356,6 +391,8 @@ public class StubGenerator
             {
                 if (slot.ReturnType.Name == "String")
                     sizeParts.Add("sizeof(UINT32) + returnValue_len * sizeof(WCHAR)");
+                else if (WireFormat.IsInterfaceType(slot.ReturnType))
+                    sizeParts.Add("returnValue_marshalSize");
                 else
                     sizeParts.Add(WireFormat.GetCppSizeExpression(slot.ReturnType));
             }
@@ -411,6 +448,17 @@ public class StubGenerator
         if (hasRetval && slot.ReturnType.Name == "String")
         {
             sb.AppendLine("        WindowsDeleteString(returnValue);");
+        }
+
+        // Release interface params
+        foreach (var param in inParams)
+        {
+            if (WireFormat.IsInterfaceType(param.Type))
+                sb.AppendLine($"        if ({param.Name}) {param.Name}->Release();");
+        }
+        if (hasRetval && WireFormat.IsInterfaceType(slot.ReturnType))
+        {
+            sb.AppendLine("        if (returnValue) returnValue->Release();");
         }
     }
 
