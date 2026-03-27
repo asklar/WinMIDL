@@ -1123,6 +1123,7 @@ public:
         IInspectable* pInsp = nullptr;
         HRESULT hr = RoActivateInstance(hcls, &pInsp);
         WindowsDeleteString(hcls);
+        printf("SERVER GetScores: RoActivateInstance hr=0x%08lx pInsp=%p\n", hr, pInsp); fflush(stdout);
         if (FAILED(hr)) { *returnValue = nullptr; return hr; }
         *returnValue = reinterpret_cast<__x_Windows_Foundation_Collections_IMap*>(pInsp);
         return S_OK;
