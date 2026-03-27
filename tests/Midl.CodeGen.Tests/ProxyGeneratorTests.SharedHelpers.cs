@@ -77,8 +77,8 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("WindowsCreateStringReference(L\"TestApp.IWidget\"", output);
-        Assert.Contains("static HSTRING s_name", output);
+        Assert.Contains("constexpr WCHAR s_name[]", output);
+        Assert.Contains("ARRAYSIZE(s_name) - 1", output);
     }
 
     [Fact]

@@ -152,7 +152,8 @@ public partial class ProxyGeneratorTests
         Assert.Contains("constexpr IID kIIDs[]", output);
         Assert.Contains("winmidl::type_info_t kTypeInfo", output);
         Assert.Contains("winmidl::get_iids(kTypeInfo", output);
-        Assert.Contains("WindowsCreateStringReference(L\"TestApp.IWidget\"", output);
+        Assert.Contains("constexpr WCHAR s_name[] = L\"TestApp.IWidget\"", output);
+        Assert.Contains("ARRAYSIZE(s_name) - 1", output);
         Assert.Contains("winmidl::get_trust_level(", output);
     }
 

@@ -685,8 +685,9 @@ public class ProxyGenerator
         sb.AppendLine("            return winmidl::get_iids(kTypeInfo, iidCount, iids);");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {");
-        sb.AppendLine($"            static HSTRING s_name = [] {{ static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(L\"{runtimeClassName}\", {runtimeClassName.Length}, &hdr, &h); return h; }}();");
-        sb.AppendLine("            *className = s_name; return S_OK;");
+        sb.AppendLine($"            static constexpr WCHAR s_name[] = L\"{runtimeClassName}\";");
+        sb.AppendLine($"            static HSTRING s_h = [] {{ static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }}();");
+        sb.AppendLine("            *className = s_h; return S_OK;");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {");
         sb.AppendLine("            return winmidl::get_trust_level(trustLevel);");
