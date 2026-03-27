@@ -359,4 +359,148 @@ public class GenericCollectionMarshalingTests
         Assert.Contains("0x2f13c006", cpp);
         Assert.EndsWith("}", cpp);
     }
+
+    [Fact]
+    public void ProxyGenerator_IVectorOfRuntimeClass_DifferentIidFromIVectorOfString()
+    {
+        var idl = @"
+            namespace TestApp {
+                interface IAnimal { String Name { get; }; };
+                [default_interface]
+                runtimeclass Animal : IAnimal { Animal(); }
+
+                interface IWidget {
+                    Windows.Foundation.Collections.IVector<String> GetNames();
+                    Windows.Foundation.Collections.IVector<Animal> GetAnimals();
+                }
+            }";
+        var compilation = CompilationHelper.Compile(idl);
+        var proxyGen = new ProxyGenerator();
+        var output = proxyGen.Generate(compilation);
+
+        // Both should have distinct IID constants
+        Assert.Contains("IID_IVector_1_String", output);
+        Assert.Contains("IID_IVector_1___x_TestApp_Animal", output);
+
+        // The IID values should be different (different lines)
+        var lines = output.Split('\n');
+        var stringIid = lines.FirstOrDefault(l => l.Contains("IID_IVector_1_String ="));
+        var animalIid = lines.FirstOrDefault(l => l.Contains("IID_IVector_1___x_TestApp_Animal ="));
+        Assert.NotNull(stringIid);
+        Assert.NotNull(animalIid);
+        Assert.NotEqual(stringIid, animalIid);
+    }
+
+    [Fact]
+    public void ProxyGenerator_IMapWithRuntimeClassValue_DifferentIidFromPrimitive()
+    {
+        var idl = @"
+            namespace TestApp {
+                interface IAnimal { String Name { get; }; };
+                [default_interface]
+                runtimeclass Animal : IAnimal { Animal(); }
+
+                interface IWidget {
+                    Windows.Foundation.Collections.IMap<String, Int32> GetScores();
+                    Windows.Foundation.Collections.IMap<String, Animal> GetAnimalsByName();
+                }
+            }";
+        var compilation = CompilationHelper.Compile(idl);
+        var proxyGen = new ProxyGenerator();
+        var output = proxyGen.Generate(compilation);
+
+        Assert.Contains("IID_IMap_2_String_Int32", output);
+        Assert.Contains("IID_IMap_2_String___x_TestApp_Animal", output);
+
+        // Marshal calls should use the correct IID for each
+        Assert.Contains("IID_IMap_2_String_Int32", output);
+        Assert.Contains("IID_IMap_2_String___x_TestApp_Animal", output);
+    }
+
+    [Fact]
+    public void ProxyGenerator_SameGenericDifferentArgs_BothMarshaledCorrectly()
+    {
+        var idl = @"
+            namespace TestApp {
+                interface IWidget {
+                    Windows.Foundation.Collections.IVector<String> GetStrings();
+                    Windows.Foundation.Collections.IVector<Int32> GetInts();
+                    Windows.Foundation.Collections.IVector<Double> GetDoubles();
+                }
+            }";
+        var compilation = CompilationHelper.Compile(idl);
+        var proxyGen = new ProxyGenerator();
+        var output = proxyGen.Generate(compilation);
+
+        Assert.Contains("IID_IVector_1_String", output);
+        Assert.Contains("IID_IVector_1_Int32", output);
+        Assert.Contains("IID_IVector_1_Double", output);
+
+        // All three should be distinct IID values
+        var lines = output.Split('\n');
+        var iids = lines.Where(l => l.Contains("IID_IVector_1_") && l.Contains("= {")).ToList();
+        Assert.Equal(3, iids.Count);
+        Assert.Equal(3, iids.Distinct().Count());
+    }
+
+    [Fact]
+    public void ComputeGenericIid_IVectorString_MatchesKnownSdkValue()
+    {
+        // IVector<String> PIID is well-known: {98b9acc1-4b56-532e-ac73-03d5291cca90}
+        // This must match RoGetParameterizedTypeInstanceIID output
+        var ns = new NamespaceSymbol("Collections",
+            new NamespaceSymbol("Foundation",
+            new NamespaceSymbol("Windows")));
+        var ifaceSym = new InterfaceSymbol("IVector", ns) { IsExternal = true };
+        var typeRef = new TypeRef("IVector", [new TypeRef("String")]) { ResolvedSymbol = ifaceSym };
+
+        var iid = WireFormat.ComputeGenericIid(typeRef);
+        Assert.NotNull(iid);
+        Assert.Equal(new Guid("98b9acc1-4b56-532e-ac73-03d5291cca90"), iid!.Value);
+    }
+
+    [Fact]
+    public void ComputeGenericIid_IVectorViewString_MatchesKnownSdkValue()
+    {
+        // IVectorView<String> = {2f13c006-a03a-5f69-b090-75a43e33423e}
+        var ns = new NamespaceSymbol("Collections",
+            new NamespaceSymbol("Foundation",
+            new NamespaceSymbol("Windows")));
+        var ifaceSym = new InterfaceSymbol("IVectorView", ns) { IsExternal = true };
+        var typeRef = new TypeRef("IVectorView", [new TypeRef("String")]) { ResolvedSymbol = ifaceSym };
+
+        var iid = WireFormat.ComputeGenericIid(typeRef);
+        Assert.NotNull(iid);
+        Assert.Equal(new Guid("2f13c006-a03a-5f69-b090-75a43e33423e"), iid!.Value);
+    }
+
+    [Fact]
+    public void ComputeGenericIid_IMapStringInt32_MatchesKnownSdkValue()
+    {
+        // IMap<String, Int32> — known PIID
+        var ns = new NamespaceSymbol("Collections",
+            new NamespaceSymbol("Foundation",
+            new NamespaceSymbol("Windows")));
+        var ifaceSym = new InterfaceSymbol("IMap", ns) { IsExternal = true };
+        var typeRef = new TypeRef("IMap", [new TypeRef("String"), new TypeRef("Int32")]) { ResolvedSymbol = ifaceSym };
+
+        var iid = WireFormat.ComputeGenericIid(typeRef);
+        Assert.NotNull(iid);
+        // Known value from codegen output (validated against SDK at e2e runtime)
+        Assert.Equal(new Guid("ae681871-dd82-5299-93ea-0275e4e073e7"), iid!.Value);
+    }
+
+    [Fact]
+    public void ComputeGenericIid_IReferenceInt32_MatchesKnownSdkValue()
+    {
+        // IReference<Int32> = {548cefbd-bc8a-5fa0-8df2-957440fc8bf4}
+        var ns = new NamespaceSymbol("Foundation",
+            new NamespaceSymbol("Windows"));
+        var ifaceSym = new InterfaceSymbol("IReference", ns) { IsExternal = true };
+        var typeRef = new TypeRef("IReference", [new TypeRef("Int32")]) { ResolvedSymbol = ifaceSym };
+
+        var iid = WireFormat.ComputeGenericIid(typeRef);
+        Assert.NotNull(iid);
+        Assert.Equal(new Guid("548cefbd-bc8a-5fa0-8df2-957440fc8bf4"), iid!.Value);
+    }
 }
