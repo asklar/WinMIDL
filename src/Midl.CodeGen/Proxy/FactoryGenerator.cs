@@ -14,31 +14,33 @@ namespace Midl.CodeGen.Proxy;
 public class FactoryGenerator
 {
     /// <summary>
-    /// Generate the factory C++ code for all non-external interfaces.
+    /// Generate the factory C++ code for all non-external interfaces and delegates.
+    /// Delegates are COM interfaces at the ABI level (IUnknown + Invoke) and need
+    /// proxy/stub registration so they can be marshaled across apartments.
     /// </summary>
     public string Generate(Compilation compilation)
     {
         var sb = new StringBuilder();
 
-        var interfaces = compilation.GetAllTypes()
-            .OfType<InterfaceSymbol>()
-            .Where(i => !i.IsExternal)
-            .ToList();
+        var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
+
+        var interfaces = allTypes.OfType<InterfaceSymbol>().ToList();
+        var delegates = allTypes.OfType<DelegateSymbol>().ToList();
 
         EmitPrologue(sb);
 
-        if (interfaces.Count == 0)
+        if (interfaces.Count == 0 && delegates.Count == 0)
             return sb.ToString();
 
-        var clsid = ComputeClsid(interfaces);
+        var clsid = ComputeClsid(interfaces, delegates);
         EmitClsidDefinition(sb, clsid);
 
-        EmitFactoryClass(sb, interfaces);
+        EmitFactoryClass(sb, interfaces, delegates);
         EmitGlobalInstance(sb);
         EmitDllGetClassObject(sb);
         EmitDllCanUnloadNow(sb);
-        EmitDllRegisterServer(sb, interfaces);
-        EmitDllUnregisterServer(sb, interfaces);
+        EmitDllRegisterServer(sb, interfaces, delegates);
+        EmitDllUnregisterServer(sb, interfaces, delegates);
 
         return sb.ToString();
     }
@@ -60,15 +62,16 @@ public class FactoryGenerator
 
     /// <summary>
     /// Compute a deterministic CLSID for the proxy/stub factory using UUID v5
-    /// (SHA-1 based) from the sorted list of interface full names.
+    /// (SHA-1 based) from the sorted list of interface and delegate full names.
     /// </summary>
-    internal static Guid ComputeClsid(IReadOnlyList<InterfaceSymbol> interfaces)
+    internal static Guid ComputeClsid(IReadOnlyList<InterfaceSymbol> interfaces, IReadOnlyList<DelegateSymbol>? delegates = null)
     {
         // Use a fixed namespace UUID for MIDL proxy/stub CLSIDs
         var namespaceId = new Guid("6ba7b810-9dad-11d1-80b4-00c04fd430c8"); // DNS namespace from RFC 4122
 
         var sortedNames = interfaces
             .Select(i => i.FullName)
+            .Concat((delegates ?? []).Select(d => d.FullName))
             .OrderBy(n => n, StringComparer.Ordinal)
             .ToList();
 
@@ -141,14 +144,19 @@ public class FactoryGenerator
     }
 
     private static string GetProxyClassName(InterfaceSymbol iface) => $"C{iface.Name}Proxy";
+    private static string GetProxyClassName(DelegateSymbol del) => $"C{del.Name}Proxy";
 
     private static string GetStubClassName(InterfaceSymbol iface) =>
         $"CStub_{HeaderEmitter.MangleName(iface.FullName)}";
+    private static string GetStubClassName(DelegateSymbol del) =>
+        $"CStub_{HeaderEmitter.MangleName(del.FullName)}";
 
     private static string GetIidName(InterfaceSymbol iface) =>
         $"IID_{HeaderEmitter.MangleName(iface.FullName)}";
+    private static string GetIidName(DelegateSymbol del) =>
+        $"IID_{HeaderEmitter.MangleName(del.FullName)}";
 
-    private static void EmitFactoryClass(StringBuilder sb, List<InterfaceSymbol> interfaces)
+    private static void EmitFactoryClass(StringBuilder sb, List<InterfaceSymbol> interfaces, List<DelegateSymbol> delegates)
     {
         sb.AppendLine("class CPSFactory : public IPSFactoryBuffer {");
         sb.AppendLine("    LONG m_cRef;");
@@ -159,8 +167,8 @@ public class FactoryGenerator
 
         EmitQueryInterface(sb);
         EmitAddRefRelease(sb);
-        EmitCreateProxy(sb, interfaces);
-        EmitCreateStub(sb, interfaces);
+        EmitCreateProxy(sb, interfaces, delegates);
+        EmitCreateStub(sb, interfaces, delegates);
 
         sb.AppendLine("};");
         sb.AppendLine();
@@ -186,7 +194,7 @@ public class FactoryGenerator
         sb.AppendLine();
     }
 
-    private static void EmitCreateProxy(StringBuilder sb, List<InterfaceSymbol> interfaces)
+    private static void EmitCreateProxy(StringBuilder sb, List<InterfaceSymbol> interfaces, List<DelegateSymbol> delegates)
     {
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE CreateProxy(");
         sb.AppendLine("        IUnknown* pUnkOuter, REFIID riid,");
@@ -207,12 +215,26 @@ public class FactoryGenerator
             sb.AppendLine("        }");
         }
 
+        foreach (var del in delegates)
+        {
+            var iidName = GetIidName(del);
+            var proxyClass = GetProxyClassName(del);
+
+            sb.AppendLine($"        if (riid == {iidName}) {{");
+            sb.AppendLine($"            auto* proxy = new {proxyClass}(pUnkOuter);");
+            sb.AppendLine("            *ppProxy = proxy;");
+            sb.AppendLine("            *ppv = proxy->GetFace();");
+            sb.AppendLine("            pUnkOuter->AddRef();");
+            sb.AppendLine("            return S_OK;");
+            sb.AppendLine("        }");
+        }
+
         sb.AppendLine("        return E_NOINTERFACE;");
         sb.AppendLine("    }");
         sb.AppendLine();
     }
 
-    private static void EmitCreateStub(StringBuilder sb, List<InterfaceSymbol> interfaces)
+    private static void EmitCreateStub(StringBuilder sb, List<InterfaceSymbol> interfaces, List<DelegateSymbol> delegates)
     {
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE CreateStub(");
         sb.AppendLine("        REFIID riid, IUnknown* pServer,");
@@ -223,6 +245,19 @@ public class FactoryGenerator
         {
             var iidName = GetIidName(iface);
             var stubClass = GetStubClassName(iface);
+
+            sb.AppendLine($"        if (riid == {iidName}) {{");
+            sb.AppendLine($"            auto* stub = new {stubClass}();");
+            sb.AppendLine("            if (pServer) stub->Connect(pServer);");
+            sb.AppendLine("            *ppStub = stub;");
+            sb.AppendLine("            return S_OK;");
+            sb.AppendLine("        }");
+        }
+
+        foreach (var del in delegates)
+        {
+            var iidName = GetIidName(del);
+            var stubClass = GetStubClassName(del);
 
             sb.AppendLine($"        if (riid == {iidName}) {{");
             sb.AppendLine($"            auto* stub = new {stubClass}();");
@@ -258,7 +293,7 @@ public class FactoryGenerator
         sb.AppendLine();
     }
 
-    private static void EmitDllRegisterServer(StringBuilder sb, List<InterfaceSymbol> interfaces)
+    private static void EmitDllRegisterServer(StringBuilder sb, List<InterfaceSymbol> interfaces, List<DelegateSymbol> delegates)
     {
         sb.AppendLine("HRESULT STDAPICALLTYPE DllRegisterServer() {");
         sb.AppendLine("    HMODULE hMod;");
@@ -282,10 +317,28 @@ public class FactoryGenerator
         sb.AppendLine("    }");
         sb.AppendLine();
 
-        // Register each IID → ProxyStubClsid32
+        // Register each interface IID → ProxyStubClsid32
         foreach (var iface in interfaces)
         {
             var iidName = GetIidName(iface);
+            sb.AppendLine($"    // Register {iidName} -> ProxyStubClsid32");
+            sb.AppendLine("    {");
+            sb.AppendLine("        WCHAR iidStr[64];");
+            sb.AppendLine($"        StringFromGUID2({iidName}, iidStr, 64);");
+            sb.AppendLine("        WCHAR keyPath[256];");
+            sb.AppendLine("        wsprintfW(keyPath, L\"Software\\\\Classes\\\\Interface\\\\%s\\\\ProxyStubClsid32\", iidStr);");
+            sb.AppendLine("        HKEY hKey;");
+            sb.AppendLine("        RegCreateKeyExW(HKEY_LOCAL_MACHINE, keyPath, 0, nullptr, 0, KEY_SET_VALUE, nullptr, &hKey, nullptr);");
+            sb.AppendLine("        RegSetValueExW(hKey, nullptr, 0, REG_SZ, (BYTE*)clsidStr, (DWORD)(wcslen(clsidStr) + 1) * sizeof(WCHAR));");
+            sb.AppendLine("        RegCloseKey(hKey);");
+            sb.AppendLine("    }");
+            sb.AppendLine();
+        }
+
+        // Register each delegate IID → ProxyStubClsid32
+        foreach (var del in delegates)
+        {
+            var iidName = GetIidName(del);
             sb.AppendLine($"    // Register {iidName} -> ProxyStubClsid32");
             sb.AppendLine("    {");
             sb.AppendLine("        WCHAR iidStr[64];");
@@ -305,7 +358,7 @@ public class FactoryGenerator
         sb.AppendLine();
     }
 
-    private static void EmitDllUnregisterServer(StringBuilder sb, List<InterfaceSymbol> interfaces)
+    private static void EmitDllUnregisterServer(StringBuilder sb, List<InterfaceSymbol> interfaces, List<DelegateSymbol> delegates)
     {
         sb.AppendLine("HRESULT STDAPICALLTYPE DllUnregisterServer() {");
         sb.AppendLine("    WCHAR clsidStr[64];");
@@ -321,10 +374,25 @@ public class FactoryGenerator
         sb.AppendLine("    }");
         sb.AppendLine();
 
-        // Remove each IID
+        // Remove each interface IID
         foreach (var iface in interfaces)
         {
             var iidName = GetIidName(iface);
+            sb.AppendLine($"    // Remove {iidName}");
+            sb.AppendLine("    {");
+            sb.AppendLine("        WCHAR iidStr[64];");
+            sb.AppendLine($"        StringFromGUID2({iidName}, iidStr, 64);");
+            sb.AppendLine("        WCHAR keyPath[256];");
+            sb.AppendLine("        wsprintfW(keyPath, L\"Software\\\\Classes\\\\Interface\\\\%s\\\\ProxyStubClsid32\", iidStr);");
+            sb.AppendLine("        RegDeleteKeyW(HKEY_LOCAL_MACHINE, keyPath);");
+            sb.AppendLine("    }");
+            sb.AppendLine();
+        }
+
+        // Remove each delegate IID
+        foreach (var del in delegates)
+        {
+            var iidName = GetIidName(del);
             sb.AppendLine($"    // Remove {iidName}");
             sb.AppendLine("    {");
             sb.AppendLine("        WCHAR iidStr[64];");
