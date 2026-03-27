@@ -182,9 +182,21 @@ namespace TestApp.OutOfProc
     }
 
     // 11. AsyncCalculator — async return types (IAsyncOperation<T>)
+    // 12. Async-like result — own interface so we generate proxy/stub for it
+    enum AsyncStatus { Started, Completed, Canceled, Error };
+
+    interface IAsyncResult
+    {
+        AsyncStatus Status { get; };
+        Int32 GetResult();
+    };
+
     interface IAsyncCalculator
     {
-        Windows.Foundation.IAsyncOperation<Int32> ComputeAsync(Int32 a, Int32 b);
+        // Our own IAsyncResult — full vtable invocation cross-process
+        IAsyncResult ComputeAsync(Int32 a, Int32 b);
+        // System IAsyncOperation<Int32> — tests parameterized interface marshaling
+        Windows.Foundation.IAsyncOperation<Int32> ComputeSystemAsync(Int32 a, Int32 b);
     };
 
     [default_interface]

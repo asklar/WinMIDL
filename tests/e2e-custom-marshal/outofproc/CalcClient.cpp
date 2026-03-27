@@ -982,7 +982,7 @@ int main() {
         }
     }
 
-    // ===== Test group 12: AsyncCalculator (IAsyncOperation<T> cross-process) =====
+    // ===== Test group 12: AsyncCalculator (async-like result cross-process) =====
     printf("\n[Client] --- AsyncCalculator tests ---\n");
     {
         __x_TestApp_OutOfProc_IAsyncCalculator* pAsync = nullptr;
@@ -990,48 +990,44 @@ int main() {
                               IID___x_TestApp_OutOfProc_IAsyncCalculator, (void**)&pAsync);
         Check(SUCCEEDED(hr), "AsyncCalculator: CoCreateInstance");
         if (SUCCEEDED(hr)) {
-            // ComputeAsync(3, 4) — returns IInspectable* (parameterized interface)
-            IInspectable* pAsyncOp = nullptr;
-            hr = pAsync->ComputeAsync(3, 4, &pAsyncOp);
+            // ComputeAsync(3, 4) — returns IAsyncResult with our proxy/stub
+            __x_TestApp_OutOfProc_IAsyncResult* pResult = nullptr;
+            hr = pAsync->ComputeAsync(3, 4, &pResult);
             Check(SUCCEEDED(hr), "AsyncCalculator: ComputeAsync HRESULT");
-            Check(pAsyncOp != nullptr, "AsyncCalculator: ComputeAsync returned non-null");
+            Check(pResult != nullptr, "AsyncCalculator: ComputeAsync returned non-null");
 
-            if (pAsyncOp) {
-                // The returned object may be an IUnknown proxy (no registered proxy
-                // for the parameterized IAsyncOperation<Int32> IID). QI for
-                // IInspectable to verify we have a full WinRT proxy before calling
-                // IInspectable methods.
-                IInspectable* pInsp = nullptr;
-                hr = pAsyncOp->QueryInterface(IID_IInspectable, (void**)&pInsp);
-                if (SUCCEEDED(hr) && pInsp) {
-                    Check(true, "AsyncCalculator: returned object QI for IInspectable");
+            if (pResult) {
+                // get_Status — should be Completed (1)
+                __x_TestApp_OutOfProc_AsyncStatus status = (__x_TestApp_OutOfProc_AsyncStatus)-1;
+                hr = pResult->get_Status(&status);
+                Check(SUCCEEDED(hr) && status == AsyncStatus_Completed,
+                      "AsyncCalculator: Status == Completed");
 
-                    // GetRuntimeClassName on the returned async object
-                    HSTRING asyncClassName = nullptr;
-                    hr = pInsp->GetRuntimeClassName(&asyncClassName);
-                    Check(SUCCEEDED(hr),
-                          "AsyncCalculator: returned object GetRuntimeClassName");
-                    if (asyncClassName) WindowsDeleteString(asyncClassName);
+                // GetResult — should be 7
+                INT32 val = 0;
+                hr = pResult->GetResult(&val);
+                Check(SUCCEEDED(hr) && val == 7,
+                      "AsyncCalculator: GetResult() == 7");
 
-                    pInsp->Release();
-                } else {
-                    // IInspectable QI failed — the marshaler returned an IUnknown proxy.
-                    // This validates that the ComputeAsync method call crossed the process
-                    // boundary and returned a non-null interface. We cannot call
-                    // IInspectable methods safely, so just verify QI(IUnknown) works.
-                    IUnknown* pUnk = nullptr;
-                    hr = pAsyncOp->QueryInterface(IID_IUnknown, (void**)&pUnk);
-                    Check(SUCCEEDED(hr) && pUnk != nullptr,
-                          "AsyncCalculator: returned object QI for IUnknown");
-                    if (pUnk) pUnk->Release();
-
-                    Check(true, "AsyncCalculator: returned object GetRuntimeClassName (skipped — IUnknown proxy)");
-                }
-
-                pAsyncOp->Release();
+                pResult->Release();
             }
 
-            // GetRuntimeClassName on the calculator itself
+            // ComputeSystemAsync(10, 5) — returns IInspectable* (system parameterized type)
+            IInspectable* pSysAsync = nullptr;
+            hr = pAsync->ComputeSystemAsync(10, 5, &pSysAsync);
+            Check(SUCCEEDED(hr), "AsyncCalculator: ComputeSystemAsync HRESULT");
+            Check(pSysAsync != nullptr, "AsyncCalculator: ComputeSystemAsync returned non-null");
+            if (pSysAsync) {
+                // The object crosses the process boundary — verify it's alive via QI
+                IUnknown* pUnk = nullptr;
+                hr = pSysAsync->QueryInterface(IID_IUnknown, (void**)&pUnk);
+                Check(SUCCEEDED(hr) && pUnk != nullptr,
+                      "AsyncCalculator: SystemAsync QI for IUnknown");
+                if (pUnk) pUnk->Release();
+                pSysAsync->Release();
+            }
+
+            // GetRuntimeClassName on the calculator
             HSTRING className = nullptr;
             hr = pAsync->GetRuntimeClassName(&className);
             Check(SUCCEEDED(hr) &&

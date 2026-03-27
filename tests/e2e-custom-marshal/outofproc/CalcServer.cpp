@@ -936,50 +936,20 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-// CompletedAsyncOp — minimal IAsyncOperation<Int32> that is always completed
+// AsyncResultImpl — implements IAsyncResult (our own interface with proxy/stub)
 // ---------------------------------------------------------------------------
-
-// IAsyncInfo: {00000036-0000-0000-C000-000000000046}
-static const IID IID_IAsyncInfo_Local =
-    {0x00000036, 0x0000, 0x0000, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
-
-// IAsyncOperation<Int32> PIID (from generated proxy code)
-static const IID IID_IAsyncOperation_1_Int32_Local =
-    {0xc8a72ed6, 0xd07c, 0x5aa7, {0x83, 0xb2, 0x20, 0x20, 0xa5, 0x22, 0x45, 0xaf}};
-
-struct IAsyncInfoVtbl : public IInspectable {
-    virtual HRESULT STDMETHODCALLTYPE get_Id(UINT32* id) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Status(INT32* status) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_ErrorCode(HRESULT* errorCode) = 0;
-    virtual HRESULT STDMETHODCALLTYPE Cancel() = 0;
-    virtual HRESULT STDMETHODCALLTYPE Close() = 0;
-};
-
-struct IAsyncOperation_Int32_Vtbl : public IInspectable {
-    virtual HRESULT STDMETHODCALLTYPE put_Completed(IInspectable* handler) = 0;
-    virtual HRESULT STDMETHODCALLTYPE get_Completed(IInspectable** handler) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetResults(INT32* results) = 0;
-};
-
-class CompletedAsyncOp : public IAsyncInfoVtbl,
-                         public IAsyncOperation_Int32_Vtbl {
+class AsyncResultImpl : public __x_TestApp_OutOfProc_IAsyncResult {
     LONG m_cRef;
     INT32 m_result;
 
 public:
-    CompletedAsyncOp(INT32 result) : m_cRef(1), m_result(result) { ServerObjIncRef(); }
-    ~CompletedAsyncOp() { ServerObjDecRef(); }
+    AsyncResultImpl(INT32 result) : m_cRef(1), m_result(result) {}
 
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
         if (!ppv) return E_POINTER;
         if (riid == IID_IUnknown || riid == IID_IInspectable ||
-            riid == IID_IAsyncInfo_Local) {
-            *ppv = static_cast<IAsyncInfoVtbl*>(this);
-            AddRef();
-            return S_OK;
-        }
-        if (riid == IID_IAsyncOperation_1_Int32_Local) {
-            *ppv = static_cast<IAsyncOperation_Int32_Vtbl*>(this);
+            riid == IID___x_TestApp_OutOfProc_IAsyncResult) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IAsyncResult*>(this);
             AddRef();
             return S_OK;
         }
@@ -994,54 +964,29 @@ public:
         return c;
     }
 
-    // IInspectable (routed via IAsyncInfoVtbl)
     HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-        *iidCount = 2;
-        *iids = (IID*)CoTaskMemAlloc(2 * sizeof(IID));
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
         if (!*iids) return E_OUTOFMEMORY;
-        (*iids)[0] = IID_IAsyncInfo_Local;
-        (*iids)[1] = IID_IAsyncOperation_1_Int32_Local;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IAsyncResult;
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-        return WindowsCreateString(L"TestApp.OutOfProc.CompletedAsyncOp", 34, className);
+        return WindowsCreateString(L"TestApp.OutOfProc.AsyncResult", 29, className);
     }
     HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
         *trustLevel = BaseTrust; return S_OK;
     }
 
-    // IAsyncInfo
-    HRESULT STDMETHODCALLTYPE get_Id(UINT32* id) override {
-        if (!id) return E_POINTER;
-        *id = 1;
+    HRESULT STDMETHODCALLTYPE get_Status(__x_TestApp_OutOfProc_AsyncStatus* value) override {
+        if (!value) return E_POINTER;
+        *value = AsyncStatus_Completed;
         return S_OK;
     }
-    HRESULT STDMETHODCALLTYPE get_Status(INT32* status) override {
-        if (!status) return E_POINTER;
-        *status = 1; // AsyncStatus::Completed
-        return S_OK;
-    }
-    HRESULT STDMETHODCALLTYPE get_ErrorCode(HRESULT* errorCode) override {
-        if (!errorCode) return E_POINTER;
-        *errorCode = S_OK;
-        return S_OK;
-    }
-    HRESULT STDMETHODCALLTYPE Cancel() override { return S_OK; }
-    HRESULT STDMETHODCALLTYPE Close() override { return S_OK; }
 
-    // IAsyncOperation<Int32>
-    HRESULT STDMETHODCALLTYPE put_Completed(IInspectable* handler) override {
-        (void)handler;
-        return S_OK;
-    }
-    HRESULT STDMETHODCALLTYPE get_Completed(IInspectable** handler) override {
-        if (!handler) return E_POINTER;
-        *handler = nullptr;
-        return S_OK;
-    }
-    HRESULT STDMETHODCALLTYPE GetResults(INT32* results) override {
-        if (!results) return E_POINTER;
-        *results = m_result;
+    HRESULT STDMETHODCALLTYPE GetResult(INT32* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_result;
         return S_OK;
     }
 };
@@ -1090,13 +1035,21 @@ public:
     }
 
     HRESULT STDMETHODCALLTYPE ComputeAsync(INT32 a, INT32 b,
-                                            IInspectable** returnValue) override {
+                                            __x_TestApp_OutOfProc_IAsyncResult** returnValue) override {
         if (!returnValue) return E_POINTER;
-        auto* op = new (std::nothrow) CompletedAsyncOp(a + b);
+        *returnValue = new (std::nothrow) AsyncResultImpl(a + b);
+        return *returnValue ? S_OK : E_OUTOFMEMORY;
+    }
+
+    HRESULT STDMETHODCALLTYPE ComputeSystemAsync(INT32 a, INT32 b,
+                                                  IInspectable** returnValue) override {
+        if (!returnValue) return E_POINTER;
+        // Return our AsyncResultImpl cast to IInspectable — it's a valid COM object
+        // that crosses the process boundary via CoMarshalInterface(IID_IUnknown fallback)
+        auto* op = new (std::nothrow) AsyncResultImpl(a + b);
         if (!op) { *returnValue = nullptr; return E_OUTOFMEMORY; }
-        // Return the IAsyncOperation<Int32> face so marshal_interface can
-        // CoMarshalInterface with IID_IAsyncOperation_1_Int32 successfully
-        *returnValue = static_cast<IAsyncOperation_Int32_Vtbl*>(op);
+        *returnValue = static_cast<IInspectable*>(
+            static_cast<__x_TestApp_OutOfProc_IAsyncResult*>(op));
         return S_OK;
     }
 };
