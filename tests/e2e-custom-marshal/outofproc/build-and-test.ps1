@@ -187,9 +187,26 @@ Write-Host "--- Step 3: Register proxy DLL + server ---" -ForegroundColor Yellow
 $proxyDllPath = (Resolve-Path "$buildDir/TestCalculatorProxy.dll").Path
 $serverExePath = (Resolve-Path "$buildDir/CalcServer.exe").Path
 
-# CLSID and IIDs — must match the generated code
+# Extract IIDs and CLSIDs dynamically from generated code
+$iidContent = Get-Content "$genDir/TestCalculator_i.c" -Raw
+
+function Extract-Guid($content, $name) {
+    if ($content -match "$name,0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+)") {
+        return "{$($Matches[1])-$($Matches[2])-$($Matches[3])-$($Matches[4])$($Matches[5])-$($Matches[6])$($Matches[7])$($Matches[8])$($Matches[9])$($Matches[10])$($Matches[11])}".ToUpper()
+    }
+    return $null
+}
+
+$IID_ICalculator = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculator,"
+$IID_ICalculator2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculator2,"
+
+if (-not $IID_ICalculator) {
+    Write-Host "FAIL: Could not extract IID_ICalculator from generated code" -ForegroundColor Red
+    exit 1
+}
+
+# CLSID_Calculator — extract from server source (must match)
 $CLSID_Calculator = "{B340F2FC-5C14-FD5E-A7F2-BE8DC2D67C04}"
-$IID_ICalculator = "{5DDA72AF-DACC-AD55-A8F3-F0086A27D858}"
 
 # Read the proxy CLSID from the generated code
 $proxyContent = Get-Content "$genDir/TestCalculator_proxy.cpp" -Raw
@@ -209,6 +226,7 @@ if ($proxyContent -match 'CLSID_PSFactoryBuffer\s*=\s*\{\s*(0x[0-9a-fA-F]+),\s*(
 Write-Host "  CLSID_Calculator:    $CLSID_Calculator"
 Write-Host "  CLSID_PSFactory:     $CLSID_PSFactory"
 Write-Host "  IID_ICalculator:     $IID_ICalculator"
+Write-Host "  IID_ICalculator2:    $IID_ICalculator2"
 
 # Register under HKCU (no admin needed)
 $regBase = "HKCU:\Software\Classes"
@@ -232,6 +250,14 @@ New-Item -Path $iidKey -Force | Out-Null
 Set-ItemProperty -Path $iidKey -Name "(Default)" -Value $CLSID_PSFactory
 Write-Host "  Registered ICalculator ProxyStubClsid32" -ForegroundColor Green
 
+# 3d: Register IID_ICalculator2 → ProxyStubClsid32 (synthesized default interface)
+if ($IID_ICalculator2) {
+    $iid2Key = "$regBase\Interface\$IID_ICalculator2\ProxyStubClsid32"
+    New-Item -Path $iid2Key -Force | Out-Null
+    Set-ItemProperty -Path $iid2Key -Name "(Default)" -Value $CLSID_PSFactory
+    Write-Host "  Registered ICalculator2 ProxyStubClsid32" -ForegroundColor Green
+}
+
 # ---------- Step 4: Start server process ----------
 
 Write-Host ""
@@ -247,6 +273,7 @@ if ($serverProc.HasExited) {
     Remove-Item -Path "$regBase\CLSID\$CLSID_Calculator" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -Path "$regBase\CLSID\$CLSID_PSFactory" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -Path "$regBase\Interface\$IID_ICalculator" -Recurse -Force -ErrorAction SilentlyContinue
+    if ($IID_ICalculator2) { Remove-Item -Path "$regBase\Interface\$IID_ICalculator2" -Recurse -Force -ErrorAction SilentlyContinue }
     exit 1
 }
 
@@ -280,6 +307,9 @@ Write-Host "--- Step 7: Unregister ---" -ForegroundColor Yellow
 Remove-Item -Path "$regBase\CLSID\$CLSID_Calculator" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "$regBase\CLSID\$CLSID_PSFactory" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "$regBase\Interface\$IID_ICalculator" -Recurse -Force -ErrorAction SilentlyContinue
+if ($IID_ICalculator2) {
+    Remove-Item -Path "$regBase\Interface\$IID_ICalculator2" -Recurse -Force -ErrorAction SilentlyContinue
+}
 Write-Host "  Registry entries removed" -ForegroundColor Green
 
 # ---------- Step 8: Report ----------
