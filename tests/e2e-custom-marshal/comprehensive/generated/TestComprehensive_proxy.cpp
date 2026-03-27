@@ -35,8 +35,8 @@ inline constexpr IID IID___x_TestApp_Comprehensive_ITypeShowcase = {0xE05A086B, 
 inline constexpr IID IID___x_TestApp_Comprehensive_IComplexOps = {0xCBD2C614, 0x0CE7, 0x5BEF, {0x8B, 0x1D, 0xD3, 0xD3, 0xC7, 0xBD, 0x8C, 0x05}};
 // {0509C9BC-2088-5B76-8D6D-EAB23A165210}
 inline constexpr IID IID___x_TestApp_Comprehensive_IObservable = {0x0509C9BC, 0x2088, 0x5B76, {0x8D, 0x6D, 0xEA, 0xB2, 0x3A, 0x16, 0x52, 0x10}};
-// {09F6B91A-B9FF-52DD-BC8F-E9010D62D87F}
-inline constexpr IID IID___x_TestApp_Comprehensive_ICollectionOps = {0x09F6B91A, 0xB9FF, 0x52DD, {0xBC, 0x8F, 0xE9, 0x01, 0x0D, 0x62, 0xD8, 0x7F}};
+// {CA3E2FEC-AF3E-50E6-9D16-CDCEA3CBC427}
+inline constexpr IID IID___x_TestApp_Comprehensive_ICollectionOps = {0xCA3E2FEC, 0xAF3E, 0x50E6, {0x9D, 0x16, 0xCD, 0xCE, 0xA3, 0xCB, 0xC4, 0x27}};
 // {4E6ADF0E-820A-5176-8A99-F251882AB08C}
 inline constexpr IID IID___x_TestApp_Comprehensive_IAnimal2 = {0x4E6ADF0E, 0x820A, 0x5176, {0x8A, 0x99, 0xF2, 0x51, 0x88, 0x2A, 0xB0, 0x8C}};
 // {65909E31-0079-5832-8C88-F2ADC762DAE6}
@@ -95,6 +95,7 @@ static constexpr IID IID_IMapView_2_String_Int32 = { 0x06c17849, 0xdfc8, 0x501a,
 static constexpr IID IID_IIterable_1_String = { 0xe2fcc7c1, 0x3bfc, 0x5a0b, { 0xb2, 0xb0, 0x72, 0xe7, 0x69, 0xd1, 0xcb, 0x7e } };
 static constexpr IID IID_IVector_1___x_TestApp_Comprehensive_Animal = { 0x34f8b4bf, 0x4f32, 0x5bef, { 0xa6, 0x9f, 0xf8, 0xeb, 0x5e, 0x7f, 0xa1, 0xc9 } };
 static constexpr IID IID_IMap_2_String___x_TestApp_Comprehensive_Animal = { 0x52621109, 0xd125, 0x5491, { 0x85, 0x32, 0x0e, 0x5e, 0x0a, 0x8b, 0xf8, 0xed } };
+static constexpr IID IID_IMap_2_String_Object = { 0x1b0d3570, 0x0877, 0x5ec2, { 0x8a, 0x2c, 0x3b, 0x95, 0x39, 0x50, 0x6a, 0xca } };
 
 // Shared proxy shape: hstring_to_void
 static HRESULT proxy_shape_hstring_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, HSTRING arg0) {
@@ -1738,7 +1739,7 @@ static constexpr winmidl::interface_descriptor __x_TestApp_Comprehensive_IProper
 };
 
 // Shared proxy shape: void_to_windows_foundation_ireference
-static HRESULT proxy_shape_void_to_windows_foundation_ireference(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, __x_Windows_Foundation_IReference** retval) {
+static HRESULT proxy_shape_void_to_windows_foundation_ireference(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, IInspectable** retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
     msg.cbBuffer = 0;
@@ -1756,7 +1757,7 @@ static HRESULT proxy_shape_void_to_windows_foundation_ireference(IRpcChannelBuff
 }
 
 // Shared proxy shape: windows_foundation_ireference_to_void
-static HRESULT proxy_shape_windows_foundation_ireference_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, __x_Windows_Foundation_IReference* arg0) {
+static HRESULT proxy_shape_windows_foundation_ireference_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, IInspectable* arg0) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
     HRESULT hr;
@@ -1809,7 +1810,7 @@ class CIOptionalProxy : public IRpcProxyBuffer {
 
         // GetOptionalCount (vtable slot 6)
         static constexpr UINT32 kGetOptionalCount_RequestSize = 0;
-        HRESULT STDMETHODCALLTYPE GetOptionalCount(__x_Windows_Foundation_IReference** returnValue) override {
+        HRESULT STDMETHODCALLTYPE GetOptionalCount(IInspectable** returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 6;
@@ -1829,7 +1830,7 @@ class CIOptionalProxy : public IRpcProxyBuffer {
 
         // SetOptionalCount (vtable slot 7)
         static constexpr UINT32 kSetOptionalCount_ReplySize = sizeof(HRESULT);
-        HRESULT STDMETHODCALLTYPE SetOptionalCount(__x_Windows_Foundation_IReference* count) override {
+        HRESULT STDMETHODCALLTYPE SetOptionalCount(IInspectable* count) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 7;
@@ -1853,7 +1854,7 @@ class CIOptionalProxy : public IRpcProxyBuffer {
 
         // GetOptionalPosition (vtable slot 8)
         static constexpr UINT32 kGetOptionalPosition_RequestSize = 0;
-        HRESULT STDMETHODCALLTYPE GetOptionalPosition(__x_Windows_Foundation_IReference** returnValue) override {
+        HRESULT STDMETHODCALLTYPE GetOptionalPosition(IInspectable** returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 8;
@@ -2620,7 +2621,7 @@ static constexpr winmidl::interface_descriptor __x_TestApp_Comprehensive_IComple
 };
 
 // Shared proxy shape: windows_foundation_eventhandler_to_event_token
-static HRESULT proxy_shape_windows_foundation_eventhandler_to_event_token(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, __x_Windows_Foundation_EventHandler* arg0, EventRegistrationToken* retval) {
+static HRESULT proxy_shape_windows_foundation_eventhandler_to_event_token(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, IInspectable* arg0, EventRegistrationToken* retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
     HRESULT hr;
@@ -2674,7 +2675,7 @@ class CIObservableProxy : public IRpcProxyBuffer {
 
         // add_ValueChanged (vtable slot 6)
         static constexpr UINT32 kadd_ValueChanged_ReplySize = sizeof(EventRegistrationToken) + sizeof(HRESULT);
-        HRESULT STDMETHODCALLTYPE add_ValueChanged(__x_Windows_Foundation_EventHandler* handler, EventRegistrationToken* returnValue) override {
+        HRESULT STDMETHODCALLTYPE add_ValueChanged(IInspectable* handler, EventRegistrationToken* returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 6;
@@ -2833,7 +2834,7 @@ static constexpr winmidl::interface_descriptor __x_TestApp_Comprehensive_IObserv
 };
 
 // Shared proxy shape: void_to_windows_foundation_collections_ivector
-static HRESULT proxy_shape_void_to_windows_foundation_collections_ivector(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, __x_Windows_Foundation_Collections_IVector** retval) {
+static HRESULT proxy_shape_void_to_windows_foundation_collections_ivector(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, IInspectable** retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
     msg.cbBuffer = 0;
@@ -2851,7 +2852,7 @@ static HRESULT proxy_shape_void_to_windows_foundation_collections_ivector(IRpcCh
 }
 
 // Shared proxy shape: windows_foundation_collections_ivectorview_to_void
-static HRESULT proxy_shape_windows_foundation_collections_ivectorview_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, __x_Windows_Foundation_Collections_IVectorView* arg0) {
+static HRESULT proxy_shape_windows_foundation_collections_ivectorview_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, IInspectable* arg0) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
     HRESULT hr;
@@ -2873,7 +2874,7 @@ static HRESULT proxy_shape_windows_foundation_collections_ivectorview_to_void(IR
 }
 
 // Shared proxy shape: void_to_windows_foundation_collections_imap
-static HRESULT proxy_shape_void_to_windows_foundation_collections_imap(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, __x_Windows_Foundation_Collections_IMap** retval) {
+static HRESULT proxy_shape_void_to_windows_foundation_collections_imap(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, IInspectable** retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
     msg.cbBuffer = 0;
@@ -2891,7 +2892,7 @@ static HRESULT proxy_shape_void_to_windows_foundation_collections_imap(IRpcChann
 }
 
 // Shared proxy shape: windows_foundation_collections_imapview_to_void
-static HRESULT proxy_shape_windows_foundation_collections_imapview_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, __x_Windows_Foundation_Collections_IMapView* arg0) {
+static HRESULT proxy_shape_windows_foundation_collections_imapview_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, IInspectable* arg0) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
     HRESULT hr;
@@ -2913,7 +2914,7 @@ static HRESULT proxy_shape_windows_foundation_collections_imapview_to_void(IRpcC
 }
 
 // Shared proxy shape: void_to_windows_foundation_collections_iiterable
-static HRESULT proxy_shape_void_to_windows_foundation_collections_iiterable(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, __x_Windows_Foundation_Collections_IIterable** retval) {
+static HRESULT proxy_shape_void_to_windows_foundation_collections_iiterable(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, IInspectable** retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
     msg.cbBuffer = 0;
@@ -2962,7 +2963,7 @@ class CICollectionOpsProxy : public IRpcProxyBuffer {
 
         // GetNames (vtable slot 6)
         static constexpr UINT32 kGetNames_RequestSize = 0;
-        HRESULT STDMETHODCALLTYPE GetNames(__x_Windows_Foundation_Collections_IVector** returnValue) override {
+        HRESULT STDMETHODCALLTYPE GetNames(IInspectable** returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 6;
@@ -2982,7 +2983,7 @@ class CICollectionOpsProxy : public IRpcProxyBuffer {
 
         // SetNames (vtable slot 7)
         static constexpr UINT32 kSetNames_ReplySize = sizeof(HRESULT);
-        HRESULT STDMETHODCALLTYPE SetNames(__x_Windows_Foundation_Collections_IVectorView* names) override {
+        HRESULT STDMETHODCALLTYPE SetNames(IInspectable* names) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 7;
@@ -3006,7 +3007,7 @@ class CICollectionOpsProxy : public IRpcProxyBuffer {
 
         // GetScores (vtable slot 8)
         static constexpr UINT32 kGetScores_RequestSize = 0;
-        HRESULT STDMETHODCALLTYPE GetScores(__x_Windows_Foundation_Collections_IMap** returnValue) override {
+        HRESULT STDMETHODCALLTYPE GetScores(IInspectable** returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 8;
@@ -3026,7 +3027,7 @@ class CICollectionOpsProxy : public IRpcProxyBuffer {
 
         // SetScores (vtable slot 9)
         static constexpr UINT32 kSetScores_ReplySize = sizeof(HRESULT);
-        HRESULT STDMETHODCALLTYPE SetScores(__x_Windows_Foundation_Collections_IMapView* scores) override {
+        HRESULT STDMETHODCALLTYPE SetScores(IInspectable* scores) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 9;
@@ -3050,7 +3051,7 @@ class CICollectionOpsProxy : public IRpcProxyBuffer {
 
         // GetAllItems (vtable slot 10)
         static constexpr UINT32 kGetAllItems_RequestSize = 0;
-        HRESULT STDMETHODCALLTYPE GetAllItems(__x_Windows_Foundation_Collections_IIterable** returnValue) override {
+        HRESULT STDMETHODCALLTYPE GetAllItems(IInspectable** returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 10;
@@ -3070,7 +3071,7 @@ class CICollectionOpsProxy : public IRpcProxyBuffer {
 
         // GetAnimals (vtable slot 11)
         static constexpr UINT32 kGetAnimals_RequestSize = 0;
-        HRESULT STDMETHODCALLTYPE GetAnimals(__x_Windows_Foundation_Collections_IVector** returnValue) override {
+        HRESULT STDMETHODCALLTYPE GetAnimals(IInspectable** returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 11;
@@ -3090,7 +3091,7 @@ class CICollectionOpsProxy : public IRpcProxyBuffer {
 
         // GetAnimalsByName (vtable slot 12)
         static constexpr UINT32 kGetAnimalsByName_RequestSize = 0;
-        HRESULT STDMETHODCALLTYPE GetAnimalsByName(__x_Windows_Foundation_Collections_IMap** returnValue) override {
+        HRESULT STDMETHODCALLTYPE GetAnimalsByName(IInspectable** returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 12;
@@ -3102,6 +3103,26 @@ class CICollectionOpsProxy : public IRpcProxyBuffer {
             RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
             hr = winmidl::unmarshal_interface(pReply, IID_IMap_2_String___x_TestApp_Comprehensive_Animal, (void**)returnValue); RETURN_IF_FAILED(hr);
+            HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
+            hr = m_owner->m_pChannel->FreeBuffer(&msg);
+            RETURN_IF_FAILED(hr);
+            return retHr;
+        }
+
+        // GetProperties (vtable slot 13)
+        static constexpr UINT32 kGetProperties_RequestSize = 0;
+        HRESULT STDMETHODCALLTYPE GetProperties(IInspectable** returnValue) override {
+            if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
+            RPCOLEMESSAGE msg = {};
+            msg.iMethod = 13;
+            msg.cbBuffer = kGetProperties_RequestSize;
+            HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICollectionOps);
+            RETURN_IF_FAILED(hr);
+            ULONG status;
+            hr = m_owner->m_pChannel->SendReceive(&msg, &status);
+            RETURN_IF_FAILED(hr);
+            BYTE* pReply = (BYTE*)msg.Buffer;
+            hr = winmidl::unmarshal_interface(pReply, IID_IMap_2_String_Object, (void**)returnValue); RETURN_IF_FAILED(hr);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
             RETURN_IF_FAILED(hr);
@@ -3178,6 +3199,9 @@ static constexpr winmidl::param_descriptor __x_TestApp_Comprehensive_ICollection
 static constexpr winmidl::param_descriptor __x_TestApp_Comprehensive_ICollectionOps_GetAnimalsByName_params[] = {
     { winmidl::param_type::t_interface, winmidl::param_dir::dir_retval },
 };
+static constexpr winmidl::param_descriptor __x_TestApp_Comprehensive_ICollectionOps_GetProperties_params[] = {
+    { winmidl::param_type::t_interface, winmidl::param_dir::dir_retval },
+};
 static constexpr winmidl::method_descriptor __x_TestApp_Comprehensive_ICollectionOps_methods[] = {
     { 6, "GetNames", __x_TestApp_Comprehensive_ICollectionOps_GetNames_params, 1 },
     { 7, "SetNames", __x_TestApp_Comprehensive_ICollectionOps_SetNames_params, 1 },
@@ -3186,9 +3210,10 @@ static constexpr winmidl::method_descriptor __x_TestApp_Comprehensive_ICollectio
     { 10, "GetAllItems", __x_TestApp_Comprehensive_ICollectionOps_GetAllItems_params, 1 },
     { 11, "GetAnimals", __x_TestApp_Comprehensive_ICollectionOps_GetAnimals_params, 1 },
     { 12, "GetAnimalsByName", __x_TestApp_Comprehensive_ICollectionOps_GetAnimalsByName_params, 1 },
+    { 13, "GetProperties", __x_TestApp_Comprehensive_ICollectionOps_GetProperties_params, 1 },
 };
 static constexpr winmidl::interface_descriptor __x_TestApp_Comprehensive_ICollectionOps_desc = {
-    &IID___x_TestApp_Comprehensive_ICollectionOps, __x_TestApp_Comprehensive_ICollectionOps_methods, 7
+    &IID___x_TestApp_Comprehensive_ICollectionOps, __x_TestApp_Comprehensive_ICollectionOps_methods, 8
 };
 
 // Proxy for TestApp.Comprehensive.IAnimal2
@@ -5559,7 +5584,7 @@ public:
 
 private:
     HRESULT Invoke_GetOptionalCount(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        __x_Windows_Foundation_IReference* returnValue = nullptr;
+        IInspectable* returnValue = nullptr;
         HRESULT hr = m_pServer->GetOptionalCount(&returnValue);
         UINT32 returnValue_marshalSize = 0;
         hr = winmidl::get_marshal_size(returnValue, IID_IReference_1_Int32, returnValue_marshalSize); RETURN_IF_FAILED(hr);
@@ -5578,7 +5603,7 @@ private:
     HRESULT Invoke_SetOptionalCount(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HRESULT hr;
         BYTE* p = (BYTE*)pMsg->Buffer;
-        __x_Windows_Foundation_IReference* count = nullptr;
+        IInspectable* count = nullptr;
         hr = winmidl::unmarshal_interface(p, IID_IReference_1_Int32, (void**)&count); RETURN_IF_FAILED(hr);
         hr = m_pServer->SetOptionalCount(count);
         static constexpr UINT32 kReplySize = sizeof(HRESULT);
@@ -5590,7 +5615,7 @@ private:
         return S_OK;
     }
     HRESULT Invoke_GetOptionalPosition(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        __x_Windows_Foundation_IReference* returnValue = nullptr;
+        IInspectable* returnValue = nullptr;
         HRESULT hr = m_pServer->GetOptionalPosition(&returnValue);
         UINT32 returnValue_marshalSize = 0;
         hr = winmidl::get_marshal_size(returnValue, IID_IReference_1___x_TestApp_Comprehensive_Point, returnValue_marshalSize); RETURN_IF_FAILED(hr);
@@ -6041,7 +6066,7 @@ private:
     HRESULT Invoke_add_ValueChanged(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HRESULT hr;
         BYTE* p = (BYTE*)pMsg->Buffer;
-        __x_Windows_Foundation_EventHandler* handler = nullptr;
+        IInspectable* handler = nullptr;
         hr = winmidl::unmarshal_interface(p, IID_EventHandler_1_String, (void**)&handler); RETURN_IF_FAILED(hr);
         EventRegistrationToken returnValue{};
         hr = m_pServer->add_ValueChanged(handler, &returnValue);
@@ -6148,6 +6173,7 @@ public:
             case 10: return Invoke_GetAllItems(pMsg, pChannel);
             case 11: return Invoke_GetAnimals(pMsg, pChannel);
             case 12: return Invoke_GetAnimalsByName(pMsg, pChannel);
+            case 13: return Invoke_GetProperties(pMsg, pChannel);
             default: return E_UNEXPECTED;
         }
     }
@@ -6186,7 +6212,7 @@ public:
 
 private:
     HRESULT Invoke_GetNames(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        __x_Windows_Foundation_Collections_IVector* returnValue = nullptr;
+        IInspectable* returnValue = nullptr;
         HRESULT hr = m_pServer->GetNames(&returnValue);
         UINT32 returnValue_marshalSize = 0;
         hr = winmidl::get_marshal_size(returnValue, IID_IVector_1_String, returnValue_marshalSize); RETURN_IF_FAILED(hr);
@@ -6205,7 +6231,7 @@ private:
     HRESULT Invoke_SetNames(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HRESULT hr;
         BYTE* p = (BYTE*)pMsg->Buffer;
-        __x_Windows_Foundation_Collections_IVectorView* names = nullptr;
+        IInspectable* names = nullptr;
         hr = winmidl::unmarshal_interface(p, IID_IVectorView_1_String, (void**)&names); RETURN_IF_FAILED(hr);
         hr = m_pServer->SetNames(names);
         static constexpr UINT32 kReplySize = sizeof(HRESULT);
@@ -6217,7 +6243,7 @@ private:
         return S_OK;
     }
     HRESULT Invoke_GetScores(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        __x_Windows_Foundation_Collections_IMap* returnValue = nullptr;
+        IInspectable* returnValue = nullptr;
         HRESULT hr = m_pServer->GetScores(&returnValue);
         UINT32 returnValue_marshalSize = 0;
         hr = winmidl::get_marshal_size(returnValue, IID_IMap_2_String_Int32, returnValue_marshalSize); RETURN_IF_FAILED(hr);
@@ -6236,7 +6262,7 @@ private:
     HRESULT Invoke_SetScores(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HRESULT hr;
         BYTE* p = (BYTE*)pMsg->Buffer;
-        __x_Windows_Foundation_Collections_IMapView* scores = nullptr;
+        IInspectable* scores = nullptr;
         hr = winmidl::unmarshal_interface(p, IID_IMapView_2_String_Int32, (void**)&scores); RETURN_IF_FAILED(hr);
         hr = m_pServer->SetScores(scores);
         static constexpr UINT32 kReplySize = sizeof(HRESULT);
@@ -6248,7 +6274,7 @@ private:
         return S_OK;
     }
     HRESULT Invoke_GetAllItems(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        __x_Windows_Foundation_Collections_IIterable* returnValue = nullptr;
+        IInspectable* returnValue = nullptr;
         HRESULT hr = m_pServer->GetAllItems(&returnValue);
         UINT32 returnValue_marshalSize = 0;
         hr = winmidl::get_marshal_size(returnValue, IID_IIterable_1_String, returnValue_marshalSize); RETURN_IF_FAILED(hr);
@@ -6265,7 +6291,7 @@ private:
         return S_OK;
     }
     HRESULT Invoke_GetAnimals(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        __x_Windows_Foundation_Collections_IVector* returnValue = nullptr;
+        IInspectable* returnValue = nullptr;
         HRESULT hr = m_pServer->GetAnimals(&returnValue);
         UINT32 returnValue_marshalSize = 0;
         hr = winmidl::get_marshal_size(returnValue, IID_IVector_1___x_TestApp_Comprehensive_Animal, returnValue_marshalSize); RETURN_IF_FAILED(hr);
@@ -6282,7 +6308,7 @@ private:
         return S_OK;
     }
     HRESULT Invoke_GetAnimalsByName(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        __x_Windows_Foundation_Collections_IMap* returnValue = nullptr;
+        IInspectable* returnValue = nullptr;
         HRESULT hr = m_pServer->GetAnimalsByName(&returnValue);
         UINT32 returnValue_marshalSize = 0;
         hr = winmidl::get_marshal_size(returnValue, IID_IMap_2_String___x_TestApp_Comprehensive_Animal, returnValue_marshalSize); RETURN_IF_FAILED(hr);
@@ -6294,6 +6320,23 @@ private:
         }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID_IMap_2_String___x_TestApp_Comprehensive_Animal); RETURN_IF_FAILED(hr);
+        winmidl::marshal_int32(pOut, hr);
+        if (returnValue) returnValue->Release();
+        return S_OK;
+    }
+    HRESULT Invoke_GetProperties(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
+        IInspectable* returnValue = nullptr;
+        HRESULT hr = m_pServer->GetProperties(&returnValue);
+        UINT32 returnValue_marshalSize = 0;
+        hr = winmidl::get_marshal_size(returnValue, IID_IMap_2_String_Object, returnValue_marshalSize); RETURN_IF_FAILED(hr);
+        pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
+        HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICollectionOps);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
+        BYTE* pOut = (BYTE*)pMsg->Buffer;
+        hr = winmidl::marshal_interface(pOut, returnValue, IID_IMap_2_String_Object); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
         if (returnValue) returnValue->Release();
         return S_OK;
@@ -6321,6 +6364,9 @@ static constexpr winmidl::param_descriptor stub___x_TestApp_Comprehensive_IColle
 static constexpr winmidl::param_descriptor stub___x_TestApp_Comprehensive_ICollectionOps_GetAnimalsByName_params[] = {
     { winmidl::param_type::t_interface, winmidl::param_dir::dir_retval },
 };
+static constexpr winmidl::param_descriptor stub___x_TestApp_Comprehensive_ICollectionOps_GetProperties_params[] = {
+    { winmidl::param_type::t_interface, winmidl::param_dir::dir_retval },
+};
 static constexpr winmidl::method_descriptor stub___x_TestApp_Comprehensive_ICollectionOps_methods[] = {
     { 6, "GetNames", stub___x_TestApp_Comprehensive_ICollectionOps_GetNames_params, 1 },
     { 7, "SetNames", stub___x_TestApp_Comprehensive_ICollectionOps_SetNames_params, 1 },
@@ -6329,9 +6375,10 @@ static constexpr winmidl::method_descriptor stub___x_TestApp_Comprehensive_IColl
     { 10, "GetAllItems", stub___x_TestApp_Comprehensive_ICollectionOps_GetAllItems_params, 1 },
     { 11, "GetAnimals", stub___x_TestApp_Comprehensive_ICollectionOps_GetAnimals_params, 1 },
     { 12, "GetAnimalsByName", stub___x_TestApp_Comprehensive_ICollectionOps_GetAnimalsByName_params, 1 },
+    { 13, "GetProperties", stub___x_TestApp_Comprehensive_ICollectionOps_GetProperties_params, 1 },
 };
 static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_ICollectionOps_desc = {
-    &IID___x_TestApp_Comprehensive_ICollectionOps, stub___x_TestApp_Comprehensive_ICollectionOps_methods, 7
+    &IID___x_TestApp_Comprehensive_ICollectionOps, stub___x_TestApp_Comprehensive_ICollectionOps_methods, 8
 };
 
 class CStub___x_TestApp_Comprehensive_IAnimal2 : public IRpcStubBuffer {

@@ -1113,13 +1113,13 @@ public:
     }
 
     // ICollectionOps — return PropertySet for map methods, null for others
-    HRESULT STDMETHODCALLTYPE GetNames(__x_Windows_Foundation_Collections_IVector** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetNames(IInspectable** returnValue) override {
         *returnValue = nullptr; return S_OK; // not implemented
     }
-    HRESULT STDMETHODCALLTYPE SetNames(__x_Windows_Foundation_Collections_IVectorView*) override {
+    HRESULT STDMETHODCALLTYPE SetNames(IInspectable*) override {
         return S_OK;
     }
-    HRESULT STDMETHODCALLTYPE GetScores(__x_Windows_Foundation_Collections_IMap** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetScores(IInspectable** returnValue) override {
         // Real IMap<String, Int32> implementation backed by std::unordered_map.
         // Must have full IMap vtable for COM's standard marshaler.
         static const IID IID_IMap_String_Int32 =
@@ -1192,29 +1192,29 @@ public:
             }
         };
 
-        *returnValue = reinterpret_cast<__x_Windows_Foundation_Collections_IMap*>(new StringIntMap());
+        *returnValue = reinterpret_cast<IInspectable*>(new StringIntMap());
         return S_OK;
     }
-    HRESULT STDMETHODCALLTYPE SetScores(__x_Windows_Foundation_Collections_IMapView*) override {
+    HRESULT STDMETHODCALLTYPE SetScores(IInspectable*) override {
         return S_OK;
     }
-    HRESULT STDMETHODCALLTYPE GetAllItems(__x_Windows_Foundation_Collections_IIterable** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetAllItems(IInspectable** returnValue) override {
         *returnValue = nullptr; return S_OK;
     }
-    HRESULT STDMETHODCALLTYPE GetAnimals(__x_Windows_Foundation_Collections_IVector** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetAnimals(IInspectable** returnValue) override {
         *returnValue = nullptr; return S_OK;
     }
-    HRESULT STDMETHODCALLTYPE GetAnimalsByName(__x_Windows_Foundation_Collections_IMap** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetAnimalsByName(IInspectable** returnValue) override {
         *returnValue = nullptr; return S_OK;
     }
-    HRESULT STDMETHODCALLTYPE GetProperties(__x_Windows_Foundation_Collections_IMap** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetProperties(IInspectable** returnValue) override {
         HSTRING hcls = nullptr;
         WindowsCreateString(L"Windows.Foundation.Collections.PropertySet", 42, &hcls);
         IInspectable* pInsp = nullptr;
         HRESULT hr = RoActivateInstance(hcls, &pInsp);
         WindowsDeleteString(hcls);
         if (FAILED(hr)) { *returnValue = nullptr; return hr; }
-        *returnValue = reinterpret_cast<__x_Windows_Foundation_Collections_IMap*>(pInsp);
+        *returnValue = reinterpret_cast<IInspectable*>(pInsp);
         return S_OK;
     }
 };

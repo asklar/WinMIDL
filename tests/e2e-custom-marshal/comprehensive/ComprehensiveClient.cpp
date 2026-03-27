@@ -873,21 +873,21 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
 
         if (SUCCEEDED(hr) && pColl) {
             // GetProperties returns a PropertySet (IMap<String, Object>)
-            __x_Windows_Foundation_Collections_IMap* pMap = nullptr;
+            IInspectable* pMap = nullptr;
             hr = pColl->GetProperties(&pMap);
             Check(SUCCEEDED(hr), "CollectionOps: GetProperties");
             Check(pMap != nullptr, "CollectionOps: GetProperties != null");
             if (pMap) pMap->Release();
 
             // GetScores returns a real IMap<String, Int32> with our computed PIID
-            __x_Windows_Foundation_Collections_IMap* pScores = nullptr;
+            IInspectable* pScores = nullptr;
             hr = pColl->GetScores(&pScores);
             Check(SUCCEEDED(hr), "CollectionOps: GetScores");
             Check(pScores != nullptr, "CollectionOps: GetScores != null");
             if (pScores) pScores->Release();
 
             // GetNames returns null (not implemented yet)
-            __x_Windows_Foundation_Collections_IVector* pVec = nullptr;
+            IInspectable* pVec = nullptr;
             hr = pColl->GetNames(&pVec);
             Check(SUCCEEDED(hr), "CollectionOps: GetNames (null ok)");
 

@@ -6,36 +6,6 @@
 
 #include <eventtoken.h>
 
-// External interface definitions (for IUnknown* upcast in marshal calls)
-#ifndef ____x_Windows_Foundation_Collections_IIterable_DEFINED__
-#define ____x_Windows_Foundation_Collections_IIterable_DEFINED__
-struct __x_Windows_Foundation_Collections_IIterable : public IInspectable {};
-#endif
-#ifndef ____x_Windows_Foundation_Collections_IMap_DEFINED__
-#define ____x_Windows_Foundation_Collections_IMap_DEFINED__
-struct __x_Windows_Foundation_Collections_IMap : public IInspectable {};
-#endif
-#ifndef ____x_Windows_Foundation_Collections_IMapView_DEFINED__
-#define ____x_Windows_Foundation_Collections_IMapView_DEFINED__
-struct __x_Windows_Foundation_Collections_IMapView : public IInspectable {};
-#endif
-#ifndef ____x_Windows_Foundation_Collections_IVector_DEFINED__
-#define ____x_Windows_Foundation_Collections_IVector_DEFINED__
-struct __x_Windows_Foundation_Collections_IVector : public IInspectable {};
-#endif
-#ifndef ____x_Windows_Foundation_Collections_IVectorView_DEFINED__
-#define ____x_Windows_Foundation_Collections_IVectorView_DEFINED__
-struct __x_Windows_Foundation_Collections_IVectorView : public IInspectable {};
-#endif
-#ifndef ____x_Windows_Foundation_EventHandler_DEFINED__
-#define ____x_Windows_Foundation_EventHandler_DEFINED__
-struct __x_Windows_Foundation_EventHandler : public IInspectable {};
-#endif
-#ifndef ____x_Windows_Foundation_IReference_DEFINED__
-#define ____x_Windows_Foundation_IReference_DEFINED__
-struct __x_Windows_Foundation_IReference : public IInspectable {};
-#endif
-
 // Forward declarations
 typedef interface __x_TestApp_Comprehensive_ILogger __x_TestApp_Comprehensive_ILogger;
 typedef interface __x_TestApp_Comprehensive_IAnimal __x_TestApp_Comprehensive_IAnimal;
@@ -251,9 +221,9 @@ MIDL_INTERFACE("3d58d75c-74c0-ef54-a8f3-da92a95aa007")
 __x_TestApp_Comprehensive_IOptional : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE GetOptionalCount(/* [out, retval] */ __x_Windows_Foundation_IReference** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE SetOptionalCount(/* [in] */ __x_Windows_Foundation_IReference* count) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetOptionalPosition(/* [out, retval] */ __x_Windows_Foundation_IReference** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetOptionalCount(/* [out, retval] */ IInspectable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE SetOptionalCount(/* [in] */ IInspectable* count) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetOptionalPosition(/* [out, retval] */ IInspectable** returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Comprehensive_IOptional_INTERFACE_DEFINED__
@@ -312,7 +282,7 @@ MIDL_INTERFACE("4e187735-9f98-8158-8680-786231a37af1")
 __x_TestApp_Comprehensive_IObservable : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE add_ValueChanged(/* [in] */ __x_Windows_Foundation_EventHandler* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
+    virtual HRESULT STDMETHODCALLTYPE add_ValueChanged(/* [in] */ IInspectable* handler, /* [out, retval] */ EventRegistrationToken* token) = 0;
     virtual HRESULT STDMETHODCALLTYPE remove_ValueChanged(/* [in] */ EventRegistrationToken token) = 0;
     virtual HRESULT STDMETHODCALLTYPE get_Value(/* [out, retval] */ HSTRING* value) = 0;
     virtual HRESULT STDMETHODCALLTYPE put_Value(/* [in] */ HSTRING value) = 0;
@@ -331,13 +301,14 @@ MIDL_INTERFACE("1d75483a-3b9b-8a56-9ae9-f25ae705f711")
 __x_TestApp_Comprehensive_ICollectionOps : public IInspectable
 {
 public:
-    virtual HRESULT STDMETHODCALLTYPE GetNames(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE SetNames(/* [in] */ __x_Windows_Foundation_Collections_IVectorView* names) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetScores(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE SetScores(/* [in] */ __x_Windows_Foundation_Collections_IMapView* scores) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetAllItems(/* [out, retval] */ __x_Windows_Foundation_Collections_IIterable** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetAnimals(/* [out, retval] */ __x_Windows_Foundation_Collections_IVector** returnValue) = 0;
-    virtual HRESULT STDMETHODCALLTYPE GetAnimalsByName(/* [out, retval] */ __x_Windows_Foundation_Collections_IMap** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetNames(/* [out, retval] */ IInspectable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE SetNames(/* [in] */ IInspectable* names) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetScores(/* [out, retval] */ IInspectable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE SetScores(/* [in] */ IInspectable* scores) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetAllItems(/* [out, retval] */ IInspectable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetAnimals(/* [out, retval] */ IInspectable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetAnimalsByName(/* [out, retval] */ IInspectable** returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetProperties(/* [out, retval] */ IInspectable** returnValue) = 0;
 };
 
 #endif // ____x_TestApp_Comprehensive_ICollectionOps_INTERFACE_DEFINED__

@@ -274,13 +274,14 @@ inline void unmarshal_struct(BYTE*& buf, T& out) {
 }
 
 // Get the marshaled size of an interface pointer for buffer allocation.
-inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size) {
+// Uses IID_IUnknown for universal compatibility — works with any COM object.
+inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID /*riid*/, UINT32& size) {
     if (!pInterface) {
         size = sizeof(UINT32);
         return S_OK;
     }
     DWORD mshlSize = 0;
-    HRESULT hr = CoGetMarshalSizeMax(&mshlSize, riid, pInterface, MSHCTX_INPROC, nullptr, MSHLFLAGS_NORMAL);
+    HRESULT hr = CoGetMarshalSizeMax(&mshlSize, IID_IUnknown, pInterface, MSHCTX_INPROC, nullptr, MSHLFLAGS_NORMAL);
     if (FAILED(hr)) return hr;
     size = sizeof(UINT32) + static_cast<UINT32>(mshlSize);
     return S_OK;
@@ -292,9 +293,12 @@ inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size)
 // ════════════════════════════════════════════════════════════════
 
 // Marshal an interface pointer into the RPC buffer.
+// Uses IID_IUnknown for CoMarshalInterface — universal, works for any COM object
+// regardless of whether a type-specific proxy/stub is registered for the IID.
+// The riid parameter is kept for API compatibility but not used for marshaling.
 // Null-safe: nullptr writes size=0 without calling CoMarshalInterface.
 // Returns S_OK on success. Advances buf past the written data.
-inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) {
+inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID /*riid*/) {
     if (!pInterface) {
         UINT32 zero = 0;
         memcpy(buf, &zero, sizeof(UINT32));
@@ -304,7 +308,7 @@ inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) 
     IStream* pStream = nullptr;
     HRESULT hr = CreateStreamOnHGlobal(nullptr, TRUE, &pStream);
     if (FAILED(hr)) return hr;
-    hr = CoMarshalInterface(pStream, riid, pInterface, MSHCTX_INPROC, nullptr, MSHLFLAGS_NORMAL);
+    hr = CoMarshalInterface(pStream, IID_IUnknown, pInterface, MSHCTX_LOCAL, nullptr, MSHLFLAGS_NORMAL);
     if (FAILED(hr)) { pStream->Release(); return hr; }
     STATSTG stat;
     pStream->Stat(&stat, STATFLAG_NONAME);
@@ -322,8 +326,11 @@ inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) 
 
 // Unmarshal an interface pointer from the RPC buffer.
 // Null-safe: size=0 yields *ppInterface=nullptr without calling CoUnmarshalInterface.
+// Unmarshal an interface pointer from the RPC buffer.
+// Uses IID_IUnknown for CoUnmarshalInterface — returns IUnknown* which is then
+// cast to the target type. The original object's vtable is preserved.
 // Returns S_OK on success. Advances buf past the read data.
-inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID riid, void** ppInterface) {
+inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID /*riid*/, void** ppInterface) {
     UINT32 streamSize;
     memcpy(&streamSize, buf, sizeof(UINT32));
     buf += sizeof(UINT32);
@@ -340,7 +347,7 @@ inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID riid, void** ppInter
     IStream* pStream = nullptr;
     HRESULT hr = CreateStreamOnHGlobal(hGlobal, TRUE, &pStream);
     if (FAILED(hr)) { GlobalFree(hGlobal); return hr; }
-    hr = CoUnmarshalInterface(pStream, riid, ppInterface);
+    hr = CoUnmarshalInterface(pStream, IID_IUnknown, ppInterface);
     pStream->Release();
     return hr;
 }
