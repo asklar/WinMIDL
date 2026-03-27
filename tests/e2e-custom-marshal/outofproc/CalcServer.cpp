@@ -37,6 +37,10 @@ static const CLSID CLSID_ComplexOps = {
     0xf2a3b4c5, 0xd6e7, 0x4f80,
     {0x91, 0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7, 0xa8}};
 
+static const CLSID CLSID_OptionalValues = {
+    0xd4e5f6a7, 0xb8c9, 0x4d0e,
+    {0x1f, 0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80}};
+
 static HANDLE g_hShutdown = nullptr;
 static LONG g_cServerObjects = 0;
 
@@ -483,6 +487,87 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// OptionalValues — implements IOptionalValues (IReference<T> round-trip)
+// ---------------------------------------------------------------------------
+class OptionalValuesImpl : public __x_TestApp_OutOfProc_IOptionalValues {
+    LONG m_cRef;
+    IInspectable* m_optionalCount;  // IReference<Int32>
+    IInspectable* m_optionalScore;  // IReference<Double>
+
+public:
+    OptionalValuesImpl() : m_cRef(1), m_optionalCount(nullptr), m_optionalScore(nullptr) {
+        ServerObjIncRef();
+    }
+    ~OptionalValuesImpl() {
+        if (m_optionalCount) m_optionalCount->Release();
+        if (m_optionalScore) m_optionalScore->Release();
+        ServerObjDecRef();
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_IOptionalValues) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IOptionalValues*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IOptionalValues;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.OptionalValues", 31, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetOptionalCount(IInspectable** returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_optionalCount;
+        if (m_optionalCount) m_optionalCount->AddRef();
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE SetOptionalCount(IInspectable* count) override {
+        if (m_optionalCount) m_optionalCount->Release();
+        m_optionalCount = count;
+        if (m_optionalCount) m_optionalCount->AddRef();
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetOptionalScore(IInspectable** returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_optionalScore;
+        if (m_optionalScore) m_optionalScore->AddRef();
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE SetOptionalScore(IInspectable* score) override {
+        if (m_optionalScore) m_optionalScore->Release();
+        m_optionalScore = score;
+        if (m_optionalScore) m_optionalScore->AddRef();
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
 // MultiClassFactory — switches on CLSID to create the right object
 // ---------------------------------------------------------------------------
 class MultiClassFactory : public IClassFactory {
@@ -522,6 +607,8 @@ public:
             obj = static_cast<__x_TestApp_OutOfProc_IPropertyBag*>(new (std::nothrow) PropertyBagImpl());
         else if (m_clsid == CLSID_ComplexOps)
             obj = static_cast<__x_TestApp_OutOfProc_IComplexOps*>(new (std::nothrow) ComplexOpsImpl());
+        else if (m_clsid == CLSID_OptionalValues)
+            obj = static_cast<__x_TestApp_OutOfProc_IOptionalValues*>(new (std::nothrow) OptionalValuesImpl());
         else return CLASS_E_CLASSNOTAVAILABLE;
         if (!obj) return E_OUTOFMEMORY;
         HRESULT hr = obj->QueryInterface(riid, ppv);
@@ -564,6 +651,7 @@ int main() {
         { CLSID_Notifier, 0 },
         { CLSID_PropertyBag, 0 },
         { CLSID_ComplexOps, 0 },
+        { CLSID_OptionalValues, 0 },
     };
 
     for (auto& reg : regs) {

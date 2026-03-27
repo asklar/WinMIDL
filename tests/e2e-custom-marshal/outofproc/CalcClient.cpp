@@ -10,6 +10,7 @@
 #include <objbase.h>
 #include <winstring.h>
 #include <inspectable.h>
+#include <roapi.h>
 #include <stdio.h>
 #include <math.h>
 #include "generated/TestCalculator.h"
@@ -37,6 +38,10 @@ static const CLSID CLSID_PropertyBag = {
 static const CLSID CLSID_ComplexOps = {
     0xf2a3b4c5, 0xd6e7, 0x4f80,
     {0x91, 0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7, 0xa8}};
+
+static const CLSID CLSID_OptionalValues = {
+    0xd4e5f6a7, 0xb8c9, 0x4d0e,
+    {0x1f, 0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80}};
 
 static int g_passed = 0;
 static int g_failed = 0;
@@ -157,6 +162,7 @@ int main() {
         printf("FAIL: CoInitializeEx failed: 0x%08lX\n", hr);
         return 1;
     }
+    RoInitialize(RO_INIT_MULTITHREADED);
 
     // ===== Test group 1: Calculator (basic params, struct return, out params) =====
     printf("[Client] --- Calculator tests ---\n");
@@ -480,6 +486,144 @@ int main() {
             if (className) WindowsDeleteString(className);
 
             pCo->Release();
+        }
+    }
+
+    // ===== Test group 6: OptionalValues (IReference<T> cross-process) =====
+    printf("\n[Client] --- OptionalValues tests ---\n");
+    {
+        __x_TestApp_OutOfProc_IOptionalValues* pOpt = nullptr;
+        hr = CoCreateInstance(CLSID_OptionalValues, nullptr, CLSCTX_LOCAL_SERVER,
+                              IID___x_TestApp_OutOfProc_IOptionalValues, (void**)&pOpt);
+        Check(SUCCEEDED(hr), "OptionalValues: CoCreateInstance");
+        if (SUCCEEDED(hr)) {
+            // Initially null
+            IInspectable* nullVal = (IInspectable*)0xDEAD;
+            hr = pOpt->GetOptionalCount(&nullVal);
+            Check(SUCCEEDED(hr) && nullVal == nullptr, "OptionalValues: GetOptionalCount initially null");
+
+            // Set null explicitly
+            hr = pOpt->SetOptionalCount(nullptr);
+            Check(SUCCEEDED(hr), "OptionalValues: SetOptionalCount(null)");
+
+            // Create a real IReference<Int32> via PropertyValue.CreateInt32
+            // Use RoGetActivationFactory to get IPropertyValueStatics
+            static const IID IID_IPropertyValueStatics =
+                {0x629bdbc8, 0xd932, 0x4ff4, {0x96, 0xb9, 0x8d, 0x96, 0xc5, 0xc1, 0xe8, 0x58}};
+
+            // IPropertyValueStatics vtable: IInspectable(6) + CreateEmpty(0) + CreateUInt8(1) +
+            //   CreateInt16(2) + CreateUInt16(3) + CreateInt32(4) + ...
+            struct IPropertyValueStatics : public IInspectable {
+                virtual HRESULT STDMETHODCALLTYPE CreateEmpty(IInspectable** result) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateUInt8(BYTE value, IInspectable** result) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateInt16(INT16 value, IInspectable** result) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateUInt16(UINT16 value, IInspectable** result) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateInt32(INT32 value, IInspectable** result) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateUInt32(UINT32 value, IInspectable** result) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateInt64(INT64 value, IInspectable** result) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateUInt64(UINT64 value, IInspectable** result) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateSingle(FLOAT value, IInspectable** result) = 0;
+                virtual HRESULT STDMETHODCALLTYPE CreateDouble(DOUBLE value, IInspectable** result) = 0;
+            };
+
+            HSTRING hPropVal = nullptr;
+            WindowsCreateString(L"Windows.Foundation.PropertyValue", 32, &hPropVal);
+            IPropertyValueStatics* pPropVal = nullptr;
+            hr = RoGetActivationFactory(hPropVal, IID_IPropertyValueStatics, (void**)&pPropVal);
+            WindowsDeleteString(hPropVal);
+
+            if (SUCCEEDED(hr) && pPropVal) {
+                // Create IReference<Int32> with value 42 and send cross-process
+                IInspectable* boxed42 = nullptr;
+                hr = pPropVal->CreateInt32(42, &boxed42);
+                Check(SUCCEEDED(hr) && boxed42 != nullptr, "OptionalValues: CreateInt32(42)");
+
+                if (SUCCEEDED(hr) && boxed42) {
+                    hr = pOpt->SetOptionalCount(boxed42);
+                    Check(SUCCEEDED(hr), "OptionalValues: SetOptionalCount(boxed 42)");
+
+                    IInspectable* retrieved = nullptr;
+                    hr = pOpt->GetOptionalCount(&retrieved);
+                    Check(SUCCEEDED(hr) && retrieved != nullptr,
+                          "OptionalValues: GetOptionalCount != null after set");
+
+                    // Verify the value round-tripped correctly via IReference<Int32>.get_Value
+                    if (retrieved) {
+                        // IReference<Int32> : IInspectable + get_Value at slot 6
+                        // PIID for IReference<Int32> = {548cefbd-bc8a-5fa0-8df2-957440fc8bf4}
+                        static const IID IID_IReference_Int32 =
+                            {0x548cefbd, 0xbc8a, 0x5fa0, {0x8d, 0xf2, 0x95, 0x74, 0x40, 0xfc, 0x8b, 0xf4}};
+
+                        struct IReference_Int32 : public IInspectable {
+                            virtual HRESULT STDMETHODCALLTYPE get_Value(INT32* value) = 0;
+                        };
+
+                        IReference_Int32* pRef = nullptr;
+                        hr = retrieved->QueryInterface(IID_IReference_Int32, (void**)&pRef);
+                        if (SUCCEEDED(hr) && pRef) {
+                            INT32 val = 0;
+                            hr = pRef->get_Value(&val);
+                            Check(SUCCEEDED(hr) && val == 42,
+                                  "OptionalValues: IReference<Int32> round-trip == 42");
+                            pRef->Release();
+                        } else {
+                            Check(false, "OptionalValues: IReference<Int32> round-trip == 42");
+                        }
+                        retrieved->Release();
+                    }
+                    boxed42->Release();
+                }
+
+                // Create IReference<Double> with value 3.14 and send cross-process
+                IInspectable* boxedPi = nullptr;
+                hr = pPropVal->CreateDouble(3.14, &boxedPi);
+                Check(SUCCEEDED(hr) && boxedPi != nullptr, "OptionalValues: CreateDouble(3.14)");
+
+                if (SUCCEEDED(hr) && boxedPi) {
+                    hr = pOpt->SetOptionalScore(boxedPi);
+                    Check(SUCCEEDED(hr), "OptionalValues: SetOptionalScore(boxed 3.14)");
+
+                    IInspectable* retrieved2 = nullptr;
+                    hr = pOpt->GetOptionalScore(&retrieved2);
+                    Check(SUCCEEDED(hr) && retrieved2 != nullptr,
+                          "OptionalValues: GetOptionalScore != null after set");
+
+                    if (retrieved2) {
+                        static const IID IID_IReference_Double =
+                            {0x2f2d6c29, 0x5473, 0x5f3e, {0x92, 0xe7, 0x96, 0x57, 0x2b, 0xb9, 0x90, 0xe2}};
+
+                        struct IReference_Double : public IInspectable {
+                            virtual HRESULT STDMETHODCALLTYPE get_Value(DOUBLE* value) = 0;
+                        };
+
+                        IReference_Double* pRef2 = nullptr;
+                        hr = retrieved2->QueryInterface(IID_IReference_Double, (void**)&pRef2);
+                        if (SUCCEEDED(hr) && pRef2) {
+                            DOUBLE val = 0.0;
+                            hr = pRef2->get_Value(&val);
+                            Check(SUCCEEDED(hr) && fabs(val - 3.14) < 0.001,
+                                  "OptionalValues: IReference<Double> round-trip == 3.14");
+                            pRef2->Release();
+                        } else {
+                            Check(false, "OptionalValues: IReference<Double> round-trip == 3.14");
+                        }
+                        retrieved2->Release();
+                    }
+                    boxedPi->Release();
+                }
+
+                pPropVal->Release();
+            } else {
+                printf("  SKIP: RoGetActivationFactory failed for PropertyValue (0x%08lX)\n", hr);
+            }
+
+            // GetRuntimeClassName
+            HSTRING className = nullptr;
+            hr = pOpt->GetRuntimeClassName(&className);
+            Check(SUCCEEDED(hr), "OptionalValues: GetRuntimeClassName");
+            if (className) WindowsDeleteString(className);
+
+            pOpt->Release();
         }
     }
 

@@ -210,6 +210,8 @@ $IID_IPropertyBag = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IPropert
 $IID_IPropertyBag2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IPropertyBag2"
 $IID_IComplexOps = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IComplexOps"
 $IID_IComplexOps2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IComplexOps2"
+$IID_IOptionalValues = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IOptionalValues"
+$IID_IOptionalValues2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IOptionalValues2"
 
 if (-not $IID_ICalculator) {
     Write-Host "FAIL: Could not extract IID_ICalculator from generated code" -ForegroundColor Red
@@ -222,6 +224,7 @@ $CLSID_TypeShowcase = "{E1F2A3B4-C5D6-4E7F-8091-A2B3C4D5E6F7}"
 $CLSID_Notifier = "{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C59}"
 $CLSID_PropertyBag = "{C3D4E5F6-A7B8-4C9D-0E1F-2A3B4C5D6E7F}"
 $CLSID_ComplexOps = "{F2A3B4C5-D6E7-4F80-91A2-B3C4D5E6F7A8}"
+$CLSID_OptionalValues = "{D4E5F6A7-B8C9-4D0E-1F2A-3B4C5D6E7F80}"
 
 # Read the proxy CLSID from the generated code
 $proxyContent = Get-Content "$genDir/TestCalculator_proxy.cpp" -Raw
@@ -243,6 +246,7 @@ Write-Host "  CLSID_TypeShowcase:  $CLSID_TypeShowcase"
 Write-Host "  CLSID_Notifier:      $CLSID_Notifier"
 Write-Host "  CLSID_PropertyBag:   $CLSID_PropertyBag"
 Write-Host "  CLSID_ComplexOps:    $CLSID_ComplexOps"
+Write-Host "  CLSID_OptionalValues: $CLSID_OptionalValues"
 Write-Host "  CLSID_PSFactory:     $CLSID_PSFactory"
 Write-Host "  IID_ICalculator:     $IID_ICalculator"
 Write-Host "  IID_ITypeShowcase:   $IID_ITypeShowcase"
@@ -250,12 +254,13 @@ Write-Host "  IID_ICallback:       $IID_ICallback"
 Write-Host "  IID_INotifier:       $IID_INotifier"
 Write-Host "  IID_IPropertyBag:    $IID_IPropertyBag"
 Write-Host "  IID_IComplexOps:     $IID_IComplexOps"
+Write-Host "  IID_IOptionalValues: $IID_IOptionalValues"
 
 # Register under HKCU (no admin needed)
 $regBase = "HKCU:\Software\Classes"
 
 # All CLSIDs for LocalServer32
-$allClsids = @($CLSID_Calculator, $CLSID_TypeShowcase, $CLSID_Notifier, $CLSID_PropertyBag, $CLSID_ComplexOps)
+$allClsids = @($CLSID_Calculator, $CLSID_TypeShowcase, $CLSID_Notifier, $CLSID_PropertyBag, $CLSID_ComplexOps, $CLSID_OptionalValues)
 
 foreach ($clsid in $allClsids) {
     $clsidKey = "$regBase\CLSID\$clsid\LocalServer32"
@@ -283,7 +288,9 @@ $allIids = @(
     $IID_IPropertyBag,
     $IID_IPropertyBag2,
     $IID_IComplexOps,
-    $IID_IComplexOps2
+    $IID_IComplexOps2,
+    $IID_IOptionalValues,
+    $IID_IOptionalValues2
 ) | Where-Object { $_ -ne $null }
 
 foreach ($iid in $allIids) {

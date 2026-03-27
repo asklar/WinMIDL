@@ -96,4 +96,19 @@ namespace TestApp.OutOfProc
     {
         ComplexOps();
     }
+
+    // 6. Nullable / IReference<T> — cross-process boxed value round-trip
+    interface IOptionalValues
+    {
+        Windows.Foundation.IReference<Int32> GetOptionalCount();
+        void SetOptionalCount(Windows.Foundation.IReference<Int32> count);
+        Windows.Foundation.IReference<Double> GetOptionalScore();
+        void SetOptionalScore(Windows.Foundation.IReference<Double> score);
+    };
+
+    [default_interface]
+    runtimeclass OptionalValues : IOptionalValues
+    {
+        OptionalValues();
+    }
 }
