@@ -1000,12 +1000,14 @@ int main() {
                 // get_Status — should be Completed (1)
                 AsyncStatus status = (AsyncStatus)-1;
                 hr = pResult->get_Status(&status);
+                if (FAILED(hr)) printf("    get_Status hr=0x%08lX\n", hr);
                 Check(SUCCEEDED(hr) && status == AsyncStatus_Completed,
                       "AsyncCalculator: Status == Completed");
 
                 // GetResult — should be 7
                 INT32 val = 0;
                 hr = pResult->GetResult(&val);
+                if (FAILED(hr)) printf("    GetResult hr=0x%08lX\n", hr);
                 Check(SUCCEEDED(hr) && val == 7,
                       "AsyncCalculator: GetResult() == 7");
 
