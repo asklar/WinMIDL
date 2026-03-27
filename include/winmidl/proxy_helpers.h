@@ -326,11 +326,10 @@ inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID /*riid
 
 // Unmarshal an interface pointer from the RPC buffer.
 // Null-safe: size=0 yields *ppInterface=nullptr without calling CoUnmarshalInterface.
-// Unmarshal an interface pointer from the RPC buffer.
-// Uses IID_IUnknown for CoUnmarshalInterface — returns IUnknown* which is then
-// cast to the target type. The original object's vtable is preserved.
+// Uses IID_IUnknown for CoUnmarshalInterface (universal), then QIs for the
+// requested IID to get the correct proxy facelet with the right vtable.
 // Returns S_OK on success. Advances buf past the read data.
-inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID /*riid*/, void** ppInterface) {
+inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID riid, void** ppInterface) {
     UINT32 streamSize;
     memcpy(&streamSize, buf, sizeof(UINT32));
     buf += sizeof(UINT32);
@@ -347,8 +346,13 @@ inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID /*riid*/, void** ppI
     IStream* pStream = nullptr;
     HRESULT hr = CreateStreamOnHGlobal(hGlobal, TRUE, &pStream);
     if (FAILED(hr)) { GlobalFree(hGlobal); return hr; }
-    hr = CoUnmarshalInterface(pStream, IID_IUnknown, ppInterface);
+    IUnknown* pUnk = nullptr;
+    hr = CoUnmarshalInterface(pStream, IID_IUnknown, (void**)&pUnk);
     pStream->Release();
+    if (FAILED(hr)) return hr;
+    // QI for the target interface to get the right proxy facelet
+    hr = pUnk->QueryInterface(riid, ppInterface);
+    pUnk->Release();
     return hr;
 }
 
