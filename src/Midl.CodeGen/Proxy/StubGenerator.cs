@@ -217,21 +217,41 @@ public class StubGenerator
         // Declare out parameters
         foreach (var param in outParams)
         {
-            var cType = MapType(param.Type);
-            if (WireFormat.IsInterfaceType(param.Type))
-                sb.AppendLine($"        {cType} {param.Name} = nullptr;");
+            if (param.IsArray)
+            {
+                var elemType = WireFormat.ElementType(param.Type);
+                var elemCType = WireFormat.GetCppTypeName(elemType);
+                sb.AppendLine($"        UINT32 __{param.Name}Size = 0;");
+                sb.AppendLine($"        {elemCType}* {param.Name} = nullptr;");
+            }
             else
-                sb.AppendLine($"        {cType} {param.Name};");
+            {
+                var cType = MapType(param.Type);
+                if (WireFormat.IsInterfaceType(param.Type))
+                    sb.AppendLine($"        {cType} {param.Name} = nullptr;");
+                else
+                    sb.AppendLine($"        {cType} {param.Name};");
+            }
         }
 
         // Declare return value
         if (hasRetval)
         {
-            var retType = MapType(slot.ReturnType);
-            if (WireFormat.IsInterfaceType(slot.ReturnType))
-                sb.AppendLine($"        {retType} returnValue = nullptr;");
+            if (slot.ReturnType.IsArray)
+            {
+                var retElemType = WireFormat.ElementType(slot.ReturnType);
+                var retElemCType = WireFormat.GetCppTypeName(retElemType);
+                sb.AppendLine($"        UINT32 __returnValueSize = 0;");
+                sb.AppendLine($"        {retElemCType}* returnValue = nullptr;");
+            }
             else
-                sb.AppendLine($"        {retType} returnValue;");
+            {
+                var retType = MapType(slot.ReturnType);
+                if (WireFormat.IsInterfaceType(slot.ReturnType))
+                    sb.AppendLine($"        {retType} returnValue = nullptr;");
+                else
+                    sb.AppendLine($"        {retType} returnValue;");
+            }
         }
 
         // Build server call
@@ -255,6 +275,20 @@ public class StubGenerator
 
     private void EmitDeserializeParam(StringBuilder sb, TypeRef typeRef, string name, bool isAsync = false)
     {
+        if (typeRef.IsArray)
+        {
+            var elemType = WireFormat.ElementType(typeRef);
+            var elemCType = WireFormat.GetCppTypeName(elemType);
+            var sizeVar = $"__{name}Size";
+            sb.AppendLine($"        UINT32 {sizeVar};");
+            sb.AppendLine($"        {elemCType}* {name};");
+            if (elemType.Name == "String")
+                sb.AppendLine($"        winmidl::unmarshal_hstring_array(p, &{name}, &{sizeVar});");
+            else
+                sb.AppendLine($"        winmidl::unmarshal_array(p, &{name}, &{sizeVar});");
+            return;
+        }
+
         if (typeRef.Name == "String")
         {
             if (isAsync)
@@ -320,14 +354,36 @@ public class StubGenerator
 
         foreach (var p in slot.Parameters)
         {
-            if (p.Direction == ParameterDirection.Out)
+            if (p.IsArray)
+            {
+                var sizeVar = $"__{p.Name}Size";
+                if (p.Direction == ParameterDirection.Out)
+                {
+                    callArgs.Add($"&{sizeVar}");
+                    callArgs.Add($"&{p.Name}");
+                }
+                else
+                {
+                    callArgs.Add(sizeVar);
+                    callArgs.Add(p.Name);
+                }
+            }
+            else if (p.Direction == ParameterDirection.Out)
                 callArgs.Add($"&{p.Name}");
             else
                 callArgs.Add(p.Name);
         }
 
         if (hasRetval)
-            callArgs.Add("&returnValue");
+        {
+            if (slot.ReturnType.IsArray)
+            {
+                callArgs.Add("&__returnValueSize");
+                callArgs.Add("&returnValue");
+            }
+            else
+                callArgs.Add("&returnValue");
+        }
 
         var argStr = string.Join(", ", callArgs);
         if (hrAlreadyDeclared)
@@ -340,11 +396,11 @@ public class StubGenerator
         bool hasRetval, string iidName, List<ParameterSymbol> inParams, bool useExceptions)
     {
         // For HSTRING out params/retval, we need to get their lengths before computing buffer size
-        foreach (var p in outParams.Where(p => p.Type.Name == "String"))
+        foreach (var p in outParams.Where(p => !p.IsArray && p.Type.Name == "String"))
         {
             sb.AppendLine($"        UINT32 {p.Name}_len = WindowsGetStringLen({p.Name});");
         }
-        if (hasRetval && slot.ReturnType.Name == "String")
+        if (hasRetval && !slot.ReturnType.IsArray && slot.ReturnType.Name == "String")
         {
             sb.AppendLine("        UINT32 returnValue_len = WindowsGetStringLen(returnValue);");
         }
@@ -380,7 +436,15 @@ public class StubGenerator
             var sizeParts = new List<string>();
             foreach (var p in outParams)
             {
-                if (p.Type.Name == "String")
+                if (p.IsArray)
+                {
+                    var elemType = WireFormat.ElementType(p.Type);
+                    if (elemType.Name == "String")
+                        sizeParts.Add($"winmidl::hstring_array_size({p.Name}, __{p.Name}Size)");
+                    else
+                        sizeParts.Add($"sizeof(UINT32) + __{p.Name}Size * {WireFormat.GetCppSizeExpression(elemType)}");
+                }
+                else if (p.Type.Name == "String")
                     sizeParts.Add($"sizeof(UINT32) + {p.Name}_len * sizeof(WCHAR)");
                 else if (WireFormat.IsInterfaceType(p.Type))
                     sizeParts.Add($"{p.Name}_marshalSize");
@@ -389,7 +453,15 @@ public class StubGenerator
             }
             if (hasRetval)
             {
-                if (slot.ReturnType.Name == "String")
+                if (slot.ReturnType.IsArray)
+                {
+                    var retElemType = WireFormat.ElementType(slot.ReturnType);
+                    if (retElemType.Name == "String")
+                        sizeParts.Add("winmidl::hstring_array_size(returnValue, __returnValueSize)");
+                    else
+                        sizeParts.Add($"sizeof(UINT32) + __returnValueSize * {WireFormat.GetCppSizeExpression(retElemType)}");
+                }
+                else if (slot.ReturnType.Name == "String")
                     sizeParts.Add("sizeof(UINT32) + returnValue_len * sizeof(WCHAR)");
                 else if (WireFormat.IsInterfaceType(slot.ReturnType))
                     sizeParts.Add("returnValue_marshalSize");
@@ -442,12 +514,26 @@ public class StubGenerator
         // Clean up HSTRING locals
         foreach (var param in inParams)
         {
-            if (param.Type.Name == "String")
+            if (!param.IsArray && param.Type.Name == "String")
                 sb.AppendLine($"        WindowsDeleteString({param.Name});");
         }
-        if (hasRetval && slot.ReturnType.Name == "String")
+        if (hasRetval && !slot.ReturnType.IsArray && slot.ReturnType.Name == "String")
         {
             sb.AppendLine("        WindowsDeleteString(returnValue);");
+        }
+
+        // Clean up array locals
+        foreach (var param in inParams)
+        {
+            if (param.IsArray)
+            {
+                var elemType = WireFormat.ElementType(param.Type);
+                if (elemType.Name == "String")
+                {
+                    sb.AppendLine($"        for (UINT32 i = 0; i < __{param.Name}Size; i++) WindowsDeleteString({param.Name}[i]);");
+                }
+                sb.AppendLine($"        CoTaskMemFree({param.Name});");
+            }
         }
 
         // Release interface params

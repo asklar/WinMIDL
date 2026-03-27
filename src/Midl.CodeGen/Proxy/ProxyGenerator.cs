@@ -566,23 +566,48 @@ public class ProxyGenerator
         var sigParts = new List<string>();
         foreach (var p in parameters)
         {
-            var cType = HeaderEmitter.MapType(p.Type);
-            if (p.Direction == ParamDirection.Out)
-                sigParts.Add($"{cType}* {p.Name}");
+            if (p.Type.IsArray)
+            {
+                var elemCType = HeaderEmitter.MapType(WireFormat.ElementType(p.Type));
+                if (p.Direction == ParamDirection.Out)
+                {
+                    sigParts.Add($"UINT32* __{p.Name}Size");
+                    sigParts.Add($"{elemCType}** {p.Name}");
+                }
+                else
+                {
+                    sigParts.Add($"UINT32 __{p.Name}Size");
+                    sigParts.Add($"{elemCType}* {p.Name}");
+                }
+            }
             else
-                sigParts.Add($"{cType} {p.Name}");
+            {
+                var cType = HeaderEmitter.MapType(p.Type);
+                if (p.Direction == ParamDirection.Out)
+                    sigParts.Add($"{cType}* {p.Name}");
+                else
+                    sigParts.Add($"{cType} {p.Name}");
+            }
         }
 
         bool hasRetval = returnType.Name != "void";
         string retvalName = "returnValue";
         if (hasRetval)
         {
-            var retCType = HeaderEmitter.MapType(returnType);
-            // Avoid collision with out params
             var paramNames = new HashSet<string>(parameters.Select(p => p.Name));
             while (paramNames.Contains(retvalName))
                 retvalName = "_" + retvalName;
-            sigParts.Add($"{retCType}* {retvalName}");
+            if (returnType.IsArray)
+            {
+                var retElemCType = HeaderEmitter.MapType(WireFormat.ElementType(returnType));
+                sigParts.Add($"UINT32* __{retvalName}Size");
+                sigParts.Add($"{retElemCType}** {retvalName}");
+            }
+            else
+            {
+                var retCType = HeaderEmitter.MapType(returnType);
+                sigParts.Add($"{retCType}* {retvalName}");
+            }
         }
 
         var signature = string.Join(", ", sigParts);
@@ -731,23 +756,48 @@ public class ProxyGenerator
         var sigParts = new List<string>();
         foreach (var p in parameters)
         {
-            var cType = HeaderEmitter.MapType(p.Type);
-            if (p.Direction == ParamDirection.Out)
-                sigParts.Add($"{cType}* {p.Name}");
+            if (p.Type.IsArray)
+            {
+                var elemCType = HeaderEmitter.MapType(WireFormat.ElementType(p.Type));
+                if (p.Direction == ParamDirection.Out)
+                {
+                    sigParts.Add($"UINT32* __{p.Name}Size");
+                    sigParts.Add($"{elemCType}** {p.Name}");
+                }
+                else
+                {
+                    sigParts.Add($"UINT32 __{p.Name}Size");
+                    sigParts.Add($"{elemCType}* {p.Name}");
+                }
+            }
             else
-                sigParts.Add($"{cType} {p.Name}");
+            {
+                var cType = HeaderEmitter.MapType(p.Type);
+                if (p.Direction == ParamDirection.Out)
+                    sigParts.Add($"{cType}* {p.Name}");
+                else
+                    sigParts.Add($"{cType} {p.Name}");
+            }
         }
 
         bool hasRetval = returnType.Name != "void";
         string retvalName = "returnValue";
         if (hasRetval)
         {
-            var retCType = HeaderEmitter.MapType(returnType);
-            // Avoid collision with out params
             var paramNames = new HashSet<string>(parameters.Select(p => p.Name));
             while (paramNames.Contains(retvalName))
                 retvalName = "_" + retvalName;
-            sigParts.Add($"{retCType}* {retvalName}");
+            if (returnType.IsArray)
+            {
+                var retElemCType = HeaderEmitter.MapType(WireFormat.ElementType(returnType));
+                sigParts.Add($"UINT32* __{retvalName}Size");
+                sigParts.Add($"{retElemCType}** {retvalName}");
+            }
+            else
+            {
+                var retCType = HeaderEmitter.MapType(returnType);
+                sigParts.Add($"{retCType}* {retvalName}");
+            }
         }
 
         var signature = string.Join(", ", sigParts);

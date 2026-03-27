@@ -14,6 +14,19 @@ public static class WireFormat
     /// <summary>Size of an HRESULT on the wire (always 4 bytes).</summary>
     public const int HResultSize = 4;
 
+    /// <summary>
+    /// Returns a TypeRef representing the element type of an array TypeRef.
+    /// The element type has the same name and resolved symbol but IsArray = false.
+    /// </summary>
+    public static TypeRef ElementType(TypeRef arrayType)
+    {
+        return new TypeRef(arrayType.Name, arrayType.TypeArguments)
+        {
+            ResolvedSymbol = arrayType.ResolvedSymbol,
+            IsBuiltIn = arrayType.IsBuiltIn,
+        };
+    }
+
     private static readonly Dictionary<string, int> WireSizeMap = new(StringComparer.Ordinal)
     {
         ["Boolean"] = 1,
@@ -79,6 +92,13 @@ public static class WireFormat
     /// </summary>
     public static string GetTypeSizeExpression(TypeRef type)
     {
+        if (type.IsArray)
+        {
+            var elemType = ElementType(type);
+            if (elemType.Name == "String")
+                return "winmidl::hstring_array_size({0}, __{0}Size)";
+            return "sizeof(UINT32) + __{0}Size * " + GetCppSizeExpression(elemType);
+        }
         if (type.Name == "String")
             return "sizeof(UINT32) + WindowsGetStringLen({0}) * sizeof(WCHAR)";
         if (IsInterfaceType(type))
@@ -128,10 +148,21 @@ public static class WireFormat
         var parts = new List<string>();
         foreach (var p in inParams)
         {
-            var expr = GetTypeSizeExpression(p.Type);
-            if (expr.Contains("{0}"))
-                expr = string.Format(expr, p.Name);
-            parts.Add(expr);
+            if (p.Type.IsArray)
+            {
+                var elemType = ElementType(p.Type);
+                if (elemType.Name == "String")
+                    parts.Add($"winmidl::hstring_array_size({p.Name}, __{p.Name}Size)");
+                else
+                    parts.Add($"sizeof(UINT32) + __{p.Name}Size * {GetCppSizeExpression(elemType)}");
+            }
+            else
+            {
+                var expr = GetTypeSizeExpression(p.Type);
+                if (expr.Contains("{0}"))
+                    expr = string.Format(expr, p.Name);
+                parts.Add(expr);
+            }
         }
 
         return string.Join(" + ", parts);
@@ -153,6 +184,17 @@ public static class WireFormat
     /// </summary>
     public static void EmitSerialize(StringBuilder sb, TypeRef typeRef, string varName, string bufferPtr, string indent = "        ")
     {
+        if (typeRef.IsArray)
+        {
+            var elemType = ElementType(typeRef);
+            var sizeVar = $"__{varName}Size";
+            if (elemType.Name == "String")
+                sb.AppendLine($"{indent}winmidl::marshal_hstring_array({bufferPtr}, {varName}, {sizeVar});");
+            else
+                sb.AppendLine($"{indent}winmidl::marshal_array({bufferPtr}, {varName}, {sizeVar});");
+            return;
+        }
+
         var helper = GetMarshalHelper(typeRef);
         if (helper != null)
         {
@@ -270,6 +312,20 @@ public static class WireFormat
     /// </summary>
     public static void EmitDeserialize(StringBuilder sb, TypeRef typeRef, string varName, string bufferPtr, string indent = "        ")
     {
+        if (typeRef.IsArray)
+        {
+            var elemType = ElementType(typeRef);
+            var elemCType = GetCppTypeName(elemType);
+            var sizeVar = $"__{varName}Size";
+            sb.AppendLine($"{indent}UINT32 {sizeVar};");
+            sb.AppendLine($"{indent}{elemCType}* {varName};");
+            if (elemType.Name == "String")
+                sb.AppendLine($"{indent}winmidl::unmarshal_hstring_array({bufferPtr}, &{varName}, &{sizeVar});");
+            else
+                sb.AppendLine($"{indent}winmidl::unmarshal_array({bufferPtr}, &{varName}, &{sizeVar});");
+            return;
+        }
+
         if (typeRef.Name == "String")
         {
             // HSTRING deserialization is handled specially in StubGenerator
@@ -325,6 +381,17 @@ public static class WireFormat
     /// </summary>
     public static void EmitDeserializeReply(StringBuilder sb, TypeRef typeRef, string targetName, string bufferPtr, bool isPointer, string indent = "        ")
     {
+        if (typeRef.IsArray)
+        {
+            var elemType = ElementType(typeRef);
+            var sizeTarget = $"__{targetName}Size";
+            if (elemType.Name == "String")
+                sb.AppendLine($"{indent}hr = winmidl::unmarshal_hstring_array({bufferPtr}, {targetName}, {sizeTarget}); RETURN_IF_FAILED(hr);");
+            else
+                sb.AppendLine($"{indent}hr = winmidl::unmarshal_array({bufferPtr}, {targetName}, {sizeTarget}); RETURN_IF_FAILED(hr);");
+            return;
+        }
+
         if (typeRef.Name == "String")
         {
             sb.AppendLine($"{indent}hr = winmidl::unmarshal_hstring({bufferPtr}, {(isPointer ? targetName : $"&{targetName}")}); RETURN_IF_FAILED(hr);");
@@ -421,6 +488,17 @@ public static class WireFormat
     /// </summary>
     public static void EmitSerializeReplyValue(StringBuilder sb, TypeRef typeRef, string varName, string bufferPtr, string indent = "        ")
     {
+        if (typeRef.IsArray)
+        {
+            var elemType = ElementType(typeRef);
+            var sizeVar = $"__{varName}Size";
+            if (elemType.Name == "String")
+                sb.AppendLine($"{indent}winmidl::marshal_hstring_array({bufferPtr}, {varName}, {sizeVar});");
+            else
+                sb.AppendLine($"{indent}winmidl::marshal_array({bufferPtr}, {varName}, {sizeVar});");
+            return;
+        }
+
         var helper = GetMarshalHelper(typeRef);
         if (helper != null)
         {
@@ -490,6 +568,8 @@ public static class WireFormat
     /// </summary>
     public static bool IsFixedSize(TypeRef typeRef)
     {
+        if (typeRef.IsArray)
+            return false;
         if (typeRef.Name == "String")
             return false;
         if (IsInterfaceType(typeRef))
@@ -575,6 +655,33 @@ public static class WireFormat
         sb.AppendLine($"{indent}}}");
     }
 
+
+    /// <summary>
+    /// Returns the C++ type name for a TypeRef, suitable for variable declarations.
+    /// </summary>
+    public static string GetCppTypeName(TypeRef typeRef)
+    {
+        return typeRef.Name switch
+        {
+            "Boolean" => "boolean",
+            "UInt8" => "BYTE",
+            "Char" => "WCHAR",
+            "Int16" => "INT16",
+            "UInt16" => "UINT16",
+            "Int32" => "INT32",
+            "UInt32" => "UINT32",
+            "Single" => "FLOAT",
+            "Int64" => "INT64",
+            "UInt64" => "UINT64",
+            "Double" => "DOUBLE",
+            "Guid" => "GUID",
+            "String" => "HSTRING",
+            "EventRegistrationToken" => "EventRegistrationToken",
+            _ when typeRef.ResolvedSymbol is EnumSymbol => typeRef.ResolvedSymbol.Name,
+            _ when typeRef.ResolvedSymbol is StructSymbol => typeRef.ResolvedSymbol.Name,
+            _ => typeRef.Name,
+        };
+    }
 
     /// <summary>
     /// Sanitizes a variable name for use as a prefix in generated locals

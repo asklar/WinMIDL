@@ -343,6 +343,85 @@ inline HRESULT unmarshal_interface(BYTE*& buf, REFIID riid, void** ppInterface) 
 }
 
 // ════════════════════════════════════════════════════════════════
+// Array serialization/deserialization helpers
+// ════════════════════════════════════════════════════════════════
+
+// Marshal a fixed-size array: [uint32 count][element × count]
+template<typename T>
+inline void marshal_array(BYTE*& buf, const T* items, UINT32 count) {
+    memcpy(buf, &count, sizeof(UINT32));
+    buf += sizeof(UINT32);
+    if (count > 0) {
+        memcpy(buf, items, count * sizeof(T));
+        buf += count * sizeof(T);
+    }
+}
+
+// Unmarshal a fixed-size array (allocating with CoTaskMemAlloc)
+template<typename T>
+inline HRESULT unmarshal_array(const BYTE*& buf, T** items, UINT32* count) {
+    memcpy(count, buf, sizeof(UINT32));
+    buf += sizeof(UINT32);
+    if (*count == 0) { *items = nullptr; return S_OK; }
+    *items = static_cast<T*>(CoTaskMemAlloc(*count * sizeof(T)));
+    if (!*items) return E_OUTOFMEMORY;
+    memcpy(*items, buf, *count * sizeof(T));
+    buf += *count * sizeof(T);
+    return S_OK;
+}
+
+// Overload with mutable buf pointer (for stub-side code)
+template<typename T>
+inline HRESULT unmarshal_array(BYTE*& buf, T** items, UINT32* count) {
+    memcpy(count, buf, sizeof(UINT32));
+    buf += sizeof(UINT32);
+    if (*count == 0) { *items = nullptr; return S_OK; }
+    *items = static_cast<T*>(CoTaskMemAlloc(*count * sizeof(T)));
+    if (!*items) return E_OUTOFMEMORY;
+    memcpy(*items, buf, *count * sizeof(T));
+    buf += *count * sizeof(T);
+    return S_OK;
+}
+
+// Marshal an HSTRING array: [uint32 count][hstring × count]
+inline void marshal_hstring_array(BYTE*& buf, HSTRING* items, UINT32 count) {
+    memcpy(buf, &count, sizeof(UINT32));
+    buf += sizeof(UINT32);
+    for (UINT32 i = 0; i < count; i++) {
+        marshal_hstring(buf, items[i]);
+    }
+}
+
+// Unmarshal an HSTRING array (allocating with CoTaskMemAlloc)
+inline HRESULT unmarshal_hstring_array(BYTE*& buf, HSTRING** items, UINT32* count) {
+    memcpy(count, buf, sizeof(UINT32));
+    buf += sizeof(UINT32);
+    if (*count == 0) { *items = nullptr; return S_OK; }
+    *items = static_cast<HSTRING*>(CoTaskMemAlloc(*count * sizeof(HSTRING)));
+    if (!*items) return E_OUTOFMEMORY;
+    for (UINT32 i = 0; i < *count; i++) {
+        HRESULT hr = unmarshal_hstring(buf, &(*items)[i]);
+        if (FAILED(hr)) {
+            for (UINT32 j = 0; j < i; j++) WindowsDeleteString((*items)[j]);
+            CoTaskMemFree(*items);
+            *items = nullptr;
+            *count = 0;
+            return hr;
+        }
+    }
+    return S_OK;
+}
+
+// Compute buffer size for an HSTRING array
+inline UINT32 hstring_array_size(HSTRING* items, UINT32 count) {
+    UINT32 size = sizeof(UINT32); // count prefix
+    for (UINT32 i = 0; i < count; i++) {
+        size += sizeof(UINT32) + WindowsGetStringLen(items[i]) * sizeof(WCHAR);
+    }
+    return size;
+}
+
+// ════════════════════════════════════════════════════════════════
 // Method/interface descriptor types for data-driven dispatch
 // ════════════════════════════════════════════════════════════════
 
