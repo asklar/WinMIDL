@@ -3,7 +3,7 @@
   <Metadata>
     <Identity Id="WinMIDL.LanguageSupport" Version="0.1.5" Language="en-US" Publisher="Alexander Sklar" />
     <DisplayName>MIDL Language Support</DisplayName>
-    <Description xml:space="preserve">Full-featured language support for WinRT Interface Definition Language (MIDL3/IDL) — real-time diagnostics, IntelliSense, Go to Definition (including into SDK types), code quality hints, rename, and custom proxy/stub code generation.</Description>
+    <Description xml:space="preserve">Full-featured language support for WinRT Interface Definition Language (MIDL3/IDL) — real-time diagnostics, IntelliSense, Go to Definition (including into SDK types), code quality hints, and rename.</Description>
     <Icon>icon.png</Icon>
     <Tags>midl, idl, winrt, language server, lsp, midl3</Tags>
   </Metadata>
