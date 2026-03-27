@@ -703,6 +703,10 @@ public class StubGenerator
         if (typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
             return $"{MangleName(typeRef.ResolvedSymbol.FullName)}*";
 
+        // RuntimeClass: ABI uses the default interface pointer type
+        if (typeRef.ResolvedSymbol is RuntimeClassSymbol rc && rc.DefaultInterface is { } defaultIface)
+            return $"{MangleName(defaultIface.FullName)}*";
+
         if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol)
             return typeRef.ResolvedSymbol.Name;
 

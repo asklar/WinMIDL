@@ -784,7 +784,14 @@ public static partial class WireFormat
         if (typeRef.TypeArguments.Count > 0 && typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
             return GetGenericIidConstantName(typeRef);
 
-        if (typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol or RuntimeClassSymbol)
+        // RuntimeClass: marshal via its default interface's IID (runtimeclasses don't have ABI-level IIDs)
+        if (typeRef.ResolvedSymbol is RuntimeClassSymbol rc && rc.DefaultInterface is { } defaultIface)
+        {
+            var mangledName = HeaderEmitter.MangleName(defaultIface.FullName);
+            return $"IID_{mangledName}";
+        }
+
+        if (typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
         {
             var mangledName = HeaderEmitter.MangleName(typeRef.ResolvedSymbol.FullName);
             var baseName = $"IID_{mangledName}";
