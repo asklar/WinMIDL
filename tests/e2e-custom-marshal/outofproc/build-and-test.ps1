@@ -191,14 +191,15 @@ $serverExePath = (Resolve-Path "$buildDir/CalcServer.exe").Path
 $iidContent = Get-Content "$genDir/TestCalculator_i.c" -Raw
 
 function Extract-Guid($content, $name) {
-    if ($content -match "$name,0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+)") {
+    # Match: MIDL_DEFINE_GUID(IID,<name>,0x...,...)
+    if ($content -match "(?:^|[,\s])$name,0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+),0x([0-9a-fA-F]+)") {
         return "{$($Matches[1])-$($Matches[2])-$($Matches[3])-$($Matches[4])$($Matches[5])-$($Matches[6])$($Matches[7])$($Matches[8])$($Matches[9])$($Matches[10])$($Matches[11])}".ToUpper()
     }
     return $null
 }
 
-$IID_ICalculator = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculator,"
-$IID_ICalculator2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculator2,"
+$IID_ICalculator = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculator"
+$IID_ICalculator2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculator2"
 
 if (-not $IID_ICalculator) {
     Write-Host "FAIL: Could not extract IID_ICalculator from generated code" -ForegroundColor Red
