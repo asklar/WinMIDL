@@ -1118,16 +1118,29 @@ public:
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE GetScores(__x_Windows_Foundation_Collections_IMap** returnValue) override {
-        // Create a PropertySet (implements IMap<String, IInspectable*>)
-        HSTRING hcls = nullptr;
-        WindowsCreateString(L"Windows.Foundation.Collections.PropertySet", 41, &hcls);
-        IInspectable* pInsp = nullptr;
-        HRESULT hr = RoActivateInstance(hcls, &pInsp);
-        if (FAILED(hr)) { printf("SERVER GetScores: RoActivateInstance failed 0x%08lx\n", hr); fflush(stdout); }
-        WindowsDeleteString(hcls);
-        if (FAILED(hr)) { *returnValue = nullptr; return hr; }
-        // PropertySet is IInspectable — cast to our opaque IMap type
-        *returnValue = reinterpret_cast<__x_Windows_Foundation_Collections_IMap*>(pInsp);
+        // Return a simple IInspectable-based object for marshaling test.
+        // The test validates the proxy/stub marshals the pointer correctly
+        // across apartments — it doesn't need a real IMap implementation.
+        class DummyMap : public IInspectable {
+            LONG m_cRef;
+        public:
+            DummyMap() : m_cRef(1) {}
+            HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+                if (riid == IID_IUnknown || riid == IID_IInspectable) {
+                    *ppv = static_cast<IInspectable*>(this); AddRef(); return S_OK;
+                }
+                if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+                *ppv = nullptr; return E_NOINTERFACE;
+            }
+            ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+            ULONG STDMETHODCALLTYPE Release() override {
+                ULONG c = InterlockedDecrement(&m_cRef); if (c == 0) delete this; return c;
+            }
+            HRESULT STDMETHODCALLTYPE GetIids(ULONG* c, IID** i) override { *c=0; *i=nullptr; return S_OK; }
+            HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* n) override { *n=nullptr; return S_OK; }
+            HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* t) override { *t=BaseTrust; return S_OK; }
+        };
+        *returnValue = reinterpret_cast<__x_Windows_Foundation_Collections_IMap*>(new DummyMap());
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE SetScores(__x_Windows_Foundation_Collections_IMapView*) override {
