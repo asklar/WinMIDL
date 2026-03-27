@@ -336,11 +336,10 @@ int main() {
                 HSTRING className = nullptr;
                 hr = pCalc->GetRuntimeClassName(&className);
                 Check(SUCCEEDED(hr), "Calculator: GetRuntimeClassName HRESULT");
-                if (SUCCEEDED(hr) && !HStringEquals(className, L"TestApp.OutOfProc.Calculator", 28)) {
-                    UINT32 cLen = 0;
-                    WindowsGetStringRawBuffer(className, &cLen);
-                    printf("  NOTE: Calculator GetRuntimeClassName returned len=%u (expected 28) — known proxy limitation\n", cLen);
-                }
+                // Proxy returns interface name or class name depending on mapping
+                bool nameOk = HStringEquals(className, L"TestApp.OutOfProc.Calculator", 28) ||
+                              HStringEquals(className, L"TestApp.OutOfProc.ICalculator", 29);
+                Check(nameOk, "Calculator: GetRuntimeClassName");
                 if (className) WindowsDeleteString(className);
             }
 
