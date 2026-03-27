@@ -233,6 +233,10 @@ $clsidMap = @{
     "{8AA503FE-EB8A-655F-9195-12D9800B2077}" = "Circle"
     "{05B429F5-72C9-E559-9D1D-2C09B701DEB4}" = "Document"
     "{FE8DF0E1-4F9D-4851-B494-0B41AB812A5D}" = "Calculator"
+    "{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C59}" = "Notifier"
+    "{B2C3D4E5-F6A7-4B8C-9D0E-1F2A3B4C5D6E}" = "EventSource"
+    "{C3D4E5F6-A7B8-4C9D-0E1F-2A3B4C5D6E7F}" = "PropertyBag"
+    "{D4E5F6A7-B8C9-4D0E-1F2A-3B4C5D6E7F80}" = "OptionalValues"
 }
 
 foreach ($clsid in $clsidMap.Keys) {

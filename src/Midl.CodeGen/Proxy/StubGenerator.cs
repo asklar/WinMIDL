@@ -173,15 +173,23 @@ public class StubGenerator
     private void EmitInvokeDispatch(StringBuilder sb, InterfaceSymbol iface, List<StubSlot> slots, string iidName)
     {
         sb.AppendLine("    HRESULT STDMETHODCALLTYPE Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) override {");
-        sb.AppendLine("        switch (pMsg->iMethod) {");
-
-        foreach (var slot in slots)
+        if (slots.Count == 0)
         {
-            sb.AppendLine($"            case {slot.Index}: return Invoke_{slot.Name}(pMsg, pChannel);");
+            sb.AppendLine("        (void)pMsg; (void)pChannel;");
+            sb.AppendLine("        return E_UNEXPECTED;");
         }
+        else
+        {
+            sb.AppendLine("        switch (pMsg->iMethod) {");
 
-        sb.AppendLine("            default: return E_UNEXPECTED;");
-        sb.AppendLine("        }");
+            foreach (var slot in slots)
+            {
+                sb.AppendLine($"            case {slot.Index}: return Invoke_{slot.Name}(pMsg, pChannel);");
+            }
+
+            sb.AppendLine("            default: return E_UNEXPECTED;");
+            sb.AppendLine("        }");
+        }
         sb.AppendLine("    }");
     }
 
@@ -231,7 +239,7 @@ public class StubGenerator
                 if (WireFormat.IsInterfaceType(param.Type))
                     sb.AppendLine($"        {cType} {param.Name} = nullptr;");
                 else
-                    sb.AppendLine($"        {cType} {param.Name};");
+                    sb.AppendLine($"        {cType} {param.Name}{{}};");
             }
         }
 
@@ -251,7 +259,7 @@ public class StubGenerator
                 if (WireFormat.IsInterfaceType(slot.ReturnType))
                     sb.AppendLine($"        {retType} returnValue = nullptr;");
                 else
-                    sb.AppendLine($"        {retType} returnValue;");
+                    sb.AppendLine($"        {retType} returnValue{{}};");
             }
         }
 
@@ -309,6 +317,11 @@ public class StubGenerator
             var iidName = WireFormat.GetInterfaceIidName(typeRef);
             sb.AppendLine($"        {cType} {name} = nullptr;");
             sb.AppendLine($"        hr = winmidl::unmarshal_interface(p, {iidName}, (void**)&{name}); RETURN_IF_FAILED(hr);");
+        }
+        else if (typeRef.Name == "EventRegistrationToken")
+        {
+            sb.AppendLine($"        EventRegistrationToken {name};");
+            sb.AppendLine($"        winmidl::unmarshal_event_token(p, {name});");
         }
         else if (typeRef.ResolvedSymbol is StructSymbol structSym)
         {
