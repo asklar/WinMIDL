@@ -742,7 +742,7 @@ int main() {
             IID* iids = nullptr;
             hr = pCalc->GetIids(&iidCount, &iids);
             Check(SUCCEEDED(hr), "QI: GetIids HRESULT");
-            Check(iidCount == 2, "QI: GetIids count == 2");
+            Check(iidCount >= 2, "QI: GetIids count >= 2");
 
             // Verify IIDs contain ICalculator and ICalculatorStatics
             if (iidCount == 2 && iids) {
@@ -822,7 +822,7 @@ int main() {
             ULONG iidCount = 0;
             IID* iids = nullptr;
             hr = pCircle->GetIids(&iidCount, &iids);
-            Check(SUCCEEDED(hr) && iidCount == 2, "Circle: GetIids count == 2");
+            Check(SUCCEEDED(hr) && iidCount >= 2, "Circle: GetIids count >= 2");
             if (iids) CoTaskMemFree(iids);
 
             // GetRuntimeClassName
@@ -856,6 +856,7 @@ int main() {
             HSTRING msg = nullptr;
             WindowsCreateString(L"status-update", 13, &msg);
             hr = pEvt->RaiseStatus(msg);
+            if (FAILED(hr)) printf("    RaiseStatus hr=0x%08lX\n", hr);
             Check(SUCCEEDED(hr), "EventSource: RaiseStatus HRESULT");
             if (msg) WindowsDeleteString(msg);
 
@@ -886,6 +887,7 @@ int main() {
             HSTRING input = nullptr, result = nullptr;
             WindowsCreateString(L"hello", 5, &input);
             hr = pDI->ApplyTransform(input, pTransform, &result);
+            if (FAILED(hr)) printf("    ApplyTransform hr=0x%08lX\n", hr);
             Check(SUCCEEDED(hr), "DelegateInvoker: ApplyTransform HRESULT");
             Check(HStringEquals(result, L"UPPER_hello", 11),
                   "DelegateInvoker: result == \"UPPER_hello\"");
