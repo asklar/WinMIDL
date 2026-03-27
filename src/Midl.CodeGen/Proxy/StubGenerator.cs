@@ -44,6 +44,7 @@ public class StubGenerator
         WireFormat.EmitConsolidatedIncludes(sb);
         sb.AppendLine("#include \"winmidl/proxy_helpers.h\"");
         sb.AppendLine();
+        WireFormat.EmitGenericIidConstants(sb, compilation);
 
         var interfaces = compilation.GetAllTypes()
             .OfType<InterfaceSymbol>()

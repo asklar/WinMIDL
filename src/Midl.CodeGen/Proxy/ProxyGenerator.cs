@@ -19,6 +19,7 @@ public class ProxyGenerator
     {
         var sb = new StringBuilder();
         EmitPrologue(sb);
+        WireFormat.EmitGenericIidConstants(sb, compilation);
 
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
 
