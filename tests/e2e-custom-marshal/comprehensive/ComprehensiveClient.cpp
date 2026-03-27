@@ -905,12 +905,12 @@ int main() {
 
     // Initialize both COM and WinRT for PropertySet activation
     HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-    if (SUCCEEDED(hr)) RoInitialize(RO_INIT_SINGLETHREADED);
     if (FAILED(hr)) {
         printf("FAIL: CoInitializeEx(STA) failed: 0x%08lX\n", hr);
         return 1;
     }
-    printf("[STA] COM initialized (apartment-threaded)\n");
+    HRESULT roHr = RoInitialize(RO_INIT_SINGLETHREADED);
+    printf("[STA] COM initialized (apartment-threaded), RoInitialize=0x%08lX\n", roHr);
 
     WorkerArgs args;
     args.hDone = CreateEvent(nullptr, TRUE, FALSE, nullptr);
