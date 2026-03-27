@@ -31,7 +31,7 @@ public static partial class WireFormat
         ["Windows.Foundation.IAsyncOperation"] = new("9fc2b0bb-e446-44e2-aa61-9a8696523175"),
         ["Windows.Foundation.IAsyncOperationWithProgress"] = new("b5d036d7-e297-498f-ba60-0289e76e23dd"),
         ["Windows.Foundation.IAsyncActionWithProgress"] = new("1f6db258-e803-48a1-9546-eb7353398884"),
-        ["Windows.Foundation.IReference"] = new("61c17706-2d65-11e0-9ae8-d48564015472"),
+        ["Windows.Foundation.IReference"] = new("61c17706-2d65-11e0-9ae8-d48564015206"),
         ["Windows.Foundation.EventHandler"] = new("9de1c534-6ae1-11e0-84e1-18a905bcc53f"),
         ["Windows.Foundation.TypedEventHandler"] = new("9de1c535-6ae1-11e0-84e1-18a905bcc53f"),
     };

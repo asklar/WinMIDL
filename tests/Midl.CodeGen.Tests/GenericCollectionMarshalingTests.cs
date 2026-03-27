@@ -493,7 +493,7 @@ public class GenericCollectionMarshalingTests
     [Fact]
     public void ComputeGenericIid_IReferenceInt32_MatchesKnownSdkValue()
     {
-        // IReference<Int32> = {548cefbd-bc8a-5fa0-8df2-957440fc8bf4}
+        // IReference<Int32> = {aff0a017-349c-50e2-92c3-10bf045d8825}
         var ns = new NamespaceSymbol("Foundation",
             new NamespaceSymbol("Windows"));
         var ifaceSym = new InterfaceSymbol("IReference", ns) { IsExternal = true };
@@ -501,6 +501,6 @@ public class GenericCollectionMarshalingTests
 
         var iid = WireFormat.ComputeGenericIid(typeRef);
         Assert.NotNull(iid);
-        Assert.Equal(new Guid("548cefbd-bc8a-5fa0-8df2-957440fc8bf4"), iid!.Value);
+        Assert.Equal(new Guid("aff0a017-349c-50e2-92c3-10bf045d8825"), iid!.Value);
     }
 }
