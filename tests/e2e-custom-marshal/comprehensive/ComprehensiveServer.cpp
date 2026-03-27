@@ -1123,6 +1123,7 @@ public:
         WindowsCreateString(L"Windows.Foundation.Collections.PropertySet", 41, &hcls);
         IInspectable* pInsp = nullptr;
         HRESULT hr = RoActivateInstance(hcls, &pInsp);
+        if (FAILED(hr)) { printf("SERVER GetScores: RoActivateInstance failed 0x%08lx\n", hr); fflush(stdout); }
         WindowsDeleteString(hcls);
         if (FAILED(hr)) { *returnValue = nullptr; return hr; }
         // PropertySet is IInspectable — cast to our opaque IMap type
