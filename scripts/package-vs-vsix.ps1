@@ -111,10 +111,11 @@ if (Test-Path $manifestPath) {
     Write-Host "  Version set to $Version"
 }
 
-# Step 4: Build VSIX with MSBuild
+# Step 5: Build VSIX with MSBuild (clean first to pick up manifest changes)
 Write-Host ""
 Write-Host "Building VS extension ($Configuration)..." -ForegroundColor Cyan
 Push-Location $vsExtDir
+& $msbuild /restore /t:Clean /p:Configuration=$Configuration /v:quiet 2>&1 | Out-Null
 & $msbuild /restore /t:Build /p:Configuration=$Configuration /v:minimal 2>&1 | ForEach-Object { Write-Host "  $_" }
 $buildExitCode = $LASTEXITCODE
 Pop-Location
