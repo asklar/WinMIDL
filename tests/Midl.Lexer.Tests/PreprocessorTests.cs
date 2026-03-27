@@ -282,4 +282,142 @@ public class PreprocessorTests
         // Continuation joins "ba" + " " + "r" = "ba r"
         Assert.Contains("ba r", result);
     }
+
+    [Fact]
+    public void TokenPaste_FunctionMacro_Basic()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define PASTE(a,b) a##b\nPASTE(foo,bar)");
+        Assert.Contains("foobar", result);
+    }
+
+    [Fact]
+    public void TokenPaste_FunctionMacro_WithNumbers()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define PASTE(a,b) a##b\nPASTE(x,123)");
+        Assert.Contains("x123", result);
+    }
+
+    [Fact]
+    public void TokenPaste_FunctionMacro_Prefix()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define MAKE(n) item_##n\nMAKE(1)");
+        Assert.Contains("item_1", result);
+    }
+
+    [Fact]
+    public void TokenPaste_ObjectLikeMacro()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define AB c##d\nAB");
+        Assert.Contains("cd", result);
+    }
+
+    [Fact]
+    public void TokenPaste_Multiple()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define TRIPLE(a,b,c) a##b##c\nTRIPLE(x,y,z)");
+        Assert.Contains("xyz", result);
+    }
+
+    [Fact]
+    public void TokenPaste_WithWhitespace()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define PASTE(a,b) a ## b\nPASTE(foo,bar)");
+        Assert.Contains("foobar", result);
+    }
+
+    [Fact]
+    public void Stringize_Basic()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define STR(x) #x\nSTR(hello)");
+        Assert.Contains("\"hello\"", result);
+    }
+
+    [Fact]
+    public void Stringize_WithSpaces()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define STR(x) #x\nSTR(foo bar)");
+        Assert.Contains("\"foo bar\"", result);
+    }
+
+    [Fact]
+    public void Stringize_WithNumbers()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define STR(x) #x\nSTR(123)");
+        Assert.Contains("\"123\"", result);
+    }
+
+    [Fact]
+    public void Stringize_CombinedWithText()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define MSG(x) \"Error: \" #x\nMSG(fail)");
+        Assert.Contains("\"Error: \" \"fail\"", result);
+    }
+
+    [Fact]
+    public void Stringize_MultipleParams()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define PAIR(a,b) #a \" and \" #b\nPAIR(hello,world)");
+        Assert.Contains("\"hello\" \" and \" \"world\"", result);
+    }
+
+    [Fact]
+    public void Stringize_DoesNotMatchTokenPaste()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define PASTE(a,b) a##b\nPASTE(foo,bar)");
+        Assert.Contains("foobar", result);
+        Assert.DoesNotContain("\"foo\"", result);
+        Assert.DoesNotContain("\"bar\"", result);
+    }
+
+    [Fact]
+    public void VariadicMacro_Basic()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define LOG(fmt, ...) fmt __VA_ARGS__\nLOG(\"hi\", a, b)");
+        Assert.Contains("\"hi\" a, b", result);
+    }
+
+    [Fact]
+    public void VariadicMacro_OnlyVariadic()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define ALL(...) __VA_ARGS__\nALL(a, b, c)");
+        Assert.Contains("a, b, c", result);
+    }
+
+    [Fact]
+    public void VariadicMacro_ZeroVariadicArgs()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define OPT(x, ...) x __VA_ARGS__\nOPT(hello)");
+        Assert.Contains("hello", result);
+    }
+
+    [Fact]
+    public void VariadicMacro_WithRegularParams()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define F(a, b, ...) a + b + __VA_ARGS__\nF(1, 2, 3, 4)");
+        Assert.Contains("1 + 2 + 3, 4", result);
+    }
+
+    [Fact]
+    public void VariadicMacro_SingleVariadicArg()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define ALL(...) __VA_ARGS__\nALL(solo)");
+        Assert.Contains("solo", result);
+    }
 }

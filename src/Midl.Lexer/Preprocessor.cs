@@ -30,7 +30,7 @@ public class Preprocessor
     /// <summary>Warnings from preprocessing (#warning directives).</summary>
     public List<string> Warnings { get; } = new();
 
-    private record FunctionMacro(string[] Params, string Body);
+    private record FunctionMacro(string[] Params, string Body, bool IsVariadic = false);
 
     public Preprocessor(IReadOnlyList<string>? defines = null,
                         IReadOnlyList<string>? includePaths = null,
@@ -301,7 +301,15 @@ public class Preprocessor
                     .Where(p => p.Length > 0)
                     .ToArray();
                 var body = rest[(closeIdx + 1)..].Trim();
-                _functionMacros[name] = new FunctionMacro(parameters, body);
+
+                // Detect variadic macro: last param is "..."
+                bool isVariadic = parameters.Length > 0 && parameters[^1] == "...";
+                if (isVariadic)
+                {
+                    // Remove "..." from the parameter list; variadic args are accessed via __VA_ARGS__
+                    parameters = parameters[..^1];
+                }
+                _functionMacros[name] = new FunctionMacro(parameters, body, isVariadic);
                 return;
             }
         }
@@ -542,10 +550,40 @@ public class Preprocessor
 
                 // Substitute parameters in body
                 var expanded = macro.Body;
+
+                // Process # (stringize) operator before regular substitution.
+                // Match standalone # followed by a parameter name, but not ## (token paste).
+                for (int p = 0; p < macro.Params.Length && p < args.Length; p++)
+                {
+                    var stringizePattern = new Regex(
+                        @"(?<!#)#(?!#)(\s*)" + Regex.Escape(macro.Params[p]) + @"(?!\w)");
+                    expanded = stringizePattern.Replace(expanded,
+                        "\"" + args[p].Trim().Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"");
+                }
+
                 for (int p = 0; p < macro.Params.Length && p < args.Length; p++)
                 {
                     expanded = GetMacroRegex(macro.Params[p]).Replace(expanded, args[p].Trim());
                 }
+
+                // Handle variadic __VA_ARGS__ substitution
+                if (macro.IsVariadic)
+                {
+                    var vaArgs = "";
+                    if (args.Length > macro.Params.Length)
+                    {
+                        vaArgs = string.Join(", ", args.Skip(macro.Params.Length).Select(a => a.Trim()));
+                    }
+                    else if (macro.Params.Length == 0 && args.Length == 1 && string.IsNullOrWhiteSpace(args[0]))
+                    {
+                        // ALL() with empty parens — zero variadic args
+                        vaArgs = "";
+                    }
+                    expanded = GetMacroRegex("__VA_ARGS__").Replace(expanded, vaArgs);
+                }
+
+                // Process ## token-paste operator after parameter substitution
+                expanded = ProcessTokenPaste(expanded);
 
                 line = line[..idx] + expanded + line[(argsEnd + 1)..];
             }
@@ -563,9 +601,18 @@ public class Preprocessor
                     line = GetMacroRegex(name).Replace(line, value);
                 }
             }
+            // Process ## token-paste operator after macro substitution
+            line = ProcessTokenPaste(line);
             if (line == prev) break; // No more substitutions
         }
         return line;
+    }
+
+    private static readonly Regex TokenPasteRegex = new(@"\s*##\s*", RegexOptions.Compiled);
+
+    private static string ProcessTokenPaste(string text)
+    {
+        return TokenPasteRegex.Replace(text, string.Empty);
     }
 
     private static int FindMatchingParen(string text, int openIdx)

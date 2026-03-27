@@ -109,7 +109,7 @@ public static class CompletionHandler
                 if (featureAttrItems != null)
                     return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = featureAttrItems.ToArray() };
 #endif
-                var items = AttributeCompletionProvider.BuildAttributeCompletions(text, attrContext, includePaths, fileDir);
+                var items = AttributeCompletionProvider.BuildAttributeCompletions(text, attrContext, includePaths, fileDir, cachedCompilation);
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
             }
 

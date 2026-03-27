@@ -101,9 +101,11 @@ internal static class AttributeCompletionProvider
 
     /// <summary>Build context-appropriate attribute completions.</summary>
     internal static List<object> BuildAttributeCompletions(string text, string targetKind,
-        IReadOnlyList<string>? includePaths = null, string? currentFilePath = null)
+        IReadOnlyList<string>? includePaths = null, string? currentFilePath = null,
+        Compilation? cachedCompilation = null)
     {
         var items = new List<object>();
+        var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // Add well-known built-in attributes with their descriptions and target applicability
         foreach (var (name, detail, snippet) in WellKnownAttributeCompletions)
@@ -130,23 +132,35 @@ internal static class AttributeCompletionProvider
                     item["insertText"] = name;
                 }
                 items.Add(item);
+                seenNames.Add(name);
             }
         }
 
-        // Add user-defined custom attributes from the compilation
-        try
+        // Use cached compilation if available; otherwise compile the current file
+        Compilation? compilation = cachedCompilation;
+        if (compilation == null)
         {
-            var compilation = CompilationHelper.Compile(text, referencePaths: null,
-                mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: currentFilePath);
+            try
+            {
+                compilation = CompilationHelper.Compile(text, referencePaths: null,
+                    mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: currentFilePath);
+            }
+            catch { }
+        }
+
+        if (compilation != null)
+        {
+            // Add attribute types from the compilation (local + imported)
             foreach (var type in compilation.GetAllTypes())
             {
                 if (type is AttributeTypeSymbol attr)
                 {
-                    // Check attributeusage targets
-                    bool applicable = attr.ValidTargets.Count == 0 || // no restriction = all targets
+                    var displayName = attr.AttributeNameOverride ?? attr.Name;
+                    if (seenNames.Contains(displayName)) continue;
+
+                    bool applicable = attr.ValidTargets.Count == 0 ||
                         targetKind == "target_all" ||
                         attr.ValidTargets.Any(t => t.Equals(targetKind, StringComparison.OrdinalIgnoreCase)) ||
-                        // Inside a type body, show attrs for any member kind
                         (targetKind == "target_method" && attr.ValidTargets.Any(t =>
                             t.StartsWith("target_method", StringComparison.OrdinalIgnoreCase) ||
                             t.StartsWith("target_property", StringComparison.OrdinalIgnoreCase) ||
@@ -155,22 +169,51 @@ internal static class AttributeCompletionProvider
                     if (applicable)
                     {
                         var argSnippet = BuildAttributeArgSnippet(attr);
-                        var displayName = attr.AttributeNameOverride ?? attr.Name;
                         items.Add(new Dictionary<string, object?>
                         {
                             ["label"] = displayName,
                             ["kind"] = CompletionHandler.KindProperty,
                             ["detail"] = $"(custom) {attr.FullName}",
                             ["insertText"] = argSnippet,
-                            ["insertTextFormat"] = 2, // Snippet
+                            ["insertTextFormat"] = 2,
                         });
+                        seenNames.Add(displayName);
                     }
                 }
             }
-        }
-        catch
-        {
-            // Partial file — just return well-known attributes
+
+            // Add attribute types from SDK/WinMD lazy providers
+            foreach (var fullName in compilation.GetAllLazyTypeNames())
+            {
+                if (string.IsNullOrEmpty(fullName)) continue;
+                // Only resolve types that look like attributes (end with "Attribute")
+                if (!fullName.EndsWith("Attribute", StringComparison.Ordinal)) continue;
+
+                try
+                {
+                    var symbol = compilation.GetTypeByName(fullName);
+                    if (symbol is AttributeTypeSymbol sdkAttr)
+                    {
+                        var displayName = sdkAttr.AttributeNameOverride ?? sdkAttr.Name;
+                        // Strip "Attribute" suffix for display if no override
+                        if (sdkAttr.AttributeNameOverride == null && displayName.EndsWith("Attribute"))
+                            displayName = displayName[..^9];
+                        var lowerName = displayName.ToLowerInvariant();
+
+                        if (seenNames.Contains(lowerName)) continue;
+
+                        items.Add(new Dictionary<string, object?>
+                        {
+                            ["label"] = lowerName,
+                            ["kind"] = CompletionHandler.KindProperty,
+                            ["detail"] = $"(SDK) {sdkAttr.FullName}",
+                            ["insertText"] = lowerName,
+                        });
+                        seenNames.Add(lowerName);
+                    }
+                }
+                catch { }
+            }
         }
 
         return items;

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="WinMIDL.LanguageSupport" Version="0.1.4" Language="en-US" Publisher="Alexander Sklar" />
+    <DisplayName>MIDL Language Support</DisplayName>
+    <Description xml:space="preserve">Full-featured language support for WinRT Interface Definition Language (MIDL3/IDL) — real-time diagnostics, IntelliSense, F12 into SDK types, code quality rules, rename, and more. Powered by the WinMIDL language server (NativeAOT).</Description>
+    <Icon>icon.png</Icon>
+    <Tags>midl, idl, winrt, language server, lsp, midl3</Tags>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, )">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, )">
+      <ProductArchitecture>arm64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+  </Dependencies>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0, )" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Midl.VsExtension.pkgdef" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Midl.VsExtension.dll" />
+  </Assets>
+</PackageManifest>

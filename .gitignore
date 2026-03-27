@@ -40,3 +40,8 @@ tests/golden/
 *.obj
 _test_*
 TestWidget_proxy*
+
+docs/email/
+
+# Generated decompiled IDL (can be huge)
+tools/winmd-dump/windows.idl
