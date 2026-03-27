@@ -138,4 +138,54 @@ public class SdkDiscoveryTests
         var refs = WindowsSdkLocator.GetContractReferences(@"C:\NonExistentSdkPath", "10.0.00000.0");
         Assert.Empty(refs);
     }
+
+    [SkippableFact]
+    public void NoexceptAttributeResolvedFromSdk()
+    {
+        var sdk = WindowsSdkLocator.Discover();
+        Skip.If(sdk == null, "Windows SDK not installed");
+        Skip.If(sdk.WindowsWinMdPath == null, "Windows.winmd not found in SDK");
+
+        var source = @"
+            namespace N
+            {
+                runtimeclass C
+                {
+                    [noexcept] void Fast();
+                }
+            }";
+
+        var compilation = CompilationHelper.Compile(
+            source,
+            new[] { sdk.WindowsWinMdPath },
+            CompilationMode.Strict);
+
+        // [noexcept] should NOT produce MIDL1065 (unknown attribute)
+        var unknownAttrWarnings = compilation.Diagnostics
+            .Where(d => d.Code == "MIDL1065")
+            .ToList();
+
+        Assert.Empty(unknownAttrWarnings);
+    }
+
+    [SkippableFact]
+    public void SdkAttributeWithOverrideName_ResolvedByShortName()
+    {
+        var sdk = WindowsSdkLocator.Discover();
+        Skip.If(sdk == null, "Windows SDK not installed");
+        Skip.If(sdk.WindowsWinMdPath == null, "Windows.winmd not found in SDK");
+
+        // Verify NoExceptionAttribute is in the lazy provider
+        var provider = new LazyWinMdProvider(sdk.WindowsWinMdPath);
+        var allNames = provider.GetAllTypeNames().ToList();
+        Assert.Contains("Windows.Foundation.Metadata.NoExceptionAttribute", allNames);
+
+        // Verify it resolves as an AttributeTypeSymbol with the right override name
+        var compilation = CompilationHelper.Compile("namespace N { }",
+            new[] { sdk.WindowsWinMdPath }, CompilationMode.Strict);
+        var resolved = compilation.GetTypeByName("Windows.Foundation.Metadata.NoExceptionAttribute");
+        Assert.NotNull(resolved);
+        var attrType = Assert.IsType<Midl.Analysis.Symbols.AttributeTypeSymbol>(resolved);
+        Assert.Equal("noexcept", attrType.AttributeNameOverride);
+    }
 }
