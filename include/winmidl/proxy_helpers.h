@@ -282,6 +282,9 @@ inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size)
     }
     DWORD mshlSize = 0;
     HRESULT hr = CoGetMarshalSizeMax(&mshlSize, riid, pInterface, MSHCTX_LOCAL, nullptr, MSHLFLAGS_NORMAL);
+    if (FAILED(hr) && !IsEqualIID(riid, IID_IUnknown)) {
+        hr = CoGetMarshalSizeMax(&mshlSize, IID_IUnknown, pInterface, MSHCTX_LOCAL, nullptr, MSHLFLAGS_NORMAL);
+    }
     if (FAILED(hr)) return hr;
     size = sizeof(UINT32) + static_cast<UINT32>(mshlSize);
     return S_OK;
@@ -294,7 +297,8 @@ inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size)
 
 // Marshal an interface pointer into the RPC buffer.
 // Marshal an interface pointer into the RPC buffer via CoMarshalInterface.
-// Uses the provided IID so COM creates the correct stub for callbacks.
+// Tries the provided IID first (needed for delegate callbacks), falls back
+// to IID_IUnknown for system objects that don't expose typed IIDs (e.g. PropertyValue).
 // Null-safe: nullptr writes size=0 without calling CoMarshalInterface.
 // Returns S_OK on success. Advances buf past the written data.
 inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) {
@@ -308,6 +312,14 @@ inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) 
     HRESULT hr = CreateStreamOnHGlobal(nullptr, TRUE, &pStream);
     if (FAILED(hr)) return hr;
     hr = CoMarshalInterface(pStream, riid, pInterface, MSHCTX_LOCAL, nullptr, MSHLFLAGS_NORMAL);
+    if (FAILED(hr) && !IsEqualIID(riid, IID_IUnknown)) {
+        // Typed IID failed (e.g. system PropertyValue doesn't expose our PIID) — retry with IID_IUnknown
+        LARGE_INTEGER zero_li = {};
+        pStream->Seek(zero_li, STREAM_SEEK_SET, nullptr);
+        ULARGE_INTEGER uzero = {};
+        pStream->SetSize(uzero);
+        hr = CoMarshalInterface(pStream, IID_IUnknown, pInterface, MSHCTX_LOCAL, nullptr, MSHLFLAGS_NORMAL);
+    }
     if (FAILED(hr)) { pStream->Release(); return hr; }
     STATSTG stat;
     pStream->Stat(&stat, STATFLAG_NONAME);
@@ -346,6 +358,23 @@ inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID riid, void** ppInter
     HRESULT hr = CreateStreamOnHGlobal(hGlobal, TRUE, &pStream);
     if (FAILED(hr)) { GlobalFree(hGlobal); return hr; }
     hr = CoUnmarshalInterface(pStream, riid, ppInterface);
+    if (FAILED(hr) && !IsEqualIID(riid, IID_IUnknown)) {
+        // Typed IID failed — retry with IID_IUnknown (for system objects marshaled via IMarshal)
+        LARGE_INTEGER zero_li = {};
+        pStream->Seek(zero_li, STREAM_SEEK_SET, nullptr);
+        IUnknown* pUnk = nullptr;
+        hr = CoUnmarshalInterface(pStream, IID_IUnknown, (void**)&pUnk);
+        if (SUCCEEDED(hr)) {
+            hr = pUnk->QueryInterface(riid, ppInterface);
+            if (FAILED(hr)) {
+                // Can't QI for typed IID either — return IUnknown directly
+                *ppInterface = pUnk;
+                hr = S_OK;
+            } else {
+                pUnk->Release();
+            }
+        }
+    }
     pStream->Release();
     return hr;
 }
