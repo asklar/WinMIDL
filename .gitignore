@@ -47,3 +47,9 @@ docs/email/
 tools/winmd-dump/windows.idl
 
 copilot-cli-logs.tgz
+
+# Build outputs in e2e tests
+tests/e2e-custom-marshal/**/build/
+tests/e2e-custom-marshal/**/*.pdb
+*.ilk
+*.exp
