@@ -4572,7 +4572,7 @@ private:
         return S_OK;
     }
     HRESULT Invoke_get_LastMessage(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        HSTRING returnValue;
+        HSTRING returnValue{};
         HRESULT hr = m_pServer->get_LastMessage(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
@@ -4657,7 +4657,7 @@ public:
 
 private:
     HRESULT Invoke_get_Name(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        HSTRING returnValue;
+        HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Name(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
@@ -4670,7 +4670,7 @@ private:
         return S_OK;
     }
     HRESULT Invoke_get_LegCount(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        INT32 returnValue;
+        INT32 returnValue{};
         HRESULT hr = m_pServer->get_LegCount(&returnValue);
         static constexpr UINT32 kReplySize = sizeof(INT32) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -4752,7 +4752,7 @@ public:
 
 private:
     HRESULT Invoke_Serialize(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        HSTRING returnValue;
+        HSTRING returnValue{};
         HRESULT hr = m_pServer->Serialize(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
@@ -4831,7 +4831,7 @@ public:
 
 private:
     HRESULT Invoke_CloneAsString(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        HSTRING returnValue;
+        HSTRING returnValue{};
         HRESULT hr = m_pServer->CloneAsString(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
@@ -4925,7 +4925,7 @@ private:
         winmidl::unmarshal_double(p, a);
         DOUBLE b;
         winmidl::unmarshal_double(p, b);
-        DOUBLE returnValue;
+        DOUBLE returnValue{};
         HRESULT hr = m_pServer->Add(a, b, &returnValue);
         static constexpr UINT32 kReplySize = sizeof(DOUBLE) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -4942,8 +4942,8 @@ private:
         winmidl::unmarshal_double(p, num);
         DOUBLE denom;
         winmidl::unmarshal_double(p, denom);
-        DOUBLE result;
-        boolean returnValue;
+        DOUBLE result{};
+        boolean returnValue{};
         HRESULT hr = m_pServer->TryDivide(num, denom, &result, &returnValue);
         static constexpr UINT32 kReplySize = sizeof(DOUBLE) + sizeof(boolean) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -4961,7 +4961,7 @@ private:
         winmidl::unmarshal_float(p, x);
         FLOAT y;
         winmidl::unmarshal_float(p, y);
-        Point returnValue;
+        Point returnValue{};
         HRESULT hr = m_pServer->MakePoint(x, y, &returnValue);
         static constexpr UINT32 kReplySize = sizeof(Point) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -4985,7 +4985,7 @@ private:
         return S_OK;
     }
     HRESULT Invoke_GetPermissions(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        Permissions returnValue;
+        Permissions returnValue{};
         HRESULT hr = m_pServer->GetPermissions(&returnValue);
         static constexpr UINT32 kReplySize = sizeof(INT32) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -5005,7 +5005,7 @@ private:
         winmidl::unmarshal_float(p, dx);
         FLOAT dy;
         winmidl::unmarshal_float(p, dy);
-        ColoredPoint returnValue;
+        ColoredPoint returnValue{};
         HRESULT hr = m_pServer->Translate(pt, dx, dy, &returnValue);
         static constexpr UINT32 kReplySize = sizeof(Point) + sizeof(INT32) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -5224,7 +5224,7 @@ private:
         BYTE* p = (BYTE*)pMsg->Buffer;
         __x_TestApp_Comprehensive_StatusCallback* handler = nullptr;
         hr = winmidl::unmarshal_interface(p, IID___x_TestApp_Comprehensive_StatusCallback, (void**)&handler); RETURN_IF_FAILED(hr);
-        EventRegistrationToken returnValue;
+        EventRegistrationToken returnValue{};
         hr = m_pServer->AddStatusChanged(handler, &returnValue);
         static constexpr UINT32 kReplySize = sizeof(EventRegistrationToken) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -5239,6 +5239,7 @@ private:
     HRESULT Invoke_RemoveStatusChanged(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         BYTE* p = (BYTE*)pMsg->Buffer;
         EventRegistrationToken token;
+        winmidl::unmarshal_event_token(p, token);
         HRESULT hr = m_pServer->RemoveStatusChanged(token);
         static constexpr UINT32 kReplySize = sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -5252,7 +5253,7 @@ private:
         BYTE* p = (BYTE*)pMsg->Buffer;
         __x_TestApp_Comprehensive_StatusCallback* handler = nullptr;
         hr = winmidl::unmarshal_interface(p, IID___x_TestApp_Comprehensive_StatusCallback, (void**)&handler); RETURN_IF_FAILED(hr);
-        EventRegistrationToken returnValue;
+        EventRegistrationToken returnValue{};
         hr = m_pServer->add_Completed(handler, &returnValue);
         static constexpr UINT32 kReplySize = sizeof(EventRegistrationToken) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -6234,9 +6235,8 @@ public:
         if (m_pServer) { m_pServer->Release(); m_pServer = nullptr; }
     }
     HRESULT STDMETHODCALLTYPE Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) override {
-        switch (pMsg->iMethod) {
-            default: return E_UNEXPECTED;
-        }
+        (void)pMsg; (void)pChannel;
+        return E_UNEXPECTED;
     }
     static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IAnimal2 };
     static inline const winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.IAnimal2" };
@@ -6331,7 +6331,7 @@ public:
 
 private:
     HRESULT Invoke_get_Kind(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        HSTRING returnValue;
+        HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Kind(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
@@ -6344,7 +6344,7 @@ private:
         return S_OK;
     }
     HRESULT Invoke_get_Area(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        DOUBLE returnValue;
+        DOUBLE returnValue{};
         HRESULT hr = m_pServer->get_Area(&returnValue);
         static constexpr UINT32 kReplySize = sizeof(DOUBLE) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -6426,7 +6426,7 @@ public:
 
 private:
     HRESULT Invoke_get_Radius(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        DOUBLE returnValue;
+        DOUBLE returnValue{};
         HRESULT hr = m_pServer->get_Radius(&returnValue);
         static constexpr UINT32 kReplySize = sizeof(DOUBLE) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -6504,7 +6504,7 @@ public:
 
 private:
     HRESULT Invoke_get_Title(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
-        HSTRING returnValue;
+        HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Title(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
@@ -6542,9 +6542,8 @@ public:
         if (m_pServer) { m_pServer->Release(); m_pServer = nullptr; }
     }
     HRESULT STDMETHODCALLTYPE Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) override {
-        switch (pMsg->iMethod) {
-            default: return E_UNEXPECTED;
-        }
+        (void)pMsg; (void)pChannel;
+        return E_UNEXPECTED;
     }
     static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_ICalculator2 };
     static inline const winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.ICalculator2" };
@@ -6596,9 +6595,8 @@ public:
         if (m_pServer) { m_pServer->Release(); m_pServer = nullptr; }
     }
     HRESULT STDMETHODCALLTYPE Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) override {
-        switch (pMsg->iMethod) {
-            default: return E_UNEXPECTED;
-        }
+        (void)pMsg; (void)pChannel;
+        return E_UNEXPECTED;
     }
     static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_INotifier2 };
     static inline const winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.INotifier2" };
@@ -6650,9 +6648,8 @@ public:
         if (m_pServer) { m_pServer->Release(); m_pServer = nullptr; }
     }
     HRESULT STDMETHODCALLTYPE Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) override {
-        switch (pMsg->iMethod) {
-            default: return E_UNEXPECTED;
-        }
+        (void)pMsg; (void)pChannel;
+        return E_UNEXPECTED;
     }
     static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IEventSource2 };
     static inline const winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.IEventSource2" };
@@ -6704,9 +6701,8 @@ public:
         if (m_pServer) { m_pServer->Release(); m_pServer = nullptr; }
     }
     HRESULT STDMETHODCALLTYPE Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) override {
-        switch (pMsg->iMethod) {
-            default: return E_UNEXPECTED;
-        }
+        (void)pMsg; (void)pChannel;
+        return E_UNEXPECTED;
     }
     static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IPropertyBag2 };
     static inline const winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.IPropertyBag2" };
@@ -6758,9 +6754,8 @@ public:
         if (m_pServer) { m_pServer->Release(); m_pServer = nullptr; }
     }
     HRESULT STDMETHODCALLTYPE Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) override {
-        switch (pMsg->iMethod) {
-            default: return E_UNEXPECTED;
-        }
+        (void)pMsg; (void)pChannel;
+        return E_UNEXPECTED;
     }
     static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_IOptionalValues };
     static inline const winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.IOptionalValues" };
