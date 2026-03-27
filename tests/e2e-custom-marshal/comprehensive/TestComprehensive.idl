@@ -195,6 +195,8 @@ namespace TestApp.Comprehensive
         Windows.Foundation.Collections.IMap<String, Int32> GetScores();
         void SetScores(Windows.Foundation.Collections.IMapView<String, Int32> scores);
         Windows.Foundation.Collections.IIterable<String> GetAllItems();
+        Windows.Foundation.Collections.IVector<Animal> GetAnimals();
+        Windows.Foundation.Collections.IMap<String, Animal> GetAnimalsByName();
     };
 
     [default_interface]
