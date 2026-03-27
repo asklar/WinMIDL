@@ -644,13 +644,13 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
         Check(SUCCEEDED(hr), "OptionalValues: CoCreateInstance");
         if (SUCCEEDED(hr)) {
             // GetOptionalCount when not set — should be null
-            __x_Windows_Foundation_IReference* pCount = nullptr;
+            IInspectable* pCount = nullptr;
             hr = pOpt->GetOptionalCount(&pCount);
             Check(SUCCEEDED(hr) && pCount == nullptr,
                   "OptionalValues: GetOptionalCount initially null");
 
             // GetOptionalPosition when not set — should be null
-            __x_Windows_Foundation_IReference* pPos = nullptr;
+            IInspectable* pPos = nullptr;
             hr = pOpt->GetOptionalPosition(&pPos);
             Check(SUCCEEDED(hr) && pPos == nullptr,
                   "OptionalValues: GetOptionalPosition initially null");

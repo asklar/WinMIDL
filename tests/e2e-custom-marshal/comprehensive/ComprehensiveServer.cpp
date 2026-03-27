@@ -662,8 +662,8 @@ public:
 // ---------------------------------------------------------------------------
 class OptionalValuesImpl : public __x_TestApp_Comprehensive_IOptional {
     LONG m_cRef;
-    __x_Windows_Foundation_IReference* m_count;
-    __x_Windows_Foundation_IReference* m_position;
+    IInspectable* m_count;
+    IInspectable* m_position;
 public:
     OptionalValuesImpl() : m_cRef(1), m_count(nullptr), m_position(nullptr) {
         InterlockedIncrement(&g_cDllRef);
@@ -707,19 +707,19 @@ public:
         *trustLevel = BaseTrust; return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE GetOptionalCount(__x_Windows_Foundation_IReference** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetOptionalCount(IInspectable** returnValue) override {
         if (!returnValue) return E_POINTER;
         *returnValue = m_count;
         if (m_count) m_count->AddRef();
         return S_OK;
     }
-    HRESULT STDMETHODCALLTYPE SetOptionalCount(__x_Windows_Foundation_IReference* count) override {
+    HRESULT STDMETHODCALLTYPE SetOptionalCount(IInspectable* count) override {
         if (m_count) m_count->Release();
         m_count = count;
         if (m_count) m_count->AddRef();
         return S_OK;
     }
-    HRESULT STDMETHODCALLTYPE GetOptionalPosition(__x_Windows_Foundation_IReference** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetOptionalPosition(IInspectable** returnValue) override {
         if (!returnValue) return E_POINTER;
         *returnValue = m_position;
         if (m_position) m_position->AddRef();
@@ -991,7 +991,7 @@ public:
 class ObservableImpl : public __x_TestApp_Comprehensive_IObservable {
     LONG m_cRef;
     HSTRING m_value;
-    __x_Windows_Foundation_EventHandler* m_handler;
+    IInspectable* m_handler;
     LONG m_nextToken;
 public:
     ObservableImpl() : m_cRef(1), m_value(nullptr), m_handler(nullptr), m_nextToken(0) {
@@ -1037,7 +1037,7 @@ public:
     }
 
     HRESULT STDMETHODCALLTYPE add_ValueChanged(
-            __x_Windows_Foundation_EventHandler* handler,
+            IInspectable* handler,
             EventRegistrationToken* token) override {
         if (!token) return E_POINTER;
         if (m_handler) m_handler->Release();
