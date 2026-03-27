@@ -52,3 +52,4 @@ docs/email/
 tools/winmd-dump/windows.idl
 
 *.tgz
+*.zip
