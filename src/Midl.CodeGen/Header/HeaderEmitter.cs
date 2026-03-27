@@ -178,15 +178,13 @@ public class HeaderEmitter
     {
         void CheckTypeRef(TypeRef? typeRef)
         {
+            // Skip parameterized instantiations — they project as IInspectable*
+            if (typeRef?.TypeArguments.Count > 0)
+                return;
+
             if (typeRef?.ResolvedSymbol is InterfaceSymbol or DelegateSymbol && typeRef.ResolvedSymbol.IsExternal)
             {
                 externalTypes.Add(MangleName(typeRef.ResolvedSymbol.FullName));
-            }
-            // Check type arguments for generics
-            if (typeRef?.TypeArguments != null)
-            {
-                foreach (var arg in typeRef.TypeArguments)
-                    CheckTypeRef(arg);
             }
         }
 
@@ -410,6 +408,11 @@ public class HeaderEmitter
 
         if (TypeMap.TryGetValue(typeRef.Name, out var mapped))
             return mapped;
+
+        // Parameterized interface instantiations (IReference<T>, IVector<T>, etc.)
+        // are projected as IInspectable* at the ABI level
+        if (typeRef.TypeArguments.Count > 0 && typeRef.ResolvedSymbol is InterfaceSymbol)
+            return "IInspectable*";
 
         // For resolved user-defined types that are interfaces/delegates, use pointer
         if (typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
