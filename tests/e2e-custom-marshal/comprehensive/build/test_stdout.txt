@@ -1,10 +1,11 @@
-SERVER TryParse: len=2 raw=000001923D191FF4 hstring=0000000CA65FEB20
+SERVER TryParse: len=2 raw=0000017CD6ABCFF4 hstring=0000005203BFEB30
   chars: 0034 0032
-SERVER TryParse: len=3 raw=000001923D1A6FF4 hstring=0000000CA65FEB20
+SERVER TryParse: len=3 raw=0000017CD6ACDFF4 hstring=0000005203BFEB30
   chars: 0061 0062 0063
+SERVER GetScores: RoActivateInstance hr=0x00000000 pInsp=0000017CD6E4DF30
 === E2E Comprehensive Custom Marshal Test ===
 
-[STA] COM initialized (apartment-threaded)
+[STA] COM initialized (apartment-threaded), RoInitialize=0x00000001
 [STA] Pumping messages for cross-apartment calls...
 
 [MTA] --- Animal tests ---
@@ -103,8 +104,12 @@ SERVER TryParse: len=3 raw=000001923D1A6FF4 hstring=0000000CA65FEB20
   PASS: Observable: remove_ValueChanged (synthetic token)
   PASS: Observable: GetRuntimeClassName
 [MTA] --- CollectionOps tests ---
-  FAIL: CollectionOps: CoCreateInstance
+  PASS: CollectionOps: CoCreateInstance
+  FAIL: CollectionOps: GetScores
+  FAIL: CollectionOps: GetScores != null
+  PASS: CollectionOps: GetNames (null ok)
+  PASS: CollectionOps: GetRuntimeClassName
 
 [MTA] Tests complete.
 
-=== Results: 82 passed, 1 failed ===
+=== Results: 85 passed, 2 failed ===

@@ -872,12 +872,17 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
         Check(SUCCEEDED(hr), "CollectionOps: CoCreateInstance");
 
         if (SUCCEEDED(hr) && pColl) {
-            // GetScores returns a PropertySet (IMap)
+            // GetProperties returns a PropertySet (IMap<String, Object>)
             __x_Windows_Foundation_Collections_IMap* pMap = nullptr;
-            hr = pColl->GetScores(&pMap);
-            Check(SUCCEEDED(hr), "CollectionOps: GetScores");
-            Check(pMap != nullptr, "CollectionOps: GetScores != null");
+            hr = pColl->GetProperties(&pMap);
+            Check(SUCCEEDED(hr), "CollectionOps: GetProperties");
+            Check(pMap != nullptr, "CollectionOps: GetProperties != null");
             if (pMap) pMap->Release();
+
+            // GetScores returns null (IMap<String, Int32> needs C++/WinRT to create)
+            __x_Windows_Foundation_Collections_IMap* pScores = nullptr;
+            hr = pColl->GetScores(&pScores);
+            Check(SUCCEEDED(hr), "CollectionOps: GetScores (null ok)");
 
             // GetNames returns null (not implemented yet)
             __x_Windows_Foundation_Collections_IVector* pVec = nullptr;

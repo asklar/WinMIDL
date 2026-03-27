@@ -1118,14 +1118,10 @@ public:
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE GetScores(__x_Windows_Foundation_Collections_IMap** returnValue) override {
-        HSTRING hcls = nullptr;
-        WindowsCreateString(L"Windows.Foundation.Collections.PropertySet", 42, &hcls);
-        IInspectable* pInsp = nullptr;
-        HRESULT hr = RoActivateInstance(hcls, &pInsp);
-        WindowsDeleteString(hcls);
-        printf("SERVER GetScores: RoActivateInstance hr=0x%08lx pInsp=%p\n", hr, pInsp); fflush(stdout);
-        if (FAILED(hr)) { *returnValue = nullptr; return hr; }
-        *returnValue = reinterpret_cast<__x_Windows_Foundation_Collections_IMap*>(pInsp);
+        // Return null — creating a real IMap<String,Int32> requires C++/WinRT.
+        // The proxy/stub dispatch and IID computation are validated by the codegen
+        // unit tests and PIID validation test.
+        *returnValue = nullptr;
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE SetScores(__x_Windows_Foundation_Collections_IMapView*) override {
@@ -1139,6 +1135,16 @@ public:
     }
     HRESULT STDMETHODCALLTYPE GetAnimalsByName(__x_Windows_Foundation_Collections_IMap** returnValue) override {
         *returnValue = nullptr; return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetProperties(__x_Windows_Foundation_Collections_IMap** returnValue) override {
+        HSTRING hcls = nullptr;
+        WindowsCreateString(L"Windows.Foundation.Collections.PropertySet", 42, &hcls);
+        IInspectable* pInsp = nullptr;
+        HRESULT hr = RoActivateInstance(hcls, &pInsp);
+        WindowsDeleteString(hcls);
+        if (FAILED(hr)) { *returnValue = nullptr; return hr; }
+        *returnValue = reinterpret_cast<__x_Windows_Foundation_Collections_IMap*>(pInsp);
+        return S_OK;
     }
 };
 

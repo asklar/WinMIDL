@@ -197,6 +197,7 @@ namespace TestApp.Comprehensive
         Windows.Foundation.Collections.IIterable<String> GetAllItems();
         Windows.Foundation.Collections.IVector<Animal> GetAnimals();
         Windows.Foundation.Collections.IMap<String, Animal> GetAnimalsByName();
+        Windows.Foundation.Collections.IMap<String, Object> GetProperties();
     };
 
     [default_interface]
