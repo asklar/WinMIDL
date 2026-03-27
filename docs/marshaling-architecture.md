@@ -30,9 +30,34 @@ Simple packed binary — no NDR, no alignment padding, no type tags:
 | Enum | 4 bytes (Int32) |
 | Struct | Fields packed sequentially (validated via `static_assert` on layout) |
 | EventRegistrationToken | 8 bytes raw |
-| Interface* | `CoMarshalInterface` to nested IStream |
+| Interface* | `[uint32 streamSize][CoMarshalInterface bytes]` |
 | out params | In reply buffer |
 | HRESULT return | Last 4 bytes of reply |
+
+### HSTRING null terminator
+
+The wire format for HSTRING includes a null terminator: `[uint32 charCount][wchar_t × charCount][wchar_t 0x0000]`. This is required because `WindowsCreateStringReference` (used for zero-copy stub-side deserialization) requires null-terminated input. Buffer size calculations account for the extra `sizeof(WCHAR)`.
+
+### Interface pointer marshaling
+
+Interface pointers are marshaled via `CoMarshalInterface` / `CoUnmarshalInterface` with a `[uint32 streamSize][stream bytes]` envelope. The IID strategy is critical:
+
+**Typed IID with IID_IUnknown fallback:**
+- `marshal_interface(buf, pInterface, riid)` tries `CoMarshalInterface(riid, ...)` first
+- If that fails (E_NOINTERFACE), retries with `IID_IUnknown`
+- Same fallback pattern for `unmarshal_interface` and `get_marshal_size`
+
+**Why typed IIDs are needed:**
+- **Delegate callbacks**: When a delegate (e.g., `StatusNotifyHandler`) is marshaled from client → server, the server later calls `Invoke` on it. COM must create the right stub in the client process to handle the `Invoke` callback. Using `CoMarshalInterface(IID_StatusNotifyHandler, ...)` tells COM to set up a stub with the delegate's vtable. Using `IID_IUnknown` would only set up QI/AddRef/Release — `Invoke` would crash.
+- **Interface pointer returns**: When the server returns an interface pointer (e.g., `ICallback`), the client needs a proxy that supports the interface's methods. Using the typed IID creates the right proxy facelet.
+
+**Why IID_IUnknown fallback is needed:**
+- **System WinRT objects** (e.g., `PropertyValue` boxed values for `IReference<Int32>`) support `IMarshal` (free-threaded marshaler) but may not expose our computed parameterized IIDs. `CoMarshalInterface(IID_IReference_1_Int32, ...)` fails with E_NOINTERFACE because the system object doesn't respond to QI for our PIID. Falling back to `IID_IUnknown` works because every COM object supports IUnknown, and the free-threaded marshaler handles the rest.
+
+**Special cases:**
+- `Object` (IInspectable*) → uses `IID_IUnknown` (not `IID_IInspectable` — there's no registered proxy/stub for IInspectable)
+- `MSHCTX_LOCAL` is used for all marshaling (not `MSHCTX_INPROC`) — works for both same-process cross-apartment and cross-process scenarios
+- Null interface pointers → write `streamSize=0`, no `CoMarshalInterface` call
 
 ### Zero-copy HSTRING on stub side
 
@@ -254,29 +279,40 @@ Common WinRT shapes (most APIs use a small set):
 
 ## E2E Tests
 
-| Test Suite | Description | Status |
-|-----------|-------------|--------|
-| `tests/e2e-custom-marshal/inproc/` | 18 test cases, same-process proxy/stub round-trip | ✅ |
-| `tests/e2e-custom-marshal/comprehensive/` | 31 test cases, all WinRT type patterns | ✅ |
-| `tests/e2e-custom-marshal/outofproc/` | Cross-process marshaling | ✅ |
-| `tests/Midl.CodeGen.Tests/` | 540 codegen unit tests asserting on generated C++ | ✅ |
+| Test Suite | Description | Count |
+|-----------|-------------|-------|
+| `tests/e2e-custom-marshal/comprehensive/` | In-proc: all WinRT type patterns across STA/MTA | 89 |
+| `tests/e2e-custom-marshal/outofproc/` | Cross-process: 12 test groups via LocalServer32 | 88 |
+| `tests/Midl.CodeGen.Tests/` | Codegen unit tests asserting on generated C++ | 689 |
+
+### Out-of-proc test groups
+
+| Group | What it tests |
+|-------|--------------|
+| Calculator | HSTRING, Double, struct return, out params, error propagation |
+| TypeShowcase | Int64, Guid, Char, UInt8, Int16 |
+| Notifier | Interface pointer params (client→server→client) |
+| PropertyBag | Object/IInspectable* |
+| ComplexOps | 5-param, TryParse, Swap, Point struct, enums+flags, nested struct |
+| OptionalValues | IReference<Int32/Double> boxed value round-trip |
+| QI/Statics | QueryInterface, GetIids, static methods |
+| Circle | Inheritance (ICircle requires IShape), cross-interface QI |
+| EventSource | Event delegate callback (server→client cross-process) |
+| DelegateInvoker | Delegate invocation (server calls client's delegate) |
 
 ## Future Improvements
 
 ### Single generic vtable (`/Os` flag)
 One vtable for ALL IInspectable proxies — every slot calls `generic_dispatch(this, N)` which does a runtime lookup in the method descriptor table. Trades per-call speed for smaller binary size. Useful for IoT/size-constrained scenarios.
 
-### Interface pointer marshaling
-`CoMarshalInterface` / `CoUnmarshalInterface` for interface-typed parameters. Currently stubs are generated but the marshal stream handling needs completion.
-
 ### Async method support
 Methods returning `IAsyncOperation<T>` / `IAsyncAction` may need special handling for marshaling the async completion across apartments.
 
 ### Array parameter support
-`[in] UINT32 count, [in, size_is(count)] T* items` pattern for passing arrays. Requires length-prefixed wire encoding.
+`T[]` syntax in MIDL3 with PassArray/ReceiveArray/FillArray semantics. See `docs/arrays-and-generics-design.md`.
 
-### Generic interface marshaling
-Parameterized interfaces like `IVector<T>`, `IMap<K,V>` need template-based or type-erased proxy/stub generation.
+### Custom generic interfaces
+User-defined parameterized interfaces (`IRepository<T>`) with per-instantiation proxy/stub codegen. See `docs/arrays-and-generics-design.md`.
 
 ### Binary size benchmarking
 Compare generated DLL sizes before and after signature folding to quantify the optimization impact.
