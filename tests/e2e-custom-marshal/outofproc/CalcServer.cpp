@@ -168,7 +168,10 @@ public:
         *returnValue = (value % 2 == 0) ? TRUE : FALSE;
         return S_OK;
     }
-};— implements ITypeShowcase (additional primitive types)
+};
+
+// ---------------------------------------------------------------------------
+// TypeShowcaseImpl — implements ITypeShowcase (additional primitive types)
 // ---------------------------------------------------------------------------
 class TypeShowcaseImpl : public __x_TestApp_OutOfProc_ITypeShowcase {
     LONG m_cRef;
