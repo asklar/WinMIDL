@@ -981,8 +981,8 @@ public class StubGenerator
         if (TypeMap.TryGetValue(typeRef.Name, out var mapped))
             return mapped;
 
-        // Parameterized interface instantiations → IInspectable*
-        if (typeRef.TypeArguments.Count > 0 && typeRef.ResolvedSymbol is InterfaceSymbol)
+        // Parameterized interface/delegate instantiations → IInspectable*
+        if (typeRef.TypeArguments.Count > 0 && typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
             return "IInspectable*";
 
         if (typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)

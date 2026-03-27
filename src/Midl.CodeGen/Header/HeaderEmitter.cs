@@ -409,9 +409,9 @@ public class HeaderEmitter
         if (TypeMap.TryGetValue(typeRef.Name, out var mapped))
             return mapped;
 
-        // Parameterized interface instantiations (IReference<T>, IVector<T>, etc.)
+        // Parameterized interface/delegate instantiations (IReference<T>, EventHandler<T>, etc.)
         // are projected as IInspectable* at the ABI level
-        if (typeRef.TypeArguments.Count > 0 && typeRef.ResolvedSymbol is InterfaceSymbol)
+        if (typeRef.TypeArguments.Count > 0 && typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
             return "IInspectable*";
 
         // For resolved user-defined types that are interfaces/delegates, use pointer
