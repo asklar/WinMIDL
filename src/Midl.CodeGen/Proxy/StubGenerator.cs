@@ -493,7 +493,19 @@ public class StubGenerator
         else
         {
             sb.AppendLine($"        HRESULT hrBuf = pChannel->GetBuffer(pMsg, {iidName});");
-            sb.AppendLine($"        RETURN_IF_FAILED(hrBuf);");
+            // On GetBuffer failure, clean up out-params before returning
+            bool hasOutCleanup = HasOutParamCleanup(outParams, hasRetval, slot.ReturnType);
+            if (hasOutCleanup)
+            {
+                sb.AppendLine("        if (FAILED(hrBuf)) {");
+                EmitOutParamCleanup(sb, outParams, hasRetval, slot.ReturnType, "            ");
+                sb.AppendLine("            return hrBuf;");
+                sb.AppendLine("        }");
+            }
+            else
+            {
+                sb.AppendLine($"        RETURN_IF_FAILED(hrBuf);");
+            }
         }
 
         // Check if we need a pointer
@@ -525,18 +537,14 @@ public class StubGenerator
             sb.AppendLine("        memcpy(pMsg->Buffer, &hr, sizeof(HRESULT));");
         }
 
-        // Clean up HSTRING locals
+        // Clean up in-param HSTRING locals
         foreach (var param in inParams)
         {
             if (!param.IsArray && param.Type.Name == "String")
                 sb.AppendLine($"        WindowsDeleteString({param.Name});");
         }
-        if (hasRetval && !slot.ReturnType.IsArray && slot.ReturnType.Name == "String")
-        {
-            sb.AppendLine("        WindowsDeleteString(returnValue);");
-        }
 
-        // Clean up array locals
+        // Clean up in-param array locals
         foreach (var param in inParams)
         {
             if (param.IsArray)
@@ -550,15 +558,87 @@ public class StubGenerator
             }
         }
 
-        // Release interface params
+        // Release in-param interface pointers
         foreach (var param in inParams)
         {
             if (WireFormat.IsInterfaceType(param.Type))
                 sb.AppendLine($"        if ({param.Name}) {param.Name}->Release();");
         }
-        if (hasRetval && WireFormat.IsInterfaceType(slot.ReturnType))
+
+        // Clean up out-params and retval (already serialized into the buffer)
+        EmitOutParamCleanup(sb, outParams, hasRetval, slot.ReturnType, "        ");
+    }
+
+    /// <summary>
+    /// Returns true if there are out-params or retval that need cleanup.
+    /// </summary>
+    private static bool HasOutParamCleanup(List<ParameterSymbol> outParams, bool hasRetval, TypeRef retType)
+    {
+        foreach (var p in outParams)
         {
-            sb.AppendLine("        if (returnValue) returnValue->Release();");
+            if (!p.IsArray && p.Type.Name == "String") return true;
+            if (WireFormat.IsInterfaceType(p.Type)) return true;
+            if (p.IsArray) return true;
+        }
+        if (hasRetval)
+        {
+            if (!retType.IsArray && retType.Name == "String") return true;
+            if (WireFormat.IsInterfaceType(retType)) return true;
+            if (retType.IsArray) return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Emit cleanup code for out-params and retval: HSTRING, interface pointers, and arrays.
+    /// Called both on the success path (after serialization) and the failure path (GetBuffer failed).
+    /// </summary>
+    private static void EmitOutParamCleanup(StringBuilder sb, List<ParameterSymbol> outParams,
+        bool hasRetval, TypeRef retType, string indent)
+    {
+        // Clean up out-param HSTRINGs
+        foreach (var param in outParams)
+        {
+            if (!param.IsArray && param.Type.Name == "String")
+                sb.AppendLine($"{indent}WindowsDeleteString({param.Name});");
+        }
+        if (hasRetval && !retType.IsArray && retType.Name == "String")
+        {
+            sb.AppendLine($"{indent}WindowsDeleteString(returnValue);");
+        }
+
+        // Release out-param interface pointers
+        foreach (var param in outParams)
+        {
+            if (WireFormat.IsInterfaceType(param.Type))
+                sb.AppendLine($"{indent}if ({param.Name}) {param.Name}->Release();");
+        }
+        if (hasRetval && WireFormat.IsInterfaceType(retType))
+        {
+            sb.AppendLine($"{indent}if (returnValue) returnValue->Release();");
+        }
+
+        // Clean up out-param arrays
+        foreach (var param in outParams)
+        {
+            if (param.IsArray)
+            {
+                var elemType = WireFormat.ElementType(param.Type);
+                if (elemType.Name == "String")
+                {
+                    sb.AppendLine($"{indent}for (UINT32 i = 0; i < __{param.Name}Size; i++) WindowsDeleteString({param.Name}[i]);");
+                }
+                sb.AppendLine($"{indent}CoTaskMemFree({param.Name});");
+            }
+        }
+        if (hasRetval && retType.IsArray)
+        {
+            var retElemType = WireFormat.ElementType(retType);
+            if (retElemType.Name == "String")
+            {
+                sb.AppendLine($"{indent}for (UINT32 i = 0; i < __returnValueSize; i++) WindowsDeleteString(returnValue[i]);");
+            }
+            sb.AppendLine($"{indent}CoTaskMemFree(returnValue);");
         }
     }
 
