@@ -1,6 +1,8 @@
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
+using Midl.Analysis.Symbols;
 using Midl.Cli;
+using Midl.Lsp.Handlers;
 using System.Runtime.Versioning;
 
 namespace Midl.Integration.Tests;
@@ -187,5 +189,32 @@ public class SdkDiscoveryTests
         Assert.NotNull(resolved);
         var attrType = Assert.IsType<Midl.Analysis.Symbols.AttributeTypeSymbol>(resolved);
         Assert.Equal("noexcept", attrType.AttributeNameOverride);
+    }
+
+    [SkippableFact]
+    public void SdkAttributeCompletions_OnlyShortNames_NoClassNames()
+    {
+        var sdk = WindowsSdkLocator.Discover();
+        Skip.If(sdk == null, "Windows SDK not installed");
+        Skip.If(sdk.WindowsWinMdPath == null, "Windows.winmd not found in SDK");
+
+        var idl = "namespace N { runtimeclass C { } }";
+        var compilation = CompilationHelper.Compile(idl,
+            new[] { sdk.WindowsWinMdPath }, CompilationMode.Strict);
+
+        var items = AttributeCompletionProvider.BuildAttributeCompletions(
+            idl, "target_all", cachedCompilation: compilation);
+        var labels = items.Cast<Dictionary<string, object?>>()
+            .Select(d => (string)d["label"]!).ToList();
+
+        // Short names should be present
+        Assert.Contains("activatable", labels);
+        Assert.Contains("deprecated", labels);
+        Assert.Contains("noexcept", labels);
+
+        // No label should end with "Attribute" — all should use short names
+        var classNames = labels.Where(l => l.EndsWith("Attribute", StringComparison.Ordinal)).ToList();
+        Assert.True(classNames.Count == 0,
+            $"Completions should use short names, not class names. Found: {string.Join(", ", classNames)}");
     }
 }

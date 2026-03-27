@@ -155,8 +155,19 @@ internal static class AttributeCompletionProvider
             {
                 if (type is AttributeTypeSymbol attr)
                 {
+                    // Prefer the override name; fall back to stripping "Attribute" suffix
                     var displayName = attr.AttributeNameOverride ?? attr.Name;
                     if (seenNames.Contains(displayName)) continue;
+
+                    // Also check stripped form (e.g. "Activatable" from "ActivatableAttribute")
+                    var strippedName = attr.Name.EndsWith("Attribute", StringComparison.Ordinal) && attr.Name.Length > 9
+                        ? attr.Name[..^9] : attr.Name;
+                    if (seenNames.Contains(strippedName)) continue;
+
+                    // Skip SDK-origin types from Windows.Foundation.Metadata — they go through
+                    // the SDK loop below which uses lowercase short names
+                    if (attr.FullName.StartsWith("Windows.Foundation.Metadata.", StringComparison.Ordinal))
+                        continue;
 
                     bool applicable = attr.ValidTargets.Count == 0 ||
                         targetKind == "target_all" ||
@@ -178,6 +189,10 @@ internal static class AttributeCompletionProvider
                             ["insertTextFormat"] = 2,
                         });
                         seenNames.Add(displayName);
+                        seenNames.Add(attr.Name);
+                        seenNames.Add(strippedName);
+                        if (attr.AttributeNameOverride != null)
+                            seenNames.Add(attr.AttributeNameOverride);
                     }
                 }
             }
@@ -186,8 +201,11 @@ internal static class AttributeCompletionProvider
             foreach (var fullName in compilation.GetAllLazyTypeNames())
             {
                 if (string.IsNullOrEmpty(fullName)) continue;
-                // Only resolve types that look like attributes (end with "Attribute")
                 if (!fullName.EndsWith("Attribute", StringComparison.Ordinal)) continue;
+
+                // Skip if class name already seen (from well-known or eagerly-loaded attrs)
+                var simpleName = fullName.Contains('.') ? fullName[(fullName.LastIndexOf('.') + 1)..] : fullName;
+                if (seenNames.Contains(simpleName)) continue;
 
                 try
                 {
@@ -195,7 +213,6 @@ internal static class AttributeCompletionProvider
                     if (symbol is AttributeTypeSymbol sdkAttr)
                     {
                         var displayName = sdkAttr.AttributeNameOverride ?? sdkAttr.Name;
-                        // Strip "Attribute" suffix for display if no override
                         if (sdkAttr.AttributeNameOverride == null && displayName.EndsWith("Attribute"))
                             displayName = displayName[..^9];
                         var lowerName = displayName.ToLowerInvariant();
@@ -210,6 +227,7 @@ internal static class AttributeCompletionProvider
                             ["insertText"] = lowerName,
                         });
                         seenNames.Add(lowerName);
+                        seenNames.Add(sdkAttr.Name);
                     }
                 }
                 catch { }
