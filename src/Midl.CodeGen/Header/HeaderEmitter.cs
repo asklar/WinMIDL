@@ -162,24 +162,15 @@ public class HeaderEmitter
 
         if (externalTypes.Count > 0)
         {
-            // Collect the SDK ABI headers needed for external interface definitions
-            var headers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var typeName in externalTypes)
+            sb.AppendLine("// External interface definitions (for IUnknown* upcast in marshal calls)");
+            foreach (var typeName in externalTypes.OrderBy(t => t))
             {
-                var header = GetAbiHeaderForType(typeName);
-                if (header != null)
-                    headers.Add(header);
+                sb.AppendLine($"#ifndef __{typeName}_DEFINED__");
+                sb.AppendLine($"#define __{typeName}_DEFINED__");
+                sb.AppendLine($"struct {typeName} : public IInspectable {{}};");
+                sb.AppendLine($"#endif");
             }
-
-            if (headers.Count > 0)
-            {
-                sb.AppendLine("// Windows SDK ABI headers for external types");
-                foreach (var header in headers.OrderBy(h => h))
-                {
-                    sb.AppendLine($"#include <{header}>");
-                }
-                sb.AppendLine();
-            }
+            sb.AppendLine();
         }
     }
 
