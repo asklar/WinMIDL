@@ -1,1 +1,130 @@
-// CalcClient.cpp ΓÇö Out-of-proc COM client that validates cross-process marshaling//// Creates a Calculator via CLSCTX_LOCAL_SERVER, calls each ICalculator method,// and validates that data crosses the process boundary correctly through our// custom proxy/stub DLL.//// Exit code 0 = all tests passed, 1 = at least one failure.#include <windows.h>#include <objbase.h>#include <winstring.h>#include <inspectable.h>#include <stdio.h>#include <math.h>#include "generated/TestCalculator.h"// IID definition ΓÇö must match the server and proxyEXTERN_C const IID IID___x_TestApp_OutOfProc_ICalculator =    {0x5dda72af, 0xdacc, 0xad55, {0xa8, 0xf3, 0xf0, 0x08, 0x6a, 0x27, 0xd8, 0x58}};// CLSID for Calculator ΓÇö deterministic UUID v5 of "TestApp.OutOfProc.Calculator"// {B340F2FC-5C14-FD5E-A7F2-BE8DC2D67C04}static const CLSID CLSID_Calculator = {    0xb340f2fc, 0x5c14, 0xfd5e,    {0xa7, 0xf2, 0xbe, 0x8d, 0xc2, 0xd6, 0x7c, 0x04}};static int g_passed = 0;static int g_failed = 0;static void Check(bool condition, const char* testName) {    if (condition) {        printf("  PASS: %s\n", testName);        g_passed++;    } else {        printf("  FAIL: %s\n", testName);        g_failed++;    }}int main() {    printf("=== E2E OutOfProc Custom Marshal Test ===\n\n");    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);    if (FAILED(hr)) {        printf("FAIL: CoInitializeEx failed: 0x%08lX\n", hr);        return 1;    }    printf("[Client] CoCreateInstance(CLSID_Calculator, CLSCTX_LOCAL_SERVER)...\n");    __x_TestApp_OutOfProc_ICalculator* pCalc = nullptr;    hr = CoCreateInstance(CLSID_Calculator, nullptr, CLSCTX_LOCAL_SERVER,                          IID___x_TestApp_OutOfProc_ICalculator, (void**)&pCalc);    if (FAILED(hr)) {        printf("FAIL: CoCreateInstance failed: 0x%08lX\n", hr);        CoUninitialize();        return 1;    }    printf("[Client] Connected to out-of-proc server. Running tests...\n\n");    // Test 1: get_Version ΓÇö HSTRING crosses process boundary    {        HSTRING version = nullptr;        hr = pCalc->get_Version(&version);        Check(SUCCEEDED(hr), "get_Version HRESULT");        UINT32 len = 0;        PCWSTR raw = WindowsGetStringRawBuffer(version, &len);        bool match = (len == 5) && (wcsncmp(raw, L"1.0.0", 5) == 0);        Check(match, "get_Version value == \"1.0.0\"");        if (version) WindowsDeleteString(version);    }    // Test 2: Add(3.0, 4.0) ΓåÆ 7.0    {        DOUBLE result = 0.0;        hr = pCalc->Add(3.0, 4.0, &result);        Check(SUCCEEDED(hr), "Add(3,4) HRESULT");        Check(result == 7.0, "Add(3,4) == 7.0");    }    // Test 3: Divide(10.0, 3.0) ΓåÆ MathResult { Value Γëê 3.333, IsExact = false }    {        MathResult mr = {};        hr = pCalc->Divide(10.0, 3.0, &mr);        Check(SUCCEEDED(hr), "Divide(10,3) HRESULT");        Check(fabs(mr.Value - 10.0 / 3.0) < 1e-10, "Divide(10,3) Value ~= 3.333");        Check(mr.IsExact == FALSE, "Divide(10,3) IsExact == false");    }    // Test 4: Divide(10.0, 2.0) ΓåÆ MathResult { Value = 5.0, IsExact = true }    {        MathResult mr = {};        hr = pCalc->Divide(10.0, 2.0, &mr);        Check(SUCCEEDED(hr), "Divide(10,2) HRESULT");        Check(mr.Value == 5.0, "Divide(10,2) Value == 5.0");        Check(mr.IsExact == TRUE, "Divide(10,2) IsExact == true");    }    // Test 5: TryParseNumber("42.5") ΓåÆ true, result = 42.5    {        HSTRING input = nullptr;        WindowsCreateString(L"42.5", 4, &input);        DOUBLE result = 0.0;        boolean ok = FALSE;        hr = pCalc->TryParseNumber(input, &result, &ok);        Check(SUCCEEDED(hr), "TryParseNumber(\"42.5\") HRESULT");        Check(ok == TRUE, "TryParseNumber(\"42.5\") returns true");        Check(result == 42.5, "TryParseNumber(\"42.5\") result == 42.5");        if (input) WindowsDeleteString(input);    }    // Test 6: TryParseNumber("not_a_number") ΓåÆ false    {        HSTRING input = nullptr;        WindowsCreateString(L"not_a_number", 12, &input);        DOUBLE result = 0.0;        boolean ok = TRUE;        hr = pCalc->TryParseNumber(input, &result, &ok);        Check(SUCCEEDED(hr), "TryParseNumber(\"not_a_number\") HRESULT");        Check(ok == FALSE, "TryParseNumber(\"not_a_number\") returns false");        if (input) WindowsDeleteString(input);    }    pCalc->Release();    CoUninitialize();    // Summary    printf("\n=== Results: %d passed, %d failed ===\n", g_passed, g_failed);    return g_failed > 0 ? 1 : 0;}
+// CalcClient.cpp — Out-of-proc COM client that validates cross-process marshaling
+//
+// Creates a Calculator via CLSCTX_LOCAL_SERVER, calls each ICalculator method,
+// and validates that data crosses the process boundary correctly through our
+// custom proxy/stub DLL.
+//
+// Exit code 0 = all tests passed, 1 = at least one failure.
+
+#include <windows.h>
+#include <objbase.h>
+#include <winstring.h>
+#include <inspectable.h>
+#include <stdio.h>
+#include <math.h>
+#include "generated/TestCalculator.h"
+
+// IID definition — must match the server and proxy
+EXTERN_C const IID IID___x_TestApp_OutOfProc_ICalculator =
+    {0x5dda72af, 0xdacc, 0xad55, {0xa8, 0xf3, 0xf0, 0x08, 0x6a, 0x27, 0xd8, 0x58}};
+
+// CLSID for Calculator — deterministic UUID v5 of "TestApp.OutOfProc.Calculator"
+// {B340F2FC-5C14-FD5E-A7F2-BE8DC2D67C04}
+static const CLSID CLSID_Calculator = {
+    0xb340f2fc, 0x5c14, 0xfd5e,
+    {0xa7, 0xf2, 0xbe, 0x8d, 0xc2, 0xd6, 0x7c, 0x04}};
+
+static int g_passed = 0;
+static int g_failed = 0;
+
+static void Check(bool condition, const char* testName) {
+    if (condition) {
+        printf("  PASS: %s\n", testName);
+        g_passed++;
+    } else {
+        printf("  FAIL: %s\n", testName);
+        g_failed++;
+    }
+}
+
+int main() {
+    printf("=== E2E OutOfProc Custom Marshal Test ===\n\n");
+
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    if (FAILED(hr)) {
+        printf("FAIL: CoInitializeEx failed: 0x%08lX\n", hr);
+        return 1;
+    }
+
+    printf("[Client] CoCreateInstance(CLSID_Calculator, CLSCTX_LOCAL_SERVER)...\n");
+    __x_TestApp_OutOfProc_ICalculator* pCalc = nullptr;
+    hr = CoCreateInstance(CLSID_Calculator, nullptr, CLSCTX_LOCAL_SERVER,
+                          IID___x_TestApp_OutOfProc_ICalculator, (void**)&pCalc);
+    if (FAILED(hr)) {
+        printf("FAIL: CoCreateInstance failed: 0x%08lX\n", hr);
+        CoUninitialize();
+        return 1;
+    }
+
+    printf("[Client] Connected to out-of-proc server. Running tests...\n\n");
+
+    // Test 1: get_Version — HSTRING crosses process boundary
+    {
+        HSTRING version = nullptr;
+        hr = pCalc->get_Version(&version);
+        Check(SUCCEEDED(hr), "get_Version HRESULT");
+        UINT32 len = 0;
+        PCWSTR raw = WindowsGetStringRawBuffer(version, &len);
+        bool match = (len == 5) && (wcsncmp(raw, L"1.0.0", 5) == 0);
+        Check(match, "get_Version value == \"1.0.0\"");
+        if (version) WindowsDeleteString(version);
+    }
+
+    // Test 2: Add(3.0, 4.0) → 7.0
+    {
+        DOUBLE result = 0.0;
+        hr = pCalc->Add(3.0, 4.0, &result);
+        Check(SUCCEEDED(hr), "Add(3,4) HRESULT");
+        Check(result == 7.0, "Add(3,4) == 7.0");
+    }
+
+    // Test 3: Divide(10.0, 3.0) → MathResult { Value ≈ 3.333, IsExact = false }
+    {
+        MathResult mr = {};
+        hr = pCalc->Divide(10.0, 3.0, &mr);
+        Check(SUCCEEDED(hr), "Divide(10,3) HRESULT");
+        Check(fabs(mr.Value - 10.0 / 3.0) < 1e-10, "Divide(10,3) Value ~= 3.333");
+        Check(mr.IsExact == FALSE, "Divide(10,3) IsExact == false");
+    }
+
+    // Test 4: Divide(10.0, 2.0) → MathResult { Value = 5.0, IsExact = true }
+    {
+        MathResult mr = {};
+        hr = pCalc->Divide(10.0, 2.0, &mr);
+        Check(SUCCEEDED(hr), "Divide(10,2) HRESULT");
+        Check(mr.Value == 5.0, "Divide(10,2) Value == 5.0");
+        Check(mr.IsExact == TRUE, "Divide(10,2) IsExact == true");
+    }
+
+    // Test 5: TryParseNumber("42.5") → true, result = 42.5
+    {
+        HSTRING input = nullptr;
+        WindowsCreateString(L"42.5", 4, &input);
+        DOUBLE result = 0.0;
+        boolean ok = FALSE;
+        hr = pCalc->TryParseNumber(input, &result, &ok);
+        Check(SUCCEEDED(hr), "TryParseNumber(\"42.5\") HRESULT");
+        Check(ok == TRUE, "TryParseNumber(\"42.5\") returns true");
+        Check(result == 42.5, "TryParseNumber(\"42.5\") result == 42.5");
+        if (input) WindowsDeleteString(input);
+    }
+
+    // Test 6: TryParseNumber("not_a_number") → false
+    {
+        HSTRING input = nullptr;
+        WindowsCreateString(L"not_a_number", 12, &input);
+        DOUBLE result = 0.0;
+        boolean ok = TRUE;
+        hr = pCalc->TryParseNumber(input, &result, &ok);
+        Check(SUCCEEDED(hr), "TryParseNumber(\"not_a_number\") HRESULT");
+        Check(ok == FALSE, "TryParseNumber(\"not_a_number\") returns false");
+        if (input) WindowsDeleteString(input);
+    }
+
+    pCalc->Release();
+    CoUninitialize();
+
+    // Summary
+    printf("\n=== Results: %d passed, %d failed ===\n", g_passed, g_failed);
+    return g_failed > 0 ? 1 : 0;
+}
