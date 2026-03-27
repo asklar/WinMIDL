@@ -14,6 +14,10 @@ namespace TestApp.OutOfProc
     struct Point { Single X; Single Y; };
     struct ColoredPoint { Point Position; Color PointColor; };
 
+    // Delegates
+    delegate void StatusNotifyHandler(Object sender, String message);
+    delegate void StringTransform(String input, out String result);
+
     // 1. Calculator — basic params, struct return, out params
     interface ICalculator
     {
@@ -27,6 +31,8 @@ namespace TestApp.OutOfProc
     runtimeclass Calculator
     {
         Calculator();
+        static Double Pi { get; };
+        static Boolean IsEven(Int32 value);
     }
 
     // 2. TypeShowcase — additional primitive types + GUID
@@ -110,5 +116,48 @@ namespace TestApp.OutOfProc
     runtimeclass OptionalValues : IOptionalValues
     {
         OptionalValues();
+    }
+
+    // 7. Shape hierarchy (inheritance via requires)
+    interface IShape
+    {
+        String Kind { get; };
+        Double Area { get; };
+    };
+
+    interface ICircle requires IShape
+    {
+        Double Radius { get; };
+    };
+
+    [default_interface]
+    runtimeclass Circle : ICircle, IShape
+    {
+        Circle();
+    }
+
+    // 8. Event source (cross-process event callbacks)
+    interface IEventSource
+    {
+        event StatusNotifyHandler StatusChanged;
+        void RaiseStatus(String message);
+    };
+
+    [default_interface]
+    runtimeclass EventSource : IEventSource
+    {
+        EventSource();
+    }
+
+    // 9. Delegate invoker (cross-process delegate invocation)
+    interface IDelegateInvoker
+    {
+        String ApplyTransform(String input, StringTransform transform);
+    };
+
+    [default_interface]
+    runtimeclass DelegateInvoker : IDelegateInvoker
+    {
+        DelegateInvoker();
     }
 }

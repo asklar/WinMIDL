@@ -43,6 +43,18 @@ static const CLSID CLSID_OptionalValues = {
     0xd4e5f6a7, 0xb8c9, 0x4d0e,
     {0x1f, 0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80}};
 
+static const CLSID CLSID_Circle = {
+    0x1a2b3c4d, 0x5e6f, 0x4a7b,
+    {0x8c, 0x9d, 0xae, 0xbf, 0xc0, 0xd1, 0xe2, 0xf3}};
+
+static const CLSID CLSID_EventSource = {
+    0x2b3c4d5e, 0x6f7a, 0x4b8c,
+    {0x9d, 0xae, 0xbf, 0xc0, 0xd1, 0xe2, 0xf3, 0xa4}};
+
+static const CLSID CLSID_DelegateInvoker = {
+    0x3c4d5e6f, 0x7a8b, 0x4c9d,
+    {0xae, 0xbf, 0xc0, 0xd1, 0xe2, 0xf3, 0xa4, 0xb5}};
+
 static int g_passed = 0;
 static int g_failed = 0;
 
@@ -118,7 +130,83 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-// Client-side helper: SimpleInspectable — minimal IInspectable for PropertyBag
+// Client-side helper: StatusNotifyHandlerImpl — for EventSource test
+// ---------------------------------------------------------------------------
+class StatusNotifyHandlerImpl : public __x_TestApp_OutOfProc_StatusNotifyHandler {
+    LONG m_cRef;
+    volatile bool m_invoked;
+    HSTRING m_lastMessage;
+public:
+    StatusNotifyHandlerImpl() : m_cRef(1), m_invoked(false), m_lastMessage(nullptr) {}
+    ~StatusNotifyHandlerImpl() { if (m_lastMessage) WindowsDeleteString(m_lastMessage); }
+
+    bool WasInvoked() const { return m_invoked; }
+    HSTRING GetLastMessage() const { return m_lastMessage; }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown ||
+            riid == IID___x_TestApp_OutOfProc_StatusNotifyHandler) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_StatusNotifyHandler*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE Invoke(IInspectable* sender, HSTRING message) override {
+        (void)sender;
+        m_invoked = true;
+        if (m_lastMessage) WindowsDeleteString(m_lastMessage);
+        WindowsDuplicateString(message, &m_lastMessage);
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// Client-side helper: StringTransformImpl — for DelegateInvoker test
+// ---------------------------------------------------------------------------
+class StringTransformImpl : public __x_TestApp_OutOfProc_StringTransform {
+    LONG m_cRef;
+public:
+    StringTransformImpl() : m_cRef(1) {}
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown ||
+            riid == IID___x_TestApp_OutOfProc_StringTransform) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_StringTransform*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE Invoke(HSTRING input, HSTRING* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        UINT32 len = 0;
+        PCWSTR raw = WindowsGetStringRawBuffer(input, &len);
+        WCHAR buf[512];
+        swprintf_s(buf, 512, L"UPPER_%.*s", len, raw ? raw : L"");
+        return WindowsCreateString(buf, (UINT32)wcslen(buf), returnValue);
+    }
+};
 // ---------------------------------------------------------------------------
 class SimpleInspectable : public IInspectable {
     LONG m_cRef;
@@ -199,6 +287,13 @@ int main() {
             Check(SUCCEEDED(hr), "Calculator: Divide(10,2) HRESULT");
             Check(mr2.Value == 5.0, "Calculator: Divide(10,2) Value == 5.0");
             Check(mr2.IsExact == TRUE, "Calculator: Divide(10,2) IsExact == true");
+
+            // Error propagation: Divide(10, 0) → E_INVALIDARG across process
+            {
+                MathResult mrErr = {};
+                HRESULT hrDiv = pCalc->Divide(10.0, 0.0, &mrErr);
+                Check(hrDiv == E_INVALIDARG, "Calculator: Divide(10,0) returns E_INVALIDARG");
+            }
 
             // TryParseNumber("42.5") → true, result = 42.5
             {
@@ -625,6 +720,180 @@ int main() {
             if (className) WindowsDeleteString(className);
 
             pOpt->Release();
+        }
+    }
+
+    // ===== Test group 7: QI + GetIids + Static Members (Calculator) =====
+    printf("\n[Client] --- QI / GetIids / Statics tests ---\n");
+    {
+        __x_TestApp_OutOfProc_ICalculator* pCalc = nullptr;
+        hr = CoCreateInstance(CLSID_Calculator, nullptr, CLSCTX_LOCAL_SERVER,
+                              IID___x_TestApp_OutOfProc_ICalculator, (void**)&pCalc);
+        Check(SUCCEEDED(hr), "QI/Statics: CoCreateInstance Calculator");
+        if (SUCCEEDED(hr)) {
+            // QI for IInspectable
+            IInspectable* pInsp = nullptr;
+            hr = pCalc->QueryInterface(IID_IInspectable, (void**)&pInsp);
+            Check(SUCCEEDED(hr) && pInsp != nullptr, "QI: QueryInterface for IInspectable");
+            if (pInsp) pInsp->Release();
+
+            // GetIids — should return 2 (ICalculator + ICalculatorStatics)
+            ULONG iidCount = 0;
+            IID* iids = nullptr;
+            hr = pCalc->GetIids(&iidCount, &iids);
+            Check(SUCCEEDED(hr), "QI: GetIids HRESULT");
+            Check(iidCount == 2, "QI: GetIids count == 2");
+
+            // Verify IIDs contain ICalculator and ICalculatorStatics
+            if (iidCount == 2 && iids) {
+                bool hasCalc = false, hasStatics = false;
+                for (ULONG i = 0; i < iidCount; i++) {
+                    if (IsEqualIID(iids[i], IID___x_TestApp_OutOfProc_ICalculator))
+                        hasCalc = true;
+                    if (IsEqualIID(iids[i], IID___x_TestApp_OutOfProc_ICalculatorStatics))
+                        hasStatics = true;
+                }
+                Check(hasCalc, "QI: GetIids contains ICalculator");
+                Check(hasStatics, "QI: GetIids contains ICalculatorStatics");
+            }
+            if (iids) CoTaskMemFree(iids);
+
+            // QI for ICalculatorStatics and test static methods
+            __x_TestApp_OutOfProc_ICalculatorStatics* pStatics = nullptr;
+            hr = pCalc->QueryInterface(IID___x_TestApp_OutOfProc_ICalculatorStatics,
+                                        (void**)&pStatics);
+            Check(SUCCEEDED(hr) && pStatics != nullptr, "Statics: QI for ICalculatorStatics");
+            if (SUCCEEDED(hr) && pStatics) {
+                DOUBLE piVal = 0.0;
+                hr = pStatics->get_Pi(&piVal);
+                Check(SUCCEEDED(hr) && fabs(piVal - 3.14159265358979323846) < 1e-10,
+                      "Statics: get_Pi == 3.14159...");
+
+                boolean isEven4 = FALSE;
+                hr = pStatics->IsEven(4, &isEven4);
+                Check(SUCCEEDED(hr) && isEven4 == TRUE, "Statics: IsEven(4) == true");
+
+                boolean isEven3 = TRUE;
+                hr = pStatics->IsEven(3, &isEven3);
+                Check(SUCCEEDED(hr) && isEven3 == FALSE, "Statics: IsEven(3) == false");
+
+                pStatics->Release();
+            }
+
+            pCalc->Release();
+        }
+    }
+
+    // ===== Test group 8: Circle / Inheritance (ICircle requires IShape) =====
+    printf("\n[Client] --- Circle / Inheritance tests ---\n");
+    {
+        __x_TestApp_OutOfProc_ICircle* pCircle = nullptr;
+        hr = CoCreateInstance(CLSID_Circle, nullptr, CLSCTX_LOCAL_SERVER,
+                              IID___x_TestApp_OutOfProc_ICircle, (void**)&pCircle);
+        Check(SUCCEEDED(hr), "Circle: CoCreateInstance");
+        if (SUCCEEDED(hr)) {
+            // ICircle.get_Radius
+            DOUBLE radius = 0.0;
+            hr = pCircle->get_Radius(&radius);
+            Check(SUCCEEDED(hr) && radius == 5.0, "Circle: get_Radius == 5.0");
+
+            // QI for IShape
+            __x_TestApp_OutOfProc_IShape* pShape = nullptr;
+            hr = pCircle->QueryInterface(IID___x_TestApp_OutOfProc_IShape, (void**)&pShape);
+            Check(SUCCEEDED(hr) && pShape != nullptr, "Circle: QI for IShape");
+            if (SUCCEEDED(hr) && pShape) {
+                // IShape.get_Kind
+                HSTRING kind = nullptr;
+                hr = pShape->get_Kind(&kind);
+                Check(SUCCEEDED(hr) && HStringEquals(kind, L"Circle", 6),
+                      "Circle: IShape.get_Kind == \"Circle\"");
+                if (kind) WindowsDeleteString(kind);
+
+                // IShape.get_Area ≈ π * 25
+                DOUBLE area = 0.0;
+                hr = pShape->get_Area(&area);
+                Check(SUCCEEDED(hr) && fabs(area - 3.14159265358979323846 * 25.0) < 0.01,
+                      "Circle: IShape.get_Area ~= 78.54");
+
+                pShape->Release();
+            }
+
+            // GetIids should return 2 (ICircle + IShape)
+            ULONG iidCount = 0;
+            IID* iids = nullptr;
+            hr = pCircle->GetIids(&iidCount, &iids);
+            Check(SUCCEEDED(hr) && iidCount == 2, "Circle: GetIids count == 2");
+            if (iids) CoTaskMemFree(iids);
+
+            // GetRuntimeClassName
+            HSTRING className = nullptr;
+            hr = pCircle->GetRuntimeClassName(&className);
+            Check(SUCCEEDED(hr) && HStringEquals(className, L"TestApp.OutOfProc.Circle", 24),
+                  "Circle: GetRuntimeClassName");
+            if (className) WindowsDeleteString(className);
+
+            pCircle->Release();
+        }
+    }
+
+    // ===== Test group 9: EventSource (cross-process event callbacks) =====
+    printf("\n[Client] --- EventSource tests ---\n");
+    {
+        __x_TestApp_OutOfProc_IEventSource* pEvt = nullptr;
+        hr = CoCreateInstance(CLSID_EventSource, nullptr, CLSCTX_LOCAL_SERVER,
+                              IID___x_TestApp_OutOfProc_IEventSource, (void**)&pEvt);
+        Check(SUCCEEDED(hr), "EventSource: CoCreateInstance");
+        if (SUCCEEDED(hr)) {
+            auto* pHandler = new StatusNotifyHandlerImpl();
+
+            // Subscribe to event
+            EventRegistrationToken token = {};
+            hr = pEvt->add_StatusChanged(pHandler, &token);
+            Check(SUCCEEDED(hr), "EventSource: add_StatusChanged");
+            Check(token.value != 0, "EventSource: token != 0");
+
+            // Raise event — server calls delegate.Invoke back to client
+            HSTRING msg = nullptr;
+            WindowsCreateString(L"status-update", 13, &msg);
+            hr = pEvt->RaiseStatus(msg);
+            Check(SUCCEEDED(hr), "EventSource: RaiseStatus HRESULT");
+            if (msg) WindowsDeleteString(msg);
+
+            // Verify the handler was invoked
+            Check(pHandler->WasInvoked(), "EventSource: handler was invoked");
+            Check(HStringEquals(pHandler->GetLastMessage(), L"status-update", 13),
+                  "EventSource: handler message == \"status-update\"");
+
+            // Unsubscribe
+            hr = pEvt->remove_StatusChanged(token);
+            Check(SUCCEEDED(hr), "EventSource: remove_StatusChanged");
+
+            pHandler->Release();
+            pEvt->Release();
+        }
+    }
+
+    // ===== Test group 10: DelegateInvoker (cross-process delegate call) =====
+    printf("\n[Client] --- DelegateInvoker tests ---\n");
+    {
+        __x_TestApp_OutOfProc_IDelegateInvoker* pDI = nullptr;
+        hr = CoCreateInstance(CLSID_DelegateInvoker, nullptr, CLSCTX_LOCAL_SERVER,
+                              IID___x_TestApp_OutOfProc_IDelegateInvoker, (void**)&pDI);
+        Check(SUCCEEDED(hr), "DelegateInvoker: CoCreateInstance");
+        if (SUCCEEDED(hr)) {
+            auto* pTransform = new StringTransformImpl();
+
+            HSTRING input = nullptr, result = nullptr;
+            WindowsCreateString(L"hello", 5, &input);
+            hr = pDI->ApplyTransform(input, pTransform, &result);
+            Check(SUCCEEDED(hr), "DelegateInvoker: ApplyTransform HRESULT");
+            Check(HStringEquals(result, L"UPPER_hello", 11),
+                  "DelegateInvoker: result == \"UPPER_hello\"");
+
+            if (input) WindowsDeleteString(input);
+            if (result) WindowsDeleteString(result);
+            pTransform->Release();
+            pDI->Release();
         }
     }
 

@@ -212,6 +212,16 @@ $IID_IComplexOps = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IComplexO
 $IID_IComplexOps2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IComplexOps2"
 $IID_IOptionalValues = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IOptionalValues"
 $IID_IOptionalValues2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IOptionalValues2"
+$IID_IShape = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IShape"
+$IID_ICircle = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICircle"
+$IID_ICircle2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICircle2"
+$IID_IEventSource = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IEventSource"
+$IID_IEventSource2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IEventSource2"
+$IID_IDelegateInvoker = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IDelegateInvoker"
+$IID_IDelegateInvoker2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IDelegateInvoker2"
+$IID_StatusNotifyHandler = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_StatusNotifyHandler"
+$IID_StringTransform = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_StringTransform"
+$IID_ICalculatorStatics = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculatorStatics"
 
 if (-not $IID_ICalculator) {
     Write-Host "FAIL: Could not extract IID_ICalculator from generated code" -ForegroundColor Red
@@ -225,6 +235,9 @@ $CLSID_Notifier = "{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C59}"
 $CLSID_PropertyBag = "{C3D4E5F6-A7B8-4C9D-0E1F-2A3B4C5D6E7F}"
 $CLSID_ComplexOps = "{F2A3B4C5-D6E7-4F80-91A2-B3C4D5E6F7A8}"
 $CLSID_OptionalValues = "{D4E5F6A7-B8C9-4D0E-1F2A-3B4C5D6E7F80}"
+$CLSID_Circle = "{1A2B3C4D-5E6F-4A7B-8C9D-AEBFC0D1E2F3}"
+$CLSID_EventSource = "{2B3C4D5E-6F7A-4B8C-9DAE-BFC0D1E2F3A4}"
+$CLSID_DelegateInvoker = "{3C4D5E6F-7A8B-4C9D-AEBF-C0D1E2F3A4B5}"
 
 # Read the proxy CLSID from the generated code
 $proxyContent = Get-Content "$genDir/TestCalculator_proxy.cpp" -Raw
@@ -247,6 +260,9 @@ Write-Host "  CLSID_Notifier:      $CLSID_Notifier"
 Write-Host "  CLSID_PropertyBag:   $CLSID_PropertyBag"
 Write-Host "  CLSID_ComplexOps:    $CLSID_ComplexOps"
 Write-Host "  CLSID_OptionalValues: $CLSID_OptionalValues"
+Write-Host "  CLSID_Circle:        $CLSID_Circle"
+Write-Host "  CLSID_EventSource:   $CLSID_EventSource"
+Write-Host "  CLSID_DelegateInvoker: $CLSID_DelegateInvoker"
 Write-Host "  CLSID_PSFactory:     $CLSID_PSFactory"
 Write-Host "  IID_ICalculator:     $IID_ICalculator"
 Write-Host "  IID_ITypeShowcase:   $IID_ITypeShowcase"
@@ -255,12 +271,19 @@ Write-Host "  IID_INotifier:       $IID_INotifier"
 Write-Host "  IID_IPropertyBag:    $IID_IPropertyBag"
 Write-Host "  IID_IComplexOps:     $IID_IComplexOps"
 Write-Host "  IID_IOptionalValues: $IID_IOptionalValues"
+Write-Host "  IID_IShape:          $IID_IShape"
+Write-Host "  IID_ICircle:         $IID_ICircle"
+Write-Host "  IID_IEventSource:    $IID_IEventSource"
+Write-Host "  IID_IDelegateInvoker: $IID_IDelegateInvoker"
+Write-Host "  IID_StatusNotifyHandler: $IID_StatusNotifyHandler"
+Write-Host "  IID_StringTransform: $IID_StringTransform"
+Write-Host "  IID_ICalculatorStatics: $IID_ICalculatorStatics"
 
 # Register under HKCU (no admin needed)
 $regBase = "HKCU:\Software\Classes"
 
 # All CLSIDs for LocalServer32
-$allClsids = @($CLSID_Calculator, $CLSID_TypeShowcase, $CLSID_Notifier, $CLSID_PropertyBag, $CLSID_ComplexOps, $CLSID_OptionalValues)
+$allClsids = @($CLSID_Calculator, $CLSID_TypeShowcase, $CLSID_Notifier, $CLSID_PropertyBag, $CLSID_ComplexOps, $CLSID_OptionalValues, $CLSID_Circle, $CLSID_EventSource, $CLSID_DelegateInvoker)
 
 foreach ($clsid in $allClsids) {
     $clsidKey = "$regBase\CLSID\$clsid\LocalServer32"
@@ -290,7 +313,17 @@ $allIids = @(
     $IID_IComplexOps,
     $IID_IComplexOps2,
     $IID_IOptionalValues,
-    $IID_IOptionalValues2
+    $IID_IOptionalValues2,
+    $IID_IShape,
+    $IID_ICircle,
+    $IID_ICircle2,
+    $IID_IEventSource,
+    $IID_IEventSource2,
+    $IID_IDelegateInvoker,
+    $IID_IDelegateInvoker2,
+    $IID_StatusNotifyHandler,
+    $IID_StringTransform,
+    $IID_ICalculatorStatics
 ) | Where-Object { $_ -ne $null }
 
 foreach ($iid in $allIids) {

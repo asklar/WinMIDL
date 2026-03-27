@@ -41,6 +41,18 @@ static const CLSID CLSID_OptionalValues = {
     0xd4e5f6a7, 0xb8c9, 0x4d0e,
     {0x1f, 0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80}};
 
+static const CLSID CLSID_Circle = {
+    0x1a2b3c4d, 0x5e6f, 0x4a7b,
+    {0x8c, 0x9d, 0xae, 0xbf, 0xc0, 0xd1, 0xe2, 0xf3}};
+
+static const CLSID CLSID_EventSource = {
+    0x2b3c4d5e, 0x6f7a, 0x4b8c,
+    {0x9d, 0xae, 0xbf, 0xc0, 0xd1, 0xe2, 0xf3, 0xa4}};
+
+static const CLSID CLSID_DelegateInvoker = {
+    0x3c4d5e6f, 0x7a8b, 0x4c9d,
+    {0xae, 0xbf, 0xc0, 0xd1, 0xe2, 0xf3, 0xa4, 0xb5}};
+
 static HANDLE g_hShutdown = nullptr;
 static LONG g_cServerObjects = 0;
 
@@ -55,8 +67,10 @@ static void ServerObjDecRef() {
 // ---------------------------------------------------------------------------
 // Calculator — implements ICalculator + IInspectable
 // ---------------------------------------------------------------------------
-class Calculator : public __x_TestApp_OutOfProc_ICalculator {
+class Calculator : public __x_TestApp_OutOfProc_ICalculator,
+                   public __x_TestApp_OutOfProc_ICalculatorStatics {
     LONG m_cRef;
+    static constexpr DOUBLE kPi = 3.14159265358979323846;
 
 public:
     Calculator() : m_cRef(1) { ServerObjIncRef(); }
@@ -67,6 +81,11 @@ public:
         if (riid == IID_IUnknown || riid == IID_IInspectable ||
             riid == IID___x_TestApp_OutOfProc_ICalculator) {
             *ppv = static_cast<__x_TestApp_OutOfProc_ICalculator*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID___x_TestApp_OutOfProc_ICalculatorStatics) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_ICalculatorStatics*>(this);
             AddRef();
             return S_OK;
         }
@@ -83,10 +102,11 @@ public:
     }
 
     HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
-        *iidCount = 1;
-        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        *iidCount = 2;
+        *iids = (IID*)CoTaskMemAlloc(2 * sizeof(IID));
         if (!*iids) return E_OUTOFMEMORY;
         (*iids)[0] = IID___x_TestApp_OutOfProc_ICalculator;
+        (*iids)[1] = IID___x_TestApp_OutOfProc_ICalculatorStatics;
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
@@ -135,10 +155,20 @@ public:
         }
         return S_OK;
     }
-};
 
-// ---------------------------------------------------------------------------
-// TypeShowcaseImpl — implements ITypeShowcase (additional primitive types)
+    // ICalculatorStatics
+    HRESULT STDMETHODCALLTYPE get_Pi(DOUBLE* value) override {
+        if (!value) return E_POINTER;
+        *value = kPi;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE IsEven(INT32 value, boolean* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = (value % 2 == 0) ? TRUE : FALSE;
+        return S_OK;
+    }
+};— implements ITypeShowcase (additional primitive types)
 // ---------------------------------------------------------------------------
 class TypeShowcaseImpl : public __x_TestApp_OutOfProc_ITypeShowcase {
     LONG m_cRef;
@@ -568,6 +598,208 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// CircleImpl — implements ICircle + IShape (inheritance cross-process)
+// ---------------------------------------------------------------------------
+class CircleImpl : public __x_TestApp_OutOfProc_ICircle,
+                   public __x_TestApp_OutOfProc_IShape {
+    LONG m_cRef;
+    static constexpr DOUBLE kRadius = 5.0;
+    static constexpr DOUBLE kPi = 3.14159265358979323846;
+
+public:
+    CircleImpl() : m_cRef(1) { ServerObjIncRef(); }
+    ~CircleImpl() { ServerObjDecRef(); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_ICircle) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_ICircle*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID___x_TestApp_OutOfProc_IShape) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IShape*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 2;
+        *iids = (IID*)CoTaskMemAlloc(2 * sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_ICircle;
+        (*iids)[1] = IID___x_TestApp_OutOfProc_IShape;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.Circle", 24, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    // ICircle
+    HRESULT STDMETHODCALLTYPE get_Radius(DOUBLE* value) override {
+        if (!value) return E_POINTER;
+        *value = kRadius;
+        return S_OK;
+    }
+
+    // IShape
+    HRESULT STDMETHODCALLTYPE get_Kind(HSTRING* value) override {
+        if (!value) return E_POINTER;
+        return WindowsCreateString(L"Circle", 6, value);
+    }
+    HRESULT STDMETHODCALLTYPE get_Area(DOUBLE* value) override {
+        if (!value) return E_POINTER;
+        *value = kPi * kRadius * kRadius;
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// EventSourceImpl — implements IEventSource (cross-process events)
+// ---------------------------------------------------------------------------
+class EventSourceImpl : public __x_TestApp_OutOfProc_IEventSource {
+    LONG m_cRef;
+    __x_TestApp_OutOfProc_StatusNotifyHandler* m_handler;
+    INT64 m_nextToken;
+
+public:
+    EventSourceImpl() : m_cRef(1), m_handler(nullptr), m_nextToken(1) {
+        ServerObjIncRef();
+    }
+    ~EventSourceImpl() {
+        if (m_handler) m_handler->Release();
+        ServerObjDecRef();
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_IEventSource) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IEventSource*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IEventSource;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.EventSource", 29, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE add_StatusChanged(
+        __x_TestApp_OutOfProc_StatusNotifyHandler* handler,
+        EventRegistrationToken* token) override {
+        if (!token) return E_POINTER;
+        if (m_handler) m_handler->Release();
+        m_handler = handler;
+        if (m_handler) m_handler->AddRef();
+        token->value = m_nextToken++;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE remove_StatusChanged(
+        EventRegistrationToken token) override {
+        (void)token;
+        if (m_handler) { m_handler->Release(); m_handler = nullptr; }
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE RaiseStatus(HSTRING message) override {
+        if (m_handler) {
+            return m_handler->Invoke(
+                static_cast<IInspectable*>(
+                    static_cast<__x_TestApp_OutOfProc_IEventSource*>(this)),
+                message);
+        }
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// DelegateInvokerImpl — implements IDelegateInvoker (cross-process delegate)
+// ---------------------------------------------------------------------------
+class DelegateInvokerImpl : public __x_TestApp_OutOfProc_IDelegateInvoker {
+    LONG m_cRef;
+
+public:
+    DelegateInvokerImpl() : m_cRef(1) { ServerObjIncRef(); }
+    ~DelegateInvokerImpl() { ServerObjDecRef(); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_IDelegateInvoker) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IDelegateInvoker*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IDelegateInvoker;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.DelegateInvoker", 33, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE ApplyTransform(HSTRING input,
+        __x_TestApp_OutOfProc_StringTransform* transform,
+        HSTRING* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        if (!transform) return E_INVALIDARG;
+        return transform->Invoke(input, returnValue);
+    }
+};
+
+// ---------------------------------------------------------------------------
 // MultiClassFactory — switches on CLSID to create the right object
 // ---------------------------------------------------------------------------
 class MultiClassFactory : public IClassFactory {
@@ -609,6 +841,12 @@ public:
             obj = static_cast<__x_TestApp_OutOfProc_IComplexOps*>(new (std::nothrow) ComplexOpsImpl());
         else if (m_clsid == CLSID_OptionalValues)
             obj = static_cast<__x_TestApp_OutOfProc_IOptionalValues*>(new (std::nothrow) OptionalValuesImpl());
+        else if (m_clsid == CLSID_Circle)
+            obj = static_cast<__x_TestApp_OutOfProc_ICircle*>(new (std::nothrow) CircleImpl());
+        else if (m_clsid == CLSID_EventSource)
+            obj = static_cast<__x_TestApp_OutOfProc_IEventSource*>(new (std::nothrow) EventSourceImpl());
+        else if (m_clsid == CLSID_DelegateInvoker)
+            obj = static_cast<__x_TestApp_OutOfProc_IDelegateInvoker*>(new (std::nothrow) DelegateInvokerImpl());
         else return CLASS_E_CLASSNOTAVAILABLE;
         if (!obj) return E_OUTOFMEMORY;
         HRESULT hr = obj->QueryInterface(riid, ppv);
@@ -652,6 +890,9 @@ int main() {
         { CLSID_PropertyBag, 0 },
         { CLSID_ComplexOps, 0 },
         { CLSID_OptionalValues, 0 },
+        { CLSID_Circle, 0 },
+        { CLSID_EventSource, 0 },
+        { CLSID_DelegateInvoker, 0 },
     };
 
     for (auto& reg : regs) {
