@@ -1,3 +1,4 @@
+using System.Linq;
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
 
@@ -60,10 +61,14 @@ public class AttributeValidator
         };
 
     /// <summary>All well-known built-in attribute names recognized by the MIDL compiler.</summary>
-    private static readonly HashSet<string> WellKnownAttributes =
+    // Attributes recognized by the compiler. This includes classic MIDL compat
+    // attributes and WinRT attributes that the compiler/binder explicitly handles.
+    // Additional SDK attributes (e.g. noexcept, contentproperty) are resolved
+    // dynamically from WinMD providers at validation time.
+    private static readonly HashSet<string> BuiltinAttributes =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            // Type-level attributes
+            // WinRT attributes the compiler/binder explicitly processes
             "uuid", "contract", "contractversion", "version",
             "threading", "marshaling_behavior",
             "activatable", "composable", "static",
@@ -73,7 +78,7 @@ public class AttributeValidator
             "default_interface", "flags",
             // Attribute meta-attributes
             "attributeusage", "attributename", "allowmultiple",
-            // Member-level attributes
+            // Member-level attributes the binder processes
             "method_name", "overload", "default_overload",
             "return_name", "remote_async",
             // Classic MIDL attributes (compat)
@@ -86,14 +91,14 @@ public class AttributeValidator
             "context_handle", "v1_enum", "async_uuid",
             "noncreatable", "aggregatable", "appobject",
             "entry", "dllname", "custom",
-            // XAML/composition
-            "contentproperty", "inputproperty",
-            "allowforweb",
-            "bindable", "create_instance",
 #if WINDOWS_INTERNAL
             "feature", "feature_name",
 #endif
             "internal",
+            // XAML/composition attributes passed through to WinMD emission
+            "contentproperty", "inputproperty",
+            "allowforweb",
+            "bindable", "create_instance",
         };
 
     #pragma warning disable CS0649 // Field is never assigned
@@ -128,6 +133,29 @@ public class AttributeValidator
             {
                 apiContracts.Add(type.FullName);
                 apiContracts.Add(type.Name);
+            }
+        }
+
+        // Preload SDK attribute types from lazy WinMD providers
+        // so we can validate attributes like [noexcept] (NoExceptionAttribute)
+        foreach (var fullName in _compilation.GetAllLazyTypeNames())
+        {
+            if (!fullName.EndsWith("Attribute", StringComparison.Ordinal))
+                continue;
+            // Only resolve types from Windows.Foundation.Metadata (where WinRT attributes live)
+            if (!fullName.StartsWith("Windows.Foundation.Metadata.", StringComparison.Ordinal))
+                continue;
+            if (attrTypes.Values.Any(a => a.FullName == fullName))
+                continue; // already loaded
+
+            var symbol = _compilation.GetTypeByName(fullName);
+            if (symbol is AttributeTypeSymbol sdkAttr)
+            {
+                attrTypes[sdkAttr.Name] = sdkAttr;
+                if (sdkAttr.Name.EndsWith("Attribute", StringComparison.Ordinal) && sdkAttr.Name.Length > 9)
+                    attrTypes[sdkAttr.Name[..^9]] = sdkAttr;
+                if (sdkAttr.AttributeNameOverride != null)
+                    attrTypes[sdkAttr.AttributeNameOverride] = sdkAttr;
             }
         }
 
@@ -383,12 +411,48 @@ public class AttributeValidator
     {
         foreach (var attr in attributes)
         {
-            if (!WellKnownAttributes.Contains(attr.Name) &&
-                !attrTypes.ContainsKey(attr.Name))
+            if (BuiltinAttributes.Contains(attr.Name))
+                continue;
+            if (attrTypes.ContainsKey(attr.Name))
+                continue;
+
+            // Try resolving from SDK/WinMD lazy providers (e.g. NoExceptionAttribute → "noexcept")
+            if (TryResolveSdkAttribute(attr.Name, attrTypes))
+                continue;
+
+            _diagnostics.Add(DiagnosticDescriptors.UnknownAttribute(attr.Name, attr.Position));
+        }
+    }
+
+    /// <summary>
+    /// Attempts to find an attribute type in the SDK lazy providers by trying
+    /// common naming patterns: "name", "NameAttribute", "Windows.Foundation.Metadata.NameAttribute".
+    /// </summary>
+    private bool TryResolveSdkAttribute(string name, Dictionary<string, AttributeTypeSymbol> attrTypes)
+    {
+        var candidates = new[]
+        {
+            name,
+            name + "Attribute",
+            char.ToUpper(name[0]) + name[1..] + "Attribute",
+            "Windows.Foundation.Metadata." + name + "Attribute",
+            "Windows.Foundation.Metadata." + char.ToUpper(name[0]) + name[1..] + "Attribute",
+        };
+
+        foreach (var candidate in candidates)
+        {
+            var symbol = _compilation.GetTypeByName(candidate);
+            if (symbol is AttributeTypeSymbol at)
             {
-                _diagnostics.Add(DiagnosticDescriptors.UnknownAttribute(attr.Name, attr.Position));
+                // Cache it for future lookups
+                attrTypes[name] = at;
+                if (at.AttributeNameOverride != null)
+                    attrTypes[at.AttributeNameOverride] = at;
+                return true;
             }
         }
+
+        return false;
     }
 
     /// <summary>Validate custom attributes on members (methods, properties, events, constructors).</summary>
