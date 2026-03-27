@@ -80,7 +80,15 @@ if (Test-Path $arm64Exe) {
     Write-Host "  ARM64 binary not found — skipping" -ForegroundColor Yellow
 }
 
-# Step 3: Set version if specified
+# Step 3: Set version — from parameter, git tag, or package.json
+if (-not $Version) {
+    # Infer from latest git tag (e.g. v0.1.5 → 0.1.5)
+    $latestTag = git describe --tags --abbrev=0 2>$null
+    if ($latestTag -match '^v?(\d+\.\d+\.\d+)') {
+        $Version = $Matches[1]
+        Write-Host "Inferred version $Version from git tag $latestTag" -ForegroundColor Cyan
+    }
+}
 if ($Version) {
     Write-Host ""
     Write-Host "Setting extension version to $Version..." -ForegroundColor Cyan

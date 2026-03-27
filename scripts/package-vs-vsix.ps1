@@ -10,7 +10,7 @@
     Skip the CLI publish step (use existing publish/win-x64/Midl.Cli.exe)
 
 .PARAMETER Version
-    Override the extension version (default: 0.1.4)
+    Override the extension version (default: inferred from latest git tag)
 
 .PARAMETER Configuration
     Build configuration (default: Release)
@@ -22,7 +22,7 @@
 [CmdletBinding()]
 param(
     [switch]$SkipBuild,
-    [string]$Version = "0.1.4",
+    [string]$Version,
     [string]$Configuration = "Release",
     [string]$OutputPath
 )
@@ -90,7 +90,19 @@ if (Test-Path $arm64Exe) {
     Write-Host "  ARM64 binary not found — x64 only" -ForegroundColor Yellow
 }
 
-# Step 3: Update version in manifest (only the Identity element)
+# Step 3: Infer version from git tag if not specified
+if (-not $Version) {
+    $latestTag = git describe --tags --abbrev=0 2>$null
+    if ($latestTag -match '^v?(\d+\.\d+\.\d+)') {
+        $Version = $Matches[1]
+        Write-Host "Inferred version $Version from git tag $latestTag" -ForegroundColor Cyan
+    } else {
+        $Version = "0.1.0"
+        Write-Host "No git tag found, using default version $Version" -ForegroundColor Yellow
+    }
+}
+
+# Step 4: Update version in manifest (only the Identity element)
 $manifestPath = Join-Path $vsExtDir "source.extension.vsixmanifest"
 if (Test-Path $manifestPath) {
     $manifest = Get-Content $manifestPath -Raw
