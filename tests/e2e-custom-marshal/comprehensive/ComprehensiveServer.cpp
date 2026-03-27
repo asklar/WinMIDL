@@ -880,7 +880,17 @@ public:
 
     HRESULT STDMETHODCALLTYPE TryParse(HSTRING input, INT32* intResult,
                                         DOUBLE* floatResult, boolean* returnValue) override {
-        printf("SERVER TryParse called, input len=%u\n", WindowsGetStringLen(input)); fflush(stdout);
+        {
+            UINT32 slen = WindowsGetStringLen(input);
+            PCWSTR sraw = WindowsGetStringRawBuffer(input, nullptr);
+            printf("SERVER TryParse: len=%u raw=%p hstring=%p\n", slen, sraw, input);
+            if (sraw && slen > 0) {
+                printf("  chars:");
+                for (UINT32 i = 0; i < slen && i < 10; i++) printf(" %04x", sraw[i]);
+                printf("\n");
+            }
+            fflush(stdout);
+        }
         if (!intResult || !floatResult || !returnValue) return E_POINTER;
         UINT32 len = 0;
         PCWSTR raw = WindowsGetStringRawBuffer(input, &len);
