@@ -242,6 +242,7 @@ $clsidMap = @{
     "{F2A3B4C5-D6E7-4F80-91A2-B3C4D5E6F7A8}" = "ComplexOps"
     "{A3B4C5D6-E7F8-4091-A2B3-C4D5E6F7A8B9}" = "MathHelpers"
     "{B4C5D6E7-F8A9-40B1-C2D3-E4F5A6B7C8D9}" = "Observable"
+    "{C5D6E7F8-A9B0-41C2-D3E4-F5A6B7C8D9EA}" = "CollectionOps"
 }
 
 foreach ($clsid in $clsidMap.Keys) {

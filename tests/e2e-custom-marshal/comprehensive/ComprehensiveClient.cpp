@@ -11,6 +11,8 @@
 #include <inspectable.h>
 #include <stdio.h>
 #include <cmath>
+#include <roapi.h>
+#pragma comment(lib, "runtimeobject.lib")
 
 #include "generated/TestComprehensive.h"
 
@@ -70,6 +72,10 @@ static const CLSID CLSID_MathHelpers = {
 static const CLSID CLSID_Observable = {
     0xb4c5d6e7, 0xf8a9, 0x40b1,
     {0xc2, 0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9}};
+
+static const CLSID CLSID_CollectionOps = {
+    0xc5d6e7f8, 0xa9b0, 0x41c2,
+    {0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea}};
 
 // ---------------------------------------------------------------------------
 // Client-side helper: LoggerImpl — implements ILogger for Subscribe test
@@ -857,10 +863,36 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
         }
     }
 
-    // NOTE: ICollectionOps (#17) tests are not implemented — implementing
-    // IVector<T>, IMap<K,V>, etc. server-side requires WRL or C++/WinRT
-    // collection helpers. Skipped for now.
-    printf("[MTA] --- CollectionOps tests --- SKIPPED (needs WRL/C++WinRT helpers)\n");
+    // CollectionOps (#17) — collection interface marshaling
+    printf("[MTA] --- CollectionOps tests ---\n");
+    {
+        __x_TestApp_Comprehensive_ICollectionOps* pColl = nullptr;
+        hr = CoCreateInstance(CLSID_CollectionOps, nullptr, CLSCTX_INPROC_SERVER,
+            IID___x_TestApp_Comprehensive_ICollectionOps, (void**)&pColl);
+        Check(SUCCEEDED(hr), "CollectionOps: CoCreateInstance");
+
+        if (SUCCEEDED(hr) && pColl) {
+            // GetScores returns a PropertySet (IMap)
+            __x_Windows_Foundation_Collections_IMap* pMap = nullptr;
+            hr = pColl->GetScores(&pMap);
+            Check(SUCCEEDED(hr), "CollectionOps: GetScores");
+            Check(pMap != nullptr, "CollectionOps: GetScores != null");
+            if (pMap) pMap->Release();
+
+            // GetNames returns null (not implemented yet)
+            __x_Windows_Foundation_Collections_IVector* pVec = nullptr;
+            hr = pColl->GetNames(&pVec);
+            Check(SUCCEEDED(hr), "CollectionOps: GetNames (null ok)");
+
+            // GetRuntimeClassName
+            HSTRING className = nullptr;
+            hr = pColl->GetRuntimeClassName(&className);
+            Check(SUCCEEDED(hr) && className != nullptr, "CollectionOps: GetRuntimeClassName");
+            if (className) WindowsDeleteString(className);
+
+            pColl->Release();
+        }
+    }
 
     CoUninitialize();
     printf("\n[MTA] Tests complete.\n");

@@ -1,19 +1,7 @@
-  STUB unmarshal_hstring_ref: buf=000001B1BA50EDA0 first8bytes=07000000 74006500 len=7
-  STUB WindowsCreateStringReference: hr=0x80000017 result=0000000000000000 len=7
-  STUB unmarshal_hstring_ref: buf=000001B1BA74AFE0 first8bytes=07000000 74006500 len=7
-  STUB WindowsCreateStringReference: hr=0x80000017 result=0000000000000000 len=7
-  STUB unmarshal_hstring_ref: buf=000001B1BB853FE0 first8bytes=0b000000 6e006f00 len=11
-  STUB WindowsCreateStringReference: hr=0x80000017 result=0000000000000000 len=11
-  STUB unmarshal_hstring_ref: buf=000001B1BBC7AFD0 first8bytes=09000000 74006500 len=9
-  STUB WindowsCreateStringReference: hr=0x80000017 result=0000000000000000 len=9
-  STUB unmarshal_hstring_ref: buf=000001B1BBD4EFF0 first8bytes=02000000 34003200 len=2
-  STUB WindowsCreateStringReference: hr=0x80000017 result=0000000000000000 len=2
-SERVER TryParse: len=0 raw=00007FFC056F8388 hstring=0000000000000000
-  STUB unmarshal_hstring_ref: buf=000001B1BBE25FF0 first8bytes=03000000 61006200 len=3
-  STUB WindowsCreateStringReference: hr=0x80000017 result=0000000000000000 len=3
-SERVER TryParse: len=0 raw=00007FFC056F8388 hstring=0000000000000000
-  STUB unmarshal_hstring_ref: buf=000001B1BC0F1FD0 first8bytes=10000000 68006500 len=16
-  STUB WindowsCreateStringReference: hr=0x80000017 result=0000000000000000 len=16
+SERVER TryParse: len=2 raw=000001923D191FF4 hstring=0000000CA65FEB20
+  chars: 0034 0032
+SERVER TryParse: len=3 raw=000001923D1A6FF4 hstring=0000000CA65FEB20
+  chars: 0061 0062 0063
 === E2E Comprehensive Custom Marshal Test ===
 
 [STA] COM initialized (apartment-threaded)
@@ -98,9 +86,7 @@ SERVER TryParse: len=0 raw=00007FFC056F8388 hstring=0000000000000000
 [MTA] --- ComplexOps tests ---
   PASS: ComplexOps: CoCreateInstance
   PASS: ComplexOps: MultiParam(5 params)
-  CLIENT TryParse: input=000001B1BBD44FD0 len=2
-  DEBUG TryParse: hr=0x00000000 parseOk=0 intResult=0 floatResult=0.000000
-  FAIL: ComplexOps: TryParse("42") == 42, TRUE
+  PASS: ComplexOps: TryParse("42") == 42, TRUE
   PASS: ComplexOps: TryParse("abc") == FALSE
   PASS: ComplexOps: Swap(100,200) => (200,100)
   PASS: ComplexOps: GetRuntimeClassName
@@ -113,11 +99,12 @@ SERVER TryParse: len=0 raw=00007FFC056F8388 hstring=0000000000000000
 [MTA] --- Observable tests ---
   PASS: Observable: CoCreateInstance
   PASS: Observable: put_Value
-  FAIL: Observable: get_Value round-trip
+  PASS: Observable: get_Value round-trip
   PASS: Observable: remove_ValueChanged (synthetic token)
   PASS: Observable: GetRuntimeClassName
-[MTA] --- CollectionOps tests --- SKIPPED (needs WRL/C++WinRT helpers)
+[MTA] --- CollectionOps tests ---
+  FAIL: CollectionOps: CoCreateInstance
 
 [MTA] Tests complete.
 
-=== Results: 80 passed, 2 failed ===
+=== Results: 82 passed, 1 failed ===

@@ -126,7 +126,9 @@ inline void marshal_enum(BYTE*& buf, E val) {
     INT32 v = static_cast<INT32>(val);
     memcpy(buf, &v, sizeof(INT32)); buf += sizeof(INT32);
 }
-// Null-safe: nullptr HSTRING writes count=0 (empty string).
+// Null-safe: nullptr HSTRING writes count=0.
+// Wire format: [uint32 charCount][wchar_t × charCount][wchar_t 0x0000]
+// Null terminator included so stub can use WindowsCreateStringReference (zero-copy).
 inline void marshal_hstring(BYTE*& buf, HSTRING val) {
     UINT32 len = val ? WindowsGetStringLen(val) : 0;
     memcpy(buf, &len, sizeof(UINT32)); buf += sizeof(UINT32);
@@ -134,6 +136,9 @@ inline void marshal_hstring(BYTE*& buf, HSTRING val) {
         PCWSTR raw = WindowsGetStringRawBuffer(val, nullptr);
         memcpy(buf, raw, len * sizeof(WCHAR)); buf += len * sizeof(WCHAR);
     }
+    // Always write null terminator (even for empty strings)
+    WCHAR nul = 0;
+    memcpy(buf, &nul, sizeof(WCHAR)); buf += sizeof(WCHAR);
 }
 template<typename T>
 inline void marshal_struct(BYTE*& buf, const T& val) {
@@ -189,31 +194,22 @@ inline void unmarshal_enum(const BYTE*& buf, E& out) {
     INT32 v; memcpy(&v, buf, sizeof(INT32)); buf += sizeof(INT32);
     out = static_cast<E>(v);
 }
-// Zero-copy HSTRING deserialization (stub-side, sync methods)
+// Zero-copy HSTRING deserialization (stub-side).
+// Wire format includes null terminator, so WindowsCreateStringReference works directly.
 inline HSTRING unmarshal_hstring_ref(BYTE*& buf, HSTRING_HEADER& hdr) {
-    UINT32 len; memcpy(&len, buf, sizeof(UINT32));
-#ifdef WINMIDL_TRACE
-    printf("  STUB unmarshal_hstring_ref: buf=%p first8bytes=%02x%02x%02x%02x %02x%02x%02x%02x len=%u\n",
-        buf, buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], len);
-    fflush(stdout);
-#endif
-    buf += sizeof(UINT32);
+    UINT32 len; memcpy(&len, buf, sizeof(UINT32)); buf += sizeof(UINT32);
     HSTRING result = nullptr;
     if (len > 0) {
-        HRESULT hr = WindowsCreateStringReference(reinterpret_cast<PCWSTR>(buf), len, &hdr, &result);
-#ifdef WINMIDL_TRACE
-        printf("  STUB WindowsCreateStringReference: hr=0x%08lx result=%p len=%u\n", hr, result, len);
-        fflush(stdout);
-#endif
+        WindowsCreateStringReference(reinterpret_cast<PCWSTR>(buf), len, &hdr, &result);
     }
-    buf += len * sizeof(WCHAR);
+    buf += len * sizeof(WCHAR) + sizeof(WCHAR); // chars + null terminator
     return result;
 }
 // Allocating HSTRING deserialization (proxy reply side)
 inline HRESULT unmarshal_hstring(BYTE*& buf, HSTRING* out) {
     UINT32 len; memcpy(&len, buf, sizeof(UINT32)); buf += sizeof(UINT32);
     HRESULT hr = WindowsCreateString(reinterpret_cast<PCWSTR>(buf), len, out);
-    buf += len * sizeof(WCHAR);
+    buf += len * sizeof(WCHAR) + sizeof(WCHAR); // chars + null terminator
     return hr;
 }
 // Allocating HSTRING deserialization (stub-side, async methods)
@@ -432,7 +428,7 @@ inline HRESULT unmarshal_hstring_array(BYTE*& buf, HSTRING** items, UINT32* coun
 inline UINT32 hstring_array_size(HSTRING* items, UINT32 count) {
     UINT32 size = sizeof(UINT32); // count prefix
     for (UINT32 i = 0; i < count; i++) {
-        size += sizeof(UINT32) + WindowsGetStringLen(items[i]) * sizeof(WCHAR);
+        size += sizeof(UINT32) + WindowsGetStringLen(items[i]) * sizeof(WCHAR) + sizeof(WCHAR); // +null terminator
     }
     return size;
 }

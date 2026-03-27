@@ -100,7 +100,7 @@ static constexpr IID IID_IMap_2_String___x_TestApp_Comprehensive_Animal = { 0x52
 static HRESULT proxy_shape_hstring_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, HSTRING arg0) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR);
+    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR);
     HRESULT hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -169,7 +169,7 @@ class CILoggerProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 6;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(message) * sizeof(WCHAR);
+            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(message) * sizeof(WCHAR) + sizeof(WCHAR);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ILogger);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -1560,7 +1560,7 @@ static HRESULT proxy_shape_hstring_object_to_void(IRpcChannelBuffer* channel, co
     HRESULT hr;
     UINT32 arg1_marshalSize = 0;
     hr = winmidl::get_marshal_size(arg1, IID_IInspectable, arg1_marshalSize); RETURN_IF_FAILED(hr);
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + arg1_marshalSize;
+    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR) + arg1_marshalSize;
     hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -1580,7 +1580,7 @@ static HRESULT proxy_shape_hstring_object_to_void(IRpcChannelBuffer* channel, co
 static HRESULT proxy_shape_hstring_to_object(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, HSTRING arg0, IInspectable** retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR);
+    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR);
     HRESULT hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -1635,7 +1635,7 @@ class CIPropertyBagProxy : public IRpcProxyBuffer {
             HRESULT hr;
             UINT32 value_marshalSize = 0;
             hr = winmidl::get_marshal_size(value, IID_IInspectable, value_marshalSize); RETURN_IF_FAILED(hr);
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(key) * sizeof(WCHAR) + value_marshalSize;
+            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(key) * sizeof(WCHAR) + sizeof(WCHAR) + value_marshalSize;
             hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IPropertyBag);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -1656,7 +1656,7 @@ class CIPropertyBagProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 7;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(key) * sizeof(WCHAR);
+            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(key) * sizeof(WCHAR) + sizeof(WCHAR);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IPropertyBag);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -2375,7 +2375,7 @@ static constexpr winmidl::interface_descriptor __x_TestApp_Comprehensive_ITypeSh
 static HRESULT proxy_shape_hstring_int32_int32_double_bool_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, HSTRING arg0, INT32 arg1, INT32 arg2, DOUBLE arg3, boolean arg4) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(INT32) + sizeof(INT32) + sizeof(DOUBLE) + sizeof(boolean);
+    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(INT32) + sizeof(INT32) + sizeof(DOUBLE) + sizeof(boolean);
     HRESULT hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -2398,7 +2398,7 @@ static HRESULT proxy_shape_hstring_int32_int32_double_bool_to_void(IRpcChannelBu
 static HRESULT proxy_shape_hstring_to_bool(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, HSTRING arg0, INT32* out1, DOUBLE* out2, boolean* retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR);
+    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR);
     HRESULT hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -2474,7 +2474,7 @@ class CIComplexOpsProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 6;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(name) * sizeof(WCHAR) + sizeof(INT32) + sizeof(INT32) + sizeof(DOUBLE) + sizeof(boolean);
+            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(name) * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(INT32) + sizeof(INT32) + sizeof(DOUBLE) + sizeof(boolean);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IComplexOps);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -2499,7 +2499,7 @@ class CIComplexOpsProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 7;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(input) * sizeof(WCHAR);
+            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(input) * sizeof(WCHAR) + sizeof(WCHAR);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IComplexOps);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -2745,7 +2745,7 @@ class CIObservableProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 9;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(value) * sizeof(WCHAR);
+            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(value) * sizeof(WCHAR) + sizeof(WCHAR);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IObservable);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -4646,7 +4646,7 @@ private:
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_LastMessage(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
-        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
+        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ILogger);
         if (FAILED(hrBuf)) {
             WindowsDeleteString(returnValue);
@@ -4734,7 +4734,7 @@ private:
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Name(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
-        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
+        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IAnimal);
         if (FAILED(hrBuf)) {
             WindowsDeleteString(returnValue);
@@ -4832,7 +4832,7 @@ private:
         HSTRING returnValue{};
         HRESULT hr = m_pServer->Serialize(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
-        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
+        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ISerializable);
         if (FAILED(hrBuf)) {
             WindowsDeleteString(returnValue);
@@ -4914,7 +4914,7 @@ private:
         HSTRING returnValue{};
         HRESULT hr = m_pServer->CloneAsString(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
-        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
+        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICloneable);
         if (FAILED(hrBuf)) {
             WindowsDeleteString(returnValue);
@@ -6071,7 +6071,7 @@ private:
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Value(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
-        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
+        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IObservable);
         if (FAILED(hrBuf)) {
             WindowsDeleteString(returnValue);
@@ -6447,7 +6447,7 @@ private:
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Kind(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
-        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
+        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IShape);
         if (FAILED(hrBuf)) {
             WindowsDeleteString(returnValue);
@@ -6623,7 +6623,7 @@ private:
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Title(&returnValue);
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
-        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
+        pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IDocument);
         if (FAILED(hrBuf)) {
             WindowsDeleteString(returnValue);

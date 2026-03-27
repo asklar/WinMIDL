@@ -65,6 +65,10 @@ static const CLSID CLSID_Observable = {
     0xb4c5d6e7, 0xf8a9, 0x40b1,
     {0xc2, 0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9}};
 
+static const CLSID CLSID_CollectionOps = {
+    0xc5d6e7f8, 0xa9b0, 0x41c2,
+    {0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea}};
+
 static constexpr double kPi = 3.14159265358979323846;
 static LONG g_cDllRef = 0;
 
@@ -1057,9 +1061,87 @@ public:
     }
 };
 
-// NOTE: ICollectionOps (#17) is not implemented — implementing IVector<T>,
-// IMap<K,V>, IVectorView<T>, IMapView<K,V>, and IIterable<T> server-side
-// requires WRL or C++/WinRT collection helpers. Skipped for now.
+// ---------------------------------------------------------------------------
+// CollectionOpsImpl — implements ICollectionOps using RoActivateInstance
+// Uses PropertySet for IMap, and wraps string vectors manually.
+// ---------------------------------------------------------------------------
+#include <roapi.h>
+#pragma comment(lib, "runtimeobject.lib")
+
+class CollectionOpsImpl : public __x_TestApp_Comprehensive_ICollectionOps {
+    LONG m_cRef;
+    IInspectable* m_names; // stores an IVector<String> (or null)
+public:
+    CollectionOpsImpl() : m_cRef(1), m_names(nullptr) { InterlockedIncrement(&g_cDllRef); }
+    ~CollectionOpsImpl() {
+        if (m_names) m_names->Release();
+        InterlockedDecrement(&g_cDllRef);
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_Comprehensive_ICollectionOps) {
+            *ppv = static_cast<__x_TestApp_Comprehensive_ICollectionOps*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_Comprehensive_ICollectionOps;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.Comprehensive.CollectionOps", 35, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    // ICollectionOps — return PropertySet for map methods, null for others
+    HRESULT STDMETHODCALLTYPE GetNames(__x_Windows_Foundation_Collections_IVector** returnValue) override {
+        *returnValue = nullptr; return S_OK; // not implemented
+    }
+    HRESULT STDMETHODCALLTYPE SetNames(__x_Windows_Foundation_Collections_IVectorView*) override {
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetScores(__x_Windows_Foundation_Collections_IMap** returnValue) override {
+        // Create a PropertySet (implements IMap<String, IInspectable*>)
+        HSTRING hcls = nullptr;
+        WindowsCreateString(L"Windows.Foundation.Collections.PropertySet", 41, &hcls);
+        IInspectable* pInsp = nullptr;
+        HRESULT hr = RoActivateInstance(hcls, &pInsp);
+        WindowsDeleteString(hcls);
+        if (FAILED(hr)) { *returnValue = nullptr; return hr; }
+        // PropertySet is IInspectable — cast to our opaque IMap type
+        *returnValue = reinterpret_cast<__x_Windows_Foundation_Collections_IMap*>(pInsp);
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE SetScores(__x_Windows_Foundation_Collections_IMapView*) override {
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetAllItems(__x_Windows_Foundation_Collections_IIterable** returnValue) override {
+        *returnValue = nullptr; return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetAnimals(__x_Windows_Foundation_Collections_IVector** returnValue) override {
+        *returnValue = nullptr; return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetAnimalsByName(__x_Windows_Foundation_Collections_IMap** returnValue) override {
+        *returnValue = nullptr; return S_OK;
+    }
+};
 
 // ---------------------------------------------------------------------------
 // ClassFactory — switches on CLSID to create the right object
@@ -1116,6 +1198,8 @@ public:
             obj = static_cast<__x_TestApp_Comprehensive_IMathHelpersStatics*>(new (std::nothrow) MathHelpersImpl());
         else if (m_clsid == CLSID_Observable)
             obj = static_cast<__x_TestApp_Comprehensive_IObservable*>(new (std::nothrow) ObservableImpl());
+        else if (m_clsid == CLSID_CollectionOps)
+            obj = static_cast<__x_TestApp_Comprehensive_ICollectionOps*>(new (std::nothrow) CollectionOpsImpl());
         else return CLASS_E_CLASSNOTAVAILABLE;
         if (!obj) return E_OUTOFMEMORY;
         HRESULT hr = obj->QueryInterface(riid, ppv);
@@ -1139,7 +1223,8 @@ HRESULT STDAPICALLTYPE DllGetClassObject(REFCLSID rclsid, REFIID riid, void** pp
     static const CLSID* knownClsids[] = {
         &CLSID_Animal, &CLSID_Shape, &CLSID_Circle, &CLSID_Document, &CLSID_Calculator,
         &CLSID_Notifier, &CLSID_EventSource, &CLSID_PropertyBag, &CLSID_OptionalValues,
-        &CLSID_TypeShowcase, &CLSID_ComplexOps, &CLSID_MathHelpers, &CLSID_Observable
+        &CLSID_TypeShowcase, &CLSID_ComplexOps, &CLSID_MathHelpers, &CLSID_Observable,
+        &CLSID_CollectionOps
     };
     for (auto* c : knownClsids) {
         if (rclsid == *c) {
