@@ -538,30 +538,30 @@ public:
         *trustLevel = BaseTrust; return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE GetOptionalCount(IInspectable** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetOptionalCount(__x_Windows_Foundation_IReference** returnValue) override {
         if (!returnValue) return E_POINTER;
-        *returnValue = m_optionalCount;
+        *returnValue = reinterpret_cast<__x_Windows_Foundation_IReference*>(m_optionalCount);
         if (m_optionalCount) m_optionalCount->AddRef();
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE SetOptionalCount(IInspectable* count) override {
+    HRESULT STDMETHODCALLTYPE SetOptionalCount(__x_Windows_Foundation_IReference* count) override {
         if (m_optionalCount) m_optionalCount->Release();
-        m_optionalCount = count;
+        m_optionalCount = reinterpret_cast<IInspectable*>(count);
         if (m_optionalCount) m_optionalCount->AddRef();
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE GetOptionalScore(IInspectable** returnValue) override {
+    HRESULT STDMETHODCALLTYPE GetOptionalScore(__x_Windows_Foundation_IReference** returnValue) override {
         if (!returnValue) return E_POINTER;
-        *returnValue = m_optionalScore;
+        *returnValue = reinterpret_cast<__x_Windows_Foundation_IReference*>(m_optionalScore);
         if (m_optionalScore) m_optionalScore->AddRef();
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE SetOptionalScore(IInspectable* score) override {
+    HRESULT STDMETHODCALLTYPE SetOptionalScore(__x_Windows_Foundation_IReference* score) override {
         if (m_optionalScore) m_optionalScore->Release();
-        m_optionalScore = score;
+        m_optionalScore = reinterpret_cast<IInspectable*>(score);
         if (m_optionalScore) m_optionalScore->AddRef();
         return S_OK;
     }

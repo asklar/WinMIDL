@@ -498,7 +498,7 @@ int main() {
         Check(SUCCEEDED(hr), "OptionalValues: CoCreateInstance");
         if (SUCCEEDED(hr)) {
             // Initially null
-            IInspectable* nullVal = (IInspectable*)0xDEAD;
+            __x_Windows_Foundation_IReference* nullVal = (__x_Windows_Foundation_IReference*)0xDEAD;
             hr = pOpt->GetOptionalCount(&nullVal);
             Check(SUCCEEDED(hr) && nullVal == nullptr, "OptionalValues: GetOptionalCount initially null");
 
@@ -539,10 +539,10 @@ int main() {
                 Check(SUCCEEDED(hr) && boxed42 != nullptr, "OptionalValues: CreateInt32(42)");
 
                 if (SUCCEEDED(hr) && boxed42) {
-                    hr = pOpt->SetOptionalCount(boxed42);
+                    hr = pOpt->SetOptionalCount(reinterpret_cast<__x_Windows_Foundation_IReference*>(boxed42));
                     Check(SUCCEEDED(hr), "OptionalValues: SetOptionalCount(boxed 42)");
 
-                    IInspectable* retrieved = nullptr;
+                    __x_Windows_Foundation_IReference* retrieved = nullptr;
                     hr = pOpt->GetOptionalCount(&retrieved);
                     Check(SUCCEEDED(hr) && retrieved != nullptr,
                           "OptionalValues: GetOptionalCount != null after set");
@@ -580,10 +580,10 @@ int main() {
                 Check(SUCCEEDED(hr) && boxedPi != nullptr, "OptionalValues: CreateDouble(3.14)");
 
                 if (SUCCEEDED(hr) && boxedPi) {
-                    hr = pOpt->SetOptionalScore(boxedPi);
+                    hr = pOpt->SetOptionalScore(reinterpret_cast<__x_Windows_Foundation_IReference*>(boxedPi));
                     Check(SUCCEEDED(hr), "OptionalValues: SetOptionalScore(boxed 3.14)");
 
-                    IInspectable* retrieved2 = nullptr;
+                    __x_Windows_Foundation_IReference* retrieved2 = nullptr;
                     hr = pOpt->GetOptionalScore(&retrieved2);
                     Check(SUCCEEDED(hr) && retrieved2 != nullptr,
                           "OptionalValues: GetOptionalScore != null after set");
