@@ -223,8 +223,11 @@ $IID_StatusNotifyHandler = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_S
 $IID_StringTransform = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_StringTransform"
 $IID_ICalculatorStatics = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculatorStatics"
 $IID_IStringList = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IStringList"
+$IID_IStringList2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IStringList2"
 $IID_IStringListProvider = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IStringListProvider"
 $IID_IStringListProvider2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IStringListProvider2"
+$IID_IAsyncResult = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IAsyncResult"
+$IID_IAsyncResult2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IAsyncResult2"
 $IID_IAsyncCalculator = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IAsyncCalculator"
 $IID_IAsyncCalculator2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IAsyncCalculator2"
 
@@ -289,6 +292,7 @@ Write-Host "  IID_StringTransform: $IID_StringTransform"
 Write-Host "  IID_ICalculatorStatics: $IID_ICalculatorStatics"
 Write-Host "  IID_IStringList:     $IID_IStringList"
 Write-Host "  IID_IStringListProvider: $IID_IStringListProvider"
+Write-Host "  IID_IAsyncResult:    $IID_IAsyncResult"
 Write-Host "  IID_IAsyncCalculator: $IID_IAsyncCalculator"
 
 # Register under HKCU (no admin needed)
@@ -337,8 +341,11 @@ $allIids = @(
     $IID_StringTransform,
     $IID_ICalculatorStatics,
     $IID_IStringList,
+    $IID_IStringList2,
     $IID_IStringListProvider,
     $IID_IStringListProvider2,
+    $IID_IAsyncResult,
+    $IID_IAsyncResult2,
     $IID_IAsyncCalculator,
     $IID_IAsyncCalculator2
 ) | Where-Object { $_ -ne $null }
