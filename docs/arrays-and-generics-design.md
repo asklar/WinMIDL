@@ -28,6 +28,76 @@ HRESULT GetAllItems([out] UINT32* itemsSize, [out, size_is(, *itemsSize)] INT32*
 
 This is only expressible in MIDL2 (with `size_is` attributes). MIDL3 has no array syntax — you must use `IVector<T>` instead.
 
+### Arrays vs IVector\<T\>
+
+Both transfer sequences of elements, but with very different performance characteristics:
+
+| | Array params (`T[]`) | `IVector<T>` |
+|---|---|---|
+| **Marshaling** | Single RPC call — entire buffer serialized inline | One RPC call per method (`GetAt`, `Append`, etc.) |
+| **1000 ints cross-process** | 1 call, ~4KB payload | 1000 calls to `GetAt` |
+| **Lazy access** | ❌ Must marshal entire array upfront | ✅ Only marshal elements you access |
+| **Memory** | Contiguous buffer, `CoTaskMemAlloc` / `CoTaskMemFree` | COM object with reference counting |
+| **Best for** | Bulk data transfer, known-size buffers | Random/partial access, dynamic collections |
+
+Use arrays when you need to transfer the whole buffer efficiently. Use `IVector<T>` when clients may only need a subset of elements (e.g., first 5 of 1M).
+
+### ABI expansion and memory ownership
+
+Each array pattern has distinct memory ownership semantics and ABI signatures:
+
+#### PassArray — caller sends, callee reads
+```idl
+void ProcessItems(Int32[] items);
+```
+```cpp
+// ABI: caller owns the buffer, callee must not free it
+HRESULT ProcessItems(UINT32 __itemsSize, INT32* items);
+```
+- Caller allocates on the stack or heap
+- Callee reads but does not take ownership
+- For reference types (String), callee must not call `WindowsDeleteString` on elements
+- **Wire format**: `[uint32 count][element × count]` — proxy serializes, stub deserializes into a temporary buffer
+
+#### FillArray — caller allocates, callee fills
+```idl
+void ReadInto(out Int32[] buffer);
+```
+```cpp
+// ABI: caller allocates buffer of known capacity, callee fills and reports actual count
+HRESULT ReadInto(UINT32 __bufferCapacity, INT32* buffer, UINT32* __bufferActual);
+```
+- Caller allocates the buffer with a known maximum capacity
+- Callee fills up to `capacity` elements and sets `*actual` to the number written
+- Useful for "read into buffer" patterns (file I/O, stream reads)
+- **Wire format**: request sends `[uint32 capacity]`, reply sends `[uint32 actual][element × actual]`
+
+#### ReceiveArray — callee allocates, caller frees
+```idl
+String[] GetNames();
+```
+```cpp
+// ABI: callee allocates with CoTaskMemAlloc, caller frees with CoTaskMemFree
+HRESULT GetNames(UINT32* __returnSize, HSTRING** __returnItems);
+```
+- Callee determines the size, allocates with `CoTaskMemAlloc(count * sizeof(T))`, and sets both out params
+- Caller frees the buffer with `CoTaskMemFree` after use
+- For reference type elements (HSTRING, interface pointers), caller must also release each element
+- **Cross-process**: works identically — stub serializes `[uint32 count][element × count]` into the RPC buffer, proxy deserializes and allocates a fresh `CoTaskMemAlloc` buffer on the client side. No direct memory sharing.
+- **Wire format**: `[uint32 count][element × count]`
+
+#### How the compiler distinguishes patterns
+
+The array semantics are inferred from parameter direction and position:
+
+| MIDL3 syntax | Pattern | ABI expansion |
+|---|---|---|
+| `void Foo(Int32[] items)` | PassArray | `(UINT32 count, INT32* items)` |
+| `void Foo(out Int32[] items)` | FillArray | `(UINT32 capacity, INT32* items, UINT32* actual)` |
+| `Int32[] Foo()` | ReceiveArray | `(UINT32* count, INT32** items)` as trailing retval |
+
+The count/capacity parameter is **implicit** in MIDL3 — the compiler synthesizes it. The `__` prefix convention (e.g., `__itemsSize`) prevents name collisions with user-defined parameters.
+
 ### Proposed MIDL3 syntax
 
 ```idl
