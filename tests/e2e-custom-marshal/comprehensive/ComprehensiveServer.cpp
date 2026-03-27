@@ -7,6 +7,8 @@
 #include <new>
 #include <cmath>
 #include <stdio.h>
+#include <string>
+#include <unordered_map>
 
 #include "generated/TestComprehensive.h"
 
@@ -1118,11 +1120,79 @@ public:
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE GetScores(__x_Windows_Foundation_Collections_IMap** returnValue) override {
-        // IMap<String, Int32> requires a full vtable implementation for COM marshaling.
-        // A minimal stub won't work because COM's standard marshaler for IMap expects
-        // all IMap methods (Lookup, Insert, HasKey, etc.) in the vtable.
-        // Use C++/WinRT's single_threaded_map to create a real one in a future test.
-        *returnValue = nullptr;
+        // Real IMap<String, Int32> implementation backed by std::unordered_map.
+        // Must have full IMap vtable for COM's standard marshaler.
+        static const IID IID_IMap_String_Int32 =
+            { 0xae681871, 0xdd82, 0x5299, { 0x93, 0xea, 0x02, 0x75, 0xe4, 0xe0, 0x73, 0xe7 } };
+
+        // ABI interface matching IMap<String, Int32> vtable layout
+        struct DECLSPEC_UUID("ae681871-dd82-5299-93ea-0275e4e073e7")
+        IMapStringInt32 : public IInspectable {
+            virtual HRESULT STDMETHODCALLTYPE Lookup(HSTRING key, INT32* value) = 0;
+            virtual HRESULT STDMETHODCALLTYPE get_Size(UINT32* size) = 0;
+            virtual HRESULT STDMETHODCALLTYPE HasKey(HSTRING key, boolean* found) = 0;
+            virtual HRESULT STDMETHODCALLTYPE GetView(IInspectable** view) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Insert(HSTRING key, INT32 value, boolean* replaced) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Remove(HSTRING key) = 0;
+            virtual HRESULT STDMETHODCALLTYPE Clear() = 0;
+        };
+
+        struct StringIntMap : public IMapStringInt32 {
+            LONG m_cRef = 1;
+            std::unordered_map<std::wstring, INT32> m_data;
+
+            StringIntMap() { m_data[L"Alice"] = 95; m_data[L"Bob"] = 87; }
+
+            HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+                if (riid == IID_IUnknown || riid == IID_IInspectable || riid == IID_IMap_String_Int32) {
+                    *ppv = static_cast<IMapStringInt32*>(this); AddRef(); return S_OK;
+                }
+                if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+                *ppv = nullptr; return E_NOINTERFACE;
+            }
+            ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+            ULONG STDMETHODCALLTYPE Release() override {
+                ULONG c = InterlockedDecrement(&m_cRef); if (c == 0) delete this; return c;
+            }
+            HRESULT STDMETHODCALLTYPE GetIids(ULONG* c, IID** i) override {
+                *c = 1; *i = (IID*)CoTaskMemAlloc(sizeof(IID));
+                (*i)[0] = IID_IMap_String_Int32; return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* n) override { *n = nullptr; return S_OK; }
+            HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* t) override { *t = BaseTrust; return S_OK; }
+
+            HRESULT STDMETHODCALLTYPE Lookup(HSTRING key, INT32* value) override {
+                PCWSTR raw = WindowsGetStringRawBuffer(key, nullptr);
+                auto it = m_data.find(raw ? raw : L"");
+                if (it == m_data.end()) return E_BOUNDS;
+                *value = it->second; return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE get_Size(UINT32* size) override {
+                *size = (UINT32)m_data.size(); return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE HasKey(HSTRING key, boolean* found) override {
+                PCWSTR raw = WindowsGetStringRawBuffer(key, nullptr);
+                *found = m_data.count(raw ? raw : L"") > 0; return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE GetView(IInspectable** view) override {
+                *view = nullptr; return E_NOTIMPL;
+            }
+            HRESULT STDMETHODCALLTYPE Insert(HSTRING key, INT32 value, boolean* replaced) override {
+                PCWSTR raw = WindowsGetStringRawBuffer(key, nullptr);
+                std::wstring k = raw ? raw : L"";
+                *replaced = m_data.count(k) > 0;
+                m_data[k] = value; return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE Remove(HSTRING key) override {
+                PCWSTR raw = WindowsGetStringRawBuffer(key, nullptr);
+                m_data.erase(raw ? raw : L""); return S_OK;
+            }
+            HRESULT STDMETHODCALLTYPE Clear() override {
+                m_data.clear(); return S_OK;
+            }
+        };
+
+        *returnValue = reinterpret_cast<__x_Windows_Foundation_Collections_IMap*>(new StringIntMap());
         return S_OK;
     }
     HRESULT STDMETHODCALLTYPE SetScores(__x_Windows_Foundation_Collections_IMapView*) override {
