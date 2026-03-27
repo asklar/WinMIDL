@@ -539,7 +539,10 @@ int main() {
                 Check(SUCCEEDED(hr) && boxed42 != nullptr, "OptionalValues: CreateInt32(42)");
 
                 if (SUCCEEDED(hr) && boxed42) {
-                    hr = pOpt->SetOptionalCount(reinterpret_cast<__x_Windows_Foundation_IReference*>(boxed42));
+                    // __x_Windows_Foundation_IReference is just struct : IInspectable {},
+                    // so static_cast from the base IInspectable* is valid
+                    __x_Windows_Foundation_IReference* ref42 = static_cast<__x_Windows_Foundation_IReference*>(boxed42);
+                    hr = pOpt->SetOptionalCount(ref42);
                     Check(SUCCEEDED(hr), "OptionalValues: SetOptionalCount(boxed 42)");
 
                     __x_Windows_Foundation_IReference* retrieved = nullptr;
@@ -580,7 +583,8 @@ int main() {
                 Check(SUCCEEDED(hr) && boxedPi != nullptr, "OptionalValues: CreateDouble(3.14)");
 
                 if (SUCCEEDED(hr) && boxedPi) {
-                    hr = pOpt->SetOptionalScore(reinterpret_cast<__x_Windows_Foundation_IReference*>(boxedPi));
+                    __x_Windows_Foundation_IReference* refPi = static_cast<__x_Windows_Foundation_IReference*>(boxedPi);
+                    hr = pOpt->SetOptionalScore(refPi);
                     Check(SUCCEEDED(hr), "OptionalValues: SetOptionalScore(boxed 3.14)");
 
                     __x_Windows_Foundation_IReference* retrieved2 = nullptr;
