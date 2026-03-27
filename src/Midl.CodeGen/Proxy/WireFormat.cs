@@ -225,7 +225,9 @@ public static partial class WireFormat
             return;
         }
 
-        sb.AppendLine($"{indent}// TODO: marshal {varName} of type {typeRef.Name}");
+        // Fallback for unknown fixed-size types
+        var sizeExpr = GetCppSizeExpression(typeRef);
+        sb.AppendLine($"{indent}memcpy({bufferPtr}, &{varName}, {sizeExpr}); {bufferPtr} += {sizeExpr};");
     }
 
     /// <summary>
