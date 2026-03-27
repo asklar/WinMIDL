@@ -78,7 +78,7 @@ public static partial class WireFormat
     public static string GetWireSizeExpression(TypeRef typeRef)
     {
         if (typeRef.Name == "String")
-            return "sizeof(UINT32) + len * sizeof(WCHAR)";
+            return "sizeof(UINT32) + len * sizeof(WCHAR) + sizeof(WCHAR)";
         if (IsInterfaceType(typeRef))
             return "marshalSize";
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
@@ -100,7 +100,7 @@ public static partial class WireFormat
             return "sizeof(UINT32) + __{0}Size * " + GetCppSizeExpression(elemType);
         }
         if (type.Name == "String")
-            return "sizeof(UINT32) + WindowsGetStringLen({0}) * sizeof(WCHAR)";
+            return "sizeof(UINT32) + WindowsGetStringLen({0}) * sizeof(WCHAR) + sizeof(WCHAR)";
         if (IsInterfaceType(type))
             return "{0}_marshalSize";
         if (type.ResolvedSymbol is StructSymbol structSym)
