@@ -1,4 +1,4 @@
-# Proxy/Stub Architecture: Data-Driven Refactor Plan
+# Marshaling Architecture
 
 ## Goal
 
@@ -22,7 +22,7 @@ Per interface:
 
 Problem: 50 interfaces × 200 lines = 10,000 lines of largely identical code.
 
-## Target Architecture (v2)
+## Architecture
 
 ```
 Shared runtime header (~300 lines, one copy):
@@ -141,7 +141,7 @@ NDR's ultimate trick: ONE vtable for ALL IInspectable proxies. Every slot calls
 
 Trade-off: smaller binary (one vtable instead of N), but slower per-call (runtime lookup).
 
-Not implemented in v2. Can be added as `/Os` (optimize-for-size) flag when binary size
+Not implemented yet. Can be added as `/Os` (optimize-for-size) flag when binary size
 is the primary concern (e.g., IoT devices, DLL size-constrained scenarios).
 
 ## Implementation Phases
@@ -171,7 +171,7 @@ Create `include/winmidl/proxy_helpers.h`:
 - Rebuild all e2e tests with new architecture
 - Verify binary size reduction
 - Verify no performance regression
-- Compare generated code size: v1 vs v2
+- Compare generated code size: before vs after optimization
 
 ## Dependencies
 - Phase 1 is independent
