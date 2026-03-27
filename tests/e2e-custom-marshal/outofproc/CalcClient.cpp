@@ -540,6 +540,7 @@ int main() {
 
                 if (SUCCEEDED(hr) && boxed42) {
                     hr = pOpt->SetOptionalCount(boxed42);
+                    if (FAILED(hr)) printf("    SetOptionalCount hr=0x%08lX\n", hr);
                     Check(SUCCEEDED(hr), "OptionalValues: SetOptionalCount(boxed 42)");
 
                     IInspectable* retrieved = nullptr;
