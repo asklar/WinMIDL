@@ -9,7 +9,7 @@ namespace Midl.CodeGen.Proxy;
 /// Both ProxyGenerator and StubGenerator MUST use these methods to ensure
 /// they agree on serialization layout, type sizes, and reply ordering.
 /// </summary>
-public static class WireFormat
+public static partial class WireFormat
 {
     /// <summary>Size of an HRESULT on the wire (always 4 bytes).</summary>
     public const int HResultSize = 4;
@@ -781,7 +781,8 @@ public static class WireFormat
         if (typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol or RuntimeClassSymbol)
         {
             var mangledName = HeaderEmitter.MangleName(typeRef.ResolvedSymbol.FullName);
-            return $"IID_{mangledName}";
+            var baseName = $"IID_{mangledName}";
+            return AppendTypeArgumentSuffix(baseName, typeRef);
         }
 
         return $"IID_{typeRef.Name}";
