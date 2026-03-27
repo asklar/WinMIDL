@@ -11,6 +11,9 @@
 #include <type_traits>
 
 namespace winmidl {
+// Minimum RPC buffer size — COM's ORPC channel may not handle very small buffers correctly
+static constexpr UINT32 kMinBufferSize = 16;
+inline UINT32 ensure_min_buffer(UINT32 size) { return size < kMinBufferSize ? kMinBufferSize : size; }
 
 struct qi_entry_t {
     IID iid;

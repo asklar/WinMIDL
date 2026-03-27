@@ -295,12 +295,12 @@ public class ProxyGenerator
         if (requestFixed && inParams.Count > 0)
         {
             var fixedExpr = WireFormat.ComputeFixedBufferSizeExpression(inParams);
-            sb.AppendLine($"    msg.cbBuffer = {fixedExpr};");
+            sb.AppendLine($"    msg.cbBuffer = winmidl::ensure_min_buffer({fixedExpr});");
         }
         else if (inParams.Count > 0)
         {
             var bufExpr = WireFormat.ComputeBufferSize(inParams.Select((p, i) => new ProxyParam($"arg{i}", p.Type, p.Direction)).ToList());
-            sb.AppendLine($"    msg.cbBuffer = {bufExpr};");
+            sb.AppendLine($"    msg.cbBuffer = winmidl::ensure_min_buffer({bufExpr});");
         }
         else
         {
@@ -901,12 +901,12 @@ public class ProxyGenerator
 
         if (requestFixed)
         {
-            sb.AppendLine($"            msg.cbBuffer = k{methodName}_RequestSize;");
+            sb.AppendLine($"            msg.cbBuffer = winmidl::ensure_min_buffer(k{methodName}_RequestSize);");
         }
         else
         {
             var bufferSizeExpr = ComputeBufferSize(inParams);
-            sb.AppendLine($"            msg.cbBuffer = {bufferSizeExpr};");
+            sb.AppendLine($"            msg.cbBuffer = winmidl::ensure_min_buffer({bufferSizeExpr});");
         }
 
         if (useExceptions)
@@ -1091,12 +1091,12 @@ public class ProxyGenerator
 
         if (requestFixed)
         {
-            sb.AppendLine($"        msg.cbBuffer = k{methodName}_RequestSize;");
+            sb.AppendLine($"        msg.cbBuffer = winmidl::ensure_min_buffer(k{methodName}_RequestSize);");
         }
         else
         {
             var bufferSizeExpr = ComputeBufferSize(inParams);
-            sb.AppendLine($"        msg.cbBuffer = {bufferSizeExpr};");
+            sb.AppendLine($"        msg.cbBuffer = winmidl::ensure_min_buffer({bufferSizeExpr});");
         }
 
         if (hasIfaceInParams2)

@@ -1024,6 +1024,77 @@ static constexpr winmidl::interface_descriptor __x_TestApp_Comprehensive_ICalcul
     &IID___x_TestApp_Comprehensive_ICalculator, __x_TestApp_Comprehensive_ICalculator_methods, 6
 };
 
+// Proxy for delegate TestApp.Comprehensive.StatusCallback
+class CStatusCallbackProxy : public IRpcProxyBuffer {
+    IUnknown* m_pUnkOuter;
+    IRpcChannelBuffer* m_pChannel;
+    LONG m_cRef;
+
+    struct Face : public __x_TestApp_Comprehensive_StatusCallback {
+        CStatusCallbackProxy* m_owner;
+        Face(CStatusCallbackProxy* owner) : m_owner(owner) {}
+
+        // Delegating IUnknown — forwards to outer unknown
+        HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+            return m_owner->m_pUnkOuter->QueryInterface(riid, ppv);
+        }
+        ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }
+        ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }
+
+        static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_StatusCallback };
+
+        HRESULT STDMETHODCALLTYPE Invoke(HSTRING status) override {
+            return proxy_shape_hstring_to_void(m_owner->m_pChannel, IID___x_TestApp_Comprehensive_StatusCallback, 3, status);
+        }
+    };
+
+    Face m_face;
+    friend struct Face;
+
+    static const winmidl::qi_entry_t kQIEntries[];
+    static const winmidl::type_info_t kTypeInfo;
+
+public:
+    CStatusCallbackProxy(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {}
+
+    __x_TestApp_Comprehensive_StatusCallback* GetFace() { return &m_face; }
+
+    // IRpcProxyBuffer::Connect
+    HRESULT STDMETHODCALLTYPE Connect(IRpcChannelBuffer* pChannel) override {
+        m_pChannel = pChannel;
+        if (pChannel) pChannel->AddRef();
+        return S_OK;
+    }
+
+    // IRpcProxyBuffer::Disconnect
+    void STDMETHODCALLTYPE Disconnect() override {
+        if (m_pChannel) { m_pChannel->Release(); m_pChannel = nullptr; }
+    }
+
+    // Non-delegating IUnknown::QueryInterface — qi_check lookup
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);
+    }
+
+    // IUnknown::AddRef
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+
+    // IUnknown::Release
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+};
+
+const winmidl::qi_entry_t CStatusCallbackProxy::kQIEntries[] = {
+    { IID_IUnknown, 0, false },
+    { IID_IRpcProxyBuffer, 0, false },
+    { IID___x_TestApp_Comprehensive_StatusCallback, static_cast<uint32_t>(offsetof(CStatusCallbackProxy, m_face)), true },
+};
+const winmidl::type_info_t CStatusCallbackProxy::kTypeInfo = { CStatusCallbackProxy::Face::kIIDs, L"TestApp.Comprehensive.StatusCallback", CStatusCallbackProxy::kQIEntries };
+
 // Shared proxy shape: ilogger_to_void
 static HRESULT proxy_shape_ilogger_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, __x_TestApp_Comprehensive_ILogger* arg0) {
     RPCOLEMESSAGE msg = {};
@@ -4577,7 +4648,10 @@ private:
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ILogger);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            WindowsDeleteString(returnValue);
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         winmidl::marshal_hstring(pOut, returnValue);
         winmidl::marshal_int32(pOut, hr);
@@ -4662,7 +4736,10 @@ private:
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IAnimal);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            WindowsDeleteString(returnValue);
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         winmidl::marshal_hstring(pOut, returnValue);
         winmidl::marshal_int32(pOut, hr);
@@ -4757,7 +4834,10 @@ private:
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ISerializable);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            WindowsDeleteString(returnValue);
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         winmidl::marshal_hstring(pOut, returnValue);
         winmidl::marshal_int32(pOut, hr);
@@ -4836,7 +4916,10 @@ private:
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICloneable);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            WindowsDeleteString(returnValue);
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         winmidl::marshal_hstring(pOut, returnValue);
         winmidl::marshal_int32(pOut, hr);
@@ -5136,7 +5219,10 @@ private:
         hr = winmidl::get_marshal_size(returnValue, IID___x_TestApp_Comprehensive_ILogger, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_INotifier);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID___x_TestApp_Comprehensive_ILogger); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
@@ -5386,7 +5472,10 @@ private:
         hr = winmidl::get_marshal_size(returnValue, IID_IInspectable, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IPropertyBag);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID_IInspectable); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
@@ -5476,7 +5565,10 @@ private:
         hr = winmidl::get_marshal_size(returnValue, IID_IReference_1_Int32, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IOptional);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID_IReference_1_Int32); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
@@ -5504,7 +5596,10 @@ private:
         hr = winmidl::get_marshal_size(returnValue, IID_IReference_1___x_TestApp_Comprehensive_Point, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IOptional);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID_IReference_1___x_TestApp_Comprehensive_Point); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
@@ -5978,7 +6073,10 @@ private:
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IObservable);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            WindowsDeleteString(returnValue);
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         winmidl::marshal_hstring(pOut, returnValue);
         winmidl::marshal_int32(pOut, hr);
@@ -6094,7 +6192,10 @@ private:
         hr = winmidl::get_marshal_size(returnValue, IID_IVector_1_String, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICollectionOps);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID_IVector_1_String); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
@@ -6122,7 +6223,10 @@ private:
         hr = winmidl::get_marshal_size(returnValue, IID_IMap_2_String_Int32, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICollectionOps);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID_IMap_2_String_Int32); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
@@ -6150,7 +6254,10 @@ private:
         hr = winmidl::get_marshal_size(returnValue, IID_IIterable_1_String, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICollectionOps);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID_IIterable_1_String); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
@@ -6164,7 +6271,10 @@ private:
         hr = winmidl::get_marshal_size(returnValue, IID_IVector_1___x_TestApp_Comprehensive_Animal, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICollectionOps);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID_IVector_1___x_TestApp_Comprehensive_Animal); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
@@ -6178,7 +6288,10 @@ private:
         hr = winmidl::get_marshal_size(returnValue, IID_IMap_2_String___x_TestApp_Comprehensive_Animal, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICollectionOps);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            if (returnValue) returnValue->Release();
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         hr = winmidl::marshal_interface(pOut, returnValue, IID_IMap_2_String___x_TestApp_Comprehensive_Animal); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
@@ -6336,7 +6449,10 @@ private:
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IShape);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            WindowsDeleteString(returnValue);
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         winmidl::marshal_hstring(pOut, returnValue);
         winmidl::marshal_int32(pOut, hr);
@@ -6509,7 +6625,10 @@ private:
         UINT32 returnValue_len = WindowsGetStringLen(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IDocument);
-        RETURN_IF_FAILED(hrBuf);
+        if (FAILED(hrBuf)) {
+            WindowsDeleteString(returnValue);
+            return hrBuf;
+        }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
         winmidl::marshal_hstring(pOut, returnValue);
         winmidl::marshal_int32(pOut, hr);
@@ -7123,6 +7242,73 @@ public:
 private:
 };
 
+// Stub for delegate TestApp.Comprehensive.StatusCallback
+class CStub___x_TestApp_Comprehensive_StatusCallback : public IRpcStubBuffer {
+    __x_TestApp_Comprehensive_StatusCallback* m_pServer;
+    LONG m_cRef;
+
+public:
+    CStub___x_TestApp_Comprehensive_StatusCallback() : m_pServer(nullptr), m_cRef(1) {}
+
+    HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
+        return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_StatusCallback, (void**)&m_pServer);
+    }
+    void STDMETHODCALLTYPE Disconnect() override {
+        if (m_pServer) { m_pServer->Release(); m_pServer = nullptr; }
+    }
+    HRESULT STDMETHODCALLTYPE Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) override {
+        if (pMsg->iMethod == 3) return Invoke_Invoke(pMsg, pChannel);
+        return E_UNEXPECTED;
+    }
+    static constexpr IID kIIDs[] = { IID___x_TestApp_Comprehensive_StatusCallback };
+    static inline const winmidl::type_info_t kTypeInfo = { kIIDs, L"TestApp.Comprehensive.StatusCallback" };
+
+    IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {
+        for (const auto& iid : kTypeInfo.iids) {
+            if (iid == riid) { AddRef(); return this; }
+        }
+        return nullptr;
+    }
+    ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }
+    HRESULT STDMETHODCALLTYPE DebugServerQueryInterface(void** ppv) override {
+        return m_pServer ? m_pServer->QueryInterface(IID___x_TestApp_Comprehensive_StatusCallback, ppv) : E_NOINTERFACE;
+    }
+    void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {
+        if (pv) ((IUnknown*)pv)->Release();
+    }
+    static inline const winmidl::qi_entry_t kStubQIEntries[] = {
+        { IID_IUnknown, 0, false },
+        { IID_IRpcStubBuffer, 0, false },
+    };
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override {
+        return InterlockedIncrement(&m_cRef);
+    }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+private:
+    HRESULT Invoke_Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
+        BYTE* p = (BYTE*)pMsg->Buffer;
+        HSTRING_HEADER status_header;
+        HSTRING status = winmidl::unmarshal_hstring_ref(p, status_header);
+        HRESULT hr = m_pServer->Invoke(status);
+        static constexpr UINT32 kReplySize = sizeof(HRESULT);
+        pMsg->cbBuffer = kReplySize;
+        HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_StatusCallback);
+        RETURN_IF_FAILED(hrBuf);
+        memcpy(pMsg->Buffer, &hr, sizeof(HRESULT));
+        WindowsDeleteString(status);
+        return S_OK;
+    }
+};
+
 
 // Factory and DLL exports auto-generated by MIDL compiler
 // Provides IPSFactoryBuffer implementation for custom proxy/stub DLL
@@ -7140,7 +7326,7 @@ private:
 // WIL compatibility
 #include "winmidl/wil_compat.h"
 
-static const CLSID CLSID_PSFactoryBuffer = { 0xd437308e, 0xd4e5, 0x5239, { 0xa3, 0x8c, 0x68, 0xa4, 0xda, 0xa9, 0x28, 0x26 } };
+static const CLSID CLSID_PSFactoryBuffer = { 0x8f817e20, 0xadd5, 0x5370, { 0xa0, 0x33, 0xe0, 0xc7, 0x1d, 0x25, 0xac, 0x93 } };
 
 class CPSFactory : public IPSFactoryBuffer {
     LONG m_cRef;
@@ -7353,6 +7539,13 @@ public:
             pUnkOuter->AddRef();
             return S_OK;
         }
+        if (riid == IID___x_TestApp_Comprehensive_StatusCallback) {
+            auto* proxy = new CStatusCallbackProxy(pUnkOuter);
+            *ppProxy = proxy;
+            *ppv = proxy->GetFace();
+            pUnkOuter->AddRef();
+            return S_OK;
+        }
         return E_NOINTERFACE;
     }
 
@@ -7518,6 +7711,12 @@ public:
         }
         if (riid == IID___x_TestApp_Comprehensive_ICollectionOps2) {
             auto* stub = new CStub___x_TestApp_Comprehensive_ICollectionOps2();
+            if (pServer) stub->Connect(pServer);
+            *ppStub = stub;
+            return S_OK;
+        }
+        if (riid == IID___x_TestApp_Comprehensive_StatusCallback) {
+            auto* stub = new CStub___x_TestApp_Comprehensive_StatusCallback();
             if (pServer) stub->Connect(pServer);
             *ppStub = stub;
             return S_OK;
@@ -7879,6 +8078,18 @@ HRESULT STDAPICALLTYPE DllRegisterServer() {
         RegCloseKey(hKey);
     }
 
+    // Register IID___x_TestApp_Comprehensive_StatusCallback -> ProxyStubClsid32
+    {
+        WCHAR iidStr[64];
+        StringFromGUID2(IID___x_TestApp_Comprehensive_StatusCallback, iidStr, 64);
+        WCHAR keyPath[256];
+        wsprintfW(keyPath, L"Software\\Classes\\Interface\\%s\\ProxyStubClsid32", iidStr);
+        HKEY hKey;
+        RegCreateKeyExW(HKEY_LOCAL_MACHINE, keyPath, 0, nullptr, 0, KEY_SET_VALUE, nullptr, &hKey, nullptr);
+        RegSetValueExW(hKey, nullptr, 0, REG_SZ, (BYTE*)clsidStr, (DWORD)(wcslen(clsidStr) + 1) * sizeof(WCHAR));
+        RegCloseKey(hKey);
+    }
+
     return S_OK;
 }
 
@@ -8131,6 +8342,15 @@ HRESULT STDAPICALLTYPE DllUnregisterServer() {
     {
         WCHAR iidStr[64];
         StringFromGUID2(IID___x_TestApp_Comprehensive_ICollectionOps2, iidStr, 64);
+        WCHAR keyPath[256];
+        wsprintfW(keyPath, L"Software\\Classes\\Interface\\%s\\ProxyStubClsid32", iidStr);
+        RegDeleteKeyW(HKEY_LOCAL_MACHINE, keyPath);
+    }
+
+    // Remove IID___x_TestApp_Comprehensive_StatusCallback
+    {
+        WCHAR iidStr[64];
+        StringFromGUID2(IID___x_TestApp_Comprehensive_StatusCallback, iidStr, 64);
         WCHAR keyPath[256];
         wsprintfW(keyPath, L"Software\\Classes\\Interface\\%s\\ProxyStubClsid32", iidStr);
         RegDeleteKeyW(HKEY_LOCAL_MACHINE, keyPath);

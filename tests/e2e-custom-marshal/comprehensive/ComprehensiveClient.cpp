@@ -739,15 +739,15 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
 
             // TryParse — success case
             HSTRING input = nullptr;
-            WindowsCreateString(L"422", 3, &input);
+            WindowsCreateString(L"42", 2, &input);
             INT32 intResult = 0;
             DOUBLE floatResult = 0.0;
             boolean parseOk = FALSE;
             printf("  CLIENT TryParse: input=%p len=%u\n", input, WindowsGetStringLen(input));
         hr = pCo->TryParse(input, &intResult, &floatResult, &parseOk);
             printf("  DEBUG TryParse: hr=0x%08lx parseOk=%d intResult=%d floatResult=%f\n", hr, (int)parseOk, intResult, floatResult);
-        Check(SUCCEEDED(hr) && parseOk == TRUE && intResult == 422,
-                  "ComplexOps: TryParse(\"422\") == 422, TRUE");
+        Check(SUCCEEDED(hr) && parseOk == TRUE && intResult == 42,
+                  "ComplexOps: TryParse(\"42\") == 42, TRUE");
             if (input) WindowsDeleteString(input);
 
             // TryParse — failure case

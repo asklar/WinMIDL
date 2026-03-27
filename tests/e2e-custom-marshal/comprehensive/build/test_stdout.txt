@@ -1,3 +1,5 @@
+SERVER TryParse called, input len=3
+SERVER TryParse called, input len=3
 === E2E Comprehensive Custom Marshal Test ===
 
 [STA] COM initialized (apartment-threaded)
@@ -48,10 +50,12 @@
   PASS: Notifier: GetRuntimeClassName
 [MTA] --- EventSource tests ---
   PASS: EventSource: CoCreateInstance
-  SKIP: EventSource: AddStatusChanged (delegate proxy/stub not available, hr=0x80004002)
-  PASS: EventSource: RemoveStatusChanged (synthetic token)
-  SKIP: EventSource: add_Completed (delegate proxy/stub not available)
-  PASS: EventSource: remove_Completed (synthetic token)
+  PASS: EventSource: AddStatusChanged
+  PASS: EventSource: AddStatusChanged token != 0
+  PASS: EventSource: RemoveStatusChanged
+  PASS: EventSource: add_Completed
+  PASS: EventSource: add_Completed token != 0
+  PASS: EventSource: remove_Completed
   PASS: EventSource: GetRuntimeClassName
 [MTA] --- PropertyBag tests ---
   PASS: PropertyBag: CoCreateInstance
@@ -66,7 +70,40 @@
   PASS: OptionalValues: GetOptionalPosition initially null
   PASS: OptionalValues: SetOptionalCount(null)
   PASS: OptionalValues: GetRuntimeClassName
+[MTA] --- TypeShowcase tests ---
+  PASS: TypeShowcase: CoCreateInstance
+  PASS: TypeShowcase: SetBigNumber(INT64_MAX)
+  PASS: TypeShowcase: GetBigNumber == INT64_MAX
+  PASS: TypeShowcase: GetUnsignedBig
+  PASS: TypeShowcase: SetId
+  PASS: TypeShowcase: GetId round-trip
+  PASS: TypeShowcase: GetInitial == 'A'
+  PASS: TypeShowcase: GetByte == 42
+  PASS: TypeShowcase: GetSmallNumber == -123
+  PASS: TypeShowcase: GetRuntimeClassName
+[MTA] --- ComplexOps tests ---
+  PASS: ComplexOps: CoCreateInstance
+  PASS: ComplexOps: MultiParam(5 params)
+  CLIENT TryParse: input=000002AB08E66C00 len=3
+  DEBUG TryParse: hr=0x00000000 parseOk=1 intResult=422 floatResult=422.000000
+  PASS: ComplexOps: TryParse("422") == 422, TRUE
+  PASS: ComplexOps: TryParse("abc") == FALSE
+  PASS: ComplexOps: Swap(100,200) => (200,100)
+  PASS: ComplexOps: GetRuntimeClassName
+[MTA] --- MathHelpers tests ---
+  PASS: MathHelpers: CoCreateInstance
+  PASS: MathHelpers: get_Pi == 3.14159...
+  PASS: MathHelpers: Square(7) == 49
+  PASS: MathHelpers: get_Origin == (0,0)
+  PASS: MathHelpers: GetRuntimeClassName
+[MTA] --- Observable tests ---
+  PASS: Observable: CoCreateInstance
+  PASS: Observable: put_Value
+  PASS: Observable: get_Value round-trip
+  PASS: Observable: remove_ValueChanged (synthetic token)
+  PASS: Observable: GetRuntimeClassName
+[MTA] --- CollectionOps tests --- SKIPPED (needs WRL/C++WinRT helpers)
 
 [MTA] Tests complete.
 
-=== Results: 52 passed, 0 failed ===
+=== Results: 82 passed, 0 failed ===
