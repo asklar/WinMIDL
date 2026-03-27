@@ -189,24 +189,22 @@ inline void unmarshal_enum(const BYTE*& buf, E& out) {
     INT32 v; memcpy(&v, buf, sizeof(INT32)); buf += sizeof(INT32);
     out = static_cast<E>(v);
 }
-// Zero-copy HSTRING deserialization (stub-side, sync methods)
-inline HSTRING unmarshal_hstring_ref(BYTE*& buf, HSTRING_HEADER& hdr) {
-    UINT32 len; memcpy(&len, buf, sizeof(UINT32));
-#ifdef WINMIDL_TRACE
-    printf("  STUB unmarshal_hstring_ref: buf=%p first8bytes=%02x%02x%02x%02x %02x%02x%02x%02x len=%u\n",
-        buf, buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], len);
-    fflush(stdout);
-#endif
-    buf += sizeof(UINT32);
-    HSTRING result = nullptr;
-    if (len > 0) {
-        HRESULT hr = WindowsCreateStringReference(reinterpret_cast<PCWSTR>(buf), len, &hdr, &result);
-#ifdef WINMIDL_TRACE
-        printf("  STUB WindowsCreateStringReference: hr=0x%08lx result=%p len=%u\n", hr, result, len);
-        fflush(stdout);
-#endif
+// HSTRING deserialization (stub-side) — allocating, since RPC buffer data isn't null-terminated
+// and WindowsCreateStringReference requires null termination.
+inline HRESULT unmarshal_hstring_ref(BYTE*& buf, HSTRING_HEADER& /*hdr*/, HSTRING* out) {
+    UINT32 len; memcpy(&len, buf, sizeof(UINT32)); buf += sizeof(UINT32);
+    if (len == 0) {
+        *out = nullptr;
+        return S_OK;
     }
+    HRESULT hr = WindowsCreateString(reinterpret_cast<PCWSTR>(buf), len, out);
     buf += len * sizeof(WCHAR);
+    return hr;
+}
+// Legacy overload for existing generated code
+inline HSTRING unmarshal_hstring_ref(BYTE*& buf, HSTRING_HEADER& hdr) {
+    HSTRING result = nullptr;
+    unmarshal_hstring_ref(buf, hdr, &result);
     return result;
 }
 // Allocating HSTRING deserialization (proxy reply side)

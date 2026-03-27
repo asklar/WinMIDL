@@ -163,7 +163,6 @@ $env:PATH = "$vcToolsDir\bin\Hostx64\x64;$sdkRoot\bin\$sdkVersion\x64;$env:PATH"
 
 $commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/W3",
                   "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",
-                  "/DWINMIDL_TRACE",
                   "/Zi")
 
 # ── Step 3: Compile IID definitions ─────────────────────────────────────
