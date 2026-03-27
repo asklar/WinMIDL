@@ -193,4 +193,56 @@ public class NullableMarshalingTests
 
         Assert.Equal("winmidl::param_type::t_interface", paramType);
     }
+
+    [Fact]
+    public void ProxyGenerator_TwoIReferenceParams_UseDifferentIids()
+    {
+        var idl = @"
+            namespace TestApp {
+                struct Point { Single X; Single Y; };
+                interface IWidget {
+                    void SetBoth(
+                        Windows.Foundation.IReference<Int32> optCount,
+                        Windows.Foundation.IReference<Point> optPos
+                    );
+                }
+            }";
+        var compilation = CompilationHelper.Compile(idl);
+        var proxyGen = new ProxyGenerator();
+        var stubGen = new StubGenerator();
+        var proxyOutput = proxyGen.Generate(compilation);
+        var stubOutput = stubGen.Generate(compilation);
+
+        // Both IIDs should be present and different
+        Assert.Contains("IID_IReference_1_Int32", proxyOutput);
+        Assert.Contains("IID_IReference_1___x_TestApp_Point", proxyOutput);
+
+        // Proxy marshals each param with its own IID
+        Assert.Contains("marshal_interface(p, optCount, IID_IReference_1_Int32)", proxyOutput);
+        Assert.Contains("marshal_interface(p, optPos, IID_IReference_1___x_TestApp_Point)", proxyOutput);
+
+        // Stub unmarshals each param with its own IID
+        Assert.Contains("unmarshal_interface(p, IID_IReference_1_Int32", stubOutput);
+        Assert.Contains("unmarshal_interface(p, IID_IReference_1___x_TestApp_Point", stubOutput);
+    }
+
+    [Fact]
+    public void ProxyGenerator_IReferenceSameBaseInterface_DifferentRetvals()
+    {
+        var idl = @"
+            namespace TestApp {
+                struct Point { Single X; Single Y; };
+                interface IWidget {
+                    Windows.Foundation.IReference<Int32> GetOptCount();
+                    Windows.Foundation.IReference<Point> GetOptPos();
+                }
+            }";
+        var compilation = CompilationHelper.Compile(idl);
+        var proxyGen = new ProxyGenerator();
+        var proxyOutput = proxyGen.Generate(compilation);
+
+        // Return values should unmarshal with different IIDs
+        Assert.Contains("unmarshal_interface(pReply, IID_IReference_1_Int32", proxyOutput);
+        Assert.Contains("unmarshal_interface(pReply, IID_IReference_1___x_TestApp_Point", proxyOutput);
+    }
 }
