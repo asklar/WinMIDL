@@ -1119,7 +1119,7 @@ public:
     }
     HRESULT STDMETHODCALLTYPE GetScores(__x_Windows_Foundation_Collections_IMap** returnValue) override {
         HSTRING hcls = nullptr;
-        WindowsCreateString(L"Windows.Foundation.Collections.PropertySet", 41, &hcls);
+        WindowsCreateString(L"Windows.Foundation.Collections.PropertySet", 42, &hcls);
         IInspectable* pInsp = nullptr;
         HRESULT hr = RoActivateInstance(hcls, &pInsp);
         WindowsDeleteString(hcls);
