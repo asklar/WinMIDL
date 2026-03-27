@@ -34,11 +34,14 @@ inline HRESULT get_iids(type_info_t const& info, ULONG* count, IID** iids) {
 }
 
 inline HRESULT get_runtime_class_name(type_info_t const& info, HSTRING* name) {
-    HSTRING_HEADER hdr;
-    return WindowsCreateStringReference(
+    // WindowsCreateString (allocating) is correct here because the caller takes
+    // ownership of the HSTRING and may hold it indefinitely.
+    // WindowsCreateStringReference would require a stable HSTRING_HEADER per proxy
+    // instance, which isn't worth the complexity for this cold path.
+    return WindowsCreateString(
         info.className.data(),
         static_cast<UINT32>(info.className.size()),
-        &hdr, name);
+        name);
 }
 
 inline HRESULT get_trust_level(TrustLevel* level) {
