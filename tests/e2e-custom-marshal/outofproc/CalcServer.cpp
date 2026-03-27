@@ -741,13 +741,18 @@ public:
 
     HRESULT STDMETHODCALLTYPE RaiseStatus(HSTRING message) override {
         if (m_handler) {
+            printf("[CalcServer] RaiseStatus: calling Invoke on handler %p\n", (void*)m_handler);
+            fflush(stdout);
             HRESULT hr = m_handler->Invoke(
                 static_cast<IInspectable*>(
                     static_cast<__x_TestApp_OutOfProc_IEventSource*>(this)),
                 message);
-            if (FAILED(hr)) printf("[CalcServer] RaiseStatus: Invoke failed hr=0x%08lX\n", hr);
+            printf("[CalcServer] RaiseStatus: Invoke returned hr=0x%08lX\n", hr);
+            fflush(stdout);
             return hr;
         }
+        printf("[CalcServer] RaiseStatus: no handler\n");
+        fflush(stdout);
         return S_OK;
     }
 };
