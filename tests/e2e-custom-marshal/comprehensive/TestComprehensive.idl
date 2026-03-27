@@ -76,4 +76,60 @@ namespace TestApp.Comprehensive
     {
         Calculator();
     }
+
+    // 9. Interface pointer parameters
+    delegate void StatusCallback(String status);
+
+    interface INotifier
+    {
+        void Subscribe(ILogger logger);
+        ILogger GetLogger();
+    };
+
+    [default_interface]
+    runtimeclass Notifier : INotifier
+    {
+        Notifier();
+    }
+
+    // 10. Delegate parameters + events
+    interface IEventSource
+    {
+        EventRegistrationToken AddStatusChanged(StatusCallback handler);
+        void RemoveStatusChanged(EventRegistrationToken token);
+        event StatusCallback Completed;
+    };
+
+    [default_interface]
+    runtimeclass EventSource : IEventSource
+    {
+        EventSource();
+    }
+
+    // 11. Object (IInspectable*) parameters
+    interface IPropertyBag
+    {
+        void SetValue(String key, Object value);
+        Object GetValue(String key);
+    };
+
+    [default_interface]
+    runtimeclass PropertyBag : IPropertyBag
+    {
+        PropertyBag();
+    }
+
+    // 12. Nullable / IReference<T>
+    interface IOptional
+    {
+        Windows.Foundation.IReference<Int32> GetOptionalCount();
+        void SetOptionalCount(Windows.Foundation.IReference<Int32> count);
+        Windows.Foundation.IReference<Point> GetOptionalPosition();
+    };
+
+    [default_interface]
+    runtimeclass OptionalValues : IOptional
+    {
+        OptionalValues();
+    }
 }
