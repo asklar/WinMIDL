@@ -113,6 +113,10 @@ public class ProxyGenerator
                     rcToAllIids.TryGetValue(rcName, out allIids);
                 EmitProxyClass(sb, iface, allIids, rcName, useExceptions, emittedShapesGlobal, emittedDescriptorsGlobal);
             }
+            else if (symbol is DelegateSymbol del)
+            {
+                EmitDelegateProxyClass(sb, del, useExceptions, emittedShapesGlobal);
+            }
         }
 
         EmitEpilogue(sb);
@@ -419,6 +423,221 @@ public class ProxyGenerator
         {
             EmitMethodDescriptorTables(sb, methods, mangledName, iidName);
         }
+    }
+
+    /// <summary>
+    /// Emits a proxy class for a delegate type. Delegates are IUnknown-based COM interfaces
+    /// with a single Invoke method at vtable slot 3.
+    /// </summary>
+    internal static void EmitDelegateProxyClass(StringBuilder sb, DelegateSymbol del, bool useExceptions = false, HashSet<string>? emittedShapesGlobal = null)
+    {
+        var mangledName = HeaderEmitter.MangleName(del.FullName);
+        var className = $"C{del.Name}Proxy";
+        var iidName = $"IID_{mangledName}";
+
+        // Delegate has a single Invoke method
+        var invokeParams = del.Parameters.Select(p =>
+            new ProxyParam(p.Name, p.Type,
+                p.Direction == ParameterDirection.Out ? ParamDirection.Out : ParamDirection.In))
+            .ToList();
+        var methods = new List<(string Name, List<ProxyParam> Params, TypeRef ReturnType, MemberKind Kind)>
+        {
+            ("Invoke", invokeParams, del.ReturnType, MemberKind.Method)
+        };
+
+        // Emit shared shape functions
+        var shapeSet = emittedShapesGlobal ?? new HashSet<string>();
+        foreach (var (_, parameters, returnType, _) in methods)
+        {
+            var shapeKey = ComputeShapeKey(parameters, returnType);
+            if (shapeSet.Add(shapeKey))
+            {
+                EmitShapeFunction(sb, shapeKey, parameters, returnType, useExceptions, isProxy: true);
+            }
+        }
+
+        // Delegates inherit from IUnknown, so vtable slot for Invoke is 3
+        int delegateUserSlot = WireFormat.GetFirstUserSlot(isInspectable: false);
+
+        sb.AppendLine($"// Proxy for delegate {del.FullName}");
+        sb.AppendLine($"class {className} : public IRpcProxyBuffer {{");
+        sb.AppendLine("    IUnknown* m_pUnkOuter;");
+        sb.AppendLine("    IRpcChannelBuffer* m_pChannel;");
+        sb.AppendLine("    LONG m_cRef;");
+        sb.AppendLine();
+
+        // Nested Face class — implements the delegate interface (IUnknown-based, no IInspectable)
+        sb.AppendLine($"    struct Face : public {mangledName} {{");
+        sb.AppendLine($"        {className}* m_owner;");
+        sb.AppendLine($"        Face({className}* owner) : m_owner(owner) {{}}");
+        sb.AppendLine();
+
+        // Delegating IUnknown
+        sb.AppendLine("        // Delegating IUnknown — forwards to outer unknown");
+        sb.AppendLine("        HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
+        sb.AppendLine("            return m_owner->m_pUnkOuter->QueryInterface(riid, ppv);");
+        sb.AppendLine("        }");
+        sb.AppendLine("        ULONG STDMETHODCALLTYPE AddRef() override { return m_owner->m_pUnkOuter->AddRef(); }");
+        sb.AppendLine("        ULONG STDMETHODCALLTYPE Release() override { return m_owner->m_pUnkOuter->Release(); }");
+        sb.AppendLine();
+
+        // IID array for delegate (no IInspectable methods needed)
+        sb.AppendLine($"        static constexpr IID kIIDs[] = {{ {iidName} }};");
+        sb.AppendLine();
+
+        // Invoke method — the single delegate method
+        foreach (var (methodName, parameters, returnType, memberKind) in methods)
+        {
+            EmitDelegateFaceProxyMethod(sb, del, methodName, parameters, returnType, mangledName, delegateUserSlot, useExceptions);
+        }
+
+        sb.AppendLine("    };");
+        sb.AppendLine();
+
+        sb.AppendLine("    Face m_face;");
+        sb.AppendLine("    friend struct Face;");
+        sb.AppendLine();
+
+        sb.AppendLine($"    static const winmidl::qi_entry_t kQIEntries[];");
+        sb.AppendLine($"    static const winmidl::type_info_t kTypeInfo;");
+        sb.AppendLine();
+        sb.AppendLine("public:");
+
+        // Constructor
+        sb.AppendLine($"    {className}(IUnknown* pUnkOuter) : m_pUnkOuter(pUnkOuter), m_pChannel(nullptr), m_cRef(1), m_face(this) {{}}");
+        sb.AppendLine();
+        sb.AppendLine($"    {mangledName}* GetFace() {{ return &m_face; }}");
+        sb.AppendLine();
+
+        // IRpcProxyBuffer methods
+        EmitConnect(sb);
+        EmitDisconnect(sb);
+
+        // Non-delegating QI
+        sb.AppendLine("    // Non-delegating IUnknown::QueryInterface — qi_check lookup");
+        sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
+        sb.AppendLine("        return winmidl::qi_check(kTypeInfo, this, m_pUnkOuter, riid, ppv);");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+
+        EmitAddRef(sb);
+        EmitRelease(sb, className);
+
+        sb.AppendLine("};");
+        sb.AppendLine();
+
+        // Out-of-class definitions
+        sb.AppendLine($"const winmidl::qi_entry_t {className}::kQIEntries[] = {{");
+        sb.AppendLine($"    {{ IID_IUnknown, 0, false }},");
+        sb.AppendLine($"    {{ IID_IRpcProxyBuffer, 0, false }},");
+        sb.AppendLine($"    {{ {iidName}, static_cast<uint32_t>(offsetof({className}, m_face)), true }},");
+        sb.AppendLine($"}};");
+        sb.AppendLine($"const winmidl::type_info_t {className}::kTypeInfo = {{ {className}::Face::kIIDs, L\"{del.FullName}\", {className}::kQIEntries }};");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Emits the Invoke proxy method for a delegate's Face class.
+    /// Similar to EmitFaceProxyMethod but for delegate types (IUnknown-based, slot 3).
+    /// </summary>
+    private static void EmitDelegateFaceProxyMethod(
+        StringBuilder sb,
+        DelegateSymbol del,
+        string methodName,
+        List<ProxyParam> parameters,
+        TypeRef returnType,
+        string mangledName,
+        int vtableSlot,
+        bool useExceptions)
+    {
+        // Build C++ signature
+        var sigParts = new List<string>();
+        foreach (var p in parameters)
+        {
+            if (p.Type.IsArray)
+            {
+                var elemCType = HeaderEmitter.MapType(WireFormat.ElementType(p.Type));
+                if (p.Direction == ParamDirection.Out)
+                {
+                    sigParts.Add($"UINT32* __{p.Name}Size");
+                    sigParts.Add($"{elemCType}** {p.Name}");
+                }
+                else
+                {
+                    sigParts.Add($"UINT32 __{p.Name}Size");
+                    sigParts.Add($"{elemCType}* {p.Name}");
+                }
+            }
+            else
+            {
+                var cType = HeaderEmitter.MapType(p.Type);
+                if (p.Direction == ParamDirection.Out)
+                    sigParts.Add($"{cType}* {p.Name}");
+                else
+                    sigParts.Add($"{cType} {p.Name}");
+            }
+        }
+
+        bool hasRetval = returnType.Name != "void";
+        if (hasRetval)
+        {
+            if (returnType.IsArray)
+            {
+                var retElemCType = HeaderEmitter.MapType(WireFormat.ElementType(returnType));
+                sigParts.Add($"UINT32* __returnValueSize");
+                sigParts.Add($"{retElemCType}** returnValue");
+            }
+            else
+            {
+                var retType = HeaderEmitter.MapType(returnType);
+                sigParts.Add($"{retType}* returnValue");
+            }
+        }
+
+        var sig = string.Join(", ", sigParts);
+        sb.AppendLine($"        HRESULT STDMETHODCALLTYPE {methodName}({sig}) override {{");
+
+        // Shape-based delegation
+        var shapeKey = ComputeShapeKey(parameters, returnType);
+        var inParams = parameters.Where(p => p.Direction == ParamDirection.In).ToList();
+        var outParams = parameters.Where(p => p.Direction == ParamDirection.Out).ToList();
+
+        // Build arg list
+        var argNames = new List<string>();
+        foreach (var p in inParams)
+        {
+            if (p.Type.IsArray)
+            {
+                argNames.Add($"__{p.Name}Size");
+                argNames.Add(p.Name);
+            }
+            else
+                argNames.Add(p.Name);
+        }
+        foreach (var p in outParams)
+        {
+            if (p.Type.IsArray)
+            {
+                argNames.Add($"__{p.Name}Size");
+                argNames.Add(p.Name);
+            }
+            else
+                argNames.Add(p.Name);
+        }
+        if (hasRetval)
+        {
+            if (returnType.IsArray)
+            {
+                argNames.Add("__returnValueSize");
+                argNames.Add("returnValue");
+            }
+            else
+                argNames.Add("returnValue");
+        }
+
+        var argsStr = string.Join(", ", argNames);
+        sb.AppendLine($"            return proxy_shape_{shapeKey}(m_owner->m_pChannel, {vtableSlot}{(argNames.Count > 0 ? ", " : "")}{argsStr});");
+        sb.AppendLine("        }");
     }
 
     private static void EmitFaceClass(StringBuilder sb, InterfaceSymbol iface, string mangledName, string iidName, string outerClassName, List<string>? allRuntimeClassIids, string? runtimeClassName, bool useExceptions)

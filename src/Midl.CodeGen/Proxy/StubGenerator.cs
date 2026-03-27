@@ -51,10 +51,19 @@ public class StubGenerator
             .Where(i => !i.IsExternal)
             .ToList();
 
+        var delegates = compilation.GetAllTypes()
+            .OfType<DelegateSymbol>()
+            .Where(d => !d.IsExternal)
+            .ToList();
+
         var emittedDescriptors = new HashSet<string>();
         foreach (var iface in interfaces)
         {
             EmitStubClass(sb, iface, useExceptions, emittedDescriptors);
+        }
+        foreach (var del in delegates)
+        {
+            EmitDelegateStubClass(sb, del, useExceptions);
         }
 
         return sb.ToString();
@@ -611,6 +620,198 @@ public class StubGenerator
         sb.AppendLine($"    &{iidName}, {prefix}_methods, {slots.Count}");
         sb.AppendLine("};");
         sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Emits a stub class for a delegate type. Delegates are IUnknown-based COM interfaces
+    /// with a single Invoke method at vtable slot 3.
+    /// </summary>
+    private void EmitDelegateStubClass(StringBuilder sb, DelegateSymbol del, bool useExceptions)
+    {
+        var mangledName = MangleName(del.FullName);
+        var className = $"CStub_{mangledName}";
+        var iidName = $"IID_{mangledName}";
+
+        // Delegate has a single Invoke method at slot 3 (IUnknown-based)
+        int invokeSlot = WireFormat.GetFirstUserSlot(isInspectable: false);
+        var slots = new List<StubSlot>
+        {
+            new StubSlot
+            {
+                Index = invokeSlot,
+                Name = "Invoke",
+                Parameters = del.Parameters,
+                ReturnType = del.ReturnType,
+            }
+        };
+
+        sb.AppendLine($"// Stub for delegate {del.FullName}");
+        sb.AppendLine($"class {className} : public IRpcStubBuffer {{");
+        sb.AppendLine($"    {mangledName}* m_pServer;");
+        sb.AppendLine("    LONG m_cRef;");
+        sb.AppendLine();
+        sb.AppendLine("public:");
+        sb.AppendLine($"    {className}() : m_pServer(nullptr), m_cRef(1) {{}}");
+        sb.AppendLine();
+
+        // Connect
+        sb.AppendLine("    HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {");
+        sb.AppendLine($"        return pUnkServer->QueryInterface({iidName}, (void**)&m_pServer);");
+        sb.AppendLine("    }");
+
+        // Disconnect
+        sb.AppendLine("    void STDMETHODCALLTYPE Disconnect() override {");
+        sb.AppendLine("        if (m_pServer) { m_pServer->Release(); m_pServer = nullptr; }");
+        sb.AppendLine("    }");
+
+        // Invoke dispatch — single slot
+        sb.AppendLine("    HRESULT STDMETHODCALLTYPE Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) override {");
+        sb.AppendLine($"        if (pMsg->iMethod == {invokeSlot}) return Invoke_Invoke(pMsg, pChannel);");
+        sb.AppendLine("        return E_UNEXPECTED;");
+        sb.AppendLine("    }");
+
+        // Static type info
+        sb.AppendLine($"    static constexpr IID kIIDs[] = {{ {iidName} }};");
+        sb.AppendLine($"    static inline const winmidl::type_info_t kTypeInfo = {{ kIIDs, L\"{del.FullName}\" }};");
+        sb.AppendLine();
+
+        // IsIIDSupported
+        sb.AppendLine($"    IRpcStubBuffer* STDMETHODCALLTYPE IsIIDSupported(REFIID riid) override {{");
+        sb.AppendLine($"        for (const auto& iid : kTypeInfo.iids) {{");
+        sb.AppendLine($"            if (iid == riid) {{ AddRef(); return this; }}");
+        sb.AppendLine($"        }}");
+        sb.AppendLine("        return nullptr;");
+        sb.AppendLine("    }");
+
+        // CountRefs
+        sb.AppendLine("    ULONG STDMETHODCALLTYPE CountRefs() override { return m_pServer ? 1 : 0; }");
+
+        // DebugServerQueryInterface
+        sb.AppendLine("    HRESULT STDMETHODCALLTYPE DebugServerQueryInterface(void** ppv) override {");
+        sb.AppendLine($"        return m_pServer ? m_pServer->QueryInterface({iidName}, ppv) : E_NOINTERFACE;");
+        sb.AppendLine("    }");
+
+        // DebugServerRelease
+        sb.AppendLine("    void STDMETHODCALLTYPE DebugServerRelease(void* pv) override {");
+        sb.AppendLine("        if (pv) ((IUnknown*)pv)->Release();");
+        sb.AppendLine("    }");
+
+        // QueryInterface
+        sb.AppendLine("    static inline const winmidl::qi_entry_t kStubQIEntries[] = {");
+        sb.AppendLine("        { IID_IUnknown, 0, false },");
+        sb.AppendLine("        { IID_IRpcStubBuffer, 0, false },");
+        sb.AppendLine("    };");
+        sb.AppendLine();
+        sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
+        sb.AppendLine("        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);");
+        sb.AppendLine("    }");
+
+        // AddRef
+        sb.AppendLine("    ULONG STDMETHODCALLTYPE AddRef() override {");
+        sb.AppendLine("        return InterlockedIncrement(&m_cRef);");
+        sb.AppendLine("    }");
+
+        // Release
+        sb.AppendLine("    ULONG STDMETHODCALLTYPE Release() override {");
+        sb.AppendLine("        ULONG c = InterlockedDecrement(&m_cRef);");
+        sb.AppendLine("        if (c == 0) delete this;");
+        sb.AppendLine("        return c;");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+
+        // Private invoke handler for the single Invoke method
+        sb.AppendLine("private:");
+        EmitInvokeHandler(sb, slots[0], mangledName, iidName, useExceptions);
+
+        sb.AppendLine("};");
+        sb.AppendLine();
+    }
+
+    /// <summary>
+    /// Emits an invoke handler for a delegate stub slot.
+    /// Reuses the same serialization logic as interface stubs.
+    /// </summary>
+    private void EmitInvokeHandler(StringBuilder sb, StubSlot slot, string mangledName, string iidName, bool useExceptions)
+    {
+        sb.AppendLine($"    HRESULT Invoke_{slot.Name}(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {{");
+
+        var inParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.In).ToList();
+        var outParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.Out).ToList();
+        var hasRetval = slot.ReturnType.Name != "void";
+        bool hasIfaceInParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type));
+
+        if (hasIfaceInParams)
+        {
+            sb.AppendLine("        HRESULT hr;");
+        }
+
+        // Deserialize input parameters
+        if (inParams.Count > 0)
+        {
+            sb.AppendLine("        BYTE* p = (BYTE*)pMsg->Buffer;");
+            foreach (var param in inParams)
+            {
+                EmitDeserializeParam(sb, param.Type, param.Name);
+            }
+        }
+
+        // Declare out parameters
+        foreach (var param in outParams)
+        {
+            if (param.IsArray)
+            {
+                var elemType = WireFormat.ElementType(param.Type);
+                var elemCType = WireFormat.GetCppTypeName(elemType);
+                sb.AppendLine($"        UINT32 __{param.Name}Size = 0;");
+                sb.AppendLine($"        {elemCType}* {param.Name} = nullptr;");
+            }
+            else
+            {
+                var cType = MapType(param.Type);
+                if (WireFormat.IsInterfaceType(param.Type))
+                    sb.AppendLine($"        {cType} {param.Name} = nullptr;");
+                else
+                    sb.AppendLine($"        {cType} {param.Name}{{}};");
+            }
+        }
+
+        // Declare return value
+        if (hasRetval)
+        {
+            if (slot.ReturnType.IsArray)
+            {
+                var retElemType = WireFormat.ElementType(slot.ReturnType);
+                var retElemCType = WireFormat.GetCppTypeName(retElemType);
+                sb.AppendLine($"        UINT32 __returnValueSize = 0;");
+                sb.AppendLine($"        {retElemCType}* returnValue = nullptr;");
+            }
+            else
+            {
+                var retType = MapType(slot.ReturnType);
+                if (WireFormat.IsInterfaceType(slot.ReturnType))
+                    sb.AppendLine($"        {retType} returnValue = nullptr;");
+                else
+                    sb.AppendLine($"        {retType} returnValue{{}};");
+            }
+        }
+
+        // Build server call
+        EmitServerCall(sb, slot, inParams, outParams, hasRetval, hrAlreadyDeclared: hasIfaceInParams);
+
+        // Serialize reply
+        EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams, useExceptions);
+
+        if (useExceptions)
+        {
+            sb.AppendLine("        return S_OK;");
+            sb.AppendLine("        } catch (HRESULT hr) { return hr; }");
+            sb.AppendLine("          catch (...) { return E_FAIL; }");
+        }
+        else
+        {
+            sb.AppendLine("        return S_OK;");
+        }
+        sb.AppendLine("    }");
     }
 
     /// <summary>
