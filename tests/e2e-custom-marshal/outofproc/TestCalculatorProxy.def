@@ -1,1 +1,6 @@
-LIBRARY TestCalculatorProxyEXPORTS    DllGetClassObject   PRIVATE    DllCanUnloadNow     PRIVATE    DllRegisterServer   PRIVATE    DllUnregisterServer PRIVATE
+LIBRARY TestCalculatorProxy
+EXPORTS
+    DllGetClassObject   PRIVATE
+    DllCanUnloadNow     PRIVATE
+    DllRegisterServer   PRIVATE
+    DllUnregisterServer PRIVATE
