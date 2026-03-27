@@ -22,6 +22,12 @@ editors/vscode/server/
 # Binaries
 *.exe
 !tools/winmd-dump/winmd-dump.exe
+*.dll
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.obj
 
 # OS
 Thumbs.db
@@ -37,7 +43,6 @@ TestResults/
 !include/winmidl/*.h
 tests/golden/
 .worktrees/
-*.obj
 _test_*
 TestWidget_proxy*
 
@@ -46,10 +51,4 @@ docs/email/
 # Generated decompiled IDL (can be huge)
 tools/winmd-dump/windows.idl
 
-copilot-cli-logs.tgz
-
-# Build outputs in e2e tests
-tests/e2e-custom-marshal/**/build/
-tests/e2e-custom-marshal/**/*.pdb
-*.ilk
-*.exp
+*.tgz
