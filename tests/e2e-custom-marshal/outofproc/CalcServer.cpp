@@ -11,6 +11,8 @@
 #include <new>
 #include <stdio.h>
 #include <math.h>
+#include <vector>
+#include <string>
 #include "generated/TestCalculator.h"
 
 // IID definitions from generated code
@@ -52,6 +54,14 @@ static const CLSID CLSID_EventSource = {
 static const CLSID CLSID_DelegateInvoker = {
     0x3c4d5e6f, 0x7a8b, 0x4c9d,
     {0xae, 0xbf, 0xc0, 0xd1, 0xe2, 0xf3, 0xa4, 0xb5}};
+
+static const CLSID CLSID_StringListProvider = {
+    0x4d5e6f7a, 0x8b9c, 0x4d0e,
+    {0x1f, 0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x81}};
+
+static const CLSID CLSID_AsyncCalculator = {
+    0x5e6f7a8b, 0x9c0d, 0x4e1f,
+    {0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80, 0x91}};
 
 static HANDLE g_hShutdown = nullptr;
 static LONG g_cServerObjects = 0;
@@ -810,6 +820,288 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// StringListImpl — implements IStringList (custom collection with full vtable)
+// ---------------------------------------------------------------------------
+class StringListImpl : public __x_TestApp_OutOfProc_IStringList {
+    LONG m_cRef;
+    std::vector<std::wstring> m_items;
+public:
+    StringListImpl() : m_cRef(1) { ServerObjIncRef(); }
+    ~StringListImpl() { ServerObjDecRef(); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_IStringList) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IStringList*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IStringList;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.StringList", 28, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE get_Count(UINT32* value) override {
+        if (!value) return E_POINTER;
+        *value = (UINT32)m_items.size();
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetItem(UINT32 index, HSTRING* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        if (index >= (UINT32)m_items.size()) return E_BOUNDS;
+        return WindowsCreateString(m_items[index].c_str(),
+                                    (UINT32)m_items[index].size(), returnValue);
+    }
+    HRESULT STDMETHODCALLTYPE Append(HSTRING value) override {
+        UINT32 len = 0;
+        PCWSTR raw = WindowsGetStringRawBuffer(value, &len);
+        m_items.push_back(std::wstring(raw ? raw : L"", len));
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE Clear() override {
+        m_items.clear();
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// StringListProviderImpl — implements IStringListProvider
+// ---------------------------------------------------------------------------
+class StringListProviderImpl : public __x_TestApp_OutOfProc_IStringListProvider {
+    LONG m_cRef;
+public:
+    StringListProviderImpl() : m_cRef(1) { ServerObjIncRef(); }
+    ~StringListProviderImpl() { ServerObjDecRef(); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_IStringListProvider) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IStringListProvider*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IStringListProvider;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.StringListProvider", 36, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE CreateList(
+        __x_TestApp_OutOfProc_IStringList** returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = new (std::nothrow) StringListImpl();
+        return *returnValue ? S_OK : E_OUTOFMEMORY;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// CompletedAsyncOp — minimal IAsyncOperation<Int32> that is always completed
+// ---------------------------------------------------------------------------
+
+// IAsyncInfo: {00000036-0000-0000-C000-000000000046}
+static const IID IID_IAsyncInfo_Local =
+    {0x00000036, 0x0000, 0x0000, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
+
+// IAsyncOperation<Int32> PIID (from generated proxy code)
+static const IID IID_IAsyncOperation_1_Int32_Local =
+    {0xc8a72ed6, 0xd07c, 0x5aa7, {0x83, 0xb2, 0x20, 0x20, 0xa5, 0x22, 0x45, 0xaf}};
+
+struct IAsyncInfoVtbl : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE get_Id(UINT32* id) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Status(INT32* status) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_ErrorCode(HRESULT* errorCode) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Cancel() = 0;
+    virtual HRESULT STDMETHODCALLTYPE Close() = 0;
+};
+
+struct IAsyncOperation_Int32_Vtbl : public IInspectable {
+    virtual HRESULT STDMETHODCALLTYPE put_Completed(IInspectable* handler) = 0;
+    virtual HRESULT STDMETHODCALLTYPE get_Completed(IInspectable** handler) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetResults(INT32* results) = 0;
+};
+
+class CompletedAsyncOp : public IAsyncInfoVtbl,
+                         public IAsyncOperation_Int32_Vtbl {
+    LONG m_cRef;
+    INT32 m_result;
+
+public:
+    CompletedAsyncOp(INT32 result) : m_cRef(1), m_result(result) { ServerObjIncRef(); }
+    ~CompletedAsyncOp() { ServerObjDecRef(); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID_IAsyncInfo_Local) {
+            *ppv = static_cast<IAsyncInfoVtbl*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IAsyncOperation_1_Int32_Local) {
+            *ppv = static_cast<IAsyncOperation_Int32_Vtbl*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    // IInspectable (routed via IAsyncInfoVtbl)
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 2;
+        *iids = (IID*)CoTaskMemAlloc(2 * sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID_IAsyncInfo_Local;
+        (*iids)[1] = IID_IAsyncOperation_1_Int32_Local;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.CompletedAsyncOp", 34, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    // IAsyncInfo
+    HRESULT STDMETHODCALLTYPE get_Id(UINT32* id) override {
+        if (!id) return E_POINTER;
+        *id = 1;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE get_Status(INT32* status) override {
+        if (!status) return E_POINTER;
+        *status = 1; // AsyncStatus::Completed
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE get_ErrorCode(HRESULT* errorCode) override {
+        if (!errorCode) return E_POINTER;
+        *errorCode = S_OK;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE Cancel() override { return S_OK; }
+    HRESULT STDMETHODCALLTYPE Close() override { return S_OK; }
+
+    // IAsyncOperation<Int32>
+    HRESULT STDMETHODCALLTYPE put_Completed(IInspectable* handler) override {
+        (void)handler;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE get_Completed(IInspectable** handler) override {
+        if (!handler) return E_POINTER;
+        *handler = nullptr;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetResults(INT32* results) override {
+        if (!results) return E_POINTER;
+        *results = m_result;
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// AsyncCalculatorImpl — implements IAsyncCalculator
+// ---------------------------------------------------------------------------
+class AsyncCalculatorImpl : public __x_TestApp_OutOfProc_IAsyncCalculator {
+    LONG m_cRef;
+
+public:
+    AsyncCalculatorImpl() : m_cRef(1) { ServerObjIncRef(); }
+    ~AsyncCalculatorImpl() { ServerObjDecRef(); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_IAsyncCalculator) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IAsyncCalculator*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IAsyncCalculator;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.AsyncCalculator", 33, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE ComputeAsync(INT32 a, INT32 b,
+                                            IInspectable** returnValue) override {
+        if (!returnValue) return E_POINTER;
+        auto* op = new (std::nothrow) CompletedAsyncOp(a + b);
+        if (!op) { *returnValue = nullptr; return E_OUTOFMEMORY; }
+        // Return the IAsyncOperation<Int32> face so marshal_interface can
+        // CoMarshalInterface with IID_IAsyncOperation_1_Int32 successfully
+        *returnValue = static_cast<IAsyncOperation_Int32_Vtbl*>(op);
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
 // MultiClassFactory — switches on CLSID to create the right object
 // ---------------------------------------------------------------------------
 class MultiClassFactory : public IClassFactory {
@@ -857,6 +1149,10 @@ public:
             obj = static_cast<__x_TestApp_OutOfProc_IEventSource*>(new (std::nothrow) EventSourceImpl());
         else if (m_clsid == CLSID_DelegateInvoker)
             obj = static_cast<__x_TestApp_OutOfProc_IDelegateInvoker*>(new (std::nothrow) DelegateInvokerImpl());
+        else if (m_clsid == CLSID_StringListProvider)
+            obj = static_cast<__x_TestApp_OutOfProc_IStringListProvider*>(new (std::nothrow) StringListProviderImpl());
+        else if (m_clsid == CLSID_AsyncCalculator)
+            obj = static_cast<__x_TestApp_OutOfProc_IAsyncCalculator*>(new (std::nothrow) AsyncCalculatorImpl());
         else return CLASS_E_CLASSNOTAVAILABLE;
         if (!obj) return E_OUTOFMEMORY;
         HRESULT hr = obj->QueryInterface(riid, ppv);
@@ -903,6 +1199,8 @@ int main() {
         { CLSID_Circle, 0 },
         { CLSID_EventSource, 0 },
         { CLSID_DelegateInvoker, 0 },
+        { CLSID_StringListProvider, 0 },
+        { CLSID_AsyncCalculator, 0 },
     };
 
     for (auto& reg : regs) {

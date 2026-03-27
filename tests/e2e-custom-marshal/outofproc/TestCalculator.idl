@@ -160,4 +160,36 @@ namespace TestApp.OutOfProc
     {
         DelegateInvoker();
     }
+
+    // 10. StringListProvider — custom collection interface with full vtable cross-process
+    interface IStringList
+    {
+        UInt32 Count { get; };
+        String GetItem(UInt32 index);
+        void Append(String value);
+        void Clear();
+    };
+
+    interface IStringListProvider
+    {
+        IStringList CreateList();
+    };
+
+    [default_interface]
+    runtimeclass StringListProvider : IStringListProvider
+    {
+        StringListProvider();
+    }
+
+    // 11. AsyncCalculator — async return types (IAsyncOperation<T>)
+    interface IAsyncCalculator
+    {
+        Windows.Foundation.IAsyncOperation<Int32> ComputeAsync(Int32 a, Int32 b);
+    };
+
+    [default_interface]
+    runtimeclass AsyncCalculator : IAsyncCalculator
+    {
+        AsyncCalculator();
+    }
 }
