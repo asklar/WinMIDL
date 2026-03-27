@@ -200,7 +200,11 @@ inline HSTRING unmarshal_hstring_ref(BYTE*& buf, HSTRING_HEADER& hdr) {
     buf += sizeof(UINT32);
     HSTRING result = nullptr;
     if (len > 0) {
-        WindowsCreateStringReference(reinterpret_cast<PCWSTR>(buf), len, &hdr, &result);
+        HRESULT hr = WindowsCreateStringReference(reinterpret_cast<PCWSTR>(buf), len, &hdr, &result);
+#ifdef WINMIDL_TRACE
+        printf("  STUB WindowsCreateStringReference: hr=0x%08lx result=%p len=%u\n", hr, result, len);
+        fflush(stdout);
+#endif
     }
     buf += len * sizeof(WCHAR);
     return result;
