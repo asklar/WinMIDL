@@ -191,7 +191,13 @@ inline void unmarshal_enum(const BYTE*& buf, E& out) {
 }
 // Zero-copy HSTRING deserialization (stub-side, sync methods)
 inline HSTRING unmarshal_hstring_ref(BYTE*& buf, HSTRING_HEADER& hdr) {
-    UINT32 len; memcpy(&len, buf, sizeof(UINT32)); buf += sizeof(UINT32);
+    UINT32 len; memcpy(&len, buf, sizeof(UINT32));
+#ifdef WINMIDL_TRACE
+    printf("  STUB unmarshal_hstring_ref: buf=%p first8bytes=%02x%02x%02x%02x %02x%02x%02x%02x len=%u\n",
+        buf, buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7], len);
+    fflush(stdout);
+#endif
+    buf += sizeof(UINT32);
     HSTRING result = nullptr;
     if (len > 0) {
         WindowsCreateStringReference(reinterpret_cast<PCWSTR>(buf), len, &hdr, &result);

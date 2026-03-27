@@ -15,7 +15,8 @@
 #>
 param(
     [switch]$KeepRegistration,
-    [switch]$Verbose
+    [switch]$Verbose,
+    [switch]$Debug
 )
 
 $ErrorActionPreference = 'Stop'
@@ -162,6 +163,7 @@ $env:PATH = "$vcToolsDir\bin\Hostx64\x64;$sdkRoot\bin\$sdkVersion\x64;$env:PATH"
 
 $commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/W3",
                   "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",
+                  "/DWINMIDL_TRACE",
                   "/Zi")
 
 # ── Step 3: Compile IID definitions ─────────────────────────────────────
@@ -275,6 +277,17 @@ Write-Host ""
 
 $testExitCode = 0
 try {
+    if ($Debug) {
+        Write-Host "  Launching under WinDbg (registration preserved)..." -ForegroundColor Yellow
+        Write-Host "  Set breakpoints, then 'g' to continue." -ForegroundColor Yellow
+        Write-Host ""
+        $KeepRegistration = $true
+        Start-Process -FilePath "windbg" -ArgumentList "-g -G `"$clientExe`""
+        Write-Host "  WinDbg launched. Run the script again without -Debug to unregister." -ForegroundColor Yellow
+        Write-Host "  Or: .\build-and-test.ps1 -KeepRegistration  (to just unregister later)"
+        exit 0
+    }
+
     $stdoutFile = "$buildDir\test_stdout.txt"
     $stderrFile = "$buildDir\test_stderr.txt"
     $proc = Start-Process -FilePath $clientExe -Wait -PassThru `
