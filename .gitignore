@@ -53,3 +53,6 @@ tools/winmd-dump/windows.idl
 
 *.tgz
 *.zip
+
+# Include e2e test headers
+!tests/e2e-custom-marshal/**/*.h
