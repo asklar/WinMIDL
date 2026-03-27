@@ -636,7 +636,8 @@ public class ProxyGenerator
         }
 
         var argsStr = string.Join(", ", argNames);
-        sb.AppendLine($"            return proxy_shape_{shapeKey}(m_owner->m_pChannel, {vtableSlot}{(argNames.Count > 0 ? ", " : "")}{argsStr});");
+        var iidName = $"IID_{mangledName}";
+        sb.AppendLine($"            return proxy_shape_{shapeKey}(m_owner->m_pChannel, {iidName}, {vtableSlot}{(argNames.Count > 0 ? ", " : "")}{argsStr});");
         sb.AppendLine("        }");
     }
 
