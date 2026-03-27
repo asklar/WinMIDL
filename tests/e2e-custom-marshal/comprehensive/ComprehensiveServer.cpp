@@ -6,6 +6,7 @@
 #include <inspectable.h>
 #include <new>
 #include <cmath>
+#include <stdio.h>
 
 #include "generated/TestComprehensive.h"
 
@@ -879,6 +880,7 @@ public:
 
     HRESULT STDMETHODCALLTYPE TryParse(HSTRING input, INT32* intResult,
                                         DOUBLE* floatResult, boolean* returnValue) override {
+        printf("SERVER TryParse called, input len=%u\n", WindowsGetStringLen(input));
         if (!intResult || !floatResult || !returnValue) return E_POINTER;
         UINT32 len = 0;
         PCWSTR raw = WindowsGetStringRawBuffer(input, &len);
