@@ -148,16 +148,8 @@ public static partial class WireFormat
 
     private static string MangleTypeArgName(TypeRef arg)
     {
-        if (arg.TypeArguments.Count > 0)
-        {
-            var parts = new List<string> { arg.ResolvedSymbol?.Name ?? arg.Name };
-            parts.Add(arg.TypeArguments.Count.ToString());
-            foreach (var nested in arg.TypeArguments)
-                parts.Add(MangleTypeArgName(nested));
-            return string.Join("_", parts);
-        }
-
-        return arg.ResolvedSymbol?.Name ?? arg.Name;
+        // Delegate to the shared helper in the Nullable partial
+        return MangleTypeArgForIid(arg);
     }
 
     /// <summary>

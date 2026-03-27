@@ -28,7 +28,7 @@ public static partial class WireFormat
     /// For types with a resolved symbol (user-defined), uses the full mangled name.
     /// For built-in types, uses the type name directly.
     /// </summary>
-    private static string MangleTypeArgForIid(TypeRef typeArg)
+    internal static string MangleTypeArgForIid(TypeRef typeArg)
     {
         if (typeArg.ResolvedSymbol is not null)
         {
