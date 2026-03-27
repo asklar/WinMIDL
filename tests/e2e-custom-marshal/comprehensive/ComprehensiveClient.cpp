@@ -744,7 +744,8 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
             DOUBLE floatResult = 0.0;
             boolean parseOk = FALSE;
             hr = pCo->TryParse(input, &intResult, &floatResult, &parseOk);
-            Check(SUCCEEDED(hr) && parseOk == TRUE && intResult == 42,
+            printf("  DEBUG TryParse: hr=0x%08lx parseOk=%d intResult=%d floatResult=%f\n", hr, (int)parseOk, intResult, floatResult);
+        Check(SUCCEEDED(hr) && parseOk == TRUE && intResult == 42,
                   "ComplexOps: TryParse(\"42\") == 42, TRUE");
             if (input) WindowsDeleteString(input);
 
