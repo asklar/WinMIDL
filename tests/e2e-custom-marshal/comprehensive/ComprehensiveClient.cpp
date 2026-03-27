@@ -903,7 +903,9 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
 int main() {
     printf("=== E2E Comprehensive Custom Marshal Test ===\n\n");
 
+    // Initialize both COM and WinRT for PropertySet activation
     HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    if (SUCCEEDED(hr)) RoInitialize(RO_INIT_SINGLETHREADED);
     if (FAILED(hr)) {
         printf("FAIL: CoInitializeEx(STA) failed: 0x%08lX\n", hr);
         return 1;
