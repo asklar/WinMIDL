@@ -44,7 +44,7 @@ public class StubGenerator
         WireFormat.EmitConsolidatedIncludes(sb);
         sb.AppendLine("#include \"winmidl/proxy_helpers.h\"");
         sb.AppendLine();
-        WireFormat.EmitGenericIidConstants(sb, compilation);
+        // Generic IID constants are emitted by ProxyGenerator (shared .cpp file)
 
         var interfaces = compilation.GetAllTypes()
             .OfType<InterfaceSymbol>()

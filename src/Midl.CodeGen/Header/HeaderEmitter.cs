@@ -162,12 +162,24 @@ public class HeaderEmitter
 
         if (externalTypes.Count > 0)
         {
-            sb.AppendLine("// External type forward declarations");
-            foreach (var typeName in externalTypes.OrderBy(t => t))
+            // Collect the SDK ABI headers needed for external interface definitions
+            var headers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var typeName in externalTypes)
             {
-                sb.AppendLine($"typedef interface {typeName} {typeName};");
+                var header = GetAbiHeaderForType(typeName);
+                if (header != null)
+                    headers.Add(header);
             }
-            sb.AppendLine();
+
+            if (headers.Count > 0)
+            {
+                sb.AppendLine("// Windows SDK ABI headers for external types");
+                foreach (var header in headers.OrderBy(h => h))
+                {
+                    sb.AppendLine($"#include <{header}>");
+                }
+                sb.AppendLine();
+            }
         }
     }
 
@@ -201,6 +213,48 @@ public class HeaderEmitter
         {
             CheckTypeRef(evt.DelegateType);
         }
+    }
+
+    /// <summary>
+    /// Maps a mangled external type name to its Windows SDK ABI header.
+    /// </summary>
+    private static string? GetAbiHeaderForType(string mangledName)
+    {
+        // Map namespace prefix to SDK header
+        // __x_Windows_Foundation_ → windows.foundation.h
+        // __x_Windows_Foundation_Collections_ → windows.foundation.collections.h
+        // __x_Windows_UI_Xaml_ → windows.ui.xaml.h
+        // __x_Microsoft_UI_Xaml_ → microsoft.ui.xaml.h
+        if (mangledName.StartsWith("__x_Windows_Foundation_Collections_"))
+            return "windows.foundation.collections.h";
+        if (mangledName.StartsWith("__x_Windows_Foundation_"))
+            return "windows.foundation.h";
+        if (mangledName.StartsWith("__x_Windows_UI_"))
+        {
+            var parts = mangledName.Split('_');
+            // __x_Windows_UI_Xaml_Controls_ → windows.ui.xaml.controls.h
+            // Take namespace segments up to the type name
+            var nsParts = new List<string>();
+            for (int i = 2; i < parts.Length; i++) // skip __x
+            {
+                if (parts[i].Length > 0 && char.IsUpper(parts[i][0]))
+                    nsParts.Add(parts[i].ToLowerInvariant());
+                else
+                    break;
+            }
+            if (nsParts.Count >= 2)
+                return string.Join(".", nsParts) + ".h";
+        }
+        if (mangledName.StartsWith("__x_Microsoft_"))
+        {
+            // Similar mapping for WinAppSDK
+            if (mangledName.StartsWith("__x_Microsoft_UI_Xaml_"))
+                return "microsoft.ui.xaml.h";
+            if (mangledName.StartsWith("__x_Microsoft_UI_"))
+                return "microsoft.ui.h";
+        }
+
+        return null;
     }
 
     private static void EmitForwardDeclarations(StringBuilder sb, List<ISymbol> allTypes)
