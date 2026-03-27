@@ -293,12 +293,11 @@ inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID /*riid*/, UINT32& s
 // ════════════════════════════════════════════════════════════════
 
 // Marshal an interface pointer into the RPC buffer.
-// Uses IID_IUnknown for CoMarshalInterface — universal, works for any COM object
-// regardless of whether a type-specific proxy/stub is registered for the IID.
-// The riid parameter is kept for API compatibility but not used for marshaling.
+// Marshal an interface pointer into the RPC buffer via CoMarshalInterface.
+// Uses the provided IID so COM creates the correct stub for callbacks.
 // Null-safe: nullptr writes size=0 without calling CoMarshalInterface.
 // Returns S_OK on success. Advances buf past the written data.
-inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID /*riid*/) {
+inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) {
     if (!pInterface) {
         UINT32 zero = 0;
         memcpy(buf, &zero, sizeof(UINT32));
@@ -308,7 +307,7 @@ inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID /*riid
     IStream* pStream = nullptr;
     HRESULT hr = CreateStreamOnHGlobal(nullptr, TRUE, &pStream);
     if (FAILED(hr)) return hr;
-    hr = CoMarshalInterface(pStream, IID_IUnknown, pInterface, MSHCTX_LOCAL, nullptr, MSHLFLAGS_NORMAL);
+    hr = CoMarshalInterface(pStream, riid, pInterface, MSHCTX_LOCAL, nullptr, MSHLFLAGS_NORMAL);
     if (FAILED(hr)) { pStream->Release(); return hr; }
     STATSTG stat;
     pStream->Stat(&stat, STATFLAG_NONAME);
