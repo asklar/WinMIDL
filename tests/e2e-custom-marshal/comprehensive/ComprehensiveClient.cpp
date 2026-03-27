@@ -55,6 +55,22 @@ static const CLSID CLSID_OptionalValues = {
     0xd4e5f6a7, 0xb8c9, 0x4d0e,
     {0x1f, 0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80}};
 
+static const CLSID CLSID_TypeShowcase = {
+    0xe1f2a3b4, 0xc5d6, 0x4e7f,
+    {0x80, 0x91, 0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7}};
+
+static const CLSID CLSID_ComplexOps = {
+    0xf2a3b4c5, 0xd6e7, 0x4f80,
+    {0x91, 0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7, 0xa8}};
+
+static const CLSID CLSID_MathHelpers = {
+    0xa3b4c5d6, 0xe7f8, 0x4091,
+    {0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7, 0xa8, 0xb9}};
+
+static const CLSID CLSID_Observable = {
+    0xb4c5d6e7, 0xf8a9, 0x40b1,
+    {0xc2, 0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9}};
+
 // ---------------------------------------------------------------------------
 // Client-side helper: LoggerImpl — implements ILogger for Subscribe test
 // ---------------------------------------------------------------------------
@@ -648,6 +664,203 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
             pOpt->Release();
         }
     }
+
+    // ===== Test group 10: TypeShowcase (#13 — additional primitive types) =====
+    printf("[MTA] --- TypeShowcase tests ---\n");
+    {
+        __x_TestApp_Comprehensive_ITypeShowcase* pTs = nullptr;
+        hr = CoCreateInstance(CLSID_TypeShowcase, nullptr, CLSCTX_INPROC_SERVER,
+                              IID___x_TestApp_Comprehensive_ITypeShowcase, (void**)&pTs);
+        Check(SUCCEEDED(hr), "TypeShowcase: CoCreateInstance");
+        if (SUCCEEDED(hr)) {
+            // INT64 round-trip
+            hr = pTs->SetBigNumber(9223372036854775807LL);
+            Check(SUCCEEDED(hr), "TypeShowcase: SetBigNumber(INT64_MAX)");
+            INT64 big = 0;
+            hr = pTs->GetBigNumber(&big);
+            Check(SUCCEEDED(hr) && big == 9223372036854775807LL,
+                  "TypeShowcase: GetBigNumber == INT64_MAX");
+
+            // UINT64
+            UINT64 ubig = 0;
+            hr = pTs->GetUnsignedBig(&ubig);
+            Check(SUCCEEDED(hr), "TypeShowcase: GetUnsignedBig");
+
+            // GUID round-trip
+            GUID testGuid = {0xAABBCCDD, 0xEEFF, 0x1122, {0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA}};
+            hr = pTs->SetId(testGuid);
+            Check(SUCCEEDED(hr), "TypeShowcase: SetId");
+            GUID gotGuid = {};
+            hr = pTs->GetId(&gotGuid);
+            Check(SUCCEEDED(hr) && IsEqualGUID(gotGuid, testGuid),
+                  "TypeShowcase: GetId round-trip");
+
+            // WCHAR
+            WCHAR ch = 0;
+            hr = pTs->GetInitial(&ch);
+            Check(SUCCEEDED(hr) && ch == L'A', "TypeShowcase: GetInitial == 'A'");
+
+            // BYTE
+            BYTE b = 0;
+            hr = pTs->GetByte(&b);
+            Check(SUCCEEDED(hr) && b == 42, "TypeShowcase: GetByte == 42");
+
+            // INT16
+            INT16 sm = 0;
+            hr = pTs->GetSmallNumber(&sm);
+            Check(SUCCEEDED(hr) && sm == -123, "TypeShowcase: GetSmallNumber == -123");
+
+            // GetRuntimeClassName
+            HSTRING className = nullptr;
+            hr = pTs->GetRuntimeClassName(&className);
+            Check(SUCCEEDED(hr) &&
+                  HStringEquals(className, L"TestApp.Comprehensive.TypeShowcase", 34),
+                  "TypeShowcase: GetRuntimeClassName");
+            if (className) WindowsDeleteString(className);
+
+            pTs->Release();
+        }
+    }
+
+    // ===== Test group 11: ComplexOps (#14 — many params + mixed in/out) =====
+    printf("[MTA] --- ComplexOps tests ---\n");
+    {
+        __x_TestApp_Comprehensive_IComplexOps* pCo = nullptr;
+        hr = CoCreateInstance(CLSID_ComplexOps, nullptr, CLSCTX_INPROC_SERVER,
+                              IID___x_TestApp_Comprehensive_IComplexOps, (void**)&pCo);
+        Check(SUCCEEDED(hr), "ComplexOps: CoCreateInstance");
+        if (SUCCEEDED(hr)) {
+            // MultiParam — 5 parameters of different types
+            HSTRING name = nullptr;
+            WindowsCreateString(L"test-item", 9, &name);
+            hr = pCo->MultiParam(name, 10, 20, 3.14, TRUE);
+            Check(SUCCEEDED(hr), "ComplexOps: MultiParam(5 params)");
+            if (name) WindowsDeleteString(name);
+
+            // TryParse — success case
+            HSTRING input = nullptr;
+            WindowsCreateString(L"42", 2, &input);
+            INT32 intResult = 0;
+            DOUBLE floatResult = 0.0;
+            boolean parseOk = FALSE;
+            hr = pCo->TryParse(input, &intResult, &floatResult, &parseOk);
+            Check(SUCCEEDED(hr) && parseOk == TRUE && intResult == 42,
+                  "ComplexOps: TryParse(\"42\") == 42, TRUE");
+            if (input) WindowsDeleteString(input);
+
+            // TryParse — failure case
+            HSTRING badInput = nullptr;
+            WindowsCreateString(L"abc", 3, &badInput);
+            INT32 intResult2 = -1;
+            DOUBLE floatResult2 = -1.0;
+            boolean parseOk2 = TRUE;
+            hr = pCo->TryParse(badInput, &intResult2, &floatResult2, &parseOk2);
+            Check(SUCCEEDED(hr) && parseOk2 == FALSE,
+                  "ComplexOps: TryParse(\"abc\") == FALSE");
+            if (badInput) WindowsDeleteString(badInput);
+
+            // Swap — in/out params
+            INT32 outA = 0, outB = 0;
+            hr = pCo->Swap(100, 200, &outA, &outB);
+            Check(SUCCEEDED(hr) && outA == 200 && outB == 100,
+                  "ComplexOps: Swap(100,200) => (200,100)");
+
+            // GetRuntimeClassName
+            HSTRING className = nullptr;
+            hr = pCo->GetRuntimeClassName(&className);
+            Check(SUCCEEDED(hr) &&
+                  HStringEquals(className, L"TestApp.Comprehensive.ComplexOps", 32),
+                  "ComplexOps: GetRuntimeClassName");
+            if (className) WindowsDeleteString(className);
+
+            pCo->Release();
+        }
+    }
+
+    // ===== Test group 12: MathHelpers (#15 — static runtimeclass) =====
+    printf("[MTA] --- MathHelpers tests ---\n");
+    {
+        __x_TestApp_Comprehensive_IMathHelpersStatics* pMath = nullptr;
+        hr = CoCreateInstance(CLSID_MathHelpers, nullptr, CLSCTX_INPROC_SERVER,
+                              IID___x_TestApp_Comprehensive_IMathHelpersStatics, (void**)&pMath);
+        Check(SUCCEEDED(hr), "MathHelpers: CoCreateInstance");
+        if (SUCCEEDED(hr)) {
+            // get_Pi
+            DOUBLE pi = 0.0;
+            hr = pMath->get_Pi(&pi);
+            Check(SUCCEEDED(hr) && fabs(pi - 3.14159265358979323846) < 1e-10,
+                  "MathHelpers: get_Pi == 3.14159...");
+
+            // Square
+            DOUBLE sq = 0.0;
+            hr = pMath->Square(7.0, &sq);
+            Check(SUCCEEDED(hr) && sq == 49.0,
+                  "MathHelpers: Square(7) == 49");
+
+            // get_Origin — struct return
+            Point origin = {-1.0f, -1.0f};
+            hr = pMath->get_Origin(&origin);
+            Check(SUCCEEDED(hr) && origin.X == 0.0f && origin.Y == 0.0f,
+                  "MathHelpers: get_Origin == (0,0)");
+
+            // GetRuntimeClassName
+            HSTRING className = nullptr;
+            hr = pMath->GetRuntimeClassName(&className);
+            Check(SUCCEEDED(hr) &&
+                  HStringEquals(className, L"TestApp.Comprehensive.MathHelpers", 33),
+                  "MathHelpers: GetRuntimeClassName");
+            if (className) WindowsDeleteString(className);
+
+            pMath->Release();
+        }
+    }
+
+    // ===== Test group 13: Observable (#16 — generic event delegate) =====
+    // NOTE: EventHandler<String> is a generic delegate — may need delegate
+    // proxy/stub. The value property and remove_ValueChanged are tested
+    // regardless; add_ValueChanged may be skipped if delegate marshaling fails.
+    printf("[MTA] --- Observable tests ---\n");
+    {
+        __x_TestApp_Comprehensive_IObservable* pObs = nullptr;
+        hr = CoCreateInstance(CLSID_Observable, nullptr, CLSCTX_INPROC_SERVER,
+                              IID___x_TestApp_Comprehensive_IObservable, (void**)&pObs);
+        Check(SUCCEEDED(hr), "Observable: CoCreateInstance");
+        if (SUCCEEDED(hr)) {
+            // put_Value / get_Value round-trip
+            HSTRING val = nullptr;
+            WindowsCreateString(L"hello observable", 16, &val);
+            hr = pObs->put_Value(val);
+            Check(SUCCEEDED(hr), "Observable: put_Value");
+            if (val) WindowsDeleteString(val);
+
+            HSTRING gotVal = nullptr;
+            hr = pObs->get_Value(&gotVal);
+            Check(SUCCEEDED(hr) && HStringEquals(gotVal, L"hello observable", 16),
+                  "Observable: get_Value round-trip");
+            if (gotVal) WindowsDeleteString(gotVal);
+
+            // remove_ValueChanged with synthetic token (tests EventRegistrationToken marshaling)
+            EventRegistrationToken synthToken = {};
+            synthToken.value = 123;
+            hr = pObs->remove_ValueChanged(synthToken);
+            Check(SUCCEEDED(hr), "Observable: remove_ValueChanged (synthetic token)");
+
+            // GetRuntimeClassName
+            HSTRING className = nullptr;
+            hr = pObs->GetRuntimeClassName(&className);
+            Check(SUCCEEDED(hr) &&
+                  HStringEquals(className, L"TestApp.Comprehensive.Observable", 32),
+                  "Observable: GetRuntimeClassName");
+            if (className) WindowsDeleteString(className);
+
+            pObs->Release();
+        }
+    }
+
+    // NOTE: ICollectionOps (#17) tests are not implemented — implementing
+    // IVector<T>, IMap<K,V>, etc. server-side requires WRL or C++/WinRT
+    // collection helpers. Skipped for now.
+    printf("[MTA] --- CollectionOps tests --- SKIPPED (needs WRL/C++WinRT helpers)\n");
 
     CoUninitialize();
     printf("\n[MTA] Tests complete.\n");

@@ -237,6 +237,10 @@ $clsidMap = @{
     "{B2C3D4E5-F6A7-4B8C-9D0E-1F2A3B4C5D6E}" = "EventSource"
     "{C3D4E5F6-A7B8-4C9D-0E1F-2A3B4C5D6E7F}" = "PropertyBag"
     "{D4E5F6A7-B8C9-4D0E-1F2A-3B4C5D6E7F80}" = "OptionalValues"
+    "{E1F2A3B4-C5D6-4E7F-8091-A2B3C4D5E6F7}" = "TypeShowcase"
+    "{F2A3B4C5-D6E7-4F80-91A2-B3C4D5E6F7A8}" = "ComplexOps"
+    "{A3B4C5D6-E7F8-4091-A2B3-C4D5E6F7A8B9}" = "MathHelpers"
+    "{B4C5D6E7-F8A9-40B1-C2D3-E4F5A6B7C8D9}" = "Observable"
 }
 
 foreach ($clsid in $clsidMap.Keys) {

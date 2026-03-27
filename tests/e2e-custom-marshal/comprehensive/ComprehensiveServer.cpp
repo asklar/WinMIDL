@@ -48,6 +48,22 @@ static const CLSID CLSID_OptionalValues = {
     0xd4e5f6a7, 0xb8c9, 0x4d0e,
     {0x1f, 0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80}};
 
+static const CLSID CLSID_TypeShowcase = {
+    0xe1f2a3b4, 0xc5d6, 0x4e7f,
+    {0x80, 0x91, 0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7}};
+
+static const CLSID CLSID_ComplexOps = {
+    0xf2a3b4c5, 0xd6e7, 0x4f80,
+    {0x91, 0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7, 0xa8}};
+
+static const CLSID CLSID_MathHelpers = {
+    0xa3b4c5d6, 0xe7f8, 0x4091,
+    {0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7, 0xa8, 0xb9}};
+
+static const CLSID CLSID_Observable = {
+    0xb4c5d6e7, 0xf8a9, 0x40b1,
+    {0xc2, 0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9}};
+
 static constexpr double kPi = 3.14159265358979323846;
 static LONG g_cDllRef = 0;
 
@@ -705,6 +721,335 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// TypeShowcaseImpl — implements ITypeShowcase (#13: additional primitive types)
+// ---------------------------------------------------------------------------
+class TypeShowcaseImpl : public __x_TestApp_Comprehensive_ITypeShowcase {
+    LONG m_cRef;
+    INT64 m_bigNumber;
+    UINT64 m_unsignedBig;
+    GUID m_id;
+    WCHAR m_initial;
+    BYTE m_byte;
+    INT16 m_smallNumber;
+public:
+    TypeShowcaseImpl()
+        : m_cRef(1), m_bigNumber(0), m_unsignedBig(0),
+          m_initial(L'A'), m_byte(42), m_smallNumber(-123) {
+        m_id = {0x12345678, 0x9abc, 0xdef0, {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0}};
+        InterlockedIncrement(&g_cDllRef);
+    }
+    ~TypeShowcaseImpl() { InterlockedDecrement(&g_cDllRef); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_Comprehensive_ITypeShowcase) {
+            *ppv = static_cast<__x_TestApp_Comprehensive_ITypeShowcase*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_Comprehensive_ITypeShowcase;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.Comprehensive.TypeShowcase", 34, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetBigNumber(INT64* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_bigNumber;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE SetBigNumber(INT64 value) override {
+        m_bigNumber = value;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetUnsignedBig(UINT64* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_unsignedBig;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetId(GUID* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_id;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE SetId(GUID id) override {
+        m_id = id;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetInitial(WCHAR* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_initial;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetByte(BYTE* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_byte;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetSmallNumber(INT16* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_smallNumber;
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// ComplexOpsImpl — implements IComplexOps (#14: many params + mixed in/out)
+// ---------------------------------------------------------------------------
+class ComplexOpsImpl : public __x_TestApp_Comprehensive_IComplexOps {
+    LONG m_cRef;
+    HSTRING m_lastName;
+    INT32 m_lastX, m_lastY;
+    DOUBLE m_lastScale;
+    boolean m_lastVisible;
+public:
+    ComplexOpsImpl()
+        : m_cRef(1), m_lastName(nullptr), m_lastX(0), m_lastY(0),
+          m_lastScale(0.0), m_lastVisible(FALSE) {
+        InterlockedIncrement(&g_cDllRef);
+    }
+    ~ComplexOpsImpl() {
+        if (m_lastName) WindowsDeleteString(m_lastName);
+        InterlockedDecrement(&g_cDllRef);
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_Comprehensive_IComplexOps) {
+            *ppv = static_cast<__x_TestApp_Comprehensive_IComplexOps*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_Comprehensive_IComplexOps;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.Comprehensive.ComplexOps", 32, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE MultiParam(HSTRING name, INT32 x, INT32 y,
+                                          DOUBLE scale, boolean visible) override {
+        if (m_lastName) WindowsDeleteString(m_lastName);
+        WindowsDuplicateString(name, &m_lastName);
+        m_lastX = x;
+        m_lastY = y;
+        m_lastScale = scale;
+        m_lastVisible = visible;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE TryParse(HSTRING input, INT32* intResult,
+                                        DOUBLE* floatResult, boolean* returnValue) override {
+        if (!intResult || !floatResult || !returnValue) return E_POINTER;
+        UINT32 len = 0;
+        PCWSTR raw = WindowsGetStringRawBuffer(input, &len);
+        // Simple parse: try to read an integer from the string
+        if (len > 0 && raw) {
+            WCHAR* end = nullptr;
+            long val = wcstol(raw, &end, 10);
+            if (end != raw) {
+                *intResult = (INT32)val;
+                *floatResult = (DOUBLE)val;
+                *returnValue = TRUE;
+                return S_OK;
+            }
+        }
+        *intResult = 0;
+        *floatResult = 0.0;
+        *returnValue = FALSE;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE Swap(INT32 a, INT32 b, INT32* outA, INT32* outB) override {
+        if (!outA || !outB) return E_POINTER;
+        *outA = b;
+        *outB = a;
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// MathHelpersImpl — implements IMathHelpersStatics (#15: static runtimeclass)
+// ---------------------------------------------------------------------------
+class MathHelpersImpl : public __x_TestApp_Comprehensive_IMathHelpersStatics {
+    LONG m_cRef;
+public:
+    MathHelpersImpl() : m_cRef(1) { InterlockedIncrement(&g_cDllRef); }
+    ~MathHelpersImpl() { InterlockedDecrement(&g_cDllRef); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_Comprehensive_IMathHelpersStatics) {
+            *ppv = static_cast<__x_TestApp_Comprehensive_IMathHelpersStatics*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_Comprehensive_IMathHelpersStatics;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.Comprehensive.MathHelpers", 33, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE get_Pi(DOUBLE* value) override {
+        if (!value) return E_POINTER;
+        *value = kPi;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE Square(DOUBLE x, DOUBLE* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = x * x;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE get_Origin(Point* value) override {
+        if (!value) return E_POINTER;
+        value->X = 0.0f;
+        value->Y = 0.0f;
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// ObservableImpl — implements IObservable (#16: generic event delegate)
+// ---------------------------------------------------------------------------
+class ObservableImpl : public __x_TestApp_Comprehensive_IObservable {
+    LONG m_cRef;
+    HSTRING m_value;
+    __x_Windows_Foundation_EventHandler* m_handler;
+    LONG m_nextToken;
+public:
+    ObservableImpl() : m_cRef(1), m_value(nullptr), m_handler(nullptr), m_nextToken(0) {
+        InterlockedIncrement(&g_cDllRef);
+    }
+    ~ObservableImpl() {
+        if (m_value) WindowsDeleteString(m_value);
+        if (m_handler) m_handler->Release();
+        InterlockedDecrement(&g_cDllRef);
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_Comprehensive_IObservable) {
+            *ppv = static_cast<__x_TestApp_Comprehensive_IObservable*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_Comprehensive_IObservable;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.Comprehensive.Observable", 32, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE add_ValueChanged(
+            __x_Windows_Foundation_EventHandler* handler,
+            EventRegistrationToken* token) override {
+        if (!token) return E_POINTER;
+        if (m_handler) m_handler->Release();
+        m_handler = handler;
+        if (m_handler) m_handler->AddRef();
+        token->value = InterlockedIncrement(&m_nextToken);
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE remove_ValueChanged(EventRegistrationToken token) override {
+        (void)token;
+        if (m_handler) { m_handler->Release(); m_handler = nullptr; }
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE get_Value(HSTRING* value) override {
+        if (!value) return E_POINTER;
+        if (m_value)
+            return WindowsDuplicateString(m_value, value);
+        return WindowsCreateString(L"", 0, value);
+    }
+    HRESULT STDMETHODCALLTYPE put_Value(HSTRING value) override {
+        if (m_value) WindowsDeleteString(m_value);
+        return WindowsDuplicateString(value, &m_value);
+    }
+};
+
+// NOTE: ICollectionOps (#17) is not implemented — implementing IVector<T>,
+// IMap<K,V>, IVectorView<T>, IMapView<K,V>, and IIterable<T> server-side
+// requires WRL or C++/WinRT collection helpers. Skipped for now.
+
+// ---------------------------------------------------------------------------
 // ClassFactory — switches on CLSID to create the right object
 // ---------------------------------------------------------------------------
 class ClassFactory : public IClassFactory {
@@ -751,6 +1096,14 @@ public:
             obj = static_cast<__x_TestApp_Comprehensive_IPropertyBag*>(new (std::nothrow) PropertyBagImpl());
         else if (m_clsid == CLSID_OptionalValues)
             obj = static_cast<__x_TestApp_Comprehensive_IOptional*>(new (std::nothrow) OptionalValuesImpl());
+        else if (m_clsid == CLSID_TypeShowcase)
+            obj = static_cast<__x_TestApp_Comprehensive_ITypeShowcase*>(new (std::nothrow) TypeShowcaseImpl());
+        else if (m_clsid == CLSID_ComplexOps)
+            obj = static_cast<__x_TestApp_Comprehensive_IComplexOps*>(new (std::nothrow) ComplexOpsImpl());
+        else if (m_clsid == CLSID_MathHelpers)
+            obj = static_cast<__x_TestApp_Comprehensive_IMathHelpersStatics*>(new (std::nothrow) MathHelpersImpl());
+        else if (m_clsid == CLSID_Observable)
+            obj = static_cast<__x_TestApp_Comprehensive_IObservable*>(new (std::nothrow) ObservableImpl());
         else return CLASS_E_CLASSNOTAVAILABLE;
         if (!obj) return E_OUTOFMEMORY;
         HRESULT hr = obj->QueryInterface(riid, ppv);
@@ -773,7 +1126,8 @@ extern "C" {
 HRESULT STDAPICALLTYPE DllGetClassObject(REFCLSID rclsid, REFIID riid, void** ppv) {
     static const CLSID* knownClsids[] = {
         &CLSID_Animal, &CLSID_Shape, &CLSID_Circle, &CLSID_Document, &CLSID_Calculator,
-        &CLSID_Notifier, &CLSID_EventSource, &CLSID_PropertyBag, &CLSID_OptionalValues
+        &CLSID_Notifier, &CLSID_EventSource, &CLSID_PropertyBag, &CLSID_OptionalValues,
+        &CLSID_TypeShowcase, &CLSID_ComplexOps, &CLSID_MathHelpers, &CLSID_Observable
     };
     for (auto* c : knownClsids) {
         if (rclsid == *c) {
