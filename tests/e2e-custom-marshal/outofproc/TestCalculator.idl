@@ -1,11 +1,20 @@
 namespace TestApp.OutOfProc
 {
+    // Enums (simple + flags)
+    enum Color { Red, Green, Blue };
+    [flags] enum Permissions { None = 0, Read = 1, Write = 2, Execute = 4, All = 7 };
+
+    // Structs (simple + nested with enum field)
     struct MathResult
     {
         Double Value;
         Boolean IsExact;
     };
 
+    struct Point { Single X; Single Y; };
+    struct ColoredPoint { Point Position; Color PointColor; };
+
+    // 1. Calculator — basic params, struct return, out params
     interface ICalculator
     {
         String Version { get; };
@@ -18,5 +27,73 @@ namespace TestApp.OutOfProc
     runtimeclass Calculator
     {
         Calculator();
+    }
+
+    // 2. TypeShowcase — additional primitive types + GUID
+    interface ITypeShowcase
+    {
+        Int64 GetBigNumber();
+        void SetBigNumber(Int64 value);
+        Guid GetId();
+        void SetId(Guid id);
+        Char GetInitial();
+        UInt8 GetByte();
+        Int16 GetSmallNumber();
+    };
+
+    [default_interface]
+    runtimeclass TypeShowcase : ITypeShowcase
+    {
+        TypeShowcase();
+    }
+
+    // 3. Interface pointer params
+    interface ICallback
+    {
+        void OnComplete(String message);
+        String LastMessage { get; };
+    };
+
+    interface INotifier
+    {
+        void Subscribe(ICallback callback);
+        ICallback GetCallback();
+    };
+
+    [default_interface]
+    runtimeclass Notifier : INotifier
+    {
+        Notifier();
+    }
+
+    // 4. Object / IInspectable params
+    interface IPropertyBag
+    {
+        void SetValue(String key, Object value);
+        Object GetValue(String key);
+    };
+
+    [default_interface]
+    runtimeclass PropertyBag : IPropertyBag
+    {
+        PropertyBag();
+    }
+
+    // 5. Complex params — many parameters + mixed in/out
+    interface IComplexOps
+    {
+        void MultiParam(String name, Int32 x, Int32 y, Double scale, Boolean visible);
+        Boolean TryParse(String input, out Int32 intResult, out Double floatResult);
+        void Swap(Int32 a, Int32 b, out Int32 outA, out Int32 outB);
+        Point MakePoint(Single x, Single y);
+        void SetPermissions(Permissions perms);
+        Permissions GetPermissions();
+        ColoredPoint Translate(ColoredPoint pt, Single dx, Single dy);
+    };
+
+    [default_interface]
+    runtimeclass ComplexOps : IComplexOps
+    {
+        ComplexOps();
     }
 }

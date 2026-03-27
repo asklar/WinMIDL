@@ -1,7 +1,7 @@
-// CalcServer.cpp — Out-of-proc COM/WinRT server hosting ICalculator
+// CalcServer.cpp — Out-of-proc COM/WinRT server hosting multiple runtimeclasses
 //
-// This EXE registers a class factory via CoRegisterClassObject and serves
-// Calculator objects over LRPC. Our custom proxy/stub DLL handles marshaling.
+// This EXE registers class factories via CoRegisterClassObject and serves
+// objects over LRPC. Our custom proxy/stub DLL handles marshaling.
 //
 // Exit: waits for shutdown event or 60-second timeout.
 
@@ -13,18 +13,40 @@
 #include <math.h>
 #include "generated/TestCalculator.h"
 
-// Same IID definitions as the proxy — needed so QI works on the server side
 // IID definitions from generated code
 #include "generated/TestCalculator_i.c"
 
-// CLSID for Calculator — deterministic UUID v5 of "TestApp.OutOfProc.Calculator"
-// {B340F2FC-5C14-FD5E-A7F2-BE8DC2D67C04}
+// CLSIDs — deterministic UUID v5 of each class name
 static const CLSID CLSID_Calculator = {
     0xb340f2fc, 0x5c14, 0xfd5e,
     {0xa7, 0xf2, 0xbe, 0x8d, 0xc2, 0xd6, 0x7c, 0x04}};
 
+static const CLSID CLSID_TypeShowcase = {
+    0xe1f2a3b4, 0xc5d6, 0x4e7f,
+    {0x80, 0x91, 0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7}};
+
+static const CLSID CLSID_Notifier = {
+    0xa1b2c3d4, 0xe5f6, 0x4a7b,
+    {0x8c, 0x9d, 0x0e, 0x1f, 0x2a, 0x3b, 0x4c, 0x59}};
+
+static const CLSID CLSID_PropertyBag = {
+    0xc3d4e5f6, 0xa7b8, 0x4c9d,
+    {0x0e, 0x1f, 0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f}};
+
+static const CLSID CLSID_ComplexOps = {
+    0xf2a3b4c5, 0xd6e7, 0x4f80,
+    {0x91, 0xa2, 0xb3, 0xc4, 0xd5, 0xe6, 0xf7, 0xa8}};
+
 static HANDLE g_hShutdown = nullptr;
 static LONG g_cServerObjects = 0;
+
+static void ServerObjIncRef() { InterlockedIncrement(&g_cServerObjects); }
+static void ServerObjDecRef() {
+    // Don't auto-shutdown on last object release — let the timeout handle it.
+    // This prevents premature exit between test groups when objects from one
+    // group are released before the next group's CoCreateInstance arrives.
+    InterlockedDecrement(&g_cServerObjects);
+}
 
 // ---------------------------------------------------------------------------
 // Calculator — implements ICalculator + IInspectable
@@ -33,18 +55,9 @@ class Calculator : public __x_TestApp_OutOfProc_ICalculator {
     LONG m_cRef;
 
 public:
-    Calculator() : m_cRef(1) {
-        InterlockedIncrement(&g_cServerObjects);
-    }
+    Calculator() : m_cRef(1) { ServerObjIncRef(); }
+    ~Calculator() { ServerObjDecRef(); }
 
-    ~Calculator() {
-        if (InterlockedDecrement(&g_cServerObjects) == 0) {
-            // Last object released — signal shutdown
-            if (g_hShutdown) SetEvent(g_hShutdown);
-        }
-    }
-
-    // IUnknown
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
         if (!ppv) return E_POINTER;
         if (riid == IID_IUnknown || riid == IID_IInspectable ||
@@ -53,26 +66,18 @@ public:
             AddRef();
             return S_OK;
         }
-        if (riid == IID_IMarshal) {
-            // Reject free-threaded marshaler — force standard marshaling through our proxy
-            *ppv = nullptr;
-            return E_NOINTERFACE;
-        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
         *ppv = nullptr;
         return E_NOINTERFACE;
     }
 
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
     ULONG STDMETHODCALLTYPE Release() override {
         ULONG c = InterlockedDecrement(&m_cRef);
         if (c == 0) delete this;
         return c;
     }
 
-    // IInspectable
     HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
         *iidCount = 1;
         *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
@@ -80,17 +85,13 @@ public:
         (*iids)[0] = IID___x_TestApp_OutOfProc_ICalculator;
         return S_OK;
     }
-
     HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
         return WindowsCreateString(L"TestApp.OutOfProc.Calculator", 28, className);
     }
-
     HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
-        *trustLevel = BaseTrust;
-        return S_OK;
+        *trustLevel = BaseTrust; return S_OK;
     }
 
-    // ICalculator
     HRESULT STDMETHODCALLTYPE get_Version(HSTRING* value) override {
         if (!value) return E_POINTER;
         return WindowsCreateString(L"1.0.0", 5, value);
@@ -106,7 +107,6 @@ public:
         if (!returnValue) return E_POINTER;
         if (denominator == 0.0) return E_INVALIDARG;
         returnValue->Value = numerator / denominator;
-        // Check if result is exact (no fractional remainder)
         returnValue->IsExact = (fmod(numerator, denominator) == 0.0) ? TRUE : FALSE;
         return S_OK;
     }
@@ -120,7 +120,6 @@ public:
             *returnValue = FALSE;
             return S_OK;
         }
-        // Convert PCWSTR to double
         WCHAR* end = nullptr;
         double val = wcstod(raw, &end);
         if (end == raw || (end - raw) != (ptrdiff_t)len) {
@@ -135,13 +134,363 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-// CalculatorFactory — IClassFactory for Calculator
+// TypeShowcaseImpl — implements ITypeShowcase (additional primitive types)
 // ---------------------------------------------------------------------------
-class CalculatorFactory : public IClassFactory {
+class TypeShowcaseImpl : public __x_TestApp_OutOfProc_ITypeShowcase {
     LONG m_cRef;
+    INT64 m_bigNumber;
+    GUID m_id;
+    WCHAR m_initial;
+    BYTE m_byte;
+    INT16 m_smallNumber;
+public:
+    TypeShowcaseImpl()
+        : m_cRef(1), m_bigNumber(0),
+          m_initial(L'A'), m_byte(42), m_smallNumber(-123) {
+        m_id = {0x12345678, 0x9abc, 0xdef0, {0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0}};
+        ServerObjIncRef();
+    }
+    ~TypeShowcaseImpl() { ServerObjDecRef(); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_ITypeShowcase) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_ITypeShowcase*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_ITypeShowcase;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.TypeShowcase", 30, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetBigNumber(INT64* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_bigNumber;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE SetBigNumber(INT64 value) override {
+        m_bigNumber = value;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetId(GUID* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_id;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE SetId(GUID id) override {
+        m_id = id;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetInitial(WCHAR* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_initial;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetByte(BYTE* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_byte;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetSmallNumber(INT16* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_smallNumber;
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// NotifierImpl — implements INotifier (interface pointer params)
+// ---------------------------------------------------------------------------
+class NotifierImpl : public __x_TestApp_OutOfProc_INotifier {
+    LONG m_cRef;
+    __x_TestApp_OutOfProc_ICallback* m_callback;
+public:
+    NotifierImpl() : m_cRef(1), m_callback(nullptr) { ServerObjIncRef(); }
+    ~NotifierImpl() {
+        if (m_callback) m_callback->Release();
+        ServerObjDecRef();
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_INotifier) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_INotifier*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_INotifier;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.Notifier", 26, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE Subscribe(__x_TestApp_OutOfProc_ICallback* callback) override {
+        if (m_callback) m_callback->Release();
+        m_callback = callback;
+        if (m_callback) m_callback->AddRef();
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetCallback(__x_TestApp_OutOfProc_ICallback** returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_callback;
+        if (m_callback) m_callback->AddRef();
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// PropertyBagImpl — implements IPropertyBag (Object / IInspectable* params)
+// ---------------------------------------------------------------------------
+class PropertyBagImpl : public __x_TestApp_OutOfProc_IPropertyBag {
+    LONG m_cRef;
+    static constexpr int kMaxEntries = 16;
+    struct Entry {
+        HSTRING key;
+        IInspectable* value;
+    };
+    Entry m_entries[kMaxEntries];
+    int m_count;
+
+    int FindKey(HSTRING key) {
+        UINT32 keyLen = 0;
+        PCWSTR keyRaw = WindowsGetStringRawBuffer(key, &keyLen);
+        for (int i = 0; i < m_count; i++) {
+            UINT32 eLen = 0;
+            PCWSTR eRaw = WindowsGetStringRawBuffer(m_entries[i].key, &eLen);
+            if (eLen == keyLen && wcsncmp(eRaw, keyRaw, keyLen) == 0) return i;
+        }
+        return -1;
+    }
+public:
+    PropertyBagImpl() : m_cRef(1), m_count(0) {
+        memset(m_entries, 0, sizeof(m_entries));
+        ServerObjIncRef();
+    }
+    ~PropertyBagImpl() {
+        for (int i = 0; i < m_count; i++) {
+            if (m_entries[i].key) WindowsDeleteString(m_entries[i].key);
+            if (m_entries[i].value) m_entries[i].value->Release();
+        }
+        ServerObjDecRef();
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_IPropertyBag) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IPropertyBag*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IPropertyBag;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.PropertyBag", 29, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE SetValue(HSTRING key, IInspectable* value) override {
+        int idx = FindKey(key);
+        if (idx >= 0) {
+            if (m_entries[idx].value) m_entries[idx].value->Release();
+            m_entries[idx].value = value;
+            if (value) value->AddRef();
+            return S_OK;
+        }
+        if (m_count >= kMaxEntries) return E_OUTOFMEMORY;
+        HSTRING keyCopy = nullptr;
+        HRESULT hr = WindowsDuplicateString(key, &keyCopy);
+        if (FAILED(hr)) return hr;
+        m_entries[m_count].key = keyCopy;
+        m_entries[m_count].value = value;
+        if (value) value->AddRef();
+        m_count++;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetValue(HSTRING key, IInspectable** returnValue) override {
+        if (!returnValue) return E_POINTER;
+        int idx = FindKey(key);
+        if (idx < 0) { *returnValue = nullptr; return S_OK; }
+        *returnValue = m_entries[idx].value;
+        if (*returnValue) (*returnValue)->AddRef();
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// ComplexOpsImpl — implements IComplexOps (many params + mixed in/out)
+// ---------------------------------------------------------------------------
+class ComplexOpsImpl : public __x_TestApp_OutOfProc_IComplexOps {
+    LONG m_cRef;
+    Permissions m_perms;
+public:
+    ComplexOpsImpl() : m_cRef(1), m_perms(Permissions_None) { ServerObjIncRef(); }
+    ~ComplexOpsImpl() { ServerObjDecRef(); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_IComplexOps) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IComplexOps*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IComplexOps;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.ComplexOps", 28, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE MultiParam(HSTRING name, INT32 x, INT32 y,
+                                          DOUBLE scale, boolean visible) override {
+        (void)name; (void)x; (void)y; (void)scale; (void)visible;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE TryParse(HSTRING input, INT32* intResult,
+                                        DOUBLE* floatResult, boolean* returnValue) override {
+        if (!intResult || !floatResult || !returnValue) return E_POINTER;
+        UINT32 len = 0;
+        PCWSTR raw = WindowsGetStringRawBuffer(input, &len);
+        if (len > 0 && raw) {
+            WCHAR* end = nullptr;
+            long val = wcstol(raw, &end, 10);
+            if (end != raw) {
+                *intResult = (INT32)val;
+                *floatResult = (DOUBLE)val;
+                *returnValue = TRUE;
+                return S_OK;
+            }
+        }
+        *intResult = 0;
+        *floatResult = 0.0;
+        *returnValue = FALSE;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE Swap(INT32 a, INT32 b, INT32* outA, INT32* outB) override {
+        if (!outA || !outB) return E_POINTER;
+        *outA = b;
+        *outB = a;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE MakePoint(FLOAT x, FLOAT y, Point* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        returnValue->X = x;
+        returnValue->Y = y;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE SetPermissions(Permissions perms) override {
+        m_perms = perms;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetPermissions(Permissions* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        *returnValue = m_perms;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE Translate(ColoredPoint pt, FLOAT dx, FLOAT dy,
+                                         ColoredPoint* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        returnValue->Position.X = pt.Position.X + dx;
+        returnValue->Position.Y = pt.Position.Y + dy;
+        returnValue->PointColor = pt.PointColor;
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// MultiClassFactory — switches on CLSID to create the right object
+// ---------------------------------------------------------------------------
+class MultiClassFactory : public IClassFactory {
+    LONG m_cRef;
+    const CLSID& m_clsid;
 
 public:
-    CalculatorFactory() : m_cRef(1) {}
+    MultiClassFactory(const CLSID& clsid) : m_cRef(1), m_clsid(clsid) {}
 
     HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
         if (riid == IID_IUnknown || riid == IID_IClassFactory) {
@@ -162,10 +511,21 @@ public:
 
     HRESULT STDMETHODCALLTYPE CreateInstance(IUnknown* pOuter, REFIID riid, void** ppv) override {
         if (pOuter) return CLASS_E_NOAGGREGATION;
-        auto* calc = new (std::nothrow) Calculator();
-        if (!calc) return E_OUTOFMEMORY;
-        HRESULT hr = calc->QueryInterface(riid, ppv);
-        calc->Release();
+        IInspectable* obj = nullptr;
+        if (m_clsid == CLSID_Calculator)
+            obj = static_cast<__x_TestApp_OutOfProc_ICalculator*>(new (std::nothrow) Calculator());
+        else if (m_clsid == CLSID_TypeShowcase)
+            obj = static_cast<__x_TestApp_OutOfProc_ITypeShowcase*>(new (std::nothrow) TypeShowcaseImpl());
+        else if (m_clsid == CLSID_Notifier)
+            obj = static_cast<__x_TestApp_OutOfProc_INotifier*>(new (std::nothrow) NotifierImpl());
+        else if (m_clsid == CLSID_PropertyBag)
+            obj = static_cast<__x_TestApp_OutOfProc_IPropertyBag*>(new (std::nothrow) PropertyBagImpl());
+        else if (m_clsid == CLSID_ComplexOps)
+            obj = static_cast<__x_TestApp_OutOfProc_IComplexOps*>(new (std::nothrow) ComplexOpsImpl());
+        else return CLASS_E_CLASSNOTAVAILABLE;
+        if (!obj) return E_OUTOFMEMORY;
+        HRESULT hr = obj->QueryInterface(riid, ppv);
+        obj->Release();
         return hr;
     }
 
@@ -180,10 +540,10 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-// Main — register class factory and wait
+// Main — register all class factories and wait
 // ---------------------------------------------------------------------------
 int main() {
-    printf("[CalcServer] Starting out-of-proc Calculator server...\n");
+    printf("[CalcServer] Starting out-of-proc server...\n");
 
     HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     if (FAILED(hr)) {
@@ -193,36 +553,50 @@ int main() {
 
     g_hShutdown = CreateEventW(nullptr, TRUE, FALSE, nullptr);
 
-    CalculatorFactory factory;
-    DWORD dwRegister = 0;
-    hr = CoRegisterClassObject(CLSID_Calculator, &factory,
-                               CLSCTX_LOCAL_SERVER,
-                               REGCLS_MULTIPLEUSE | REGCLS_SUSPENDED,
-                               &dwRegister);
-    if (FAILED(hr)) {
-        printf("[CalcServer] CoRegisterClassObject failed: 0x%08lX\n", hr);
-        CloseHandle(g_hShutdown);
-        CoUninitialize();
-        return 1;
+    struct FactoryReg {
+        const CLSID& clsid;
+        DWORD cookie;
+    };
+
+    FactoryReg regs[] = {
+        { CLSID_Calculator, 0 },
+        { CLSID_TypeShowcase, 0 },
+        { CLSID_Notifier, 0 },
+        { CLSID_PropertyBag, 0 },
+        { CLSID_ComplexOps, 0 },
+    };
+
+    for (auto& reg : regs) {
+        auto* factory = new MultiClassFactory(reg.clsid);
+        hr = CoRegisterClassObject(reg.clsid, factory,
+                                   CLSCTX_LOCAL_SERVER,
+                                   REGCLS_MULTIPLEUSE | REGCLS_SUSPENDED,
+                                   &reg.cookie);
+        if (FAILED(hr)) {
+            printf("[CalcServer] CoRegisterClassObject failed: 0x%08lX\n", hr);
+            CloseHandle(g_hShutdown);
+            CoUninitialize();
+            return 1;
+        }
     }
 
     hr = CoResumeClassObjects();
     if (FAILED(hr)) {
         printf("[CalcServer] CoResumeClassObjects failed: 0x%08lX\n", hr);
-        CoRevokeClassObject(dwRegister);
+        for (auto& reg : regs) CoRevokeClassObject(reg.cookie);
         CloseHandle(g_hShutdown);
         CoUninitialize();
         return 1;
     }
 
-    printf("[CalcServer] Class factory registered. Waiting for clients...\n");
+    printf("[CalcServer] %d class factories registered. Waiting for clients...\n",
+           (int)(sizeof(regs)/sizeof(regs[0])));
     fflush(stdout);
 
-    // Wait for shutdown signal or 60-second timeout
     WaitForSingleObject(g_hShutdown, 60000);
 
     printf("[CalcServer] Shutting down...\n");
-    CoRevokeClassObject(dwRegister);
+    for (auto& reg : regs) CoRevokeClassObject(reg.cookie);
     CloseHandle(g_hShutdown);
     CoUninitialize();
     printf("[CalcServer] Server exited cleanly.\n");

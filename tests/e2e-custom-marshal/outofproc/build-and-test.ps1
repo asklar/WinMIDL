@@ -187,7 +187,7 @@ Write-Host "--- Step 3: Register proxy DLL + server ---" -ForegroundColor Yellow
 $proxyDllPath = (Resolve-Path "$buildDir/TestCalculatorProxy.dll").Path
 $serverExePath = (Resolve-Path "$buildDir/CalcServer.exe").Path
 
-# Extract IIDs and CLSIDs dynamically from generated code
+# Extract IIDs dynamically from generated code
 $iidContent = Get-Content "$genDir/TestCalculator_i.c" -Raw
 
 function Extract-Guid($content, $name) {
@@ -198,16 +198,30 @@ function Extract-Guid($content, $name) {
     return $null
 }
 
+# Extract all IIDs from generated code
 $IID_ICalculator = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculator"
 $IID_ICalculator2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICalculator2"
+$IID_ITypeShowcase = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ITypeShowcase"
+$IID_ITypeShowcase2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ITypeShowcase2"
+$IID_ICallback = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_ICallback"
+$IID_INotifier = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_INotifier"
+$IID_INotifier2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_INotifier2"
+$IID_IPropertyBag = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IPropertyBag"
+$IID_IPropertyBag2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IPropertyBag2"
+$IID_IComplexOps = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IComplexOps"
+$IID_IComplexOps2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IComplexOps2"
 
 if (-not $IID_ICalculator) {
     Write-Host "FAIL: Could not extract IID_ICalculator from generated code" -ForegroundColor Red
     exit 1
 }
 
-# CLSID_Calculator — extract from server source (must match)
+# CLSIDs — must match server source
 $CLSID_Calculator = "{B340F2FC-5C14-FD5E-A7F2-BE8DC2D67C04}"
+$CLSID_TypeShowcase = "{E1F2A3B4-C5D6-4E7F-8091-A2B3C4D5E6F7}"
+$CLSID_Notifier = "{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C59}"
+$CLSID_PropertyBag = "{C3D4E5F6-A7B8-4C9D-0E1F-2A3B4C5D6E7F}"
+$CLSID_ComplexOps = "{F2A3B4C5-D6E7-4F80-91A2-B3C4D5E6F7A8}"
 
 # Read the proxy CLSID from the generated code
 $proxyContent = Get-Content "$genDir/TestCalculator_proxy.cpp" -Raw
@@ -225,39 +239,59 @@ if ($proxyContent -match 'CLSID_PSFactoryBuffer\s*=\s*\{\s*(0x[0-9a-fA-F]+),\s*(
 }
 
 Write-Host "  CLSID_Calculator:    $CLSID_Calculator"
+Write-Host "  CLSID_TypeShowcase:  $CLSID_TypeShowcase"
+Write-Host "  CLSID_Notifier:      $CLSID_Notifier"
+Write-Host "  CLSID_PropertyBag:   $CLSID_PropertyBag"
+Write-Host "  CLSID_ComplexOps:    $CLSID_ComplexOps"
 Write-Host "  CLSID_PSFactory:     $CLSID_PSFactory"
 Write-Host "  IID_ICalculator:     $IID_ICalculator"
-Write-Host "  IID_ICalculator2:    $IID_ICalculator2"
+Write-Host "  IID_ITypeShowcase:   $IID_ITypeShowcase"
+Write-Host "  IID_ICallback:       $IID_ICallback"
+Write-Host "  IID_INotifier:       $IID_INotifier"
+Write-Host "  IID_IPropertyBag:    $IID_IPropertyBag"
+Write-Host "  IID_IComplexOps:     $IID_IComplexOps"
 
 # Register under HKCU (no admin needed)
 $regBase = "HKCU:\Software\Classes"
 
-# 3a: Register Calculator CLSID → LocalServer32 (EXE server)
-$clsidKey = "$regBase\CLSID\$CLSID_Calculator\LocalServer32"
-New-Item -Path $clsidKey -Force | Out-Null
-Set-ItemProperty -Path $clsidKey -Name "(Default)" -Value $serverExePath
-Write-Host "  Registered Calculator LocalServer32" -ForegroundColor Green
+# All CLSIDs for LocalServer32
+$allClsids = @($CLSID_Calculator, $CLSID_TypeShowcase, $CLSID_Notifier, $CLSID_PropertyBag, $CLSID_ComplexOps)
 
-# 3b: Register proxy/stub factory CLSID → InprocServer32
+foreach ($clsid in $allClsids) {
+    $clsidKey = "$regBase\CLSID\$clsid\LocalServer32"
+    New-Item -Path $clsidKey -Force | Out-Null
+    Set-ItemProperty -Path $clsidKey -Name "(Default)" -Value $serverExePath
+}
+Write-Host "  Registered $($allClsids.Count) CLSIDs for LocalServer32" -ForegroundColor Green
+
+# Register proxy/stub factory CLSID → InprocServer32
 $psClsidKey = "$regBase\CLSID\$CLSID_PSFactory\InprocServer32"
 New-Item -Path $psClsidKey -Force | Out-Null
 Set-ItemProperty -Path $psClsidKey -Name "(Default)" -Value $proxyDllPath
 Set-ItemProperty -Path $psClsidKey -Name "ThreadingModel" -Value "Both"
 Write-Host "  Registered PSFactory InprocServer32" -ForegroundColor Green
 
-# 3c: Register IID_ICalculator → ProxyStubClsid32
-$iidKey = "$regBase\Interface\$IID_ICalculator\ProxyStubClsid32"
-New-Item -Path $iidKey -Force | Out-Null
-Set-ItemProperty -Path $iidKey -Name "(Default)" -Value $CLSID_PSFactory
-Write-Host "  Registered ICalculator ProxyStubClsid32" -ForegroundColor Green
+# Register all IIDs → ProxyStubClsid32
+$allIids = @(
+    $IID_ICalculator,
+    $IID_ICalculator2,
+    $IID_ITypeShowcase,
+    $IID_ITypeShowcase2,
+    $IID_ICallback,
+    $IID_INotifier,
+    $IID_INotifier2,
+    $IID_IPropertyBag,
+    $IID_IPropertyBag2,
+    $IID_IComplexOps,
+    $IID_IComplexOps2
+) | Where-Object { $_ -ne $null }
 
-# 3d: Register IID_ICalculator2 → ProxyStubClsid32 (synthesized default interface)
-if ($IID_ICalculator2) {
-    $iid2Key = "$regBase\Interface\$IID_ICalculator2\ProxyStubClsid32"
-    New-Item -Path $iid2Key -Force | Out-Null
-    Set-ItemProperty -Path $iid2Key -Name "(Default)" -Value $CLSID_PSFactory
-    Write-Host "  Registered ICalculator2 ProxyStubClsid32" -ForegroundColor Green
+foreach ($iid in $allIids) {
+    $iidKey = "$regBase\Interface\$iid\ProxyStubClsid32"
+    New-Item -Path $iidKey -Force | Out-Null
+    Set-ItemProperty -Path $iidKey -Name "(Default)" -Value $CLSID_PSFactory
 }
+Write-Host "  Registered $($allIids.Count) IIDs for ProxyStubClsid32" -ForegroundColor Green
 
 # ---------- Step 4: Start server process ----------
 
@@ -266,15 +300,18 @@ Write-Host "--- Step 4: Start server process ---" -ForegroundColor Yellow
 
 $serverProc = Start-Process -FilePath $serverExePath -PassThru -NoNewWindow
 Write-Host "  Server PID: $($serverProc.Id)"
-Start-Sleep -Seconds 2  # Give server time to register class factory
+Start-Sleep -Seconds 2  # Give server time to register class factories
 
 if ($serverProc.HasExited) {
     Write-Host "FAIL: Server exited prematurely with code $($serverProc.ExitCode)" -ForegroundColor Red
     # Cleanup registration
-    Remove-Item -Path "$regBase\CLSID\$CLSID_Calculator" -Recurse -Force -ErrorAction SilentlyContinue
+    foreach ($clsid in $allClsids) {
+        Remove-Item -Path "$regBase\CLSID\$clsid" -Recurse -Force -ErrorAction SilentlyContinue
+    }
     Remove-Item -Path "$regBase\CLSID\$CLSID_PSFactory" -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item -Path "$regBase\Interface\$IID_ICalculator" -Recurse -Force -ErrorAction SilentlyContinue
-    if ($IID_ICalculator2) { Remove-Item -Path "$regBase\Interface\$IID_ICalculator2" -Recurse -Force -ErrorAction SilentlyContinue }
+    foreach ($iid in $allIids) {
+        Remove-Item -Path "$regBase\Interface\$iid" -Recurse -Force -ErrorAction SilentlyContinue
+    }
     exit 1
 }
 
@@ -305,11 +342,12 @@ if (-not $serverProc.HasExited) {
 Write-Host ""
 Write-Host "--- Step 7: Unregister ---" -ForegroundColor Yellow
 
-Remove-Item -Path "$regBase\CLSID\$CLSID_Calculator" -Recurse -Force -ErrorAction SilentlyContinue
+foreach ($clsid in $allClsids) {
+    Remove-Item -Path "$regBase\CLSID\$clsid" -Recurse -Force -ErrorAction SilentlyContinue
+}
 Remove-Item -Path "$regBase\CLSID\$CLSID_PSFactory" -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "$regBase\Interface\$IID_ICalculator" -Recurse -Force -ErrorAction SilentlyContinue
-if ($IID_ICalculator2) {
-    Remove-Item -Path "$regBase\Interface\$IID_ICalculator2" -Recurse -Force -ErrorAction SilentlyContinue
+foreach ($iid in $allIids) {
+    Remove-Item -Path "$regBase\Interface\$iid" -Recurse -Force -ErrorAction SilentlyContinue
 }
 Write-Host "  Registry entries removed" -ForegroundColor Green
 
