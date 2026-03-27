@@ -998,7 +998,7 @@ int main() {
 
             if (pResult) {
                 // get_Status — should be Completed (1)
-                __x_TestApp_OutOfProc_AsyncStatus status = (__x_TestApp_OutOfProc_AsyncStatus)-1;
+                AsyncStatus status = (AsyncStatus)-1;
                 hr = pResult->get_Status(&status);
                 Check(SUCCEEDED(hr) && status == AsyncStatus_Completed,
                       "AsyncCalculator: Status == Completed");
