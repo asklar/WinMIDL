@@ -147,7 +147,7 @@ public class InterfaceMarshalingTests
         var output = _proxyGen.Generate(compilation);
 
         Assert.Contains("winmidl::marshal_interface", output);
-        Assert.Contains("IID_IInspectable", output);
+        Assert.Contains("IID_IUnknown", output);
         Assert.DoesNotContain("// TODO: marshal", output);
     }
 
@@ -164,7 +164,7 @@ public class InterfaceMarshalingTests
         var output = _stubGen.Generate(compilation);
 
         Assert.Contains("winmidl::unmarshal_interface", output);
-        Assert.Contains("IID_IInspectable", output);
+        Assert.Contains("IID_IUnknown", output);
     }
 
     // ─── WireFormat.IsFixedSize ───
@@ -251,7 +251,7 @@ public class InterfaceMarshalingTests
     public void WireFormat_GetInterfaceIidName_ObjectReturnsIInspectable()
     {
         var typeRef = new TypeRef("Object");
-        Assert.Equal("IID_IInspectable", WireFormat.GetInterfaceIidName(typeRef));
+        Assert.Equal("IID_IUnknown", WireFormat.GetInterfaceIidName(typeRef));
     }
 
     // ─── Buffer size computation ───

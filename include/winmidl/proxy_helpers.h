@@ -275,13 +275,13 @@ inline void unmarshal_struct(BYTE*& buf, T& out) {
 
 // Get the marshaled size of an interface pointer for buffer allocation.
 // Uses IID_IUnknown for universal compatibility — works with any COM object.
-inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID /*riid*/, UINT32& size) {
+inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size) {
     if (!pInterface) {
         size = sizeof(UINT32);
         return S_OK;
     }
     DWORD mshlSize = 0;
-    HRESULT hr = CoGetMarshalSizeMax(&mshlSize, IID_IUnknown, pInterface, MSHCTX_INPROC, nullptr, MSHLFLAGS_NORMAL);
+    HRESULT hr = CoGetMarshalSizeMax(&mshlSize, riid, pInterface, MSHCTX_LOCAL, nullptr, MSHLFLAGS_NORMAL);
     if (FAILED(hr)) return hr;
     size = sizeof(UINT32) + static_cast<UINT32>(mshlSize);
     return S_OK;

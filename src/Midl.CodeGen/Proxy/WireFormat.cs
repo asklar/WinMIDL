@@ -773,12 +773,13 @@ public static partial class WireFormat
 
     /// <summary>
     /// Returns the C++ IID constant name for an interface type (e.g. "IID___x_TestApp_IWidget").
-    /// For the special "Object" type, returns "IID_IInspectable".
+    /// For the special "Object" type, returns "IID_IUnknown" — IInspectable has no
+    /// registered proxy/stub, but IUnknown is universally supported.
     /// </summary>
     public static string GetInterfaceIidName(TypeRef typeRef)
     {
         if (typeRef.Name == "Object")
-            return "IID_IInspectable";
+            return "IID_IUnknown";
 
         // Generic interface instantiation — unique IID per type arguments
         if (typeRef.TypeArguments.Count > 0 && typeRef.ResolvedSymbol is InterfaceSymbol or DelegateSymbol)
