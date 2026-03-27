@@ -67,8 +67,8 @@ namespace MyApp
   - `in` array → PassArray: ABI becomes `(UINT32 count, T* items)`
   - `out` array → FillArray or ReceiveArray (could use a heuristic or attribute)
   - Return type array → ReceiveArray: ABI becomes `(UINT32* count, T** items)` as trailing retval
-- Validate: arrays of arrays not allowed in WinRT
 - Validate: array element types must be valid WinRT types
+- Note: traditional WinRT disallows arrays of arrays — this was an NDR limitation. With our custom wire format, we could support jagged arrays (`Int32[][]`) by nesting the `[count][elements]` encoding. Whether to allow this is a design choice: it extends the WinRT type system beyond what existing projections expect.
 
 #### 3. Header emitter
 Expand `Int32[] items` into the ABI pair:
@@ -335,7 +335,16 @@ But what if component C also uses `IRepository<Foo>`? Both B and C would registe
 
 ### Open questions
 
-1. **Should we allow generic runtimeclasses?** WinRT only has generic interfaces and delegates. Generic runtimeclasses would be new — and would need a way to express the relationship between the class and its generic default interface.
+1. **Generic runtimeclasses.** WinRT only has generic interfaces and delegates today. However, generic runtimeclasses are a natural extension — the compiler would synthesize a generic default interface. For example:
+   ```idl
+   runtimeclass Repository<T>
+   {
+       Repository();
+       T GetById(Int32 id);
+       void Add(T item);
+   }
+   ```
+   Would synthesize `interface IRepository<T> { T GetById(Int32); void Add(T); }` as the default interface, with `Repository<T> : IRepository<T>`. Each instantiation (`Repository<Widget>`) gets its own concrete default interface IID and proxy/stub. The runtimeclass metadata uses `GenericParam` rows on both the class and the synthesized interface.
 
 2. **Type constraints?** MIDL3 has `requires` for interface inheritance. Could we extend this to generic constraints? e.g. `interface ISortable<T> requires IComparable<T>` — meaning T must implement IComparable<T>.
 
