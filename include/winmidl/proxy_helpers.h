@@ -126,11 +126,14 @@ inline void marshal_enum(BYTE*& buf, E val) {
     INT32 v = static_cast<INT32>(val);
     memcpy(buf, &v, sizeof(INT32)); buf += sizeof(INT32);
 }
+// Null-safe: nullptr HSTRING writes count=0 (empty string).
 inline void marshal_hstring(BYTE*& buf, HSTRING val) {
-    UINT32 len = WindowsGetStringLen(val);
+    UINT32 len = val ? WindowsGetStringLen(val) : 0;
     memcpy(buf, &len, sizeof(UINT32)); buf += sizeof(UINT32);
-    PCWSTR raw = WindowsGetStringRawBuffer(val, nullptr);
-    memcpy(buf, raw, len * sizeof(WCHAR)); buf += len * sizeof(WCHAR);
+    if (len > 0) {
+        PCWSTR raw = WindowsGetStringRawBuffer(val, nullptr);
+        memcpy(buf, raw, len * sizeof(WCHAR)); buf += len * sizeof(WCHAR);
+    }
 }
 template<typename T>
 inline void marshal_struct(BYTE*& buf, const T& val) {
@@ -283,6 +286,7 @@ inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size)
 // ════════════════════════════════════════════════════════════════
 
 // Marshal an interface pointer into the RPC buffer.
+// Null-safe: nullptr writes size=0 without calling CoMarshalInterface.
 // Returns S_OK on success. Advances buf past the written data.
 inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) {
     if (!pInterface) {
@@ -311,6 +315,7 @@ inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) 
 }
 
 // Unmarshal an interface pointer from the RPC buffer.
+// Null-safe: size=0 yields *ppInterface=nullptr without calling CoUnmarshalInterface.
 // Returns S_OK on success. Advances buf past the read data.
 inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID riid, void** ppInterface) {
     UINT32 streamSize;
@@ -347,6 +352,7 @@ inline HRESULT unmarshal_interface(BYTE*& buf, REFIID riid, void** ppInterface) 
 // ════════════════════════════════════════════════════════════════
 
 // Marshal a fixed-size array: [uint32 count][element × count]
+// Null-safe: count=0 writes only the count prefix; items is not dereferenced.
 template<typename T>
 inline void marshal_array(BYTE*& buf, const T* items, UINT32 count) {
     memcpy(buf, &count, sizeof(UINT32));
