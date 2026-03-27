@@ -228,7 +228,7 @@ public class ProxyGenerator
             "UInt8" => "uint8",
             "Char" => "char16",
             "EventRegistrationToken" => "event_token",
-            _ => typeRef.Name.ToLowerInvariant(),
+            _ => typeRef.Name.ToLowerInvariant().Replace(".", "_").Replace("<", "_").Replace(">", "").Replace(",", "_"),
         };
     }
 
@@ -269,7 +269,24 @@ public class ProxyGenerator
         sb.AppendLine("    RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"    msg.iMethod = slot;");
 
-        // Buffer size
+        // Buffer size — pre-compute marshal sizes for interface params
+        bool hasInterfaceParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type));
+        if (hasInterfaceParams)
+        {
+            sb.AppendLine("    HRESULT hr;");
+            argIdx = 0;
+            foreach (var p in inParams)
+            {
+                if (WireFormat.IsInterfaceType(p.Type))
+                {
+                    var iidName = WireFormat.GetInterfaceIidName(p.Type);
+                    sb.AppendLine($"    UINT32 arg{argIdx}_marshalSize = 0;");
+                    sb.AppendLine($"    hr = winmidl::get_marshal_size(arg{argIdx}, {iidName}, arg{argIdx}_marshalSize); RETURN_IF_FAILED(hr);");
+                }
+                argIdx++;
+            }
+        }
+
         bool requestFixed = WireFormat.AllParamsFixedSize(inParams);
         if (requestFixed && inParams.Count > 0)
         {
@@ -286,7 +303,10 @@ public class ProxyGenerator
             sb.AppendLine("    msg.cbBuffer = 0;");
         }
 
-        sb.AppendLine("    HRESULT hr = channel->GetBuffer(&msg, iid);");
+        if (!hasInterfaceParams)
+            sb.AppendLine("    HRESULT hr = channel->GetBuffer(&msg, iid);");
+        else
+            sb.AppendLine("    hr = channel->GetBuffer(&msg, iid);");
         sb.AppendLine("    RETURN_IF_FAILED(hr);");
 
         // Serialize input params
