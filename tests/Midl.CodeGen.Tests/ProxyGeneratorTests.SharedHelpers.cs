@@ -69,7 +69,7 @@ public partial class ProxyGeneratorTests
     }
 
     [Fact]
-    public void Proxy_GetRuntimeClassName_ForwardsToHelper()
+    public void Proxy_GetRuntimeClassName_UsesStaticReference()
     {
         var compilation = Compile(@"
             namespace TestApp {
@@ -77,7 +77,8 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("winmidl::get_runtime_class_name(kTypeInfo", output);
+        Assert.Contains("WindowsCreateStringReference(L\"TestApp.IWidget\"", output);
+        Assert.Contains("static HSTRING_HEADER s_hdr", output);
     }
 
     [Fact]

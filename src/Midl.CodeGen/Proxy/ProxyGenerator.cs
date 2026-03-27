@@ -659,7 +659,8 @@ public class ProxyGenerator
 
         // IInspectable — static constexpr data, no forwarding
         var iidList = allRuntimeClassIids ?? new List<string> { iidName };
-        EmitFaceIInspectable(sb, iidList);
+        var rcName = runtimeClassName ?? iface.ExclusiveToClass ?? iface.FullName;
+        EmitFaceIInspectable(sb, iidList, rcName);
 
         // Interface methods
         var methods = CollectInterfaceMethods(iface);
@@ -674,7 +675,7 @@ public class ProxyGenerator
         sb.AppendLine();
     }
 
-    private static void EmitFaceIInspectable(StringBuilder sb, List<string> iidNames)
+    private static void EmitFaceIInspectable(StringBuilder sb, List<string> iidNames, string runtimeClassName)
     {
         var iidList = string.Join(", ", iidNames);
         sb.AppendLine("        // IInspectable — static data via shared helpers");
@@ -684,7 +685,8 @@ public class ProxyGenerator
         sb.AppendLine("            return winmidl::get_iids(kTypeInfo, iidCount, iids);");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {");
-        sb.AppendLine("            return winmidl::get_runtime_class_name(kTypeInfo, className);");
+        sb.AppendLine($"            static HSTRING_HEADER s_hdr;");
+        sb.AppendLine($"            return WindowsCreateStringReference(L\"{runtimeClassName}\", {runtimeClassName.Length}, &s_hdr, className);");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {");
         sb.AppendLine("            return winmidl::get_trust_level(trustLevel);");
