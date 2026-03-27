@@ -978,7 +978,7 @@ public:
         *trustLevel = BaseTrust; return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE get_Status(__x_TestApp_OutOfProc_AsyncStatus* value) override {
+    HRESULT STDMETHODCALLTYPE get_Status(AsyncStatus* value) override {
         if (!value) return E_POINTER;
         *value = AsyncStatus_Completed;
         return S_OK;
