@@ -1,6 +1,12 @@
 {
-    "diagnostics": [],
-    "parityGap": true,
-    "originalMidlAlsoRejects": true,
-    "originalMidlError": "MIDL5106"
+  "parityGap": false,
+  "originalMidlError": "MIDL5106",
+  "originalMidlAlsoRejects": true,
+  "diagnostics": [
+    {
+      "severity": "Error",
+      "code": "MIDL1029",
+      "messageContains": "overload"
+    }
+  ]
 }

@@ -1,4 +1,10 @@
 {
-    "diagnostics": [],
-    "parityGap": true
+  "parityGap": false,
+  "diagnostics": [
+    {
+      "code": "MIDL1093",
+      "severity": "Error",
+      "messageContains": "exceeds"
+    }
+  ]
 }

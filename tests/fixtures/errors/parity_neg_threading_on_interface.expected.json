@@ -1,4 +1,10 @@
 {
-    "diagnostics": [],
-    "parityGap": true
+  "parityGap": false,
+  "diagnostics": [
+    {
+      "severity": "Error",
+      "code": "MIDL1029",
+      "messageContains": "threading"
+    }
+  ]
 }

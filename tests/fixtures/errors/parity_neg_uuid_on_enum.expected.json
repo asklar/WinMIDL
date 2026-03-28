@@ -1,6 +1,12 @@
 {
-    "diagnostics": [],
-    "parityGap": true,
-    "originalMidlAlsoRejects": true,
-    "originalMidlError": "MIDL2072"
+  "parityGap": false,
+  "originalMidlError": "MIDL2072",
+  "originalMidlAlsoRejects": true,
+  "diagnostics": [
+    {
+      "severity": "Error",
+      "code": "MIDL1029",
+      "messageContains": "uuid"
+    }
+  ]
 }

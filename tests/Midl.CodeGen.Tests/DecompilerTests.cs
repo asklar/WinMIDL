@@ -733,7 +733,7 @@ public partial class DecompilerTests
     {
         var source = @"
             namespace N {
-                [contractversion(1)]
+                [contractversion(2)]
                 apicontract MyContract {}
 
                 [contract(MyContract, 1)]

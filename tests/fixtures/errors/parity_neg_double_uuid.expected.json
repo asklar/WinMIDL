@@ -1,4 +1,10 @@
 {
-    "diagnostics": [],
-    "parityGap": true
+  "parityGap": false,
+  "diagnostics": [
+    {
+      "code": "MIDL1086",
+      "severity": "Error",
+      "messageContains": "uuid"
+    }
+  ]
 }

@@ -655,4 +655,10 @@ public static class DiagnosticDescriptors
             $"Type '{typeName}' references feature-gated type '{featureGatedType}' ([feature({featureName})]). Consider adding [feature({featureName})] to '{typeName}'.",
             position, Math.Max(featureGatedType.Length, 1));
 #endif
+
+    // Duplicate [default] marker on interface list (MIDL1106)
+    public static Diagnostic DuplicateDefaultMarker(string className, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1106",
+            $"Runtimeclass '{className}' has multiple [default] markers on its interface list.",
+            position, Math.Max(className.Length, 1));
 }
