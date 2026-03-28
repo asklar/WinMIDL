@@ -99,6 +99,28 @@ public static class CompletionHandler
                 return new Dictionary<string, object?> { ["isIncomplete"] = items.Count > 0, ["items"] = items.ToArray() };
             }
 
+            // Check if cursor is inside an attribute argument list [attrName(args|)]
+            var attrArgContext = AttributeArgCompletionProvider.DetectAttributeArgContext(text, offset);
+            if (attrArgContext != null)
+            {
+                // Ensure we have a compilation for type lookups
+                Compilation? argCompilation = cachedCompilation;
+                if (argCompilation == null)
+                {
+                    try
+                    {
+                        argCompilation = CompilationHelper.Compile(text, referencePaths: null,
+                            mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: fileDir);
+                    }
+                    catch { }
+                }
+
+                var argItems = AttributeArgCompletionProvider.BuildAttributeArgCompletions(
+                    attrArgContext.Value.attrName, attrArgContext.Value.argPosition, argCompilation);
+                if (argItems != null)
+                    return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = argItems.ToArray() };
+            }
+
             // Check if cursor is inside an attribute context [...]
             var attrContext = AttributeCompletionProvider.DetectAttributeContext(text, offset);
 

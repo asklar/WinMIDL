@@ -360,6 +360,171 @@ public class AttributeCompletionTests
 
     // ─── Attribute inference tests ────────────────────────────────────
 
+    // ─── Attribute argument completion tests ────────────────────────────
+
+    [Fact]
+    public void AttrArg_ContractArg0_OffersApiContractNames()
+    {
+        // Compile a valid IDL to get symbols
+        var validIdl = @"
+            namespace TestNs
+            {
+                apicontract PalettesContract { }
+                runtimeclass Widget { }
+            }";
+        var compilation = CompilationHelper.Compile(validIdl);
+
+        // Detect context from incomplete text (as user is typing)
+        var editingIdl = @"namespace TestNs { [contract( runtimeclass Widget { } }";
+        var ctx = AttributeArgCompletionProvider.DetectAttributeArgContext(editingIdl, editingIdl.IndexOf("[contract(") + "[contract(".Length);
+        Assert.NotNull(ctx);
+        Assert.Equal("contract", ctx!.Value.attrName);
+        Assert.Equal(0, ctx!.Value.argPosition);
+
+        var items = AttributeArgCompletionProvider.BuildAttributeArgCompletions(ctx.Value.attrName, ctx.Value.argPosition, compilation);
+        Assert.NotNull(items);
+        var labels = items!.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("PalettesContract", labels);
+    }
+
+    [Fact]
+    public void AttrArg_ComposableArg0_OffersInterfaceNames()
+    {
+        var validIdl = @"
+            namespace TestNs
+            {
+                interface IWidgetFactory { }
+                interface IWidgetStatics { }
+                runtimeclass Widget { }
+            }";
+        var compilation = CompilationHelper.Compile(validIdl);
+
+        var editingIdl = @"namespace TestNs { [composable( runtimeclass Widget { } }";
+        var ctx = AttributeArgCompletionProvider.DetectAttributeArgContext(editingIdl, editingIdl.IndexOf("[composable(") + "[composable(".Length);
+        Assert.NotNull(ctx);
+        Assert.Equal("composable", ctx!.Value.attrName);
+        Assert.Equal(0, ctx!.Value.argPosition);
+
+        var items = AttributeArgCompletionProvider.BuildAttributeArgCompletions(ctx.Value.attrName, ctx.Value.argPosition, compilation);
+        Assert.NotNull(items);
+        var labels = items!.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("IWidgetFactory", labels);
+        Assert.Contains("IWidgetStatics", labels);
+    }
+
+    [Fact]
+    public void AttrArg_ComposableArg1_OffersPublicProtected()
+    {
+        var editingIdl = "namespace TestNs { [composable(IWidgetFactory, runtimeclass Widget { } }";
+        int cursorPos = editingIdl.IndexOf("[composable(IWidgetFactory, ") + "[composable(IWidgetFactory, ".Length;
+        var ctx = AttributeArgCompletionProvider.DetectAttributeArgContext(editingIdl, cursorPos);
+        Assert.NotNull(ctx);
+        Assert.Equal("composable", ctx!.Value.attrName);
+        Assert.Equal(1, ctx!.Value.argPosition);
+
+        var items = AttributeArgCompletionProvider.BuildAttributeArgCompletions(ctx.Value.attrName, ctx.Value.argPosition, null);
+        Assert.NotNull(items);
+        var labels = items!.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("public", labels);
+        Assert.Contains("protected", labels);
+        Assert.Equal(2, labels.Count);
+    }
+
+    [Fact]
+    public void AttrArg_ThreadingArg0_OffersBothStaMta()
+    {
+        var idl = @"
+            namespace TestNs
+            {
+                [threading(
+                runtimeclass Widget { }
+            }";
+
+        var ctx = AttributeArgCompletionProvider.DetectAttributeArgContext(idl, idl.IndexOf("[threading(") + "[threading(".Length);
+        Assert.NotNull(ctx);
+        Assert.Equal("threading", ctx!.Value.attrName);
+        Assert.Equal(0, ctx!.Value.argPosition);
+
+        var items = AttributeArgCompletionProvider.BuildAttributeArgCompletions(ctx.Value.attrName, ctx.Value.argPosition, null);
+        Assert.NotNull(items);
+        var labels = items!.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("both", labels);
+        Assert.Contains("sta", labels);
+        Assert.Contains("mta", labels);
+        Assert.Equal(3, labels.Count);
+    }
+
+    [Fact]
+    public void AttrArg_ExclusivetoArg0_OffersRuntimeClassNames()
+    {
+        var validIdl = @"
+            namespace TestNs
+            {
+                runtimeclass Widget { }
+                runtimeclass Gadget { }
+                interface IWidgetInternal { }
+            }";
+        var compilation = CompilationHelper.Compile(validIdl);
+
+        var editingIdl = @"namespace TestNs { [exclusiveto( interface IWidgetInternal { } }";
+        var ctx = AttributeArgCompletionProvider.DetectAttributeArgContext(editingIdl, editingIdl.IndexOf("[exclusiveto(") + "[exclusiveto(".Length);
+        Assert.NotNull(ctx);
+        Assert.Equal("exclusiveto", ctx!.Value.attrName);
+        Assert.Equal(0, ctx!.Value.argPosition);
+
+        var items = AttributeArgCompletionProvider.BuildAttributeArgCompletions(ctx.Value.attrName, ctx.Value.argPosition, compilation);
+        Assert.NotNull(items);
+        var labels = items!.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("Widget", labels);
+        Assert.Contains("Gadget", labels);
+    }
+
+    [Fact]
+    public void AttrArg_AttributeusageArg0_OffersTargetChoices()
+    {
+        var idl = @"
+            namespace TestNs
+            {
+                [attributeusage(
+                attribute MyAttr { }
+            }";
+
+        var ctx = AttributeArgCompletionProvider.DetectAttributeArgContext(idl, idl.IndexOf("[attributeusage(") + "[attributeusage(".Length);
+        Assert.NotNull(ctx);
+        Assert.Equal("attributeusage", ctx!.Value.attrName);
+        Assert.Equal(0, ctx!.Value.argPosition);
+
+        var items = AttributeArgCompletionProvider.BuildAttributeArgCompletions(ctx.Value.attrName, ctx.Value.argPosition, null);
+        Assert.NotNull(items);
+        var labels = items!.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("target_runtimeclass", labels);
+        Assert.Contains("target_interface", labels);
+        Assert.Contains("target_enum", labels);
+        Assert.Contains("target_struct", labels);
+        Assert.Contains("target_delegate", labels);
+        Assert.Contains("target_method", labels);
+        Assert.Contains("target_property", labels);
+        Assert.Contains("target_event", labels);
+        Assert.Contains("target_parameter", labels);
+    }
+
+    [Fact]
+    public void AttrArg_NotInsideAttributeArgs_ReturnsNull()
+    {
+        var idl = @"
+            namespace TestNs
+            {
+                runtimeclass Widget { }
+            }";
+
+        // Cursor in the middle of "Widget" — not inside any attribute parens
+        int cursorPos = idl.IndexOf("Widget") + 3;
+        var ctx = AttributeArgCompletionProvider.DetectAttributeArgContext(idl, cursorPos);
+        Assert.Null(ctx);
+    }
+
+    // ─── Attribute inference tests ────────────────────────────────────
+
     [Fact]
     public void AttributeUsageTargets_ParsedFromSource()
     {
