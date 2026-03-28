@@ -185,7 +185,7 @@
 - [x] Content-hash caching — skips recompilation if text unchanged
 - [x] Source-generated JSON types (Protocol/LspTypes.cs, AOT-compatible)
 
-### Testing (1,800+ tests)
+### Testing (1,925+ tests)
 - [x] Lexer: 104 tests (tokens, trivia, edge cases, preprocessor, float/negative literals, line continuation)
 - [x] Parser: 75 tests (structures, error recovery, completeness, classic MIDL, generic disambiguation, forward declarations, [default] base list)
 - [x] Analysis: 491 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, naming conventions, custom attribute types/ranges, protected accessor, feature gates, experimental refs, did-you-mean, default interface, CLR projection, circular requires, UUID format, void properties, static class, SDK attribute resolution)
@@ -226,6 +226,8 @@
 ## ❌ Not Yet Implemented
 
 ### Important
+- [ ] **Signature help for attributes** — `[composable(` should show `(IFactory, public|protected, ContractName, version)`
+- [ ] **21 negative parity gaps** — fixtures marked `parityGap:true` (mostly missing "attribute X not valid on target Y" diagnostics)
 - [ ] **`importlib` dispatch in parser** — recognized but not dispatched in classic mode
 - [ ] **NDR format string generation** (NDR20 + NDR64) — stub skeleton only
 - [ ] **C proxy/stub code generation** (_c.c, _s.c) — skeleton only
@@ -233,29 +235,20 @@
 - [ ] **ACF grammar** — placeholder only
 - [ ] **~84 more CLI switches** — accept-and-ignore for drop-in compatibility
 - [x] ~~**Velocity/Feature API staging**~~ — `[feature(Name)]` + `[experimental]` validation (MIDL1104/1105), WinMD emission, `feature_name` declarations (WINDOWS_INTERNAL only)
-- [ ] **Generic custom attribute WinMD emission** — emitter uses whitelist; non-whitelisted attributes silently dropped (in progress)
-- [ ] **Versioned blocks in decompilation** — group members by version into `[contract(N)] { }` blocks (in progress)
+- [x] ~~**Generic custom attribute WinMD emission**~~ — all attributes now emitted (types, methods, properties, events, params, struct fields, enum members)
+- [x] ~~**Versioned blocks in decompilation**~~ — `EmitVersionedMembers` groups by contract version
+- [x] ~~**Attribute WinMD emission gaps**~~ — composable, method_name, return_name, noexcept, remote_async, bindable all emitted
+- [x] ~~**Decompiler round-trip**~~ — experimental, default_overload, allowforweb, contentproperty all shown
+- [x] ~~**Multiple [static] interfaces**~~ — `StaticsInterfaces` list, multiple `StaticAttribute`s emitted
+- [x] ~~**Code folding**~~ — `textDocument/foldingRange` for namespace/class/interface/struct/enum blocks
 
-### Attribute WinMD Emission Gaps
-
-Audit of attributes that are parsed/validated but not fully emitted to WinMD or round-tripped through decompilation:
-
-| Attribute | Parse | Bind | Validate | WinMD Emit | Decompile | Gap |
-|-----------|-------|------|----------|------------|-----------|-----|
-| `composable` | ✅ | ✅ | ✅ | ❌ | ✅ (read) | **Not emitted** — classes won't be derivable |
-| `method_name` | ✅ | ✅ | ✅ | ❌ | ❌ | **Not emitted** — projected method names wrong |
-| `return_name` | ✅ | ✅ | ✅ | ❌ | ❌ | **Not emitted** — projected return param names wrong |
-| `noexcept` | ✅ | ✅ | ✅ | ❌ | ❌ | **Not emitted** — perf attribute lost |
-| `remote_async` | ✅ | ✅ | ✅ | ❌ | ❌ | **Not emitted** — projection hint lost |
-| `experimental` | ✅ | ✅ | ✅ | ✅ | ❌ | Decompiler doesn't show it |
-| `default_overload` | ✅ | ✅ | ✅ | ✅ | ❌ | Decompiler doesn't show it |
-| `allowforweb` | ✅ | ✅ | ✅ | ✅ | ❌ | Decompiler doesn't show it |
-| `contentproperty` | ✅ | ✅ | ✅ | ✅ | ❌ | Decompiler doesn't show it |
-| `bindable` | ✅ | ✅ | ✅ | ⚠️ | ❌ | No dedicated emit or decompile |
-| `exclusiveto` (explicit) | ✅ | ⚠️ | ✅ | ⚠️ | ✅ | Only works for synthesized, not explicit `[exclusiveto]` |
-| Multiple `[static]` | ✅ | ⚠️ | ✅ | ⚠️ | — | May only track one statics interface per class |
-
-**Priority**: `composable` > `method_name`/`return_name` > `noexcept` > `remote_async` > decompile gaps
+### Future Features
+- [ ] **Array params (`T[]`)** — design doc in `docs/arrays-and-generics-design.md`
+- [ ] **Custom generics (`IRepository<T>`)** — design doc ready, multi-phase effort
+- [ ] **Async completion callback marshaling** — `IAsyncOperation<T>` put_Completed cross-process
+- [ ] **`[noexcept]` proxy optimization** — skip HRESULT propagation in proxy
+- [ ] **Cross-file rename / find-references** — currently single-file only
+- [ ] **Binary size benchmarking** — signature folding impact measurement
 
 ### Nice to Have
 - [x] ~~**WinMD inspection**~~ — F12 into `.winmd` types (decompiled read-only view via `midl-winmd:` URI scheme)
@@ -265,9 +258,9 @@ Audit of attributes that are parsed/validated but not fully emitted to WinMD or 
 - [ ] **Drop-in replacement** test in razzle build (T4 testing)
 - [x] ~~**Rename symbol**~~ — F2 rename with prepareRename validation (within-file scope)
 - [x] ~~**Incremental parsing**~~ — deferred; full reparse is <10ms, debounce handles perf
-- [ ] **Code folding** — `textDocument/foldingRange` for namespace/class/interface blocks
-- [ ] **Negative parity gaps** — 21 negative fixtures still marked `parityGap:true`
-- [ ] **Publish VSIX** to VS Code marketplace
+- [x] ~~**Code folding**~~ — `textDocument/foldingRange` for namespace/class/interface blocks
+- [ ] **VS Code ↔ VS parity** — VS extension has fewer features (no signature help, no code lens)
+- [x] ~~**Publish VSIX**~~ — manual via `scripts/package-vsix.ps1` + marketplace upload
 
 ---
 
