@@ -5,6 +5,7 @@ tsconfig.json
 **/*.map
 .gitignore
 node_modules/**
+**/*.pdb
 
 # Exclude SVGs (PNGs are used in README for Marketplace compatibility)
 images/*.svg

@@ -76,6 +76,7 @@ Write-Host "Bundling server binaries..." -ForegroundColor Cyan
 $serverDir = Join-Path $vsExtDir "server" "win-x64"
 New-Item -ItemType Directory -Force -Path $serverDir | Out-Null
 Copy-Item $serverExe -Destination $serverDir -Force
+Remove-Item (Join-Path $serverDir "*.pdb") -Force -ErrorAction SilentlyContinue
 Write-Host "  x64: $sizeMB MB"
 
 # ARM64
@@ -85,6 +86,7 @@ if (Test-Path $arm64Exe) {
     $arm64Dir = Join-Path $vsExtDir "server" "win-arm64"
     New-Item -ItemType Directory -Force -Path $arm64Dir | Out-Null
     Copy-Item $arm64Exe -Destination $arm64Dir -Force
+    Remove-Item (Join-Path $arm64Dir "*.pdb") -Force -ErrorAction SilentlyContinue
     Write-Host "  ARM64: $arm64Size MB"
 } else {
     Write-Host "  ARM64 binary not found — x64 only" -ForegroundColor Yellow

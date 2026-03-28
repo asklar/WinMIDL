@@ -66,6 +66,7 @@ Write-Host "Bundling server binaries into extension..." -ForegroundColor Cyan
 $x64Dir = Join-Path $extensionDir "server" "win-x64"
 New-Item -ItemType Directory -Force -Path $x64Dir | Out-Null
 Copy-Item $serverExe -Destination $x64Dir -Force
+Remove-Item (Join-Path $x64Dir "*.pdb") -Force -ErrorAction SilentlyContinue
 Write-Host "  Copied x64 to $x64Dir"
 
 # Bundle ARM64
@@ -75,6 +76,7 @@ if (Test-Path $arm64Exe) {
     $arm64Dir = Join-Path $extensionDir "server" "win-arm64"
     New-Item -ItemType Directory -Force -Path $arm64Dir | Out-Null
     Copy-Item $arm64Exe -Destination $arm64Dir -Force
+    Remove-Item (Join-Path $arm64Dir "*.pdb") -Force -ErrorAction SilentlyContinue
     Write-Host "  Copied ARM64 to $arm64Dir ($arm64SizeMB MB)"
 } else {
     Write-Host "  ARM64 binary not found — skipping" -ForegroundColor Yellow
