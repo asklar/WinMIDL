@@ -9,7 +9,7 @@ namespace Midl.Lsp.Handlers;
 /// Handles textDocument/signatureHelp requests — provides parameter hints
 /// when typing inside parentheses of a method call or constructor.
 /// </summary>
-public static class SignatureHelpHandler
+public static partial class SignatureHelpHandler
 {
     public static object? Handle(JsonElement? @params, DocumentManager docManager)
     {
@@ -63,6 +63,10 @@ public static class SignatureHelpHandler
         }
 
         if (openParenPos < 0) return null;
+
+        // Check if we're inside an attribute bracket — e.g. [composable(...)]
+        var attrResult = TryBuildAttributeSignature(sourceText, openParenPos, commaCount);
+        if (attrResult is not null) return attrResult;
 
         // Find the identifier token just before the '('
         var lexer = new Lexer.Lexer(sourceText);

@@ -2284,4 +2284,115 @@ public class LspHandlerTests
     }
 
     #endregion
+
+    #region Signature Help — Attribute Arguments
+
+    [Fact]
+    public void SignatureHelp_AttributeComposable_ShowsParams()
+    {
+        // Cursor right after '(' in [composable(
+        var source = "[composable(]";
+        //                       ^ col 12
+        var result = SignatureHelpHandler.HandleCore(source, 0, 12) as Dictionary<string, object?>;
+        Assert.NotNull(result);
+        var sigs = result!["signatures"] as object[];
+        Assert.NotNull(sigs);
+        Assert.Single(sigs!);
+        var sig = sigs[0] as Dictionary<string, object?>;
+        Assert.Contains("composable", (string)sig!["label"]!);
+        var parms = sig["parameters"] as object[];
+        Assert.Equal(4, parms!.Length);
+        Assert.Equal(0, result["activeParameter"]);
+    }
+
+    [Fact]
+    public void SignatureHelp_AttributeDeprecated_ShowsParams()
+    {
+        var source = "[deprecated(]";
+        var result = SignatureHelpHandler.HandleCore(source, 0, 12) as Dictionary<string, object?>;
+        Assert.NotNull(result);
+        var sigs = result!["signatures"] as object[];
+        Assert.NotNull(sigs);
+        var sig = sigs![0] as Dictionary<string, object?>;
+        var parms = sig!["parameters"] as object[];
+        Assert.Equal(4, parms!.Length);
+    }
+
+    [Fact]
+    public void SignatureHelp_AttributeUuid_ShowsParams()
+    {
+        var source = "[uuid(]";
+        var result = SignatureHelpHandler.HandleCore(source, 0, 6) as Dictionary<string, object?>;
+        Assert.NotNull(result);
+        var sigs = result!["signatures"] as object[];
+        Assert.NotNull(sigs);
+        var sig = sigs![0] as Dictionary<string, object?>;
+        var parms = sig!["parameters"] as object[];
+        Assert.Single(parms!);
+    }
+
+    [Fact]
+    public void SignatureHelp_UserDefinedAttribute_ShowsFields()
+    {
+        var source = """
+            namespace TestApp
+            {
+                [attributeusage(target_runtimeclass)]
+                attribute MyTag
+                {
+                    String Level;
+                    Int32 Priority;
+                }
+
+                [MyTag()]
+                runtimeclass Widget {}
+            }
+            """;
+        // cursor right after '(' in [MyTag()]
+        int line = -1, col = -1;
+        var lines = source.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("[MyTag(");
+            if (idx >= 0)
+            {
+                line = i;
+                col = idx + "[MyTag(".Length;
+                break;
+            }
+        }
+        Assert.True(line >= 0);
+
+        var result = SignatureHelpHandler.HandleCore(source, line, col) as Dictionary<string, object?>;
+        Assert.NotNull(result);
+        var sigs = result!["signatures"] as object[];
+        Assert.NotNull(sigs);
+        var sig = sigs![0] as Dictionary<string, object?>;
+        Assert.Contains("MyTag", (string)sig!["label"]!);
+        var parms = sig["parameters"] as object[];
+        Assert.Equal(2, parms!.Length);
+    }
+
+    [Fact]
+    public void SignatureHelp_NotInAttribute_NoAttributeSignature()
+    {
+        // 'composable(' NOT inside brackets — should not produce attribute sig
+        var source = "composable(";
+        var result = SignatureHelpHandler.HandleCore(source, 0, 11);
+        // Should be null because there's no '[' bracket context and no callable symbol
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void SignatureHelp_ActiveParameter_AfterComma()
+    {
+        // Cursor after first comma: [composable(IFoo, |
+        var source = "[composable(IFoo, ]";
+        //                               ^ col 18
+        var result = SignatureHelpHandler.HandleCore(source, 0, 18) as Dictionary<string, object?>;
+        Assert.NotNull(result);
+        Assert.Equal(1, result!["activeParameter"]);
+    }
+
+    #endregion
 }
