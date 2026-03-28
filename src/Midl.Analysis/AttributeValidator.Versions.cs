@@ -112,12 +112,33 @@ public partial class AttributeValidator
                 break;
 
             case ArgKind.Float:
-                // x.y version literals (e.g., 1.0, 2.5) are valid — the binder encodes them as (major << 16) | minor.
-                // Only reject negative float values.
+                // x.y version literals: major and minor must each fit in UInt16 (0–65535).
+                // The binder encodes as (major << 16) | minor.
                 if (arg.FloatValue < 0)
                 {
                     _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
                         attrName, arg.StringValue ?? arg.FloatValue.ToString(), attr.Position));
+                }
+                else
+                {
+                    var raw = arg.StringValue ?? arg.FloatValue.ToString();
+                    var parts = raw.Split('.');
+                    if (parts.Length == 2 &&
+                        int.TryParse(parts[0], out int major) &&
+                        int.TryParse(parts[1], out int minor))
+                    {
+                        if (major < 0 || major > 65535 || minor < 0 || minor > 65535)
+                        {
+                            _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
+                                attrName, raw, attr.Position));
+                        }
+                    }
+                    else if (parts.Length > 2)
+                    {
+                        // Too many parts (e.g. 1.2.3)
+                        _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
+                            attrName, raw, attr.Position));
+                    }
                 }
                 break;
 

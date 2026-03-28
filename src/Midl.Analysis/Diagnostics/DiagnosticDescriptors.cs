@@ -665,6 +665,6 @@ public static class DiagnosticDescriptors
     // Invalid version value (MIDL1107)
     public static Diagnostic InvalidVersionValue(string attrName, string value, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1107",
-            $"[{attrName}] version argument '{value}' is invalid. Expected a non-negative integer.",
+            $"[{attrName}] version argument '{value}' is invalid. Expected a version number (major.minor, each 0–65535).",
             position, Math.Max(attrName.Length, 1));
 }
