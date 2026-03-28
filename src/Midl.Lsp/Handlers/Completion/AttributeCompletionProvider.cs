@@ -313,5 +313,6 @@ internal static class AttributeCompletionProvider
         ("return_name", "Overrides the return value parameter name",
             "return_name(\"${1:name}\")"),
         ("remote_async", "Marks method for remote async projection", null),
+        ("noexcept", "Marks method as non-throwing (no HRESULT check)", null),
     ];
 }

@@ -345,6 +345,130 @@ public class AttributeValidationTests
     }
 
     [Fact]
+    public void NoexceptOnRuntimeclass_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [noexcept, default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("noexcept", diag.Message);
+        Assert.Contains("target_method", diag.Message);
+    }
+
+    [Fact]
+    public void ComposableOnInterface_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [composable(IFoo, public, 1)]
+                interface IFoo
+                {
+                    void Bar();
+                }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("composable", diag.Message);
+        Assert.Contains("target_runtimeclass", diag.Message);
+    }
+
+    [Fact]
+    public void MethodNameOnRuntimeclass_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [method_name("Foo"), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("method_name", diag.Message);
+        Assert.Contains("target_method", diag.Message);
+    }
+
+    [Fact]
+    public void DeprecatedOnMethod_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract MyContract { }
+
+                [default_interface]
+                runtimeclass C
+                {
+                    [deprecated("old", deprecate, MyContract, 1)]
+                    void DoThing();
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1029");
+    }
+
+    [Fact]
+    public void DeprecatedOnEnum_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract MyContract { }
+
+                [deprecated("old enum", deprecate, MyContract, 1)]
+                enum E
+                {
+                    A = 0
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1029");
+    }
+
+    [Fact]
+    public void ExperimentalOnStruct_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [experimental]
+                struct S
+                {
+                    Int32 X;
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1029");
+    }
+
+    [Fact]
+    public void UnknownAttributeFoobar_ProducesMIDL1065()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [foobar, default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1065");
+        Assert.Contains("foobar", diag.Message);
+    }
+
+    [Fact]
     public void ComposableAndActivatable_ProducesMIDL1025()
     {
         var compilation = CompilationHelper.Compile("""

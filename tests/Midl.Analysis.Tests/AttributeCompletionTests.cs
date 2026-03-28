@@ -208,6 +208,158 @@ public class AttributeCompletionTests
         Assert.DoesNotContain("FancyAttribute", labels);
     }
 
+    // ─── Contextual filtering tests ──────────────────────────────────
+
+    [Fact]
+    public void NoexceptAppearsInMethodContext()
+    {
+        var items = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { void DoStuff(); } }", "target_method");
+
+        var labels = items.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("noexcept", labels);
+    }
+
+    [Fact]
+    public void NoexceptNotInRuntimeclassOrInterfaceOrEnumContext()
+    {
+        var rcItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { } }", "target_runtimeclass");
+        var rcLabels = rcItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("noexcept", rcLabels);
+
+        var ifItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { interface IBar { } }", "target_interface");
+        var ifLabels = ifItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("noexcept", ifLabels);
+
+        var enItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { enum Bar { } }", "target_enum");
+        var enLabels = enItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("noexcept", enLabels);
+    }
+
+    [Fact]
+    public void RemoteAsyncAppearsInMethodContextOnly()
+    {
+        var methodItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { void DoStuff(); } }", "target_method");
+        var methodLabels = methodItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("remote_async", methodLabels);
+
+        var rcItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { } }", "target_runtimeclass");
+        var rcLabels = rcItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("remote_async", rcLabels);
+
+        var ifItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { interface IBar { } }", "target_interface");
+        var ifLabels = ifItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("remote_async", ifLabels);
+    }
+
+    [Fact]
+    public void ComposableAppearsInRuntimeclassContextOnly()
+    {
+        var rcItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { } }", "target_runtimeclass");
+        var rcLabels = rcItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("composable", rcLabels);
+
+        var ifItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { interface IBar { } }", "target_interface");
+        var ifLabels = ifItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("composable", ifLabels);
+
+        var methodItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { void DoStuff(); } }", "target_method");
+        var methodLabels = methodItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("composable", methodLabels);
+    }
+
+    [Fact]
+    public void DeprecatedAppearsInAllContexts()
+    {
+        foreach (var target in new[] { "target_runtimeclass", "target_interface", "target_enum",
+                                       "target_struct", "target_method", "target_delegate" })
+        {
+            var items = AttributeCompletionProvider.BuildAttributeCompletions(
+                "namespace Foo { runtimeclass Bar { } }", target);
+            var labels = items.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+            Assert.Contains("deprecated", labels);
+        }
+    }
+
+    [Fact]
+    public void FlagsAppearsInEnumContextOnly()
+    {
+        var enItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { enum Bar { } }", "target_enum");
+        var enLabels = enItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("flags", enLabels);
+
+        var rcItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { } }", "target_runtimeclass");
+        var rcLabels = rcItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("flags", rcLabels);
+
+        var methodItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { void DoStuff(); } }", "target_method");
+        var methodLabels = methodItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("flags", methodLabels);
+    }
+
+    [Fact]
+    public void MethodNameAppearsInMethodContextOnly()
+    {
+        var methodItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { void DoStuff(); } }", "target_method");
+        var methodLabels = methodItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("method_name", methodLabels);
+
+        var rcItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { } }", "target_runtimeclass");
+        var rcLabels = rcItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("method_name", rcLabels);
+    }
+
+    [Fact]
+    public void ContentpropertyAppearsInRuntimeclassContextOnly()
+    {
+        var rcItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { } }", "target_runtimeclass");
+        var rcLabels = rcItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("contentproperty", rcLabels);
+
+        var ifItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { interface IBar { } }", "target_interface");
+        var ifLabels = ifItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("contentproperty", ifLabels);
+
+        var methodItems = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { void DoStuff(); } }", "target_method");
+        var methodLabels = methodItems.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.DoesNotContain("contentproperty", methodLabels);
+    }
+
+    [Fact]
+    public void BuiltInSdkAttributeNoexceptAppearsInCompletions()
+    {
+        // noexcept is a built-in SDK attribute that should appear in method completions
+        var items = AttributeCompletionProvider.BuildAttributeCompletions(
+            "namespace Foo { runtimeclass Bar { void DoStuff(); } }", "target_method");
+
+        var labels = items.Cast<Dictionary<string, object?>>().Select(d => (string)d["label"]!).ToList();
+        Assert.Contains("noexcept", labels);
+
+        // Verify it has the right detail text
+        var noexceptItem = items.Cast<Dictionary<string, object?>>()
+            .First(d => (string)d["label"]! == "noexcept");
+        Assert.Contains("non-throwing", (string)noexceptItem["detail"]!);
+    }
+
+    // ─── Attribute inference tests ────────────────────────────────────
+
     [Fact]
     public void AttributeUsageTargets_ParsedFromSource()
     {
