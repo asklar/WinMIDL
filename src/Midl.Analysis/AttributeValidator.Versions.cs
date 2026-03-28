@@ -95,6 +95,8 @@ public partial class AttributeValidator
             return;
 
         var arg = attr.Arguments[argIndex];
+        var pos = arg.Position > 0 ? arg.Position : attr.Position;
+        var len = arg.Length > 0 ? arg.Length : Math.Max(attrName.Length, 1);
 
         switch (arg.Kind)
         {
@@ -102,22 +104,20 @@ public partial class AttributeValidator
                 if (arg.IntValue < 0)
                 {
                     _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
-                        attrName, arg.IntValue.ToString(), attr.Position));
+                        attrName, arg.IntValue.ToString(), pos, len));
                 }
                 else if (arg.IntValue > uint.MaxValue)
                 {
                     _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
-                        attrName, arg.IntValue.ToString(), attr.Position));
+                        attrName, arg.IntValue.ToString(), pos, len));
                 }
                 break;
 
             case ArgKind.Float:
-                // x.y version literals: major and minor must each fit in UInt16 (0–65535).
-                // The binder encodes as (major << 16) | minor.
                 if (arg.FloatValue < 0)
                 {
                     _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
-                        attrName, arg.StringValue ?? arg.FloatValue.ToString(), attr.Position));
+                        attrName, arg.StringValue ?? arg.FloatValue.ToString(), pos, len));
                 }
                 else
                 {
@@ -130,28 +130,25 @@ public partial class AttributeValidator
                         if (major < 0 || major > 65535 || minor < 0 || minor > 65535)
                         {
                             _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
-                                attrName, raw, attr.Position));
+                                attrName, raw, pos, len));
                         }
                     }
                     else if (parts.Length > 2)
                     {
-                        // Too many parts (e.g. 1.2.3)
                         _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
-                            attrName, raw, attr.Position));
+                            attrName, raw, pos, len));
                     }
                 }
                 break;
 
             case ArgKind.String:
-                // String values are never valid for version arguments
                 _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
-                    attrName, $"\"{arg.StringValue}\"", attr.Position));
+                    attrName, $"\"{arg.StringValue}\"", pos, len));
                 break;
 
             case ArgKind.Identifier:
-                // Identifiers are not valid version arguments (e.g. [contract(Foo, version)])
                 _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
-                    attrName, arg.StringValue ?? "identifier", attr.Position));
+                    attrName, arg.StringValue ?? "identifier", pos, len));
                 break;
         }
     }

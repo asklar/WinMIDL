@@ -663,8 +663,8 @@ public static class DiagnosticDescriptors
             position, Math.Max(className.Length, 1));
 
     // Invalid version value (MIDL1107)
-    public static Diagnostic InvalidVersionValue(string attrName, string value, int position) =>
+    public static Diagnostic InvalidVersionValue(string attrName, string value, int position, int length = 0) =>
         new(DiagnosticSeverity.Error, "MIDL1107",
             $"[{attrName}] version argument '{value}' is invalid. Expected a version number (major.minor, each 0–65535).",
-            position, Math.Max(attrName.Length, 1));
+            position, length > 0 ? length : Math.Max(attrName.Length, 1));
 }
