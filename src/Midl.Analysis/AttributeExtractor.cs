@@ -291,7 +291,8 @@ public static class AttributeExtractor
     private static bool IsKeywordIdentifier(SyntaxKind kind) =>
         kind is SyntaxKind.ContractKeyword or SyntaxKind.RequiresKeyword
             or SyntaxKind.FlagsKeyword or SyntaxKind.EventKeyword
-            or SyntaxKind.GetKeyword or SyntaxKind.SetKeyword;
+            or SyntaxKind.GetKeyword or SyntaxKind.SetKeyword
+            or SyntaxKind.ProtectedKeyword;
 
     private static string CollectText(GreenNode node)
     {

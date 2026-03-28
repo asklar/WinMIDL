@@ -851,6 +851,17 @@ internal class TypeDefEmitter
                 -1,
                 _emitter.NextParamHandle);
             _emitter.IncrementMethodRow();
+
+            // NoExceptionAttribute on property getter
+            if (prop.Attributes.Any(a => a.Name.Equals("noexcept", StringComparison.OrdinalIgnoreCase)))
+                _attrs.AddNoExceptionAttribute(getter);
+
+            // DeprecatedAttribute on property getter
+            var deprecatedPropAttr = prop.Attributes.FirstOrDefault(a => a.Name.Equals("deprecated", StringComparison.OrdinalIgnoreCase));
+            if (deprecatedPropAttr != null)
+                _attrs.AddDeprecatedAttribute(getter, deprecatedPropAttr.GetString(0) ?? "", 0, (uint)(prop.ContractVersion ?? 0x00010000));
+
+            EmitRemainingAttributes(getter, prop.Attributes);
         }
         if (prop.HasSetter)
         {
@@ -899,6 +910,7 @@ internal class TypeDefEmitter
 
         M.AddParameter(ParameterAttributes.In, M.GetOrAddString("handler"), 1);
         _emitter.IncrementParamRow();
+        EmitRemainingAttributes(adder, evt.Attributes);
 
         // remove_ method
         var removeSig = EncodeEventAccessorSig(evt, isAdd: false);
@@ -1052,6 +1064,11 @@ internal class TypeDefEmitter
         if (method.IsRemoteAsync)
             _attrs.AddRemoteAsyncAttribute(methodDef);
 
+        // DeprecatedAttribute on method
+        var deprecatedAttr = method.Attributes.FirstOrDefault(a => a.Name.Equals("deprecated", StringComparison.OrdinalIgnoreCase));
+        if (deprecatedAttr != null)
+            _attrs.AddDeprecatedAttribute(methodDef, deprecatedAttr.GetString(0) ?? "", 0, (uint)(method.ContractVersion ?? 0x00010000));
+
         // Emit remaining non-handled method-level attributes via the generic path
         EmitRemainingAttributes(methodDef, method.Attributes);
 
@@ -1072,6 +1089,17 @@ internal class TypeDefEmitter
             -1,
             paramList);
         _emitter.IncrementMethodRow();
+
+        // NoExceptionAttribute on property getter
+        if (prop.Attributes.Any(a => a.Name.Equals("noexcept", StringComparison.OrdinalIgnoreCase)))
+            _attrs.AddNoExceptionAttribute(handle);
+
+        // DeprecatedAttribute on property getter
+        var deprecatedAttr = prop.Attributes.FirstOrDefault(a => a.Name.Equals("deprecated", StringComparison.OrdinalIgnoreCase));
+        if (deprecatedAttr != null)
+            _attrs.AddDeprecatedAttribute(handle, deprecatedAttr.GetString(0) ?? "", 0, (uint)(prop.ContractVersion ?? 0x00010000));
+
+        EmitRemainingAttributes(handle, prop.Attributes);
         return handle;
     }
 
@@ -1112,6 +1140,7 @@ internal class TypeDefEmitter
 
         M.AddParameter(ParameterAttributes.In, M.GetOrAddString("handler"), 1);
         _emitter.IncrementParamRow();
+        EmitRemainingAttributes(addHandle, evt.Attributes);
 
         // remove_ method
         var removeSig = EncodeEventAccessorSig(evt, isAdd: false);

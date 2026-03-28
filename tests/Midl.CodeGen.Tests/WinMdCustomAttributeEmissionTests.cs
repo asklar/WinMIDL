@@ -414,10 +414,7 @@ public class WinMdCustomAttributeEmissionTests
                 blobReader.ReadUInt16(); // prolog
                 blobReader.ReadSerializedString(); // factory type name
                 var access = blobReader.ReadInt32();
-                // BUG: 'protected' keyword is not in IsKeywordIdentifier in
-                // AttributeExtractor, so GetIdentifier(1) returns null and
-                // access defaults to 2 (public) instead of 1 (protected).
-                Assert.Equal(2, access);
+                Assert.Equal(1, access);
                 return;
             }
             Assert.Fail("ComposableAttribute not found on Foo");
@@ -626,12 +623,34 @@ public class WinMdCustomAttributeEmissionTests
             Assert.True(HasCustomAttribute(reader, methodHandle,
                 "Windows.Foundation.Metadata.NoExceptionAttribute"),
                 "NoExceptionAttribute should be emitted");
-            // BUG: [deprecated] is in HandledAttributeNames so the generic path
-            // skips it, but AddDeprecatedAttribute is never explicitly called for
-            // methods — only for types. So deprecated is silently dropped on methods.
-            Assert.False(HasCustomAttribute(reader, methodHandle,
+            Assert.True(HasCustomAttribute(reader, methodHandle,
                 "Windows.Foundation.Metadata.DeprecatedAttribute"),
-                "DeprecatedAttribute is currently NOT emitted on methods (known bug)");
+                "DeprecatedAttribute should be emitted on methods");
+        }
+    }
+
+    [Fact]
+    public void Emit_DeprecatedAttribute_OnPropertyGetter()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [deprecated("Use NewName", deprecate, 1)]
+                    String Name { get; };
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var getterHandle = FindMethod(reader, ifaceHandle, "get_Name");
+            Assert.True(HasCustomAttribute(reader, getterHandle,
+                "Windows.Foundation.Metadata.DeprecatedAttribute"),
+                "DeprecatedAttribute should be emitted on property getter");
         }
     }
 
