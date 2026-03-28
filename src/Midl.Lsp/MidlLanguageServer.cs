@@ -268,6 +268,10 @@ public sealed partial class MidlLanguageServer
                 }
                 break;
 
+            case "textDocument/foldingRange":
+                await _writer.SendResponseAsync(id, FoldingRangeHandler.Handle(@params, _docManager));
+                break;
+
             default:
                 if (hasId)
                 {
@@ -592,6 +596,7 @@ public sealed partial class MidlLanguageServer
                 {
                     ["resolveProvider"] = false
                 },
+                ["foldingRangeProvider"] = true,
                 ["workspace"] = new Dictionary<string, object?>
                 {
                     ["workspaceFolders"] = new Dictionary<string, object?>

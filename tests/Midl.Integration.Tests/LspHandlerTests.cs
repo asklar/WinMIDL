@@ -2206,4 +2206,82 @@ public class LspHandlerTests
     }
 
     #endregion
+
+    #region Folding Range Tests
+
+    [Fact]
+    public void FoldingRange_Namespace_ReturnsFoldingRange()
+    {
+        var source = "namespace Foo {\n  runtimeclass Bar {\n  }\n}";
+        var ranges = FoldingRangeHandler.Handle(source);
+        Assert.Equal(2, ranges.Count);
+        // Inner runtimeclass: line 1 to line 2 (stack pops inner first)
+        Assert.Equal(1, ranges[0]["startLine"]);
+        Assert.Equal(2, ranges[0]["endLine"]);
+        // Outer namespace: line 0 to line 3
+        Assert.Equal(0, ranges[1]["startLine"]);
+        Assert.Equal(3, ranges[1]["endLine"]);
+        Assert.Equal("region", ranges[1]["kind"]);
+    }
+
+    [Fact]
+    public void FoldingRange_Interface_ReturnsFoldingRange()
+    {
+        var source = "namespace N {\n  interface IFoo {\n    HRESULT DoThing();\n  }\n}";
+        var ranges = FoldingRangeHandler.Handle(source);
+        Assert.Equal(2, ranges.Count);
+    }
+
+    [Fact]
+    public void FoldingRange_Enum_ReturnsFoldingRange()
+    {
+        var source = "namespace N {\n  enum Color {\n    Red,\n    Green,\n    Blue\n  };\n}";
+        var ranges = FoldingRangeHandler.Handle(source);
+        Assert.Equal(2, ranges.Count);
+    }
+
+    [Fact]
+    public void FoldingRange_Struct_ReturnsFoldingRange()
+    {
+        var source = "namespace N {\n  struct Point {\n    Int32 X;\n    Int32 Y;\n  };\n}";
+        var ranges = FoldingRangeHandler.Handle(source);
+        Assert.Equal(2, ranges.Count);
+    }
+
+    [Fact]
+    public void FoldingRange_SingleLine_NoFold()
+    {
+        var source = "namespace Foo { }";
+        var ranges = FoldingRangeHandler.Handle(source);
+        Assert.Empty(ranges);
+    }
+
+    [Fact]
+    public void FoldingRange_EmptySource_NoFold()
+    {
+        var ranges = FoldingRangeHandler.Handle("");
+        Assert.Empty(ranges);
+    }
+
+    [Fact]
+    public void FoldingRange_MultiLineAttribute_ReturnsFold()
+    {
+        var source = "[contract(\n  ContractV1,\n  1\n)]\nruntimeclass Foo {\n}";
+        var ranges = FoldingRangeHandler.Handle(source);
+        // attribute [...] spans lines 0-3, runtimeclass {} spans lines 4-5
+        Assert.Equal(2, ranges.Count);
+    }
+
+    [Fact]
+    public void FoldingRange_ViaDocManager()
+    {
+        var uri = "file:///test.midl";
+        var dm = CreateDocManager(uri, "namespace Foo {\n  runtimeclass Bar {\n  }\n}");
+        var result = FoldingRangeHandler.Handle(MakeTextDocParams(uri), dm);
+        var list = result as List<Dictionary<string, object?>>;
+        Assert.NotNull(list);
+        Assert.Equal(2, list!.Count);
+    }
+
+    #endregion
 }
