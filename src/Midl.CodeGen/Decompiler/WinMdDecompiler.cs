@@ -261,6 +261,8 @@ public class WinMdDecompiler
             var methodName = reader.GetString(method.Name);
             if (accessorNames.Contains(methodName)) continue;
 
+            if (HasMethodAttribute(reader, method, "DefaultOverloadAttribute"))
+                sb.AppendLine($"{indent}    [default_overload]");
             var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var returnType = MapToMidlType(sig.ReturnType);
             var parameters = FormatParameters(reader, method, sig);
@@ -486,6 +488,9 @@ public class WinMdDecompiler
         // Collect all members with their version and formatted text
         var members = new List<(uint? Version, string Text)>();
 
+        // Build set of method names with DefaultOverloadAttribute from interfaces
+        var defaultOverloadMethods = GetDefaultOverloadMethodNames(reader, td);
+
         // Methods (skip constructors, accessors, static stubs, and overridable/protected)
         foreach (var methodHandle in td.GetMethods())
         {
@@ -499,7 +504,10 @@ public class WinMdDecompiler
             var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var returnType = MapToMidlType(sig.ReturnType);
             var parameters = FormatParameters(reader, method, sig);
-            members.Add((methodVersions.GetValueOrDefault(methodName), $"{returnType} {methodName}({parameters});"));
+            var methodText = $"{returnType} {methodName}({parameters});";
+            if (defaultOverloadMethods.Contains(methodName))
+                methodText = $"[default_overload]\n{indent}    {methodText}";
+            members.Add((methodVersions.GetValueOrDefault(methodName), methodText));
         }
 
         // Properties (idiomatic MIDL3 syntax)
@@ -690,6 +698,36 @@ public class WinMdDecompiler
             }
         }
 
+        return result;
+    }
+
+    /// <summary>
+    /// Collects method names that have DefaultOverloadAttribute from implemented interfaces.
+    /// </summary>
+    private static HashSet<string> GetDefaultOverloadMethodNames(MetadataReader reader, TypeDefinition td)
+    {
+        var result = new HashSet<string>();
+        foreach (var ifaceImplHandle in td.GetInterfaceImplementations())
+        {
+            var impl = reader.GetInterfaceImplementation(ifaceImplHandle);
+            TypeDefinitionHandle? ifaceTdHandle = null;
+            if (impl.Interface.Kind == HandleKind.TypeDefinition)
+                ifaceTdHandle = (TypeDefinitionHandle)impl.Interface;
+            else if (impl.Interface.Kind == HandleKind.TypeReference)
+            {
+                var tr = reader.GetTypeReference((TypeReferenceHandle)impl.Interface);
+                var ifaceFullName = $"{reader.GetString(tr.Namespace)}.{reader.GetString(tr.Name)}";
+                ifaceTdHandle = FindTypeDefByFullName(reader, ifaceFullName);
+            }
+            if (ifaceTdHandle == null) continue;
+            var ifaceTd = reader.GetTypeDefinition(ifaceTdHandle.Value);
+            foreach (var methodHandle in ifaceTd.GetMethods())
+            {
+                var method = reader.GetMethodDefinition(methodHandle);
+                if (HasMethodAttribute(reader, method, "DefaultOverloadAttribute"))
+                    result.Add(reader.GetString(method.Name));
+            }
+        }
         return result;
     }
 
@@ -949,6 +987,8 @@ public class WinMdDecompiler
             if (methodName == ".ctor") continue;
             if (accessorNames.Contains(methodName)) continue;
 
+            if (HasMethodAttribute(reader, method, "DefaultOverloadAttribute"))
+                sb.AppendLine($"{indent}    [default_overload]");
             var sig = method.DecodeSignature(new DecompilerSignatureTypeProvider(reader), _currentGenericParamNames);
             var returnType = MapToMidlType(sig.ReturnType);
             var parameters = FormatParameters(reader, method, sig);
@@ -1017,6 +1057,15 @@ public class WinMdDecompiler
                     break;
                 case "WebHostHiddenAttribute":
                     sb.AppendLine($"{indent}[webhosthidden]");
+                    break;
+                case "ExperimentalAttribute":
+                    sb.AppendLine($"{indent}[experimental]");
+                    break;
+                case "AllowForWebAttribute":
+                    sb.AppendLine($"{indent}[allowforweb]");
+                    break;
+                case "ContentPropertyAttribute":
+                    EmitContentPropertyAttribute(reader, attr, sb, indent);
                     break;
                 case "VersionAttribute":
                     EmitVersionAttribute(reader, attr, sb, indent);
@@ -1147,6 +1196,20 @@ public class WinMdDecompiler
             var typeName = ReadSerializedString(ref blob);
             if (typeName != null)
                 sb.AppendLine($"{indent}[exclusiveto({GetShortName(typeName)})]");
+        }
+        catch { /* best-effort */ }
+    }
+
+    private static void EmitContentPropertyAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    {
+        try
+        {
+            var blob = reader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) return;
+            blob.ReadUInt16(); // prolog
+            var name = ReadSerializedString(ref blob);
+            if (name != null)
+                sb.AppendLine($"{indent}[contentproperty(\"{name}\")]");
         }
         catch { /* best-effort */ }
     }
@@ -1300,6 +1363,17 @@ public class WinMdDecompiler
                         return true;
                 }
             }
+        }
+        return false;
+    }
+
+    private static bool HasMethodAttribute(MetadataReader reader, MethodDefinition method, string attrTypeName)
+    {
+        foreach (var attrHandle in method.GetCustomAttributes())
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            var name = GetAttributeTypeName(reader, attr.Constructor);
+            if (name == attrTypeName) return true;
         }
         return false;
     }

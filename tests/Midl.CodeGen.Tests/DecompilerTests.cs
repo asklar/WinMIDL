@@ -928,4 +928,72 @@ public partial class DecompilerTests
     }
 
     #endregion
+
+    #region Attribute decompilation
+
+    [Fact]
+    public void Decompile_Experimental_Shown()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                [experimental]
+                [default_interface]
+                runtimeclass Foo { }
+            }
+        """);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("[experimental]", idl);
+    }
+
+    [Fact]
+    public void Decompile_DefaultOverload_Shown()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                runtimeclass Foo {
+                    Foo();
+                    [default_overload]
+                    void DoWork(String s);
+                }
+            }
+        """);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("[default_overload]", idl);
+    }
+
+    [Fact]
+    public void Decompile_AllowForWeb_Shown()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                [allowforweb]
+                [default_interface]
+                runtimeclass Foo { }
+            }
+        """);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("[allowforweb]", idl);
+    }
+
+    [Fact]
+    public void Decompile_ContentProperty_Shown()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                [contentproperty("Name")]
+                runtimeclass Foo {
+                    Foo();
+                    String Name;
+                }
+            }
+        """);
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("[contentproperty(\"Name\")]", idl);
+    }
+
+    #endregion
 }
