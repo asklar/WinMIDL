@@ -865,6 +865,16 @@ public class Binder
             field.Type = ExtractTypeRef(typeNode);
             TrackTypeRef(field.Type, ns);
         }
+
+        // Extract attributes on field
+        var attrList = FindChild(node, SyntaxKind.AttributeList);
+        if (attrList != null)
+        {
+            var attrs = ExtractAttributes(attrList);
+            field.Attributes.AddRange(attrs);
+            ApplyWellKnownAttributes(field, attrs);
+        }
+
         return field;
     }
 

@@ -56,6 +56,13 @@ public class WinMdCustomAttributeEmissionTests
                     if (fullName == attributeTypeName)
                         return true;
                 }
+                else if (memberRef.Parent.Kind == HandleKind.TypeDefinition)
+                {
+                    var typeDef = reader.GetTypeDefinition((TypeDefinitionHandle)memberRef.Parent);
+                    var fullName = $"{reader.GetString(typeDef.Namespace)}.{reader.GetString(typeDef.Name)}";
+                    if (fullName == attributeTypeName)
+                        return true;
+                }
             }
         }
         return false;
@@ -687,6 +694,132 @@ public class WinMdCustomAttributeEmissionTests
                     threadingCount++;
             }
             Assert.Equal(1, threadingCount);
+        }
+    }
+
+    private static FieldDefinitionHandle FindField(MetadataReader reader, TypeDefinitionHandle typeDef, string fieldName)
+    {
+        var td = reader.GetTypeDefinition(typeDef);
+        foreach (var fh in td.GetFields())
+        {
+            var fd = reader.GetFieldDefinition(fh);
+            if (reader.GetString(fd.Name) == fieldName)
+                return fh;
+        }
+        throw new Exception($"Field '{fieldName}' not found");
+    }
+
+    private static ParameterHandle FindParameter(MetadataReader reader, MethodDefinitionHandle methodDef, string paramName)
+    {
+        var md = reader.GetMethodDefinition(methodDef);
+        foreach (var ph in md.GetParameters())
+        {
+            var pd = reader.GetParameter(ph);
+            if (reader.GetString(pd.Name) == paramName)
+                return ph;
+        }
+        throw new Exception($"Parameter '{paramName}' not found");
+    }
+
+    [Fact]
+    public void Emit_DeprecatedOnEnumMember()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                enum Status {
+                    [deprecated("Use Active", deprecate, "C", 2)]
+                    Running = 0,
+                    Active = 1,
+                }
+            }
+        """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var enumHandle = FindTypeDef(reader, "Status");
+            var fieldHandle = FindField(reader, enumHandle, "Running");
+            Assert.True(HasCustomAttribute(reader, fieldHandle,
+                "Windows.Foundation.Metadata.DeprecatedAttribute"),
+                "DeprecatedAttribute should be emitted on enum member 'Running'");
+
+            // Active should NOT have the attribute
+            var activeHandle = FindField(reader, enumHandle, "Active");
+            Assert.False(HasCustomAttribute(reader, activeHandle,
+                "Windows.Foundation.Metadata.DeprecatedAttribute"),
+                "DeprecatedAttribute should NOT be on 'Active'");
+        }
+    }
+
+    [Fact]
+    public void Emit_DeprecatedOnStructField()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                struct Point {
+                    [deprecated("Use NewX", deprecate, "C", 2)]
+                    Int32 X;
+                    Int32 Y;
+                };
+            }
+        """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var structHandle = FindTypeDef(reader, "Point");
+            var fieldHandle = FindField(reader, structHandle, "X");
+            Assert.True(HasCustomAttribute(reader, fieldHandle,
+                "Windows.Foundation.Metadata.DeprecatedAttribute"),
+                "DeprecatedAttribute should be emitted on struct field 'X'");
+
+            var yHandle = FindField(reader, structHandle, "Y");
+            Assert.False(HasCustomAttribute(reader, yHandle,
+                "Windows.Foundation.Metadata.DeprecatedAttribute"),
+                "DeprecatedAttribute should NOT be on 'Y'");
+        }
+    }
+
+    [Fact]
+    public void Emit_CustomAttributeOnParameter()
+    {
+        var source = """
+            namespace N {
+                [attributeusage(target_parameter)]
+                [attributename("paramattr")]
+                attribute ParamAttrAttribute
+                {
+                }
+
+                interface IWidget
+                {
+                    void DoWork([paramattr] String value);
+                }
+            }
+        """;
+        var compilation = CompilationHelper.Compile(source);
+        var errors = compilation.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+        Assert.True(errors.Count == 0, $"Compilation errors: {string.Join(", ", errors.Select(e => e.Message))}");
+
+        // Check parameter attributes are populated in the symbol
+        var ns = compilation.GlobalNamespace.ChildNamespaces["N"];
+        var iface = ns.Members.OfType<Midl.Analysis.Symbols.InterfaceSymbol>().First();
+        var method = iface.Members.OfType<Midl.Analysis.Symbols.MethodSymbol>().First();
+        var param = method.Parameters.First(p => p.Name == "value");
+        Assert.True(param.Attributes.Count > 0,
+            $"Parameter 'value' should have attributes. Parameters: {string.Join(", ", method.Parameters.Select(p => $"{p.Name}(attrs={p.Attributes.Count})"))}");
+
+        var bytes = CompileAndEmit(source);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "DoWork");
+            var paramHandle = FindParameter(reader, methodHandle, "value");
+            Assert.True(HasCustomAttribute(reader, paramHandle,
+                "N.ParamAttrAttribute"),
+                "Custom attribute should be emitted on parameter 'value'");
         }
     }
 }

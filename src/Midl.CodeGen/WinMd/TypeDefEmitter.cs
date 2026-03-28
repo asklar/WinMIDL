@@ -199,6 +199,13 @@ internal class TypeDefEmitter
                 M.AddConstant(fieldHandle, member.ExplicitValue.HasValue ? (int)member.ExplicitValue.Value : i);
 
             _emitter.IncrementFieldRow();
+
+            // DeprecatedAttribute on enum member
+            var memberDeprecatedAttr = member.Attributes.FirstOrDefault(a => a.Name.Equals("deprecated", StringComparison.OrdinalIgnoreCase));
+            if (memberDeprecatedAttr != null)
+                _attrs.AddDeprecatedAttribute(fieldHandle, memberDeprecatedAttr.GetString(0) ?? "", 0, (uint)(member.ContractVersion ?? 0x00010000));
+
+            EmitRemainingAttributes(fieldHandle, member.Attributes);
         }
 
         // VersionAttribute before FlagsAttribute (matches original midl ordering)
@@ -243,11 +250,18 @@ internal class TypeDefEmitter
         {
             var sig = new BlobBuilder();
             new BlobEncoder(sig).FieldSignature().FromTypeRef(field.Type, _emitter);
-            M.AddFieldDefinition(
+            var fieldHandle = M.AddFieldDefinition(
                 FieldAttributes.Public,
                 M.GetOrAddString(field.Name),
                 M.GetOrAddBlob(sig));
             _emitter.IncrementFieldRow();
+
+            // DeprecatedAttribute on struct field
+            var fieldDeprecatedAttr = field.Attributes.FirstOrDefault(a => a.Name.Equals("deprecated", StringComparison.OrdinalIgnoreCase));
+            if (fieldDeprecatedAttr != null)
+                _attrs.AddDeprecatedAttribute(fieldHandle, fieldDeprecatedAttr.GetString(0) ?? "", 0, fieldDeprecatedAttr.GetVersion(3) ?? 0x00010000);
+
+            EmitRemainingAttributes(fieldHandle, field.Attributes);
         }
 
         // ExperimentalAttribute
@@ -471,10 +485,11 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < symbol.Parameters.Count; i++)
         {
-            M.AddParameter(GetParamAttributes(symbol.Parameters[i]),
+            var paramHandle = M.AddParameter(GetParamAttributes(symbol.Parameters[i]),
                 M.GetOrAddString(symbol.Parameters[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
+            EmitRemainingAttributes(paramHandle, symbol.Parameters[i].Attributes);
         }
     }
 
@@ -769,10 +784,11 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < winmdParamCount; i++)
         {
-            M.AddParameter(GetParamAttributes(ctorParams[i]),
+            var paramHandle = M.AddParameter(GetParamAttributes(ctorParams[i]),
                 M.GetOrAddString(ctorParams[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
+            EmitRemainingAttributes(paramHandle, ctorParams[i].Attributes);
         }
     }
 
@@ -813,10 +829,11 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < method.Parameters.Count; i++)
         {
-            M.AddParameter(GetParamAttributes(method.Parameters[i]),
+            var paramHandle = M.AddParameter(GetParamAttributes(method.Parameters[i]),
                 M.GetOrAddString(method.Parameters[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
+            EmitRemainingAttributes(paramHandle, method.Parameters[i].Attributes);
         }
 
         return handle;
@@ -1037,10 +1054,11 @@ internal class TypeDefEmitter
 
         for (int i = 0; i < method.Parameters.Count; i++)
         {
-            M.AddParameter(GetParamAttributes(method.Parameters[i]),
+            var paramHandle = M.AddParameter(GetParamAttributes(method.Parameters[i]),
                 M.GetOrAddString(method.Parameters[i].Name),
                 i + 1);
             _emitter.IncrementParamRow();
+            EmitRemainingAttributes(paramHandle, method.Parameters[i].Attributes);
         }
 
         if (method.OverloadGroup != null)
