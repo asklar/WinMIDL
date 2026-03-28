@@ -1,0 +1,145 @@
+using Midl.Analysis;
+
+namespace Midl.Analysis.Tests;
+
+public class VersionValidationTests
+{
+    [Fact]
+    public void ContractVersion_NegativeValue_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(-1)]
+                apicontract MyContract { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1107");
+        Assert.Contains("contractversion", diag.Message);
+        Assert.Contains("-1", diag.Message);
+    }
+
+    [Fact]
+    public void ContractVersion_PositiveValue_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract MyContract { }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1107");
+    }
+
+    [Fact]
+    public void ContractVersion_Zero_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(0)]
+                apicontract MyContract { }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1107");
+    }
+
+    [Fact]
+    public void Version_NegativeValue_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [version(-5), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1107");
+        Assert.Contains("version", diag.Message);
+        Assert.Contains("-5", diag.Message);
+    }
+
+    [Fact]
+    public void Version_PositiveValue_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [version(1), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1107");
+    }
+
+    [Fact]
+    public void Contract_NegativeVersion_Error()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract MyContract { }
+
+                [contract(MyContract, -1), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1107");
+        Assert.Contains("contract", diag.Message);
+    }
+
+    [Fact]
+    public void Contract_VersionLiteral_NoError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract MyContract { }
+
+                [contract(MyContract, 1.0), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1107");
+    }
+
+    [Fact]
+    public void ContractVersion_FloatValue_NoError()
+    {
+        // [contractversion(1.0)] — valid x.y version literal (binder encodes as major << 16 | minor)
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [contractversion(1.0)]
+                apicontract MyContract { }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1107");
+    }
+
+    [Fact]
+    public void Version_FloatValue_NoError()
+    {
+        // [version(1.0)] — valid x.y version literal
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [version(1.0), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1107");
+    }
+}

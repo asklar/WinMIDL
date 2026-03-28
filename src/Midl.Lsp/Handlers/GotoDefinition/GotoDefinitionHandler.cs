@@ -8,7 +8,7 @@ namespace Midl.Lsp.Handlers;
 /// <summary>
 /// Handles textDocument/definition requests — navigates to where a symbol is defined.
 /// </summary>
-public static class GotoDefinitionHandler
+public static partial class GotoDefinitionHandler
 {
     public static object? Handle(JsonElement? @params, DocumentManager docManager,
         IReadOnlyList<string>? includePaths = null, IReadOnlyList<string>? referencePaths = null,
@@ -82,6 +82,11 @@ public static class GotoDefinitionHandler
                 return null;
             }
         }
+
+        // Check if cursor is inside an attribute bracket — navigate to the attribute type definition
+        var attrResult = TryResolveAttributeDefinition(sourceText, tokens, offset, token, compilation, lineStarts, uri);
+        if (attrResult != null)
+            return attrResult;
 
         // If the cursor is inside a fully qualified name, extract it and resolve directly
         var fullQualifiedName = SymbolResolver.ExtractFullQualifiedNameAtCursor(sourceText, tokenOffset, name);

@@ -661,4 +661,10 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1106",
             $"Runtimeclass '{className}' has multiple [default] markers on its interface list.",
             position, Math.Max(className.Length, 1));
+
+    // Invalid version value (MIDL1107)
+    public static Diagnostic InvalidVersionValue(string attrName, string value, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1107",
+            $"[{attrName}] version argument '{value}' is invalid. Expected a non-negative integer.",
+            position, Math.Max(attrName.Length, 1));
 }
