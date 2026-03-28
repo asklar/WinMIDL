@@ -48,6 +48,13 @@ public class CompilationDriver
         MidlTrace.Cli($"Input: {options.InputFile}");
         MidlTrace.Cli($"Mode: {options.Mode}, WinRT: {options.WinRtMode}");
 
+        // /winmd implies /winrt
+        if (options.WinMdFile != null && !options.WinRtMode)
+        {
+            options.WinRtMode = true;
+            MidlTrace.Cli("/winmd specified — auto-enabling /winrt mode");
+        }
+
         // Auto-discover Windows SDK (unless /no_def_idir)
         if (!options.NoDefIdir && OperatingSystem.IsWindows())
         {
