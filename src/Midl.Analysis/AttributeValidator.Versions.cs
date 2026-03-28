@@ -147,6 +147,12 @@ public partial class AttributeValidator
                 _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
                     attrName, $"\"{arg.StringValue}\"", attr.Position));
                 break;
+
+            case ArgKind.Identifier:
+                // Identifiers are not valid version arguments (e.g. [contract(Foo, version)])
+                _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
+                    attrName, arg.StringValue ?? "identifier", attr.Position));
+                break;
         }
     }
 }
