@@ -61,6 +61,172 @@ public class WinMdCustomAttributeEmissionTests
         return false;
     }
 
+    private static MethodDefinitionHandle FindMethod(MetadataReader reader, TypeDefinitionHandle typeDef, string methodName)
+    {
+        var td = reader.GetTypeDefinition(typeDef);
+        foreach (var mh in td.GetMethods())
+        {
+            var md = reader.GetMethodDefinition(mh);
+            if (reader.GetString(md.Name) == methodName)
+                return mh;
+        }
+        throw new Exception($"Method '{methodName}' not found");
+    }
+
+    [Fact]
+    public void Emit_ComposableAttribute_InWinMd()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                [exclusiveto(Foo)]
+                interface IFooFactory
+                {
+                    Foo Create();
+                }
+                [composable(IFooFactory, public, 1)]
+                unsealed runtimeclass Foo
+                {
+                    overridable void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var classHandle = FindTypeDef(reader, "Foo");
+            Assert.True(HasCustomAttribute(reader, classHandle,
+                "Windows.Foundation.Metadata.ComposableAttribute"),
+                "ComposableAttribute should be emitted on Foo");
+        }
+    }
+
+    [Fact]
+    public void Emit_MethodNameAttribute_InWinMd()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [method_name("DoWorkInternal")]
+                    void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "DoWork");
+            Assert.True(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.MethodNameAttribute"),
+                "MethodNameAttribute should be emitted on DoWork");
+        }
+    }
+
+    [Fact]
+    public void Emit_ReturnNameAttribute_InWinMd()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [return_name("result2")]
+                    Int32 GetValue();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "GetValue");
+            Assert.True(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.ReturnNameAttribute"),
+                "ReturnNameAttribute should be emitted on GetValue");
+        }
+    }
+
+    [Fact]
+    public void Emit_NoExceptionAttribute_InWinMd()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [noexcept]
+                    void FastWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "FastWork");
+            Assert.True(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.NoExceptionAttribute"),
+                "NoExceptionAttribute should be emitted on FastWork");
+        }
+    }
+
+    [Fact]
+    public void Emit_RemoteAsyncAttribute_InWinMd()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [remote_async]
+                    Windows.Foundation.IAsyncAction StartAsync();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "StartAsync");
+            Assert.True(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.RemoteAsyncAttribute"),
+                "RemoteAsyncAttribute should be emitted on StartAsync");
+        }
+    }
+
+    [Fact]
+    public void Emit_BindableAttribute_InWinMd()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                [bindable]
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var classHandle = FindTypeDef(reader, "Widget");
+            Assert.True(HasCustomAttribute(reader, classHandle,
+                "Windows.Foundation.Metadata.BindableAttribute"),
+                "BindableAttribute should be emitted on Widget");
+        }
+    }
+
     [Fact]
     public void Emit_ContentPropertyAttribute_InWinMd()
     {

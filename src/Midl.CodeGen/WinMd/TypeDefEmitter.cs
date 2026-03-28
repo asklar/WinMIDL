@@ -49,7 +49,7 @@ internal class TypeDefEmitter
             "deprecated", "activatable", "composable", "static",
             "threading", "marshaling_behavior", "exclusiveto",
             "default_interface", "default_overload", "overload",
-            "method_name", "return_name", "flags",
+            "method_name", "return_name", "flags", "noexcept",
             "attributeusage", "attributename", "allowmultiple",
             "experimental", "default", "overridable", "protected",
             "remote_async",
@@ -672,6 +672,23 @@ internal class TypeDefEmitter
         if (symbol.Members.Any(m => m is ConstructorSymbol) || symbol.HasDefaultActivation)
             _attrs.AddActivatableAttribute(typeDef, attrVersion);
 
+        // ComposableAttribute
+        foreach (var attr in symbol.Attributes)
+        {
+            if (!attr.Name.Equals("composable", StringComparison.OrdinalIgnoreCase))
+                continue;
+            var factoryName = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
+            if (factoryName != null)
+            {
+                var classNs = GetNamespace(symbol);
+                var fullFactoryName = string.IsNullOrEmpty(classNs) ? factoryName : $"{classNs}.{factoryName}";
+                var accessStr = attr.GetIdentifier(1)?.ToLowerInvariant();
+                int access = accessStr == "protected" ? 1 : 2;
+                var version = attr.GetVersion(2) ?? attrVersion;
+                _attrs.AddComposableAttribute(typeDef, fullFactoryName, access, version);
+            }
+        }
+
         // StaticAttribute
         if (symbol.StaticsInterface != null)
             _attrs.AddStaticAttribute(typeDef, symbol.StaticsInterface.FullName, attrVersion);
@@ -997,6 +1014,22 @@ internal class TypeDefEmitter
             _attrs.AddOverloadAttribute(methodDef, method.OverloadGroup);
         if (method.IsDefaultOverload)
             _attrs.AddDefaultOverloadAttribute(methodDef);
+
+        // MethodNameAttribute
+        if (method.MethodNameOverride != null)
+            _attrs.AddMethodNameAttribute(methodDef, method.MethodNameOverride);
+
+        // ReturnNameAttribute
+        if (method.ReturnNameOverride != null)
+            _attrs.AddReturnNameAttribute(methodDef, method.ReturnNameOverride);
+
+        // NoExceptionAttribute
+        if (method.Attributes.Any(a => a.Name.Equals("noexcept", StringComparison.OrdinalIgnoreCase)))
+            _attrs.AddNoExceptionAttribute(methodDef);
+
+        // RemoteAsyncAttribute
+        if (method.IsRemoteAsync)
+            _attrs.AddRemoteAsyncAttribute(methodDef);
 
         return methodDef;
     }

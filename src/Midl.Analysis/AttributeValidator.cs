@@ -53,6 +53,7 @@ public class AttributeValidator
             ["method_name"] = new() { "target_method" },
             ["return_name"] = new() { "target_method" },
             ["remote_async"] = new() { "target_method" },
+            ["noexcept"] = new() { "target_method" },
             ["attributeusage"] = new() { "target_attribute" },
             ["allowmultiple"] = new() { "target_attribute" },
             ["attributename"] = new() { "target_attribute" },
@@ -80,7 +81,7 @@ public class AttributeValidator
             "attributeusage", "attributename", "allowmultiple",
             // Member-level attributes the binder processes
             "method_name", "overload", "default_overload",
-            "return_name", "remote_async",
+            "return_name", "remote_async", "noexcept",
             // Classic MIDL attributes (compat)
             "object", "local", "pointer_default", "helpstring",
             "dual", "oleautomation", "nonextensible", "hidden",
