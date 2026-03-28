@@ -66,7 +66,7 @@ public static class AttributeExtractor
             if (child == null) continue;
 
             if (child.Kind == SyntaxKind.AttributeArgumentList)
-                ExtractArguments(child, data.Arguments);
+                ExtractArguments(child, data.Arguments, childOffset);
 
             childOffset += child.FullWidth;
         }
@@ -100,8 +100,9 @@ public static class AttributeExtractor
         return null;
     }
 
-    private static void ExtractArguments(GreenNode argListNode, List<AttributeArgValue> arguments)
+    private static void ExtractArguments(GreenNode argListNode, List<AttributeArgValue> arguments, int listOffset)
     {
+        int childOffset = listOffset;
         for (int i = 0; i < argListNode.SlotCount; i++)
         {
             var slot = argListNode.GetSlot(i);
@@ -109,16 +110,19 @@ public static class AttributeExtractor
 
             if (slot.Kind == SyntaxKind.AttributeArgument)
             {
-                var argValue = ExtractArgValue(slot);
+                var argValue = ExtractArgValue(slot, childOffset);
                 if (argValue != null)
                     arguments.Add(argValue);
             }
+
+            childOffset += slot.FullWidth;
         }
     }
 
-    private static AttributeArgValue? ExtractArgValue(GreenNode argNode)
+    private static AttributeArgValue? ExtractArgValue(GreenNode argNode, int argOffset)
     {
         // An AttributeArgument has one main child: a literal token, identifier, dotted name, or expression
+        int slotOffset = argOffset;
         for (int i = 0; i < argNode.SlotCount; i++)
         {
             var slot = argNode.GetSlot(i);
@@ -126,47 +130,57 @@ public static class AttributeExtractor
 
             if (slot is SyntaxToken token)
             {
+                int tokenPos = slotOffset + (token.LeadingTrivia?.Sum(t => t.FullWidth) ?? 0);
+                int tokenLen = token.Text.Length;
+
                 return token.Kind switch
                 {
                     SyntaxKind.StringLiteralToken => new AttributeArgValue
                     {
                         Kind = ArgKind.String,
-                        StringValue = StripQuotes(token.Text)
+                        StringValue = StripQuotes(token.Text),
+                        Position = tokenPos, Length = tokenLen
                     },
                     SyntaxKind.NumericLiteralToken => new AttributeArgValue
                     {
                         Kind = ArgKind.Integer,
                         IntValue = ParseNumeric(token.Text),
-                        StringValue = token.Text
+                        StringValue = token.Text,
+                        Position = tokenPos, Length = tokenLen
                     },
                     SyntaxKind.FloatLiteralToken => new AttributeArgValue
                     {
                         Kind = ArgKind.Float,
                         FloatValue = double.TryParse(token.Text, System.Globalization.NumberStyles.Float,
                             System.Globalization.CultureInfo.InvariantCulture, out var f) ? f : 0,
-                        StringValue = token.Text
+                        StringValue = token.Text,
+                        Position = tokenPos, Length = tokenLen
                     },
                     SyntaxKind.GuidLiteralToken => new AttributeArgValue
                     {
                         Kind = ArgKind.Guid,
                         GuidValue = Guid.TryParse(StripQuotes(token.Text), out var g) ? g : default,
-                        StringValue = StripQuotes(token.Text)
+                        StringValue = StripQuotes(token.Text),
+                        Position = tokenPos, Length = tokenLen
                     },
                     SyntaxKind.IdentifierToken => new AttributeArgValue
                     {
                         Kind = ArgKind.Identifier,
-                        StringValue = token.Text
+                        StringValue = token.Text,
+                        Position = tokenPos, Length = tokenLen
                     },
                     // Keyword tokens used as identifiers in attribute args
                     _ when IsKeywordIdentifier(token.Kind) => new AttributeArgValue
                     {
                         Kind = ArgKind.Identifier,
-                        StringValue = token.Text
+                        StringValue = token.Text,
+                        Position = tokenPos, Length = tokenLen
                     },
                     _ => new AttributeArgValue
                     {
                         Kind = ArgKind.Expression,
-                        StringValue = token.Text
+                        StringValue = token.Text,
+                        Position = tokenPos, Length = tokenLen
                     }
                 };
             }
@@ -174,10 +188,12 @@ public static class AttributeExtractor
             // DottedName → TypeName (e.g. Windows.Foundation.UniversalApiContract)
             if (slot.Kind == SyntaxKind.DottedName)
             {
+                int namePos = slotOffset + GetLeadingTriviaWidth(slot);
                 return new AttributeArgValue
                 {
                     Kind = ArgKind.TypeName,
-                    StringValue = ExtractName(slot)
+                    StringValue = ExtractName(slot),
+                    Position = namePos, Length = slot.FullWidth - GetLeadingTriviaWidth(slot)
                 };
             }
 
@@ -185,40 +201,50 @@ public static class AttributeExtractor
             if (slot.Kind == SyntaxKind.GuidExpression)
             {
                 var guidText = CollectText(slot).Replace(" ", "");
+                int gPos = slotOffset + GetLeadingTriviaWidth(slot);
                 return new AttributeArgValue
                 {
                     Kind = ArgKind.Guid,
                     GuidValue = Guid.TryParse(guidText, out var g) ? g : default,
-                    StringValue = guidText
+                    StringValue = guidText,
+                    Position = gPos, Length = slot.FullWidth - GetLeadingTriviaWidth(slot)
                 };
             }
 
             // SimpleName → Identifier
             if (slot.Kind == SyntaxKind.SimpleName)
             {
+                int sPos = slotOffset + GetLeadingTriviaWidth(slot);
                 return new AttributeArgValue
                 {
                     Kind = ArgKind.Identifier,
-                    StringValue = ExtractName(slot)
+                    StringValue = ExtractName(slot),
+                    Position = sPos, Length = slot.FullWidth - GetLeadingTriviaWidth(slot)
                 };
             }
 
             // QualifiedName → TypeName
             if (slot.Kind == SyntaxKind.QualifiedName)
             {
+                int qPos = slotOffset + GetLeadingTriviaWidth(slot);
                 return new AttributeArgValue
                 {
                     Kind = ArgKind.TypeName,
-                    StringValue = ExtractName(slot)
+                    StringValue = ExtractName(slot),
+                    Position = qPos, Length = slot.FullWidth - GetLeadingTriviaWidth(slot)
                 };
             }
 
             // ParenthesizedExpression or other → Expression
-            return new AttributeArgValue
             {
-                Kind = ArgKind.Expression,
-                StringValue = CollectText(slot)
-            };
+                int ePos = slotOffset + GetLeadingTriviaWidth(slot);
+                return new AttributeArgValue
+                {
+                    Kind = ArgKind.Expression,
+                    StringValue = CollectText(slot),
+                    Position = ePos, Length = slot.FullWidth - GetLeadingTriviaWidth(slot)
+                };
+            }
         }
 
         return null;

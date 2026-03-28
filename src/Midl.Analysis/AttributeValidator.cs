@@ -292,7 +292,9 @@ public partial class AttributeValidator
         var value = attr.GetIdentifier(0);
         if (value != null && !ValidThreadingModels.Contains(value))
         {
-            _diagnostics.Add(DiagnosticDescriptors.InvalidThreadingModel(value, attr.Position));
+            var argPos = attr.Arguments.Count > 0 ? attr.Arguments[0].Position : attr.Position;
+            var argLen = attr.Arguments.Count > 0 ? attr.Arguments[0].Length : value.Length;
+            _diagnostics.Add(DiagnosticDescriptors.InvalidThreadingModel(value, argPos, argLen));
         }
     }
 

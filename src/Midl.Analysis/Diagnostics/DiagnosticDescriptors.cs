@@ -155,10 +155,10 @@ public static class DiagnosticDescriptors
 
     // Attribute semantic validation diagnostics (MIDL1020–MIDL1028)
 
-    public static Diagnostic InvalidThreadingModel(string value, int position) =>
+    public static Diagnostic InvalidThreadingModel(string value, int position, int length = 0) =>
         new(DiagnosticSeverity.Error, "MIDL1020",
             $"Invalid threading model '{value}'. Must be 'both', 'sta', or 'mta'.",
-            position, value.Length);
+            position, length > 0 ? length : value.Length);
 
     public static Diagnostic InvalidMarshalingBehavior(string value, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1021",

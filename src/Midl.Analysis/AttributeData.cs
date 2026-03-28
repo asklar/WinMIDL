@@ -52,4 +52,8 @@ public class AttributeArgValue
     public long IntValue { get; init; }
     public double FloatValue { get; init; }
     public Guid GuidValue { get; init; }
+    /// <summary>Source position of this argument (for accurate diagnostic squiggles).</summary>
+    public int Position { get; init; }
+    /// <summary>Length of this argument in source.</summary>
+    public int Length { get; init; }
 }
