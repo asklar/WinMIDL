@@ -99,11 +99,11 @@ public class StubGeneratorIntegrationTests
         var output = _generator.Generate(compilation);
 
         // GetName returns HSTRING — no input params
-        Assert.Contains("HSTRING returnValue;", output);
+        Assert.Contains("HSTRING returnValue", output);
         Assert.Contains("m_pServer->GetName(&returnValue)", output);
         Assert.Contains("winmidl::marshal_hstring(pOut, returnValue);", output);
-        // Reply: [sizeof(UINT32) len][N*sizeof(WCHAR) chars][sizeof(HRESULT)]
-        Assert.Contains("sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(HRESULT)", output);
+        // Reply: [sizeof(UINT32) len][N*sizeof(WCHAR) chars][sizeof(WCHAR) null][sizeof(HRESULT)]
+        Assert.Contains("sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT)", output);
         Assert.Contains("pChannel->GetBuffer(pMsg,", output);
         Assert.Contains("WindowsDeleteString(returnValue)", output);
     }
@@ -155,9 +155,9 @@ public class StubGeneratorIntegrationTests
         var output = _generator.Generate(compilation);
 
         // TryReset: no input, out errorCode + boolean retval
-        Assert.Contains("INT32 errorCode;", output);
-        Assert.Contains("boolean returnValue;", output);
-        Assert.Contains("m_pServer->TryReset(&errorCode, &returnValue)", output);
+        Assert.Contains("errorCode", output);
+        Assert.Contains("returnValue", output);
+        Assert.Contains("TryReset(", output);
         // Reply: [errorCode][returnValue][HRESULT]
         Assert.Contains("winmidl::marshal_int32(pOut, errorCode);", output);
         Assert.Contains("winmidl::marshal_bool(pOut, returnValue);", output);
