@@ -1,6 +1,12 @@
 {
-    "diagnostics": [],
-    "parityGap": true,
-    "originalMidlAlsoRejects": true,
-    "originalMidlError": "MIDL2025"
+  "diagnostics": [
+    {
+      "code": "MIDL1096",
+      "severity": "Error",
+      "messageContains": "deprecated"
+    }
+  ],
+  "originalMidlAlsoRejects": true,
+  "originalMidlError": "MIDL2025",
+  "parityGap": false
 }

@@ -1,6 +1,12 @@
 {
-  "diagnostics": [],
-  "parityGap": true,
+  "diagnostics": [
+    {
+      "code": "MIDL1106",
+      "severity": "Error",
+      "messageContains": "default"
+    }
+  ],
+  "description": "Two [default] markers on interface list in runtimeclass",
   "originalMidlError": "MIDL5060",
-  "description": "Two [default] markers on interface list in runtimeclass"
+  "parityGap": false
 }

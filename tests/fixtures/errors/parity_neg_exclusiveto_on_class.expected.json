@@ -1,6 +1,12 @@
 {
-  "diagnostics": [],
-  "parityGap": true,
+  "parityGap": false,
   "originalMidlError": "MIDL2072",
-  "originalMidlAlsoRejects": true
+  "originalMidlAlsoRejects": true,
+  "diagnostics": [
+    {
+      "severity": "Error",
+      "code": "MIDL1029",
+      "messageContains": "exclusiveto"
+    }
+  ]
 }

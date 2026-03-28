@@ -8,7 +8,7 @@ namespace Midl.Analysis;
 /// Validates attribute arguments are semantically correct.
 /// Runs after binding and interface synthesis.
 /// </summary>
-public class AttributeValidator
+public partial class AttributeValidator
 {
     private readonly List<Diagnostic> _diagnostics;
     private readonly Compilation _compilation;

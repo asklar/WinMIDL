@@ -183,6 +183,7 @@ public static class CompilationHelper
         // Validate attribute semantics
         var validator = new AttributeValidator(compilation, syntaxDiagnostics);
         validator.Validate();
+        validator.ValidateParityRules();
 
         if (profile != null) { profile.Validate = sw!.Elapsed; sw.Stop(); profile.Total = profile.Preprocess + profile.Lex + profile.Parse + profile.SyntaxErrors + profile.ImportResolve + profile.Bind + profile.Synthesize + profile.VersionPropagate + profile.Validate; }
 

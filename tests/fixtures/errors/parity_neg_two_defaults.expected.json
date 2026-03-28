@@ -1,6 +1,12 @@
 {
-  "originalMidlError": "MIDL5060",
+  "diagnostics": [
+    {
+      "code": "MIDL1106",
+      "severity": "Error",
+      "messageContains": "default"
+    }
+  ],
   "originalMidlAlsoRejects": true,
-  "diagnostics": [],
-  "parityGap": true
+  "originalMidlError": "MIDL5060",
+  "parityGap": false
 }
