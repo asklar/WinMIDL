@@ -11,7 +11,7 @@ namespace Midl.Lsp.Handlers;
 /// </summary>
 public static partial class SignatureHelpHandler
 {
-    public static object? Handle(JsonElement? @params, DocumentManager docManager)
+    public static object? Handle(JsonElement? @params, DocumentManager docManager, Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -24,13 +24,13 @@ public static partial class SignatureHelpHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return null;
 
-        return HandleCore(text, line, character);
+        return HandleCore(text, line, character, cachedCompilation);
     }
 
     /// <summary>
     /// Core logic, testable without LSP JSON plumbing.
     /// </summary>
-    public static object? HandleCore(string sourceText, int line, int character)
+    public static object? HandleCore(string sourceText, int line, int character, Compilation? cachedCompilation = null)
     {
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
         int offset = PositionHelper.LineCharToOffset(lineStarts, line, character);
@@ -65,7 +65,7 @@ public static partial class SignatureHelpHandler
         if (openParenPos < 0) return null;
 
         // Check if we're inside an attribute bracket — e.g. [composable(...)]
-        var attrResult = TryBuildAttributeSignature(sourceText, openParenPos, commaCount);
+        var attrResult = TryBuildAttributeSignature(sourceText, openParenPos, commaCount, cachedCompilation);
         if (attrResult is not null) return attrResult;
 
         // Find the identifier token just before the '('
@@ -76,13 +76,20 @@ public static partial class SignatureHelpHandler
         if (methodName is null) return null;
 
         Compilation compilation;
-        try
+        if (cachedCompilation != null)
         {
-            compilation = CompilationHelper.Compile(sourceText);
+            compilation = cachedCompilation;
         }
-        catch
+        else
         {
-            return null;
+            try
+            {
+                compilation = CompilationHelper.Compile(sourceText);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         // Find the method or constructor symbol

@@ -215,8 +215,13 @@ public sealed partial class MidlLanguageServer
                 break;
 
             case "textDocument/signatureHelp":
-                await _writer.SendResponseAsync(id, SignatureHelpHandler.Handle(@params, _docManager));
-                break;
+                {
+                    var shUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? shComp = null;
+                    if (shUri != null) _lastCompilation.TryGetValue(shUri, out shComp);
+                    await _writer.SendResponseAsync(id, SignatureHelpHandler.Handle(@params, _docManager, shComp));
+                    break;
+                }
 
             case "textDocument/semanticTokens/full":
                 {

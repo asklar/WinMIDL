@@ -158,7 +158,9 @@ class CILoggerProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.ILogger";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -310,7 +312,9 @@ class CIAnimalProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Animal";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -444,7 +448,9 @@ class CISerializableProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Document";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -553,7 +559,9 @@ class CICloneableProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Document";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -787,7 +795,9 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Calculator";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -1160,7 +1170,9 @@ class CINotifierProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Notifier";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -1381,7 +1393,9 @@ class CIEventSourceProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.EventSource";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -1560,13 +1574,13 @@ static HRESULT proxy_shape_hstring_object_to_void(IRpcChannelBuffer* channel, co
     msg.iMethod = slot;
     HRESULT hr;
     UINT32 arg1_marshalSize = 0;
-    hr = winmidl::get_marshal_size(arg1, IID_IInspectable, arg1_marshalSize); RETURN_IF_FAILED(hr);
+    hr = winmidl::get_marshal_size(arg1, IID_IUnknown, arg1_marshalSize); RETURN_IF_FAILED(hr);
     msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR) + arg1_marshalSize;
     hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
     winmidl::marshal_hstring(p, arg0);
-    hr = winmidl::marshal_interface(p, arg1, IID_IInspectable); RETURN_IF_FAILED(hr);
+    hr = winmidl::marshal_interface(p, arg1, IID_IUnknown); RETURN_IF_FAILED(hr);
     ULONG status;
     hr = channel->SendReceive(&msg, &status);
     RETURN_IF_FAILED(hr);
@@ -1590,7 +1604,7 @@ static HRESULT proxy_shape_hstring_to_object(IRpcChannelBuffer* channel, const G
     hr = channel->SendReceive(&msg, &status);
     RETURN_IF_FAILED(hr);
     BYTE* pReply = (BYTE*)msg.Buffer;
-    hr = winmidl::unmarshal_interface(pReply, IID_IInspectable, (void**)retval); RETURN_IF_FAILED(hr);
+    hr = winmidl::unmarshal_interface(pReply, IID_IUnknown, (void**)retval); RETURN_IF_FAILED(hr);
     HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
     hr = channel->FreeBuffer(&msg);
     RETURN_IF_FAILED(hr);
@@ -1621,7 +1635,9 @@ class CIPropertyBagProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.PropertyBag";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -1635,13 +1651,13 @@ class CIPropertyBagProxy : public IRpcProxyBuffer {
             msg.iMethod = 6;
             HRESULT hr;
             UINT32 value_marshalSize = 0;
-            hr = winmidl::get_marshal_size(value, IID_IInspectable, value_marshalSize); RETURN_IF_FAILED(hr);
+            hr = winmidl::get_marshal_size(value, IID_IUnknown, value_marshalSize); RETURN_IF_FAILED(hr);
             msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(key) * sizeof(WCHAR) + sizeof(WCHAR) + value_marshalSize;
             hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IPropertyBag);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
             winmidl::marshal_hstring(p, key);
-            hr = winmidl::marshal_interface(p, value, IID_IInspectable); RETURN_IF_FAILED(hr);
+            hr = winmidl::marshal_interface(p, value, IID_IUnknown); RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
             RETURN_IF_FAILED(hr);
@@ -1666,7 +1682,7 @@ class CIPropertyBagProxy : public IRpcProxyBuffer {
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
             RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
-            hr = winmidl::unmarshal_interface(pReply, IID_IInspectable, (void**)returnValue); RETURN_IF_FAILED(hr);
+            hr = winmidl::unmarshal_interface(pReply, IID_IUnknown, (void**)returnValue); RETURN_IF_FAILED(hr);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
             RETURN_IF_FAILED(hr);
@@ -1802,7 +1818,9 @@ class CIOptionalProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.OptionalValues";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -2109,7 +2127,9 @@ class CITypeShowcaseProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.TypeShowcase";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -2463,7 +2483,9 @@ class CIComplexOpsProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.ComplexOps";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -2667,7 +2689,9 @@ class CIObservableProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Observable";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -2955,7 +2979,9 @@ class CICollectionOpsProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.CollectionOps";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -3240,7 +3266,9 @@ class CIAnimal2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Animal";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -3337,7 +3365,9 @@ class CIShapeProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Shape";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -3471,7 +3501,9 @@ class CICircleProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Circle";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -3581,7 +3613,9 @@ class CIDocumentProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Document";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -3690,7 +3724,9 @@ class CICalculator2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Calculator";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -3769,7 +3805,9 @@ class CINotifier2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Notifier";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -3848,7 +3886,9 @@ class CIEventSource2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.EventSource";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -3927,7 +3967,9 @@ class CIPropertyBag2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.PropertyBag";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -4006,7 +4048,9 @@ class CIOptionalValuesProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.OptionalValues";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -4085,7 +4129,9 @@ class CITypeShowcase2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.TypeShowcase";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -4164,7 +4210,9 @@ class CIComplexOps2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.ComplexOps";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -4281,7 +4329,9 @@ class CIMathHelpersStaticsProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.MathHelpers";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -4444,7 +4494,9 @@ class CIObservable2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.Observable";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -4523,7 +4575,9 @@ class CICollectionOps2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            return winmidl::get_runtime_class_name(kTypeInfo, className);
+            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.CollectionOps";
+            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
+            *className = s_h; return S_OK;
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -5476,7 +5530,7 @@ private:
         HSTRING_HEADER key_header;
         HSTRING key = winmidl::unmarshal_hstring_ref(p, key_header);
         IInspectable* value = nullptr;
-        hr = winmidl::unmarshal_interface(p, IID_IInspectable, (void**)&value); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_interface(p, IID_IUnknown, (void**)&value); RETURN_IF_FAILED(hr);
         hr = m_pServer->SetValue(key, value);
         static constexpr UINT32 kReplySize = sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -5494,7 +5548,7 @@ private:
         IInspectable* returnValue = nullptr;
         HRESULT hr = m_pServer->GetValue(key, &returnValue);
         UINT32 returnValue_marshalSize = 0;
-        hr = winmidl::get_marshal_size(returnValue, IID_IInspectable, returnValue_marshalSize); RETURN_IF_FAILED(hr);
+        hr = winmidl::get_marshal_size(returnValue, IID_IUnknown, returnValue_marshalSize); RETURN_IF_FAILED(hr);
         pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IPropertyBag);
         if (FAILED(hrBuf)) {
@@ -5502,7 +5556,7 @@ private:
             return hrBuf;
         }
         BYTE* pOut = (BYTE*)pMsg->Buffer;
-        hr = winmidl::marshal_interface(pOut, returnValue, IID_IInspectable); RETURN_IF_FAILED(hr);
+        hr = winmidl::marshal_interface(pOut, returnValue, IID_IUnknown); RETURN_IF_FAILED(hr);
         winmidl::marshal_int32(pOut, hr);
         WindowsDeleteString(key);
         if (returnValue) returnValue->Release();

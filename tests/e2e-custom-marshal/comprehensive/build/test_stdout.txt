@@ -1,0 +1,116 @@
+SERVER TryParse: len=2 raw=000002294D25BFF4 hstring=000000F711BFEEB0
+  chars: 0034 0032
+SERVER TryParse: len=3 raw=000002294D26CFF4 hstring=000000F711BFEEB0
+  chars: 0061 0062 0063
+=== E2E Comprehensive Custom Marshal Test ===
+
+[STA] COM initialized (apartment-threaded), RoInitialize=0x00000001
+[STA] Pumping messages for cross-apartment calls...
+
+[MTA] --- Animal tests ---
+  PASS: Animal: CoCreateInstance
+  PASS: Animal: get_Name == "Dog"
+  PASS: Animal: get_LegCount == 4
+  PASS: Animal: GetRuntimeClassName
+[MTA] --- Shape tests ---
+  PASS: Shape: CoCreateInstance
+  PASS: Shape: get_Kind == "Shape"
+  PASS: Shape: get_Area == 0.0
+[MTA] --- Circle tests ---
+  PASS: Circle: CoCreateInstance
+  PASS: Circle: get_Radius == 5.0
+  PASS: Circle: QI for IShape
+  PASS: Circle: get_Kind == "Circle"
+  PASS: Circle: get_Area == pi*25
+  PASS: Circle: GetIids count >= 2
+  PASS: Circle: GetIids has ICircle+IShape
+[MTA] --- Document tests ---
+  PASS: Document: CoCreateInstance
+  PASS: Document: get_Title == "TestDoc"
+  PASS: Document: QI for ISerializable
+  PASS: Document: Serialize contains "TestDoc"
+  PASS: Document: QI for ICloneable
+  PASS: Document: CloneAsString == "Document:TestDoc"
+  PASS: Document: GetIids count >= 3
+  PASS: Document: GetIids has IDocument+ISerializable+ICloneable
+[MTA] --- Calculator tests ---
+  PASS: Calculator: CoCreateInstance
+  PASS: Calculator: Add(3,4) == 7
+  PASS: Calculator: TryDivide(10,2) == 5.0, TRUE
+  PASS: Calculator: TryDivide(10,0) == FALSE
+  PASS: Calculator: MakePoint(1.5,2.5)
+  PASS: Calculator: SetPermissions(Write)
+  PASS: Calculator: GetPermissions == Write
+  PASS: Calculator: Translate({1,2,Green}, 10, 20)
+  PASS: Calculator: GetRuntimeClassName
+[MTA] --- Notifier tests ---
+  PASS: Notifier: CoCreateInstance
+  PASS: Notifier: Subscribe(logger)
+  PASS: Notifier: GetLogger != null
+  PASS: Notifier: Log via returned logger
+  PASS: Notifier: LastMessage round-trip
+  PASS: Notifier: GetRuntimeClassName
+[MTA] --- EventSource tests ---
+  PASS: EventSource: CoCreateInstance
+  PASS: EventSource: AddStatusChanged
+  PASS: EventSource: AddStatusChanged token != 0
+  PASS: EventSource: RemoveStatusChanged
+  PASS: EventSource: add_Completed
+  PASS: EventSource: add_Completed token != 0
+  PASS: EventSource: remove_Completed
+  PASS: EventSource: GetRuntimeClassName
+[MTA] --- PropertyBag tests ---
+  PASS: PropertyBag: CoCreateInstance
+  PASS: PropertyBag: SetValue
+  PASS: PropertyBag: GetValue != null
+  PASS: PropertyBag: returned object supports QI
+  PASS: PropertyBag: GetValue(nonexistent) succeeds
+  PASS: PropertyBag: GetRuntimeClassName
+[MTA] --- OptionalValues tests ---
+  PASS: OptionalValues: CoCreateInstance
+  PASS: OptionalValues: GetOptionalCount initially null
+  PASS: OptionalValues: GetOptionalPosition initially null
+  PASS: OptionalValues: SetOptionalCount(null)
+  PASS: OptionalValues: GetRuntimeClassName
+[MTA] --- TypeShowcase tests ---
+  PASS: TypeShowcase: CoCreateInstance
+  PASS: TypeShowcase: SetBigNumber(INT64_MAX)
+  PASS: TypeShowcase: GetBigNumber == INT64_MAX
+  PASS: TypeShowcase: GetUnsignedBig
+  PASS: TypeShowcase: SetId
+  PASS: TypeShowcase: GetId round-trip
+  PASS: TypeShowcase: GetInitial == 'A'
+  PASS: TypeShowcase: GetByte == 42
+  PASS: TypeShowcase: GetSmallNumber == -123
+  PASS: TypeShowcase: GetRuntimeClassName
+[MTA] --- ComplexOps tests ---
+  PASS: ComplexOps: CoCreateInstance
+  PASS: ComplexOps: MultiParam(5 params)
+  PASS: ComplexOps: TryParse("42") == 42, TRUE
+  PASS: ComplexOps: TryParse("abc") == FALSE
+  PASS: ComplexOps: Swap(100,200) => (200,100)
+  PASS: ComplexOps: GetRuntimeClassName
+[MTA] --- MathHelpers tests ---
+  PASS: MathHelpers: CoCreateInstance
+  PASS: MathHelpers: get_Pi == 3.14159...
+  PASS: MathHelpers: Square(7) == 49
+  PASS: MathHelpers: get_Origin == (0,0)
+  PASS: MathHelpers: GetRuntimeClassName
+[MTA] --- Observable tests ---
+  PASS: Observable: CoCreateInstance
+  PASS: Observable: put_Value
+  PASS: Observable: get_Value round-trip
+  PASS: Observable: remove_ValueChanged (synthetic token)
+  PASS: Observable: GetRuntimeClassName
+[MTA] --- CollectionOps tests ---
+  PASS: CollectionOps: CoCreateInstance
+  PASS: CollectionOps: GetProperties
+  PASS: CollectionOps: GetProperties != null
+  PASS: CollectionOps: GetScores
+  PASS: CollectionOps: GetScores != null
+  PASS: CollectionOps: GetNames (null ok)
+  PASS: CollectionOps: GetRuntimeClassName
+
+[MTA] Tests complete.
+
+=== Results: 89 passed, 0 failed ===

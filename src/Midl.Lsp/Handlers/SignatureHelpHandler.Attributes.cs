@@ -109,7 +109,7 @@ public static partial class SignatureHelpHandler
     /// If the open-paren at <paramref name="openParenPos"/> is inside an attribute
     /// bracket (<c>[attrName(</c>), build the signature-help response.
     /// </summary>
-    private static object? TryBuildAttributeSignature(string sourceText, int openParenPos, int commaCount)
+    private static object? TryBuildAttributeSignature(string sourceText, int openParenPos, int commaCount, Compilation? cachedCompilation = null)
     {
         // Walk backward from the open paren to find the attribute name,
         // then verify there is an unmatched '[' before it.
@@ -135,13 +135,21 @@ public static partial class SignatureHelpHandler
         if (!IsInsideAttributeBracket(sourceText, pos))
             return null;
 
-        // Try well-known signatures first
+        // Try resolving from compilation first (works for SDK + user-defined attrs)
+        if (cachedCompilation != null)
+        {
+            var dynamicSig = TryBuildDynamicAttributeSignature(cachedCompilation, attrName);
+            if (dynamicSig is not null)
+                return BuildSignatureResponse(dynamicSig, commaCount);
+        }
+
+        // Fall back to well-known signatures (richer descriptions like "public or protected")
         if (AttributeSignatures.TryGetValue(attrName, out var sigs))
         {
             return BuildSignatureResponse(sigs, commaCount);
         }
 
-        // Try user-defined attribute from compilation
+        // Last resort: try compiling without refs for local attrs
         var userSig = TryBuildUserDefinedAttributeSignature(sourceText, attrName);
         if (userSig is not null)
         {
@@ -149,6 +157,55 @@ public static partial class SignatureHelpHandler
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Resolve attribute signature dynamically from a compilation (with SDK refs).
+    /// Works for SDK attributes, user-defined attributes, and lazy WinMD providers.
+    /// </summary>
+    private static List<(string Label, string[] Params)>? TryBuildDynamicAttributeSignature(
+        Compilation compilation, string attrName)
+    {
+        // Check eagerly-loaded types
+        foreach (var type in compilation.GetAllTypes())
+        {
+            if (type is AttributeTypeSymbol attr && MatchesAttributeName(attr, attrName))
+                return BuildSignatureFromFields(attr);
+        }
+
+        // Check lazy WinMD providers (SDK attrs like NoExceptionAttribute)
+        foreach (var fullName in compilation.GetAllLazyTypeNames())
+        {
+            if (!fullName.EndsWith("Attribute", StringComparison.Ordinal)) continue;
+            if (!fullName.StartsWith("Windows.Foundation.Metadata.", StringComparison.Ordinal)) continue;
+            var symbol = compilation.GetTypeByName(fullName);
+            if (symbol is AttributeTypeSymbol attr && MatchesAttributeName(attr, attrName))
+                return BuildSignatureFromFields(attr);
+        }
+
+        return null;
+    }
+
+    private static bool MatchesAttributeName(AttributeTypeSymbol attr, string name)
+    {
+        if (name.Equals(attr.AttributeNameOverride, StringComparison.OrdinalIgnoreCase)) return true;
+        if (name.Equals(attr.Name, StringComparison.OrdinalIgnoreCase)) return true;
+        if (attr.Name.EndsWith("Attribute", StringComparison.Ordinal) && attr.Name.Length > 9 &&
+            name.Equals(attr.Name[..^9], StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
+
+    private static List<(string Label, string[] Params)>? BuildSignatureFromFields(AttributeTypeSymbol attr)
+    {
+        if (attr.Fields.Count == 0) return null;
+
+        var displayName = attr.AttributeNameOverride ?? attr.Name;
+        var paramDescs = attr.Fields
+            .Select(f => $"{f.Name} — {f.Type.DisplayName}")
+            .ToArray();
+        var label = $"{displayName}({string.Join(", ", attr.Fields.Select(f => f.Name))})";
+
+        return [(label, paramDescs)];
     }
 
     /// <summary>
