@@ -142,4 +142,42 @@ public class VersionValidationTests
 
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1107");
     }
+
+    [Fact]
+    public void InvalidVersionArg_SquiggleOnArg_NotAttrName()
+    {
+        // "version" is at column 23 in the source (0-based)
+        var source = "namespace N { [contractversion(1.0)] apicontract C {} [contract(C, version)] runtimeclass R : Windows.Foundation.IStringable { R(); } }";
+        var compilation = CompilationHelper.Compile(source);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1107");
+        Assert.NotNull(diag);
+        // Position should be on "version" (the arg), not "contract" (the attr name)
+        var snippet = source[diag.Position..(diag.Position + diag.Length)];
+        Assert.Equal("version", snippet);
+    }
+
+    [Fact]
+    public void InvalidThreadingModel_SquiggleOnArg()
+    {
+        var source = "namespace N { [threading(banana), default_interface] runtimeclass R { R(); } }";
+        var compilation = CompilationHelper.Compile(source);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1020");
+        Assert.NotNull(diag);
+        var snippet = source[diag.Position..(diag.Position + diag.Length)];
+        Assert.Equal("banana", snippet);
+    }
+
+    [Fact]
+    public void WrongTarget_SquiggleOnAttrName()
+    {
+        var source = "namespace N { [threading(both)] struct S { Int32 X; }; }";
+        var compilation = CompilationHelper.Compile(source);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1029");
+        Assert.NotNull(diag);
+        var snippet = source[diag.Position..(diag.Position + diag.Length)];
+        Assert.Equal("threading", snippet);
+    }
 }
