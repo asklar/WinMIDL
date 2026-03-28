@@ -345,6 +345,50 @@ public class AttributeValidationTests
     }
 
     [Fact]
+    public void ComposableAndActivatable_ProducesMIDL1025()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [exclusiveto(C)]
+                interface ICFactory
+                {
+                    C Create();
+                }
+                [composable(ICFactory, public, 1)]
+                [activatable]
+                unsealed runtimeclass C
+                {
+                    overridable void DoWork();
+                }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1025");
+        Assert.Equal(DiagnosticSeverity.Error, diag.Severity);
+    }
+
+    [Fact]
+    public void NoExceptOnProperty_ProducesTargetError()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                [default_interface]
+                runtimeclass C
+                {
+                    [noexcept]
+                    String Name { get; };
+                }
+            }
+            """);
+
+        var diag = Assert.Single(compilation.Diagnostics, d => d.Code == "MIDL1029");
+        Assert.Contains("noexcept", diag.Message);
+        Assert.Contains("target_method", diag.Message);
+    }
+
+    [Fact]
     public void ContractArgNotApiContract_ProducesMIDL1075()
     {
         var compilation = CompilationHelper.Compile("""

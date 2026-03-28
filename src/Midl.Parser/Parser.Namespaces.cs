@@ -117,6 +117,8 @@ public sealed partial class Parser
             or SyntaxKind.OutKeyword
             or SyntaxKind.RetvalKeyword
             or SyntaxKind.DefaultKeyword
-            or SyntaxKind.CaseKeyword;
+            or SyntaxKind.CaseKeyword
+            // 'static' can appear as both a member modifier and an attribute name
+            or SyntaxKind.StaticKeyword;
     }
 }

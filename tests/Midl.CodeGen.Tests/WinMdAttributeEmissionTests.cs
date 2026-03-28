@@ -50,9 +50,37 @@ public class WinMdAttributeEmissionTests
                     if (fullName == attributeTypeName)
                         return true;
                 }
+                else if (memberRef.Parent.Kind == HandleKind.TypeDefinition)
+                {
+                    var typeDef = reader.GetTypeDefinition((TypeDefinitionHandle)memberRef.Parent);
+                    var fullName = $"{reader.GetString(typeDef.Namespace)}.{reader.GetString(typeDef.Name)}";
+                    if (fullName == attributeTypeName)
+                        return true;
+                }
             }
         }
         return false;
+    }
+
+    private static int CountCustomAttributes(MetadataReader reader, EntityHandle parent, string attributeTypeName)
+    {
+        int count = 0;
+        foreach (var attrHandle in reader.GetCustomAttributes(parent))
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            if (attr.Constructor.Kind == HandleKind.MemberReference)
+            {
+                var memberRef = reader.GetMemberReference((MemberReferenceHandle)attr.Constructor);
+                if (memberRef.Parent.Kind == HandleKind.TypeReference)
+                {
+                    var typeRef = reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+                    var fullName = $"{reader.GetString(typeRef.Namespace)}.{reader.GetString(typeRef.Name)}";
+                    if (fullName == attributeTypeName)
+                        count++;
+                }
+            }
+        }
+        return count;
     }
 
     private static MethodDefinitionHandle FindMethod(MetadataReader reader, TypeDefinitionHandle typeDef, string methodName)
@@ -328,6 +356,75 @@ public class WinMdAttributeEmissionTests
 
             Assert.True(HasCustomAttribute(reader, methodHandle,
                 "Windows.Foundation.Metadata.DefaultOverloadAttribute"));
+        }
+    }
+
+    [Fact]
+    public void MultipleStaticAttributesEmitted()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [exclusiveto(Calculator)]
+                interface ICalcStatics
+                {
+                    void Add();
+                }
+
+                [exclusiveto(Calculator)]
+                interface ICalcStatics2
+                {
+                    void Subtract();
+                }
+
+                [static(ICalcStatics, 1)]
+                [static(ICalcStatics2, 2)]
+                [default_interface]
+                runtimeclass Calculator
+                {
+                    Calculator();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var classHandle = FindTypeDef(reader, "Calculator");
+            Assert.Equal(2, CountCustomAttributes(reader, classHandle,
+                "Windows.Foundation.Metadata.StaticAttribute"));
+        }
+    }
+
+    [Fact]
+    public void UserDefinedCustomAttributeEmitted()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [attributeusage(target_runtimeclass)]
+                [attributename("myattr")]
+                attribute MyAttrAttribute
+                {
+                    String Value;
+                }
+
+                [myattr("hello")]
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var classHandle = FindTypeDef(reader, "Widget");
+            Assert.True(HasCustomAttribute(reader, classHandle,
+                "Test.MyAttrAttribute"),
+                "User-defined custom attribute should be present on class");
         }
     }
 }

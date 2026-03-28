@@ -2243,6 +2243,19 @@ public class Binder
                     if (symbol is RuntimeClassSymbol rc7) rc7.IsInternal = true;
                     if (symbol is InterfaceSymbol intf4) intf4.IsExclusive = true; // internal interfaces are private
                     break;
+                case "exclusiveto":
+                    if (symbol is InterfaceSymbol intf_excl)
+                    {
+                        intf_excl.IsExclusive = true;
+                        var exclTarget = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
+                        if (exclTarget != null)
+                        {
+                            if (!exclTarget.Contains('.') && intf_excl.ContainingSymbol is NamespaceSymbol exclNs && exclNs.FullName.Length > 0)
+                                exclTarget = $"{exclNs.FullName}.{exclTarget}";
+                            intf_excl.ExclusiveToClass = exclTarget;
+                        }
+                    }
+                    break;
                 case "experimental":
                     if (symbol is RuntimeClassSymbol rc8) rc8.IsExperimental = true;
                     if (symbol is InterfaceSymbol intf5) intf5.IsExperimental = true;

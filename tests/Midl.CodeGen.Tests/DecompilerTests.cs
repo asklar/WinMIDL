@@ -141,6 +141,7 @@ public partial class DecompilerTests
     [Fact]
     public void DecompileThreadingAttribute()
     {
+        // threading(both) is the default and should be suppressed
         var bytes = CompileAndEmit("""
             namespace Test
             {
@@ -156,7 +157,7 @@ public partial class DecompilerTests
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(bytes);
 
-        Assert.Contains("[threading(both)]", idl);
+        Assert.DoesNotContain("[threading(both)]", idl);
         Assert.Contains("runtimeclass Widget", idl);
 
         // Verify round-trip: recompile the decompiled IDL
@@ -170,6 +171,7 @@ public partial class DecompilerTests
     [Fact]
     public void DecompileMarshalingBehaviorAttribute()
     {
+        // marshaling_behavior(agile) is the default and should be suppressed
         var bytes = CompileAndEmit("""
             namespace Test
             {
@@ -184,7 +186,7 @@ public partial class DecompilerTests
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(bytes);
 
-        Assert.Contains("[marshaling_behavior(agile)]", idl);
+        Assert.DoesNotContain("[marshaling_behavior(agile)]", idl);
     }
 
     [Fact]
@@ -993,6 +995,253 @@ public partial class DecompilerTests
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(bytes);
         Assert.Contains("[contentproperty(\"Name\")]", idl);
+    }
+
+    #endregion
+
+    #region Threading/Marshaling Default Suppression
+
+    [Fact]
+    public void DecompileThreadingBoth_Suppressed()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [threading(both)]
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.DoesNotContain("[threading(both)]", idl);
+    }
+
+    [Fact]
+    public void DecompileThreadingSta_Shown()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [threading(sta)]
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("[threading(sta)]", idl);
+    }
+
+    [Fact]
+    public void DecompileUserDefinedAttribute_Shown()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [attributeusage(target_runtimeclass)]
+                [attributename("myattr")]
+                attribute MyAttrAttribute
+                {
+                    String Value;
+                }
+
+                [myattr("hello")]
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("[myAttr", idl);
+    }
+
+    #endregion
+
+    #region Attribute round-trip tests
+
+    [Fact]
+    public void RoundTrip_Experimental_SurvivesCompileEmitDecompile()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                [experimental]
+                runtimeclass Foo {
+                    Foo();
+                    void DoWork();
+                }
+            }
+        """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("[experimental]", idl);
+
+        // Re-compile the decompiled IDL — should produce no errors
+        var recompilation = CompilationHelper.Compile(idl);
+        var errors = recompilation.Diagnostics
+            .Where(d => d.Severity == Analysis.Diagnostics.DiagnosticSeverity.Error)
+            .ToList();
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void RoundTrip_ContentProperty_StringArgSurvives()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                [contentproperty("Content")]
+                runtimeclass Foo {
+                    Foo();
+                    Object Content;
+                }
+            }
+        """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        // The string argument must survive the round-trip
+        Assert.Contains("[contentproperty(\"Content\")]", idl);
+
+        // Re-compile to verify validity
+        var recompilation = CompilationHelper.Compile(idl);
+        var errors = recompilation.Diagnostics
+            .Where(d => d.Severity == Analysis.Diagnostics.DiagnosticSeverity.Error)
+            .ToList();
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void RoundTrip_AllowForWeb_SurvivesCompileEmitDecompile()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                [allowforweb]
+                runtimeclass Foo {
+                    Foo();
+                    void DoWork();
+                }
+            }
+        """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+        Assert.Contains("[allowforweb]", idl);
+
+        var recompilation = CompilationHelper.Compile(idl);
+        var errors = recompilation.Diagnostics
+            .Where(d => d.Severity == Analysis.Diagnostics.DiagnosticSeverity.Error)
+            .ToList();
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void RoundTrip_DefaultOverload_OnCorrectMethod()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                runtimeclass Foo {
+                    Foo();
+                    [default_overload]
+                    void DoWork(String s);
+
+                    [overload("DoWorkDetailed")]
+                    void DoWork(String s, Int32 n);
+                }
+            }
+        """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        // default_overload should appear on the correct method
+        Assert.Contains("[default_overload]", idl);
+        Assert.Contains("DoWork", idl);
+    }
+
+    [Fact]
+    public void Decompile_ThreadingSta_Shown()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                [threading(sta)]
+                runtimeclass Foo {
+                    Foo();
+                    void DoWork();
+                }
+            }
+        """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        // STA is non-default, so it should be shown
+        Assert.Contains("[threading(sta)]", idl);
+    }
+
+    [Fact]
+    public void Decompile_MarshalingStandard_Shown()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                [marshaling_behavior(standard)]
+                runtimeclass Foo {
+                    Foo();
+                    void DoWork();
+                }
+            }
+        """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        // 'standard' is non-default, so it should always be shown
+        Assert.Contains("[marshaling_behavior(standard)]", idl);
+    }
+
+    #endregion
+
+    #region Edge case: bindable round-trip
+
+    [Fact]
+    public void RoundTrip_Bindable_SurvivesCompileEmitDecompile()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N {
+                [bindable]
+                runtimeclass Foo {
+                    Foo();
+                    void DoWork();
+                }
+            }
+        """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Contains("[bindable]", idl);
+
+        var recompilation = CompilationHelper.Compile(idl);
+        var errors = recompilation.Diagnostics
+            .Where(d => d.Severity == Analysis.Diagnostics.DiagnosticSeverity.Error)
+            .ToList();
+        Assert.Empty(errors);
     }
 
     #endregion

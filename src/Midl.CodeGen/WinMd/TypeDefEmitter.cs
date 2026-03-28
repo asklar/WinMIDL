@@ -689,9 +689,30 @@ internal class TypeDefEmitter
             }
         }
 
-        // StaticAttribute
-        if (symbol.StaticsInterface != null)
-            _attrs.AddStaticAttribute(typeDef, symbol.StaticsInterface.FullName, attrVersion);
+        // StaticAttribute — from explicit [static] attributes if present, else from synthesized
+        var hasExplicitStatic = false;
+        foreach (var attr in symbol.Attributes)
+        {
+            if (!attr.Name.Equals("static", StringComparison.OrdinalIgnoreCase))
+                continue;
+            hasExplicitStatic = true;
+            var ifaceName = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
+            if (ifaceName != null)
+            {
+                var classNs = GetNamespace(symbol);
+                var fullIfaceName = string.IsNullOrEmpty(classNs) ? ifaceName : $"{classNs}.{ifaceName}";
+                var version = attr.GetVersion(2) ?? attr.GetVersion(1) ?? attrVersion;
+                _attrs.AddStaticAttribute(typeDef, fullIfaceName, version);
+            }
+        }
+
+        if (!hasExplicitStatic)
+        {
+            foreach (var iface in symbol.StaticsInterfaces)
+            {
+                _attrs.AddStaticAttribute(typeDef, iface.FullName, attrVersion);
+            }
+        }
 
         // DeprecatedAttribute
         if (symbol.DeprecatedMessage != null)
@@ -1030,6 +1051,9 @@ internal class TypeDefEmitter
         // RemoteAsyncAttribute
         if (method.IsRemoteAsync)
             _attrs.AddRemoteAsyncAttribute(methodDef);
+
+        // Emit remaining non-handled method-level attributes via the generic path
+        EmitRemainingAttributes(methodDef, method.Attributes);
 
         return methodDef;
     }

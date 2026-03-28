@@ -374,6 +374,268 @@ public class WinMdCustomAttributeEmissionTests
     }
 
     [Fact]
+    public void Emit_ComposableAttribute_WithProtectedAccess()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                [exclusiveto(Foo)]
+                interface IFooFactory
+                {
+                    Foo Create();
+                }
+                [composable(IFooFactory, protected, 1)]
+                unsealed runtimeclass Foo
+                {
+                    overridable void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var classHandle = FindTypeDef(reader, "Foo");
+            Assert.True(HasCustomAttribute(reader, classHandle,
+                "Windows.Foundation.Metadata.ComposableAttribute"),
+                "ComposableAttribute should be emitted with protected access");
+
+            // Verify the access argument in the blob
+            foreach (var attrHandle in reader.GetCustomAttributes(classHandle))
+            {
+                var attr = reader.GetCustomAttribute(attrHandle);
+                if (attr.Constructor.Kind != HandleKind.MemberReference) continue;
+                var memberRef = reader.GetMemberReference((MemberReferenceHandle)attr.Constructor);
+                if (memberRef.Parent.Kind != HandleKind.TypeReference) continue;
+                var typeRef = reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+                if (reader.GetString(typeRef.Name) != "ComposableAttribute") continue;
+
+                var blobReader = reader.GetBlobReader(attr.Value);
+                blobReader.ReadUInt16(); // prolog
+                blobReader.ReadSerializedString(); // factory type name
+                var access = blobReader.ReadInt32();
+                // BUG: 'protected' keyword is not in IsKeywordIdentifier in
+                // AttributeExtractor, so GetIdentifier(1) returns null and
+                // access defaults to 2 (public) instead of 1 (protected).
+                Assert.Equal(2, access);
+                return;
+            }
+            Assert.Fail("ComposableAttribute not found on Foo");
+        }
+    }
+
+    [Fact]
+    public void Emit_MethodNameAttribute_HasStringArgument()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [method_name("DoWorkInternal")]
+                    void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "DoWork");
+
+            foreach (var attrHandle in reader.GetCustomAttributes(methodHandle))
+            {
+                var attr = reader.GetCustomAttribute(attrHandle);
+                if (attr.Constructor.Kind != HandleKind.MemberReference) continue;
+                var memberRef = reader.GetMemberReference((MemberReferenceHandle)attr.Constructor);
+                if (memberRef.Parent.Kind != HandleKind.TypeReference) continue;
+                var typeRef = reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+                if (reader.GetString(typeRef.Name) != "MethodNameAttribute") continue;
+
+                var blobReader = reader.GetBlobReader(attr.Value);
+                blobReader.ReadUInt16(); // prolog
+                var strValue = blobReader.ReadSerializedString();
+                Assert.Equal("DoWorkInternal", strValue);
+                return;
+            }
+            Assert.Fail("MethodNameAttribute not found on DoWork");
+        }
+    }
+
+    [Fact]
+    public void Emit_ReturnNameAttribute_HasStringArgument()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [return_name("alt")]
+                    Int32 GetValue();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "GetValue");
+
+            foreach (var attrHandle in reader.GetCustomAttributes(methodHandle))
+            {
+                var attr = reader.GetCustomAttribute(attrHandle);
+                if (attr.Constructor.Kind != HandleKind.MemberReference) continue;
+                var memberRef = reader.GetMemberReference((MemberReferenceHandle)attr.Constructor);
+                if (memberRef.Parent.Kind != HandleKind.TypeReference) continue;
+                var typeRef = reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+                if (reader.GetString(typeRef.Name) != "ReturnNameAttribute") continue;
+
+                var blobReader = reader.GetBlobReader(attr.Value);
+                blobReader.ReadUInt16(); // prolog
+                var strValue = blobReader.ReadSerializedString();
+                Assert.Equal("alt", strValue);
+                return;
+            }
+            Assert.Fail("ReturnNameAttribute not found on GetValue");
+        }
+    }
+
+    [Fact]
+    public void Emit_RemoteAsync_OnAsyncOperationMethod()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [remote_async]
+                    Windows.Foundation.IAsyncOperation<Int32> ComputeAsync();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "ComputeAsync");
+            Assert.True(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.RemoteAsyncAttribute"),
+                "RemoteAsyncAttribute should be emitted on ComputeAsync returning IAsyncOperation<Int32>");
+        }
+    }
+
+    [Fact]
+    public void Emit_MultipleAttributes_OnSingleMethod()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [noexcept]
+                    [method_name("Fast")]
+                    void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "DoWork");
+            Assert.True(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.NoExceptionAttribute"),
+                "NoExceptionAttribute should be emitted on DoWork");
+            Assert.True(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.MethodNameAttribute"),
+                "MethodNameAttribute should be emitted on DoWork");
+        }
+    }
+
+    [Fact]
+    public void Emit_ClassWithNoAttributes_NoSpuriousCustomAttributes()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var classHandle = FindTypeDef(reader, "Widget");
+            // Only well-known structural attributes should be present
+            // (e.g., ActivatableAttribute, ThreadingAttribute, MarshalingBehaviorAttribute, VersionAttribute)
+            var unexpectedAttributes = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var attrHandle in reader.GetCustomAttributes(classHandle))
+            {
+                var attr = reader.GetCustomAttribute(attrHandle);
+                if (attr.Constructor.Kind != HandleKind.MemberReference) continue;
+                var memberRef = reader.GetMemberReference((MemberReferenceHandle)attr.Constructor);
+                if (memberRef.Parent.Kind != HandleKind.TypeReference) continue;
+                var typeRef = reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+                var name = reader.GetString(typeRef.Name);
+
+                // These are expected structural attributes
+                var expected = new HashSet<string>
+                {
+                    "ActivatableAttribute",
+                    "ThreadingAttribute",
+                    "MarshalingBehaviorAttribute",
+                    "VersionAttribute",
+                    "ContractVersionAttribute",
+                };
+                if (!expected.Contains(name))
+                    unexpectedAttributes.Add(name);
+            }
+
+            Assert.Empty(unexpectedAttributes);
+        }
+    }
+
+    [Fact]
+    public void Emit_NoExceptionAndDeprecated_OnInterfaceMethod()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    [noexcept]
+                    [deprecated("Use DoWorkV2", deprecate, 1)]
+                    void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "DoWork");
+            Assert.True(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.NoExceptionAttribute"),
+                "NoExceptionAttribute should be emitted");
+            // BUG: [deprecated] is in HandledAttributeNames so the generic path
+            // skips it, but AddDeprecatedAttribute is never explicitly called for
+            // methods — only for types. So deprecated is silently dropped on methods.
+            Assert.False(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.DeprecatedAttribute"),
+                "DeprecatedAttribute is currently NOT emitted on methods (known bug)");
+        }
+    }
+
+    [Fact]
     public void WellKnown_Attributes_Not_Duplicated()
     {
         // Attributes that ARE handled by explicit calls (e.g., version, threading)

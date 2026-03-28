@@ -51,12 +51,13 @@ public class InterfaceSynthesisTests
         var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
         var rc = ns.Members.OfType<RuntimeClassSymbol>().Single(m => m.Name == "C");
 
-        Assert.NotNull(rc.StaticsInterface);
-        Assert.Equal("ICStatics", rc.StaticsInterface!.Name);
-        Assert.True(rc.StaticsInterface.IsExclusive);
-        Assert.True(rc.StaticsInterface.IsSynthesized);
+        Assert.Single(rc.StaticsInterfaces);
+        var staticsIface = rc.StaticsInterfaces[0];
+        Assert.Equal("ICStatics", staticsIface.Name);
+        Assert.True(staticsIface.IsExclusive);
+        Assert.True(staticsIface.IsSynthesized);
 
-        var method = rc.StaticsInterface.Members.OfType<MethodSymbol>().Single();
+        var method = staticsIface.Members.OfType<MethodSymbol>().Single();
         Assert.Equal("S", method.Name);
     }
 
@@ -315,9 +316,9 @@ public class InterfaceSynthesisTests
         Assert.True(rc.DefaultInterface!.IsExclusive);
         Assert.Equal("TestApp.Widget", rc.DefaultInterface.ExclusiveToClass);
 
-        Assert.NotNull(rc.StaticsInterface);
-        Assert.True(rc.StaticsInterface!.IsExclusive);
-        Assert.Equal("TestApp.Widget", rc.StaticsInterface.ExclusiveToClass);
+        Assert.Single(rc.StaticsInterfaces);
+        Assert.True(rc.StaticsInterfaces[0].IsExclusive);
+        Assert.Equal("TestApp.Widget", rc.StaticsInterfaces[0].ExclusiveToClass);
     }
 
     [Fact]
@@ -345,7 +346,7 @@ public class InterfaceSynthesisTests
         // No loose members, so no synthesis needed
         Assert.Null(rc.DefaultInterface);
         Assert.Null(rc.FactoryInterface);
-        Assert.Null(rc.StaticsInterface);
+        Assert.Empty(rc.StaticsInterfaces);
         Assert.Empty(rc.ImplementedInterfaces);
     }
 
@@ -408,9 +409,9 @@ public class InterfaceSynthesisTests
         var instanceMethod = rc.DefaultInterface.Members.OfType<MethodSymbol>().Single();
         Assert.Equal("InstanceMethod", instanceMethod.Name);
 
-        Assert.NotNull(rc.StaticsInterface);
-        Assert.Equal("ICStatics", rc.StaticsInterface!.Name);
-        var staticMethod = rc.StaticsInterface.Members.OfType<MethodSymbol>().Single();
+        Assert.Single(rc.StaticsInterfaces);
+        Assert.Equal("ICStatics", rc.StaticsInterfaces[0].Name);
+        var staticMethod = rc.StaticsInterfaces[0].Members.OfType<MethodSymbol>().Single();
         Assert.Equal("StaticMethod", staticMethod.Name);
 
         // ImplementedInterfaces should have both

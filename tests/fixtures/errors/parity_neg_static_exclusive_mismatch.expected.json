@@ -1,8 +1,9 @@
 {
   "diagnostics": [
     {
-      "code": "MIDL1102",
-      "severity": "Error"
+      "code": "MIDL1024",
+      "severity": "Error",
+      "messageContains": "exclusiveto"
     }
   ],
   "originalMidlError": "MIDL5027",

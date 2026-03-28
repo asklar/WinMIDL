@@ -1073,6 +1073,9 @@ public class WinMdDecompiler
                 case "ContractVersionAttribute":
                     EmitContractVersionAttribute(reader, attr, sb, indent);
                     break;
+                default:
+                    EmitGenericAttribute(reader, attr, attrName, sb, indent);
+                    break;
             }
         }
     }
@@ -1083,7 +1086,8 @@ public class WinMdDecompiler
         if (blob.Length < 6) return; // prolog(2) + int32(4)
         blob.ReadUInt16(); // prolog
         var value = blob.ReadInt32();
-        var model = value switch { 1 => "sta", 2 => "mta", 3 => "both", _ => null };
+        if (value == 3) return; // 'both' is the default — suppress
+        var model = value switch { 1 => "sta", 2 => "mta", _ => null };
         if (model != null)
             sb.AppendLine($"{indent}[threading({model})]");
     }
@@ -1094,9 +1098,63 @@ public class WinMdDecompiler
         if (blob.Length < 6) return;
         blob.ReadUInt16(); // prolog
         var value = blob.ReadInt32();
-        var behavior = value switch { 0 => "none", 1 => "standard", 2 => "agile", _ => null };
+        if (value == 2) return; // 'agile' is the default — suppress
+        var behavior = value switch { 0 => "none", 1 => "standard", _ => null };
         if (behavior != null)
             sb.AppendLine($"{indent}[marshaling_behavior({behavior})]");
+    }
+
+    /// <summary>
+    /// Fallback: emit an unrecognized attribute as [name(args...)] by best-effort blob decoding.
+    /// Attributes from the Windows.Foundation.Metadata namespace and GuidAttribute are suppressed
+    /// to avoid duplicating well-known attributes that are represented structurally.
+    /// </summary>
+    private static void EmitGenericAttribute(MetadataReader reader, CustomAttribute attr, string attrName, StringBuilder sb, string indent)
+    {
+        // Suppress internal WinRT metadata attributes already represented structurally
+        if (attrName is "GuidAttribute" or "DefaultAttribute" or "OverridableAttribute"
+            or "ProtectedAttribute" or "OverloadAttribute" or "DefaultOverloadAttribute"
+            or "MethodNameAttribute" or "LengthIsAttribute" or "RangeAttribute"
+            or "HasVariantAttribute" or "VariantAttribute"
+            or "NoExceptionAttribute" or "RemoteAsyncAttribute"
+            or "AllowMultipleAttribute" or "AttributeUsageAttribute"
+            or "AttributeNameAttribute" or "ApiContractAttribute"
+            or "MuseAttribute" or "PreviousContractVersionAttribute"
+            or "InternalAttribute" or "FeatureAttribute")
+            return;
+
+        // Strip "Attribute" suffix for IDL name
+        var idlName = attrName;
+        if (idlName.EndsWith("Attribute", StringComparison.Ordinal) && idlName.Length > "Attribute".Length)
+            idlName = idlName[..^"Attribute".Length];
+        // lowercase first char for IDL convention
+        idlName = char.ToLowerInvariant(idlName[0]) + idlName[1..];
+
+        try
+        {
+            var blob = reader.GetBlobReader(attr.Value);
+            if (blob.Length < 2) { sb.AppendLine($"{indent}[{idlName}]"); return; }
+            blob.ReadUInt16(); // prolog
+
+            var args = new List<string>();
+            while (blob.RemainingBytes > 2) // leave room for named-args terminator
+            {
+                var str = ReadSerializedString(ref blob);
+                if (str != null)
+                    args.Add($"\"{str}\"");
+                else
+                    break;
+            }
+
+            if (args.Count > 0)
+                sb.AppendLine($"{indent}[{idlName}({string.Join(", ", args)})]");
+            else
+                sb.AppendLine($"{indent}[{idlName}]");
+        }
+        catch
+        {
+            sb.AppendLine($"{indent}[{idlName}]");
+        }
     }
 
     private static void EmitComposableAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
@@ -1387,6 +1445,11 @@ public class WinMdDecompiler
             {
                 var typeRef = reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
                 return reader.GetString(typeRef.Name);
+            }
+            if (memberRef.Parent.Kind == HandleKind.TypeDefinition)
+            {
+                var typeDef = reader.GetTypeDefinition((TypeDefinitionHandle)memberRef.Parent);
+                return reader.GetString(typeDef.Name);
             }
         }
         return null;

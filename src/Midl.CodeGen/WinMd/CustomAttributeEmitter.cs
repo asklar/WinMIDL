@@ -340,7 +340,8 @@ internal class CustomAttributeEmitter
 
     /// <summary>
     /// Emits a custom attribute that is not handled by the explicit well-known attribute methods.
-    /// The attribute is placed in the Windows.Foundation.Metadata namespace.
+    /// For user-defined attribute types, references the TypeDefinition in the same WinMD.
+    /// Otherwise falls back to the Windows.Foundation.Metadata namespace.
     /// </summary>
     public void AddGenericCustomAttribute(EntityHandle parent, AttributeData attrData)
     {
@@ -352,20 +353,33 @@ internal class CustomAttributeEmitter
                 winmdTypeName += "Attribute";
         }
 
+        var paramEncoders = attrData.Arguments.Select<AttributeArgValue, Action<SignatureTypeEncoder>>(arg =>
+            arg.Kind switch
+            {
+                ArgKind.String or ArgKind.Identifier or ArgKind.TypeName => e => e.String(),
+                ArgKind.Integer => e => e.Int32(),
+                ArgKind.Float => e => e.Double(),
+                ArgKind.Guid => e => e.String(),
+                _ => e => e.String(),
+            }).ToArray();
+
         var cacheKey = (winmdTypeName, attrData.Arguments.Count);
         if (!_genericCtorCache.TryGetValue(cacheKey, out var ctorRef))
         {
-            var paramEncoders = attrData.Arguments.Select<AttributeArgValue, Action<SignatureTypeEncoder>>(arg =>
-                arg.Kind switch
-                {
-                    ArgKind.String or ArgKind.Identifier or ArgKind.TypeName => e => e.String(),
-                    ArgKind.Integer => e => e.Int32(),
-                    ArgKind.Float => e => e.Double(),
-                    ArgKind.Guid => e => e.String(),
-                    _ => e => e.String(),
-                }).ToArray();
+            // Check if this is a user-defined attribute type (TypeDef in same WinMD)
+            // Use case-insensitive matching since IDL names may differ in casing from type names
+            var typeDefHandle = _emitter.TypeDefHandles
+                .FirstOrDefault(kv => kv.Key.EndsWith("." + winmdTypeName, StringComparison.OrdinalIgnoreCase)
+                                   || string.Equals(kv.Key, winmdTypeName, StringComparison.OrdinalIgnoreCase));
 
-            ctorRef = CreateWfmCtorRef(winmdTypeName, paramEncoders);
+            if (typeDefHandle.Key != null)
+            {
+                ctorRef = CreateCtorMemberRefForParent(typeDefHandle.Value, paramEncoders);
+            }
+            else
+            {
+                ctorRef = CreateWfmCtorRef(winmdTypeName, paramEncoders);
+            }
             _genericCtorCache[cacheKey] = ctorRef;
         }
 
@@ -446,6 +460,12 @@ internal class CustomAttributeEmitter
     private MemberReferenceHandle CreateCtorMemberRef(
         TypeReferenceHandle typeRef, Action<SignatureTypeEncoder>[] paramEncoders)
     {
+        return CreateCtorMemberRefForParent(typeRef, paramEncoders);
+    }
+
+    private MemberReferenceHandle CreateCtorMemberRefForParent(
+        EntityHandle parent, Action<SignatureTypeEncoder>[] paramEncoders)
+    {
         var sig = new BlobBuilder();
         new BlobEncoder(sig)
             .MethodSignature(isInstanceMethod: true)
@@ -456,7 +476,7 @@ internal class CustomAttributeEmitter
                     foreach (var encode in paramEncoders)
                         encode(p.AddParameter().Type());
                 });
-        return Metadata.AddMemberReference(typeRef, Metadata.GetOrAddString(".ctor"), Metadata.GetOrAddBlob(sig));
+        return Metadata.AddMemberReference(parent, Metadata.GetOrAddString(".ctor"), Metadata.GetOrAddBlob(sig));
     }
 
     private static BlobBuilder EncodeParameterlessAttribute()

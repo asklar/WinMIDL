@@ -30,7 +30,7 @@ public class RuntimeClassSymbol : ISymbol
 
     public InterfaceSymbol? DefaultInterface { get; set; }
     public InterfaceSymbol? FactoryInterface { get; set; }
-    public InterfaceSymbol? StaticsInterface { get; set; }
+    public List<InterfaceSymbol> StaticsInterfaces { get; } = new();
     public InterfaceSymbol? ProtectedInterface { get; set; }
     public InterfaceSymbol? OverridesInterface { get; set; }
     public bool HasDefaultActivation { get; set; }

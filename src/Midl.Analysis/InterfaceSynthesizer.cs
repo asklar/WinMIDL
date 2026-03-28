@@ -112,12 +112,12 @@ public class InterfaceSynthesizer
             rc.HasDefaultActivation = true;
         }
 
-        // Rule D: Static interface
+        // Rule D: Static interface(s)
         if (staticMembers.Count > 0)
         {
             var ifaceName = GetUniqueName($"I{rc.Name}Statics", ns);
             var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, staticMembers);
-            rc.StaticsInterface = iface;
+            rc.StaticsInterfaces.Add(iface);
             rc.ImplementedInterfaces.Add(iface);
         }
 
@@ -146,7 +146,7 @@ public class InterfaceSynthesizer
         {
             // Find the first non-factory, non-statics interface
             rc.DefaultInterface = rc.ImplementedInterfaces.FirstOrDefault(
-                i => i != rc.FactoryInterface && i != rc.StaticsInterface);
+                i => i != rc.FactoryInterface && !rc.StaticsInterfaces.Contains(i));
         }
 
         // Rule H-ext: Handle [default_interface] attribute on empty classes

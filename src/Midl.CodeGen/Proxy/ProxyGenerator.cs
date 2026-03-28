@@ -62,7 +62,7 @@ public class ProxyGenerator
                 }
 
                 // Default/factory/statics/protected/overrides interfaces
-                foreach (var special in new[] { rc.DefaultInterface, rc.FactoryInterface, rc.StaticsInterface, rc.ProtectedInterface, rc.OverridesInterface })
+                foreach (var special in new InterfaceSymbol?[] { rc.DefaultInterface, rc.FactoryInterface, rc.ProtectedInterface, rc.OverridesInterface })
                 {
                     if (special != null)
                     {
@@ -70,6 +70,12 @@ public class ProxyGenerator
                         if (!iids.Contains(iid)) iids.Add(iid);
                         ifaceToRcName[special.FullName] = rc.FullName;
                     }
+                }
+                foreach (var staticsIface in rc.StaticsInterfaces)
+                {
+                    var iid = $"IID_{HeaderEmitter.MangleName(staticsIface.FullName)}";
+                    if (!iids.Contains(iid)) iids.Add(iid);
+                    ifaceToRcName[staticsIface.FullName] = rc.FullName;
                 }
 
                 rcToAllIids[rc.FullName] = iids;
