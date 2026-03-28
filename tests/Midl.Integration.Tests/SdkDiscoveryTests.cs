@@ -217,4 +217,85 @@ public class SdkDiscoveryTests
         Assert.True(classNames.Count == 0,
             $"Completions should use short names, not class names. Found: {string.Join(", ", classNames)}");
     }
+
+    [SkippableFact]
+    public void ThreadingOnRuntimeclass_NoError_WithSdk()
+    {
+        var sdk = WindowsSdkLocator.Discover();
+        Skip.If(sdk == null, "Windows SDK not installed");
+        Skip.If(sdk.WindowsWinMdPath == null, "Windows.winmd not found in SDK");
+
+        var source = @"
+            namespace N {
+                [threading(sta), default_interface]
+                runtimeclass R { R(); }
+            }";
+        var compilation = CompilationHelper.Compile(source,
+            new[] { sdk.WindowsWinMdPath }, CompilationMode.Strict);
+
+        // threading on runtimeclass must NOT produce MIDL1029
+        var targetErrors = compilation.Diagnostics
+            .Where(d => d.Code == "MIDL1029" && d.Message.Contains("threading"))
+            .ToList();
+        Assert.Empty(targetErrors);
+    }
+
+    [SkippableFact]
+    public void MarshalingBehaviorOnRuntimeclass_NoError_WithSdk()
+    {
+        var sdk = WindowsSdkLocator.Discover();
+        Skip.If(sdk == null, "Windows SDK not installed");
+        Skip.If(sdk.WindowsWinMdPath == null, "Windows.winmd not found in SDK");
+
+        var source = @"
+            namespace N {
+                [marshaling_behavior(standard), default_interface]
+                runtimeclass R { R(); }
+            }";
+        var compilation = CompilationHelper.Compile(source,
+            new[] { sdk.WindowsWinMdPath }, CompilationMode.Strict);
+
+        var targetErrors = compilation.Diagnostics
+            .Where(d => d.Code == "MIDL1029" && d.Message.Contains("marshaling"))
+            .ToList();
+        Assert.Empty(targetErrors);
+    }
+
+    [SkippableFact]
+    public void NegativeVersionArg_ProducesError_WithSdk()
+    {
+        var sdk = WindowsSdkLocator.Discover();
+        Skip.If(sdk == null, "Windows SDK not installed");
+        Skip.If(sdk.WindowsWinMdPath == null, "Windows.winmd not found in SDK");
+
+        var source = @"
+            namespace N {
+                [contractversion(-1.5)]
+                apicontract Foo {}
+            }";
+        var compilation = CompilationHelper.Compile(source,
+            new[] { sdk.WindowsWinMdPath }, CompilationMode.Strict);
+
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1107");
+    }
+
+    [SkippableFact]
+    public void IdentifierVersionArg_ProducesError_WithSdk()
+    {
+        var sdk = WindowsSdkLocator.Discover();
+        Skip.If(sdk == null, "Windows SDK not installed");
+        Skip.If(sdk.WindowsWinMdPath == null, "Windows.winmd not found in SDK");
+
+        var source = @"
+            namespace N {
+                [contractversion(1.0)]
+                apicontract C {}
+                [contract(C, version)]
+                runtimeclass R : Windows.Foundation.IStringable { R(); }
+            }";
+        var compilation = CompilationHelper.Compile(source,
+            new[] { sdk.WindowsWinMdPath }, CompilationMode.Strict);
+
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1107");
+    }
 }
