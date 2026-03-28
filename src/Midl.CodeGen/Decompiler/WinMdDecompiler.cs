@@ -145,7 +145,7 @@ public class WinMdDecompiler
                 DecompileDelegate(reader, td, handle, name, sb, indent);
                 break;
             case "System.Attribute":
-                // Skip WinRT attribute types in decompiled output
+                DecompileAttributeType(reader, td, handle, name, sb, indent);
                 break;
             default:
                 if ((td.Attributes & TypeAttributes.Interface) != 0)
@@ -162,6 +162,95 @@ public class WinMdDecompiler
                 break;
         }
     }
+
+    #region Attribute
+
+    private void DecompileAttributeType(MetadataReader reader, TypeDefinition td,
+        TypeDefinitionHandle handle, string name, StringBuilder sb, string indent)
+    {
+        // Strip "Attribute" suffix for display
+        var displayName = name;
+        if (displayName.EndsWith("Attribute", StringComparison.Ordinal) && displayName.Length > 9)
+            displayName = displayName[..^9];
+
+        // Check for [attributename("shortname")] override
+        string? shortName = null;
+        foreach (var caHandle in td.GetCustomAttributes())
+        {
+            var ca = reader.GetCustomAttribute(caHandle);
+            var attrName = GetAttributeTypeName(reader, ca.Constructor);
+            if (attrName == "AttributeNameAttribute")
+            {
+                try
+                {
+                    var blob = reader.GetBlobReader(ca.Value);
+                    if (blob.Length >= 2) { blob.ReadUInt16(); shortName = blob.ReadSerializedString(); }
+                }
+                catch { }
+            }
+        }
+
+        // Emit [attributename] if present
+        if (shortName != null)
+            sb.AppendLine($"{indent}[attributename(\"{shortName}\")]");
+
+        // Emit [attributeusage] if present
+        foreach (var caHandle in td.GetCustomAttributes())
+        {
+            var ca = reader.GetCustomAttribute(caHandle);
+            var attrName = GetAttributeTypeName(reader, ca.Constructor);
+            if (attrName == "AttributeUsageAttribute")
+            {
+                try
+                {
+                    var blob = reader.GetBlobReader(ca.Value);
+                    if (blob.Length >= 6)
+                    {
+                        blob.ReadUInt16(); // prolog
+                        int targets = blob.ReadInt32();
+                        var targetNames = DecodeAttributeTargets(targets);
+                        if (targetNames.Count > 0)
+                            sb.AppendLine($"{indent}[attributeusage({string.Join(", ", targetNames)})]");
+                    }
+                }
+                catch { }
+            }
+        }
+
+        sb.AppendLine($"{indent}attribute {displayName}Attribute");
+        sb.AppendLine($"{indent}{{");
+
+        // Emit fields (constructor parameters)
+        foreach (var fieldHandle in td.GetFields())
+        {
+            var field = reader.GetFieldDefinition(fieldHandle);
+            var fieldName = reader.GetString(field.Name);
+            var fieldType = DecodeFieldType(reader, field);
+            sb.AppendLine($"{indent}    {fieldType} {fieldName};");
+        }
+
+        sb.AppendLine($"{indent}}};");
+    }
+
+    private static List<string> DecodeAttributeTargets(int targets)
+    {
+        var result = new List<string>();
+        if (targets == -1) return result; // All — don't emit
+        if ((targets & 1) != 0) result.Add("target_delegate");
+        if ((targets & 2) != 0) result.Add("target_enum");
+        if ((targets & 4) != 0) result.Add("target_event");
+        if ((targets & 8) != 0) result.Add("target_field");
+        if ((targets & 16) != 0) result.Add("target_interface");
+        if ((targets & 64) != 0) result.Add("target_method");
+        if ((targets & 128) != 0) result.Add("target_parameter");
+        if ((targets & 256) != 0) result.Add("target_property");
+        if ((targets & 512) != 0) result.Add("target_runtimeclass");
+        if ((targets & 1024) != 0) result.Add("target_struct");
+        if ((targets & 8192) != 0) result.Add("target_apicontract");
+        return result;
+    }
+
+    #endregion
 
     #region Enum
 
