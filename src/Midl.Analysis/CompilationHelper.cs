@@ -208,9 +208,53 @@ public static class CompilationHelper
         if (sourceMap != null)
         {
             compilation.SourceMap = sourceMap;
+
+            // Resolve diagnostic positions through the source map
+            compilation = ResolveDiagnosticSourceFiles(compilation, sourceMap);
         }
 
         return compilation;
+    }
+
+    /// <summary>
+    /// Resolves diagnostic positions through the SourceMap to set SourceFile and OriginalPosition.
+    /// </summary>
+    private static Compilation ResolveDiagnosticSourceFiles(Compilation compilation, SourceMap sourceMap)
+    {
+        if (!sourceMap.HasMappings || compilation.Diagnostics.Count == 0)
+            return compilation;
+
+        var resolved = new List<Diagnostics.Diagnostic>(compilation.Diagnostics.Count);
+        bool anyChanged = false;
+
+        foreach (var diag in compilation.Diagnostics)
+        {
+            var mapping = sourceMap.Resolve(diag.Position);
+            if (mapping.HasValue)
+            {
+                resolved.Add(diag with
+                {
+                    SourceFile = mapping.Value.filePath,
+                    OriginalPosition = mapping.Value.originalOffset
+                });
+                anyChanged = true;
+            }
+            else
+            {
+                resolved.Add(diag);
+            }
+        }
+
+        if (!anyChanged)
+            return compilation;
+
+        var result = new Compilation(compilation.GlobalNamespace, resolved, compilation.LazyProviders);
+        result.SourceMap = sourceMap;
+        result.SymbolTable = compilation.SymbolTable;
+#if WINDOWS_INTERNAL
+        foreach (var kvp in compilation.FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
+#endif
+        return result;
     }
 
     /// <summary>

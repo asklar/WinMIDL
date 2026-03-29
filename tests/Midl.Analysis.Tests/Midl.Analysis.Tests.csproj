@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Midl.Analysis\Midl.Analysis.csproj" />
+    <ProjectReference Include="..\..\src\Midl.Cli\Midl.Cli.csproj" />
     <ProjectReference Include="..\..\src\Midl.CodeGen\Midl.CodeGen.csproj" />
     <ProjectReference Include="..\..\src\Midl.Lsp\Midl.Lsp.csproj" />
   </ItemGroup>

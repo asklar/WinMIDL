@@ -205,6 +205,7 @@ public class CompilationDriver
         // Report diagnostics (standard midl-compatible format)
         int errorCount = 0;
         int warningCount = 0;
+        var lineStarts = BuildLineStarts(source);
 
         foreach (var diag in compilation.Diagnostics)
         {
@@ -218,21 +219,40 @@ public class CompilationDriver
             if (diag.Severity == DiagnosticSeverity.Warning && options.NoWarnings)
                 continue;
 
+            // Build location prefix: "file(line,col): " when SourceFile is available
+            string locationPrefix = "";
+            if (diag.SourceFile != null)
+            {
+                var pos = diag.OriginalPosition ?? diag.Position;
+                // Read the original file to compute line/col
+                try
+                {
+                    var fileText = File.ReadAllText(diag.SourceFile);
+                    var fileLineStarts = BuildLineStarts(fileText);
+                    var (line, col) = OffsetToLineCol(fileLineStarts, pos);
+                    locationPrefix = $"{diag.SourceFile}({line + 1},{col + 1}): ";
+                }
+                catch
+                {
+                    locationPrefix = $"{diag.SourceFile}: ";
+                }
+            }
+
             if (diag.Severity == DiagnosticSeverity.Warning && options.WarningsAsErrors)
             {
-                _err.WriteLine($"error {diag.Code}: {diag.Message}");
+                _err.WriteLine($"{locationPrefix}error {diag.Code}: {diag.Message}");
                 errorCount++;
             }
             else
             {
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
-                    _err.WriteLine($"{prefix} {diag.Code}: {diag.Message}");
+                    _err.WriteLine($"{locationPrefix}{prefix} {diag.Code}: {diag.Message}");
                     errorCount++;
                 }
                 else if (diag.Severity == DiagnosticSeverity.Warning)
                 {
-                    _err.WriteLine($"{prefix} {diag.Code}: {diag.Message}");
+                    _err.WriteLine($"{locationPrefix}{prefix} {diag.Code}: {diag.Message}");
                     warningCount++;
                 }
             }
@@ -540,8 +560,18 @@ public class CompilationDriver
             var label = isError ? "error" : "warning";
             _err.WriteLine($"{label}[{diag.Code}]: {diag.Message}");
 
-            // Location
-            var fileName = options.InputFile ?? "<stdin>";
+            // Location — use SourceFile if available
+            var fileName = diag.SourceFile ?? options.InputFile ?? "<stdin>";
+            if (diag.SourceFile != null && diag.OriginalPosition.HasValue)
+            {
+                try
+                {
+                    var fileText = File.ReadAllText(diag.SourceFile);
+                    var fileLineStarts = BuildLineStarts(fileText);
+                    (line, col) = OffsetToLineCol(fileLineStarts, diag.OriginalPosition.Value);
+                }
+                catch { }
+            }
             _err.WriteLine($"  --> {fileName}:{line + 1}:{col + 1}");
 
             // Source snippet
