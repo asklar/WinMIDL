@@ -1224,6 +1224,86 @@ public class LspHandlerTests
         }
     }
 
+    // ── Completion context edge cases (regression for infinite loop fix) ──
+
+    [Fact]
+    public void CompletionInsideMethodParens_DoesNotHang()
+    {
+        // Regression: DetectAttributeArgContext had an infinite loop when cursor
+        // was inside method parens (not attribute brackets)
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    runtimeclass Foo {\n        void Bar( );\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor between ( and ) on "void Bar( )" — line 2, col 17
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 2, 17), dm);
+        var json = JsonSerializer.Serialize(result);
+        // Should return type completions, not hang
+        Assert.Contains("\"Int32\"", json);
+    }
+
+    [Fact]
+    public void CompletionInsideMethodParens_AfterExistingParam()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    interface IFoo {\n        void Bar(Int32 x, );\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor after the comma — line 2, col 26
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 2, 26), dm);
+        var json = JsonSerializer.Serialize(result);
+        Assert.Contains("\"String\"", json);
+    }
+
+    [Fact]
+    public void CompletionOnMethodReturnType_ShowsTypes()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    interface IFoo {\n         Bar();\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor at the return type position — line 2, col 8
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 2, 8), dm);
+        var json = JsonSerializer.Serialize(result);
+        Assert.Contains("\"void\"", json);
+        Assert.Contains("\"Int32\"", json);
+    }
+
+    [Fact]
+    public void CompletionInsideAttributeArgs_ShowsArgCompletions()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    [threading( )]\n    runtimeclass Foo { Foo(); Int32 X; }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor inside [threading( | )] — line 1, col 16
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 1, 16), dm);
+        var json = JsonSerializer.Serialize(result);
+        // Should include threading model values
+        Assert.Contains("both", json);
+    }
+
+    [Fact]
+    public void CompletionOnAttributeForMethod_ShowsMethodAttrs()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    interface IFoo {\n        [ ]\n        void Bar();\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor inside [ ] on the method — line 2, col 9
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 2, 9), dm);
+        var json = JsonSerializer.Serialize(result);
+        // Should include method-level attributes
+        Assert.Contains("deprecated", json);
+    }
+
+    [Fact]
+    public void CompletionOnAttributeForProperty_ShowsPropertyAttrs()
+    {
+        var uri = "file:///test.midl";
+        var source = "namespace N {\n    runtimeclass Foo {\n        Foo();\n        [ ]\n        Int32 Value;\n    }\n}";
+        var dm = CreateDocManager(uri, source);
+        // Cursor inside [ ] on the property — line 3, col 9
+        var result = CompletionHandler.Handle(MakePositionParams(uri, 3, 9), dm);
+        var json = JsonSerializer.Serialize(result);
+        Assert.Contains("deprecated", json);
+    }
+
     #endregion
 
     #region Hover Tests
