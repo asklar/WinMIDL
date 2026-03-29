@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
-namespace Midl.Integration.Tests;
+namespace Midl.E2E.Tests;
 
 /// <summary>
 /// E2E test: builds an out-of-proc WinRT EXE server, proxy DLL, and client EXE,

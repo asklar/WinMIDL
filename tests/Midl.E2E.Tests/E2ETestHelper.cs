@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using Midl.Cli;
 
-namespace Midl.Integration.Tests;
+namespace Midl.E2E.Tests;
 
 /// <summary>
 /// Represents a discovered MSVC toolchain (compiler, linker, SDK paths).
