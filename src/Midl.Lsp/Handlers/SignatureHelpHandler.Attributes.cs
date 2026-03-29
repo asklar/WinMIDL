@@ -165,7 +165,7 @@ public static partial class SignatureHelpHandler
         }
 
         // Last resort: try compiling without refs for local attrs
-        var userSig = TryBuildUserDefinedAttributeSignature(sourceText, attrName);
+        var userSig = TryBuildUserDefinedAttributeSignature(sourceText, attrName, cachedCompilation);
         if (userSig is not null)
         {
             return BuildSignatureResponse(userSig, commaCount);
@@ -247,16 +247,23 @@ public static partial class SignatureHelpHandler
     /// <see cref="AttributeTypeSymbol"/> to build a dynamic signature from its fields.
     /// </summary>
     private static List<(string Label, string[] Params)>? TryBuildUserDefinedAttributeSignature(
-        string sourceText, string attrName)
+        string sourceText, string attrName, Compilation? cachedCompilation = null)
     {
         Compilation compilation;
-        try
+        if (cachedCompilation != null)
         {
-            compilation = CompilationHelper.Compile(sourceText);
+            compilation = cachedCompilation;
         }
-        catch
+        else
         {
-            return null;
+            try
+            {
+                compilation = CompilationHelper.Compile(sourceText);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         // Search all types for a matching AttributeTypeSymbol

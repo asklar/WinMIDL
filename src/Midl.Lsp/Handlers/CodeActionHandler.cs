@@ -11,7 +11,8 @@ public static class CodeActionHandler
     public static object? Handle(JsonElement? @params, DocumentManager docManager,
         IReadOnlyList<string>? referencePaths = null,
         IReadOnlyList<string>? includePaths = null,
-        string? currentFilePath = null)
+        string? currentFilePath = null,
+        Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -28,9 +29,17 @@ public static class CodeActionHandler
 
         // Recompile to get our diagnostics with Data (replacement info).
         // Use quality hints so MIDL3xxx diagnostics are available for code actions.
-        var compilation = CompilationHelper.Compile(text, referencePaths: referencePaths,
-            mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: currentFilePath,
-            defines: null, emitQualityHints: true);
+        Compilation compilation;
+        if (cachedCompilation != null)
+        {
+            compilation = cachedCompilation;
+        }
+        else
+        {
+            compilation = CompilationHelper.Compile(text, referencePaths: referencePaths,
+                mode: CompilationMode.Strict, includePaths: includePaths, currentFilePath: currentFilePath,
+                defines: null, emitQualityHints: true);
+        }
 
         foreach (var lspDiag in diagnostics.EnumerateArray())
         {

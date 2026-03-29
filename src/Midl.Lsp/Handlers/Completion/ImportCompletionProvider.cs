@@ -52,7 +52,7 @@ internal static class ImportCompletionProvider
     /// Detects if the cursor is inside [feature(|)] and returns completion items
     /// for all declared feature_name identifiers in the source.
     /// </summary>
-    internal static List<object>? DetectFeatureAttributeArgContext(string text, int offset)
+    internal static List<object>? DetectFeatureAttributeArgContext(string text, int offset, Compilation? cachedCompilation = null)
     {
         // Walk backward from cursor to find an unmatched '('
         int parenDepth = 0;
@@ -85,7 +85,7 @@ internal static class ImportCompletionProvider
         var items = new List<object>();
         try
         {
-            var compilation = CompilationHelper.Compile(text);
+            var compilation = cachedCompilation ?? CompilationHelper.Compile(text);
             foreach (var name in compilation.FeatureNames.Keys)
             {
                 CompletionHandler.AddItem(items, name, CompletionHandler.KindEnumMember, "feature_name declaration");

@@ -23,7 +23,7 @@ public static class DocumentSymbolHandler
     private const int SymbolKindField = 8;
     private const int SymbolKindEnumMember = 22;
 
-    public static object? Handle(JsonElement? @params, DocumentManager docManager)
+    public static object? Handle(JsonElement? @params, DocumentManager docManager, Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -36,17 +36,26 @@ public static class DocumentSymbolHandler
         var lineStarts = PositionHelper.BuildLineStarts(text);
 
         // Use the compilation to get symbols, which is more reliable than walking the green tree
-        try
+        Compilation compilation;
+        if (cachedCompilation != null)
         {
-            var compilation = CompilationHelper.Compile(text);
-            var symbols = new List<object>();
-            CollectSymbols(compilation.GlobalNamespace, lineStarts, text, symbols);
-            return symbols;
+            compilation = cachedCompilation;
         }
-        catch
+        else
         {
-            return Array.Empty<object>();
+            try
+            {
+                compilation = CompilationHelper.Compile(text);
+            }
+            catch
+            {
+                return Array.Empty<object>();
+            }
         }
+
+        var symbols = new List<object>();
+        CollectSymbols(compilation.GlobalNamespace, lineStarts, text, symbols);
+        return symbols;
     }
 
     private static void CollectSymbols(NamespaceSymbol ns, int[] lineStarts, string text, List<object> symbols)

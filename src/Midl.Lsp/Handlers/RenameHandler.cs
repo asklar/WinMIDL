@@ -10,7 +10,7 @@ namespace Midl.Lsp.Handlers;
 /// </summary>
 public static class RenameHandler
 {
-    public static object? Handle(JsonElement? @params, DocumentManager docManager)
+    public static object? Handle(JsonElement? @params, DocumentManager docManager, Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -24,10 +24,10 @@ public static class RenameHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return null;
 
-        return HandleCore(text, uri, line, character, newName);
+        return HandleCore(text, uri, line, character, newName, cachedCompilation);
     }
 
-    public static object? HandlePrepare(JsonElement? @params, DocumentManager docManager)
+    public static object? HandlePrepare(JsonElement? @params, DocumentManager docManager, Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -40,14 +40,14 @@ public static class RenameHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return null;
 
-        return HandlePrepareCore(text, line, character);
+        return HandlePrepareCore(text, line, character, cachedCompilation);
     }
 
     /// <summary>
     /// Core rename logic, testable without LSP JSON plumbing.
     /// Returns a WorkspaceEdit or null if rename is not possible.
     /// </summary>
-    public static object? HandleCore(string sourceText, string uri, int line, int character, string newName)
+    public static object? HandleCore(string sourceText, string uri, int line, int character, string newName, Compilation? cachedCompilation = null)
     {
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
         int offset = PositionHelper.LineCharToOffset(lineStarts, line, character);
@@ -61,13 +61,20 @@ public static class RenameHandler
         string name = token.Text;
 
         Compilation compilation;
-        try
+        if (cachedCompilation != null)
         {
-            compilation = CompilationHelper.Compile(sourceText);
+            compilation = cachedCompilation;
         }
-        catch
+        else
         {
-            return null;
+            try
+            {
+                compilation = CompilationHelper.Compile(sourceText);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         var symbol = FindSymbol(compilation, name);
@@ -117,7 +124,7 @@ public static class RenameHandler
     /// Validates that a rename is possible at the given position.
     /// Returns the range of the symbol token, or null if not renameable.
     /// </summary>
-    public static object? HandlePrepareCore(string sourceText, int line, int character)
+    public static object? HandlePrepareCore(string sourceText, int line, int character, Compilation? cachedCompilation = null)
     {
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
         int offset = PositionHelper.LineCharToOffset(lineStarts, line, character);
@@ -131,13 +138,20 @@ public static class RenameHandler
         string name = token.Text;
 
         Compilation compilation;
-        try
+        if (cachedCompilation != null)
         {
-            compilation = CompilationHelper.Compile(sourceText);
+            compilation = cachedCompilation;
         }
-        catch
+        else
         {
-            return null;
+            try
+            {
+                compilation = CompilationHelper.Compile(sourceText);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         var symbol = FindSymbol(compilation, name);
