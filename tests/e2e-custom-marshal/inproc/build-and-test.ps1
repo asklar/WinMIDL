@@ -3,6 +3,9 @@
     Build and run the in-proc WinRT proxy/stub e2e test.
 
 .DESCRIPTION
+    This script can also be run via: dotnet test --filter "Category=E2E"
+    The C# tests in Midl.Integration.Tests contain the equivalent logic.
+
     1. Runs WinMIDL CLI to generate header, IID, and C++ proxy code
     2. Discovers MSVC via vswhere
     3. Compiles server DLL + proxy DLL + client EXE

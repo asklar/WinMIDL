@@ -1,7 +1,11 @@
 <#
 .SYNOPSIS
     Build and run the comprehensive in-proc WinRT proxy/stub e2e test.
+
 .DESCRIPTION
+    This script can also be run via: dotnet test --filter "Category=E2E"
+    The C# tests in Midl.Integration.Tests contain the equivalent logic.
+
     1. Runs our MIDL CLI to generate header, IID, and proxy code from the IDL
     2. Discovers MSVC via vswhere
     3. Compiles server DLL (ComprehensiveServer.dll)
