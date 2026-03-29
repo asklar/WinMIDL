@@ -1,4 +1,5 @@
 using System.Reflection.Metadata;
+using Midl.Analysis;
 using Midl.Analysis.Symbols;
 using Midl.CodeGen.Decompiler;
 using Midl.Syntax;
@@ -26,12 +27,17 @@ internal static class WinMdNavigator
             var decompiler = new WinMdDecompiler();
             var decompiled = decompiler.Decompile(symbol.SourceWinMdPath!, nsFilter);
 
-            // Find the symbol in decompiled text using keyword + name pattern
-            int defOffset = GotoDefinitionHandler.FindDefinitionOffset(decompiled, symbol);
+            // Parse the decompiled text to get accurate symbol positions
+            int defOffset = FindSymbolByParsing(decompiled, symbol);
             if (defOffset < 0)
             {
-                // Symbol not found in decompiled text (e.g., CLR-projected type like TimeSpan).
-                // Still open the namespace view but position at top.
+                // Fallback: text search for non-type symbols or parse failures
+                defOffset = GotoDefinitionHandler.FindDefinitionOffset(decompiled, symbol);
+            }
+            if (defOffset < 0)
+            {
+                // Still not found (e.g., CLR-projected type like TimeSpan).
+                // Open the namespace view positioned at top.
                 defOffset = 0;
             }
 
@@ -50,6 +56,25 @@ internal static class WinMdNavigator
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Parses decompiled IDL text and looks up the symbol by name to get its exact source position.
+    /// Returns the offset of the symbol's name token, or -1 if not found.
+    /// </summary>
+    private static int FindSymbolByParsing(string decompiledText, ISymbol symbol)
+    {
+        try
+        {
+            var compilation = CompilationHelper.Compile(decompiledText);
+            foreach (var type in compilation.GetAllTypes())
+            {
+                if (type.Name == symbol.Name && type.SourcePosition >= 0)
+                    return type.SourcePosition;
+            }
+        }
+        catch { }
+        return -1;
     }
 
     /// <summary>

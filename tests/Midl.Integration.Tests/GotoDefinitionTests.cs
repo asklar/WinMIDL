@@ -355,6 +355,17 @@ public partial class GotoDefinitionTests
     }
 
     [Fact]
+    public void FindDefinitionOffset_Delegate_LongGenericReturnType()
+    {
+        // Regression: delegates with long generic return types (>40 chars) were not found
+        var source = "namespace N {\n    delegate Windows.Foundation.IAsyncOperationWithProgress<SomeResultView, SomeProgress> ExecuteQueryDelegate(SomeFactory factory);\n}\n";
+        var symbol = new Midl.Analysis.Symbols.DelegateSymbol("ExecuteQueryDelegate", null!);
+        int offset = GotoDefinitionHandler.FindDefinitionOffset(source, symbol);
+        Assert.True(offset >= 0, "Should find delegate with long generic return type");
+        Assert.Equal("ExecuteQueryDelegate", source.Substring(offset, "ExecuteQueryDelegate".Length));
+    }
+
+    [Fact]
     public void FindDefinitionOffset_Struct_FindsDefinitionNotPropertyType()
     {
         // "struct TimeSpan" should be found, not "TimeSpan" in a property type

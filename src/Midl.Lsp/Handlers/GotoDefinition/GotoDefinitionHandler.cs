@@ -245,12 +245,20 @@ public static partial class GotoDefinitionHandler
                 int delegateIdx = sourceText.IndexOf("delegate ", searchFrom, StringComparison.Ordinal);
                 if (delegateIdx < 0) break;
                 int afterDelegate = delegateIdx + 9;
-                int nameIdx = sourceText.IndexOf(symbol.Name, afterDelegate, StringComparison.Ordinal);
-                if (nameIdx >= 0 && nameIdx - afterDelegate < 40)
-                    return nameIdx;
+                // Find the name on the same line — return types can be long (generics)
+                int lineEnd = sourceText.IndexOf('\n', afterDelegate);
+                if (lineEnd < 0) lineEnd = sourceText.Length;
+                int nameIdx = sourceText.IndexOf(symbol.Name, afterDelegate, lineEnd - afterDelegate, StringComparison.Ordinal);
+                if (nameIdx >= 0)
+                {
+                    // Verify word boundary
+                    int afterName = nameIdx + symbol.Name.Length;
+                    if (afterName >= sourceText.Length || !char.IsLetterOrDigit(sourceText[afterName]) && sourceText[afterName] != '_')
+                        return nameIdx;
+                }
                 searchFrom = afterDelegate;
             }
-            return -1; // delegate not found either
+            return -1;
         }
 
         // Fallback for members only (methods, properties, etc.): find with word boundary
