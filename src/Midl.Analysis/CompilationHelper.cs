@@ -107,6 +107,9 @@ public static class CompilationHelper
         string? baseDir = currentFilePath != null ? Path.GetDirectoryName(Path.GetFullPath(currentFilePath)) : null;
         var refDiagnostics = RefDirectiveParser.ValidateRefDirectives(source, baseDir);
 
+        // Save original source for position remapping after preprocessing
+        var originalSource = source;
+
         // Run preprocessor before lexing
         var preprocessor = new Midl.Lexer.Preprocessor(defines, includePaths, currentFilePath);
         source = preprocessor.Process(source);
@@ -213,6 +216,13 @@ public static class CompilationHelper
             compilation = ResolveDiagnosticSourceFiles(compilation, sourceMap);
         }
 
+        // For single-file preprocessing (no #include), the preprocessor preserves line count.
+        // Remap positions from expanded text to original text using line+column correspondence.
+        if (originalSource != source && !preprocessor.HasIncludeDirectives)
+        {
+            compilation = RemapDiagnosticPositionsByLine(compilation, source, originalSource, currentFilePath);
+        }
+
         return compilation;
     }
 
@@ -255,6 +265,97 @@ public static class CompilationHelper
         foreach (var kvp in compilation.FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
 #endif
         return result;
+    }
+
+    /// <summary>
+    /// Remaps diagnostic positions from expanded text to original text using line+column correspondence.
+    /// The preprocessor preserves line count (directive/inactive lines → empty lines), so
+    /// line numbers are identical between expanded and original. Only column offsets may differ
+    /// on lines with macro substitution — but diagnostics rarely point to macro-substituted text.
+    /// </summary>
+    private static Compilation RemapDiagnosticPositionsByLine(
+        Compilation compilation, string expandedText, string originalText, string? filePath)
+    {
+        if (compilation.Diagnostics.Count == 0)
+            return compilation;
+
+        var expandedLineStarts = BuildLineStartsArray(expandedText);
+        var originalLineStarts = BuildLineStartsArray(originalText);
+
+        var resolved = new List<Diagnostics.Diagnostic>(compilation.Diagnostics.Count);
+        bool anyChanged = false;
+
+        foreach (var diag in compilation.Diagnostics)
+        {
+            // Skip diagnostics already resolved by the sourcemap (from #include)
+            if (diag.OriginalPosition.HasValue)
+            {
+                resolved.Add(diag);
+                continue;
+            }
+
+            int pos = diag.Position;
+            // Find line in expanded text
+            int line = FindLine(expandedLineStarts, pos);
+            int col = pos - expandedLineStarts[line];
+
+            // Map to same line+col in original text
+            if (line < originalLineStarts.Length)
+            {
+                int originalPos = originalLineStarts[line] + col;
+                // Clamp to original text length
+                if (originalPos > originalText.Length)
+                    originalPos = originalText.Length;
+                resolved.Add(diag with
+                {
+                    SourceFile = filePath ?? diag.SourceFile,
+                    OriginalPosition = originalPos
+                });
+                anyChanged = true;
+            }
+            else
+            {
+                resolved.Add(diag);
+            }
+        }
+
+        if (!anyChanged)
+            return compilation;
+
+        var result = new Compilation(compilation.GlobalNamespace, resolved, compilation.LazyProviders);
+        result.SourceMap = compilation.SourceMap;
+        result.SymbolTable = compilation.SymbolTable;
+#if WINDOWS_INTERNAL
+        foreach (var kvp in compilation.FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
+#endif
+        return result;
+    }
+
+    private static int[] BuildLineStartsArray(string text)
+    {
+        var starts = new List<int> { 0 };
+        for (int i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '\n')
+                starts.Add(i + 1);
+        }
+        return starts.ToArray();
+    }
+
+    private static int FindLine(int[] lineStarts, int offset)
+    {
+        int lo = 0, hi = lineStarts.Length - 1;
+        while (lo <= hi)
+        {
+            int mid = lo + (hi - lo) / 2;
+            if (mid + 1 < lineStarts.Length && offset >= lineStarts[mid + 1])
+                lo = mid + 1;
+            else if (offset < lineStarts[mid])
+                hi = mid - 1;
+            else
+                return mid;
+        }
+        return lo;
     }
 
     /// <summary>
