@@ -52,12 +52,12 @@ public sealed partial class MidlLanguageServer
         _writer = new JsonRpcWriter(output);
         _diagnostics = new DiagnosticsPublisher(_writer);
 
-        // Always enable trace logging to stderr for diagnostics
+        // Enable trace logging to file for diagnostics (no stderr tee — avoids console noise in tests)
         if (!MidlTrace.IsEnabled)
         {
             var logPath = Environment.GetEnvironmentVariable("MIDL_DEBUG_LOG")
                 ?? Path.Combine(Path.GetTempPath(), "midl-lsp.log");
-            MidlTrace.Enable(logPath);
+            MidlTrace.Enable(logPath, alsoWriteToStdErr: false);
             MidlTrace.Lsp($"Server started, logging to {logPath}");
         }
     }
