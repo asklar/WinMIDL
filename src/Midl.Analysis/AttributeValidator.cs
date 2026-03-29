@@ -530,6 +530,13 @@ public partial class AttributeValidator
 
             if (lowerName == "contract")
             {
+                // [contract] requires exactly 2 args: (ContractName, version)
+                if (attr.Arguments.Count != 2)
+                {
+                    _diagnostics.Add(DiagnosticDescriptors.AttributeArgCountMismatch(
+                        "contract", 2, attr.Arguments.Count, attr.Position));
+                    continue;
+                }
                 var contractRef = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
                 if (contractRef != null && !apiContracts.Contains(contractRef))
                 {
