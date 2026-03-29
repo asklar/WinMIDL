@@ -1,168 +1,95 @@
-# MIDL — Microsoft Interface Definition Language Compiler
+# WinMIDL — Microsoft Interface Definition Language Compiler
 
-A modern, incremental, editor-friendly rewrite of the MIDL compiler in C# / .NET 10.
+A modern, fast, editor-friendly MIDL compiler. Ships as a single ~9 MB native executable — no .NET runtime required.
 
 ---
 
 ## Overview
 
-This project is a **ground-up rewrite** of the Microsoft Interface Definition Language (MIDL) compiler. It targets modern C# and .NET 10, replacing the legacy native-code compiler with a fully managed implementation built around a Roslyn-style architecture.
-
-| Goal | Description |
-|------|-------------|
-| **Primary** | 100 % MIDL3 syntax parity with an error-recovering parser designed for LSP / editor integration |
-| **Secondary** | Best-effort classic MIDL support |
+WinMIDL is a **ground-up rewrite** of the Microsoft MIDL compiler. It compiles MIDL3 (and classic MIDL) source into Windows Metadata, C/C++ headers, IID files, and custom proxy/stub code for COM marshaling — all from a single self-contained binary.
 
 ### Outputs
 
-| Artifact | Extension |
-|----------|-----------|
-| Windows Metadata | `.winmd` |
-| C / C++ headers | `.h` |
-| IID definitions | `_i.c` |
-| Custom proxy/stub | `_proxy.cpp` |
-| DllData | `dlldata.c` |
-| Proxy / stub skeletons | `_p.c` |
+| Artifact | Extension | Switch |
+|----------|-----------|--------|
+| Windows Metadata | `.winmd` | `/winmd` |
+| C / C++ headers | `.h` | `/h` |
+| IID definitions | `_i.c` | `/iid` |
+| Custom proxy/stub | `_proxy.cpp` | `/cppproxy` |
+| DllData | `dlldata.c` | (automatic) |
 
-The project also ships a **Language Server Protocol (LSP) server** and a **VS Code extension** for real-time diagnostics, completions, hover info, and more.
+The same binary also serves as an **LSP server** — editor extensions for VS Code and Visual Studio ship with it bundled.
 
 ---
 
 ## Quick Start
 
 ```bash
-# Build
-dotnet build
-
-# Run tests
-dotnet test
-
 # Compile a MIDL file (header + IIDs)
-dotnet run --project src/Midl.Cli -- /winrt /h output.h /iid output_i.c input.idl
+Midl.Cli /winrt /h Widget.h /iid Widget_i.c Widget.idl
 
 # Generate Windows Metadata
-dotnet run --project src/Midl.Cli -- /winmd output.winmd input.idl
+Midl.Cli /winmd Widget.winmd Widget.idl
 
 # Generate proxy/stub code for COM marshaling
-dotnet run --project src/Midl.Cli -- /winrt /h Widget.h /iid Widget_i.c /cppproxy Widget_proxy.cpp Widget.idl
+Midl.Cli /winrt /h Widget.h /iid Widget_i.c /cppproxy Widget_proxy.cpp Widget.idl
 
 # Decompile a .winmd back to IDL
-dotnet run --project src/Midl.Cli -- --decompile output.winmd
+Midl.Cli --decompile Windows.Foundation.winmd
 
-# Syntax check only
-dotnet run --project src/Midl.Cli -- /Zs input.idl
+# Inspect WinMD metadata tables
+Midl.Cli --dump-winmd Widget.winmd
 
-# Start LSP server
-dotnet run --project src/Midl.Cli -- --lsp
+# Syntax check only (no output)
+Midl.Cli /Zs Widget.idl
+
+# Analyze with diagnostics
+Midl.Cli --analyze Widget.idl
 ```
 
 ---
 
-## Project Structure
+## Editor Extensions
 
-| Directory | Purpose |
-|-----------|---------|
-| `src/Midl.Syntax` | Syntax kinds, red-green tree infrastructure |
-| `src/Midl.Lexer` | Error-tolerant tokenizer (60+ keywords) |
-| `src/Midl.Parser` | Error-recovering recursive-descent parser |
-| `src/Midl.Analysis` | Semantic analysis, symbol table, WinMD reader |
-| `src/Midl.CodeGen` | Output backends (WinMD, headers, IIDs, stubs) |
-| `src/Midl.Lsp` | Language Server Protocol server |
-| `src/Midl.Cli` | Command-line interface (30+ switches) |
-| `editors/vscode` | VS Code extension (TextMate grammar + LSP client) |
-| `tests/` | 5 test projects, 2200+ tests |
-| `docs/` | Architecture, testing, diagnostics, winmidl.json guides |
+### VS Code
 
----
+Install the **MIDL Language Support** extension from a `.vsix` package:
 
-## Architecture Overview
-
-The compiler follows a **Roslyn-style red-green syntax tree** design. The green tree is an immutable, fully-faithful concrete syntax tree (CST) that preserves every token and trivia from the source file. A thin red-tree wrapper adds parent pointers and absolute positions on demand.
-
-Key design choices:
-
-- **Error recovery** — the parser never throws; it inserts missing tokens and skips unexpected ones so that every input produces a complete tree.
-- **WinMD emission** — built on `System.Reflection.Metadata` for zero-dependency metadata writing.
-- **LSP over stdio** — the same binary serves as both a CLI compiler and a language server.
-
-> For a deep dive see [docs/architecture.md](docs/architecture.md).
-
-### Compilation Pipeline
-
-```mermaid
-graph LR
-    A[".idl source"] --> B[Lexer]
-    B --> C[Parser]
-    C --> D[Green Tree / CST]
-    D --> E[Binder]
-    E --> F[Compilation]
-    F --> G[WinMD Emitter]
-    F --> H[Header Emitter]
-    F --> I[IID Emitter]
-    F --> K[Proxy/Stub Emitter]
-    F --> J[LSP Server]
+```bash
+code --install-extension midl-language.vsix
 ```
 
----
+### Visual Studio
 
-## Supported MIDL3 Syntax
+Install the **WinMIDL** extension for Visual Studio 2022+:
 
-The parser currently handles the following MIDL3 constructs:
+```bash
+VSIXInstaller.exe Midl.VsExtension.vsix
+```
 
-- **Namespaces** — nested and dotted
-- **Runtime classes** — `static`, `partial`, `unsealed`, base types, interface `requires`
-- **Interfaces** — including `requires` clauses
-- **Delegates**
-- **Structs** and **enums** (including `[flags]`)
-- **API contracts**
-- **Events**, **properties**, and **constructors**
-- **Versioned blocks** (`contract`)
-- **Generics** — parameterized interfaces and delegates
-- **Modern built-in types** — `String`, `Boolean`, `Int32`, `IVector<T>`, etc.
-- **Custom attributes**
-
-> See [PLAN.md](PLAN.md) for the full 91-feature implementation catalog.
-
----
-
-## VS Code Extension
-
-The `editors/vscode` directory contains a VS Code extension that bundles:
-
-- **TextMate grammar** for MIDL syntax highlighting
-- **LSP client** that communicates with the compiler's built-in language server
-
-### Features
+Both extensions bundle the compiler binary (x64 + ARM64) and provide:
 
 | Feature | Status |
 |---------|--------|
 | Syntax highlighting | ✅ |
 | Real-time diagnostics | ✅ |
-| Completions | ✅ |
+| Completions (context-aware) | ✅ |
 | Hover information | ✅ |
-| Go-to-definition | ✅ |
-| Signature help | ✅ |
+| Go-to-definition (incl. F12 into SDK `.winmd`) | ✅ |
+| Signature help (methods + attributes) | ✅ |
 | Semantic tokens | ✅ |
 | Code folding | ✅ |
 | Formatting | ✅ |
-
-### Install
-
-```bash
-cd editors/vscode
-npm install
-npm run build
-code --install-extension midl-*.vsix
-```
-
-> See [docs/testing.md](docs/testing.md) for detailed build and test instructions.
+| Quick fixes | ✅ |
+| Rename symbol | ✅ |
+| Find references | ✅ |
 
 ---
 
-## Command-Line Usage
+## Command-Line Reference
 
 ```
-dotnet run --project src/Midl.Cli -- [switches] <input.idl>
+Midl.Cli [switches] <input.idl>
 ```
 
 ### Key Switches
@@ -170,7 +97,7 @@ dotnet run --project src/Midl.Cli -- [switches] <input.idl>
 | Switch | Description |
 |--------|-------------|
 | `/winrt` | Enable Windows Runtime (MIDL3) mode |
-| `/winmd <file>` | Emit Windows Metadata (`.winmd`) |
+| `/winmd <file>` | Emit Windows Metadata (`.winmd`; implies `/winrt`) |
 | `/cppproxy <file>` | Emit custom proxy/stub C++ code |
 | `/h <file>` | Emit C/C++ header |
 | `/iid <file>` | Emit IID definitions (`_i.c`) |
@@ -182,6 +109,9 @@ dotnet run --project src/Midl.Cli -- [switches] <input.idl>
 | `/D <name>=<val>` | Define a preprocessor macro |
 | `/I <dir>` | Add an include search path |
 | `--lsp` | Start as an LSP server (stdio) |
+| `--analyze` | Analyze and report diagnostics |
+| `--decompile <.winmd>` | Decompile a WinMD back to IDL |
+| `--dump-winmd <.winmd>` | Dump WinMD metadata tables |
 | `/?` | Show full help |
 | `/nologo` | Suppress the banner |
 
@@ -193,13 +123,13 @@ Use the `/winmd` switch to emit a `.winmd` file from your IDL:
 
 ```bash
 # Generate a .winmd file (implicitly enables /winrt mode)
-dotnet run --project src/Midl.Cli -- /winmd output.winmd input.idl
+Midl.Cli /winmd output.winmd input.idl
 
 # Generate both header and WinMD
-dotnet run --project src/Midl.Cli -- /winrt /h output.h /winmd output.winmd input.idl
+Midl.Cli /winrt /h output.h /winmd output.winmd input.idl
 ```
 
-The emitter uses `System.Reflection.Metadata` to produce spec-compliant WinMD files with:
+The emitter produces spec-compliant WinMD files with:
 
 - **Full attribute emission** — `[contract]`, `[activatable]`, `[composable]`, `[static]`, `[deprecated]`, `[threading]`, `[marshaling_behavior]`, `[version]`, `[experimental]`, `[noexcept]`, `[remote_async]`, `[attributeusage]`, and user-defined attributes
 - **Correct version encoding** — integer versions encoded as `(major << 16) | minor`, hex passthrough, `major.minor` notation
@@ -211,10 +141,10 @@ The emitter uses `System.Reflection.Metadata` to produce spec-compliant WinMD fi
 
 ```bash
 # Dump metadata tables (types, methods, attributes)
-dotnet run --project src/Midl.Cli -- --dump-winmd output.winmd
+Midl.Cli --dump-winmd output.winmd
 
 # Decompile back to IDL
-dotnet run --project src/Midl.Cli -- --decompile output.winmd
+Midl.Cli --decompile output.winmd
 ```
 
 ---
@@ -225,7 +155,7 @@ WinMIDL can generate custom C++ proxy/stub code for COM marshaling, replacing th
 
 ```bash
 # Generate header, IID file, and proxy/stub C++ code
-dotnet run --project src/Midl.Cli -- /winrt /h Widget.h /iid Widget_i.c /cppproxy Widget_proxy.cpp Widget.idl
+Midl.Cli /winrt /h Widget.h /iid Widget_i.c /cppproxy Widget_proxy.cpp Widget.idl
 ```
 
 ### What's Generated
@@ -280,7 +210,7 @@ The proxy code depends on `include/winmidl/proxy_helpers.h` which provides:
 
 ## Project Configuration (`winmidl.json`)
 
-For multi-file projects, create a `winmidl.json` in your project root to configure cross-file compilation:
+For multi-file projects, create a `winmidl.json` in your project root:
 
 ```jsonc
 {
@@ -298,17 +228,40 @@ The LSP discovers this file automatically, enabling cross-file symbol resolution
 
 ---
 
+## Supported MIDL3 Syntax
+
+- **Namespaces** — nested and dotted
+- **Runtime classes** — `static`, `partial`, `unsealed`, base types, interface `requires`
+- **Interfaces** — including `requires` clauses
+- **Delegates**
+- **Structs** and **enums** (including `[flags]`)
+- **API contracts** and **versioned blocks**
+- **Events**, **properties**, and **constructors**
+- **Generics** — parameterized interfaces and delegates
+- **Modern built-in types** — `String`, `Boolean`, `Int32`, `IVector<T>`, etc.
+- **Custom attributes** — user-defined attribute types with `[attributeusage]`
+
+---
+
 ## Links
 
-- [Architecture](docs/architecture.md)
+- [Diagnostics Reference](docs/diagnostics.md)
 - [Marshaling Architecture](docs/marshaling-architecture.md)
 - [Wire Format Spec](docs/wire-format-spec.md)
-- [Diagnostics Reference](docs/diagnostics.md)
 - [Project Configuration (winmidl.json)](docs/winmidl-json.md)
-- [Testing Guide](docs/testing.md)
-- [Contributing](CONTRIBUTING.md)
-- [Implementation Plan](PLAN.md)
 - [MIDL3 Documentation](https://learn.microsoft.com/en-us/uwp/midl-3/)
+
+---
+
+## Building from Source
+
+```bash
+dotnet build
+dotnet test
+```
+
+> See [CONTRIBUTING.md](CONTRIBUTING.md) for prerequisites, project structure, and development workflow.
+> See [docs/architecture.md](docs/architecture.md) for compiler internals and design.
 
 ---
 
