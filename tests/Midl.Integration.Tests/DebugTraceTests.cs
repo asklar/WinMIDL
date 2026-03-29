@@ -30,11 +30,23 @@ public class DebugTraceTests : IDisposable
     [Fact]
     public void TraceCanBeEnabled()
     {
-        MidlTrace.Enable();
-        Assert.True(MidlTrace.IsEnabled);
-        MidlTrace.Write("TEST", "Hello from test");
-        MidlTrace.Disable();
-        Assert.False(MidlTrace.IsEnabled);
+        var tempFile = Path.GetTempFileName();
+        try
+        {
+            MidlTrace.Enable(tempFile);
+            Assert.True(MidlTrace.IsEnabled);
+            MidlTrace.Write("TEST", "Hello from test");
+            MidlTrace.Disable();
+            Assert.False(MidlTrace.IsEnabled);
+
+            var content = File.ReadAllText(tempFile);
+            Assert.Contains("Hello from test", content);
+        }
+        finally
+        {
+            MidlTrace.Disable();
+            try { File.Delete(tempFile); } catch { }
+        }
     }
 
     [Fact]
@@ -56,7 +68,8 @@ public class DebugTraceTests : IDisposable
         }
         finally
         {
-            File.Delete(tempFile);
+            MidlTrace.Disable();
+            try { File.Delete(tempFile); } catch { }
         }
     }
 
@@ -79,7 +92,8 @@ public class DebugTraceTests : IDisposable
         }
         finally
         {
-            File.Delete(tempFile);
+            MidlTrace.Disable();
+            try { File.Delete(tempFile); } catch { }
         }
     }
 
@@ -105,7 +119,8 @@ public class DebugTraceTests : IDisposable
         }
         finally
         {
-            File.Delete(tempFile);
+            MidlTrace.Disable();
+            try { File.Delete(tempFile); } catch { }
         }
     }
 }
