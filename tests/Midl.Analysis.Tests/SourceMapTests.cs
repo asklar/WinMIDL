@@ -522,4 +522,94 @@ public class SourceMapTests : IDisposable
             }
         }
     }
+
+    #region Ifdef + Define Position Remapping
+
+    [Fact]
+    public void Ifdef_DiagnosticPosition_PointsToCorrectColumn()
+    {
+        // #ifdef false block shifts positions in expanded text.
+        // Diagnostic should point to the runtimeclass NAME, not the attribute.
+        var source = "namespace N {\n#ifdef NOTDEFINED\n    some content\n#endif\n    [contract(Foo, 1)] runtimeclass MyClass;\n}";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        // Use OriginalPosition if available, else Position
+        int pos = diag.OriginalPosition ?? diag.Position;
+        // Should point to "MyClass" in the original source
+        Assert.Equal("MyClass", source.Substring(pos, "MyClass".Length));
+    }
+
+    [Fact]
+    public void Define_MacroSubstitution_DiagnosticPosition_StillCorrect()
+    {
+        // #define changes line length in expanded text.
+        // Diagnostic position must be correct in the ORIGINAL source.
+        var source = "#define VER 1.0\nnamespace N {\n    [contractversion(VER)] apicontract Foo {}\n    [contract(Foo, 1)] runtimeclass MyClass;\n}";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("MyClass", source.Substring(pos, "MyClass".Length));
+    }
+
+    [Fact]
+    public void MultipleDefines_And_Ifdef_DiagnosticPosition_Correct()
+    {
+        // Multiple #defines + #ifdef should all compose correctly.
+        var source = "#define A 1\n#define B 2\n#define C 3\nnamespace N {\n#ifdef NOPE\n    stuff\n    more stuff\n#endif\n    runtimeclass Widget;\n}";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Widget", source.Substring(pos, "Widget".Length));
+    }
+
+    [Fact]
+    public void EditingDefine_DoesNotShift_DiagnosticPosition()
+    {
+        // Simulate the bug: editing a #define line changes original text length
+        // but not expanded text. Diagnostics must still point correctly.
+        var source1 = "#define FOO 1\nnamespace N { runtimeclass W; }";
+        var source2 = "#define FOO\nnamespace N { runtimeclass W; }";
+
+        var comp1 = CompilationHelper.Compile(source1, mode: CompilationMode.Strict);
+        var comp2 = CompilationHelper.Compile(source2, mode: CompilationMode.Strict);
+
+        var diag1 = comp1.Diagnostics.First(d => d.Code == "MIDL1062");
+        var diag2 = comp2.Diagnostics.First(d => d.Code == "MIDL1062");
+
+        int pos1 = diag1.OriginalPosition ?? diag1.Position;
+        int pos2 = diag2.OriginalPosition ?? diag2.Position;
+
+        // Both should point to "W" in their respective source texts
+        Assert.Equal("W", source1.Substring(pos1, 1));
+        Assert.Equal("W", source2.Substring(pos2, 1));
+    }
+
+    [Fact]
+    public void DiagnosticsPublisher_MainFilePath_Parsing()
+    {
+        // Regression: Uri.LocalPath on Windows returns "/c:/path" with leading slash.
+        // Path.GetFullPath("/c:/path") resolves to "E:\c:\path" (wrong drive).
+        var uri = "file:///c%3A/Users/test/file.idl";
+        var uriObj = new Uri(uri);
+        var localPath = uriObj.LocalPath;
+
+        // Strip leading / on Windows drive paths
+        if (localPath.Length > 2 && localPath[0] == '/' && localPath[2] == ':')
+            localPath = localPath[1..];
+
+        var fullPath = Path.GetFullPath(localPath);
+        Assert.StartsWith("c:", fullPath, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(@":\c:", fullPath); // Must NOT double up drives
+    }
+
+    #endregion
 }

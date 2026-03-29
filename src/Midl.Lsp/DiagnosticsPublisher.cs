@@ -32,7 +32,12 @@ public sealed class DiagnosticsPublisher
         {
             var uriObj = new Uri(uri);
             if (uriObj.IsFile)
+            {
                 mainFilePath = uriObj.LocalPath;
+                // On Windows, Uri.LocalPath for file:///c%3A/... gives "/c:/..." — strip leading /
+                if (mainFilePath.Length > 2 && mainFilePath[0] == '/' && mainFilePath[2] == ':')
+                    mainFilePath = mainFilePath[1..];
+            }
         }
         catch { }
 
@@ -43,14 +48,18 @@ public sealed class DiagnosticsPublisher
             if (d.OriginalPosition.HasValue)
                 adjusted = d with { Position = d.OriginalPosition.Value };
 
-            if (d.SourceFile != null &&
-                (mainFilePath == null || !string.Equals(Path.GetFullPath(d.SourceFile), Path.GetFullPath(mainFilePath), StringComparison.OrdinalIgnoreCase)))
+            bool isMainFile = d.SourceFile == null ||
+                (mainFilePath != null && string.Equals(
+                    Path.GetFullPath(d.SourceFile), Path.GetFullPath(mainFilePath),
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (!isMainFile)
             {
                 // Diagnostic from a different file (e.g., #include)
-                if (!fileGroups.TryGetValue(d.SourceFile, out var list))
+                if (!fileGroups.TryGetValue(d.SourceFile!, out var list))
                 {
                     list = new List<Analysis.Diagnostics.Diagnostic>();
-                    fileGroups[d.SourceFile] = list;
+                    fileGroups[d.SourceFile!] = list;
                 }
                 list.Add(adjusted);
             }

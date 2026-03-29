@@ -292,13 +292,6 @@ public static class CompilationHelper
 
         foreach (var diag in compilation.Diagnostics)
         {
-            // Skip diagnostics already resolved by the sourcemap (from #include)
-            if (diag.OriginalPosition.HasValue)
-            {
-                resolved.Add(diag);
-                continue;
-            }
-
             int pos = diag.Position;
             // Find line in expanded text
             int line = FindLine(expandedLineStarts, pos);
@@ -308,6 +301,7 @@ public static class CompilationHelper
             if (line < originalLineStarts.Length)
             {
                 int originalPos = originalLineStarts[line] + col;
+
                 // Clamp to original text length
                 if (originalPos > originalText.Length)
                     originalPos = originalText.Length;
