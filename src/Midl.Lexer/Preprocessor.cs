@@ -24,6 +24,9 @@ public class Preprocessor
     /// <summary>True if any #include directive was encountered during processing.</summary>
     public bool HasIncludeDirectives { get; private set; }
 
+    /// <summary>Positions of #include directives in the original source (for diagnostic squiggles).</summary>
+    public List<int> IncludeDirectivePositions { get; } = new();
+
     /// <summary>
     /// Raw source-map segment data produced during preprocessing.
     /// Each tuple: (expandedStart, expandedEnd, filePath, originalStart).
@@ -160,7 +163,7 @@ public class Preprocessor
     }
 #endif
 
-    private string ProcessInternal(string source, string? filePath, int baseOffset = 0)
+    private string ProcessInternal(string source, string? filePath, int baseOffset = 0, bool isIncludedFile = false)
     {
         var rawLines = SplitLines(source);
 
@@ -255,6 +258,10 @@ public class Preprocessor
                     case "include":
                         if (IsActive(ifStack))
                         {
+                            // Record position for diagnostic squiggles
+                            int origIdx = origLineIndices[i];
+                            IncludeDirectivePositions.Add(rawLineOffsets[origIdx]);
+
                             // Flush current segment before calling HandleInclude
                             // (HandleInclude's recursive ProcessInternal will add child segments first)
                             int expandedPos = baseOffset + output.Length;
@@ -391,7 +398,7 @@ public class Preprocessor
         // Record when: file had includes (need segments for content between them),
         // or this is a recursive call for an included file (baseOffset > 0 implies included),
         // or there were #ifdef gaps that shifted positions
-        bool needsSegments = hasIncludes || hasIfdefGaps || hasMacroDeltas || baseOffset > 0;
+        bool needsSegments = hasIncludes || hasIfdefGaps || hasMacroDeltas || isIncludedFile;
         if (needsSegments && filePath != null)
         {
             int finalExpandedPos = baseOffset + output.Length;
@@ -570,7 +577,7 @@ public class Preprocessor
         try
         {
             var content = File.ReadAllText(resolved);
-            var processed = ProcessInternal(content, resolved, baseOffset);
+            var processed = ProcessInternal(content, resolved, baseOffset, isIncludedFile: true);
             if (!processed.EndsWith('\n'))
                 return processed + "\n";
             return processed;

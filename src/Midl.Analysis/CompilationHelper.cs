@@ -128,7 +128,10 @@ public static class CompilationHelper
         var syntaxDiagnostics = new List<Midl.Analysis.Diagnostics.Diagnostic>(refDiagnostics);
         if (mode == CompilationMode.Strict && preprocessor.HasIncludeDirectives)
         {
-            syntaxDiagnostics.Add(DiagnosticDescriptors.IncludeDirectiveInStrictMode(0));
+            foreach (var includePos in preprocessor.IncludeDirectivePositions)
+            {
+                syntaxDiagnostics.Add(DiagnosticDescriptors.IncludeDirectiveInStrictMode(includePos));
+            }
         }
 
         // Report preprocessor errors as diagnostics
