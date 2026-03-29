@@ -202,7 +202,7 @@ public partial class AttributeValidator
             if (version.HasValue && (int)version.Value > maxVersion)
             {
                 _diagnostics.Add(DiagnosticDescriptors.ContractExceedsMax(
-                    contractName, (int)version.Value, maxVersion, attr.Position));
+                    contractName, (int)version.Value, maxVersion, attr.Position, attr.Name.Length));
             }
         }
     }
@@ -223,32 +223,11 @@ public partial class AttributeValidator
                 ConstructorSymbol c => c.Attributes,
                 _ => null,
             };
+            // Only check inline [contract] attributes on the member itself,
+            // NOT propagated ContractVersion from the parent class (that's already
+            // validated at the class level by ValidateContractExceedsMax)
             if (attrs != null)
                 ValidateContractExceedsMax(attrs, contractVersions);
-
-            // Also check ContractVersion property (set by versioned block attributes)
-            var (contractName, contractVersion, pos) = member switch
-            {
-                MethodSymbol m => (m.ContractName, m.ContractVersion, m.SourcePosition),
-                PropertySymbol p => (p.ContractName, p.ContractVersion, p.SourcePosition),
-                EventSymbol e => (e.ContractName, e.ContractVersion, e.SourcePosition),
-                ConstructorSymbol c => (c.ContractName, c.ContractVersion, c.SourcePosition),
-                _ => (null, (int?)null, 0),
-            };
-
-            if (contractName != null && contractVersion.HasValue &&
-                contractVersions.TryGetValue(contractName, out int maxVersion) &&
-                contractVersion.Value > maxVersion)
-            {
-                // Only report if we didn't already report via inline attributes
-                bool alreadyReported = attrs?.Any(a =>
-                    a.Name.Equals("contract", StringComparison.OrdinalIgnoreCase)) == true;
-                if (!alreadyReported)
-                {
-                    _diagnostics.Add(DiagnosticDescriptors.ContractExceedsMax(
-                        contractName, contractVersion.Value, maxVersion, pos));
-                }
-            }
         }
     }
 }

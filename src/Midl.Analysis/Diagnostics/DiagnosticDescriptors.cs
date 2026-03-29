@@ -489,10 +489,10 @@ public static class DiagnosticDescriptors
             $"[exclusiveto] on '{interfaceName}' must reference a runtimeclass, not the interface itself.",
             position, Math.Max(interfaceName.Length, 1));
 
-    public static Diagnostic ContractExceedsMax(string contractName, int version, int maxVersion, int position) =>
+    public static Diagnostic ContractExceedsMax(string contractName, int version, int maxVersion, int position, int length = 0) =>
         new(DiagnosticSeverity.Error, "MIDL1093",
             $"Contract version {version} exceeds '{contractName}' contractversion {maxVersion}.",
-            position, Math.Max(contractName.Length, 1));
+            position, length > 0 ? length : 8); // "contract".Length
 
     public static Diagnostic UuidOnNonInterface(string typeName, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1094",
