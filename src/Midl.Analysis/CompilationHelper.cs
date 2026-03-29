@@ -35,14 +35,15 @@ public static class CompilationHelper
                                        string? currentFilePath = null,
                                        IReadOnlyList<string>? defines = null,
                                        bool emitQualityHints = false,
-                                       IReadOnlyList<string>? refDirectories = null
+                                       IReadOnlyList<string>? refDirectories = null,
+                                       bool arraysEnabled = false
 #if WITH_COMPAT
                                        , string? cppCmd = null
 #endif
                                        )
     {
         return CompileCore(source, lazyProviders, mode, includePaths, currentFilePath,
-            defines, emitQualityHints, refDirectories, profile: null
+            defines, emitQualityHints, refDirectories, profile: null, arraysEnabled: arraysEnabled
 #if WITH_COMPAT
             , cppCmd
 #endif
@@ -56,7 +57,8 @@ public static class CompilationHelper
                                        IReadOnlyList<string>? defines = null,
                                         bool emitQualityHints = false,
                                         IReadOnlyList<string>? refDirectories = null,
-                                        CompilationProfile? profile = null
+                                        CompilationProfile? profile = null,
+                                        bool arraysEnabled = false
 #if WITH_COMPAT
                                         , string? cppCmd = null
 #endif
@@ -79,7 +81,7 @@ public static class CompilationHelper
         }
 
         return CompileCore(source, lazyProviders, mode, includePaths, currentFilePath,
-            defines, emitQualityHints, refDirectories, profile
+            defines, emitQualityHints, refDirectories, profile, arraysEnabled: arraysEnabled
 #if WITH_COMPAT
             , cppCmd
 #endif
@@ -93,7 +95,8 @@ public static class CompilationHelper
                                        IReadOnlyList<string>? defines = null,
                                         bool emitQualityHints = false,
                                         IReadOnlyList<string>? refDirectories = null,
-                                        CompilationProfile? profile = null
+                                        CompilationProfile? profile = null,
+                                        bool arraysEnabled = false
 #if WITH_COMPAT
                                         , string? cppCmd = null
 #endif
@@ -182,7 +185,7 @@ public static class CompilationHelper
 
         if (profile != null) { profile.ImportResolve = sw!.Elapsed; sw.Restart(); }
 
-        var binder = new Binder(mode, emitQualityHints);
+        var binder = new Binder(mode, emitQualityHints, arraysEnabled);
         var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders, refDirectories);
 
         if (profile != null) { profile.Bind = sw!.Elapsed; sw.Restart(); }

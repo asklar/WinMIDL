@@ -23,6 +23,7 @@ public sealed partial class MidlLanguageServer
     private List<string>? _sdkIncludePaths = null;
     private CompilationMode _compilationMode = CompilationMode.Strict;
     private bool _enableQualityHints = true;
+    private bool _arraysEnabled;
     private bool _useWindowsSdk = true;
     private bool _flatSdkTypeCompletions;
     private bool _clientSupportsMarkdown = true; // VS Code sends markdown; VS sends plaintext only
@@ -376,6 +377,12 @@ public sealed partial class MidlLanguageServer
             MidlTrace.Lsp($"  fetchSdkDocs = {fetchDocs}");
         }
 
+        if (TryGetBool(settings, "midl.arrays", out var arrays))
+        {
+            _arraysEnabled = arrays;
+            MidlTrace.Lsp($"  arrays = {arrays}");
+        }
+
         // Invalidate all compilation caches so next analysis uses new settings
         _lastAnalyzedHash.Clear();
         _lastCompilation.Clear();
@@ -507,6 +514,17 @@ public sealed partial class MidlLanguageServer
                     {
                         HoverHandler.FetchSdkDocs = false;
                     }
+
+                    if (initOpts.TryGetProperty("midl.arrays", out var arraysProp) &&
+                        arraysProp.ValueKind == JsonValueKind.True)
+                    {
+                        _arraysEnabled = true;
+                    }
+                    else if (initOpts.TryGetProperty("arrays", out var arraysProp2) &&
+                             arraysProp2.ValueKind == JsonValueKind.True)
+                    {
+                        _arraysEnabled = true;
+                    }
                 }
 
                 // Discover workspace root
@@ -537,6 +555,8 @@ public sealed partial class MidlLanguageServer
                 {
                     _projectFile = ProjectFile.Load(projectPath);
                     MidlTrace.Lsp($"Loaded winmidl.json: {_projectFile.Inputs.Count} inputs, {_projectFile.References.Count} references");
+                    if (_projectFile.Arrays)
+                        _arraysEnabled = true;
                 }
                 catch (Exception)
                 {

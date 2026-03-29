@@ -25,13 +25,15 @@ public partial class Binder
     private TokenPositionMap _posMap = null!;
     private GreenNode _root = null!;
     private Dictionary<GreenNode, int>? _nodeOffsetMap;
+    private bool _arraysEnabled;
 
     private SymbolTable _symbolTable = null!;
 
-    public Binder(CompilationMode mode = CompilationMode.Strict, bool emitQualityHints = false)
+    public Binder(CompilationMode mode = CompilationMode.Strict, bool emitQualityHints = false, bool arraysEnabled = false)
     {
         _mode = mode;
         _emitQualityHints = emitQualityHints;
+        _arraysEnabled = arraysEnabled;
     }
 
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
@@ -3090,9 +3092,24 @@ public partial class Binder
     private static readonly HashSet<string> AllowedStructFieldBuiltIns = new(StringComparer.Ordinal) { "Boolean","Char","Int16","Int32","Int64","UInt8","UInt16","UInt32","UInt64","Single","Double","String","Guid" };
     private void ValidateStructFieldTypes(StructSymbol s) { foreach (var field in s.Fields) if (!IsAllowedStructFieldType(field.Type)) _diagnostics.Add(DiagnosticDescriptors.StructFieldNotValueType(field.Name, GetSymbolPosition(field))); }
     private static bool IsAllowedStructFieldType(TypeRef typeRef) { if (AllowedStructFieldBuiltIns.Contains(typeRef.Name)) return true; if (typeRef.Name == "IReference" && typeRef.TypeArguments.Count > 0) return true; if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol) return true; return false; }
-    private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; string methodName = ""; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; methodName = m.Name; } else if (member is ConstructorSymbol c) { p = c.Parameters; methodName = c.Name; } if (p != null) { foreach (var param in p) ValidateParameter(param); ValidateDuplicateParameterNames(p, methodName); } if (_mode == CompilationMode.Strict && rt != null) CheckWinRtTypeCompatibility(rt); } }
-    private void ValidateMethodParametersForDelegate(DelegateSymbol d) { foreach (var param in d.Parameters) ValidateParameter(param); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(d.ReturnType); }
-    private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref && !param.IsArray) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, GetSymbolPosition(param))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, GetSymbolPosition(param))); } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
+    private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; string methodName = ""; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; methodName = m.Name; } else if (member is ConstructorSymbol c) { p = c.Parameters; methodName = c.Name; } if (p != null) { foreach (var param in p) ValidateParameter(param); ValidateDuplicateParameterNames(p, methodName); } if (rt != null) { if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(rt); ValidateArrayReturnType(rt, _posMap.GetPositionOf(methodName)); } } }
+    private void ValidateMethodParametersForDelegate(DelegateSymbol d) { foreach (var param in d.Parameters) ValidateParameter(param); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(d.ReturnType); ValidateArrayReturnType(d.ReturnType, GetSymbolPosition(d)); }
+    private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref && !param.IsArray) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, GetSymbolPosition(param))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, GetSymbolPosition(param))); } if (param.IsArray) { if (!_arraysEnabled) { _diagnostics.Add(DiagnosticDescriptors.ArraySyntaxNotEnabled(GetSymbolPosition(param))); } else { ValidateArrayElementType(param.Type, GetSymbolPosition(param)); } } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
+    private void ValidateArrayElementType(TypeRef arrayType, int position)
+    {
+        if (arrayType.ResolvedSymbol is InterfaceSymbol)
+            _diagnostics.Add(DiagnosticDescriptors.ArrayOfInterfaceNotAllowed(arrayType.Name, position));
+        else if (arrayType.ResolvedSymbol is DelegateSymbol)
+            _diagnostics.Add(DiagnosticDescriptors.ArrayOfDelegateNotAllowed(arrayType.Name, position));
+    }
+    private void ValidateArrayReturnType(TypeRef returnType, int position)
+    {
+        if (returnType.IsArray)
+        {
+            if (!_arraysEnabled) _diagnostics.Add(DiagnosticDescriptors.ArraySyntaxNotEnabled(position));
+            else ValidateArrayElementType(returnType, position);
+        }
+    }
     private static readonly HashSet<string> COnlyTypes = new(StringComparer.Ordinal) { "wchar_t","handle_t","error_status_t" };
     private void CheckWinRtTypeCompatibility(TypeRef typeRef) { if (typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return; if (COnlyTypes.Contains(typeRef.Name)) _diagnostics.Add(DiagnosticDescriptors.WinRtTypeNotAllowed(typeRef.Name, typeRef.Position)); }
     private void ValidateDelegateReturnType(DelegateSymbol d) { /* WinRT delegates can return any type */ }

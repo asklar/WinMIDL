@@ -29,6 +29,9 @@ public class ProjectFile
     /// <summary>Directory names to exclude from workspace scan (e.g. "tools", "generated").</summary>
     public List<string> ExcludeDirectories { get; set; } = [];
 
+    /// <summary>Whether array parameter syntax (T[]) is enabled.</summary>
+    public bool Arrays { get; set; }
+
     /// <summary>Directory containing the winmidl.json file.</summary>
     public string BaseDirectory { get; set; } = "";
 
@@ -96,6 +99,9 @@ public class ProjectFile
             foreach (var item in excludeDirs.EnumerateArray())
                 if (item.GetString() is { } s)
                     project.ExcludeDirectories.Add(s);
+
+        if (root.TryGetProperty("arrays", out var arrays))
+            project.Arrays = arrays.GetBoolean();
 
         return project;
     }

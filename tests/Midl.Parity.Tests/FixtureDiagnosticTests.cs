@@ -29,7 +29,10 @@ public class FixtureDiagnosticTests
     {
         _ = name; // used for test display name
         var source = File.ReadAllText(path);
-        var compilation = CompilationHelper.Compile(source);
+        bool arraysEnabled = source.Contains("[]");
+        var compilation = CompilationHelper.Compile(source, referencePaths: null,
+            mode: CompilationMode.Strict, includePaths: null, currentFilePath: null,
+            arraysEnabled: arraysEnabled);
         var errors = compilation.Diagnostics
             .Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
         Assert.Empty(errors);

@@ -116,7 +116,8 @@ public sealed partial class MidlLanguageServer
                     includePaths, filePath,
                     defines: defines,
                     emitQualityHints: _enableQualityHints,
-                    refDirectories: _refDirectories);
+                    refDirectories: _refDirectories,
+                    arraysEnabled: _arraysEnabled);
             }
             else
             {
@@ -124,7 +125,8 @@ public sealed partial class MidlLanguageServer
                     includePaths, filePath,
                     defines: defines,
                     emitQualityHints: _enableQualityHints,
-                    refDirectories: _refDirectories);
+                    refDirectories: _refDirectories,
+                    arraysEnabled: _arraysEnabled);
             }
 
             // Cache compilation for reuse by code action / completion handlers

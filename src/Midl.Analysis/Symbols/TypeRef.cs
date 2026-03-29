@@ -11,6 +11,8 @@ public class TypeRef
     public string Name { get; }
     public IReadOnlyList<TypeRef> TypeArguments { get; }
     public bool IsArray { get; }
+    public int ArrayRank { get; init; } = 1;
+    public int? ArrayLength { get; init; }
     public bool IsBuiltIn { get; init; }
     public ISymbol? ResolvedSymbol { get; set; }
     public int Position { get; init; }
@@ -34,6 +36,8 @@ public class TypeRef
     {
         IsBuiltIn = IsBuiltIn,
         Position = Position,
+        ArrayRank = 1,
+        ArrayLength = null,
     };
 
     public string DisplayName

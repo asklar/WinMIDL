@@ -8,9 +8,9 @@ namespace Midl.Integration.Tests;
 /// </summary>
 public class KeywordCoverageTests
 {
-    private static void AssertCompiles(string source, CompilationMode mode = CompilationMode.Strict)
+    private static void AssertCompiles(string source, CompilationMode mode = CompilationMode.Strict, bool arraysEnabled = false)
     {
-        var compilation = CompilationHelper.Compile(source, mode);
+        var compilation = CompilationHelper.Compile(source, referencePaths: null, mode: mode, includePaths: null, currentFilePath: null, arraysEnabled: arraysEnabled);
         var errors = compilation.Diagnostics
             .Where(d => d.Severity == DiagnosticSeverity.Error)
             .ToList();
@@ -376,7 +376,7 @@ public class KeywordCoverageTests
                 {
                     void SetBytes(UInt8[] data);
                 }
-            }");
+            }", arraysEnabled: true);
     }
 
     [Fact]
@@ -389,7 +389,7 @@ public class KeywordCoverageTests
                 {
                     void GetBytes(out UInt8[] data);
                 }
-            }");
+            }", arraysEnabled: true);
     }
 
     [Fact]

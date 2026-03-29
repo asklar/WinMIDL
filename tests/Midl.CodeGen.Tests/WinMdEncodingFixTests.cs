@@ -10,9 +10,9 @@ namespace Midl.CodeGen.Tests;
 
 public class WinMdEncodingFixTests
 {
-    private static byte[] CompileAndEmit(string source)
+    private static byte[] CompileAndEmit(string source, bool arraysEnabled = false)
     {
-        var compilation = CompilationHelper.Compile(source);
+        var compilation = CompilationHelper.Compile(source, referencePaths: null, mode: CompilationMode.Strict, includePaths: null, currentFilePath: null, arraysEnabled: arraysEnabled);
         Assert.Empty(compilation.Diagnostics);
         var emitter = new WinMdEmitter();
         return emitter.EmitToBytes(compilation);
@@ -101,7 +101,7 @@ public class WinMdEncodingFixTests
                     void ProcessItems(UInt32 itemsSize, Int32[] items);
                 }
             }
-            """);
+            """, arraysEnabled: true);
 
         var reader = CreateReader(bytes, out var pe);
         using (pe)

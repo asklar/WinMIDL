@@ -677,4 +677,28 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Error, "MIDL1107",
             $"[{attrName}] version argument '{value}' is invalid. Expected a version number (major.minor, each 0–65535).",
             position, length > 0 ? length : Math.Max(attrName.Length, 1));
+
+    // Array syntax not enabled (MIDL1108)
+    public static Diagnostic ArraySyntaxNotEnabled(int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1108",
+            "Array syntax (T[]) requires the /arrays flag or \"arrays\": true in winmidl.json.",
+            position, 2); // length covers []
+
+    // Array of interface not allowed (MIDL1109)
+    public static Diagnostic ArrayOfInterfaceNotAllowed(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1109",
+            $"Array of interface type '{typeName}' is not supported. Arrays may only contain value types, strings, structs, or enums.",
+            position, Math.Max(typeName.Length, 1));
+
+    // Array of delegate not allowed (MIDL1110)
+    public static Diagnostic ArrayOfDelegateNotAllowed(string typeName, int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1110",
+            $"Array of delegate type '{typeName}' is not supported. Arrays may only contain value types, strings, structs, or enums.",
+            position, Math.Max(typeName.Length, 1));
+
+    // Nested arrays not allowed (MIDL1111)
+    public static Diagnostic NestedArrayNotAllowed(int position) =>
+        new(DiagnosticSeverity.Error, "MIDL1111",
+            "Nested arrays (T[][]) are not supported. Use a single-dimensional array.",
+            position, 2);
 }

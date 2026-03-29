@@ -189,7 +189,8 @@ public class CompilationDriver
                 options.InputFile,
                 options.Defines.Count > 0 ? options.Defines : null,
                 emitQualityHints: options.ShowInfoDiagnostics,
-                profile: profile);
+                profile: profile,
+                arraysEnabled: options.ArraysEnabled);
         }
         catch (Exception ex)
         {
