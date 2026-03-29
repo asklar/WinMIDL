@@ -62,7 +62,7 @@ internal static class WinMdNavigator
     /// Parses decompiled IDL text and looks up the symbol by name to get its exact source position.
     /// Returns the offset of the symbol's name token, or -1 if not found.
     /// </summary>
-    private static int FindSymbolByParsing(string decompiledText, ISymbol symbol)
+    internal static int FindSymbolByParsing(string decompiledText, ISymbol symbol)
     {
         try
         {
@@ -70,7 +70,27 @@ internal static class WinMdNavigator
             foreach (var type in compilation.GetAllTypes())
             {
                 if (type.Name == symbol.Name && type.SourcePosition >= 0)
-                    return type.SourcePosition;
+                {
+                    // SourcePosition may be off by 1 due to trivia computation.
+                    // Verify and adjust to land exactly on the name.
+                    int pos = type.SourcePosition;
+                    if (pos < decompiledText.Length && pos + symbol.Name.Length <= decompiledText.Length
+                        && decompiledText.Substring(pos, symbol.Name.Length) == symbol.Name)
+                        return pos;
+                    // Try pos-1 (common off-by-one from leading trivia)
+                    if (pos > 0 && pos - 1 + symbol.Name.Length <= decompiledText.Length
+                        && decompiledText.Substring(pos - 1, symbol.Name.Length) == symbol.Name)
+                        return pos - 1;
+                    // Search nearby (+/- 3 chars) for the name
+                    for (int delta = -3; delta <= 3; delta++)
+                    {
+                        int candidate = pos + delta;
+                        if (candidate >= 0 && candidate + symbol.Name.Length <= decompiledText.Length
+                            && decompiledText.Substring(candidate, symbol.Name.Length) == symbol.Name)
+                            return candidate;
+                    }
+                    return pos; // best guess
+                }
             }
         }
         catch { }

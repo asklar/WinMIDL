@@ -366,6 +366,67 @@ public partial class GotoDefinitionTests
     }
 
     [Fact]
+    public void FindSymbolByParsing_RuntimeClass_ReturnsExactPosition()
+    {
+        var source = "namespace N {\n    runtimeclass Widget {\n        Widget();\n        Int32 Value;\n    }\n}";
+        var symbol = new Midl.Analysis.Symbols.RuntimeClassSymbol("Widget", null!);
+        int offset = WinMdNavigator.FindSymbolByParsing(source, symbol);
+        Assert.True(offset >= 0);
+        Assert.Equal("Widget", source.Substring(offset, "Widget".Length));
+        // Must point to the declaration, not a usage
+        Assert.EndsWith("runtimeclass", source[..offset].TrimEnd());
+    }
+
+    [Fact]
+    public void FindSymbolByParsing_Interface_ReturnsExactPosition()
+    {
+        var source = "namespace N {\n    interface IFoo {\n        void Bar();\n    }\n}";
+        var symbol = new Midl.Analysis.Symbols.InterfaceSymbol("IFoo", null!);
+        int offset = WinMdNavigator.FindSymbolByParsing(source, symbol);
+        Assert.True(offset >= 0);
+        Assert.Equal("IFoo", source.Substring(offset, "IFoo".Length));
+    }
+
+    [Fact]
+    public void FindSymbolByParsing_Delegate_ReturnsExactPosition()
+    {
+        var source = "namespace N {\n    delegate Windows.Foundation.IAsyncOperationWithProgress<ResultView, Progress> MyQueryDelegate(Factory f, Query q);\n}";
+        var symbol = new Midl.Analysis.Symbols.DelegateSymbol("MyQueryDelegate", null!);
+        int offset = WinMdNavigator.FindSymbolByParsing(source, symbol);
+        Assert.True(offset >= 0, "Should find delegate via parsing even with long return type");
+        Assert.Equal("MyQueryDelegate", source.Substring(offset, "MyQueryDelegate".Length));
+    }
+
+    [Fact]
+    public void FindSymbolByParsing_Enum_ReturnsExactPosition()
+    {
+        var source = "namespace N {\n    enum Color { Red, Green, Blue };\n}";
+        var symbol = new Midl.Analysis.Symbols.EnumSymbol("Color", null!);
+        int offset = WinMdNavigator.FindSymbolByParsing(source, symbol);
+        Assert.True(offset >= 0);
+        Assert.Equal("Color", source.Substring(offset, "Color".Length));
+    }
+
+    [Fact]
+    public void FindSymbolByParsing_Struct_ReturnsExactPosition()
+    {
+        var source = "namespace N {\n    struct Point { Single X; Single Y; };\n}";
+        var symbol = new Midl.Analysis.Symbols.StructSymbol("Point", null!);
+        int offset = WinMdNavigator.FindSymbolByParsing(source, symbol);
+        Assert.True(offset >= 0);
+        Assert.Equal("Point", source.Substring(offset, "Point".Length));
+    }
+
+    [Fact]
+    public void FindSymbolByParsing_NotFound_ReturnsNegative()
+    {
+        var source = "namespace N {\n    runtimeclass Widget { Widget(); Int32 X; }\n}";
+        var symbol = new Midl.Analysis.Symbols.InterfaceSymbol("INotHere", null!);
+        int offset = WinMdNavigator.FindSymbolByParsing(source, symbol);
+        Assert.Equal(-1, offset);
+    }
+
+    [Fact]
     public void FindDefinitionOffset_Struct_FindsDefinitionNotPropertyType()
     {
         // "struct TimeSpan" should be found, not "TimeSpan" in a property type
