@@ -13,6 +13,17 @@ namespace Midl.VsExtension
         private string windowsSdkVersion = "latest";
         private bool flatSdkTypeCompletions = false;
         private bool fetchSdkDocs = true;
+        private string serverPath = "";
+
+        [Category("MIDL Language Server")]
+        [DisplayName("Server Path")]
+        [Description("Path to the MIDL CLI executable. Leave empty for auto-detection (recommended).")]
+        [DefaultValue("")]
+        public string ServerPath
+        {
+            get { return serverPath; }
+            set { serverPath = value; }
+        }
 
         [Category("MIDL Language Server")]
         [DisplayName("Strict MIDL3 Mode")]

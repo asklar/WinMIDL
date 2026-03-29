@@ -51,6 +51,8 @@ namespace Midl.VsExtension
         private IVsOutputWindowPane outputPane;
         private static MidlLanguageClient _instance;
 
+        internal static Guid OutputPaneGuid = new Guid("A1B2C3D4-E5F6-7890-ABCD-EF1234567890");
+
         public async Task<Connection> ActivateAsync(CancellationToken token)
         {
             _instance = this;
@@ -59,13 +61,34 @@ namespace Midl.VsExtension
             // Create output window pane for server logging
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(token);
             var outputWindow = (IVsOutputWindow)ServiceProvider.GlobalProvider.GetService(typeof(SVsOutputWindow));
-            var paneGuid = new Guid("A1B2C3D4-E5F6-7890-ABCD-EF1234567890");
+            var paneGuid = OutputPaneGuid;
             outputWindow.CreatePane(ref paneGuid, "MIDL Language Server", 1, 1);
             outputWindow.GetPane(ref paneGuid, out outputPane);
             outputPane?.OutputStringThreadSafe("MIDL Language Server starting...\n");
             await TaskScheduler.Default;
 
-            string serverPath = ServerDiscovery.FindServerPath();
+            string serverPath = null;
+
+            // Check user-configured server path first (parity with VS Code's midl.serverPath)
+            var options = GetOptionsPage();
+            if (options != null && !string.IsNullOrWhiteSpace(options.ServerPath))
+            {
+                if (File.Exists(options.ServerPath))
+                {
+                    serverPath = options.ServerPath;
+                    OutputLog($"Using user-configured server path: {serverPath}");
+                }
+                else
+                {
+                    OutputLog($"WARNING: Configured server path does not exist: {options.ServerPath}");
+                }
+            }
+
+            if (serverPath == null)
+            {
+                serverPath = ServerDiscovery.FindServerPath();
+            }
+
             if (serverPath == null)
             {
                 OutputLog("ERROR: Could not find Midl.Cli.exe");
@@ -188,6 +211,7 @@ namespace Midl.VsExtension
                     ["midl.strictMode"] = options.StrictMode,
                     ["midl.codeQualityHints"] = options.CodeQualityHints,
                     ["midl.useWindowsSdk"] = options.UseWindowsSdk,
+                    ["midl.windowsSdkVersion"] = options.WindowsSdkVersion,
                     ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
                     ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
                 };
