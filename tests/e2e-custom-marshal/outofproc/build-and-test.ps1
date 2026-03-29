@@ -1,5 +1,8 @@
 # build-and-test.ps1 — Build & test out-of-proc WinRT custom marshal E2E
 #
+# This script can also be run via: dotnet test --filter "Category=E2E"
+# The C# tests in Midl.Integration.Tests contain the equivalent logic.
+#
 # 1. Generate proxy code from IDL via our CLI
 # 2. Compile server EXE, proxy DLL, client EXE
 # 3. Register proxy DLL + server EXE in HKCU
