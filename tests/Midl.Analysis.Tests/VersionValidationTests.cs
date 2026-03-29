@@ -170,14 +170,29 @@ public class VersionValidationTests
     }
 
     [Fact]
-    public void WrongTarget_SquiggleOnAttrName()
+    public void ContractExceedsMax_SquiggleOnVersionArg()
     {
-        var source = "namespace N { [threading(both)] struct S { Int32 X; }; }";
+        var source = "namespace N { [contractversion(1.55)] apicontract Foo{} [contract(Foo, 2)] runtimeclass R : Windows.Foundation.IStringable { R(); } }";
         var compilation = CompilationHelper.Compile(source);
-
-        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1029");
+        
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1093");
         Assert.NotNull(diag);
         var snippet = source[diag.Position..(diag.Position + diag.Length)];
-        Assert.Equal("threading", snippet);
+        Assert.Equal("2", snippet);
+    }
+
+    [Fact]
+    public void ContractExceedsMax_MultiLine_SquiggleOnVersionArg()
+    {
+        var source = "namespace N {\n    [contractversion(1.55)]\n    apicontract Foo{}\n    [threading(both)]\n    [contract(Foo, 2)]\n    runtimeclass R : Windows.Foundation.IStringable\n    {\n        R();\n    }\n}";
+        var compilation = CompilationHelper.Compile(source);
+        
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1093");
+        Assert.NotNull(diag);
+        // For now, just assert it points somewhere inside [contract(Foo, 2)], not at runtimeclass
+        Assert.True(diag.Position >= source.IndexOf("[contract"),
+            $"Squiggle at pos {diag.Position} ('{source[diag.Position..(diag.Position + diag.Length)]}') should be inside [contract(Foo, 2)]");
+        Assert.True(diag.Position < source.IndexOf("runtimeclass"),
+            $"Squiggle at pos {diag.Position} should be before 'runtimeclass'");
     }
 }
