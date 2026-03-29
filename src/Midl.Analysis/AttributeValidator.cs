@@ -306,17 +306,30 @@ public partial class AttributeValidator
 
     private void ValidateThreadingModel(AttributeData attr)
     {
+        if (attr.Arguments.Count != 1)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.AttributeArgCountMismatch(
+                "threading", 1, attr.Arguments.Count, attr.Position));
+            return;
+        }
         var value = attr.GetIdentifier(0);
         if (value != null && !ValidThreadingModels.Contains(value))
         {
-            var argPos = attr.Arguments.Count > 0 ? attr.Arguments[0].Position : attr.Position;
-            var argLen = attr.Arguments.Count > 0 ? attr.Arguments[0].Length : value.Length;
-            _diagnostics.Add(DiagnosticDescriptors.InvalidThreadingModel(value, argPos, argLen));
+            var argPos = attr.Arguments[0].Position;
+            var argLen = attr.Arguments[0].Length;
+            _diagnostics.Add(DiagnosticDescriptors.InvalidThreadingModel(value,
+                argPos > 0 ? argPos : attr.Position, argLen > 0 ? argLen : value.Length));
         }
     }
 
     private void ValidateMarshalingBehavior(AttributeData attr)
     {
+        if (attr.Arguments.Count != 1)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.AttributeArgCountMismatch(
+                "marshaling_behavior", 1, attr.Arguments.Count, attr.Position));
+            return;
+        }
         var value = attr.GetIdentifier(0);
         if (value != null && !ValidMarshalingBehaviors.Contains(value))
         {

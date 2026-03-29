@@ -227,4 +227,53 @@ public class VersionValidationTests
         var snippet = source[diag.Position..(diag.Position + diag.Length)];
         Assert.Equal("threading", snippet);
     }
+
+    [Fact]
+    public void Contract_MajorMinorVersion_Accepted()
+    {
+        var source = "namespace N { [contractversion(1.0)] apicontract C{} [contract(C, 0.64)] runtimeclass R : Windows.Foundation.IStringable { R(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1030");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1107");
+    }
+
+    [Fact]
+    public void Contract_IntegerVersion_Accepted()
+    {
+        var source = "namespace N { [contractversion(4)] apicontract C{} [contract(C, 3)] runtimeclass R : Windows.Foundation.IStringable { R(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1030");
+    }
+
+    [Fact]
+    public void Contract_OneArg_Error()
+    {
+        var source = "namespace N { [contractversion(1)] apicontract C{} [contract(C)] runtimeclass R : Windows.Foundation.IStringable { R(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1030" && d.Message.Contains("2"));
+    }
+
+    [Fact]
+    public void Contract_ZeroArgs_Error()
+    {
+        var source = "namespace N { [contractversion(1)] apicontract C{} [contract()] runtimeclass R : Windows.Foundation.IStringable { R(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1030");
+    }
+
+    [Fact]
+    public void Contract_ThreeArgs_Error()
+    {
+        var source = "namespace N { [contractversion(1)] apicontract C{} [contract(C, 1, extra)] runtimeclass R : Windows.Foundation.IStringable { R(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1030");
+    }
+
+    [Fact]
+    public void Threading_ZeroArgs_Error()
+    {
+        var source = "namespace N { [threading(), default_interface] runtimeclass R { R(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1030");
+    }
 }
