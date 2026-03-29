@@ -444,6 +444,36 @@ public static partial class WireFormat
     }
 
     /// <summary>
+    /// Emits C++ code to deserialize a FillArray (ref T[]) reply on the proxy side.
+    /// Reads actual count + elements from the reply buffer into the caller's pre-allocated buffer.
+    /// Wire format: [UINT32 actual][T × actual]
+    /// </summary>
+    public static void EmitDeserializeFillArrayReply(StringBuilder sb, TypeRef typeRef, string bufferName, string bufferPtr, string indent = "        ", string? actualPtrOverride = null)
+    {
+        var elemType = ElementType(typeRef);
+        var actualPtr = actualPtrOverride ?? $"__{bufferName}Actual";
+        var elemCType = GetCppTypeName(elemType);
+
+        // Read actual count
+        sb.AppendLine($"{indent}UINT32 __{bufferName}_actual_temp; memcpy(&__{bufferName}_actual_temp, {bufferPtr}, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
+        sb.AppendLine($"{indent}*{actualPtr} = __{bufferName}_actual_temp;");
+
+        if (elemType.Name == "String")
+        {
+            // Unmarshal each HSTRING into the caller's buffer
+            sb.AppendLine($"{indent}for (UINT32 i = 0; i < __{bufferName}_actual_temp; i++) {{");
+            sb.AppendLine($"{indent}    winmidl::unmarshal_hstring_alloc({bufferPtr}, &{bufferName}[i]);");
+            sb.AppendLine($"{indent}}}");
+        }
+        else
+        {
+            // memcpy blittable elements into caller's buffer
+            var sizeExpr = GetCppSizeExpression(elemType);
+            sb.AppendLine($"{indent}memcpy({bufferName}, {bufferPtr}, __{bufferName}_actual_temp * {sizeExpr}); {bufferPtr} += __{bufferName}_actual_temp * {sizeExpr};");
+        }
+    }
+
+    /// <summary>
     /// Emits C++ code to serialize an HSTRING value (length-prefixed UTF-16).
     /// Wire format: [uint32_t char_count][wchar_t chars * char_count]
     /// </summary>

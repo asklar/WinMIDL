@@ -162,7 +162,7 @@ public class ProxyGenerator
             var allParams = new List<(TypeRef Type, string Dir)>();
             foreach (var p in parameters)
             {
-                var dir = p.Direction == ParamDirection.Out ? "winmidl::param_dir::dir_out" : "winmidl::param_dir::dir_in";
+                var dir = p.Direction == ParamDirection.Out ? "winmidl::param_dir::dir_out" : p.Direction == ParamDirection.Ref ? "winmidl::param_dir::dir_ref" : "winmidl::param_dir::dir_in";
                 allParams.Add((p.Type, dir));
             }
             if (returnType.Name != "void")
@@ -213,6 +213,10 @@ public class ProxyGenerator
         {
             parts.Add(GetShapeTypeName(p.Type));
         }
+        foreach (var p in parameters.Where(p => p.Direction == ParamDirection.Ref))
+        {
+            parts.Add($"ref_{GetShapeTypeName(p.Type)}");
+        }
         var inSig = parts.Count > 0 ? string.Join("_", parts) : "void";
         var outSig = returnType.Name != "void" ? GetShapeTypeName(returnType) : "void";
         return $"{inSig}_to_{outSig}";
@@ -251,6 +255,7 @@ public class ProxyGenerator
         var shapeName = $"proxy_shape_{shapeKey}";
         var inParams = templateParams.Where(p => p.Direction == ParamDirection.In).ToList();
         var outParams = templateParams.Where(p => p.Direction == ParamDirection.Out).ToList();
+        var refParams = templateParams.Where(p => p.Direction == ParamDirection.Ref).ToList();
         bool hasRetval = templateReturn.Name != "void";
 
         // Build parameter list for the shape function
@@ -260,6 +265,22 @@ public class ProxyGenerator
         {
             var cType = HeaderEmitter.MapType(p.Type);
             sigParts.Add($"{cType} arg{argIdx}");
+            argIdx++;
+        }
+        foreach (var p in refParams)
+        {
+            if (p.Type.IsArray)
+            {
+                var elemCType = HeaderEmitter.MapType(WireFormat.ElementType(p.Type));
+                sigParts.Add($"UINT32 ref_cap{argIdx}");
+                sigParts.Add($"{elemCType}* ref_buf{argIdx}");
+                sigParts.Add($"UINT32* ref_act{argIdx}");
+            }
+            else
+            {
+                var cType = HeaderEmitter.MapType(p.Type);
+                sigParts.Add($"{cType} arg{argIdx}");
+            }
             argIdx++;
         }
         foreach (var p in outParams)
@@ -298,20 +319,25 @@ public class ProxyGenerator
         }
 
         bool requestFixed = WireFormat.AllParamsFixedSize(inParams);
+        var bufParts = new List<string>();
         if (requestFixed && inParams.Count > 0)
         {
-            var fixedExpr = WireFormat.ComputeFixedBufferSizeExpression(inParams);
-            sb.AppendLine($"    msg.cbBuffer = {fixedExpr};");
+            bufParts.Add(WireFormat.ComputeFixedBufferSizeExpression(inParams));
         }
         else if (inParams.Count > 0)
         {
-            var bufExpr = WireFormat.ComputeBufferSize(inParams.Select((p, i) => new ProxyParam($"arg{i}", p.Type, p.Direction)).ToList());
-            sb.AppendLine($"    msg.cbBuffer = {bufExpr};");
+            bufParts.Add(WireFormat.ComputeBufferSize(inParams.Select((p, i) => new ProxyParam($"arg{i}", p.Type, p.Direction)).ToList()));
         }
-        else
+        argIdx = inParams.Count;
+        foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
         {
-            sb.AppendLine("    msg.cbBuffer = 0;");
+            bufParts.Add("sizeof(UINT32)");
+            argIdx++;
         }
+        if (bufParts.Count > 0)
+            sb.AppendLine($"    msg.cbBuffer = {string.Join(" + ", bufParts)};");
+        else
+            sb.AppendLine("    msg.cbBuffer = 0;");
 
         if (!hasInterfaceParams)
             sb.AppendLine("    HRESULT hr = channel->GetBuffer(&msg, iid);");
@@ -320,13 +346,19 @@ public class ProxyGenerator
         sb.AppendLine("    RETURN_IF_FAILED(hr);");
 
         // Serialize input params
-        if (inParams.Count > 0)
+        bool hasRequestData = inParams.Count > 0 || refParams.Any(rp => rp.Type.IsArray);
+        if (hasRequestData)
         {
             sb.AppendLine("    BYTE* p = (BYTE*)msg.Buffer;");
             argIdx = 0;
             foreach (var p in inParams)
             {
                 WireFormat.EmitSerialize(sb, p.Type, $"arg{argIdx}", "p", "    ");
+                argIdx++;
+            }
+            foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+            {
+                sb.AppendLine($"    winmidl::marshal_uint32(p, ref_cap{argIdx});");
                 argIdx++;
             }
         }
@@ -337,8 +369,16 @@ public class ProxyGenerator
 
         sb.AppendLine("    BYTE* pReply = (BYTE*)msg.Buffer;");
 
-        // Deserialize out params
+        // Deserialize ref (FillArray) params from reply
         argIdx = inParams.Count;
+        foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+        {
+            WireFormat.EmitDeserializeFillArrayReply(sb, rp.Type, $"ref_buf{argIdx}", "pReply", "    ", $"ref_act{argIdx}");
+            argIdx++;
+        }
+
+        // Deserialize out params
+        argIdx = inParams.Count + refParams.Count;
         foreach (var p in outParams)
         {
             WireFormat.EmitDeserializeReply(sb, p.Type, $"out{argIdx}", "pReply", isPointer: true, "    ");
@@ -444,7 +484,7 @@ public class ProxyGenerator
         // Delegate has a single Invoke method
         var invokeParams = del.Parameters.Select(p =>
             new ProxyParam(p.Name, p.Type,
-                p.Direction == ParameterDirection.Out ? ParamDirection.Out : ParamDirection.In))
+                p.Direction switch { ParameterDirection.Out => ParamDirection.Out, ParameterDirection.Ref => ParamDirection.Ref, _ => ParamDirection.In }))
             .ToList();
         var methods = new List<(string Name, List<ProxyParam> Params, TypeRef ReturnType, MemberKind Kind)>
         {
@@ -568,6 +608,12 @@ public class ProxyGenerator
                     sigParts.Add($"UINT32* __{p.Name}Size");
                     sigParts.Add($"{elemCType}** {p.Name}");
                 }
+                else if (p.Direction == ParamDirection.Ref)
+                {
+                    sigParts.Add($"UINT32 __{p.Name}Capacity");
+                    sigParts.Add($"{elemCType}* {p.Name}");
+                    sigParts.Add($"UINT32* __{p.Name}Actual");
+                }
                 else
                 {
                     sigParts.Add($"UINT32 __{p.Name}Size");
@@ -607,6 +653,7 @@ public class ProxyGenerator
         var shapeKey = ComputeShapeKey(parameters, returnType);
         var inParams = parameters.Where(p => p.Direction == ParamDirection.In).ToList();
         var outParams = parameters.Where(p => p.Direction == ParamDirection.Out).ToList();
+        var refParams = parameters.Where(p => p.Direction == ParamDirection.Ref).ToList();
 
         // Build arg list
         var argNames = new List<string>();
@@ -616,6 +663,17 @@ public class ProxyGenerator
             {
                 argNames.Add($"__{p.Name}Size");
                 argNames.Add(p.Name);
+            }
+            else
+                argNames.Add(p.Name);
+        }
+        foreach (var p in refParams)
+        {
+            if (p.Type.IsArray)
+            {
+                argNames.Add($"__{p.Name}Capacity");
+                argNames.Add(p.Name);
+                argNames.Add($"__{p.Name}Actual");
             }
             else
                 argNames.Add(p.Name);
@@ -780,7 +838,7 @@ public class ProxyGenerator
                 case MethodSymbol method:
                     var methodParams = method.Parameters.Select(p =>
                         new ProxyParam(p.Name, p.Type,
-                            p.Direction == ParameterDirection.Out ? ParamDirection.Out : ParamDirection.In))
+                            p.Direction switch { ParameterDirection.Out => ParamDirection.Out, ParameterDirection.Ref => ParamDirection.Ref, _ => ParamDirection.In }))
                         .ToList();
                     methods.Add((method.Name, methodParams, method.ReturnType, MemberKind.Method));
                     break;
@@ -823,6 +881,12 @@ public class ProxyGenerator
                 {
                     sigParts.Add($"UINT32* __{p.Name}Size");
                     sigParts.Add($"{elemCType}** {p.Name}");
+                }
+                else if (p.Direction == ParamDirection.Ref)
+                {
+                    sigParts.Add($"UINT32 __{p.Name}Capacity");
+                    sigParts.Add($"{elemCType}* {p.Name}");
+                    sigParts.Add($"UINT32* __{p.Name}Actual");
                 }
                 else
                 {
@@ -867,12 +931,18 @@ public class ProxyGenerator
 
         // Compute buffer size for input params
         var inParams = parameters.Where(p => p.Direction == ParamDirection.In).ToList();
+        var refParams = parameters.Where(p => p.Direction == ParamDirection.Ref).ToList();
         bool requestFixed = WireFormat.AllParamsFixedSize(inParams);
 
         // Emit constexpr buffer size constants for fixed-size signatures
         if (requestFixed)
         {
-            var fixedSizeExpr = WireFormat.ComputeFixedBufferSizeExpression(inParams);
+            var fixedParts = new List<string>();
+            if (inParams.Count > 0)
+                fixedParts.Add(WireFormat.ComputeFixedBufferSizeExpression(inParams));
+            foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+                fixedParts.Add("sizeof(UINT32)");
+            var fixedSizeExpr = fixedParts.Count > 0 ? string.Join(" + ", fixedParts) : "0";
             sb.AppendLine($"        static constexpr UINT32 k{methodName}_RequestSize = {fixedSizeExpr};");
         }
 
@@ -880,7 +950,8 @@ public class ProxyGenerator
         var outParams = parameters.Where(p => p.Direction == ParamDirection.Out).ToList();
         var replyParts = outParams.Select(p => p.Type).ToList();
         bool replyFixed = replyParts.All(t => WireFormat.IsFixedSize(t))
-            && (!hasRetval || WireFormat.IsFixedSize(returnType));
+            && (!hasRetval || WireFormat.IsFixedSize(returnType))
+            && !refParams.Any(rp => rp.Type.IsArray);
         if (replyFixed)
         {
             var replySizeParts = new List<string>();
@@ -914,8 +985,10 @@ public class ProxyGenerator
         }
         else
         {
-            var bufferSizeExpr = ComputeBufferSize(inParams);
-            sb.AppendLine($"            msg.cbBuffer = {bufferSizeExpr};");
+            var sizeParts = new List<string> { ComputeBufferSize(inParams) };
+            foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+                sizeParts.Add("sizeof(UINT32)");
+            sb.AppendLine($"            msg.cbBuffer = {string.Join(" + ", sizeParts)};");
         }
 
         if (useExceptions)
@@ -933,12 +1006,17 @@ public class ProxyGenerator
         }
 
         // Serialize input params
-        if (inParams.Count > 0)
+        bool hasRequestData = inParams.Count > 0 || refParams.Any(rp => rp.Type.IsArray);
+        if (hasRequestData)
         {
             sb.AppendLine("            BYTE* p = (BYTE*)msg.Buffer;");
             foreach (var p in inParams)
             {
                 EmitSerialize(sb, p.Name, p.Type, "            ");
+            }
+            foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+            {
+                sb.AppendLine($"            winmidl::marshal_uint32(p, __{rp.Name}Capacity);");
             }
         }
 
@@ -964,6 +1042,12 @@ public class ProxyGenerator
         foreach (var p in outParams)
         {
             EmitDeserialize(sb, p.Name, p.Type, isPointer: true, indent: "            ");
+        }
+
+        // Deserialize ref (FillArray) params from reply
+        foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+        {
+            EmitDeserializeFillArray(sb, rp.Name, rp.Type, "            ");
         }
 
         // Deserialize retval
@@ -1014,6 +1098,12 @@ public class ProxyGenerator
                     sigParts.Add($"UINT32* __{p.Name}Size");
                     sigParts.Add($"{elemCType}** {p.Name}");
                 }
+                else if (p.Direction == ParamDirection.Ref)
+                {
+                    sigParts.Add($"UINT32 __{p.Name}Capacity");
+                    sigParts.Add($"{elemCType}* {p.Name}");
+                    sigParts.Add($"UINT32* __{p.Name}Actual");
+                }
                 else
                 {
                     sigParts.Add($"UINT32 __{p.Name}Size");
@@ -1057,12 +1147,18 @@ public class ProxyGenerator
 
         // Compute buffer size for input params
         var inParams = parameters.Where(p => p.Direction == ParamDirection.In).ToList();
+        var refParams = parameters.Where(p => p.Direction == ParamDirection.Ref).ToList();
         bool requestFixed = WireFormat.AllParamsFixedSize(inParams);
 
         // Emit constexpr buffer size constants for fixed-size signatures
         if (requestFixed)
         {
-            var fixedSizeExpr = WireFormat.ComputeFixedBufferSizeExpression(inParams);
+            var fixedParts = new List<string>();
+            if (inParams.Count > 0)
+                fixedParts.Add(WireFormat.ComputeFixedBufferSizeExpression(inParams));
+            foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+                fixedParts.Add("sizeof(UINT32)");
+            var fixedSizeExpr = fixedParts.Count > 0 ? string.Join(" + ", fixedParts) : "0";
             sb.AppendLine($"    static constexpr UINT32 k{methodName}_RequestSize = {fixedSizeExpr};");
         }
 
@@ -1070,7 +1166,8 @@ public class ProxyGenerator
         var outParams = parameters.Where(p => p.Direction == ParamDirection.Out).ToList();
         var replyParts = outParams.Select(p => p.Type).ToList();
         bool replyFixed = replyParts.All(t => WireFormat.IsFixedSize(t))
-            && (!hasRetval || WireFormat.IsFixedSize(returnType));
+            && (!hasRetval || WireFormat.IsFixedSize(returnType))
+            && !refParams.Any(rp => rp.Type.IsArray);
         if (replyFixed)
         {
             var replySizeParts = new List<string>();
@@ -1104,8 +1201,10 @@ public class ProxyGenerator
         }
         else
         {
-            var bufferSizeExpr = ComputeBufferSize(inParams);
-            sb.AppendLine($"        msg.cbBuffer = {bufferSizeExpr};");
+            var sizeParts = new List<string> { ComputeBufferSize(inParams) };
+            foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+                sizeParts.Add("sizeof(UINT32)");
+            sb.AppendLine($"        msg.cbBuffer = {string.Join(" + ", sizeParts)};");
         }
 
         if (hasIfaceInParams2)
@@ -1115,12 +1214,17 @@ public class ProxyGenerator
         sb.AppendLine("        RETURN_IF_FAILED(hr);");
 
         // Serialize input params
-        if (inParams.Count > 0)
+        bool hasRequestData = inParams.Count > 0 || refParams.Any(rp => rp.Type.IsArray);
+        if (hasRequestData)
         {
             sb.AppendLine("        BYTE* p = (BYTE*)msg.Buffer;");
             foreach (var p in inParams)
             {
                 EmitSerialize(sb, p.Name, p.Type);
+            }
+            foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+            {
+                sb.AppendLine($"        winmidl::marshal_uint32(p, __{rp.Name}Capacity);");
             }
         }
 
@@ -1138,6 +1242,12 @@ public class ProxyGenerator
         foreach (var p in outParams)
         {
             EmitDeserialize(sb, p.Name, p.Type, isPointer: true);
+        }
+
+        // Deserialize ref (FillArray) params from reply
+        foreach (var rp in refParams.Where(rp => rp.Type.IsArray))
+        {
+            EmitDeserializeFillArray(sb, rp.Name, rp.Type);
         }
 
         // Deserialize retval
@@ -1204,6 +1314,15 @@ public class ProxyGenerator
     }
 
     /// <summary>
+    /// Emits C++ code to deserialize a FillArray (ref T[]) reply: reads actual count + elements
+    /// into the caller's pre-allocated buffer.
+    /// </summary>
+    internal static void EmitDeserializeFillArray(StringBuilder sb, string paramName, TypeRef type, string indent = "        ")
+    {
+        WireFormat.EmitDeserializeFillArrayReply(sb, type, paramName, "pReply", indent);
+    }
+
+    /// <summary>
     /// Returns the byte size for a primitive type name, or 0 if not a recognized primitive.
     /// Delegates to <see cref="WireFormat.GetWireSize"/>.
     /// </summary>
@@ -1248,7 +1367,8 @@ public record ProxyParam(string Name, TypeRef Type, ParamDirection Direction);
 public enum ParamDirection
 {
     In,
-    Out
+    Out,
+    Ref
 }
 
 /// <summary>

@@ -210,9 +210,10 @@ public class StubGenerator
 
         sb.AppendLine($"    HRESULT Invoke_{slot.Name}(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {{");
 
-        // Determine in/out params and return type
+        // Determine in/out/ref params and return type
         var inParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.In).ToList();
         var outParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.Out).ToList();
+        var refParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.Ref).ToList();
         var hasRetval = slot.ReturnType.Name != "void";
         bool hasIfaceInParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type));
 
@@ -222,14 +223,30 @@ public class StubGenerator
             sb.AppendLine("        HRESULT hr;");
         }
 
-        // Deserialize input parameters
-        if (inParams.Count > 0)
+        // Deserialize input parameters (including ref array capacity)
+        bool hasRequestData = inParams.Count > 0 || refParams.Any(p => p.IsArray);
+        if (hasRequestData)
         {
             sb.AppendLine("        BYTE* p = (BYTE*)pMsg->Buffer;");
             foreach (var param in inParams)
             {
                 EmitDeserializeParam(sb, param.Type, param.Name, isAsync);
             }
+            // Read capacity for ref array params
+            foreach (var param in refParams.Where(p => p.IsArray))
+            {
+                sb.AppendLine($"        UINT32 __{param.Name}Capacity;");
+                sb.AppendLine($"        memcpy(&__{param.Name}Capacity, p, sizeof(UINT32)); p += sizeof(UINT32);");
+            }
+        }
+
+        // Declare ref array temp buffers
+        foreach (var param in refParams.Where(p => p.IsArray))
+        {
+            var elemType = WireFormat.ElementType(param.Type);
+            var elemCType = WireFormat.GetCppTypeName(elemType);
+            sb.AppendLine($"        {elemCType}* {param.Name} = ({elemCType}*)CoTaskMemAlloc(__{param.Name}Capacity * {WireFormat.GetCppSizeExpression(elemType)});");
+            sb.AppendLine($"        UINT32 __{param.Name}Actual = 0;");
         }
 
         // Declare out parameters
@@ -276,7 +293,7 @@ public class StubGenerator
         EmitServerCall(sb, slot, inParams, outParams, hasRetval, hrAlreadyDeclared: hasIfaceInParams);
 
         // Serialize reply
-        EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams, useExceptions);
+        EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams, useExceptions, refParams);
 
         if (useExceptions)
         {
@@ -379,15 +396,20 @@ public class StubGenerator
         {
             if (p.IsArray)
             {
-                var sizeVar = $"__{p.Name}Size";
                 if (p.Direction == ParameterDirection.Out)
                 {
-                    callArgs.Add($"&{sizeVar}");
+                    callArgs.Add($"&__{p.Name}Size");
                     callArgs.Add($"&{p.Name}");
+                }
+                else if (p.Direction == ParameterDirection.Ref)
+                {
+                    callArgs.Add($"__{p.Name}Capacity");
+                    callArgs.Add(p.Name);
+                    callArgs.Add($"&__{p.Name}Actual");
                 }
                 else
                 {
-                    callArgs.Add(sizeVar);
+                    callArgs.Add($"__{p.Name}Size");
                     callArgs.Add(p.Name);
                 }
             }
@@ -416,8 +438,10 @@ public class StubGenerator
     }
 
     private void EmitSerializeReply(StringBuilder sb, StubSlot slot, List<ParameterSymbol> outParams,
-        bool hasRetval, string iidName, List<ParameterSymbol> inParams, bool useExceptions)
+        bool hasRetval, string iidName, List<ParameterSymbol> inParams, bool useExceptions, List<ParameterSymbol>? refParams = null)
     {
+        refParams ??= new List<ParameterSymbol>();
+
         // For HSTRING out params/retval, we need to get their lengths before computing buffer size
         foreach (var p in outParams.Where(p => !p.IsArray && p.Type.Name == "String"))
         {
@@ -440,7 +464,8 @@ public class StubGenerator
 
         // Check if reply is fixed-size for constexpr optimization
         bool replyFixed = outParams.All(p => WireFormat.IsFixedSize(p.Type))
-            && (!hasRetval || WireFormat.IsFixedSize(slot.ReturnType));
+            && (!hasRetval || WireFormat.IsFixedSize(slot.ReturnType))
+            && !refParams.Any(p => p.IsArray);
 
         if (replyFixed)
         {
@@ -457,6 +482,15 @@ public class StubGenerator
         else
         {
             var sizeParts = new List<string>();
+            // Ref array params contribute actual + elements to reply
+            foreach (var p in refParams.Where(p => p.IsArray))
+            {
+                var elemType = WireFormat.ElementType(p.Type);
+                if (elemType.Name == "String")
+                    sizeParts.Add($"winmidl::hstring_array_size({p.Name}, __{p.Name}Actual)");
+                else
+                    sizeParts.Add($"sizeof(UINT32) + __{p.Name}Actual * {WireFormat.GetCppSizeExpression(elemType)}");
+            }
             foreach (var p in outParams)
             {
                 if (p.IsArray)
@@ -502,12 +536,22 @@ public class StubGenerator
         else
         {
             sb.AppendLine($"        HRESULT hrBuf = pChannel->GetBuffer(pMsg, {iidName});");
-            // On GetBuffer failure, clean up out-params before returning
+            // On GetBuffer failure, clean up out-params and ref-params before returning
             bool hasOutCleanup = HasOutParamCleanup(outParams, hasRetval, slot.ReturnType);
-            if (hasOutCleanup)
+            bool hasRefCleanup = refParams.Any(p => p.IsArray);
+            if (hasOutCleanup || hasRefCleanup)
             {
                 sb.AppendLine("        if (FAILED(hrBuf)) {");
                 EmitOutParamCleanup(sb, outParams, hasRetval, slot.ReturnType, "            ");
+                foreach (var rp in refParams.Where(p => p.IsArray))
+                {
+                    var elemType = WireFormat.ElementType(rp.Type);
+                    if (elemType.Name == "String")
+                    {
+                        sb.AppendLine($"            for (UINT32 i = 0; i < __{rp.Name}Actual; i++) WindowsDeleteString({rp.Name}[i]);");
+                    }
+                    sb.AppendLine($"            CoTaskMemFree({rp.Name});");
+                }
                 sb.AppendLine("            return hrBuf;");
                 sb.AppendLine("        }");
             }
@@ -518,10 +562,21 @@ public class StubGenerator
         }
 
         // Check if we need a pointer
-        bool needsPointer = outParams.Count > 0 || hasRetval;
+        bool needsPointer = outParams.Count > 0 || hasRetval || refParams.Any(p => p.IsArray);
         if (needsPointer)
         {
             sb.AppendLine("        BYTE* pOut = (BYTE*)pMsg->Buffer;");
+        }
+
+        // Serialize ref (FillArray) params into reply: actual + elements
+        foreach (var param in refParams.Where(p => p.IsArray))
+        {
+            var elemType = WireFormat.ElementType(param.Type);
+            var actualVar = $"__{param.Name}Actual";
+            if (elemType.Name == "String")
+                sb.AppendLine($"        winmidl::marshal_hstring_array(pOut, {param.Name}, {actualVar});");
+            else
+                sb.AppendLine($"        winmidl::marshal_array(pOut, {param.Name}, {actualVar});");
         }
 
         // Serialize out params using helpers
@@ -565,6 +620,17 @@ public class StubGenerator
                 }
                 sb.AppendLine($"        CoTaskMemFree({param.Name});");
             }
+        }
+
+        // Clean up ref-param (FillArray) temp buffers
+        foreach (var param in refParams.Where(p => p.IsArray))
+        {
+            var elemType = WireFormat.ElementType(param.Type);
+            if (elemType.Name == "String")
+            {
+                sb.AppendLine($"        for (UINT32 i = 0; i < __{param.Name}Actual; i++) WindowsDeleteString({param.Name}[i]);");
+            }
+            sb.AppendLine($"        CoTaskMemFree({param.Name});");
         }
 
         // Release in-param interface pointers
@@ -817,6 +883,7 @@ public class StubGenerator
 
         var inParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.In).ToList();
         var outParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.Out).ToList();
+        var refParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.Ref).ToList();
         var hasRetval = slot.ReturnType.Name != "void";
         bool hasIfaceInParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type));
 
@@ -825,14 +892,29 @@ public class StubGenerator
             sb.AppendLine("        HRESULT hr;");
         }
 
-        // Deserialize input parameters
-        if (inParams.Count > 0)
+        // Deserialize input parameters (including ref array capacity)
+        bool hasRequestData = inParams.Count > 0 || refParams.Any(p => p.IsArray);
+        if (hasRequestData)
         {
             sb.AppendLine("        BYTE* p = (BYTE*)pMsg->Buffer;");
             foreach (var param in inParams)
             {
                 EmitDeserializeParam(sb, param.Type, param.Name);
             }
+            foreach (var param in refParams.Where(p => p.IsArray))
+            {
+                sb.AppendLine($"        UINT32 __{param.Name}Capacity;");
+                sb.AppendLine($"        memcpy(&__{param.Name}Capacity, p, sizeof(UINT32)); p += sizeof(UINT32);");
+            }
+        }
+
+        // Declare ref array temp buffers
+        foreach (var param in refParams.Where(p => p.IsArray))
+        {
+            var elemType = WireFormat.ElementType(param.Type);
+            var elemCType = WireFormat.GetCppTypeName(elemType);
+            sb.AppendLine($"        {elemCType}* {param.Name} = ({elemCType}*)CoTaskMemAlloc(__{param.Name}Capacity * {WireFormat.GetCppSizeExpression(elemType)});");
+            sb.AppendLine($"        UINT32 __{param.Name}Actual = 0;");
         }
 
         // Declare out parameters
@@ -879,7 +961,7 @@ public class StubGenerator
         EmitServerCall(sb, slot, inParams, outParams, hasRetval, hrAlreadyDeclared: hasIfaceInParams);
 
         // Serialize reply
-        EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams, useExceptions);
+        EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams, useExceptions, refParams);
 
         if (useExceptions)
         {
