@@ -551,9 +551,7 @@ public partial class AttributeValidator
         foreach (var attr in attributes)
         {
             // Skip attributes that are already validated by ValidateBuiltInAttributeTargets
-            // or recognized as compiler builtins
-            if (BuiltInAttributeTargets.ContainsKey(attr.Name) ||
-                BuiltinAttributes.Contains(attr.Name))
+            if (BuiltInAttributeTargets.ContainsKey(attr.Name))
                 continue;
 
             if (!attrTypes.TryGetValue(attr.Name, out var attrType))

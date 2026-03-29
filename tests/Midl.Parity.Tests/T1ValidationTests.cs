@@ -2,7 +2,7 @@ using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 using Midl.Cli;
 
-namespace Midl.Integration.Tests;
+namespace Midl.Parity.Tests;
 
 /// <summary>
 /// T1 validation tests for OS MidlRT fixture files.

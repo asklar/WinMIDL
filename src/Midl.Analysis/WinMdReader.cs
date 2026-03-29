@@ -499,14 +499,16 @@ public class WinMdReader
                     break;
 
                 case "AttributeUsageAttribute":
-                    // [attributeusage(target_runtimeclass | target_method | ...)]
-                    // The value is an enum (AttributeTargets) stored as Int32
+                    // WinMD files store System.AttributeTargets (CLR) values in the blob,
+                    // even though the type is Windows.Foundation.Metadata.AttributeUsageAttribute.
+                    // The .NET metadata reader projects the WinRT type to System.AttributeUsageAttribute,
+                    // and the blob values are CLR AttributeTargets flags.
                     try
                     {
                         if (blob.RemainingBytes >= 4)
                         {
                             var targets = blob.ReadInt32();
-                            ApplyAttributeUsageTargets(symbol, targets);
+                            ApplyClrAttributeUsageTargets(symbol, targets);
                         }
                     }
                     catch { }
@@ -544,6 +546,37 @@ public class WinMdReader
         }
 
         return symbol;
+    }
+
+    /// <summary>
+    /// Maps CLR System.AttributeTargets enum flags to MIDL target strings.
+    /// Used when the attribute has System.AttributeUsageAttribute (not WinRT).
+    /// </summary>
+    private static void ApplyClrAttributeUsageTargets(AttributeTypeSymbol symbol, int targets)
+    {
+        const int ClrClass = 0x0004;        // → runtimeclass
+        const int ClrStruct = 0x0008;       // → struct
+        const int ClrEnum = 0x0010;         // → enum
+        const int ClrDelegate = 0x1000;     // → delegate
+        const int ClrInterface = 0x0400;    // → interface
+        const int ClrMethod = 0x0040;       // → method
+        const int ClrProperty = 0x0100;     // → property
+        const int ClrField = 0x0200;        // → field
+        const int ClrEvent = 0x0800;        // → event
+        const int ClrParameter = 0x0080;    // → parameter
+
+        if (targets == -1 || targets == 0x7FFF) return; // All — don't restrict
+
+        if ((targets & ClrClass) != 0) symbol.ValidTargets.Add("target_runtimeclass");
+        if ((targets & ClrStruct) != 0) symbol.ValidTargets.Add("target_struct");
+        if ((targets & ClrEnum) != 0) symbol.ValidTargets.Add("target_enum");
+        if ((targets & ClrDelegate) != 0) symbol.ValidTargets.Add("target_delegate");
+        if ((targets & ClrInterface) != 0) symbol.ValidTargets.Add("target_interface");
+        if ((targets & ClrMethod) != 0) symbol.ValidTargets.Add("target_method");
+        if ((targets & ClrProperty) != 0) symbol.ValidTargets.Add("target_property");
+        if ((targets & ClrField) != 0) symbol.ValidTargets.Add("target_field");
+        if ((targets & ClrEvent) != 0) symbol.ValidTargets.Add("target_event");
+        if ((targets & ClrParameter) != 0) symbol.ValidTargets.Add("target_parameter");
     }
 
     /// <summary>
@@ -889,6 +922,20 @@ public class WinMdReader
             {
                 var typeRef = mdReader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
                 return mdReader.GetString(typeRef.Name);
+            }
+        }
+        return null;
+    }
+
+    private static string? GetAttributeTypeNamespace(MetadataReader mdReader, EntityHandle ctorHandle)
+    {
+        if (ctorHandle.Kind == HandleKind.MemberReference)
+        {
+            var memberRef = mdReader.GetMemberReference((MemberReferenceHandle)ctorHandle);
+            if (memberRef.Parent.Kind == HandleKind.TypeReference)
+            {
+                var typeRef = mdReader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+                return mdReader.GetString(typeRef.Namespace);
             }
         }
         return null;

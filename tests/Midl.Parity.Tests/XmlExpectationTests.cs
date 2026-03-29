@@ -2,7 +2,7 @@ using System.Xml.Linq;
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 
-namespace Midl.Integration.Tests;
+namespace Midl.Parity.Tests;
 
 /// <summary>
 /// Validates that positive IDL test files produce WinMD output matching

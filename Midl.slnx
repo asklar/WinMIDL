@@ -13,6 +13,7 @@
     <Project Path="tests/Midl.CodeGen.Tests/Midl.CodeGen.Tests.csproj" />
     <Project Path="tests/Midl.E2E.Tests/Midl.E2E.Tests.csproj" />
     <Project Path="tests/Midl.Integration.Tests/Midl.Integration.Tests.csproj" />
+    <Project Path="tests/Midl.Parity.Tests/Midl.Parity.Tests.csproj" />
     <Project Path="tests/Midl.Lexer.Tests/Midl.Lexer.Tests.csproj" />
     <Project Path="tests/Midl.Parser.Tests/Midl.Parser.Tests.csproj" />
   </Folder>

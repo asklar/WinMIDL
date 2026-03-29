@@ -2,7 +2,7 @@ using Midl.Analysis;
 using Midl.CodeGen.Decompiler;
 using Midl.CodeGen.WinMd;
 
-namespace Midl.Integration.Tests;
+namespace Midl.Parity.Tests;
 
 /// <summary>
 /// Compares WinMD output from WinMIDL against original midl.exe /winrt.

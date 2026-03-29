@@ -2,7 +2,7 @@ using System.Text.Json;
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 
-namespace Midl.Integration.Tests;
+namespace Midl.Parity.Tests;
 
 public class FixtureDiagnosticTests
 {
