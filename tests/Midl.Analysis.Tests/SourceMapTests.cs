@@ -612,4 +612,49 @@ public class SourceMapTests : IDisposable
     }
 
     #endregion
+
+    #region Include Diagnostic Position Tests
+
+    [Fact]
+    public void Diagnostic_InIncludedFile_GetsCorrectSourceFile_AndPosition()
+    {
+        // BUG REPRO: When main.idl starts with #include, the included file content
+        // gets no SourceMap segment because baseOffset==0 in the recursive ProcessInternal call.
+        var mainFile = Path.Combine(_tempDir, "main.idl");
+        var helperFile = Path.Combine(_tempDir, "helper.idl");
+
+        var helperSource = "namespace Helper { runtimeclass BrokenWidget; }\n";
+        var mainSource = "#include \"helper.idl\"\nnamespace Main { runtimeclass GoodWidget { GoodWidget(); Int32 Value; } }\n";
+
+        File.WriteAllText(helperFile, helperSource);
+        File.WriteAllText(mainFile, mainSource);
+
+        var compilation = CompilationHelper.Compile(
+            File.ReadAllText(mainFile),
+            referencePaths: null,
+            CompilationMode.Compat,
+            includePaths: new[] { _tempDir },
+            currentFilePath: mainFile);
+
+        // There should be a diagnostic for "runtimeclass BrokenWidget;" (empty runtimeclass)
+        var brokenDiag = compilation.Diagnostics
+            .FirstOrDefault(d => d.Message.Contains("BrokenWidget", StringComparison.OrdinalIgnoreCase));
+
+        Assert.NotNull(brokenDiag);
+
+        // The diagnostic MUST be attributed to helper.idl, not main.idl
+        Assert.NotNull(brokenDiag.SourceFile);
+        Assert.Equal(Path.GetFullPath(helperFile), brokenDiag.SourceFile);
+
+        // The OriginalPosition must point to "BrokenWidget" in helper.idl's text
+        Assert.True(brokenDiag.OriginalPosition.HasValue, "OriginalPosition should be set");
+        int origPos = brokenDiag.OriginalPosition.Value;
+
+        // Verify the position actually points to "BrokenWidget" in the helper source
+        Assert.True(origPos >= 0 && origPos + "BrokenWidget".Length <= helperSource.Length,
+            $"OriginalPosition {origPos} out of range for helper source (len={helperSource.Length})");
+        Assert.Equal("BrokenWidget", helperSource.Substring(origPos, "BrokenWidget".Length));
+    }
+
+    #endregion
 }

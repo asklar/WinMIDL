@@ -124,4 +124,130 @@ public class DiagnosticPublisherPositionTests
         // Column should be the same since W is at the same position within its line
         Assert.Equal(col1, col2);
     }
+
+    [Fact]
+    public async Task Squiggle_InIncludedFile_PointsToCorrectFileAndPosition()
+    {
+        // Create temp files for #include scenario
+        var tempDir = Path.Combine(Path.GetTempPath(), "midl_diag_pub_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var mainFile = Path.Combine(tempDir, "main.idl");
+            var helperFile = Path.Combine(tempDir, "helper.idl");
+
+            var helperSource = "namespace Helper { runtimeclass BrokenWidget; }\n";
+            var mainSource = "#include \"helper.idl\"\nnamespace Main { runtimeclass GoodWidget { GoodWidget(); Int32 Value; } }\n";
+
+            File.WriteAllText(helperFile, helperSource);
+            File.WriteAllText(mainFile, mainSource);
+
+            var compilation = CompilationHelper.Compile(
+                File.ReadAllText(mainFile),
+                referencePaths: null,
+                CompilationMode.Compat,
+                includePaths: new[] { tempDir },
+                currentFilePath: mainFile);
+
+            var mainUri = "file:///" + mainFile.Replace('\\', '/');
+            var docs = await CapturePublishedDiagnostics(mainUri, mainSource, compilation.Diagnostics);
+
+            Assert.NotEmpty(docs);
+
+            // Find the notification that targets helper.idl
+            JsonDocument? helperDoc = null;
+            foreach (var doc in docs)
+            {
+                var docUri = doc.RootElement.GetProperty("params").GetProperty("uri").GetString()!;
+                if (docUri.Contains("helper.idl", StringComparison.OrdinalIgnoreCase))
+                {
+                    helperDoc = doc;
+                    break;
+                }
+            }
+
+            Assert.NotNull(helperDoc);
+
+            // The diagnostic should point to "BrokenWidget" in helper.idl
+            var diags = helperDoc.RootElement.GetProperty("params").GetProperty("diagnostics");
+            Assert.True(diags.GetArrayLength() > 0, "helper.idl should have diagnostics");
+
+            // Verify position points to "BrokenWidget" in the helper source
+            var firstDiag = diags[0];
+            var startLine = firstDiag.GetProperty("range").GetProperty("start").GetProperty("line").GetInt32();
+            var startChar = firstDiag.GetProperty("range").GetProperty("start").GetProperty("character").GetInt32();
+
+            var helperLines = helperSource.Split('\n');
+            int expectedCol = helperLines[startLine].IndexOf("BrokenWidget", StringComparison.Ordinal);
+
+            // The diagnostic should be on line 0 of helper.idl
+            Assert.Equal(0, startLine);
+            Assert.True(expectedCol >= 0, "BrokenWidget should be on the reported line");
+            // Allow pointing to runtimeclass keyword or the class name itself
+            Assert.True(startChar >= helperLines[0].IndexOf("runtimeclass") && startChar <= expectedCol + "BrokenWidget".Length,
+                $"Expected diagnostic position near 'BrokenWidget' (col {expectedCol}), got col {startChar}");
+        }
+        finally
+        {
+            try { Directory.Delete(tempDir, recursive: true); } catch { }
+        }
+    }
+
+    [Fact]
+    public async Task Squiggle_InMainFile_AfterInclude_StillCorrect()
+    {
+        // Diagnostic in main file after #include should still point to main.idl with correct position
+        var tempDir = Path.Combine(Path.GetTempPath(), "midl_diag_pub2_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            var mainFile = Path.Combine(tempDir, "main.idl");
+            var helperFile = Path.Combine(tempDir, "helper.idl");
+
+            var helperSource = "namespace Helper { }\n";
+            // Main file has a broken runtimeclass AFTER the include
+            var mainSource = "#include \"helper.idl\"\nnamespace Main { runtimeclass BadWidget; }\n";
+
+            File.WriteAllText(helperFile, helperSource);
+            File.WriteAllText(mainFile, mainSource);
+
+            var compilation = CompilationHelper.Compile(
+                File.ReadAllText(mainFile),
+                referencePaths: null,
+                CompilationMode.Compat,
+                includePaths: new[] { tempDir },
+                currentFilePath: mainFile);
+
+            var mainUri = "file:///" + mainFile.Replace('\\', '/');
+            var docs = await CapturePublishedDiagnostics(mainUri, mainSource, compilation.Diagnostics);
+
+            Assert.NotEmpty(docs);
+
+            // Find the notification for the main file
+            JsonDocument? mainDoc = null;
+            foreach (var doc in docs)
+            {
+                var docUri = doc.RootElement.GetProperty("params").GetProperty("uri").GetString()!;
+                if (docUri.Equals(mainUri, StringComparison.OrdinalIgnoreCase))
+                {
+                    mainDoc = doc;
+                    break;
+                }
+            }
+
+            Assert.NotNull(mainDoc);
+
+            var diags = mainDoc.RootElement.GetProperty("params").GetProperty("diagnostics");
+            Assert.True(diags.GetArrayLength() > 0, "main.idl should have diagnostics for BadWidget");
+
+            // The diagnostic should be on line 1 (0-indexed) of the main file
+            var firstDiag = diags[0];
+            var startLine = firstDiag.GetProperty("range").GetProperty("start").GetProperty("line").GetInt32();
+            Assert.Equal(1, startLine);
+        }
+        finally
+        {
+            try { Directory.Delete(tempDir, recursive: true); } catch { }
+        }
+    }
 }

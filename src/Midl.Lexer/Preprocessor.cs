@@ -396,7 +396,7 @@ public class Preprocessor
 
         // Flush final segment
         // Record when: file had includes (need segments for content between them),
-        // or this is a recursive call for an included file (baseOffset > 0 implies included),
+        // or this is a recursive call for an included file,
         // or there were #ifdef gaps that shifted positions
         bool needsSegments = hasIncludes || hasIfdefGaps || hasMacroDeltas || isIncludedFile;
         if (needsSegments && filePath != null)
