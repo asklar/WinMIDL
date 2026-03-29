@@ -201,8 +201,11 @@ public partial class AttributeValidator
             var version = attr.GetVersion(1);
             if (version.HasValue && (int)version.Value > maxVersion)
             {
+                var versionArg = attr.Arguments.Count > 1 ? attr.Arguments[1] : null;
+                var pos = (versionArg != null && versionArg.Position > 0) ? versionArg.Position : attr.Position;
+                var len = (versionArg != null && versionArg.Length > 0) ? versionArg.Length : attr.Name.Length;
                 _diagnostics.Add(DiagnosticDescriptors.ContractExceedsMax(
-                    contractName, (int)version.Value, maxVersion, attr.Position, attr.Name.Length));
+                    contractName, (int)version.Value, maxVersion, pos, len));
             }
         }
     }
