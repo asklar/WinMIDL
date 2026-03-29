@@ -5,6 +5,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using Midl.Analysis;
+using Midl.CodeGen.WinMd;
 
 namespace Midl.CodeGen.Decompiler;
 
@@ -139,7 +140,10 @@ public class WinMdDecompiler
                 DecompileEnum(reader, td, handle, name, sb, indent);
                 break;
             case "System.ValueType":
-                DecompileStruct(reader, td, name, sb, indent);
+                if (IsApiContract(reader, td, handle))
+                    DecompileApiContract(reader, td, handle, name, sb, indent);
+                else
+                    DecompileStruct(reader, td, name, sb, indent);
                 break;
             case "System.MulticastDelegate":
                 DecompileDelegate(reader, td, handle, name, sb, indent);
@@ -232,22 +236,12 @@ public class WinMdDecompiler
         sb.AppendLine($"{indent}}};");
     }
 
+    /// <summary>
+    /// Decodes CLR System.AttributeTargets flags (as stored in WinMD blobs) to IDL target strings.
+    /// </summary>
     private static List<string> DecodeAttributeTargets(int targets)
     {
-        var result = new List<string>();
-        if (targets == -1) return result; // All — don't emit
-        if ((targets & 1) != 0) result.Add("target_delegate");
-        if ((targets & 2) != 0) result.Add("target_enum");
-        if ((targets & 4) != 0) result.Add("target_event");
-        if ((targets & 8) != 0) result.Add("target_field");
-        if ((targets & 16) != 0) result.Add("target_interface");
-        if ((targets & 64) != 0) result.Add("target_method");
-        if ((targets & 128) != 0) result.Add("target_parameter");
-        if ((targets & 256) != 0) result.Add("target_property");
-        if ((targets & 512) != 0) result.Add("target_runtimeclass");
-        if ((targets & 1024) != 0) result.Add("target_struct");
-        if ((targets & 8192) != 0) result.Add("target_apicontract");
-        return result;
+        return MetadataConstants.ClrAttributeTargets.ToTargetStrings(targets);
     }
 
     #endregion
@@ -1425,18 +1419,26 @@ public class WinMdDecompiler
 
     /// <summary>
     /// Detects whether a type definition represents an apicontract.
-    /// ApiContracts are sealed types with ContractVersionAttribute (uint-only variant) and no methods.
+    /// ApiContracts have [ApiContractAttribute] or are sealed types with ContractVersionAttribute (uint-only variant) and no methods.
     /// </summary>
     private static bool IsApiContract(MetadataReader reader, TypeDefinition td, TypeDefinitionHandle handle)
     {
         if (!td.Attributes.HasFlag(TypeAttributes.Sealed)) return false;
 
-        // Must have no methods
+        // Check for [ApiContract] attribute first (emitted by winmidl)
+        foreach (var attrHandle in td.GetCustomAttributes())
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            var attrName = GetAttributeTypeName(reader, attr.Constructor);
+            if (attrName == "ApiContractAttribute")
+                return true;
+        }
+
+        // Fallback heuristic: no methods + ContractVersionAttribute with uint-only constructor (1 param)
         bool hasMethods = false;
         foreach (var _ in td.GetMethods()) { hasMethods = true; break; }
         if (hasMethods) return false;
 
-        // Must have ContractVersionAttribute with uint-only constructor (1 param)
         foreach (var attrHandle in td.GetCustomAttributes())
         {
             var attr = reader.GetCustomAttribute(attrHandle);

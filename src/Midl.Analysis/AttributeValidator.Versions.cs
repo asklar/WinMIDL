@@ -150,6 +150,12 @@ public partial class AttributeValidator
                 _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
                     attrName, arg.StringValue ?? "identifier", pos, len));
                 break;
+
+            default:
+                // Expression, unknown, or any other non-numeric kind
+                _diagnostics.Add(DiagnosticDescriptors.InvalidVersionValue(
+                    attrName, arg.StringValue ?? arg.Kind.ToString(), pos, len));
+                break;
         }
     }
 }

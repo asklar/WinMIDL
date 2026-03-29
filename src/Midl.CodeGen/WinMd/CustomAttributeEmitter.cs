@@ -39,6 +39,8 @@ internal class CustomAttributeEmitter
     private MemberReferenceHandle? _returnNameCtorRef;
     private MemberReferenceHandle? _noExceptionCtorRef;
     private MemberReferenceHandle? _remoteAsyncCtorRef;
+    private MemberReferenceHandle? _attributeUsageCtorRef;
+    private MemberReferenceHandle? _apiContractCtorRef;
     private TypeReferenceHandle? _systemTypeRef;
 
     public CustomAttributeEmitter(WinMdEmitter emitter)
@@ -317,6 +319,33 @@ internal class CustomAttributeEmitter
             Array.Empty<Action<SignatureTypeEncoder>>());
         var blob = EncodeParameterlessAttribute();
         Metadata.AddCustomAttribute(parent, _remoteAsyncCtorRef.Value, Metadata.GetOrAddBlob(blob));
+    }
+
+    /// <summary>
+    /// Emits [Windows.Foundation.Metadata.AttributeUsageAttribute(targets)] on an attribute type definition.
+    /// The blob stores WinRT AttributeTargets flags (not CLR System.AttributeTargets).
+    /// </summary>
+    public void AddAttributeUsageAttribute(EntityHandle parent, int winrtTargetFlags)
+    {
+        _attributeUsageCtorRef ??= CreateWfmCtorRef("AttributeUsageAttribute",
+            new Action<SignatureTypeEncoder>[] { e => e.Int32() });
+
+        var blob = new BlobBuilder();
+        blob.WriteUInt16(0x0001); // prolog
+        blob.WriteInt32(winrtTargetFlags);
+        blob.WriteUInt16(0x0000); // named args
+        Metadata.AddCustomAttribute(parent, _attributeUsageCtorRef.Value, Metadata.GetOrAddBlob(blob));
+    }
+
+    /// <summary>
+    /// Emits [Windows.Foundation.Metadata.ApiContractAttribute] on an apicontract type definition.
+    /// </summary>
+    public void AddApiContractAttribute(EntityHandle parent)
+    {
+        _apiContractCtorRef ??= CreateWfmCtorRef("ApiContractAttribute",
+            Array.Empty<Action<SignatureTypeEncoder>>());
+        var blob = EncodeParameterlessAttribute();
+        Metadata.AddCustomAttribute(parent, _apiContractCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
 
     /// <summary>

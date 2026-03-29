@@ -36,7 +36,7 @@ public partial class AttributeValidator
         {
             ["contractversion"] = new() { "target_apicontract" },
             ["version"] = new() { "target_runtimeclass", "target_interface", "target_delegate", "target_enum", "target_struct", "target_field" },
-            ["contract"] = new() { "target_runtimeclass", "target_interface", "target_delegate", "target_enum", "target_struct", "target_field", "target_interfaceimpl", "target_method", "target_event", "target_parameter" },
+            ["contract"] = new() { "target_runtimeclass", "target_interface", "target_delegate", "target_enum", "target_struct", "target_field", "target_interfaceimpl", "target_method", "target_event", "target_parameter", "target_property" },
             ["uuid"] = new() { "target_interface", "target_delegate" },
             ["threading"] = new() { "target_runtimeclass" },
             ["marshaling_behavior"] = new() { "target_runtimeclass" },
@@ -580,13 +580,22 @@ public partial class AttributeValidator
             if (!attrTypes.TryGetValue(attr.Name, out var attrType))
                 continue;
 
-            // Validate target
-            if (attrType.ValidTargets.Count > 0 &&
+            bool hasHardcodedValidation = BuiltInAttributeTargets.ContainsKey(attr.Name);
+
+            // Validate target — skip if already checked by ValidateBuiltInAttributeTargets
+            // to avoid duplicate MIDL1029 errors
+            if (!hasHardcodedValidation &&
+                attrType.ValidTargets.Count > 0 &&
                 !attrType.ValidTargets.Any(t => t.Equals(targetKind, StringComparison.OrdinalIgnoreCase)))
             {
                 _diagnostics.Add(DiagnosticDescriptors.AttributeWrongTarget(
                     attr.Name, targetKind, string.Join(", ", attrType.ValidTargets), attr.Position));
             }
+
+            // Skip arg count/type validation for attrs with hardcoded validators
+            // (they do their own arg validation — avoids duplicate MIDL1030 errors)
+            if (hasHardcodedValidation)
+                continue;
 
             // Validate argument count
             if (attrType.Fields.Count > 0 && attr.Arguments.Count != attrType.Fields.Count)

@@ -102,7 +102,11 @@ internal class TypeDefEmitter
         _attrs.AddExclusiveToAttribute(typeDef, rc.FullName);
 
         // VersionAttribute — match original midl which adds [Version(N)] to synthesized interfaces
-        uint attrVersion = rc.Version != null ? (uint)rc.Version.Value : 1u;
+        // Use contract version when available
+        bool rcHasContract = rc.ContractName != null && rc.ContractVersion != null;
+        uint attrVersion = rcHasContract
+            ? (uint)rc.ContractVersion!.Value
+            : (rc.Version != null ? (uint)rc.Version.Value : 1u);
         _attrs.AddVersionAttribute(typeDef, attrVersion);
 
         // Track properties and events for map tables
@@ -640,8 +644,13 @@ internal class TypeDefEmitter
             }
         }
 
-        // Reorder attributes to match original midl: Threading → Marshaling → Version → Activatable → Static
-        uint attrVersion = symbol.Version != null ? (uint)symbol.Version.Value : 1u;
+        // Reorder attributes to match original midl: Threading → Marshaling → Activatable → ContractVersion → Static
+        // Use contract version for Activatable/Static/etc. when [contract] is present
+        bool hasContract = symbol.ContractName != null && symbol.ContractVersion != null;
+        bool hasExplicitVersion = symbol.Version != null;
+        uint activatableVersion = hasContract
+            ? (uint)symbol.ContractVersion!.Value
+            : (hasExplicitVersion ? (uint)symbol.Version!.Value : 1u);
 
         // ThreadingAttribute
         if (symbol.ThreadingModel != null)
@@ -677,15 +686,19 @@ internal class TypeDefEmitter
             _attrs.AddMarshalingBehaviorAttribute(typeDef, 2); // Default: Agile
         }
 
-        // VersionAttribute
-        _attrs.AddVersionAttribute(typeDef, attrVersion);
+        // VersionAttribute — emit when explicit [version] is present, OR when no [contract] (default version)
+        // MIDL emits [Version] alongside [ContractVersion] when both are specified in IDL
+        if (hasExplicitVersion)
+            _attrs.AddVersionAttribute(typeDef, (uint)symbol.Version!.Value);
+        else if (!hasContract)
+            _attrs.AddVersionAttribute(typeDef, 1u);
 
-        // ActivatableAttribute
+        // ActivatableAttribute — uses contract version when available
         if (symbol.FactoryInterface != null)
-            _attrs.AddActivatableAttribute(typeDef, symbol.FactoryInterface.FullName, attrVersion);
+            _attrs.AddActivatableAttribute(typeDef, symbol.FactoryInterface.FullName, activatableVersion);
 
         if (symbol.Members.Any(m => m is ConstructorSymbol) || symbol.HasDefaultActivation)
-            _attrs.AddActivatableAttribute(typeDef, attrVersion);
+            _attrs.AddActivatableAttribute(typeDef, activatableVersion);
 
         // ComposableAttribute
         foreach (var attr in symbol.Attributes)
@@ -699,7 +712,7 @@ internal class TypeDefEmitter
                 var fullFactoryName = string.IsNullOrEmpty(classNs) ? factoryName : $"{classNs}.{factoryName}";
                 var accessStr = attr.GetIdentifier(1)?.ToLowerInvariant();
                 int access = accessStr == "protected" ? 1 : 2;
-                var version = attr.GetVersion(2) ?? attrVersion;
+                var version = attr.GetVersion(2) ?? activatableVersion;
                 _attrs.AddComposableAttribute(typeDef, fullFactoryName, access, version);
             }
         }
@@ -716,7 +729,7 @@ internal class TypeDefEmitter
             {
                 var classNs = GetNamespace(symbol);
                 var fullIfaceName = string.IsNullOrEmpty(classNs) ? ifaceName : $"{classNs}.{ifaceName}";
-                var version = attr.GetVersion(2) ?? attr.GetVersion(1) ?? attrVersion;
+                var version = attr.GetVersion(2) ?? attr.GetVersion(1) ?? activatableVersion;
                 _attrs.AddStaticAttribute(typeDef, fullIfaceName, version);
             }
         }
@@ -725,13 +738,13 @@ internal class TypeDefEmitter
         {
             foreach (var iface in symbol.StaticsInterfaces)
             {
-                _attrs.AddStaticAttribute(typeDef, iface.FullName, attrVersion);
+                _attrs.AddStaticAttribute(typeDef, iface.FullName, activatableVersion);
             }
         }
 
         // DeprecatedAttribute
         if (symbol.DeprecatedMessage != null)
-            _attrs.AddDeprecatedAttribute(typeDef, symbol.DeprecatedMessage, 0, attrVersion);
+            _attrs.AddDeprecatedAttribute(typeDef, symbol.DeprecatedMessage, 0, activatableVersion);
 
         // ExperimentalAttribute
         if (symbol.IsExperimental)
@@ -961,12 +974,12 @@ internal class TypeDefEmitter
                 | (TypeAttributes)MetadataConstants.TdWindowsRuntime),
             M.GetOrAddString(ns),
             M.GetOrAddString(symbol.Name),
-            _emitter.SystemObjectRef,
+            _emitter.SystemValueTypeRef,
             fieldList,
             methodList);
 
+        _attrs.AddApiContractAttribute(typeDef);
         _attrs.AddContractVersionAttribute(typeDef, (uint)(symbol.ContractVersion ?? 0x00010000));
-        _attrs.AddVersionAttribute(typeDef);
     }
 
     #endregion
@@ -1019,7 +1032,29 @@ internal class TypeDefEmitter
             _emitter.IncrementParamRow();
         }
 
-        _attrs.AddVersionAttribute(typeDef);
+        // [AttributeUsage] — emit CLR System.AttributeTargets flags (matching MIDL.exe)
+        if (symbol.ValidTargets.Count > 0)
+        {
+            var clrFlags = MetadataConstants.ClrAttributeTargets.FromTargetStrings(symbol.ValidTargets);
+            _attrs.AddAttributeUsageAttribute(typeDef, clrFlags);
+        }
+
+        // [ContractVersion] from [contract] attribute, or [Version] as fallback
+        var contractAttr = symbol.Attributes
+            .FirstOrDefault(a => a.Name.Equals("contract", StringComparison.OrdinalIgnoreCase));
+        if (contractAttr != null && contractAttr.Arguments.Count >= 2)
+        {
+            var contractName = contractAttr.GetTypeName(0) ?? contractAttr.GetIdentifier(0);
+            var version = contractAttr.GetVersion(1) ?? 0x00010000u;
+            if (contractName != null)
+                _attrs.AddContractVersionAttribute(typeDef, contractName, version);
+            else
+                _attrs.AddContractVersionAttribute(typeDef, version);
+        }
+        else
+        {
+            _attrs.AddVersionAttribute(typeDef);
+        }
     }
 
     #endregion
