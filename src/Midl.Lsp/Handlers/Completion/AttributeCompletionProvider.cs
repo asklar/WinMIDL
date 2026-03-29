@@ -287,6 +287,14 @@ internal static class AttributeCompletionProvider
         ("default_interface", "Marks interface as the default", null),
         ("contentproperty", "Specifies the content property for XAML", "contentproperty(\"${1:PropertyName}\")"),
 
+        // Interface naming directives
+        ("constructor_name", "Specifies factory interface name and IID",
+            "constructor_name(\"${1:Namespace.IFactory}\", ${2:00000000-0000-0000-0000-000000000000})"),
+        ("interface_name", "Specifies instance interface name and IID",
+            "interface_name(\"${1:Namespace.IFoo}\", ${2:00000000-0000-0000-0000-000000000000})"),
+        ("static_name", "Specifies static interface name and IID",
+            "static_name(\"${1:Namespace.IFooStatics}\", ${2:00000000-0000-0000-0000-000000000000})"),
+
         // Interface attributes
         ("exclusiveto", "Restricts interface to a specific class",
             "exclusiveto(${1:ClassName})"),

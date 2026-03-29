@@ -103,6 +103,21 @@ public static partial class SignatureHelpHandler
                 ("uuid(\"00000000-0000-0000-0000-000000000000\")",
                     new[] { "\"GUID\" — interface GUID in registry format" })
             ],
+            ["constructor_name"] =
+            [
+                ("constructor_name(\"Namespace.IFactory\", GUID)",
+                    new[] { "\"Name\" — fully-qualified factory interface name", "GUID — interface identifier" })
+            ],
+            ["interface_name"] =
+            [
+                ("interface_name(\"Namespace.IFoo\", GUID)",
+                    new[] { "\"Name\" — fully-qualified instance interface name", "GUID — interface identifier" })
+            ],
+            ["static_name"] =
+            [
+                ("static_name(\"Namespace.IFooStatics\", GUID)",
+                    new[] { "\"Name\" — fully-qualified static interface name", "GUID — interface identifier" })
+            ],
         };
 
     /// <summary>

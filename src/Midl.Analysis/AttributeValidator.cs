@@ -59,6 +59,9 @@ public partial class AttributeValidator
             ["attributename"] = new() { "target_attribute" },
             ["contentproperty"] = new() { "target_runtimeclass" },
             ["allowforweb"] = new() { "target_runtimeclass" },
+            ["constructor_name"] = new() { "target_runtimeclass" },
+            ["interface_name"] = new() { "target_runtimeclass" },
+            ["static_name"] = new() { "target_runtimeclass" },
         };
 
     /// <summary>All well-known built-in attribute names recognized by the MIDL compiler.</summary>
@@ -100,6 +103,8 @@ public partial class AttributeValidator
             "contentproperty", "inputproperty",
             "allowforweb",
             "bindable", "create_instance",
+            // Interface naming directives
+            "constructor_name", "interface_name", "static_name",
         };
 
     #pragma warning disable CS0649 // Field is never assigned
