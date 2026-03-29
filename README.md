@@ -20,6 +20,7 @@ This project is a **ground-up rewrite** of the Microsoft Interface Definition La
 | Windows Metadata | `.winmd` |
 | C / C++ headers | `.h` |
 | IID definitions | `_i.c` |
+| Custom proxy/stub | `_proxy.cpp` |
 | DllData | `dlldata.c` |
 | Proxy / stub skeletons | `_p.c` |
 
@@ -36,14 +37,23 @@ dotnet build
 # Run tests
 dotnet test
 
-# Compile a MIDL file
-dotnet run --project src/Midl.Cli -- /winrt /h output.h input.idl
+# Compile a MIDL file (header + IIDs)
+dotnet run --project src/Midl.Cli -- /winrt /h output.h /iid output_i.c input.idl
 
-# Start LSP server
-dotnet run --project src/Midl.Cli -- --lsp
+# Generate Windows Metadata
+dotnet run --project src/Midl.Cli -- /winmd output.winmd input.idl
+
+# Generate proxy/stub code for COM marshaling
+dotnet run --project src/Midl.Cli -- /winrt /h Widget.h /iid Widget_i.c /cppproxy Widget_proxy.cpp Widget.idl
+
+# Decompile a .winmd back to IDL
+dotnet run --project src/Midl.Cli -- --decompile output.winmd
 
 # Syntax check only
 dotnet run --project src/Midl.Cli -- /Zs input.idl
+
+# Start LSP server
+dotnet run --project src/Midl.Cli -- --lsp
 ```
 
 ---
@@ -60,7 +70,7 @@ dotnet run --project src/Midl.Cli -- /Zs input.idl
 | `src/Midl.Lsp` | Language Server Protocol server |
 | `src/Midl.Cli` | Command-line interface (30+ switches) |
 | `editors/vscode` | VS Code extension (TextMate grammar + LSP client) |
-| `tests/` | 5 test projects, 650+ tests |
+| `tests/` | 5 test projects, 2200+ tests |
 | `docs/` | Architecture, testing, diagnostics, winmidl.json guides |
 
 ---
@@ -89,6 +99,7 @@ graph LR
     F --> G[WinMD Emitter]
     F --> H[Header Emitter]
     F --> I[IID Emitter]
+    F --> K[Proxy/Stub Emitter]
     F --> J[LSP Server]
 ```
 
@@ -130,7 +141,9 @@ The `editors/vscode` directory contains a VS Code extension that bundles:
 | Completions | ✅ |
 | Hover information | ✅ |
 | Go-to-definition | ✅ |
+| Signature help | ✅ |
 | Semantic tokens | ✅ |
+| Code folding | ✅ |
 | Formatting | ✅ |
 
 ### Install
@@ -157,6 +170,8 @@ dotnet run --project src/Midl.Cli -- [switches] <input.idl>
 | Switch | Description |
 |--------|-------------|
 | `/winrt` | Enable Windows Runtime (MIDL3) mode |
+| `/winmd <file>` | Emit Windows Metadata (`.winmd`) |
+| `/cppproxy <file>` | Emit custom proxy/stub C++ code |
 | `/h <file>` | Emit C/C++ header |
 | `/iid <file>` | Emit IID definitions (`_i.c`) |
 | `/out <dir>` | Set output directory |
@@ -169,6 +184,97 @@ dotnet run --project src/Midl.Cli -- [switches] <input.idl>
 | `--lsp` | Start as an LSP server (stdio) |
 | `/?` | Show full help |
 | `/nologo` | Suppress the banner |
+
+---
+
+## Generating Windows Metadata (WinMD)
+
+Use the `/winmd` switch to emit a `.winmd` file from your IDL:
+
+```bash
+# Generate a .winmd file (implicitly enables /winrt mode)
+dotnet run --project src/Midl.Cli -- /winmd output.winmd input.idl
+
+# Generate both header and WinMD
+dotnet run --project src/Midl.Cli -- /winrt /h output.h /winmd output.winmd input.idl
+```
+
+The emitter uses `System.Reflection.Metadata` to produce spec-compliant WinMD files with:
+
+- **Full attribute emission** — `[contract]`, `[activatable]`, `[composable]`, `[static]`, `[deprecated]`, `[threading]`, `[marshaling_behavior]`, `[version]`, `[experimental]`, `[noexcept]`, `[remote_async]`, `[attributeusage]`, and user-defined attributes
+- **Correct version encoding** — integer versions encoded as `(major << 16) | minor`, hex passthrough, `major.minor` notation
+- **ApiContract types** — emitted as structs with `[ApiContract]` and `[ContractVersion]` attributes
+- **Custom attribute types** — emitted with `[AttributeUsageAttribute]` using CLR `System.AttributeTargets` flags (matching MIDL.exe behavior)
+- **Deterministic GUIDs** — synthesized interfaces get stable UUIDs derived from their ABI signature
+
+### Inspecting WinMD Files
+
+```bash
+# Dump metadata tables (types, methods, attributes)
+dotnet run --project src/Midl.Cli -- --dump-winmd output.winmd
+
+# Decompile back to IDL
+dotnet run --project src/Midl.Cli -- --decompile output.winmd
+```
+
+---
+
+## Custom Proxy/Stub Code Generation
+
+WinMIDL can generate custom C++ proxy/stub code for COM marshaling, replacing the traditional MIDL-generated NDR stubs with compiled, type-safe serialization.
+
+```bash
+# Generate header, IID file, and proxy/stub C++ code
+dotnet run --project src/Midl.Cli -- /winrt /h Widget.h /iid Widget_i.c /cppproxy Widget_proxy.cpp Widget.idl
+```
+
+### What's Generated
+
+| File | Content |
+|------|---------|
+| `Widget.h` | C/C++ header with interface declarations |
+| `Widget_i.c` | GUIDs (IIDs, CLSIDs) |
+| `Widget_proxy.cpp` | Proxy and stub implementations for cross-apartment/cross-process marshaling |
+
+### Building a Proxy/Stub DLL
+
+The generated proxy code compiles into a standard COM proxy/stub DLL:
+
+```bash
+# Compile the proxy/stub DLL (MSVC)
+cl /nologo /std:c++latest /EHsc /LD ^
+    Widget_proxy.cpp Widget_i.c dlldata.c ^
+    /I path/to/winmidl/include ^
+    ole32.lib oleaut32.lib rpcrt4.lib ^
+    /link /DEF:proxy.def /OUT:Widget_proxy.dll
+
+# Register for in-process marshaling
+regsvr32 Widget_proxy.dll
+```
+
+### Runtime Headers
+
+The proxy code depends on `include/winmidl/proxy_helpers.h` which provides:
+
+- Zero-copy `GetRuntimeClassName` using `WindowsCreateStringReference`
+- `marshal_interface` / `unmarshal_interface` with typed IID + `IID_IUnknown` fallback
+- HSTRING serialization helpers
+- `EventRegistrationToken` marshaling
+- Struct and array serialization
+
+### Supported Marshaling Patterns
+
+- **Primitives** — all WinRT value types, HSTRING, GUID, EventRegistrationToken
+- **Structs** — nested structs with correct alignment
+- **Interfaces** — with typed IID marshaling and `IID_IUnknown` fallback for system objects
+- **Delegates** — typed callback proxies with event registration
+- **Enums and flags**
+- **Out parameters** — including interface out params with cleanup
+- **Properties** — get/set with full round-trip
+- **Events** — add/remove with `EventRegistrationToken`
+- **Multiple interfaces** — QI, `GetIids`, inheritance chains
+
+> See [docs/marshaling-architecture.md](docs/marshaling-architecture.md) and [docs/wire-format-spec.md](docs/wire-format-spec.md) for the full design.
 
 ---
 
@@ -195,6 +301,9 @@ The LSP discovers this file automatically, enabling cross-file symbol resolution
 ## Links
 
 - [Architecture](docs/architecture.md)
+- [Marshaling Architecture](docs/marshaling-architecture.md)
+- [Wire Format Spec](docs/wire-format-spec.md)
+- [Diagnostics Reference](docs/diagnostics.md)
 - [Project Configuration (winmidl.json)](docs/winmidl-json.md)
 - [Testing Guide](docs/testing.md)
 - [Contributing](CONTRIBUTING.md)

@@ -16,7 +16,7 @@ Errors and warnings surface instantly as you type — no build step required. Sy
 
 ## 🧠 Context-Aware IntelliSense
 
-Completions adapt to where your cursor is. Inside an attribute bracket on a `runtimeclass`? You'll see `activatable`, `composable`, `contract`. Inside a `struct` body? Only value types that are valid there.
+Completions adapt to where your cursor is. Inside an attribute bracket on a `runtimeclass`? You'll see `activatable`, `composable`, `contract`. Inside a `struct` body? Only value types that are valid there. Inside attribute arguments like `[threading(|`? You'll get `sta`, `mta`, `both`.
 
 ![Side-by-side autocomplete showing attribute and type completions](images/autocomplete.png)
 
@@ -118,7 +118,7 @@ Hover over any token for contextual documentation — keywords, built-in types, 
 
 ### 🔗 Go to Definition
 
-**Ctrl+Click** or **F12** on any type or member name to jump to its declaration.
+**Ctrl+Click** or **F12** on any type or member name to jump to its declaration. Also works on attribute names — F12 on `[threading]` or `[contract]` navigates to the SDK attribute type definition (decompiled from `.winmd`).
 
 ### 🔎 Find All References
 
@@ -126,7 +126,11 @@ Hover over any token for contextual documentation — keywords, built-in types, 
 
 ### ✍️ Signature Help
 
-Parameter hints triggered by `(` and `,` — shows full method/constructor/delegate signatures with active parameter highlighting.
+Parameter hints triggered by `(` and `,` — shows full method/constructor/delegate signatures with active parameter highlighting. Also works inside attribute arguments: `[contract(|` shows `(ContractName, version)`, `[composable(|` shows `(FactoryType, access, version)`, etc.
+
+### 📂 Code Folding
+
+Collapse namespaces, runtime classes, interfaces, structs, enums, and versioned blocks using the editor fold controls.
 
 ### 🎯 Semantic Highlighting
 
@@ -186,7 +190,6 @@ The extension ships a self-contained Native AOT binary — no .NET SDK or runtim
 - **Go to Definition** — Works within the current file, across `.idl` files (via `winmidl.json` or `// @ref:` directives), and for external `.winmd` types (decompiled view)
 - **Full document sync** — The entire document is re-sent and reparsed on every keystroke (incremental text sync planned)
 - **No refactoring** — Code actions are available but full refactoring support is still growing
-- **No code folding from LSP** — Folding relies on the regex-based language configuration, not semantic ranges
 
 ---
 
