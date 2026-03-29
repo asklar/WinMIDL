@@ -341,4 +341,86 @@ public class SourceMapTests : IDisposable
         // Even if no diagnostics from the header specifically, the test validates the code path
         Assert.NotNull(errOutput); // Just ensure no exception was thrown
     }
+
+    [Fact]
+    public async Task LSP_DiagnosticsFromIncludedFile_PublishedToIncludedFileUri()
+    {
+        // Create a mock JsonRpcWriter using a MemoryStream
+        var outputStream = new MemoryStream();
+        var writer = new Midl.Lsp.JsonRpcWriter(outputStream);
+        var publisher = new Midl.Lsp.DiagnosticsPublisher(writer);
+
+        var mainFile = Path.Combine(_tempDir, "main.midl");
+        var header = Path.Combine(_tempDir, "included.h");
+
+        File.WriteAllText(header, "// line 1\n// line 2\n");
+        File.WriteAllText(mainFile, "// main content\n");
+
+        var mainUri = "file:///" + mainFile.Replace('\\', '/');
+
+        // Create diagnostics: one from main file, one from included file
+        var diagnostics = new List<Midl.Analysis.Diagnostics.Diagnostic>
+        {
+            new(Midl.Analysis.Diagnostics.DiagnosticSeverity.Error, "TEST001", "main error", 0, 5),
+            new(Midl.Analysis.Diagnostics.DiagnosticSeverity.Error, "TEST002", "included error", 10, 5)
+            {
+                SourceFile = Path.GetFullPath(header),
+                OriginalPosition = 5
+            }
+        };
+
+        await publisher.PublishDiagnosticsAsync(mainUri, "// main content\n", diagnostics);
+
+        // Verify output was written (the stream should have content)
+        Assert.True(outputStream.Length > 0, "Should have published diagnostics");
+
+        // Read the output and verify we got notifications for both URIs
+        outputStream.Position = 0;
+        var output = new StreamReader(outputStream).ReadToEnd();
+
+        // Should contain the main URI
+        Assert.Contains(mainUri, output);
+        // Should contain the included file URI
+        Assert.Contains("included.h", output);
+        // Should contain both diagnostic codes
+        Assert.Contains("TEST001", output);
+        Assert.Contains("TEST002", output);
+    }
+
+    [Fact]
+    public async Task LSP_ClearDiagnostics_WorksAcrossFiles()
+    {
+        var outputStream = new MemoryStream();
+        var writer = new Midl.Lsp.JsonRpcWriter(outputStream);
+        var publisher = new Midl.Lsp.DiagnosticsPublisher(writer);
+
+        var mainFile = Path.Combine(_tempDir, "main.midl");
+        var header = Path.Combine(_tempDir, "old_error.h");
+
+        File.WriteAllText(header, "// content\n");
+        File.WriteAllText(mainFile, "// main\n");
+
+        var mainUri = "file:///" + mainFile.Replace('\\', '/');
+
+        // First publish: diagnostics in both files
+        var diags1 = new List<Midl.Analysis.Diagnostics.Diagnostic>
+        {
+            new(Midl.Analysis.Diagnostics.DiagnosticSeverity.Error, "ERR1", "error 1", 0, 1)
+            {
+                SourceFile = Path.GetFullPath(header),
+                OriginalPosition = 0
+            }
+        };
+        await publisher.PublishDiagnosticsAsync(mainUri, "// main\n", diags1);
+
+        // Second publish: no diagnostics (all fixed)
+        outputStream.SetLength(0);
+        await publisher.PublishDiagnosticsAsync(mainUri, "// main\n", new List<Midl.Analysis.Diagnostics.Diagnostic>());
+
+        outputStream.Position = 0;
+        var output = new StreamReader(outputStream).ReadToEnd();
+
+        // Should contain the old_error.h URI being cleared (empty diagnostics array)
+        Assert.Contains("old_error.h", output);
+    }
 }
