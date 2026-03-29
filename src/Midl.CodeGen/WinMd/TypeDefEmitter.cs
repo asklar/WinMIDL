@@ -73,6 +73,16 @@ internal class TypeDefEmitter
         }
     }
 
+    private void EmitArrayParamAttribute(EntityHandle paramHandle, ParameterSymbol param)
+    {
+        if (!param.IsArray) return;
+
+        if (param.Direction == ParameterDirection.In)
+            _attrs.AddReadOnlyArrayAttribute(paramHandle);
+        else
+            _attrs.AddWriteOnlyArrayAttribute(paramHandle);
+    }
+
     /// <summary>Emit a synthesized exclusive interface for a runtime class.</summary>
     /// <param name="rc">The owning runtime class.</param>
     /// <param name="iface">The synthesized interface symbol (default, protected, or overridable).</param>
@@ -494,6 +504,7 @@ internal class TypeDefEmitter
                 i + 1);
             _emitter.IncrementParamRow();
             EmitRemainingAttributes(paramHandle, symbol.Parameters[i].Attributes);
+            EmitArrayParamAttribute(paramHandle, symbol.Parameters[i]);
         }
     }
 
@@ -847,6 +858,7 @@ internal class TypeDefEmitter
                 i + 1);
             _emitter.IncrementParamRow();
             EmitRemainingAttributes(paramHandle, method.Parameters[i].Attributes);
+            EmitArrayParamAttribute(paramHandle, method.Parameters[i]);
         }
 
         return handle;
@@ -1094,6 +1106,7 @@ internal class TypeDefEmitter
                 i + 1);
             _emitter.IncrementParamRow();
             EmitRemainingAttributes(paramHandle, method.Parameters[i].Attributes);
+            EmitArrayParamAttribute(paramHandle, method.Parameters[i]);
         }
 
         if (method.OverloadGroup != null)
@@ -1660,6 +1673,18 @@ internal static class SignatureTypeEncoderExtensions
 {
     public static void FromTypeRef(this SignatureTypeEncoder encoder, TypeRef typeRef, WinMdEmitter emitter)
     {
+        if (typeRef.IsArray)
+        {
+            // Encode as SZArray (single-dimensional zero-based array)
+            var elemType = new TypeRef(typeRef.Name, typeRef.TypeArguments)
+            {
+                IsBuiltIn = typeRef.IsBuiltIn,
+                ResolvedSymbol = typeRef.ResolvedSymbol,
+            };
+            encoder.SZArray().FromTypeRef(elemType, emitter);
+            return;
+        }
+
         switch (typeRef.Name)
         {
             case "Boolean": encoder.Boolean(); break;

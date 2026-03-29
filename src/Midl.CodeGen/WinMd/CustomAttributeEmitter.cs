@@ -313,6 +313,25 @@ internal class CustomAttributeEmitter
         Metadata.AddCustomAttribute(parent, _noExceptionCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
 
+    private MemberReferenceHandle? _readOnlyArrayCtorRef;
+    private MemberReferenceHandle? _writeOnlyArrayCtorRef;
+
+    public void AddReadOnlyArrayAttribute(EntityHandle parent)
+    {
+        _readOnlyArrayCtorRef ??= CreateWfmCtorRef("ReadOnlyArrayAttribute",
+            Array.Empty<Action<SignatureTypeEncoder>>());
+        var blob = EncodeParameterlessAttribute();
+        Metadata.AddCustomAttribute(parent, _readOnlyArrayCtorRef.Value, Metadata.GetOrAddBlob(blob));
+    }
+
+    public void AddWriteOnlyArrayAttribute(EntityHandle parent)
+    {
+        _writeOnlyArrayCtorRef ??= CreateWfmCtorRef("WriteOnlyArrayAttribute",
+            Array.Empty<Action<SignatureTypeEncoder>>());
+        var blob = EncodeParameterlessAttribute();
+        Metadata.AddCustomAttribute(parent, _writeOnlyArrayCtorRef.Value, Metadata.GetOrAddBlob(blob));
+    }
+
     public void AddRemoteAsyncAttribute(EntityHandle parent)
     {
         _remoteAsyncCtorRef ??= CreateWfmCtorRef("RemoteAsyncAttribute",
