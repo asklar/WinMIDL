@@ -189,7 +189,12 @@ public sealed partial class MidlLanguageServer
                 break;
 
             case "textDocument/documentSymbol":
-                await _writer.SendResponseAsync(id, DocumentSymbolHandler.Handle(@params, _docManager));
+                {
+                    var dsUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? dsComp = null;
+                    if (dsUri != null) _lastCompilation.TryGetValue(dsUri, out dsComp);
+                    await _writer.SendResponseAsync(id, DocumentSymbolHandler.Handle(@params, _docManager, dsComp));
+                }
                 break;
 
             case "textDocument/definition":
@@ -211,7 +216,12 @@ public sealed partial class MidlLanguageServer
                 break;
 
             case "textDocument/references":
-                await _writer.SendResponseAsync(id, FindReferencesHandler.Handle(@params, _docManager));
+                {
+                    var refUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? refComp = null;
+                    if (refUri != null) _lastCompilation.TryGetValue(refUri, out refComp);
+                    await _writer.SendResponseAsync(id, FindReferencesHandler.Handle(@params, _docManager, refComp));
+                }
                 break;
 
             case "textDocument/signatureHelp":
@@ -241,26 +251,39 @@ public sealed partial class MidlLanguageServer
                 break;
 
             case "textDocument/rename":
-                await _writer.SendResponseAsync(id, RenameHandler.Handle(@params, _docManager));
+                {
+                    var renUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? renComp = null;
+                    if (renUri != null) _lastCompilation.TryGetValue(renUri, out renComp);
+                    await _writer.SendResponseAsync(id, RenameHandler.Handle(@params, _docManager, renComp));
+                }
                 break;
 
             case "textDocument/prepareRename":
-                await _writer.SendResponseAsync(id, RenameHandler.HandlePrepare(@params, _docManager));
+                {
+                    var prUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
+                    Compilation? prComp = null;
+                    if (prUri != null) _lastCompilation.TryGetValue(prUri, out prComp);
+                    await _writer.SendResponseAsync(id, RenameHandler.HandlePrepare(@params, _docManager, prComp));
+                }
                 break;
 
             case "textDocument/codeAction":
             {
                 string? caFilePath = null;
+                string? caUri = null;
                 if (@params is not null)
                 {
                     var caTd = @params.Value.GetProperty("textDocument");
-                    var caUri = caTd.GetProperty("uri").GetString()!;
+                    caUri = caTd.GetProperty("uri").GetString()!;
                     if (caUri.StartsWith("file:///"))
                         caFilePath = Uri.UnescapeDataString(caUri[8..]);
                 }
                 var caRefs = caFilePath != null ? GetReferencePaths(@params!.Value.GetProperty("textDocument").GetProperty("uri").GetString()!) : _referencePaths;
                 var caIncludes = GetIncludePaths(caFilePath);
-                await _writer.SendResponseAsync(id, CodeActionHandler.Handle(@params, _docManager, caRefs, caIncludes, caFilePath));
+                Compilation? caComp = null;
+                if (caUri != null) _lastCompilation.TryGetValue(caUri, out caComp);
+                await _writer.SendResponseAsync(id, CodeActionHandler.Handle(@params, _docManager, caRefs, caIncludes, caFilePath, caComp));
                 break;
             }
 

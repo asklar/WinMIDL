@@ -10,7 +10,7 @@ namespace Midl.Lsp.Handlers;
 /// </summary>
 public static class FindReferencesHandler
 {
-    public static object? Handle(JsonElement? @params, DocumentManager docManager)
+    public static object? Handle(JsonElement? @params, DocumentManager docManager, Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
 
@@ -23,14 +23,14 @@ public static class FindReferencesHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return null;
 
-        return HandleCore(text, uri, line, character);
+        return HandleCore(text, uri, line, character, cachedCompilation);
     }
 
     /// <summary>
     /// Core logic, testable without LSP JSON plumbing.
     /// Returns a list of LSP Location objects.
     /// </summary>
-    public static List<object> HandleCore(string sourceText, string uri, int line, int character)
+    public static List<object> HandleCore(string sourceText, string uri, int line, int character, Compilation? cachedCompilation = null)
     {
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
         int offset = PositionHelper.LineCharToOffset(lineStarts, line, character);
@@ -44,13 +44,20 @@ public static class FindReferencesHandler
         string name = token.Text;
 
         Compilation compilation;
-        try
+        if (cachedCompilation != null)
         {
-            compilation = CompilationHelper.Compile(sourceText);
+            compilation = cachedCompilation;
         }
-        catch
+        else
         {
-            return [];
+            try
+            {
+                compilation = CompilationHelper.Compile(sourceText);
+            }
+            catch
+            {
+                return [];
+            }
         }
 
         // Verify the symbol exists

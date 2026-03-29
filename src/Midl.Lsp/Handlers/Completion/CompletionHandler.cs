@@ -127,7 +127,7 @@ public static class CompletionHandler
             if (attrContext != null)
             {
 #if WINDOWS_INTERNAL
-                var featureAttrItems = ImportCompletionProvider.DetectFeatureAttributeArgContext(text, offset);
+                var featureAttrItems = ImportCompletionProvider.DetectFeatureAttributeArgContext(text, offset, cachedCompilation);
                 if (featureAttrItems != null)
                     return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = featureAttrItems.ToArray() };
 #endif
