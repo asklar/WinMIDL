@@ -43,6 +43,7 @@ public sealed partial class MidlLanguageServer
         {
             var text = changes[0].GetProperty("text").GetString()!;
             _docManager.UpdateDocument(uri, text);
+            MidlTrace.Lsp($"didChange: {uri} ({text.Length} chars)");
 
             // Debounce: cancel any pending analysis for this URI, schedule a new one
             if (_debounceTokens.TryRemove(uri, out var oldCts))
@@ -86,9 +87,11 @@ public sealed partial class MidlLanguageServer
         var hash = text.GetHashCode();
         if (_lastAnalyzedHash.TryGetValue(uri, out var lastHash) && lastHash == hash)
         {
-            MidlTrace.Lsp($"Skipping analysis for {uri} (unchanged)");
+            MidlTrace.Lsp($"Skipping analysis for {uri} (unchanged, hash={hash})");
             return;
         }
+
+        MidlTrace.Lsp($"Analysis starting for {uri} ({text.Length} chars, hash={hash}, prevHash={lastHash})");
 
         try
         {

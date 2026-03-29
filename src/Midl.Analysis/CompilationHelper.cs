@@ -220,7 +220,12 @@ public static class CompilationHelper
         // Remap positions from expanded text to original text using line+column correspondence.
         if (originalSource != source && !preprocessor.HasIncludeDirectives)
         {
+            MidlTrace.Write("COMPILE", $"Remapping {compilation.Diagnostics.Count} diagnostics (expanded={source.Length} chars, original={originalSource.Length} chars)");
             compilation = RemapDiagnosticPositionsByLine(compilation, source, originalSource, currentFilePath);
+        }
+        else
+        {
+            MidlTrace.Write("COMPILE", $"No remap needed (same={originalSource == source}, hasIncludes={preprocessor.HasIncludeDirectives})");
         }
 
         return compilation;
