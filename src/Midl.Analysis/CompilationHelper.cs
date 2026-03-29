@@ -111,6 +111,16 @@ public static class CompilationHelper
         var preprocessor = new Midl.Lexer.Preprocessor(defines, includePaths, currentFilePath);
         source = preprocessor.Process(source);
 
+        // Build source map from preprocessor segment data
+        SourceMap? sourceMap = null;
+        if (preprocessor.SourceMapSegments.Count > 0)
+        {
+            sourceMap = new SourceMap();
+            foreach (var seg in preprocessor.SourceMapSegments)
+                sourceMap.AddSegment(seg.ExpandedStart, seg.ExpandedEnd, seg.FilePath, seg.OriginalStart);
+            sourceMap.SortSegments();
+        }
+
         // Collect preprocessor-level diagnostics
         var syntaxDiagnostics = new List<Midl.Analysis.Diagnostics.Diagnostic>(refDiagnostics);
         if (mode == CompilationMode.Strict && preprocessor.HasIncludeDirectives)
@@ -192,6 +202,12 @@ public static class CompilationHelper
         if (syntaxDiagnostics.Count > 0)
         {
             compilation = compilation.WithAdditionalDiagnostics(syntaxDiagnostics);
+        }
+
+        // Attach source map if available
+        if (sourceMap != null)
+        {
+            compilation.SourceMap = sourceMap;
         }
 
         return compilation;

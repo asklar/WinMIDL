@@ -24,6 +24,12 @@ public class Preprocessor
     /// <summary>True if any #include directive was encountered during processing.</summary>
     public bool HasIncludeDirectives { get; private set; }
 
+    /// <summary>
+    /// Raw source-map segment data produced during preprocessing.
+    /// Each tuple: (expandedStart, expandedEnd, filePath, originalStart).
+    /// </summary>
+    public List<(int ExpandedStart, int ExpandedEnd, string FilePath, int OriginalStart)> SourceMapSegments { get; } = new();
+
     /// <summary>Errors from preprocessing (#error, unresolved includes, etc.).</summary>
     public List<string> Errors { get; } = new();
 
@@ -154,15 +160,32 @@ public class Preprocessor
     }
 #endif
 
-    private string ProcessInternal(string source, string? filePath)
+    private string ProcessInternal(string source, string? filePath, int baseOffset = 0)
     {
-        var lines = SplitLines(source);
+        var rawLines = SplitLines(source);
 
-        // Join backslash-continuation lines: lines ending with \ are joined with the next line
-        lines = JoinContinuationLines(lines);
+        // Compute original character offsets for each raw line
+        var rawLineOffsets = new int[rawLines.Count + 1];
+        {
+            int o = 0;
+            for (int ri = 0; ri < rawLines.Count; ri++)
+            {
+                rawLineOffsets[ri] = o;
+                o += rawLines[ri].Length + 1; // +1 for newline stripped by SplitLines
+            }
+            rawLineOffsets[rawLines.Count] = o;
+        }
+
+        // Join backslash-continuation lines and track original line indices
+        var (lines, origLineIndices) = JoinContinuationLinesTracked(rawLines);
 
         var output = new StringBuilder(source.Length);
         var ifStack = new Stack<IfState>();
+
+        // Source map tracking: current segment in the expanded output
+        int segExpandedStart = baseOffset;
+        int segOriginalStart = 0;
+        bool hasIncludes = false;
 
         for (int i = 0; i < lines.Count; i++)
         {
@@ -220,11 +243,41 @@ public class Preprocessor
                     case "include":
                         if (IsActive(ifStack))
                         {
-                            var included = HandleInclude(directive.Body, filePath);
+                            // Flush current segment before calling HandleInclude
+                            // (HandleInclude's recursive ProcessInternal will add child segments first)
+                            int expandedPos = baseOffset + output.Length;
+                            bool flushed = false;
+                            if (expandedPos > segExpandedStart && filePath != null)
+                            {
+                                SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+                                flushed = true;
+                            }
+
+                            var included = HandleInclude(directive.Body, filePath, expandedPos);
                             if (included != null)
+                            {
                                 output.Append(included);
+                                hasIncludes = true;
+
+                                // Start new segment after include
+                                segExpandedStart = baseOffset + output.Length;
+                                if (i + 1 < origLineIndices.Length)
+                                    segOriginalStart = rawLineOffsets[origLineIndices[i + 1]];
+                                else
+                                    segOriginalStart = rawLineOffsets[rawLines.Count];
+                            }
                             else
+                            {
                                 output.AppendLine();
+                                // Remove the prematurely flushed segment since nothing was included
+                                if (flushed)
+                                {
+                                    var last = SourceMapSegments[^1];
+                                    SourceMapSegments.RemoveAt(SourceMapSegments.Count - 1);
+                                    segExpandedStart = last.ExpandedStart;
+                                    segOriginalStart = last.OriginalStart;
+                                }
+                            }
                         }
                         else
                         {
@@ -275,6 +328,19 @@ public class Preprocessor
         if (output.Length >= Environment.NewLine.Length)
         {
             output.Length -= Environment.NewLine.Length;
+        }
+
+        // Flush final segment
+        // Record when: file had includes (need segments for content between them),
+        // or this is a recursive call for an included file (baseOffset > 0 implies included)
+        bool needsSegments = hasIncludes || baseOffset > 0;
+        if (needsSegments && filePath != null)
+        {
+            int finalExpandedPos = baseOffset + output.Length;
+            if (finalExpandedPos > segExpandedStart)
+            {
+                SourceMapSegments.Add((segExpandedStart, finalExpandedPos, filePath, segOriginalStart));
+            }
         }
 
         return output.ToString();
@@ -418,7 +484,7 @@ public class Preprocessor
             ifStack.Pop();
     }
 
-    private string? HandleInclude(string rest, string? parentFilePath)
+    private string? HandleInclude(string rest, string? parentFilePath, int baseOffset = 0)
     {
         HasIncludeDirectives = true;
 
@@ -446,7 +512,7 @@ public class Preprocessor
         try
         {
             var content = File.ReadAllText(resolved);
-            var processed = ProcessInternal(content, resolved);
+            var processed = ProcessInternal(content, resolved, baseOffset);
             if (!processed.EndsWith('\n'))
                 return processed + "\n";
             return processed;
@@ -978,6 +1044,44 @@ public class Preprocessor
         if (sb.Length > 0)
             result.Add(sb.ToString());
         return result;
+    }
+
+    /// <summary>
+    /// Join continuation lines and also return the original (raw) line index for each joined line.
+    /// </summary>
+    private static (List<string> Lines, int[] OriginalLineIndices) JoinContinuationLinesTracked(List<string> lines)
+    {
+        var result = new List<string>(lines.Count);
+        var origIndices = new List<int>();
+        var sb = new System.Text.StringBuilder();
+        int groupStart = -1;
+        for (int i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            var trimmedEnd = line.TrimEnd();
+            var trimmedStart = trimmedEnd.TrimStart();
+            if (trimmedEnd.EndsWith('\\') && !trimmedStart.StartsWith("//"))
+            {
+                if (groupStart < 0) groupStart = i;
+                sb.Append(trimmedEnd[..^1]);
+                sb.Append(' ');
+            }
+            else
+            {
+                if (groupStart < 0) groupStart = i;
+                sb.Append(line);
+                result.Add(sb.ToString());
+                origIndices.Add(groupStart);
+                sb.Clear();
+                groupStart = -1;
+            }
+        }
+        if (sb.Length > 0)
+        {
+            result.Add(sb.ToString());
+            origIndices.Add(groupStart >= 0 ? groupStart : lines.Count - 1);
+        }
+        return (result, origIndices.ToArray());
     }
 
     private static (string Name, string Body) ParseDirective(string trimmedLine)

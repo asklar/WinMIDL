@@ -11,6 +11,7 @@ public class Compilation
     public NamespaceSymbol GlobalNamespace { get; }
     public IReadOnlyList<Diagnostic> Diagnostics { get; }
     public SymbolTable? SymbolTable { get; internal set; }
+    public SourceMap? SourceMap { get; internal set; }
 
     private readonly IReadOnlyList<LazyWinMdProvider>? _lazyProviders;
 
@@ -37,6 +38,7 @@ public class Compilation
         merged.AddRange(additional);
         merged.AddRange(Diagnostics);
         var result = new Compilation(GlobalNamespace, merged, _lazyProviders);
+        result.SourceMap = SourceMap;
 #if WINDOWS_INTERNAL
         foreach (var kvp in FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
 #endif
