@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
@@ -48,7 +47,21 @@ namespace Midl.VsExtension
 
         private static void OnToggleStrictMode(object sender, EventArgs e)
         {
-            strictMode = !strictMode;
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var options = MidlPackage.Instance?.GetOptions();
+            if (options != null)
+            {
+                options.StrictMode = !options.StrictMode;
+                options.SaveSettingsToStorage();
+                MidlLanguageClient.NotifySettingsChanged();
+                strictMode = options.StrictMode;
+            }
+            else
+            {
+                strictMode = !strictMode;
+            }
+
             string mode = strictMode ? "Strict MIDL3" : "Compatibility";
             VsShellUtilities.ShowMessageBox(
                 package,
@@ -90,13 +103,38 @@ namespace Midl.VsExtension
 
         private static void OnShowServerLog(object sender, EventArgs e)
         {
-            VsShellUtilities.ShowMessageBox(
-                package,
-                "Check the Output window (View \u2192 Output) and select 'MIDL Language Server' from the dropdown.",
-                "MIDL",
-                OLEMSGICON.OLEMSGICON_INFO,
-                OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            try
+            {
+                var outputWindow = (IVsOutputWindow)ServiceProvider.GlobalProvider.GetService(typeof(SVsOutputWindow));
+                if (outputWindow != null)
+                {
+                    var paneGuid = MidlLanguageClient.OutputPaneGuid;
+                    outputWindow.GetPane(ref paneGuid, out var pane);
+                    pane?.Activate();
+
+                    // Show the Output tool window
+                    var shell = (IVsUIShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShell));
+                    if (shell != null)
+                    {
+                        var outputWindowGuid = new Guid(ToolWindowGuids80.OutputWindow);
+                        shell.FindToolWindow(0, ref outputWindowGuid, out var frame);
+                        frame?.Show();
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback to message box if Output window activation fails
+                VsShellUtilities.ShowMessageBox(
+                    package,
+                    "Check the Output window (View \u2192 Output) and select 'MIDL Language Server' from the dropdown.",
+                    "MIDL",
+                    OLEMSGICON.OLEMSGICON_INFO,
+                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            }
         }
 
         private static void OnSelectSdkVersion(object sender, EventArgs e)
