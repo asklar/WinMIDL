@@ -136,7 +136,6 @@ public class E2EOutOfProcMarshalTests
 
         // ── Step 6: Assert ──────────────────────────────────────────────
         Assert.Equal(0, result.ExitCode);
-        Assert.Contains("PASS:", result.StdOut);
-        Assert.DoesNotContain("FAIL:", result.StdOut);
+        E2ETestHelper.AssertTestResults(result.StdOut, _output);
     }
 }

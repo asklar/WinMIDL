@@ -148,7 +148,6 @@ public class E2EComprehensiveMarshalTests
 
         // ── Step 5: Assert ──────────────────────────────────────────────
         Assert.Equal(0, result.ExitCode);
-        Assert.Contains("PASS:", result.StdOut);
-        Assert.DoesNotContain("FAIL:", result.StdOut);
+        E2ETestHelper.AssertTestResults(result.StdOut, _output);
     }
 }

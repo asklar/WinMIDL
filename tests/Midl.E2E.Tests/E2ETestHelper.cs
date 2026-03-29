@@ -570,4 +570,72 @@ public class E2ETestHelper : IDisposable
         proc.WaitForExit(30_000);
         return output;
     }
+
+    // ── Test Result Parsing ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Represents a single sub-test result parsed from C++ client output.
+    /// </summary>
+    public record TestCaseResult(string Name, string Status);
+
+    /// <summary>
+    /// Parses PASS:/FAIL:/SKIP: lines from C++ client stdout into individual results.
+    /// </summary>
+    public static List<TestCaseResult> ParseTestResults(string stdout)
+    {
+        var results = new List<TestCaseResult>();
+        if (string.IsNullOrEmpty(stdout)) return results;
+
+        foreach (var line in stdout.Split('\n'))
+        {
+            var trimmed = line.Trim();
+            if (trimmed.StartsWith("PASS:", StringComparison.Ordinal))
+                results.Add(new TestCaseResult(trimmed["PASS:".Length..].Trim(), "PASS"));
+            else if (trimmed.StartsWith("FAIL:", StringComparison.Ordinal))
+                results.Add(new TestCaseResult(trimmed["FAIL:".Length..].Trim(), "FAIL"));
+            else if (trimmed.StartsWith("SKIP:", StringComparison.Ordinal))
+                results.Add(new TestCaseResult(trimmed["SKIP:".Length..].Trim(), "SKIP"));
+        }
+        return results;
+    }
+
+    /// <summary>
+    /// Asserts all parsed test results, reporting each sub-test individually via ITestOutputHelper.
+    /// Returns (passed, failed, skipped) counts.
+    /// </summary>
+    public static (int passed, int failed, int skipped) AssertTestResults(
+        string stdout, Xunit.Abstractions.ITestOutputHelper output)
+    {
+        var results = ParseTestResults(stdout);
+        int passed = 0, failed = 0, skipped = 0;
+        var failures = new List<string>();
+
+        foreach (var r in results)
+        {
+            switch (r.Status)
+            {
+                case "PASS":
+                    passed++;
+                    output.WriteLine($"  ✓ {r.Name}");
+                    break;
+                case "FAIL":
+                    failed++;
+                    output.WriteLine($"  ✗ {r.Name}");
+                    failures.Add(r.Name);
+                    break;
+                case "SKIP":
+                    skipped++;
+                    output.WriteLine($"  ⊘ {r.Name} (skipped)");
+                    break;
+            }
+        }
+
+        output.WriteLine($"\n  {passed} passed, {failed} failed, {skipped} skipped ({results.Count} total)");
+
+        if (failures.Count > 0)
+            Assert.Fail($"{failures.Count} sub-test(s) failed:\n  " + string.Join("\n  ", failures));
+
+        Assert.True(results.Count > 0, "No test results found in client output");
+        return (passed, failed, skipped);
+    }
 }
