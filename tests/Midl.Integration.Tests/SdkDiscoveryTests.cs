@@ -298,4 +298,45 @@ public class SdkDiscoveryTests
 
         Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1107");
     }
+
+    [SkippableFact]
+    public void FeatureOnRuntimeclass_NoError_WithSdk()
+    {
+        var sdk = WindowsSdkLocator.Discover();
+        Skip.If(sdk == null, "Windows SDK not installed");
+        Skip.If(sdk.WindowsWinMdPath == null, "Windows.winmd not found in SDK");
+
+        // FeatureAttribute in SDK has targets that include runtimeclass (Class in CLR flags).
+        // This test ensures CLR→WinRT flag decoding works correctly.
+        var source = @"
+            namespace N {
+                declare { feature_name TestFeature = {AlwaysEnabled, TRUE}; }
+                [feature(TestFeature, AlwaysEnabled), default_interface]
+                runtimeclass R { R(); }
+            }";
+        var compilation = CompilationHelper.Compile(source,
+            new[] { sdk.WindowsWinMdPath }, CompilationMode.Strict);
+
+        var targetErrors = compilation.Diagnostics
+            .Where(d => d.Code == "MIDL1029" && d.Message.Contains("feature"))
+            .ToList();
+        Assert.Empty(targetErrors);
+    }
+
+    [SkippableFact]
+    public void SdkAttributeTargets_ClrFlagDecoding_IncludesRuntimeclass()
+    {
+        var sdk = WindowsSdkLocator.Discover();
+        Skip.If(sdk == null, "Windows SDK not installed");
+        Skip.If(sdk.WindowsWinMdPath == null, "Windows.winmd not found in SDK");
+
+        // Verify FeatureAttribute's ValidTargets include target_runtimeclass
+        // after CLR flag decoding (CLR Class=0x04 → target_runtimeclass)
+        var compilation = CompilationHelper.Compile("namespace N { }",
+            new[] { sdk.WindowsWinMdPath }, CompilationMode.Strict);
+        var featureAttr = compilation.GetTypeByName("Windows.Foundation.Metadata.FeatureAttribute");
+        Assert.NotNull(featureAttr);
+        var attrType = Assert.IsType<AttributeTypeSymbol>(featureAttr);
+        Assert.Contains("target_runtimeclass", attrType.ValidTargets);
+    }
 }
