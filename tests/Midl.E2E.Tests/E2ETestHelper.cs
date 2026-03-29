@@ -48,13 +48,45 @@ public class E2ETestHelper : IDisposable
         GenDir = Path.Combine(testDir, "generated");
         BuildDir = Path.Combine(testDir, "build");
 
+        // Kill any leftover server processes from previous runs before cleaning
+        KillLeftoverProcesses(BuildDir);
+
         // Clean and recreate build directories for a fresh run
-        if (Directory.Exists(GenDir))
-            Directory.Delete(GenDir, true);
-        if (Directory.Exists(BuildDir))
-            Directory.Delete(BuildDir, true);
+        CleanDirectory(GenDir);
+        CleanDirectory(BuildDir);
         Directory.CreateDirectory(GenDir);
         Directory.CreateDirectory(BuildDir);
+    }
+
+    private static void KillLeftoverProcesses(string dir)
+    {
+        if (!Directory.Exists(dir)) return;
+        try
+        {
+            foreach (var exe in Directory.GetFiles(dir, "*.exe"))
+            {
+                var exeName = Path.GetFileNameWithoutExtension(exe);
+                foreach (var proc in Process.GetProcessesByName(exeName))
+                {
+                    try { proc.Kill(entireProcessTree: true); proc.WaitForExit(5000); }
+                    catch { }
+                    finally { proc.Dispose(); }
+                }
+            }
+        }
+        catch { }
+    }
+
+    private static void CleanDirectory(string dir)
+    {
+        if (!Directory.Exists(dir)) return;
+        try { Directory.Delete(dir, true); }
+        catch
+        {
+            // Retry after a short delay for file handle release
+            Thread.Sleep(500);
+            try { Directory.Delete(dir, true); } catch { }
+        }
     }
 
     // ── Standard flag/lib sets ──────────────────────────────────────────

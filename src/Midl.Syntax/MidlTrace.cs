@@ -10,24 +10,26 @@ namespace Midl.Syntax;
 public static class MidlTrace
 {
     private static TextWriter? _writer;
-    private static bool _enabled;
+    private static volatile bool _enabled;
     private static readonly object _lock = new();
 
     /// <summary>Is tracing enabled?</summary>
     public static bool IsEnabled => _enabled;
 
     /// <summary>Enable tracing. Call once at startup.</summary>
-    public static void Enable(string? logFilePath = null)
+    /// <param name="logFilePath">Path to log file. If null, writes to stderr.</param>
+    /// <param name="alsoWriteToStdErr">When true and logFilePath is set, also tee to stderr. Default true.</param>
+    public static void Enable(string? logFilePath = null, bool alsoWriteToStdErr = true)
     {
         lock (_lock)
         {
             _enabled = true;
             if (logFilePath != null)
             {
-                // Write to both file and stderr (stderr feeds VS Output window)
-                _writer = new TeeWriter(
-                    new StreamWriter(logFilePath, append: true) { AutoFlush = true },
-                    Console.Error);
+                var fileWriter = new StreamWriter(logFilePath, append: true) { AutoFlush = true };
+                _writer = alsoWriteToStdErr
+                    ? new TeeWriter(fileWriter, Console.Error)
+                    : fileWriter;
             }
             else
             {

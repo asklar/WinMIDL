@@ -33,7 +33,7 @@ public class DebugTraceTests : IDisposable
         var tempFile = Path.GetTempFileName();
         try
         {
-            MidlTrace.Enable(tempFile);
+            MidlTrace.Enable(tempFile, alsoWriteToStdErr: false);
             Assert.True(MidlTrace.IsEnabled);
             MidlTrace.Write("TEST", "Hello from test");
             MidlTrace.Disable();
@@ -55,7 +55,7 @@ public class DebugTraceTests : IDisposable
         var tempFile = Path.GetTempFileName();
         try
         {
-            MidlTrace.Enable(tempFile);
+            MidlTrace.Enable(tempFile, alsoWriteToStdErr: false);
 
             // Compile something to generate trace output
             _ = CompilationHelper.Compile("namespace Test { interface IFoo { void Bar(); } }");
@@ -79,7 +79,7 @@ public class DebugTraceTests : IDisposable
         var tempFile = Path.GetTempFileName();
         try
         {
-            MidlTrace.Enable(tempFile);
+            MidlTrace.Enable(tempFile, alsoWriteToStdErr: false);
 
             _ = CompilationHelper.Compile("namespace Test { interface IFoo { void Bar(); } }");
 
@@ -109,7 +109,7 @@ public class DebugTraceTests : IDisposable
         var tempFile = Path.GetTempFileName();
         try
         {
-            MidlTrace.Enable(tempFile);
+            MidlTrace.Enable(tempFile, alsoWriteToStdErr: false);
             var compilationWith = CompilationHelper.Compile(
                 "namespace Test { interface IFoo { void Bar(); } }");
             MidlTrace.Disable();
