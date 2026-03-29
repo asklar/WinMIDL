@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using Xunit.Abstractions;
 
 namespace Midl.E2E.Tests;
 
@@ -11,6 +12,9 @@ namespace Midl.E2E.Tests;
 [SupportedOSPlatform("windows")]
 public class E2EInProcMarshalTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public E2EInProcMarshalTests(ITestOutputHelper output) => _output = output;
     [SkippableFact]
     [Trait("Category", "E2E")]
     public void InProcProxyStub_CrossApartment_RoundTrips()
@@ -111,9 +115,9 @@ public class E2EInProcMarshalTests
         var result = helper.RunClient(clientExe);
 
         if (!string.IsNullOrWhiteSpace(result.StdOut))
-            Console.Write(result.StdOut);
+            _output.WriteLine(result.StdOut);
         if (!string.IsNullOrWhiteSpace(result.StdErr))
-            Console.Error.Write(result.StdErr);
+            _output.WriteLine($"[stderr] {result.StdErr}");
 
         // ── Step 5: Assert ──────────────────────────────────────────────
         Assert.Equal(0, result.ExitCode);

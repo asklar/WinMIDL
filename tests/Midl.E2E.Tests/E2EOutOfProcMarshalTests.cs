@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using Xunit.Abstractions;
 
 namespace Midl.E2E.Tests;
 
@@ -11,6 +12,9 @@ namespace Midl.E2E.Tests;
 [SupportedOSPlatform("windows")]
 public class E2EOutOfProcMarshalTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public E2EOutOfProcMarshalTests(ITestOutputHelper output) => _output = output;
     // CLSIDs must match the server source (CalcServer.cpp)
     private static readonly string[] AllClsids =
     [
@@ -126,9 +130,9 @@ public class E2EOutOfProcMarshalTests
         var result = helper.RunClient(clientExe);
 
         if (!string.IsNullOrWhiteSpace(result.StdOut))
-            Console.Write(result.StdOut);
+            _output.WriteLine(result.StdOut);
         if (!string.IsNullOrWhiteSpace(result.StdErr))
-            Console.Error.Write(result.StdErr);
+            _output.WriteLine($"[stderr] {result.StdErr}");
 
         // ── Step 6: Assert ──────────────────────────────────────────────
         Assert.Equal(0, result.ExitCode);

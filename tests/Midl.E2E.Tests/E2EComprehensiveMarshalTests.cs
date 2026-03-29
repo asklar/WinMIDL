@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using Xunit.Abstractions;
 
 namespace Midl.E2E.Tests;
 
@@ -14,6 +15,9 @@ namespace Midl.E2E.Tests;
 [SupportedOSPlatform("windows")]
 public class E2EComprehensiveMarshalTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public E2EComprehensiveMarshalTests(ITestOutputHelper output) => _output = output;
     // CLSIDs must match ComprehensiveServer.cpp
     private static readonly Dictionary<string, string> ClsidMap = new()
     {
@@ -138,9 +142,9 @@ public class E2EComprehensiveMarshalTests
         var result = helper.RunClient(clientExe);
 
         if (!string.IsNullOrWhiteSpace(result.StdOut))
-            Console.Write(result.StdOut);
+            _output.WriteLine(result.StdOut);
         if (!string.IsNullOrWhiteSpace(result.StdErr))
-            Console.Error.Write(result.StdErr);
+            _output.WriteLine($"[stderr] {result.StdErr}");
 
         // ── Step 5: Assert ──────────────────────────────────────────────
         Assert.Equal(0, result.ExitCode);
