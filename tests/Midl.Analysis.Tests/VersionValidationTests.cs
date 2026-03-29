@@ -189,10 +189,42 @@ public class VersionValidationTests
         
         var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1093");
         Assert.NotNull(diag);
-        // For now, just assert it points somewhere inside [contract(Foo, 2)], not at runtimeclass
         Assert.True(diag.Position >= source.IndexOf("[contract"),
-            $"Squiggle at pos {diag.Position} ('{source[diag.Position..(diag.Position + diag.Length)]}') should be inside [contract(Foo, 2)]");
+            $"Squiggle at pos {diag.Position} should be inside [contract(Foo, 2)]");
         Assert.True(diag.Position < source.IndexOf("runtimeclass"),
             $"Squiggle at pos {diag.Position} should be before 'runtimeclass'");
+    }
+
+    [Fact]
+    public void InvalidMarshalingBehavior_SquiggleOnArg()
+    {
+        var source = "namespace N { [marshaling_behavior(banana), default_interface] runtimeclass R { R(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1021");
+        Assert.NotNull(diag);
+        var snippet = source[diag.Position..(diag.Position + diag.Length)];
+        Assert.Equal("banana", snippet);
+    }
+
+    [Fact]
+    public void InvalidDeprecationType_SquiggleOnArg()
+    {
+        var source = "namespace N { [deprecated(\"old\", banana, \"C\", 1)] interface IFoo { void F(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1026");
+        Assert.NotNull(diag);
+        var snippet = source[diag.Position..(diag.Position + diag.Length)];
+        Assert.Equal("banana", snippet);
+    }
+
+    [Fact]
+    public void WrongTarget_SquiggleOnAttrName()
+    {
+        var source = "namespace N { [threading(both)] struct S { Int32 X; }; }";
+        var compilation = CompilationHelper.Compile(source);
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1029");
+        Assert.NotNull(diag);
+        var snippet = source[diag.Position..(diag.Position + diag.Length)];
+        Assert.Equal("threading", snippet);
     }
 }

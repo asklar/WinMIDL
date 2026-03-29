@@ -179,6 +179,7 @@ public partial class AttributeValidator
                     ValidateBuiltInAttributeTargets(iface.Attributes, "target_interface");
                     ValidateCustomAttributeInstances(iface.Attributes, iface.Name, "target_interface", attrTypes);
                     ValidateContractAndFeatureArgs(iface.Attributes, iface.Name, apiContracts);
+                    ValidateDeprecatedOnAttributes(iface.Attributes);
                     if (!iface.IsSynthesized)
                         ValidateMemberAttributes(iface.Members, attrTypes, apiContracts);
                     break;
@@ -187,11 +188,13 @@ public partial class AttributeValidator
                     ValidateBuiltInAttributeTargets(en.Attributes, "target_enum");
                     ValidateCustomAttributeInstances(en.Attributes, en.Name, "target_enum", attrTypes);
                     ValidateContractAndFeatureArgs(en.Attributes, en.Name, apiContracts);
+                    ValidateDeprecatedOnAttributes(en.Attributes);
                     foreach (var m in en.EnumMembers)
                     {
                         ValidateBuiltInAttributeTargets(m.Attributes, "target_field");
                         ValidateCustomAttributeInstances(m.Attributes, m.Name, "target_field", attrTypes);
                         ValidateContractAndFeatureArgs(m.Attributes, m.Name, apiContracts);
+                        ValidateDeprecatedOnAttributes(m.Attributes);
                     }
                     break;
                 case StructSymbol st:
@@ -199,12 +202,14 @@ public partial class AttributeValidator
                     ValidateBuiltInAttributeTargets(st.Attributes, "target_struct");
                     ValidateCustomAttributeInstances(st.Attributes, st.Name, "target_struct", attrTypes);
                     ValidateContractAndFeatureArgs(st.Attributes, st.Name, apiContracts);
+                    ValidateDeprecatedOnAttributes(st.Attributes);
                     break;
                 case DelegateSymbol del:
                     ValidateUnknownAttributes(del.Attributes, attrTypes);
                     ValidateBuiltInAttributeTargets(del.Attributes, "target_delegate");
                     ValidateCustomAttributeInstances(del.Attributes, del.Name, "target_delegate", attrTypes);
                     ValidateContractAndFeatureArgs(del.Attributes, del.Name, apiContracts);
+                    ValidateDeprecatedOnAttributes(del.Attributes);
                     break;
                 case ApiContractSymbol ac:
                     ValidateUnknownAttributes(ac.Attributes, attrTypes);
@@ -303,7 +308,9 @@ public partial class AttributeValidator
         var value = attr.GetIdentifier(0);
         if (value != null && !ValidMarshalingBehaviors.Contains(value))
         {
-            _diagnostics.Add(DiagnosticDescriptors.InvalidMarshalingBehavior(value, attr.Position));
+            var arg = attr.Arguments[0];
+            _diagnostics.Add(DiagnosticDescriptors.InvalidMarshalingBehavior(value,
+                arg.Position > 0 ? arg.Position : attr.Position));
         }
     }
 
@@ -313,7 +320,9 @@ public partial class AttributeValidator
         var access = attr.GetIdentifier(1);
         if (access != null && !ValidComposableAccess.Contains(access))
         {
-            _diagnostics.Add(DiagnosticDescriptors.InvalidComposableAccess(access, attr.Position));
+            var arg = attr.Arguments[1];
+            _diagnostics.Add(DiagnosticDescriptors.InvalidComposableAccess(access,
+                arg.Position > 0 ? arg.Position : attr.Position));
         }
     }
 
@@ -323,7 +332,21 @@ public partial class AttributeValidator
         var depType = attr.GetIdentifier(1);
         if (depType != null && !ValidDeprecationTypes.Contains(depType))
         {
-            _diagnostics.Add(DiagnosticDescriptors.InvalidDeprecationType(depType, attr.Position));
+            var arg = attr.Arguments[1];
+            _diagnostics.Add(DiagnosticDescriptors.InvalidDeprecationType(depType,
+                arg.Position > 0 ? arg.Position : attr.Position));
+        }
+    }
+
+    /// <summary>
+    /// Validates [deprecated] attribute args on any attribute list (types, members, fields).
+    /// </summary>
+    private void ValidateDeprecatedOnAttributes(List<AttributeData> attributes)
+    {
+        foreach (var attr in attributes)
+        {
+            if (attr.Name.Equals("deprecated", StringComparison.OrdinalIgnoreCase))
+                ValidateDeprecationType(attr);
         }
     }
 
@@ -481,6 +504,7 @@ public partial class AttributeValidator
             ValidateBuiltInAttributeTargets(attrs, targetKind);
             ValidateCustomAttributeInstances(attrs, name!, targetKind, attrTypes);
             ValidateContractAndFeatureArgs(attrs, name!, apiContracts);
+            ValidateDeprecatedOnAttributes(attrs);
         }
     }
 
@@ -549,11 +573,12 @@ public partial class AttributeValidator
                 {
                     var arg = attr.Arguments[i];
                     var field = attrType.Fields[i];
+                    var argPos = arg.Position > 0 ? arg.Position : attr.Position;
                     if (!IsArgTypeCompatible(arg.Kind, field.Type.Name))
                     {
                         _diagnostics.Add(DiagnosticDescriptors.AttributeArgumentTypeMismatch(
                             attr.Name, i, field.Name, field.Type.DisplayName,
-                            ArgKindDisplayName(arg.Kind), attr.Position));
+                            ArgKindDisplayName(arg.Kind), argPos));
                     }
                     else if (arg.Kind == ArgKind.Integer)
                     {
@@ -563,7 +588,7 @@ public partial class AttributeValidator
                         {
                             _diagnostics.Add(DiagnosticDescriptors.AttributeArgumentOutOfRange(
                                 attr.Name, i, field.Name, field.Type.DisplayName,
-                                arg.IntValue, rangeError, attr.Position));
+                                arg.IntValue, rangeError, argPos));
                         }
                     }
                 }
