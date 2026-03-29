@@ -85,6 +85,18 @@ namespace Midl.VsExtension
             set { fetchSdkDocs = value; }
         }
 
+        private bool enableArraySyntax = false;
+
+        [Category("MIDL Language Server")]
+        [DisplayName("Enable Array Syntax")]
+        [Description("Enable array parameter syntax (T[]) in MIDL3. When enabled, parameters and return types can use T[] for WinRT array passing conventions.")]
+        [DefaultValue(false)]
+        public bool EnableArraySyntax
+        {
+            get { return enableArraySyntax; }
+            set { enableArraySyntax = value; }
+        }
+
         /// <summary>
         /// Called when the user clicks OK/Apply in Tools > Options.
         /// Notifies the running LSP client to push updated settings to the server.

@@ -157,5 +157,15 @@
         "prefix": "import",
         "body": "import \"${1:Windows.Foundation.idl}\";",
         "description": "Import an IDL file"
+    },
+    "Array Pass Parameter": {
+        "prefix": "arraypass",
+        "body": "void ${1:MethodName}(${2:Int32}[] ${3:items});",
+        "description": "Method with a pass-array (in) parameter"
+    },
+    "Array Return": {
+        "prefix": "arrayreturn",
+        "body": "${1:Int32}[] ${2:GetItems}();",
+        "description": "Method that returns an array"
     }
 }

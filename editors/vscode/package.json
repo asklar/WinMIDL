@@ -131,6 +131,11 @@
           "type": "boolean",
           "default": true,
           "description": "Open Microsoft Learn documentation in a VS Code side panel instead of the external browser."
+        },
+        "midl.arrays": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable array parameter syntax (T[]) in MIDL3. When enabled, parameters and return types can use T[] for WinRT array passing conventions."
         }
       }
     }

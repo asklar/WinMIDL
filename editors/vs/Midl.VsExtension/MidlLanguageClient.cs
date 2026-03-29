@@ -36,6 +36,7 @@ namespace Midl.VsExtension
                     ["midl.windowsSdkVersion"] = options.WindowsSdkVersion,
                     ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
                     ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
+                    ["midl.arrays"] = options.EnableArraySyntax,
                 };
             }
         }
@@ -214,6 +215,7 @@ namespace Midl.VsExtension
                     ["midl.windowsSdkVersion"] = options.WindowsSdkVersion,
                     ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
                     ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
+                    ["midl.arrays"] = options.EnableArraySyntax,
                 };
 
                 var msg = new Newtonsoft.Json.Linq.JObject
