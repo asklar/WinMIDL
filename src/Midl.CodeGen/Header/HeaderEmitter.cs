@@ -367,24 +367,69 @@ public class HeaderEmitter
         var paramParts = new List<string>();
         foreach (var p in method.Parameters)
         {
-            var cType = MapType(p.Type);
-            if (p.Direction == ParameterDirection.Out)
-                paramParts.Add($"/* [out] */ {cType}* {p.Name}");
-            else if (p.Direction == ParameterDirection.RefConst)
-                paramParts.Add($"/* [in] */ {cType}* {p.Name}");
+            if (p.IsArray)
+            {
+                ExpandArrayParam(paramParts, p);
+            }
             else
-                paramParts.Add($"/* [in] */ {cType} {p.Name}");
+            {
+                var cType = MapType(p.Type);
+                if (p.Direction == ParameterDirection.Out)
+                    paramParts.Add($"/* [out] */ {cType}* {p.Name}");
+                else if (p.Direction == ParameterDirection.RefConst)
+                    paramParts.Add($"/* [in] */ {cType}* {p.Name}");
+                else
+                    paramParts.Add($"/* [in] */ {cType} {p.Name}");
+            }
         }
 
         // If non-void return, add retval out param
         if (method.ReturnType.Name != "void")
         {
-            var retType = MapType(method.ReturnType);
-            paramParts.Add($"/* [out, retval] */ {retType}* returnValue");
+            if (method.ReturnType.IsArray)
+            {
+                var elemType = MapType(Midl.CodeGen.Proxy.WireFormat.ElementType(method.ReturnType));
+                paramParts.Add($"/* [out, retval] */ UINT32* __returnSize");
+                paramParts.Add($"/* [out, retval] */ {elemType}** __returnItems");
+            }
+            else
+            {
+                var retType = MapType(method.ReturnType);
+                paramParts.Add($"/* [out, retval] */ {retType}* returnValue");
+            }
         }
 
         var paramStr = string.Join(", ", paramParts);
         sb.AppendLine($"    virtual HRESULT STDMETHODCALLTYPE {method.Name}({paramStr}) = 0;");
+    }
+
+    private static void ExpandArrayParam(List<string> parts, ParameterSymbol p)
+    {
+        var elemType = MapType(Midl.CodeGen.Proxy.WireFormat.ElementType(p.Type));
+        switch (p.Direction)
+        {
+            case ParameterDirection.In:
+                // PassArray: UINT32 __itemsSize, T* items
+                parts.Add($"/* [in] */ UINT32 __{p.Name}Size");
+                parts.Add($"/* [in] */ {elemType}* {p.Name}");
+                break;
+            case ParameterDirection.Out:
+                // ReceiveArray: UINT32* __itemsSize, T** items
+                parts.Add($"/* [out] */ UINT32* __{p.Name}Size");
+                parts.Add($"/* [out] */ {elemType}** {p.Name}");
+                break;
+            case ParameterDirection.Ref:
+                // FillArray: UINT32 __itemsCapacity, T* items, UINT32* __itemsActual
+                parts.Add($"/* [in] */ UINT32 __{p.Name}Capacity");
+                parts.Add($"/* [out] */ {elemType}* {p.Name}");
+                parts.Add($"/* [out] */ UINT32* __{p.Name}Actual");
+                break;
+            default:
+                // Fallback: treat like PassArray
+                parts.Add($"/* [in] */ UINT32 __{p.Name}Size");
+                parts.Add($"/* [in] */ {elemType}* {p.Name}");
+                break;
+        }
     }
 
     private static void EmitEventMethods(StringBuilder sb, EventSymbol evt)
@@ -440,13 +485,20 @@ public class HeaderEmitter
         var parts = new List<string>();
         foreach (var p in parameters)
         {
-            var cType = MapType(p.Type);
-            if (p.Direction == ParameterDirection.Out)
-                parts.Add($"/* [out] */ {cType}* {p.Name}");
-            else if (p.Direction == ParameterDirection.RefConst)
-                parts.Add($"/* [in] */ {cType}* {p.Name}");
+            if (p.IsArray)
+            {
+                ExpandArrayParam(parts, p);
+            }
             else
-                parts.Add($"/* [in] */ {cType} {p.Name}");
+            {
+                var cType = MapType(p.Type);
+                if (p.Direction == ParameterDirection.Out)
+                    parts.Add($"/* [out] */ {cType}* {p.Name}");
+                else if (p.Direction == ParameterDirection.RefConst)
+                    parts.Add($"/* [in] */ {cType}* {p.Name}");
+                else
+                    parts.Add($"/* [in] */ {cType} {p.Name}");
+            }
         }
         return string.Join(", ", parts);
     }
