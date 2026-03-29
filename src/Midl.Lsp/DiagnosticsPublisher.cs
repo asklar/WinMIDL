@@ -26,26 +26,44 @@ public sealed class DiagnosticsPublisher
         var mainFileDiags = new List<Analysis.Diagnostics.Diagnostic>();
         var fileGroups = new Dictionary<string, List<Analysis.Diagnostics.Diagnostic>>(StringComparer.OrdinalIgnoreCase);
 
+        // Determine the main file path from the URI for matching SourceFile values
+        string? mainFilePath = null;
+        try
+        {
+            var uriObj = new Uri(uri);
+            if (uriObj.IsFile)
+                mainFilePath = uriObj.LocalPath;
+        }
+        catch { }
+
         foreach (var d in diagnostics)
         {
-            if (d.SourceFile != null)
+            // If the diagnostic has OriginalPosition, always use it (regardless of SourceFile)
+            var adjusted = d;
+            if (d.OriginalPosition.HasValue)
+                adjusted = d with { Position = d.OriginalPosition.Value };
+
+            if (d.SourceFile != null &&
+                (mainFilePath == null || !string.Equals(Path.GetFullPath(d.SourceFile), Path.GetFullPath(mainFilePath), StringComparison.OrdinalIgnoreCase)))
             {
+                // Diagnostic from a different file (e.g., #include)
                 if (!fileGroups.TryGetValue(d.SourceFile, out var list))
                 {
                     list = new List<Analysis.Diagnostics.Diagnostic>();
                     fileGroups[d.SourceFile] = list;
                 }
-                list.Add(d);
+                list.Add(adjusted);
             }
             else
             {
-                mainFileDiags.Add(d);
+                // Diagnostic from the main file (or same file after SourceMap resolution)
+                mainFileDiags.Add(adjusted);
             }
         }
 
         var currentUris = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { uri };
 
-        // Publish main file diagnostics using the expanded text positions
+        // Publish main file diagnostics using original source text positions
         await PublishForFileAsync(uri, sourceText, mainFileDiags);
 
         // Publish diagnostics for included files using their original text and positions
@@ -61,27 +79,13 @@ public sealed class DiagnosticsPublisher
             }
             catch
             {
-                // Can't read file — fall back to publishing with expanded positions to main URI
+                // Can't read file — fall back to publishing to main URI
                 mainFileDiags.AddRange(fileDiags);
                 await PublishForFileAsync(uri, sourceText, mainFileDiags);
                 continue;
             }
 
-            // Use OriginalPosition for included-file diagnostics
-            var adjustedDiags = new List<Analysis.Diagnostics.Diagnostic>();
-            foreach (var d in fileDiags)
-            {
-                if (d.OriginalPosition.HasValue)
-                {
-                    adjustedDiags.Add(d with { Position = d.OriginalPosition.Value });
-                }
-                else
-                {
-                    adjustedDiags.Add(d);
-                }
-            }
-
-            await PublishForFileAsync(fileUri, fileText, adjustedDiags);
+            await PublishForFileAsync(fileUri, fileText, fileDiags);
         }
 
         // Clear diagnostics from files that previously had errors but no longer do
