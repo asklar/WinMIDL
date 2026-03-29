@@ -118,7 +118,7 @@ namespace Midl.VsExtension
                     var shell = (IVsUIShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShell));
                     if (shell != null)
                     {
-                        var outputWindowGuid = new Guid(ToolWindowGuids80.OutputWindow);
+                        var outputWindowGuid = new Guid("{34E76E81-EE4A-11D0-AE2E-00A0C90FFFC3}"); // Output window GUID
                         shell.FindToolWindow(0, ref outputWindowGuid, out var frame);
                         frame?.Show();
                     }
