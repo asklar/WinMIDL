@@ -12,6 +12,7 @@ public partial class AttributeValidator
 {
     private readonly List<Diagnostic> _diagnostics;
     private readonly Compilation _compilation;
+    private HashSet<string> _sdkResolvedAttrNames = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly HashSet<string> ValidThreadingModels =
         new(StringComparer.OrdinalIgnoreCase) { "both", "sta", "mta" };
@@ -165,7 +166,8 @@ public partial class AttributeValidator
             }
         }
 
-        // Also use feature_name declarations from the compilation
+        // Track which attr names are SDK-resolved (to avoid duplicate target errors)
+        _sdkResolvedAttrNames = new HashSet<string>(attrTypes.Keys, StringComparer.OrdinalIgnoreCase);
 
         foreach (var type in _compilation.GetAllTypes())
         {
@@ -291,8 +293,13 @@ public partial class AttributeValidator
             if (BuiltInAttributeTargets.TryGetValue(attr.Name, out var validTargets) &&
                 !validTargets.Contains(targetKind))
             {
-                _diagnostics.Add(DiagnosticDescriptors.AttributeWrongTarget(
-                    attr.Name, targetKind, string.Join(", ", validTargets), attr.Position));
+                // Only report if the SDK path won't also catch it (avoid duplicates)
+                // SDK-resolved attrs are validated by ValidateCustomAttributeInstances
+                if (!_sdkResolvedAttrNames.Contains(attr.Name))
+                {
+                    _diagnostics.Add(DiagnosticDescriptors.AttributeWrongTarget(
+                        attr.Name, targetKind, string.Join(", ", validTargets), attr.Position));
+                }
             }
         }
     }
@@ -550,10 +557,6 @@ public partial class AttributeValidator
     {
         foreach (var attr in attributes)
         {
-            // Skip attributes that are already validated by ValidateBuiltInAttributeTargets
-            if (BuiltInAttributeTargets.ContainsKey(attr.Name))
-                continue;
-
             if (!attrTypes.TryGetValue(attr.Name, out var attrType))
                 continue;
 
@@ -566,7 +569,7 @@ public partial class AttributeValidator
             }
 
             // Validate argument count
-            if (attr.Arguments.Count != attrType.Fields.Count)
+            if (attrType.Fields.Count > 0 && attr.Arguments.Count != attrType.Fields.Count)
             {
                 _diagnostics.Add(DiagnosticDescriptors.AttributeArgCountMismatch(
                     attr.Name, attrType.Fields.Count, attr.Arguments.Count, attr.Position));
