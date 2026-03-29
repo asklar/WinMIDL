@@ -7,7 +7,7 @@ namespace Midl.Analysis;
 /// <summary>
 /// Walks a green syntax tree and produces a bound compilation with symbols.
 /// </summary>
-public class Binder
+public partial class Binder
 {
     private readonly List<Diagnostic> _diagnostics = [];
     private readonly NamespaceSymbol _globalNamespace = new("");
@@ -2288,6 +2288,27 @@ public class Binder
                     break;
                 }
 #endif
+                case "constructor_name":
+                    if (symbol is RuntimeClassSymbol rcCN)
+                    {
+                        rcCN.FactoryInterfaceName = attr.GetString(0);
+                        rcCN.FactoryInterfaceGuid = attr.GetGuid(1);
+                    }
+                    break;
+                case "interface_name":
+                    if (symbol is RuntimeClassSymbol rcIN)
+                    {
+                        rcIN.DefaultInterfaceName = attr.GetString(0);
+                        rcIN.DefaultInterfaceGuid = attr.GetGuid(1);
+                    }
+                    break;
+                case "static_name":
+                    if (symbol is RuntimeClassSymbol rcSN)
+                    {
+                        rcSN.StaticsInterfaceName = attr.GetString(0);
+                        rcSN.StaticsInterfaceGuid = attr.GetGuid(1);
+                    }
+                    break;
             }
         }
     }

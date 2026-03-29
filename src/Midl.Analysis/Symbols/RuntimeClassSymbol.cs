@@ -1,6 +1,6 @@
 namespace Midl.Analysis.Symbols;
 
-public class RuntimeClassSymbol : ISymbol
+public partial class RuntimeClassSymbol : ISymbol
 {
     public string Name { get; }
     public SymbolKind Kind => SymbolKind.RuntimeClass;

@@ -6,7 +6,7 @@ namespace Midl.Analysis;
 /// Walks all RuntimeClassSymbols after binding and synthesizes the required
 /// exclusive WinRT interfaces (instance, factory, statics, protected, overrides).
 /// </summary>
-public class InterfaceSynthesizer
+public partial class InterfaceSynthesizer
 {
     public void Synthesize(Compilation compilation)
     {
@@ -80,8 +80,12 @@ public class InterfaceSynthesizer
         // Rule A: Instance member interface
         if (instanceMembers.Count > 0)
         {
-            var ifaceName = GetUniqueName($"I{rc.Name}", ns);
+            var ifaceName = rc.DefaultInterfaceName != null
+                ? ExtractSimpleName(rc.DefaultInterfaceName)
+                : GetUniqueName($"I{rc.Name}", ns);
             var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, instanceMembers);
+            if (rc.DefaultInterfaceGuid != null)
+                iface.Uuid = rc.DefaultInterfaceGuid;
             rc.DefaultInterface = iface;
             rc.ImplementedInterfaces.Add(iface);
         }
@@ -89,7 +93,9 @@ public class InterfaceSynthesizer
         // Rule B: Factory interface (parameterized constructors)
         if (parameterizedCtors.Count > 0)
         {
-            var ifaceName = GetUniqueName($"I{rc.Name}Factory", ns);
+            var ifaceName = rc.FactoryInterfaceName != null
+                ? ExtractSimpleName(rc.FactoryInterfaceName)
+                : GetUniqueName($"I{rc.Name}Factory", ns);
             var factoryMembers = new List<ISymbol>();
             foreach (var ctor in parameterizedCtors)
             {
@@ -102,6 +108,8 @@ public class InterfaceSynthesizer
                 factoryMembers.Add(factoryMethod);
             }
             var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, factoryMembers);
+            if (rc.FactoryInterfaceGuid != null)
+                iface.Uuid = rc.FactoryInterfaceGuid;
             rc.FactoryInterface = iface;
             rc.ImplementedInterfaces.Add(iface);
         }
@@ -115,8 +123,12 @@ public class InterfaceSynthesizer
         // Rule D: Static interface(s)
         if (staticMembers.Count > 0)
         {
-            var ifaceName = GetUniqueName($"I{rc.Name}Statics", ns);
+            var ifaceName = rc.StaticsInterfaceName != null
+                ? ExtractSimpleName(rc.StaticsInterfaceName)
+                : GetUniqueName($"I{rc.Name}Statics", ns);
             var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, staticMembers);
+            if (rc.StaticsInterfaceGuid != null)
+                iface.Uuid = rc.StaticsInterfaceGuid;
             rc.StaticsInterfaces.Add(iface);
             rc.ImplementedInterfaces.Add(iface);
         }
@@ -200,5 +212,15 @@ public class InterfaceSynthesizer
             if (!existingNames.Contains(numbered))
                 return numbered;
         }
+    }
+
+    /// <summary>
+    /// Extracts the simple (unqualified) name from a possibly fully-qualified name.
+    /// E.g. "Namespace.IFooFactory" → "IFooFactory".
+    /// </summary>
+    private static string ExtractSimpleName(string qualifiedName)
+    {
+        var lastDot = qualifiedName.LastIndexOf('.');
+        return lastDot >= 0 ? qualifiedName.Substring(lastDot + 1) : qualifiedName;
     }
 }
