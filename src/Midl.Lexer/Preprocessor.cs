@@ -171,7 +171,12 @@ public class Preprocessor
             for (int ri = 0; ri < rawLines.Count; ri++)
             {
                 rawLineOffsets[ri] = o;
-                o += rawLines[ri].Length + 1; // +1 for newline stripped by SplitLines
+                o += rawLines[ri].Length;
+                // Account for actual newline chars (\r\n = 2, \n = 1)
+                if (o < source.Length && source[o] == '\r')
+                    o++; // skip \r
+                if (o < source.Length && source[o] == '\n')
+                    o++; // skip \n
             }
             rawLineOffsets[rawLines.Count] = o;
         }
@@ -187,7 +192,12 @@ public class Preprocessor
         int segOriginalStart = 0;
         bool hasIncludes = false;
         bool hasIfdefGaps = false;
+        bool hasMacroDeltas = false;
         bool wasActive = true; // track active/inactive transitions for #ifdef gap tracking
+
+        #pragma warning disable CS0219
+        int macroDelta = 0;
+        #pragma warning restore CS0219
 
         for (int i = 0; i < lines.Count; i++)
         {
@@ -317,7 +327,30 @@ public class Preprocessor
             {
                 if (IsActive(ifStack))
                 {
-                    output.AppendLine(SubstituteMacros(line));
+                    var substituted = SubstituteMacros(line);
+                    int lenDiff = line.Length - substituted.Length;
+                    if (lenDiff != 0 && filePath != null)
+                    {
+                        // Macro substitution changed the line length.
+                        // Flush the current segment up to this point (may be empty after #ifdef transition).
+                        int expandedPos = baseOffset + output.Length;
+                        if (expandedPos > segExpandedStart)
+                            SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+
+                        // Emit the substituted line
+                        output.AppendLine(substituted);
+                        hasMacroDeltas = true;
+
+                        // Start a new segment AFTER this line.
+                        segExpandedStart = baseOffset + output.Length;
+                        int origIdx = origLineIndices[i];
+                        int nextRawLine = origIdx + 1;
+                        segOriginalStart = rawLineOffsets[Math.Min(nextRawLine, rawLines.Count)];
+                    }
+                    else
+                    {
+                        output.AppendLine(substituted);
+                    }
                 }
                 else
                 {
@@ -358,7 +391,7 @@ public class Preprocessor
         // Record when: file had includes (need segments for content between them),
         // or this is a recursive call for an included file (baseOffset > 0 implies included),
         // or there were #ifdef gaps that shifted positions
-        bool needsSegments = hasIncludes || hasIfdefGaps || baseOffset > 0;
+        bool needsSegments = hasIncludes || hasIfdefGaps || hasMacroDeltas || baseOffset > 0;
         if (needsSegments && filePath != null)
         {
             int finalExpandedPos = baseOffset + output.Length;

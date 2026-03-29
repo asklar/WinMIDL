@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WinMIDL: A Modern MIDL Compiler — v2</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #1e1e1e;
+  --bg-light: #252526;
+  --bg-lighter: #2d2d2d;
+  --bg-panel: #1b1b1b;
+  --text: #d4d4d4;
+  --text-dim: #808080;
+  --accent: #007ACC;
+  --accent-glow: #007ACC44;
+  --keyword: #C586C0;
+  --string: #CE9178;
+  --type: #4EC9B0;
+  --function: #DCDCAA;
+  --number: #B5CEA8;
+  --comment: #6A9955;
+  --error: #F44747;
+  --warning: #CCA700;
+  --info: #3794FF;
+  --success: #4EC9B0;
+  --white: #ffffff;
+  --border: #3c3c3c;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== SLIDE DECK ===== */
+.deck {
+  width: 100%; height: 100%;
+  position: relative;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 80px;
+  opacity: 0;
+  transform: translateX(60px);
+  transition: opacity 0.5s cubic-bezier(.4,0,.2,1), transform 0.5s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+  overflow-y: auto;
+}
+
+.slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.slide.prev {
+  opacity: 0;
+  transform: translateX(-60px);
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), #3794FF);
+  transition: width 0.5s cubic-bezier(.4,0,.2,1);
+  z-index: 100;
+}
+
+.slide-counter {
+  position: fixed;
+  bottom: 24px;
+  right: 32px;
+  font-size: 14px;
+  color: var(--text-dim);
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  z-index: 100;
+  letter-spacing: 1px;
+}
+
+/* Navigation hints */
+.nav-hint {
+  position: fixed;
+  bottom: 24px;
+  left: 32px;
+  font-size: 12px;
+  color: var(--text-dim);
+  z-index: 100;
+  opacity: 0.5;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1 {
+  font-size: clamp(36px, 4vw, 64px);
+  font-weight: 300;
+  letter-spacing: -1px;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+
+h1 .accent { color: var(--accent); font-weight: 600; }
+
+h2 {
+  font-size: clamp(28px, 3vw, 48px);
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  margin-bottom: 32px;
+  color: var(--white);
+}
+
+h2 .accent { color: var(--accent); }
+
+h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+}
+
+.subtitle {
+  font-size: clamp(18px, 2vw, 28px);
+  color: var(--text-dim);
+  font-weight: 300;
+  margin-bottom: 24px;
+}
+
+.author {
+  font-size: 20px;
+  color: var(--accent);
+  margin-top: 16px;
+  font-weight: 400;
+}
+
+/* ===== BULLET LISTS ===== */
+.bullets {
+  list-style: none;
+  max-width: 900px;
+  width: 100%;
+}
+
+.bullets li {
+  padding: 10px 0 10px 32px;
+  position: relative;
+  font-size: clamp(16px, 1.6vw, 22px);
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.bullets li::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.bullets li strong { color: var(--white); }
+.bullets li code {
+  background: var(--bg-lighter);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.9em;
+  color: var(--type);
+}
+
+/* ===== TERMINAL MOCK ===== */
+.terminal {
+  background: #0c0c0c;
+  border-radius: 0;
+  overflow: hidden;
+  width: 100%;
+  max-width: 820px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+  margin: 16px 0;
+}
+
+.terminal-bar {
+  background: #2d2d2d;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  border-radius: 0;
+}
+
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+}
+
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-left: auto;
+}
+
+.window-btn {
+  color: #999;
+  font-size: 16px;
+  padding: 4px 14px;
+  cursor: default;
+  font-family: 'Segoe UI', sans-serif;
+  line-height: 1;
+}
+
+.window-btn:hover { background: rgba(255,255,255,0.1); }
+.window-btn.close:hover { background: #e81123; color: #fff; }
+
+.terminal-body {
+  padding: 20px 24px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: clamp(12px, 1.2vw, 15px);
+  line-height: 1.65;
+  color: #cccccc;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.terminal-body .prompt { color: #6A9955; }
+.terminal-body .cmd { color: #DCDCAA; }
+.terminal-body .flag { color: #CE9178; }
+.terminal-body .err { color: #F44747; }
+.terminal-body .warn { color: #CCA700; }
+.terminal-body .info { color: #3794FF; }
+.terminal-body .dim { color: #666; }
+.terminal-body .accent { color: #4EC9B0; }
+.terminal-body .file { color: #C586C0; }
+.terminal-body .num { color: #B5CEA8; }
+.terminal-body .link { color: #007ACC; text-decoration: underline; }
+
+/* ===== SESSION STATS BLOCK ===== */
+.stats-block {
+  background: linear-gradient(135deg, #0d1117, #161b22);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 32px 44px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: clamp(16px, 1.6vw, 22px);
+  line-height: 2.2;
+  max-width: 860px;
+  margin: 20px 0;
+  box-shadow: 0 0 30px var(--accent-glow), 0 0 60px rgba(0,122,204,0.15), 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.stats-block .label { color: #8b949e; }
+.stats-block .value { color: #58a6ff; font-weight: bold; }
+.stats-block .highlight { color: #f0883e; font-weight: bold; }
+.stats-block .model { color: #a371f7; }
+
+/* ===== PIPELINE DIAGRAM ===== */
+.pipeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  max-width: 900px;
+}
+
+.pipeline-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.pipeline-stage {
+  background: linear-gradient(135deg, var(--bg-lighter), var(--bg-light));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 24px;
+  text-align: center;
+  min-width: 130px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+.pipeline-stage.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pipeline-stage .stage-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.pipeline-stage .stage-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.3;
+}
+
+.pipeline-arrow {
+  color: var(--accent);
+  font-size: 24px;
+  padding: 0 8px;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.pipeline-arrow.visible { opacity: 1; }
+
+.pipeline-arrow-down {
+  color: var(--accent);
+  font-size: 28px;
+  padding: 4px 0;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.pipeline-arrow-down.visible { opacity: 1; }
+
+.pipeline-outputs {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pipeline-output {
+  background: linear-gradient(135deg, #0d2137, #0a1929);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 12px 20px;
+  text-align: center;
+  min-width: 100px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+.pipeline-output.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pipeline-output .stage-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.pipeline-output .stage-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.3;
+}
+
+/* ===== TWO-COLUMN LAYOUT ===== */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.col h3 {
+  font-size: 17px;
+  margin-bottom: 16px;
+}
+
+.col .bullets li {
+  font-size: clamp(13px, 1.2vw, 17px);
+  padding: 5px 0 5px 24px;
+}
+
+/* ===== BIG NUMBERS GRID ===== */
+.numbers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 900px;
+  width: 100%;
+  margin: 24px 0;
+}
+
+.number-card {
+  background: linear-gradient(135deg, var(--bg-lighter), var(--bg-light));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.number-card .big-number {
+  font-size: clamp(36px, 4vw, 56px);
+  font-weight: 700;
+  color: var(--accent);
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.number-card .number-label {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* ===== TABLE ===== */
+.perf-table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 800px;
+  margin: 16px 0;
+}
+
+.perf-table th {
+  background: var(--bg-lighter);
+  padding: 14px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--white);
+  border-bottom: 2px solid var(--accent);
+  font-size: 15px;
+}
+
+.perf-table td {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.perf-table tr:hover td {
+  background: var(--bg-lighter);
+}
+
+.perf-table .metric { color: var(--text-dim); font-weight: 500; }
+.perf-table .old { color: var(--text); }
+.perf-table .new { color: var(--success); font-weight: 600; }
+.perf-table .na { color: var(--text-dim); font-style: italic; }
+
+/* ===== DIAGNOSTIC GRID ===== */
+.diag-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 900px;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.diag-card {
+  background: var(--bg-lighter);
+  border-radius: 10px;
+  padding: 20px 24px;
+  border-left: 4px solid;
+}
+
+.diag-card.semantic { border-color: var(--error); }
+.diag-card.syntax { border-color: var(--warning); }
+.diag-card.strict { border-color: var(--keyword); }
+.diag-card.quality { border-color: var(--info); }
+
+.diag-card .diag-range {
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.diag-card .diag-label { font-size: 15px; color: var(--text); }
+.diag-card .diag-count { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+
+/* ===== ROADMAP LIST ===== */
+.roadmap-list {
+  list-style: none;
+  max-width: 800px;
+  width: 100%;
+}
+
+.roadmap-list li {
+  padding: 12px 0 12px 40px;
+  position: relative;
+  font-size: 18px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.roadmap-list li::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 18px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: transparent;
+}
+
+.roadmap-list li.done::before { background: var(--accent); }
+
+/* ===== CTA BOX ===== */
+.cta-box {
+  background: linear-gradient(135deg, #0d2137, #0a1929);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 28px 36px;
+  max-width: 700px;
+  width: 100%;
+  margin-top: 24px;
+}
+
+.cta-box h3 {
+  color: var(--accent);
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.cta-box ul { list-style: none; }
+.cta-box ul li {
+  padding: 6px 0;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.cta-box ul li::before {
+  content: '→ ';
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.cta-box a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent);
+}
+
+/* ===== DESIGN PRINCIPLES CARDS ===== */
+.principles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  max-width: 1100px;
+  width: 100%;
+}
+
+.principle-card {
+  background: var(--bg-lighter);
+  border-radius: 10px;
+  padding: 20px 24px;
+  border-top: 3px solid var(--accent);
+}
+
+.principle-card .principle-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 8px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+}
+
+.principle-card .principle-desc {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ===== TEST BREAKDOWN BAR ===== */
+.test-breakdown {
+  display: flex;
+  max-width: 800px;
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.test-bar-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  transition: flex-basis 1s cubic-bezier(.4,0,.2,1);
+}
+
+.test-breakdown-legend {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+}
+
+/* ===== MISC ===== */
+.tagline {
+  font-size: clamp(16px, 1.8vw, 24px);
+  color: var(--text-dim);
+  font-style: italic;
+  max-width: 700px;
+  text-align: center;
+  line-height: 1.5;
+  margin-top: 24px;
+}
+
+.tagline em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+.note {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-style: italic;
+  max-width: 800px;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.slide-content {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wide-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.flex-gap { gap: 8px; }
+
+/* ===== TITLE SLIDE LOGO ===== */
+.title-logo {
+  font-size: 64px;
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
+/* ===== SCREENSHOT CARDS ===== */
+.screenshots-row {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.screenshot-card {
+  max-width: 560px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-lighter);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  flex: 1 1 auto;
+}
+
+.screenshot-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 24px var(--accent-glow), 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.screenshot-card img {
+  width: 100%;
+  display: block;
+  max-height: 420px;
+  object-fit: contain;
+  background: #1a1a1a;
+}
+
+.screenshot-caption {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+/* Pair layout: two cards side by side at ~48% */
+.screenshots-row.pair .screenshot-card {
+  flex: 0 1 48%;
+  max-width: 48%;
+}
+
+/* Triple layout: slightly smaller */
+.screenshots-row.triple .screenshot-card {
+  flex: 0 1 31%;
+  max-width: 31%;
+}
+
+.screenshots-row.triple .screenshot-card img {
+  max-height: 340px;
+}
+
+.slide-desc {
+  font-size: clamp(14px, 1.4vw, 18px);
+  color: var(--text-dim);
+  text-align: center;
+  max-width: 800px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* ===== HINTS GRID (reused from v1 for nav slide) ===== */
+.hints-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  width: 100%;
+  max-width: 820px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .slide { padding: 30px 24px; }
+  .two-col { grid-template-columns: 1fr; gap: 24px; }
+  .numbers-grid { grid-template-columns: repeat(2, 1fr); }
+  .diag-grid { grid-template-columns: 1fr; }
+  .principles-grid { grid-template-columns: 1fr; }
+  .screenshots-row.pair .screenshot-card,
+  .screenshots-row.triple .screenshot-card {
+    flex: 0 1 100%;
+    max-width: 100%;
+  }
+}
+
+/* ===== PRINT ===== */
+@media print {
+  .slide { position: relative; page-break-after: always; opacity: 1; transform: none; pointer-events: auto; }
+  .progress-bar, .slide-counter, .nav-hint { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="slide-counter" id="slideCounter"></div>
+<div class="nav-hint">← → Navigate &nbsp;|&nbsp; F for fullscreen</div>
+
+<div class="deck" id="deck">
+
+<!-- ==================== SLIDE 0: TITLE ==================== -->
+<div class="slide active" data-slide="0">
+  <div class="title-logo">⚡</div>
+  <h1><span class="accent">WinMIDL</span>: A Modern MIDL Compiler</h1>
+  <div class="subtitle">Built with AI · 2.8× faster than the original</div>
+  <div class="author">Alexander Sklar</div>
+</div>
+
+<!-- ==================== SLIDE 1: THE MIDL PAIN ==================== -->
+<div class="slide" data-slide="1">
+  <h2>The <span class="accent">MIDL</span> Pain</h2>
+  <ul class="bullets">
+    <li>Legacy compiler — <strong>30+ years old</strong>, native C++, opaque internals</li>
+    <li><strong>No Language Server Protocol</strong> support whatsoever</li>
+    <li>No editor integration — syntax highlighting only via basic TextMate grammar</li>
+    <li>Cryptic error messages with <strong>poor source positions</strong></li>
+    <li>Slow iteration: <code>edit → compile → squint at errors → repeat</code></li>
+    <li>No autocomplete, no hover, no go-to-definition</li>
+    <li>Cannot partially analyze incomplete files</li>
+  </ul>
+</div>
+
+<!-- ==================== SLIDE 2: WHAT CHANGED ==================== -->
+<div class="slide" data-slide="2">
+  <h2>What <span class="accent">Changed</span>?</h2>
+  <ul class="bullets" style="margin-bottom:20px;">
+    <li>Previous efforts improved things incrementally but <strong>never rewrote from scratch</strong></li>
+    <li>AI changes the equation: <em style="color:var(--accent);">infinite intelligence on tap</em></li>
+  </ul>
+  <div class="stats-block">
+    <div style="margin-bottom:0.5em;color:var(--text-dim);font-size:14px;">Initial session (day 1):</div>
+    <div><span class="label">Total usage est:      </span><span class="highlight">1,170</span> <span class="label">Premium requests</span></div>
+    <div><span class="label">API time spent:       </span><span class="value">14h 0m 40s</span></div>
+    <div><span class="label">Total session time:   </span><span class="value">20h 16m 37s</span></div>
+    <div><span class="label">Total code changes:   </span><span class="highlight">+8,074</span> <span class="label">/ </span><span class="value">-1,058</span></div>
+    <div style="margin-top:0.5em;"><span class="label">Tokens processed:     </span><span class="model">1,074.9M in · 2.1M out · 1,049.6M cached</span></div>
+    <div><span class="label">Model:                </span><span class="model">Claude Opus 4.6 (1M context)</span></div>
+    <div style="margin-top:0.5em;color:var(--text-dim);font-size:14px;">+ continued development across multiple sessions</div>
+  </div>
+  <div class="tagline">"One session. One compiler. <em>1,465 tests. 122 diagnostics.</em>"</div>
+</div>
+
+<!-- ==================== SLIDE 3: DESIGN PRINCIPLES ==================== -->
+<div class="slide" data-slide="3">
+  <h2>Design <span class="accent">Principles</span></h2>
+  <div class="principles-grid">
+    <div class="principle-card">
+      <div class="principle-title">Roslyn-Style Red-Green Tree</div>
+      <div class="principle-desc">Immutable, fully-faithful, lossless syntax tree. Every token and trivia is preserved — round-trips perfectly.</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-title">Error Recovery</div>
+      <div class="principle-desc">Parser never throws. Every input — no matter how broken — produces a complete syntax tree.</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-title">LSP-First</div>
+      <div class="principle-desc">Designed for editor integration from day one. Diagnostics, completions, hovers — not bolted on.</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-title">NativeAOT</div>
+      <div class="principle-desc">Single-file native binary. 27 ms per-file (2.5× faster than midl.exe). No .NET runtime required at deployment.</div>
+    </div>
+    <div class="principle-card">
+      <div class="principle-title">.NET 10 / C#</div>
+      <div class="principle-desc">Team accessibility. System.Reflection.Metadata for WinMD emit. Modern language features throughout.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 4: ARCHITECTURE ==================== -->
+<div class="slide" data-slide="4">
+  <h2><span class="accent">Architecture</span></h2>
+  <div class="pipeline" id="pipeline">
+    <div class="pipeline-row">
+      <div class="pipeline-stage" data-delay="0">
+        <div class="stage-name">.idl Source</div>
+        <div class="stage-desc">Input files</div>
+      </div>
+      <div class="pipeline-arrow" data-delay="200">→</div>
+      <div class="pipeline-stage" data-delay="400">
+        <div class="stage-name">Preprocessor</div>
+        <div class="stage-desc">#include, #define,<br>import resolution</div>
+      </div>
+      <div class="pipeline-arrow" data-delay="600">→</div>
+      <div class="pipeline-stage" data-delay="800">
+        <div class="stage-name">Lexer</div>
+        <div class="stage-desc">Tokenization<br>with trivia</div>
+      </div>
+      <div class="pipeline-arrow" data-delay="1000">→</div>
+      <div class="pipeline-stage" data-delay="1200">
+        <div class="stage-name">Parser</div>
+        <div class="stage-desc">Error-recovering<br>descent parser</div>
+      </div>
+      <div class="pipeline-arrow" data-delay="1400">→</div>
+      <div class="pipeline-stage" data-delay="1600">
+        <div class="stage-name">Green Tree</div>
+        <div class="stage-desc">Immutable<br>lossless CST</div>
+      </div>
+    </div>
+    <div class="pipeline-arrow-down" data-delay="1800">↓</div>
+    <div class="pipeline-row">
+      <div class="pipeline-stage" data-delay="2000">
+        <div class="stage-name">Binder / Symbols</div>
+        <div class="stage-desc">Semantic analysis, type resolution, attribute validation</div>
+      </div>
+    </div>
+    <div class="pipeline-arrow-down" data-delay="2200">↓</div>
+    <div class="pipeline-outputs">
+      <div class="pipeline-output" data-delay="2400">
+        <div class="stage-name">WinMD</div>
+        <div class="stage-desc">Metadata emit</div>
+      </div>
+      <div class="pipeline-output" data-delay="2600">
+        <div class="stage-name">Headers</div>
+        <div class="stage-desc">C/C++ .h files</div>
+      </div>
+      <div class="pipeline-output" data-delay="2800">
+        <div class="stage-name">IIDs</div>
+        <div class="stage-desc">_i.c files</div>
+      </div>
+      <div class="pipeline-output" data-delay="3000">
+        <div class="stage-name">LSP</div>
+        <div class="stage-desc">Editor services</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 5: FEATURE OVERVIEW ==================== -->
+<div class="slide" data-slide="5">
+  <h2>Feature <span class="accent">Overview</span></h2>
+  <div class="two-col">
+    <div class="col">
+      <h3 style="color:var(--type);">MIDL3 Syntax</h3>
+      <ul class="bullets">
+        <li><code>namespace</code>, <code>runtimeclass</code>, <code>interface</code>, <code>delegate</code>, <code>struct</code>, <code>enum</code>, <code>apicontract</code></li>
+        <li>Properties <code>{ get; set; }</code>, constructors, events</li>
+        <li><code>static</code>, <code>partial</code>, <code>unsealed</code>, <code>protected</code>, <code>overridable</code></li>
+        <li>Generics: <code>IVector&lt;String&gt;</code>, <code>&gt;&gt;</code> disambiguation</li>
+        <li>Forward declarations</li>
+        <li>User-defined attributes with <code>[attributeusage]</code></li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3 style="color:var(--keyword);">Classic MIDL (Compat Mode)</h3>
+      <ul class="bullets">
+        <li><code>coclass</code>, <code>library</code>, <code>typedef</code>, <code>union</code>, <code>dispinterface</code></li>
+        <li><code>HRESULT</code> + <code>[in]</code>/<code>[out]</code>/<code>[retval]</code></li>
+        <li>Pointer types, <code>cpp_quote</code></li>
+        <li>Win32 type aliases</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 6: THE CLI EXPERIENCE ==================== -->
+<div class="slide" data-slide="6">
+  <h2>The <span class="accent">CLI</span> Experience</h2>
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="terminal-title">PowerShell — winmidl</div>
+      <div class="window-controls">
+        <span class="window-btn">━</span>
+        <span class="window-btn">□</span>
+        <span class="window-btn close">✕</span>
+      </div>
+    </div>
+    <div class="terminal-body">
+<span class="prompt">❯</span> <span class="cmd">winmidl</span> <span class="flag">--analyze</span> <span class="file">Widget.idl</span>
+
+<span class="err">error MIDL2005</span>: Lowercase '<span class="accent">int</span>' is MIDL2 syntax. Use '<span class="accent">Int32</span>' for MIDL3.
+  <span class="dim">--></span> <span class="file">Widget.idl</span>:<span class="num">8</span>:<span class="num">9</span>
+   <span class="dim">|</span>
+ <span class="num">8</span> <span class="dim">|</span>         <span style="text-decoration:wavy underline var(--error);text-decoration-skip-ink:none;text-underline-offset:3px;">int</span> Count;
+   <span class="dim">|</span>         <span class="err">^^^</span> Use '<span class="accent">Int32</span>' instead
+
+<span class="err">error MIDL2004</span>: Pointer types ('<span class="accent">IFoo*</span>') are not used in MIDL3.
+  <span class="dim">--></span> <span class="file">Widget.idl</span>:<span class="num">12</span>:<span class="num">9</span>
+   <span class="dim">|</span>
+<span class="num">12</span> <span class="dim">|</span>         <span style="text-decoration:wavy underline var(--error);text-decoration-skip-ink:none;text-underline-offset:3px;">IFoo*</span> pFoo;
+   <span class="dim">|</span>         <span class="err">^^^^</span> Reference types are passed directly
+
+<span class="dim">MIDL:</span> <span class="err">2 error(s)</span>, <span class="warn">0 warning(s)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 7: REAL-TIME DIAGNOSTICS (SCREENSHOTS) ==================== -->
+<div class="slide" data-slide="7">
+  <h2>Real-time <span class="accent">Diagnostics</span></h2>
+  <p class="slide-desc">Errors appear <strong style="color:var(--white);">as you type</strong> — no compile step needed. Hover any squiggle for details, quick fixes, and Copilot integration.</p>
+  <div class="screenshots-row pair">
+    <div class="screenshot-card">
+      <img src="email/images/diagnostics.jpg" alt="10 red squiggles on incomplete code showing real-time error detection">
+      <div class="screenshot-caption">10 red squiggles on incomplete code — errors appear instantly as you type</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="email/images/diagnostics-hover.jpg" alt="Hover diagnostic tooltip showing 4 MIDL errors with quick-fix links">
+      <div class="screenshot-caption">Hover tooltip showing 4 diagnostics (MIDL1003, MIDL1062×2, MIDL3002) with quick-fix links</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 8: MIDL2→MIDL3 MIGRATION ==================== -->
+<div class="slide" data-slide="8">
+  <h2>MIDL2 → MIDL3 <span class="accent">Quick Fix</span></h2>
+  <p class="slide-desc">Legacy MIDL2 syntax like <code style="background:var(--bg-lighter);padding:2px 8px;border-radius:4px;color:var(--type);font-family:'Cascadia Code',monospace;">int</code> is detected automatically with one-click migration to <code style="background:var(--bg-lighter);padding:2px 8px;border-radius:4px;color:var(--type);font-family:'Cascadia Code',monospace;">Int32</code>.</p>
+  <div class="screenshots-row pair">
+    <div class="screenshot-card">
+      <img src="email/images/midl2-diagnostic.jpg" alt="Hover on 'int' showing MIDL2005 diagnostic: Lowercase 'int' is MIDL2 syntax, use Int32">
+      <div class="screenshot-caption">Hover on <code>int</code> — MIDL2005: "Lowercase 'int' is MIDL2 syntax. Use 'Int32'"</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="email/images/quickfix-int32.jpg" alt="Quick Fix menu showing Replace with Int32 option with lightbulb">
+      <div class="screenshot-caption">💡 Quick Fix menu — "Replace with 'Int32'" with one click</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 9: INTELLISENSE — ATTRIBUTES ==================== -->
+<div class="slide" data-slide="9">
+  <h2>IntelliSense: <span class="accent">Attributes &amp; Snippets</span></h2>
+  <p class="slide-desc">Context-aware attribute completion with descriptions, plus full snippet expansion for common patterns.</p>
+  <div class="screenshots-row pair">
+    <div class="screenshot-card">
+      <img src="email/images/autocomplete-attributes.jpg" alt="Attribute autocomplete dropdown showing contract, default_interface, deprecated, experimental with tooltip descriptions">
+      <div class="screenshot-caption">Attribute autocomplete — context-filtered with tooltip descriptions</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="email/images/snippet-preview.jpg" alt="Autocomplete with runtimeclass selected showing full snippet expansion preview">
+      <div class="screenshot-caption">Snippet preview for <code>runtimeclass</code> — full expansion with placeholder</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 10: INTELLISENSE — SDK TYPES ==================== -->
+<div class="slide" data-slide="10">
+  <h2>IntelliSense: <span class="accent">SDK Types</span></h2>
+  <p class="slide-desc">Browse 5,517+ types from Windows SDK WinMD files — drill into namespaces, narrow with typing.</p>
+  <div class="screenshots-row pair">
+    <div class="screenshot-card">
+      <img src="email/images/sdk-autocomplete.jpg" alt="Top-level namespace completion showing Windows, WindowsUdk namespaces from 5,517+ types">
+      <div class="screenshot-caption">Namespace breadth — Windows, WindowsUdk, and more from 5,517+ SDK types</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="email/images/sdk-type-completion.jpg" alt="SDK type autocomplete narrowed to Application types showing Windows.UI.Xaml.Application">
+      <div class="screenshot-caption">Narrowed to "Application…" — showing (SDK) Windows.UI.Xaml.Application</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 11: F12 GO TO DEFINITION ==================== -->
+<div class="slide" data-slide="11">
+  <h2>F12 into <span class="accent">Any Type</span></h2>
+  <p class="slide-desc">Go-to-definition on any type from any <code>.winmd</code> — Windows SDK, WinUI 3, or custom metadata — opens a <strong style="color:var(--white);">decompiled MIDL3 view</strong>. SDK auto-resolved; others via <code>// @ref:</code>.</p>
+  <div class="screenshots-row pair">
+    <div class="screenshot-card">
+      <img src="email/images/goto-definition.jpg" alt="F12 into WindowsUdk.AI.Actions showing full decompiled MIDL3 with structs, runtimeclasses, and attributes">
+      <div class="screenshot-caption">F12 into WindowsUdk.AI.Actions — full decompiled MIDL3 from .winmd</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="email/images/ref-path-completion.jpg" alt="@ref path completion with file browser showing .winmd files">
+      <div class="screenshot-caption">@ref path completion with file browser — pick .winmd files to reference</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 12: HOVER DOCS & MICROSOFT LEARN ==================== -->
+<div class="slide" data-slide="12">
+  <h2>Hover Docs &amp; <span class="accent">Microsoft Learn</span></h2>
+  <p class="slide-desc">Hover any <code>Windows.*</code> or <code>Microsoft.*</code> type for documentation, then click through to Microsoft Learn — all without leaving VS Code.</p>
+  <div class="screenshots-row pair">
+    <div class="screenshot-card">
+      <img src="email/images/hover-docs.jpg" alt="Hover showing SDK type documentation with View on Microsoft Learn link and 5,517 types in status bar">
+      <div class="screenshot-caption">Hover docs with "View on Microsoft Learn" link — ✓ 5,517 types loaded</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="email/images/learn-panel.jpg" alt="Microsoft Learn docs page opened side-by-side in VS Code showing Application Class documentation">
+      <div class="screenshot-caption">Microsoft Learn page opened side-by-side in VS Code</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 13: CODE QUALITY RULES ==================== -->
+<div class="slide" data-slide="13">
+  <h2>Code Quality <span class="accent">Rules</span></h2>
+  <p class="slide-desc">16 code quality rules catch naming violations, suggest simplifications, and offer one-click fixes.</p>
+  <div class="screenshots-row triple">
+    <div class="screenshot-card">
+      <img src="email/images/code-quality.jpg" alt="MIDL3001 naming convention hover: Interface 'Foo' should follow 'I' + PascalCase">
+      <div class="screenshot-caption">MIDL3001 — Interface 'Foo' should follow 'I' + PascalCase</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="email/images/quickfix-naming.jpg" alt="Quick Fix menu showing Replace with 'IFoo' option with lightbulb icon">
+      <div class="screenshot-caption">💡 Quick Fix — "Replace with 'IFoo'"</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="email/images/property-shorthand.jpg" alt="MIDL3016 property shorthand diagnostic plus external type resolution in single tooltip">
+      <div class="screenshot-caption">MIDL3016 property shorthand + external type resolution</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 14: EXPERIMENTAL TYPE SAFETY ==================== -->
+<div class="slide" data-slide="14">
+  <h2>Experimental <span class="accent">Type Safety</span></h2>
+  <p class="slide-desc">References to <code style="background:var(--bg-lighter);padding:2px 8px;border-radius:4px;color:var(--warning);font-family:'Cascadia Code',monospace;">[experimental]</code> types are flagged — your public API won't accidentally depend on unstable types.</p>
+  <div class="screenshots-row pair">
+    <div class="screenshot-card">
+      <img src="email/images/experimental-warning.jpg" alt="MIDL1104 warning: Type 'Animal' references experimental type 'Experiment' with quick-fix links">
+      <div class="screenshot-caption">MIDL1104 — "Type 'Animal' references experimental type 'Experiment'"</div>
+    </div>
+    <div class="screenshot-card">
+      <img src="email/images/experimental-codelens.jpg" alt="Code with [experimental] attribute showing code lens with 5,517 types loaded">
+      <div class="screenshot-caption">[experimental] attribute in action — code lens shows ✓ 5,517 types</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 15: 122 DIAGNOSTIC CODES ==================== -->
+<div class="slide" data-slide="15">
+  <h2><span class="accent">122</span> Diagnostic Codes</h2>
+  <div class="diag-grid">
+    <div class="diag-card semantic">
+      <div class="diag-range" style="color:var(--error);">MIDL1001 – 1105</div>
+      <div class="diag-label">Semantic Errors</div>
+      <div class="diag-count">101 codes — type mismatches, invalid members, missing imports</div>
+    </div>
+    <div class="diag-card strict">
+      <div class="diag-range" style="color:var(--keyword);">MIDL2001 – 2006</div>
+      <div class="diag-label">Strict Mode Errors</div>
+      <div class="diag-count">6 codes — MIDL2 syntax used in MIDL3 context</div>
+    </div>
+    <div class="diag-card quality">
+      <div class="diag-range" style="color:var(--info);">MIDL3001 – 3016</div>
+      <div class="diag-label">Code Quality Hints</div>
+      <div class="diag-count">15 codes — naming conventions, simplifications</div>
+    </div>
+  </div>
+  <div class="note" style="margin-top:24px;font-size:16px;font-style:normal;">
+    ✨ Every diagnostic has an <strong style="color:var(--white);">accurate source position</strong> — no more <code style="background:var(--bg-lighter);padding:2px 8px;border-radius:4px;color:var(--error);font-family:'Cascadia Code',monospace;">line 0, column 0</code>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 16: NAVIGATION & RENAME ==================== -->
+<div class="slide" data-slide="16">
+  <h2>Navigation &amp; <span class="accent">Rename</span></h2>
+  <ul class="bullets" style="margin-bottom:20px;">
+    <li><strong>F12 → source</strong> — go-to-definition on local types jumps to their source file</li>
+    <li><strong>F12 → WinMD</strong> — go-to-definition on SDK types opens a <em>decompiled IDL view</em> showing the type's full API surface</li>
+    <li><strong>F12-in-F12</strong> — navigate between types within decompiled views (cross-namespace chains)</li>
+    <li><strong>F12 on namespaces</strong> — click any segment of a fully-qualified name (<code style="color:var(--type)">Windows.UI.<em>Xaml</em>.Controls</code>)</li>
+    <li><strong>F2 Rename</strong> — rename a symbol and all its references across the file</li>
+    <li><strong>Workspace diagnostics</strong> — file watcher detects changes and re-publishes squiggles automatically</li>
+  </ul>
+  <div class="screenshots-row" style="max-width:560px;">
+    <div class="screenshot-card">
+      <img src="email/images/rename-dialog.jpg" alt="F2 Rename dialog with namespace drill-in">
+      <div class="screenshot-caption">F2 Rename dialog + namespace drill-in in action</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 17: WINDOWS SDK INTEGRATION ==================== -->
+<div class="slide" data-slide="17">
+  <h2>Windows SDK <span class="accent">Integration</span></h2>
+  <ul class="bullets" style="margin-bottom:16px;">
+    <li><strong>Auto-discovery</strong> — automatically references <code style="background:var(--bg-lighter);padding:2px 6px;border-radius:3px;color:var(--type);font-family:'Cascadia Code',monospace;">Windows.winmd</code> from your installed SDK</li>
+    <li><strong>Namespace drill-in</strong> — type <code style="color:var(--type)">Windows.</code> → see <code style="color:var(--type)">Foundation</code>, <code style="color:var(--type)">UI</code>, <code style="color:var(--type)">Storage</code> → keep drilling with dots</li>
+    <li><strong>Case-insensitive</strong> matching with canonical casing on accept</li>
+    <li><strong>Microsoft Learn links</strong> — hover any SDK type to see a 📖 link to its documentation</li>
+    <li><strong>SDK version picker</strong> — select which installed SDK to use, or disable entirely</li>
+  </ul>
+  <div class="screenshots-row" style="max-width:560px;">
+    <div class="screenshot-card">
+      <img src="email/images/codelens-types.jpg" alt="Code lens showing 3,062 types loaded from SDK">
+      <div class="screenshot-caption">Code lens showing ✓ 3,062 types loaded from Windows SDK</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 18: WINMD & OUTPUT ==================== -->
+<div class="slide" data-slide="18">
+  <h2>WinMD &amp; <span class="accent">Output</span></h2>
+  <ul class="bullets" style="margin-bottom:20px;">
+    <li><strong>System.Reflection.Metadata</strong> — zero-dependency WinMD writing</li>
+    <li>Per-namespace file naming (<code>MyApp.Widgets</code> → <code>MyApp.winmd</code>)</li>
+    <li><strong>Decompiler</strong>: WinMD → idiomatic MIDL3 IDL</li>
+    <li>C/C++ headers, IID files, DllData, proxy stubs</li>
+  </ul>
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="terminal-title">PowerShell — winmidl</div>
+      <div class="window-controls">
+        <span class="window-btn">━</span>
+        <span class="window-btn">□</span>
+        <span class="window-btn close">✕</span>
+      </div>
+    </div>
+    <div class="terminal-body">
+<span class="prompt">❯</span> <span class="cmd">winmidl</span> <span class="flag">/winrt</span> <span class="file">Widget.idl</span>
+  <span class="accent">-></span> Widget.winmd
+  <span class="accent">-></span> Widget.h
+  <span class="accent">-></span> Widget_i.c
+
+<span class="dim">MIDL:</span> <span style="color:var(--success)">0 error(s)</span>, <span class="warn">0 warning(s)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 19: WINMD PARITY ==================== -->
+<div class="slide" data-slide="19">
+  <h2>WinMD <span class="accent">Parity</span></h2>
+  <ul class="bullets">
+    <li><strong>Protected / Overridable</strong> — emits <code style="color:var(--type)">IClassProtected</code> and <code style="color:var(--type)">IClassOverrides</code> interfaces with correct attributes, even on sealed classes</li>
+    <li><strong>Family access</strong> — protected method stubs use <code style="color:var(--keyword)">Family</code> (not Public) matching original midl</li>
+    <li><strong>Generic attributes</strong> — emits <em>any</em> custom attribute, not just a hardcoded whitelist</li>
+    <li><strong>CLR ↔ WinRT projections</strong> — 40+ type mappings (TimeSpan, IVector ↔ IList, etc.) for accurate decompilation</li>
+    <li><strong>Decompiler</strong> — versioned blocks, static members, base classes, overridable/protected modifiers</li>
+    <li><strong>C++ WinMD dumper</strong> — ground-truth validation tool for binary-level comparison with original midl output</li>
+  </ul>
+</div>
+
+<!-- ==================== SLIDE 20: TEST COVERAGE ==================== -->
+<div class="slide" data-slide="20">
+  <h2>Test <span class="accent">Coverage</span></h2>
+  <div class="numbers-grid" id="numbersGrid">
+    <div class="number-card">
+      <div class="big-number" data-target="1465">0</div>
+      <div class="number-label">Tests</div>
+    </div>
+    <div class="number-card">
+      <div class="big-number" data-target="122">0</div>
+      <div class="number-label">Diagnostic Codes</div>
+    </div>
+    <div class="number-card">
+      <div class="big-number" data-target="1186">0</div>
+      <div class="number-label">OS Fixture Files<br><small style="color:var(--success)">(0 crashes)</small></div>
+    </div>
+    <div class="number-card">
+      <div class="big-number" data-target="5">0</div>
+      <div class="number-label">Test Projects</div>
+    </div>
+    <div class="number-card">
+      <div class="big-number" data-target="215">0</div>
+      <div class="number-label">Fixture IDL Files</div>
+    </div>
+    <div class="number-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div class="big-number" style="font-size:28px;">5</div>
+      <div class="number-label">Test Categories</div>
+    </div>
+  </div>
+  <div class="test-breakdown" id="testBreakdown">
+    <div class="test-bar-segment" style="flex-basis:0%;background:#e06c75;" data-width="5.94%">87</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#c678dd;" data-width="5.12%">75</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#61afef;" data-width="31.54%">462</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#98c379;" data-width="13.65%">200</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#e5c07b;" data-width="43.75%">641</div>
+  </div>
+  <div class="test-breakdown-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#e06c75"></div> Lexer 87</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#c678dd"></div> Parser 75</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#61afef"></div> Analysis 462</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#98c379"></div> CodeGen 200</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e5c07b"></div> Integration 641</div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 21: PERFORMANCE ==================== -->
+<div class="slide" data-slide="21">
+  <h2><span class="accent">Performance</span></h2>
+  <table class="perf-table">
+    <thead>
+      <tr>
+        <th class="metric"></th>
+        <th class="old">Original midl.exe</th>
+        <th class="new">WinMIDL (NativeAOT)</th>
+        <th class="metric">Ratio</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="metric">Avg per-file compile</td>
+        <td class="old">67.7 ms</td>
+        <td class="new">27.4 ms <span style="color:var(--success);font-weight:400;">✓</span></td>
+        <td class="new" style="color:var(--success);">2.5× faster</td>
+      </tr>
+      <tr>
+        <td class="metric">Batch (215 files)</td>
+        <td class="old">14,787 ms</td>
+        <td class="new">5,525 ms <span style="color:var(--success);font-weight:400;">✓</span></td>
+        <td class="new" style="color:var(--success);">2.7× faster</td>
+      </tr>
+      <tr>
+        <td class="metric">Error file overhead</td>
+        <td class="old">—</td>
+        <td class="new">−9%</td>
+        <td class="new" style="color:var(--success);">faster on errors</td>
+      </tr>
+      <tr>
+        <td class="metric">Error recovery</td>
+        <td class="old" style="color:var(--error);">stops at first error</td>
+        <td class="new" style="color:var(--success);">continues &amp; reports all</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="metric">LSP support</td>
+        <td class="old" style="color:var(--text-dim);">none</td>
+        <td class="new" style="color:var(--success);">full</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="metric">Diagnostics</td>
+        <td class="old">~20 codes</td>
+        <td class="new">122 codes</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="note" style="font-size:15px;margin-top:24px;font-style:normal;">
+    <strong style="color:var(--success);">2.5× faster</strong> than the original across 215 fixture files, with 122 diagnostics, full LSP, and graceful error recovery
+  </div>
+</div>
+
+<!-- ==================== SLIDE 22: WHAT'S NEXT ==================== -->
+<div class="slide" data-slide="22">
+  <h2>What's <span class="accent">Next</span></h2>
+  <ul class="roadmap-list">
+    <li class="done">VS Code Marketplace — <strong style="color:var(--success);">live now</strong></li>
+    <li class="done">Real-time diagnostics with quick fixes</li>
+    <li class="done">Full IntelliSense with 5,517+ SDK types</li>
+    <li class="done">F12 go-to-definition with WinMD decompilation</li>
+    <li>Code lens — show synthesized interfaces inline</li>
+    <li>Incremental text sync for large files</li>
+    <li>More CLI switch compatibility</li>
+    <li>Golden comparison testing against original midl.exe</li>
+  </ul>
+  <div class="cta-box">
+    <h3>GET INVOLVED</h3>
+    <ul>
+      <li>Try it: <a href="https://github.com/AskLar/WinMIDL">github.com/asklar/WinMIDL</a></li>
+      <li>File issues, contribute, or just kick the tires</li>
+      <li>Install the VS Code extension and point it at your <code style="background:var(--bg-lighter);padding:2px 6px;border-radius:3px;color:var(--type);font-family:'Cascadia Code',monospace;">.idl</code> files</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<script>
+(function() {
+  'use strict';
+
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = parseInt(localStorage.getItem('winmidl-v2-slide') || '0', 10);
+  if (current < 0 || current >= total) current = 0;
+  let animating = false;
+
+  const progressBar = document.getElementById('progressBar');
+  const slideCounter = document.getElementById('slideCounter');
+
+  function updateUI() {
+    progressBar.style.width = ((current + 1) / total * 100) + '%';
+    slideCounter.textContent = (current + 1) + ' / ' + total;
+  }
+
+  function goTo(index) {
+    if (index < 0 || index >= total || index === current || animating) return;
+    animating = true;
+
+    const direction = index > current ? 1 : -1;
+    const prev = slides[current];
+    const next = slides[index];
+
+    // Remove active/prev classes from all
+    slides.forEach(s => { s.classList.remove('active', 'prev'); });
+
+    if (direction === 1) {
+      prev.classList.add('prev');
+    } else {
+      prev.style.transform = 'translateX(60px)';
+      prev.style.opacity = '0';
+    }
+
+    // Prepare next slide
+    if (direction === 1) {
+      next.style.transform = 'translateX(60px)';
+    } else {
+      next.style.transform = 'translateX(-60px)';
+    }
+    next.style.opacity = '0';
+
+    // Force reflow so browser commits the off-screen position
+    void next.offsetWidth;
+
+    // Add active class AND clear inline overrides so CSS class values
+    // take effect and the transition animates from the reflow-captured state
+    next.classList.add('active');
+    next.style.transform = '';
+    next.style.opacity = '';
+
+    current = index;
+    localStorage.setItem('winmidl-v2-slide', current);
+    updateUI();
+
+    // Trigger animations for this slide
+    setTimeout(() => triggerSlideAnimations(current), 100);
+
+    setTimeout(() => {
+      animating = false;
+      prev.style.transform = '';
+      prev.style.opacity = '';
+    }, 550);
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    else if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+      else document.exitFullscreen();
+    }
+  });
+
+  // Touch/swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+  });
+
+  // Click navigation (left third = prev, right third = next)
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('a, button, .screenshot-card')) return;
+    const x = e.clientX / window.innerWidth;
+    if (x < 0.25) prev();
+    else if (x > 0.75) next();
+  });
+
+  // ===== SLIDE-SPECIFIC ANIMATIONS =====
+
+  // Pipeline animation (slide 4)
+  function animatePipeline() {
+    const pipeline = document.getElementById('pipeline');
+    if (!pipeline) return;
+    const elements = pipeline.querySelectorAll('[data-delay]');
+    elements.forEach(el => {
+      const delay = parseInt(el.getAttribute('data-delay'));
+      setTimeout(() => el.classList.add('visible'), delay);
+    });
+  }
+
+  // Number count-up animation (slide 20)
+  function animateNumbers() {
+    const grid = document.getElementById('numbersGrid');
+    if (!grid) return;
+    const numbers = grid.querySelectorAll('.big-number[data-target]');
+    numbers.forEach(el => {
+      const target = parseInt(el.getAttribute('data-target'));
+      const duration = 1200;
+      const start = performance.now();
+      function tick(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const val = Math.round(eased * target);
+        el.textContent = val.toLocaleString();
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+
+    // Animate test breakdown bars
+    const bars = document.querySelectorAll('#testBreakdown .test-bar-segment');
+    bars.forEach((bar, i) => {
+      setTimeout(() => {
+        bar.style.flexBasis = bar.getAttribute('data-width');
+      }, 200 + i * 100);
+    });
+  }
+
+  // Reset pipeline when leaving
+  function resetPipeline() {
+    const pipeline = document.getElementById('pipeline');
+    if (!pipeline) return;
+    pipeline.querySelectorAll('[data-delay]').forEach(el => el.classList.remove('visible'));
+  }
+
+  // Reset numbers
+  function resetNumbers() {
+    const grid = document.getElementById('numbersGrid');
+    if (!grid) return;
+    grid.querySelectorAll('.big-number[data-target]').forEach(el => el.textContent = '0');
+    document.querySelectorAll('#testBreakdown .test-bar-segment').forEach(bar => {
+      bar.style.flexBasis = '0%';
+    });
+  }
+
+  function triggerSlideAnimations(slideIndex) {
+    // Reset all
+    resetPipeline();
+    resetNumbers();
+
+    if (slideIndex === 4) { // Architecture
+      setTimeout(animatePipeline, 200);
+    }
+    if (slideIndex === 20) { // Test Coverage
+      setTimeout(animateNumbers, 200);
+    }
+  }
+
+  // Initial setup — show the restored slide (or slide 0)
+  slides.forEach(s => s.classList.remove('active'));
+  slides[current].classList.add('active');
+  updateUI();
+
+  // Handle initial slide animations
+  setTimeout(() => triggerSlideAnimations(current), 100);
+})();
+</script>
+</body>
+</html>
