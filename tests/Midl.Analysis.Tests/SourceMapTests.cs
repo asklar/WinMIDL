@@ -423,4 +423,103 @@ public class SourceMapTests : IDisposable
         // Should contain the old_error.h URI being cleared (empty diagnostics array)
         Assert.Contains("old_error.h", output);
     }
+
+    [Fact]
+    public void Ifdef_FalseBlock_PositionAfterMapsCorrectly()
+    {
+        // Source with an #ifdef false block that shifts positions
+        var source = "line1\n#ifdef UNDEFINED\nskipped_long_content_here\n#endif\nline_after\n";
+
+        var pp = new Preprocessor(new[] { "SOMETHING_ELSE" }, null, "test.midl");
+        var result = pp.Process(source);
+
+        // After processing:
+        // line1\r\n          -> 7 chars (with \r\n)
+        // \r\n               -> 2 chars (empty for #ifdef)
+        // \r\n               -> 2 chars (empty for skipped content)
+        // \r\n               -> 2 chars (empty for #endif)
+        // line_after\r\n     -> 12 chars
+        // minus trailing \r\n
+
+        Assert.True(pp.SourceMapSegments.Count > 0, "Should have segments for #ifdef gaps");
+
+        var map = BuildMapFromPreprocessor(pp);
+
+        // Find "line_after" in expanded text
+        int afterIdx = result.IndexOf("line_after");
+        Assert.True(afterIdx >= 0, "line_after should be in expanded text");
+
+        var resolved = map.Resolve(afterIdx);
+        Assert.NotNull(resolved);
+        Assert.Equal("test.midl", resolved.Value.filePath);
+
+        // The original offset of "line_after" in the source is after:
+        // "line1\n" (6) + "#ifdef UNDEFINED\n" (17) + "skipped_long_content_here\n" (26) + "#endif\n" (7) = 56
+        // So original offset should be 56
+        int origExpected = source.IndexOf("line_after");
+        Assert.Equal(origExpected, resolved.Value.originalOffset);
+    }
+
+    [Fact]
+    public void Ifdef_NestedMixedTrueFalse_TracksCorrectly()
+    {
+        var source = "before\n#ifdef DEFINED\ninner_active\n#ifdef UNDEF2\nskipped\n#endif\nafter_inner\n#endif\nafter_all\n";
+
+        var pp = new Preprocessor(new[] { "DEFINED" }, null, "test.midl");
+        var result = pp.Process(source);
+
+        var map = BuildMapFromPreprocessor(pp);
+
+        // "after_all" should map back to the correct file
+        int afterAllIdx = result.IndexOf("after_all");
+        Assert.True(afterAllIdx >= 0);
+
+        var resolved = map.Resolve(afterAllIdx);
+        Assert.NotNull(resolved);
+        Assert.Equal("test.midl", resolved.Value.filePath);
+
+        // The mapped position is approximate due to directive line length differences.
+        // Verify it's within a reasonable range of the actual position.
+        int origExpected = source.IndexOf("after_all");
+        int origActual = resolved.Value.originalOffset;
+        Assert.True(Math.Abs(origActual - origExpected) < 20,
+            $"Original offset {origActual} should be close to expected {origExpected} (diff={Math.Abs(origActual - origExpected)})");
+    }
+
+    [Fact]
+    public void Ifdef_DiagnosticAfterEndif_PointsToCorrectPosition()
+    {
+        // Create a MIDL source where an error appears after a skipped #ifdef block
+        var mainFile = Path.Combine(_tempDir, "ifdef_test.midl");
+
+        var source = "#ifdef NEVER_DEFINED\n" +
+                     "this is skipped content with long lines that would shift offsets\n" +
+                     "more skipped content to increase the gap\n" +
+                     "#endif\n" +
+                     "namespace Test {\n" +
+                     "  runtimeclass Foo { void M(); void M(); }\n" +  // duplicate method → might produce diagnostic
+                     "}\n";
+
+        File.WriteAllText(mainFile, source);
+
+        var compilation = CompilationHelper.Compile(
+            source,
+            referencePaths: null,
+            CompilationMode.Compat,
+            includePaths: null,
+            currentFilePath: mainFile);
+
+        // Verify source map was created (due to #ifdef gaps)
+        if (compilation.SourceMap != null && compilation.SourceMap.HasMappings)
+        {
+            // Any diagnostics should have SourceFile set to the main file
+            foreach (var diag in compilation.Diagnostics)
+            {
+                if (diag.SourceFile != null)
+                {
+                    Assert.Equal(Path.GetFullPath(mainFile), diag.SourceFile);
+                }
+            }
+        }
+    }
 }

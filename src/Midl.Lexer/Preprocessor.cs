@@ -186,6 +186,8 @@ public class Preprocessor
         int segExpandedStart = baseOffset;
         int segOriginalStart = 0;
         bool hasIncludes = false;
+        bool hasIfdefGaps = false;
+        bool wasActive = true; // track active/inactive transitions for #ifdef gap tracking
 
         for (int i = 0; i < lines.Count; i++)
         {
@@ -322,6 +324,28 @@ public class Preprocessor
                     output.AppendLine();
                 }
             }
+
+            // Track active/inactive transitions for #ifdef gap source mapping
+            bool nowActive = IsActive(ifStack);
+            if (wasActive && !nowActive && filePath != null)
+            {
+                // Transitioning to inactive: flush current segment
+                int expandedPos = baseOffset + output.Length;
+                if (expandedPos > segExpandedStart)
+                {
+                    SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+                    hasIfdefGaps = true;
+                }
+            }
+            else if (!wasActive && nowActive && filePath != null)
+            {
+                // Transitioning to active: start a new segment
+                segExpandedStart = baseOffset + output.Length;
+                int origIdx = (i + 1 < origLineIndices.Length) ? origLineIndices[i + 1] : rawLines.Count;
+                segOriginalStart = rawLineOffsets[origIdx];
+                hasIfdefGaps = true;
+            }
+            wasActive = nowActive;
         }
 
         // Remove trailing newline added by final AppendLine
@@ -332,8 +356,9 @@ public class Preprocessor
 
         // Flush final segment
         // Record when: file had includes (need segments for content between them),
-        // or this is a recursive call for an included file (baseOffset > 0 implies included)
-        bool needsSegments = hasIncludes || baseOffset > 0;
+        // or this is a recursive call for an included file (baseOffset > 0 implies included),
+        // or there were #ifdef gaps that shifted positions
+        bool needsSegments = hasIncludes || hasIfdefGaps || baseOffset > 0;
         if (needsSegments && filePath != null)
         {
             int finalExpandedPos = baseOffset + output.Length;
