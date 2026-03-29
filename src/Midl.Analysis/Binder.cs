@@ -587,6 +587,11 @@ public partial class Binder
             if (member != null && blockAttrs != null)
             {
                 ApplyWellKnownAttributes(member, blockAttrs);
+                // Also add block attrs to member's attribute list for validation
+                if (member is MethodSymbol m2) m2.Attributes.AddRange(blockAttrs);
+                else if (member is PropertySymbol p2) p2.Attributes.AddRange(blockAttrs);
+                else if (member is EventSymbol e2) e2.Attributes.AddRange(blockAttrs);
+                else if (member is ConstructorSymbol c2) c2.Attributes.AddRange(blockAttrs);
             }
         }
     }
