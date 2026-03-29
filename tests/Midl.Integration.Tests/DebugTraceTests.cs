@@ -3,6 +3,11 @@ using Midl.Syntax;
 
 namespace Midl.Integration.Tests;
 
+/// <summary>
+/// Tests for MidlTrace. Must run serially (not in parallel) because MidlTrace uses
+/// static state — concurrent enable/disable corrupts the shared TextWriter.
+/// </summary>
+[Collection("MidlTrace")]
 public class DebugTraceTests : IDisposable
 {
     public DebugTraceTests()

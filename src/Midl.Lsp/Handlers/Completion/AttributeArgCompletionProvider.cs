@@ -102,7 +102,8 @@ internal static class AttributeArgCompletionProvider
                 // Some other character — could be part of a previous attr identifier, skip it
                 while (i >= 0 && (char.IsLetterOrDigit(text[i]) || text[i] == '_'))
                     i--;
-                i++; // compensate for loop decrement
+                // Don't need i++ here — the for loop's i-- will advance past
+                // the character before the identifier we just skipped
                 continue;
             }
         }
