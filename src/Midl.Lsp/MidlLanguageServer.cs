@@ -413,6 +413,9 @@ public sealed partial class MidlLanguageServer
                 });
             }
         }
+
+        // Ask client to re-fetch semantic tokens (they depend on defines/inactive regions)
+        _ = _writer.SendNotificationAsync("workspace/semanticTokens/refresh", null);
     }
 
     private static bool TryGetBool(JsonElement settings, string key, out bool value)
