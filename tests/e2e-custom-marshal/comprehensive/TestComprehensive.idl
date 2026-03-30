@@ -152,9 +152,17 @@ namespace TestApp.Comprehensive
         TypeShowcase();
     }
 
+    /// <summary>Example</summary>
     // 14. Many parameters + mixed in/out
     interface IComplexOps
     {
+        /// <summary>Performs a multi param operation</summary>
+        /// <param name="name">the name</param>
+        /// <param name="x">the x</param>
+        /// <param name="y">the y</param>
+        /// <param name="scale">the scale</param>
+        /// <param name="visible">whether it's visible</param>
+        /// <returns>nothing</returns>
         void MultiParam(String name, Int32 x, Int32 y, Double scale, Boolean visible);
         Boolean TryParse(String input, out Int32 intResult, out Double floatResult);
         void Swap(Int32 a, Int32 b, out Int32 outA, out Int32 outB);

@@ -680,6 +680,7 @@ public class CompilationDriver
         _out.WriteLine("  /cppproxy <file>       Generate C++ proxy/stub/factory combined file");
         _out.WriteLine("  /dlldata <file>        Specify DLL data file name");
         _out.WriteLine("  /winmd <file>          Specify WinMD output file");
+        _out.WriteLine("  /doc <file>            Generate XDC XML documentation file");
         _out.WriteLine("  /out <directory>       Specify output directory");
         _out.WriteLine("  /acf <file>            Specify ACF file");
         _out.WriteLine("  /winrt                 Enable WinRT mode");
@@ -717,6 +718,8 @@ public class CompilationDriver
         _out.WriteLine("  --decompile            Decompile WinMD to IDL");
         _out.WriteLine("  --dump-winmd           Dump WinMD metadata in canonical sorted format");
         _out.WriteLine("  /debug                 Enable debug trace output (or set MIDL_DEBUG=1)");
+        _out.WriteLine("  /diag                  Show info-level quality diagnostics");
+        _out.WriteLine("  /arrays                Enable array parameter syntax (T[])");
         _out.WriteLine("  --profile              Print compilation phase timing breakdown");
         _out.WriteLine("  /no_def_idir           Don't add default SDK include directories");
         _out.WriteLine("  @<file>                Read options from response file");

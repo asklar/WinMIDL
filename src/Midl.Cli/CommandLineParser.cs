@@ -127,7 +127,7 @@ public static class CommandLineParser
                         var rest = switchName[1..];
                         var asSwitch = switchName.ToLowerInvariant();
                         // Only split if it doesn't match a known multi-char switch
-                        if (asSwitch is not ("iid" or "dlldata" or "diag"))
+                        if (asSwitch is not ("iid" or "dlldata" or "diag" or "doc"))
                         {
                             expanded.Insert(i + 1, rest);
                             switchName = switchName[..1];
