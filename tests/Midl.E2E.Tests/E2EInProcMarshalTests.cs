@@ -15,11 +15,11 @@ public class E2EInProcMarshalTests
     private readonly ITestOutputHelper _output;
 
     public E2EInProcMarshalTests(ITestOutputHelper output) => _output = output;
-    [SkippableFact]
+    [Fact]
     [Trait("Category", "E2E")]
     public void InProcProxyStub_CrossApartment_RoundTrips()
     {
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+        Assert.True(RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
             "In-proc COM test requires Windows");
 
         var msvc = E2ETestHelper.FindMsvc();

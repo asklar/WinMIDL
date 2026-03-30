@@ -31,15 +31,15 @@ public class E2EOutOfProcMarshalTests
         "{5E6F7A8B-9C0D-4E1F-2A3B-4C5D6E7F8091}", // AsyncCalculator
     ];
 
-    [SkippableFact]
+    [Fact]
     [Trait("Category", "E2E")]
     public void OutOfProc_CustomMarshal_CrossProcess_RoundTrip()
     {
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+        Assert.True(RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
             "Out-of-proc COM test requires Windows");
 
         var msvc = E2ETestHelper.FindMsvc();
-        Skip.If(msvc == null, "MSVC toolchain not found");
+        Assert.NotNull(msvc);
 
         var repoRoot = E2ETestHelper.FindRepoRoot();
         var testDir = Path.Combine(repoRoot, "tests", "e2e-custom-marshal", "outofproc");

@@ -194,7 +194,7 @@ public class E2ETestHelper : IDisposable
     /// Generate header, IID, and optional C++ proxy code from IDL via CompilationDriver.
     /// </summary>
     public void GenerateFromIdl(string idlPath, string headerName, string iidName,
-        string? proxyName = null)
+        string? proxyName = null, IReadOnlyList<string>? defines = null, bool arraysEnabled = false)
     {
         var options = new CommandLineOptions
         {
@@ -206,9 +206,12 @@ public class E2ETestHelper : IDisposable
             NoLogo = true,
             NoProxy = true,
             NoDllData = true,
+            ArraysEnabled = arraysEnabled,
         };
         if (proxyName != null)
             options.CppProxyFile = proxyName;
+        if (defines != null)
+            foreach (var d in defines) options.Defines.Add(d);
 
         var driver = new CompilationDriver(TextWriter.Null, TextWriter.Null);
         var exitCode = driver.Run(options);

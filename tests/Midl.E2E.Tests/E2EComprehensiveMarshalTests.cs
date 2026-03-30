@@ -37,26 +37,31 @@ public class E2EComprehensiveMarshalTests
         ["{C5D6E7F8-A9B0-41C2-D3E4-F5A6B7C8D9EA}"] = "CollectionOps",
     };
 
-    [SkippableFact]
+    [Theory]
     [Trait("Category", "E2E")]
-    public void ComprehensiveProxyStub_AllTypePatterns_RoundTrips()
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ComprehensiveProxyStub_AllTypePatterns_RoundTrips(bool withArrays)
     {
-        Skip.IfNot(RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
+        Assert.True(RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
             "In-proc COM test requires Windows");
 
         var msvc = E2ETestHelper.FindMsvc();
-        Skip.If(msvc == null, "MSVC toolchain not found");
+        Assert.NotNull(msvc);
 
         var repoRoot = E2ETestHelper.FindRepoRoot();
         var testDir = Path.Combine(repoRoot, "tests", "e2e-custom-marshal", "comprehensive");
         using var helper = new E2ETestHelper(testDir, msvc!);
 
         // ── Step 1: Generate code from IDL ──────────────────────────────
+        var defines = withArrays ? new[] { "WITH_ARRAYS" } : null;
         helper.GenerateFromIdl(
             Path.Combine(testDir, "TestComprehensive.idl"),
             "TestComprehensive.h",
             "TestComprehensive_i.c",
-            "TestComprehensive_proxy.cpp");
+            "TestComprehensive_proxy.cpp",
+            defines: defines,
+            arraysEnabled: withArrays);
 
         foreach (var f in new[] { "TestComprehensive.h", "TestComprehensive_i.c",
                                    "TestComprehensive_proxy.cpp" })
@@ -74,7 +79,9 @@ public class E2EComprehensiveMarshalTests
         Assert.NotEmpty(iids);
 
         // ── Step 2: Compile ─────────────────────────────────────────────
-        var cppFlags = E2ETestHelper.DefaultCppFlags;
+        var cppFlags = E2ETestHelper.DefaultCppFlags.ToList();
+        if (withArrays) cppFlags.Add("/DWITH_ARRAYS");
+        var cppFlagsArr = cppFlags.ToArray();
         var cFlags = E2ETestHelper.DefaultCFlags;
 
         // 2a: Compile IID definitions (as C — no /TP)
@@ -91,7 +98,7 @@ public class E2EComprehensiveMarshalTests
             Path.Combine(testDir, "ComprehensiveServer.cpp"),
             serverObj,
             [testDir],
-            cppFlags);
+            cppFlagsArr);
 
         var serverDll = Path.Combine(helper.BuildDir, "ComprehensiveServer.dll");
         helper.LinkDll(serverDll,
@@ -105,7 +112,7 @@ public class E2EComprehensiveMarshalTests
             Path.Combine(helper.GenDir, "TestComprehensive_proxy.cpp"),
             proxyObj,
             [helper.GenDir, Path.Combine(helper.RepoRoot, "include")],
-            cppFlags);
+            cppFlagsArr);
 
         var proxyDll = Path.Combine(helper.BuildDir, "TestComprehensiveProxy.dll");
         helper.LinkDll(proxyDll,
@@ -119,7 +126,7 @@ public class E2EComprehensiveMarshalTests
             Path.Combine(testDir, "ComprehensiveClient.cpp"),
             clientObj,
             [testDir],
-            cppFlags);
+            cppFlagsArr);
 
         var clientExe = Path.Combine(helper.BuildDir, "ComprehensiveClient.exe");
         helper.LinkExe(clientExe,
@@ -132,6 +139,9 @@ public class E2EComprehensiveMarshalTests
 
         foreach (var clsid in ClsidMap.Keys)
             helper.RegisterInprocServer(clsid, serverDllFull, "Apartment");
+
+        if (withArrays)
+            helper.RegisterInprocServer("{D6E7F8A9-B0C1-42D3-E4F5-A6B7C8D9EAFB}", serverDllFull, "Apartment");
 
         helper.RegisterInprocServer(clsidPS!, proxyDllFull);
 
