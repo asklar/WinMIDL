@@ -122,6 +122,31 @@ public class WinRtValidationTests
             """);
         Assert.Contains(c.Diagnostics, d => d.Code == "MIDL1077");
     }
+
+    [Fact] public void MIDL1077_SquiggleCoversTypeReference_NotParamName()
+    {
+        // Regression: squiggle was on parameter name 'e' (6 chars with className.Length),
+        // causing "e);\r\n " to be underlined. Must point at the TYPE reference.
+        var source = "namespace N { runtimeclass Empty { }; runtimeclass User { void Use(Empty e); } }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.First(d => d.Code == "MIDL1077");
+        int pos = diag.OriginalPosition ?? diag.Position;
+
+        // Squiggle must start at "Empty" (the type ref), not "e" (the param name)
+        Assert.Equal("Empty", source.Substring(pos, diag.Length));
+    }
+
+    [Fact] public void MIDL1077_QualifiedType_SquiggleCoversFullName()
+    {
+        // When using a qualified name like A.B.Empty, the squiggle should cover the full path
+        var source = "namespace A.B { runtimeclass Empty { }; }\nnamespace N { runtimeclass User { void Use(A.B.Empty e); } }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.First(d => d.Code == "MIDL1077");
+        int pos = diag.OriginalPosition ?? diag.Position;
+
+        Assert.Equal("A.B.Empty", source.Substring(pos, diag.Length));
+    }
+
     [Fact] public void MIDL1077_ClassParamWithMembers_NoDiag()
     {
         var c = CompilationHelper.Compile("""

@@ -649,6 +649,74 @@ public class SourceMapTests : IDisposable
         Assert.StartsWith("IBar", around);
     }
 
+    [Fact]
+    public void Define_And_Ifdef_DiagnosticPosition_Correct()
+    {
+        // Combines #define + #ifdef — both create offset shifts.
+        // Diagnostic after both must still point to correct source position.
+        var source = "#define FOO 1\n#ifdef NOPE\n    hidden\n#endif\nnamespace N {\n    [uuid(01020304-0506-0708-090a-0b0c0d0e0f10)]\n    interface IFoo : IInspectable {};\n}";
+        var compilation = CompilationHelper.Compile(source, referencePaths: null,
+            CompilationMode.Strict, includePaths: null, currentFilePath: null,
+            emitQualityHints: true);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3003");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        var around = source.Substring(pos, Math.Min(10, source.Length - pos));
+        Assert.StartsWith("IFoo", around);
+    }
+
+    [Fact]
+    public void MIDL1077_Position_After_Define_PointsToType()
+    {
+        // MIDL1077 squiggle should cover the type reference, not the parameter name.
+        // Also verifies position is correct after #define.
+        var source = "#define VER 1.0\nnamespace N {\n    runtimeclass Empty { };\n    runtimeclass User { void Use(Empty e); }\n}";
+        var compilation = CompilationHelper.Compile(source, referencePaths: null,
+            CompilationMode.Strict, includePaths: null, currentFilePath: null);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1077");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Empty", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void MIDL1062_Position_After_Define_PointsToClassName()
+    {
+        // MIDL1062 should point to the runtimeclass name, not shifted by #define.
+        var source = "#define FOO bar\nnamespace N { runtimeclass Widget; }";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Widget", source.Substring(pos, "Widget".Length));
+    }
+
+    [Fact]
+    public void MultipleEmptyInterfaces_After_Define_AllPositionsCorrect()
+    {
+        // Multiple diagnostics after #define — each must point to its own interface.
+        var source = "#define VER 1.0\nnamespace N {\n    [uuid(01020304-0506-0708-090a-0b0c0d0e0f10)]\n    interface IAlpha : IInspectable {};\n    [uuid(11111111-2222-3333-4444-555555555555)]\n    interface IBeta : IInspectable {};\n}";
+        var compilation = CompilationHelper.Compile(source, referencePaths: null,
+            CompilationMode.Strict, includePaths: null, currentFilePath: null,
+            emitQualityHints: true);
+
+        var diags = compilation.Diagnostics.Where(d => d.Code == "MIDL3003").ToList();
+        Assert.Equal(2, diags.Count);
+
+        foreach (var diag in diags)
+        {
+            int pos = diag.OriginalPosition ?? diag.Position;
+            var name = diag.Message.Contains("IAlpha") ? "IAlpha" : "IBeta";
+            Assert.Equal(name, source.Substring(pos, name.Length));
+        }
+    }
+
     #endregion
 
     #region Include Diagnostic Position Tests
