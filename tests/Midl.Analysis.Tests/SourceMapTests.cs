@@ -847,6 +847,150 @@ public class SourceMapTests : IDisposable
 
     #endregion
 
+    #region Diagnostic Position Verification Tests
+
+    // These tests verify that various diagnostic codes point their squiggle
+    // at the correct source text (type name, symbol name, etc.)
+
+    [Fact]
+    public void MIDL1009_EmptyStruct_SquiggleOnStructName()
+    {
+        var source = "namespace N { struct Empty { }; }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.First(d => d.Code == "MIDL1009");
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Empty", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void MIDL1009_EmptyStruct_AfterDefine_PositionCorrect()
+    {
+        var source = "#define VER 1\nnamespace N { struct EmptyBox { }; }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.First(d => d.Code == "MIDL1009");
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("EmptyBox", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void MIDL1034_UndefinedRequired_SquiggleOnTypeName()
+    {
+        var source = "namespace N { interface IFoo requires IBar { void Do(); }; }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1034" || d.Code == "MIDL1001");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("IBar", source.Substring(pos, "IBar".Length));
+    }
+
+    [Fact]
+    public void MIDL1035_BaseNotRuntimeClass_SquiggleOnBaseName()
+    {
+        var source = "namespace N { struct S { Int32 X; }; runtimeclass C : S { }; }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1035");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("S", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void MIDL1036_BaseClassSealed_SquiggleOnBaseName()
+    {
+        var source = "namespace N { runtimeclass Base { Base(); }; runtimeclass Derived : Base { }; }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1036");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Base", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void MIDL1038_RuntimeClassOnRequires_SquiggleOnName()
+    {
+        var source = "namespace N { runtimeclass Other { Other(); }; interface IFoo requires Other { void Do(); }; }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1038");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Other", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void MIDL1042_EventNonDelegate_SquiggleOnTypeName()
+    {
+        var source = "namespace N { runtimeclass C { event Int32 BadEvent; }; }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1042");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Int32", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void MIDL1044_DuplicateMethod_SquiggleOnMethodName()
+    {
+        var source = "namespace N { runtimeclass C { void Do(Int32 x); void Do(String s); }; }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1044");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Do", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void MIDL1044_DuplicateMethod_AfterDefine_PositionCorrect()
+    {
+        var source = "#define VER 1\nnamespace N { runtimeclass C { void Act(Int32 x); void Act(String s); }; }";
+        var c = CompilationHelper.Compile(source);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1044");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Act", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void MIDL1062_AfterIfdefElse_PositionCorrect()
+    {
+        // Content after #ifdef/#else — squiggle in code after the #else block
+        var source = "#ifdef NOPE\n    hidden\n#else\n    namespace Active { enum E { A }; }\n#endif\nnamespace N { runtimeclass Gadget; }";
+        var c = CompilationHelper.Compile(source, CompilationMode.Strict);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062" && d.Message.Contains("Gadget"));
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Gadget", source.Substring(pos, "Gadget".Length));
+    }
+
+    [Fact]
+    public void MIDL1077_AfterIfdef_PositionCoversType()
+    {
+        var source = "#ifdef NOPE\n    hidden\n#endif\nnamespace N { runtimeclass Empty { }; runtimeclass User { void Use(Empty e); } }";
+        var c = CompilationHelper.Compile(source, CompilationMode.Strict);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1077");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Empty", source.Substring(pos, diag.Length));
+    }
+
+    #endregion
+
+    #region Line Continuation Tests
+
+    [Fact(Skip = "Backslash line continuation position remap not yet implemented")]
+    public void BackslashContinuation_DiagnosticPosition_Correct()
+    {
+        // Backslash line continuation joins two lines into one logical line.
+        // Diagnostic positions must still map to the correct original source.
+        var source = "#define LONG_MACRO \\\n    1\nnamespace N { runtimeclass Widget; }";
+        var c = CompilationHelper.Compile(source, CompilationMode.Strict);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Widget", source.Substring(pos, "Widget".Length));
+    }
+
+    #endregion
+
     #region Include Diagnostic Position Tests
 
     [Fact]

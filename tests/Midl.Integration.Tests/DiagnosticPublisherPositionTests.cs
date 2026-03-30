@@ -250,4 +250,77 @@ public class DiagnosticPublisherPositionTests
             try { Directory.Delete(tempDir, recursive: true); } catch { }
         }
     }
+
+    [Fact]
+    public async Task Squiggle_MIDL1077_TypeRef_PublishesCorrectPosition()
+    {
+        // Verify the publisher sends correct line/col for MIDL1077 (type reference position).
+        var source = "namespace N {\n    runtimeclass Empty { };\n    runtimeclass User {\n        void Use(Empty e);\n    }\n}";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var uri = "file:///c%3A/test.idl";
+        var docs = await CapturePublishedDiagnostics(uri, source, compilation.Diagnostics);
+        Assert.NotEmpty(docs);
+
+        var (line, col) = ExtractStartPosition(docs[0], "MIDL1077");
+        var lines = source.Split('\n');
+        var emptyCol = lines[line].IndexOf("Empty", StringComparison.Ordinal);
+        Assert.Equal(3, line); // "void Use(Empty e);" is line 3
+        Assert.Equal(emptyCol, col);
+    }
+
+    [Fact]
+    public async Task Squiggle_MIDL3003_EmptyInterface_PublishesCorrectPosition()
+    {
+        // Verify MIDL3003 info diagnostic publishes correct position.
+        var source = "namespace N {\n    [uuid(01020304-0506-0708-090a-0b0c0d0e0f10)]\n    interface IFoo : IInspectable {};\n}";
+        var compilation = CompilationHelper.Compile(source, referencePaths: null,
+            CompilationMode.Strict, includePaths: null, currentFilePath: null,
+            emitQualityHints: true);
+
+        var uri = "file:///c%3A/test.idl";
+        var docs = await CapturePublishedDiagnostics(uri, source, compilation.Diagnostics);
+        Assert.NotEmpty(docs);
+
+        var (line, col) = ExtractStartPosition(docs[0], "MIDL3003");
+        var lines = source.Split('\n');
+        var ifooCol = lines[line].IndexOf("IFoo", StringComparison.Ordinal);
+        Assert.Equal(2, line); // "interface IFoo : IInspectable {};" is line 2
+        Assert.Equal(ifooCol, col);
+    }
+
+    [Fact]
+    public async Task Squiggle_MIDL1009_EmptyStruct_PublishesCorrectPosition()
+    {
+        var source = "namespace N {\n    struct Empty { };\n}";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var uri = "file:///c%3A/test.idl";
+        var docs = await CapturePublishedDiagnostics(uri, source, compilation.Diagnostics);
+        Assert.NotEmpty(docs);
+
+        var (line, col) = ExtractStartPosition(docs[0], "MIDL1009");
+        var lines = source.Split('\n');
+        var emptyCol = lines[line].IndexOf("Empty", StringComparison.Ordinal);
+        Assert.Equal(1, line);
+        Assert.Equal(emptyCol, col);
+    }
+
+    [Fact]
+    public async Task Squiggle_MIDL1077_AfterDefine_PublishesCorrectPosition()
+    {
+        // Verify MIDL1077 position is correct after #define in the publisher pipeline.
+        var source = "#define VER 1.0\nnamespace N {\n    runtimeclass Empty { };\n    runtimeclass User {\n        void Use(Empty e);\n    }\n}";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var uri = "file:///c%3A/test.idl";
+        var docs = await CapturePublishedDiagnostics(uri, source, compilation.Diagnostics);
+        Assert.NotEmpty(docs);
+
+        var (line, col) = ExtractStartPosition(docs[0], "MIDL1077");
+        var lines = source.Split('\n');
+        var emptyCol = lines[line].IndexOf("Empty", StringComparison.Ordinal);
+        Assert.Equal(4, line); // "void Use(Empty e);" is line 4 (after #define on line 0)
+        Assert.Equal(emptyCol, col);
+    }
 }
