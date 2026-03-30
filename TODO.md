@@ -1,6 +1,6 @@
 # TODO — MIDL Compiler Rewrite Status
 
-> **Last updated**: 2026-03-27
+> **Last updated**: 2026-03-30
 > This file tracks implementation status. Keep it current with every feature change.
 
 ## ✅ Implemented
@@ -15,13 +15,15 @@
 - [x] IID file generation (_i.c)
 - [x] DllData skeleton generation
 - [x] Proxy/stub skeleton generation
-- [x] CLI with 30+ switches, response files, `/debug` tracing
+- [x] CLI with 30+ switches, response files, `/debug` tracing, `/diag` info diagnostics
 - [x] Custom proxy/stub C++ code generation (`/cppproxy` — direct C++ marshaling, no NDR)
 - [x] `--analyze` mode (Rust-style rich console output with squigglies)
 - [x] `--decompile` mode (WinMD to MIDL3 IDL — idiomatic properties, events, skips exclusive interfaces)
 - [x] LSP server (JSON-RPC over stdio, no external NuGet deps)
 - [x] VS Code extension (TextMate grammar, 19 snippets, LSP client, F5 debug)
-- [x] Built-in C preprocessor (`#define`, `#ifdef`, `#include`, `#pragma`, macro expansion)
+- [x] Visual Studio extension (LSP client, smart indentation, Tools > Options settings)
+- [x] Built-in C preprocessor (`#define`, `#ifdef/#ifndef/#if/#elif/#else`, `#include`, `#pragma once`, `#undef`, `\` continuation, macro expansion)
+- [x] Sourcemaps for preprocessor (diagnostic positions remap correctly through `#define`, `#ifdef`, `#include`, `\` continuation)
 - [x] Built-in WinRT types (IInspectable, HSTRING, EventRegistrationToken, Windows.Foundation.*, Collections.*)
 - [x] Win32 type aliases (DWORD→UInt32, BYTE→UInt8, GUID→Guid, HSTRING→String, etc.)
 - [x] GitHub Actions CI pipeline (build, test, NativeAOT, VS Code extension)
@@ -50,7 +52,8 @@
 - [x] `import "file.idl"` (multi-file IDL compilation with transitive imports)
 - [x] `partial runtimeclass` merging across declarations
 - [x] User-defined `attribute` declarations with `[attributeusage]`, `[attributename]`, `[allowmultiple]`
-- [x] Parameter passing: `out`, `ref const` (structs), `ref` (fill arrays), `T[]` arrays
+- [x] Parameter passing: `out`, `ref const` (structs), `ref` (fill arrays), `T[]` arrays (gated behind `/arrays`)
+- [x] Array params: PassArray (`T[]`), ReceiveArray (`out T[]`), FillArray (`ref T[]`) — header, WinMD, proxy/stub codegen
 - [x] Forward declarations (`interface IFoo;`, `struct S;`, `runtimeclass C;`, `attribute A;`, `enum E;`)
 - [x] Float literals (`1.5`, `3.14f`) and negative numeric literals (`-42`, `-3.14`)
 
@@ -226,8 +229,8 @@
 ## ❌ Not Yet Implemented
 
 ### Important
-- [ ] **Signature help for attributes** — `[composable(` should show `(IFactory, public|protected, ContractName, version)`
-- [ ] **21 negative parity gaps** — fixtures marked `parityGap:true` (mostly missing "attribute X not valid on target Y" diagnostics)
+- [x] ~~**Signature help for attributes**~~ — `[composable(` shows `(IFactory, public|protected, ContractName, version)`
+- [x] ~~**21 negative parity gaps**~~ — fixtures marked `parityGap:true` (mostly missing "attribute X not valid on target Y" diagnostics)
 - [ ] **`importlib` dispatch in parser** — recognized but not dispatched in classic mode
 - [ ] **NDR format string generation** (NDR20 + NDR64) — stub skeleton only
 - [ ] **C proxy/stub code generation** (_c.c, _s.c) — skeleton only
@@ -243,8 +246,10 @@
 - [x] ~~**Code folding**~~ — `textDocument/foldingRange` for namespace/class/interface/struct/enum blocks
 
 ### Future Features
-- [ ] **Array params (`T[]`)** — design doc in `docs/arrays-and-generics-design.md`
+- [x] ~~**Array params (`T[]`)**~~ — PassArray, ReceiveArray, FillArray across parser, header, WinMD, proxy/stub, LSP (gated behind `/arrays`)
 - [ ] **Custom generics (`IRepository<T>`)** — design doc ready, multi-phase effort
+- [ ] **C++/WinRT E2E tests** — IDL → WinMD → cppwinrt → projection headers → compile+run
+- [ ] **AppxManifest ACID generation** — `/manifest` CLI switch, ActivatableClass XML emission
 - [ ] **Async completion callback marshaling** — `IAsyncOperation<T>` put_Completed cross-process
 - [ ] **`[noexcept]` proxy optimization** — skip HRESULT propagation in proxy
 - [ ] **Cross-file rename / find-references** — currently single-file only
