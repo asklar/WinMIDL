@@ -76,6 +76,9 @@
       }
     ],
     "configurationDefaults": {
+      "[idl]": {
+        "editor.bracketPairColorization.enabled": false
+      },
       "editor.semanticTokenColorCustomizations": {
         "[*]": {
           "rules": {
