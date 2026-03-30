@@ -67,6 +67,9 @@ if (-not (Test-Path $cppwinrt)) {
 }
 
 # Find cl.exe — prefer PATH, fall back to vswhere
+$vcInclude = $null
+$vcLib = $null
+$link = $null
 $clPath = Get-Command cl.exe -ErrorAction SilentlyContinue
 if ($clPath) {
     $cl = $clPath.Source
@@ -88,6 +91,9 @@ if ($clPath) {
     $vcToolsVersion = (Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt").Trim()
     $vcToolsDir = "$vsPath\VC\Tools\MSVC\$vcToolsVersion"
     $cl = "$vcToolsDir\bin\Hostx64\x64\cl.exe"
+    $link = "$vcToolsDir\bin\Hostx64\x64\link.exe"
+    $vcInclude = "$vcToolsDir\include"
+    $vcLib = "$vcToolsDir\lib\x64"
     if (-not (Test-Path $cl)) {
         Write-Host "SKIP: cl.exe not found at $cl" -ForegroundColor Yellow
         exit 0
@@ -101,6 +107,7 @@ $sdkIncVersions = Get-ChildItem "$sdkRoot\Include" -Directory |
 $sdkIncVersion = $sdkIncVersions[0].Name
 
 $cppwinrtInc = "$sdkRoot\Include\$sdkIncVersion\cppwinrt"
+$sdkIncUcrt = "$sdkRoot\Include\$sdkIncVersion\ucrt"
 $sdkLibUm = "$sdkRoot\Lib\$sdkIncVersion\um\x64"
 $sdkLibUcrt = "$sdkRoot\Lib\$sdkIncVersion\ucrt\x64"
 $unionMetadata = "$sdkRoot\UnionMetadata\$sdkVersion"
@@ -110,10 +117,18 @@ $sdkIncUm = "$sdkRoot\Include\$sdkIncVersion\um"
 $sdkIncShared = "$sdkRoot\Include\$sdkIncVersion\shared"
 $sdkIncWinrt = "$sdkRoot\Include\$sdkIncVersion\winrt"
 
+# Common lib paths for linking
+$libPaths = @()
+$libPaths += "/LIBPATH:$sdkLibUm"
+$libPaths += "/LIBPATH:$sdkLibUcrt"
+if ($vcLib) { $libPaths += "/LIBPATH:$vcLib" }
+
 Write-Host "  cppwinrt: $cppwinrt"
 Write-Host "  SDK: $sdkVersion"
 Write-Host "  CppWinRT headers: $cppwinrtInc"
 Write-Host "  Union metadata: $unionMetadata"
+if ($vcInclude) { Write-Host "  VC Include: $vcInclude" }
+if ($vcLib) { Write-Host "  VC Lib: $vcLib" }
 
 # ── Step 2: Generate .winmd from IDL ────────────────────────────────────
 Write-Step "Compiling IDL -> .winmd + header + proxy with WinMIDL"
@@ -240,11 +255,16 @@ $commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/MD", "/W3",
 #   $projDir       → winrt/TestCppWinRT.h, module.g.cpp, Widget.g.h
 #   $scriptDir     → Widget.h, Widget.cpp
 #   $cppwinrtInc   → C++/WinRT SDK base headers
-#   $sdkIncUm/Shared/Winrt → windows.h, winstring.h, etc. (for server/proxy)
+#   $sdkIncUm/Shared/Winrt/Ucrt → windows.h, winstring.h, etc. (for server/proxy)
+#   $vcInclude     → MSVC standard headers (when not in dev cmd)
 $includeFlags = @()
-foreach ($dir in @($projDir, $componentDir, $scriptDir, $cppwinrtInc, $sdkIncUm, $sdkIncShared, $sdkIncWinrt)) {
+foreach ($dir in @($projDir, $componentDir, $scriptDir, $cppwinrtInc, $sdkIncUm, $sdkIncShared, $sdkIncWinrt, $sdkIncUcrt)) {
     $includeFlags += "/I"
     $includeFlags += $dir
+}
+if ($vcInclude) {
+    $includeFlags += "/I"
+    $includeFlags += $vcInclude
 }
 
 # Source files for in-proc
@@ -278,8 +298,7 @@ foreach ($src in $inprocSources) {
 # Link
 Write-Host "  Linking TestInProc.exe..."
 $linkOutput = & $cl /nologo /Fe"$inprocExe" @inprocObjs /link `
-    /LIBPATH:"$sdkLibUm" /LIBPATH:"$sdkLibUcrt" `
-    windowsapp.lib ole32.lib 2>&1
+    @libPaths windowsapp.lib ole32.lib 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "FAIL: Link failed:" -ForegroundColor Red
     $linkOutput | ForEach-Object { Write-Host "    $_" }
@@ -325,7 +344,8 @@ Write-Host "  Compiling TestCppWinRTProxy.dll..."
 $proxyObj = "$buildDir/TestCppWinRT_proxy.obj"
 $proxyDll = "$buildDir/TestCppWinRTProxy.dll"
 
-$proxyIncludes = @("/I", "$outDir", "/I", "$repoRoot/include", "/I", "$sdkIncUm", "/I", "$sdkIncShared", "/I", "$sdkIncWinrt")
+$proxyIncludes = @("/I", "$outDir", "/I", "$repoRoot/include", "/I", "$sdkIncUm", "/I", "$sdkIncShared", "/I", "$sdkIncWinrt", "/I", "$sdkIncUcrt")
+if ($vcInclude) { $proxyIncludes += "/I"; $proxyIncludes += $vcInclude }
 $output = & $cl @commonFlags @proxyIncludes /c /Fo"$proxyObj" "$outDir/TestCppWinRT_proxy.cpp" 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "FAIL: Proxy compilation failed:" -ForegroundColor Red
@@ -336,7 +356,7 @@ if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
 
 $output = & $cl /nologo /LD /Fe"$proxyDll" $proxyObj /link `
     /DEF:"$scriptDir/TestCppWinRTProxy.def" `
-    /LIBPATH:"$sdkLibUm" /LIBPATH:"$sdkLibUcrt" `
+    @libPaths `
     ole32.lib oleaut32.lib rpcrt4.lib advapi32.lib user32.lib runtimeobject.lib 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "FAIL: Proxy DLL link failed:" -ForegroundColor Red
@@ -369,7 +389,7 @@ foreach ($src in $serverSources) {
 $serverExe = "$buildDir/CppWinRTServer.exe"
 $output = & $cl /nologo /Fe"$serverExe" @serverObjs /link `
     /SUBSYSTEM:CONSOLE `
-    /LIBPATH:"$sdkLibUm" /LIBPATH:"$sdkLibUcrt" `
+    @libPaths `
     windowsapp.lib ole32.lib oleaut32.lib 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "FAIL: Server link failed:" -ForegroundColor Red
@@ -386,7 +406,8 @@ $clientObj = "$buildDir/TestOutOfProc.obj"
 $clientExe = "$buildDir/TestOutOfProc.exe"
 
 # Client only needs projection headers + SDK (for windows.h used by CoCreateInstance)
-$clientIncludes = @("/I", "$projDir", "/I", "$cppwinrtInc", "/I", "$sdkIncUm", "/I", "$sdkIncShared")
+$clientIncludes = @("/I", "$projDir", "/I", "$cppwinrtInc", "/I", "$sdkIncUm", "/I", "$sdkIncShared", "/I", "$sdkIncUcrt")
+if ($vcInclude) { $clientIncludes += "/I"; $clientIncludes += $vcInclude }
 
 $output = & $cl @commonFlags @clientIncludes /c /Fo"$clientObj" "$scriptDir/TestOutOfProc.cpp" 2>&1
 if ($LASTEXITCODE -ne 0) {
@@ -398,7 +419,7 @@ if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
 
 $output = & $cl /nologo /Fe"$clientExe" $clientObj /link `
     /SUBSYSTEM:CONSOLE `
-    /LIBPATH:"$sdkLibUm" /LIBPATH:"$sdkLibUcrt" `
+    @libPaths `
     windowsapp.lib ole32.lib oleaut32.lib 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "FAIL: Client link failed:" -ForegroundColor Red
