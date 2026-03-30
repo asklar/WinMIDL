@@ -1,5 +1,6 @@
 // TestInProc.cpp — In-proc C++/WinRT E2E test
-// Creates Widget objects directly via winrt::make (no COM registration needed).
+// Creates Widget objects via the projected API (not implementation namespace).
+// Uses local activation handler to route factory calls to our in-proc implementation.
 
 #include "winrt/Windows.Foundation.h"
 #include "Widget.h"
@@ -34,47 +35,46 @@ int main()
 {
     winrt::init_apartment();
 
-    // Wire up in-proc activation so static methods and projected constructors work
+    // Wire up in-proc activation so projected constructors and statics work
     winrt_activation_handler = local_activation_handler;
 
     printf("=== C++/WinRT In-Proc E2E Tests ===\n\n");
 
-    // Test 1: Default constructor
+    // Test 1: Default constructor (projected API)
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         Check(w.Name().empty(), "Default constructor - empty name");
     }
 
-    // Test 2: Parameterized constructor
+    // Test 2: Parameterized constructor (projected API)
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>(L"TestWidget");
-        auto w2 = winrt::TestCppWinRT::Widget(L"TestWidget");
+        auto w = winrt::TestCppWinRT::Widget(L"TestWidget");
         Check(w.Name() == L"TestWidget", "Parameterized constructor");
     }
 
     // Test 3: Name get/set
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         w.Name(L"Hello");
         Check(w.Name() == L"Hello", "Name get/set");
     }
 
     // Test 4: Level default is Medium
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         Check(w.Level() == winrt::TestCppWinRT::Priority::Medium, "Level default is Medium");
     }
 
     // Test 5: Level set to High
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         w.Level(winrt::TestCppWinRT::Priority::High);
         Check(w.Level() == winrt::TestCppWinRT::Priority::High, "Level set to High");
     }
 
     // Test 6: MoveTo / GetPosition struct round-trip
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         w.MoveTo({ 3.0f, 4.0f });
         auto pos = w.GetPosition();
         Check(pos.X == 3.0f && pos.Y == 4.0f, "MoveTo/GetPosition struct round-trip");
@@ -82,25 +82,25 @@ int main()
 
     // Test 7: GetColor struct return
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         auto c = w.GetColor();
         Check(c.R == 255 && c.G == 128 && c.B == 64 && c.A == 255, "GetColor struct return");
     }
 
     // Test 8: ComputeDistance
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         double d = w.ComputeDistance({ 0.0f, 0.0f }, { 3.0f, 4.0f });
         Check(std::abs(d - 5.0) < 0.001, "ComputeDistance(0,0 -> 3,4) == 5.0");
     }
 
-    // Test 9: Static CreateDefault
+    // Test 9: Static CreateDefault (uses activation factory)
     {
         auto w = winrt::TestCppWinRT::Widget::CreateDefault();
         Check(w.Name() == L"Default", "Static CreateDefault");
     }
 
-    // Test 10: Static GetVersion
+    // Test 10: Static GetVersion (uses activation factory)
     {
         auto ver = winrt::TestCppWinRT::Widget::GetVersion();
         Check(ver == L"1.0.0", "Static GetVersion");
@@ -110,7 +110,7 @@ int main()
     {
         bool called = false;
         winrt::hstring received;
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         w.Subscribe([&](winrt::hstring const& msg) {
             called = true;
             received = msg;
@@ -122,7 +122,7 @@ int main()
     {
         bool fired = false;
         winrt::hstring eventArg;
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         auto token = w.NameChanged([&](auto const&, winrt::hstring const& name) {
             fired = true;
             eventArg = name;
@@ -135,7 +135,7 @@ int main()
     // Test 13: NameChanged event unsubscribe
     {
         int fireCount = 0;
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         auto token = w.NameChanged([&](auto const&, winrt::hstring const&) {
             fireCount++;
         });
@@ -168,14 +168,14 @@ int main()
 
     // Test 17: ComputeDistance zero distance
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         double d = w.ComputeDistance({ 5.0f, 5.0f }, { 5.0f, 5.0f });
         Check(d == 0.0, "ComputeDistance zero distance");
     }
 
     // Test 18: Multiple Name sets
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         w.Name(L"First");
         w.Name(L"Second");
         w.Name(L"Third");
@@ -191,14 +191,14 @@ int main()
 
     // Test 20: Initial position is zero
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         auto pos = w.GetPosition();
         Check(pos.X == 0.0f && pos.Y == 0.0f, "Initial position is zero");
     }
 
     // Test 21: Multiple MoveTo calls
     {
-        auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
+        auto w = winrt::TestCppWinRT::Widget();
         w.MoveTo({ 1.0f, 1.0f });
         w.MoveTo({ 2.0f, 2.0f });
         auto pos = w.GetPosition();
