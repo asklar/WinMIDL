@@ -415,8 +415,9 @@ public sealed partial class MidlLanguageServer
             }
 
             // Now that all compilations are updated, ask client to re-fetch semantic tokens
-            MidlTrace.Lsp("Sending workspace/semanticTokens/refresh");
-            await _writer.SendNotificationAsync("workspace/semanticTokens/refresh", null);
+            // workspace/semanticTokens/refresh is a server→client REQUEST (needs an id)
+            MidlTrace.Lsp("Sending workspace/semanticTokens/refresh request");
+            await _writer.SendRequestAsync("semtok-refresh-" + DateTime.UtcNow.Ticks, "workspace/semanticTokens/refresh", null);
         });
     }
 
