@@ -976,7 +976,7 @@ public class SourceMapTests : IDisposable
 
     #region Line Continuation Tests
 
-    [Fact(Skip = "Backslash line continuation position remap not yet implemented")]
+    [Fact]
     public void BackslashContinuation_DiagnosticPosition_Correct()
     {
         // Backslash line continuation joins two lines into one logical line.
@@ -987,6 +987,30 @@ public class SourceMapTests : IDisposable
         Assert.NotNull(diag);
         int pos = diag.OriginalPosition ?? diag.Position;
         Assert.Equal("Widget", source.Substring(pos, "Widget".Length));
+    }
+
+    [Fact]
+    public void BackslashContinuation_ThreeLines_PositionCorrect()
+    {
+        // Three raw lines joined into one via backslash.
+        var source = "#define MULTI \\\n    LINE \\\n    MACRO\nnamespace N { runtimeclass Gizmo; }";
+        var c = CompilationHelper.Compile(source, CompilationMode.Strict);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Gizmo", source.Substring(pos, "Gizmo".Length));
+    }
+
+    [Fact]
+    public void BackslashContinuation_WithIfdef_PositionCorrect()
+    {
+        // Backslash continuation + #ifdef — both shift positions.
+        var source = "#define FOO \\\n    bar\n#ifdef NOPE\n    hidden\n#endif\nnamespace N { runtimeclass Thing; }";
+        var c = CompilationHelper.Compile(source, CompilationMode.Strict);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Thing", source.Substring(pos, "Thing".Length));
     }
 
     #endregion

@@ -349,8 +349,8 @@ public class Preprocessor
                 if (!isInclude && filePath != null && wasActive)
                 {
                     segExpandedStart = baseOffset + output.Length;
-                    int origIdx = origLineIndices[i];
-                    segOriginalStart = rawLineOffsets[Math.Min(origIdx + 1, rawLines.Count)];
+                    int nextRaw = (i + 1 < origLineIndices.Length) ? origLineIndices[i + 1] : rawLines.Count;
+                    segOriginalStart = rawLineOffsets[Math.Min(nextRaw, rawLines.Count)];
                     hasDirectiveGaps = true;
                 }
             }
@@ -374,9 +374,8 @@ public class Preprocessor
 
                         // Start a new segment AFTER this line.
                         segExpandedStart = baseOffset + output.Length;
-                        int origIdx = origLineIndices[i];
-                        int nextRawLine = origIdx + 1;
-                        segOriginalStart = rawLineOffsets[Math.Min(nextRawLine, rawLines.Count)];
+                        int nextRaw = (i + 1 < origLineIndices.Length) ? origLineIndices[i + 1] : rawLines.Count;
+                        segOriginalStart = rawLineOffsets[Math.Min(nextRaw, rawLines.Count)];
                     }
                     else
                     {
@@ -387,6 +386,16 @@ public class Preprocessor
                 {
                     output.AppendLine();
                 }
+            }
+
+            // Backslash line continuation: if this logical line consumed multiple raw lines,
+            // emit extra empty lines to preserve line count between original and expanded text.
+            {
+                int rawStart = origLineIndices[i];
+                int rawEnd = (i + 1 < origLineIndices.Length) ? origLineIndices[i + 1] : rawLines.Count;
+                int extraLines = rawEnd - rawStart - 1;
+                for (int j = 0; j < extraLines; j++)
+                    output.AppendLine();
             }
 
             // Track active/inactive transitions for #ifdef gap source mapping
