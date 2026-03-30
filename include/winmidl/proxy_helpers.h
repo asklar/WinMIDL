@@ -484,7 +484,7 @@ enum class param_type : uint8_t {
 };
 
 enum class param_dir : uint8_t {
-    dir_in, dir_out, dir_retval,
+    dir_in, dir_out, dir_retval, dir_ref,
 };
 
 struct param_descriptor {

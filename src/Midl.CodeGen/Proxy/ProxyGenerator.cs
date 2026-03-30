@@ -263,8 +263,17 @@ public class ProxyGenerator
         int argIdx = 0;
         foreach (var p in inParams)
         {
-            var cType = HeaderEmitter.MapType(p.Type);
-            sigParts.Add($"{cType} arg{argIdx}");
+            if (p.Type.IsArray)
+            {
+                var elemCType = HeaderEmitter.MapType(WireFormat.ElementType(p.Type));
+                sigParts.Add($"UINT32 __arg{argIdx}Size");
+                sigParts.Add($"{elemCType}* arg{argIdx}");
+            }
+            else
+            {
+                var cType = HeaderEmitter.MapType(p.Type);
+                sigParts.Add($"{cType} arg{argIdx}");
+            }
             argIdx++;
         }
         foreach (var p in refParams)
@@ -285,14 +294,32 @@ public class ProxyGenerator
         }
         foreach (var p in outParams)
         {
-            var cType = HeaderEmitter.MapType(p.Type);
-            sigParts.Add($"{cType}* out{argIdx}");
+            if (p.Type.IsArray)
+            {
+                var elemCType = HeaderEmitter.MapType(WireFormat.ElementType(p.Type));
+                sigParts.Add($"UINT32* __out{argIdx}Size");
+                sigParts.Add($"{elemCType}** out{argIdx}");
+            }
+            else
+            {
+                var cType = HeaderEmitter.MapType(p.Type);
+                sigParts.Add($"{cType}* out{argIdx}");
+            }
             argIdx++;
         }
         if (hasRetval)
         {
-            var retCType = HeaderEmitter.MapType(templateReturn);
-            sigParts.Add($"{retCType}* retval");
+            if (templateReturn.IsArray)
+            {
+                var elemCType = HeaderEmitter.MapType(WireFormat.ElementType(templateReturn));
+                sigParts.Add($"UINT32* __retvalSize");
+                sigParts.Add($"{elemCType}** retval");
+            }
+            else
+            {
+                var retCType = HeaderEmitter.MapType(templateReturn);
+                sigParts.Add($"{retCType}* retval");
+            }
         }
 
         sb.AppendLine($"// Shared proxy shape: {shapeKey}");
