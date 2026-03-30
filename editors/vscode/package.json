@@ -48,7 +48,8 @@
       {
         "language": "midl",
         "scopeName": "source.midl",
-        "path": "./syntaxes/midl.tmLanguage.json"
+        "path": "./syntaxes/midl.tmLanguage.json",
+        "semanticHighlighting": true
       }
     ],
     "snippets": [
@@ -76,8 +77,9 @@
       }
     ],
     "configurationDefaults": {
-      "[idl]": {
-        "editor.bracketPairColorization.enabled": false
+      "[midl]": {
+        "editor.bracketPairColorization.enabled": false,
+        "editor.semanticHighlighting.enabled": true
       },
       "editor.semanticTokenColorCustomizations": {
         "[*]": {
