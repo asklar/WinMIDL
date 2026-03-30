@@ -1015,6 +1015,74 @@ public class SourceMapTests : IDisposable
 
     #endregion
 
+    #region Line Ending Tests
+
+    [Fact]
+    public void LfOnly_WithDefine_DiagnosticPosition_Correct()
+    {
+        // LF-only line endings — preprocessor must not introduce \r\n mismatch.
+        var source = "#define VER 1\nnamespace N {\n    runtimeclass Widget;\n}\n";
+        Assert.DoesNotContain("\r", source); // verify test uses LF-only
+        var c = CompilationHelper.Compile(source, CompilationMode.Strict);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Widget", source.Substring(pos, "Widget".Length));
+    }
+
+    [Fact]
+    public void LfOnly_WithIfdef_DiagnosticPosition_Correct()
+    {
+        var source = "#ifdef NOPE\n    hidden\n#endif\nnamespace N {\n    runtimeclass Gadget;\n}\n";
+        Assert.DoesNotContain("\r", source);
+        var c = CompilationHelper.Compile(source, CompilationMode.Strict);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Gadget", source.Substring(pos, "Gadget".Length));
+    }
+
+    [Fact]
+    public void LfOnly_WithDefineAndIfdef_DiagnosticPosition_Correct()
+    {
+        var source = "#define FOO bar\n#ifdef NOPE\n    hidden\n#endif\nnamespace N {\n    runtimeclass Thing;\n}\n";
+        Assert.DoesNotContain("\r", source);
+        var c = CompilationHelper.Compile(source, CompilationMode.Strict);
+        var diag = c.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Thing", source.Substring(pos, "Thing".Length));
+    }
+
+    #endregion
+
+    #region Preprocessor Diagnostic Position Tests
+
+    [Fact]
+    public void MIDL2006_IncludeInStrictMode_SquiggleOnIncludeLine()
+    {
+        // #include in strict mode emits MIDL2006 warning — must point at the #include directive.
+        var mainFile = Path.Combine(_tempDir, "main.idl");
+        var helperFile = Path.Combine(_tempDir, "inc.idl");
+
+        File.WriteAllText(helperFile, "namespace Inc { enum E { A }; }\n");
+        var mainSource = "namespace Before { enum X { Y }; }\n#include \"inc.idl\"\nnamespace After { runtimeclass W { W(); } }\n";
+        File.WriteAllText(mainFile, mainSource);
+
+        var compilation = CompilationHelper.Compile(
+            mainSource, referencePaths: null, CompilationMode.Strict,
+            includePaths: new[] { _tempDir }, currentFilePath: mainFile);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL2006");
+        Assert.NotNull(diag);
+        int pos = diag.OriginalPosition ?? diag.Position;
+        // Must point to the #include line, not position 0
+        Assert.True(pos > 0, $"MIDL2006 position should not be 0 (got {pos})");
+        Assert.Equal("#include", mainSource.Substring(pos, "#include".Length));
+    }
+
+    #endregion
+
     #region Include Diagnostic Position Tests
 
     [Fact]
