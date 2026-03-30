@@ -138,14 +138,14 @@ public static class CompilationHelper
         foreach (var err in preprocessor.Errors)
         {
             syntaxDiagnostics.Add(new Diagnostics.Diagnostic(
-                Diagnostics.DiagnosticSeverity.Error, "MIDL1074", err, 0, 1));
+                Diagnostics.DiagnosticSeverity.Error, "MIDL1074", err.Message, err.Position, 1));
         }
 
         // Report preprocessor warnings as diagnostics
         foreach (var warn in preprocessor.Warnings)
         {
             syntaxDiagnostics.Add(new Diagnostics.Diagnostic(
-                Diagnostics.DiagnosticSeverity.Warning, "MIDL1074", warn, 0, 1));
+                Diagnostics.DiagnosticSeverity.Warning, "MIDL1074", warn.Message, warn.Position, 1));
         }
 
         if (profile != null) { profile.Preprocess = sw!.Elapsed; sw.Restart(); }

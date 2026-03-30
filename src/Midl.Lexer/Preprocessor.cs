@@ -34,10 +34,10 @@ public class Preprocessor
     public List<(int ExpandedStart, int ExpandedEnd, string FilePath, int OriginalStart)> SourceMapSegments { get; } = new();
 
     /// <summary>Errors from preprocessing (#error, unresolved includes, etc.).</summary>
-    public List<string> Errors { get; } = new();
+    public List<(string Message, int Position)> Errors { get; } = new();
 
     /// <summary>Warnings from preprocessing (#warning directives).</summary>
-    public List<string> Warnings { get; } = new();
+    public List<(string Message, int Position)> Warnings { get; } = new();
 
     private record FunctionMacro(string[] Params, string Body, bool IsVariadic = false);
 
@@ -272,7 +272,7 @@ public class Preprocessor
                                 flushed = true;
                             }
 
-                            var included = HandleInclude(directive.Body, filePath, expandedPos);
+                            var included = HandleInclude(directive.Body, filePath, expandedPos, rawLineOffsets[origIdx]);
                             if (included != null)
                             {
                                 output.Append(included);
@@ -313,7 +313,7 @@ public class Preprocessor
 
                     case "error":
                         if (IsActive(ifStack))
-                            Errors.Add($"#error {directive.Body.Trim()}");
+                            Errors.Add(($"#error {directive.Body.Trim()}", rawLineOffsets[origLineIndices[i]]));
                         output.AppendLine();
                         break;
 
@@ -325,7 +325,7 @@ public class Preprocessor
                     default:
                         // Unknown directive — report error and drop
                         if (IsActive(ifStack))
-                            Errors.Add($"Unknown preprocessor directive: '#{directive.Name}'");
+                            Errors.Add(($"Unknown preprocessor directive: '#{directive.Name}'", rawLineOffsets[origLineIndices[i]]));
                         output.AppendLine();
                         break;
                 }
@@ -549,7 +549,7 @@ public class Preprocessor
             ifStack.Pop();
     }
 
-    private string? HandleInclude(string rest, string? parentFilePath, int baseOffset = 0)
+    private string? HandleInclude(string rest, string? parentFilePath, int baseOffset = 0, int originalPosition = 0)
     {
         HasIncludeDirectives = true;
 
@@ -559,7 +559,7 @@ public class Preprocessor
         var resolved = ResolveIncludePath(path, parentFilePath);
         if (resolved == null)
         {
-            Errors.Add($"#include file not found: '{path}'");
+            Errors.Add(($"#include file not found: '{path}'", originalPosition));
             return "\n";
         }
 
