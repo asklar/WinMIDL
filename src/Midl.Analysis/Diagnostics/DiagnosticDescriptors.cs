@@ -621,6 +621,12 @@ public static class DiagnosticDescriptors
             "If not, add [default_interface] to allow creating instances.",
             position, Math.Max(name.Length, 1));
 
+    // Missing doc comment (MIDL3020)
+    public static Diagnostic MissingDocComment(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3020",
+            $"Public type '{name}' has no documentation comment. Add `/// <summary>` above the declaration.",
+            position, Math.Max(name.Length, 1));
+
     // Empty enum (MIDL1098)
     public static Diagnostic EmptyEnum(string enumName, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1098",
