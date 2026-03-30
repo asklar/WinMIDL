@@ -1,0 +1,139 @@
+---
+name: 'release'
+description: 'Automate a WinMIDL release: build, test, changelog, tag, package VS Code + VS extensions with NativeAOT binaries. Use when the user wants to cut a new release.'
+---
+
+# Release Skill
+
+Automates the full WinMIDL release pipeline. When invoked, performs all steps sequentially and stops on any failure.
+
+## Prerequisites
+- Must be run from the repo root (`E:\midl` or equivalent)
+- `dotnet` must be on PATH
+- `pwsh` (PowerShell 7+) must be available for packaging scripts
+- For VS extension: MSBuild must be available (via Visual Studio)
+
+## Steps
+
+### Step 1: Determine Version
+
+```powershell
+$latestTag = git describe --tags --abbrev=0 2>$null
+# Parse version: v0.1.7 → major=0, minor=1, patch=7
+# Bump patch: → 0.1.8
+# Allow user to override if they specify a version
+```
+
+If the user specified a version, use that. Otherwise bump the patch number from the latest tag. Confirm the version with the user before proceeding.
+
+### Step 2: Build & Test
+
+Run all non-E2E tests:
+
+```powershell
+dotnet test --filter "Category!=E2E" -v q
+```
+
+**STOP if any tests fail.** Report the failure and do not proceed.
+
+### Step 3: Generate Changelog
+
+Get commits since the last tag:
+
+```powershell
+git log --oneline $latestTag..HEAD
+```
+
+Categorize each commit by its prefix or content:
+- **Features**: commits containing "Add", "Implement", "feat", "new"
+- **Bug Fixes**: commits containing "Fix", "fix", "bug"
+- **Tests**: commits containing "test", "Test", "Add.*test"
+- **Documentation**: commits containing "doc", "README", "TODO"
+- **Other**: everything else
+
+Write to `CHANGELOG.md` at the repo root. If the file exists, prepend the new version section. If not, create it. Format:
+
+```markdown
+## v0.1.8 (2026-03-30)
+
+### Features
+- Add XDC doc comments support (#commit-summary)
+
+### Bug Fixes  
+- Fix sourcemap positions for #define directives
+
+### Tests
+- Add comprehensive diagnostic position tests
+```
+
+### Step 4: Bump Version
+
+Update version strings in two files:
+
+1. **`editors/vscode/package.json`**: Change `"version": "X.Y.Z"` to the new version
+2. **`editors/vs/Midl.VsExtension/source.extension.vsixmanifest`**: Change `Version="X.Y.Z"` in the `<Identity>` element
+
+### Step 5: Commit & Tag
+
+```powershell
+git add CHANGELOG.md editors/vscode/package.json editors/vs/Midl.VsExtension/source.extension.vsixmanifest
+git commit -m "Release v$version
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git tag "v$version"
+```
+
+### Step 6: Push
+
+```powershell
+git push origin main --tags
+```
+
+### Step 7: Package Extensions
+
+Run the existing packaging scripts:
+
+```powershell
+# VS Code extension (NativeAOT x64 + ARM64, bundled into VSIX)
+pwsh -ExecutionPolicy Bypass -File scripts/package-vsix.ps1 -Version $version
+
+# VS extension (NativeAOT, bundled into VSIX)  
+pwsh -ExecutionPolicy Bypass -File scripts/package-vs-vsix.ps1 -Version $version
+```
+
+These scripts:
+- Build NativeAOT binaries for x64 and ARM64
+- Bundle them into the extension directories
+- Package the VSIX files
+- Output to `publish/midl-language.vsix` and `publish/Midl.VsExtension.vsix`
+
+### Step 8: Report
+
+Print the results:
+
+```
+✅ Release v0.1.8 complete!
+
+Artifacts:
+  VS Code: publish/midl-language.vsix (X.X MB)
+  VS:      publish/Midl.VsExtension.vsix (X.X MB)
+
+Upload manually:
+  VS Code: https://marketplace.visualstudio.com/manage/publishers/ASklar
+  VS:      https://marketplace.visualstudio.com/manage/publishers/ASklar
+```
+
+## Error Handling
+
+- If tests fail → stop, report which tests failed
+- If NativeAOT build fails → stop, report the error
+- If packaging fails → stop, report the error
+- If git push fails → report (tag was created locally, can retry)
+
+## Notes
+
+- The version bump commit includes the changelog — it's part of the release commit
+- The git tag points to the release commit
+- NativeAOT binaries are ~8-9 MB each (x64 + ARM64)
+- VS Code VSIX is ~8 MB, VS VSIX is ~7 MB
+- The `Co-authored-by: Copilot` trailer is always included in the commit
