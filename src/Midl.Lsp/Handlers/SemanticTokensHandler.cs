@@ -190,11 +190,21 @@ public static class SemanticTokensHandler
             else if (tokenType >= 0 && token.Text.Length > 0)
             {
                 var (tLine, tChar) = PositionHelper.OffsetToLineChar(lineStarts, textStart);
+                // Log tokens near the #ifdef region for debugging
+                if (tLine >= 208 && tLine <= 228)
+                    MidlTrace.Write("SEMTOK", $"  line {tLine}: '{token.Text}' → type={tokenType} ({(tokenType < TokenTypes.Length ? TokenTypes[tokenType] : "?")}) isInactive={isInactive}");
                 int deltaLine = tLine - prevLine;
                 int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
                 encodedTokens.AddRange([deltaLine, deltaChar, token.Text.Length, tokenType, 0]);
                 prevLine = tLine;
                 prevChar = tChar;
+            }
+            else if (token.Text.Length > 0)
+            {
+                // Unclassified token — log if in the debug range
+                var (tLine, _) = PositionHelper.OffsetToLineChar(lineStarts, textStart);
+                if (tLine >= 208 && tLine <= 228)
+                    MidlTrace.Write("SEMTOK", $"  line {tLine}: '{token.Text}' → UNCLASSIFIED (type={tokenType}) isInactive={isInactive}");
             }
 
             pos = textStart + token.Text.Length;
