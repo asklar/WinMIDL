@@ -53,6 +53,9 @@ public static class SemanticTokensHandler
     // Cache: avoid re-lexing/re-classifying when the document hasn't changed
     private static readonly ConcurrentDictionary<string, (int hash, int[] data)> _cache = new();
 
+    /// <summary>Clear the semantic token cache (e.g., when preprocessor defines change).</summary>
+    public static void ClearCache() => _cache.Clear();
+
     public static object? Handle(JsonElement? @params, DocumentManager docManager, Compilation? cachedCompilation = null)
     {
         if (@params is null) return null;
@@ -63,7 +66,13 @@ public static class SemanticTokensHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return new Dictionary<string, object?> { ["data"] = Array.Empty<int>() };
 
-        var hash = text.GetHashCode();
+        // Include inactive regions and defines in hash so settings changes invalidate cache
+        int inactiveCount = cachedCompilation?.InactiveRegions?.Count ?? -1;
+        int definesHash = 0;
+        if (cachedCompilation?.InactiveRegions != null)
+            foreach (var (s, e) in cachedCompilation.InactiveRegions)
+                definesHash = HashCode.Combine(definesHash, s, e);
+        var hash = HashCode.Combine(text.GetHashCode(), inactiveCount, definesHash);
         if (_cache.TryGetValue(uri, out var cached) && cached.hash == hash)
         {
             return new Dictionary<string, object?> { ["data"] = cached.data };

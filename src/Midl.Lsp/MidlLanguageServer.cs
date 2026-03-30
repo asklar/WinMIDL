@@ -398,6 +398,7 @@ public sealed partial class MidlLanguageServer
         // Invalidate all compilation caches so next analysis uses new settings
         _lastAnalyzedHash.Clear();
         _lastCompilation.Clear();
+        Handlers.SemanticTokensHandler.ClearCache();
 
         // Re-analyze all open documents with new settings
         foreach (var uri in _docManager.GetOpenDocumentUris())
