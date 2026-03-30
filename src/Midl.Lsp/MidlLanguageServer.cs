@@ -399,6 +399,7 @@ public sealed partial class MidlLanguageServer
         _lastAnalyzedHash.Clear();
         _lastCompilation.Clear();
         Handlers.SemanticTokensHandler.ClearCache();
+        MidlTrace.Lsp("Settings changed: cleared all caches including semantic tokens");
 
         // Re-analyze all open documents with new settings
         foreach (var uri in _docManager.GetOpenDocumentUris())
@@ -415,6 +416,7 @@ public sealed partial class MidlLanguageServer
         }
 
         // Ask client to re-fetch semantic tokens (they depend on defines/inactive regions)
+        MidlTrace.Lsp("Sending workspace/semanticTokens/refresh");
         _ = _writer.SendNotificationAsync("workspace/semanticTokens/refresh", null);
     }
 

@@ -73,11 +73,16 @@ public static class SemanticTokensHandler
             foreach (var (s, e) in cachedCompilation.InactiveRegions)
                 definesHash = HashCode.Combine(definesHash, s, e);
         var hash = HashCode.Combine(text.GetHashCode(), inactiveCount, definesHash);
+
+        MidlTrace.Write("SEMTOK", $"Request for {Path.GetFileName(uri)}: inactiveRegions={inactiveCount}, hash={hash}, cacheHit={_cache.TryGetValue(uri, out var peek) && peek.hash == hash}");
+
         if (_cache.TryGetValue(uri, out var cached) && cached.hash == hash)
         {
+            MidlTrace.Write("SEMTOK", "Cache hit — returning cached tokens");
             return new Dictionary<string, object?> { ["data"] = cached.data };
         }
 
+        MidlTrace.Write("SEMTOK", "Cache miss — recomputing tokens");
         var (data, _, _) = HandleCore(text, cachedCompilation);
         _cache[uri] = (hash, data);
         return new Dictionary<string, object?> { ["data"] = data };
