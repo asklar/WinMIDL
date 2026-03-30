@@ -53,6 +53,7 @@ public class CommandLineOptions
     public bool Profile { get; set; }                  // /profile (emit timing data)
     public bool UseExceptions { get; set; }             // /exceptions (try/catch error handling)
     public bool ArraysEnabled { get; set; }              // /arrays (enable T[] array parameter syntax)
+    public string? DocFile { get; set; }                 // /doc (XDC XML doc output)
     public List<string> UnknownSwitches { get; } = new();
     public List<string> Errors { get; } = new();
 }
@@ -203,6 +204,13 @@ public static class CommandLineParser
                     options.WinMdFile = winmdFile;
                 else
                     options.Errors.Add("Missing value for /winmd");
+                return true;
+
+            case "doc":
+                if (TryConsumeValue(args, ref i, out var docFile))
+                    options.DocFile = docFile;
+                else
+                    options.Errors.Add("Missing value for /doc");
                 return true;
 
             case "acf":

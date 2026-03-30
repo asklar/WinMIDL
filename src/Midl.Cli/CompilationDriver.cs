@@ -401,6 +401,20 @@ public class CompilationDriver
             CopyRuntimeHeaders(outDir);
         }
 
+        // XDC documentation file
+        if (options.DocFile != null)
+        {
+            var xdcEmitter = new Midl.CodeGen.Xdc.XdcEmitter();
+            var assemblyName = options.InputFile != null
+                ? Path.GetFileNameWithoutExtension(options.InputFile)
+                : "output";
+            var xdcContent = xdcEmitter.Emit(compilation, assemblyName);
+            var path = Path.Combine(outDir, options.DocFile);
+            Directory.CreateDirectory(Path.GetDirectoryName(path) ?? outDir);
+            File.WriteAllText(path, xdcContent);
+            filesWritten.Add(path);
+        }
+
         // Print what was generated
         if (filesWritten.Count > 0 && !options.NoLogo)
         {
