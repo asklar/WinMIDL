@@ -128,6 +128,17 @@ public static class HoverHandler
                     else
                     {
                         info = $"**{symbol.Kind}** `{symbol.FullName}`";
+
+                        // Show doc comment summary for local symbols
+                        if (symbol.DocComment?.Summary != null)
+                            info += $"\n\n{symbol.DocComment.Summary}";
+
+                        // Show parameter docs for methods
+                        if (symbol is Analysis.Symbols.MethodSymbol ms && ms.DocComment?.Params.Count > 0)
+                        {
+                            foreach (var kvp in ms.DocComment.Params)
+                                info += $"\n\n**param** {kvp.Key}: {kvp.Value}";
+                        }
                     }
                     return MakeHover(info, tokenStart, token.Text.Length, lineStarts);
                 }
