@@ -160,12 +160,21 @@ public static class SemanticTokensHandler
 
             // Classify the token itself
             int tokenType = ClassifyToken(token, allTypes);
-            if (tokenType >= 0 && token.Text.Length > 0)
-            {
-                // If this token is inside an inactive preprocessor region, mark it as comment
-                if (inactiveRegions != null && IsInInactiveRegion(textStart, inactiveRegions))
-                    tokenType = TypeComment;
+            bool isInactive = inactiveRegions != null && token.Text.Length > 0 &&
+                              IsInInactiveRegion(textStart, inactiveRegions);
 
+            if (isInactive && token.Text.Length > 0)
+            {
+                // Force all tokens in inactive regions to comment (including punctuation)
+                var (tLine, tChar) = PositionHelper.OffsetToLineChar(lineStarts, textStart);
+                int deltaLine = tLine - prevLine;
+                int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
+                encodedTokens.AddRange([deltaLine, deltaChar, token.Text.Length, TypeComment, 0]);
+                prevLine = tLine;
+                prevChar = tChar;
+            }
+            else if (tokenType >= 0 && token.Text.Length > 0)
+            {
                 var (tLine, tChar) = PositionHelper.OffsetToLineChar(lineStarts, textStart);
                 int deltaLine = tLine - prevLine;
                 int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;

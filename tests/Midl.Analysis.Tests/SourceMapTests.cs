@@ -1380,5 +1380,33 @@ public class SourceMapTests : IDisposable
         Assert.True(foundActiveKeyword, "Keyword outside inactive region should remain keyword");
     }
 
+    [Fact]
+    public void SemanticTokens_InactiveRegion_PunctuationAlsoGrayed()
+    {
+        // Braces, brackets, semicolons in inactive regions must also be comment-typed
+        var source = "#ifdef NOPE\ninterface IFoo { void Do(); };\n#endif\nnamespace N { }";
+        var compilation = CompilationHelper.Compile(source);
+        var (data, types, _) = Midl.Lsp.Handlers.SemanticTokensHandler.HandleCore(source, compilation);
+
+        int commentType = Array.IndexOf(types, "comment");
+
+        // All tokens on line 1 (the inactive line) should be comment type
+        // Reconstruct absolute lines from delta-encoded data
+        int line = 0;
+        bool allInactiveAreComment = true;
+        for (int i = 0; i < data.Length; i += 5)
+        {
+            line += data[i]; // deltaLine
+            int tokenType = data[i + 3];
+            // Line 1 is the inactive content line
+            if (line == 1 && tokenType != commentType)
+            {
+                allInactiveAreComment = false;
+                break;
+            }
+        }
+        Assert.True(allInactiveAreComment, "All tokens on inactive line (including punctuation) should be comment type");
+    }
+
     #endregion
 }
