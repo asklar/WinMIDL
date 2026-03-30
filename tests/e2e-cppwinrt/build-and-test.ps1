@@ -255,7 +255,7 @@ if ($moduleGCpp -and (Test-Path $moduleGCpp)) {
 # ── Step 4: Build & run in-proc test ────────────────────────────────────
 Write-Step "Compiling in-proc test (TestInProc.exe)"
 
-$commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/MD", "/W3",
+$commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/MD", "/W3", "/Zi",
                  "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",
                  "/D_SILENCE_CLANG_COROUTINE_MESSAGE")
 
@@ -305,7 +305,7 @@ foreach ($src in $inprocSources) {
 
 # Link
 Write-Host "  Linking TestInProc.exe..."
-$linkOutput = & $cl /nologo /Fe"$inprocExe" @inprocObjs /link `
+$linkOutput = & $cl /nologo /Fe"$inprocExe" @inprocObjs /link /DEBUG `
     @libPaths windowsapp.lib ole32.lib 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "FAIL: Link failed:" -ForegroundColor Red
@@ -362,7 +362,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
 
-$output = & $cl /nologo /LD /Fe"$proxyDll" $proxyObj /link `
+$output = & $cl /nologo /LD /Fe"$proxyDll" $proxyObj /link /DEBUG `
     /DEF:"$scriptDir/TestCppWinRTProxy.def" `
     @libPaths `
     ole32.lib oleaut32.lib rpcrt4.lib advapi32.lib user32.lib runtimeobject.lib 2>&1
@@ -396,7 +396,7 @@ foreach ($src in $serverSources) {
 }
 
 $serverExe = "$buildDir/CppWinRTServer.exe"
-$output = & $cl /nologo /Fe"$serverExe" @serverObjs /link `
+$output = & $cl /nologo /Fe"$serverExe" @serverObjs /link /DEBUG `
     /SUBSYSTEM:CONSOLE `
     @libPaths `
     windowsapp.lib ole32.lib oleaut32.lib runtimeobject.lib 2>&1
@@ -426,7 +426,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
 
-$output = & $cl /nologo /Fe"$clientExe" $clientObj /link `
+$output = & $cl /nologo /Fe"$clientExe" $clientObj /link /DEBUG `
     /SUBSYSTEM:CONSOLE `
     @libPaths `
     windowsapp.lib ole32.lib oleaut32.lib 2>&1
