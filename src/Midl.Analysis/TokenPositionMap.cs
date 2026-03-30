@@ -11,6 +11,8 @@ public sealed class TokenPositionMap
     private int[]? _tokenTextStarts;
     private readonly IReadOnlyList<SyntaxToken> _tokens;
 
+    public IReadOnlyList<SyntaxToken> Tokens => _tokens;
+
     public TokenPositionMap(IReadOnlyList<SyntaxToken> tokens)
     {
         _tokens = tokens;

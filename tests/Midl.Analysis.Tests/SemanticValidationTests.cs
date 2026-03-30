@@ -550,6 +550,30 @@ public class SemanticValidationTests
     }
 
     [Fact]
+    public void QualityHint_ObtainedFromComment_SuppressesMIDL3005()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N {\n// [obtained-from:Factory.Create]\nruntimeclass Item { String Name { get; }; }\n}");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3005");
+    }
+
+    [Fact]
+    public void QualityHint_ObtainedFromComment_CaseInsensitive()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N {\n// [Obtained-From:SomeClass.GetItem]\nruntimeclass Thing { Int32 Value { get; }; }\n}");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3005");
+    }
+
+    [Fact]
+    public void QualityHint_NoObtainedFromComment_StillWarns()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N {\n// This is a regular comment\nruntimeclass Gadget { String Name { get; }; }\n}");
+        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL3005");
+    }
+
+    [Fact]
     public void QualityHint_RuntimeClassWithConstructor_NoWarning()
     {
         var compilation = CompileWithQualityHints("""

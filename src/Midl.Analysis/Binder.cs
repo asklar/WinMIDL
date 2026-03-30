@@ -3464,7 +3464,8 @@ public partial class Binder
             // Don't warn for EventArgs types (produced by event handlers, not constructed)
             // Don't warn for all-static classes (MIDL3019 handles those)
             // Don't warn for [default_interface] classes (explicitly opted in)
-            if (!isEventArgs && !allStatic && !hasDefaultInterface)
+            // Don't warn if // [obtained-from:...] comment present
+            if (!isEventArgs && !allStatic && !hasDefaultInterface && !HasObtainedFromComment(rc))
             {
                 _diagnostics.Add(DiagnosticDescriptors.RuntimeClassNoConstructor(
                     rc.Name, GetSymbolPosition(rc)));
@@ -3602,6 +3603,43 @@ public partial class Binder
         EventSymbol e => e.IsStatic,
         _ => false
     };
+
+    /// <summary>
+    /// Check if a symbol has a preceding comment containing "[obtained-from:" 
+    /// which suppresses the MIDL3005 "not activatable" diagnostic.
+    /// Scans tokens near the symbol's position for the comment in leading trivia.
+    /// </summary>
+    private bool HasObtainedFromComment(ISymbol symbol)
+    {
+        int pos = GetSymbolPosition(symbol);
+        if (pos <= 0) return false;
+
+        // Scan tokens near this position — the comment may be trivia on the 
+        // runtimeclass keyword, an attribute bracket, or the name token itself.
+        var tokens = _posMap.Tokens;
+        int offset = 0;
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            var token = tokens[i];
+            int tokenFullEnd = offset + token.FullWidth;
+
+            // Check tokens in a window around the target position
+            if (tokenFullEnd > pos - 200 && offset < pos + 50)
+            {
+                foreach (var trivia in token.LeadingTrivia)
+                {
+                    if (trivia.Kind == SyntaxKind.SingleLineCommentTrivia &&
+                        trivia is Syntax.SyntaxTrivia triviaNode &&
+                        triviaNode.Text.Contains("[obtained-from:", StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+            }
+
+            if (offset > pos + 50) break;
+            offset = tokenFullEnd;
+        }
+        return false;
+    }
 
     private static int SumTriviaWidth(GreenNode[] trivia)
     {
