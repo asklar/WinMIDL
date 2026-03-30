@@ -1,22 +1,22 @@
 <#
 .SYNOPSIS
-    Build and run the C++/WinRT E2E test — validates WinMIDL .winmd output
-    works with the cppwinrt toolchain.
+    Build and run the C++/WinRT E2E test suite — validates WinMIDL .winmd
+    output works with the cppwinrt toolchain for both in-proc and out-of-proc.
 
 .DESCRIPTION
-    Pipeline: IDL -> WinMIDL -> .winmd -> cppwinrt -> projection headers -> compile -> run
-
-    1. Compiles IDL to .winmd with WinMIDL
-    2. Runs cppwinrt.exe to generate C++/WinRT projection headers
-    3. Compiles a C++ test client against the projected headers
-    4. Runs the test client
-    5. Reports results
+    Pipeline:
+      IDL -> WinMIDL -> .winmd + .h + _i.c + _proxy.cpp
+      .winmd -> cppwinrt -> projection headers + component headers
+      Compile + run in-proc test (direct winrt::make, no registration)
+      Compile + run out-of-proc test (CoCreateInstance, proxy/stub, LRPC)
 
     Exit code 0 = pass, non-zero = failure.
 #>
 param(
     [switch]$Verbose,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$KeepRegistration,
+    [switch]$InProcOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,7 +27,6 @@ $buildDir = "$scriptDir/build"
 
 $passCount = 0
 $failCount = 0
-$skipCount = 0
 
 function Write-Step($msg) { Write-Host "`n>> $msg" -ForegroundColor Cyan }
 
@@ -103,14 +102,21 @@ $sdkIncVersion = $sdkIncVersions[0].Name
 
 $cppwinrtInc = "$sdkRoot\Include\$sdkIncVersion\cppwinrt"
 $sdkLibUm = "$sdkRoot\Lib\$sdkIncVersion\um\x64"
+$sdkLibUcrt = "$sdkRoot\Lib\$sdkIncVersion\ucrt\x64"
 $unionMetadata = "$sdkRoot\UnionMetadata\$sdkVersion"
+
+# Full SDK include/lib paths needed for proxy compilation (windows.h etc.)
+$sdkIncUm = "$sdkRoot\Include\$sdkIncVersion\um"
+$sdkIncShared = "$sdkRoot\Include\$sdkIncVersion\shared"
+$sdkIncWinrt = "$sdkRoot\Include\$sdkIncVersion\winrt"
 
 Write-Host "  cppwinrt: $cppwinrt"
 Write-Host "  SDK: $sdkVersion"
 Write-Host "  CppWinRT headers: $cppwinrtInc"
+Write-Host "  Union metadata: $unionMetadata"
 
 # ── Step 2: Generate .winmd from IDL ────────────────────────────────────
-Write-Step "Compiling IDL -> .winmd with WinMIDL"
+Write-Step "Compiling IDL -> .winmd + header + proxy with WinMIDL"
 
 if (Test-Path $outDir) { Remove-Item $outDir -Recurse -Force }
 if (Test-Path $buildDir) { Remove-Item $buildDir -Recurse -Force }
@@ -133,6 +139,9 @@ if (-not $SkipBuild) {
     /winmd TestCppWinRT.winmd `
     /h TestCppWinRT.h `
     /iid TestCppWinRT_i.c `
+    /cppproxy TestCppWinRT_proxy.cpp `
+    /noproxy `
+    /no_dlldata `
     /out $outDir `
     /nologo `
     $idlFile 2>&1 | ForEach-Object { if ($Verbose) { Write-Host "  $_" } }
@@ -144,14 +153,18 @@ if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1) {
 
 Check (Test-Path "$outDir/TestCppWinRT.winmd") "WinMD generated"
 Check (Test-Path "$outDir/TestCppWinRT.h") "Header generated"
+Check (Test-Path "$outDir/TestCppWinRT_i.c") "IID file generated"
+Check (Test-Path "$outDir/TestCppWinRT_proxy.cpp") "Proxy code generated"
 
-# ── Step 3: Generate C++/WinRT projection ───────────────────────────────
-Write-Step "Running cppwinrt.exe -> projection headers"
+# ── Step 3: Generate C++/WinRT projection + component headers ──────────
+Write-Step "Running cppwinrt.exe -> projection + component headers"
 
-$projDir = "$outDir/projection"
+$projDir = "$outDir/cppwinrt"
 New-Item -ItemType Directory -Path $projDir -Force | Out-Null
 
-$cppwinrtOutput = & $cppwinrt -in "$outDir/TestCppWinRT.winmd" -ref $unionMetadata -out $projDir 2>&1
+$cppwinrtArgs = @("-in", "$outDir/TestCppWinRT.winmd", "-ref", $unionMetadata,
+                  "-out", $projDir, "-component", "-overwrite", "-verbose")
+$cppwinrtOutput = & $cppwinrt @cppwinrtArgs 2>&1
 $cppwinrtExitCode = $LASTEXITCODE
 
 if ($Verbose -and $cppwinrtOutput) {
@@ -167,49 +180,357 @@ if ($cppwinrtExitCode -ne 0) {
     exit 1
 }
 
-# ── Step 4: Compile C++ test client ─────────────────────────────────────
-Write-Step "Compiling TestClient.cpp"
-
-$testClientSrc = "$scriptDir/TestClient.cpp"
-$testClientExe = "$buildDir/TestClient.exe"
-
-$clOutput = & $cl /nologo /std:c++17 /EHsc /MD /W3 `
-    /DWIN32 /D_WINDOWS /DUNICODE /D_UNICODE `
-    /I"$projDir" /I"$cppwinrtInc" `
-    /Fe"$testClientExe" `
-    /Fo"$buildDir/TestClient.obj" `
-    $testClientSrc `
-    /link /LIBPATH:"$sdkLibUm" windowsapp.lib 2>&1
-$clExitCode = $LASTEXITCODE
-
-if ($Verbose -and $clOutput) {
-    $clOutput | ForEach-Object { Write-Host "  $_" }
+# Find generated component files
+$widgetGH = $null
+foreach ($candidate in @(
+    "$projDir/TestCppWinRT/Widget.g.h",
+    "$projDir/Widget.g.h"
+)) {
+    if (Test-Path $candidate) { $widgetGH = $candidate; break }
 }
 
-Check ($clExitCode -eq 0) "C++ compilation succeeded"
+$widgetGCpp = $null
+foreach ($candidate in @(
+    "$projDir/TestCppWinRT/Widget.g.cpp",
+    "$projDir/Widget.g.cpp"
+)) {
+    if (Test-Path $candidate) { $widgetGCpp = $candidate; break }
+}
 
-if ($clExitCode -ne 0) {
-    Write-Host "FAIL: Compilation failed - output:" -ForegroundColor Red
-    $clOutput | ForEach-Object { Write-Host "  $_" }
+$moduleGCpp = $null
+foreach ($candidate in @(
+    "$projDir/module.g.cpp"
+)) {
+    if (Test-Path $candidate) { $moduleGCpp = $candidate; break }
+}
+
+if (-not $widgetGH) {
+    Write-Host "FAIL: Widget.g.h not found in cppwinrt output" -ForegroundColor Red
+    Write-Host "  Contents of $projDir :"
+    Get-ChildItem $projDir -Recurse | ForEach-Object { Write-Host "    $($_.FullName)" }
     exit 1
 }
 
-# ── Step 5: Run test ────────────────────────────────────────────────────
-Write-Step "Running TestClient.exe"
+Write-Host "  Widget.g.h: $widgetGH"
+if ($widgetGCpp) { Write-Host "  Widget.g.cpp: $widgetGCpp" }
+if ($moduleGCpp) { Write-Host "  module.g.cpp: $moduleGCpp" }
 
-$testOutput = & $testClientExe 2>&1
-$testExitCode = $LASTEXITCODE
+# Determine the directory containing Widget.g.h (for /I include path)
+$componentDir = Split-Path $widgetGH -Parent
 
-$testOutput | ForEach-Object { Write-Host "  $_" }
+# Create a stub pch.h if module.g.cpp references it
+if ($moduleGCpp -and (Test-Path $moduleGCpp)) {
+    $moduleContent = Get-Content $moduleGCpp -Raw
+    if ($moduleContent -match '#include\s+"pch\.h"') {
+        $pchStub = "$projDir/pch.h"
+        if (-not (Test-Path $pchStub)) {
+            Set-Content -Path $pchStub -Value "// stub pch.h`n#pragma once"
+        }
+    }
+}
 
-Check ($testExitCode -eq 0) "TestClient exited with code 0"
-Check ($testOutput -match "PASS") "TestClient reports PASS"
+# ── Step 4: Build & run in-proc test ────────────────────────────────────
+Write-Step "Compiling in-proc test (TestInProc.exe)"
 
-# ── Results ─────────────────────────────────────────────────────────────
-Write-Host "`n" -NoNewline
+$commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/MD", "/W3",
+                 "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",
+                 "/D_SILENCE_CLANG_COROUTINE_MESSAGE")
+
+# Include paths:
+#   $projDir       → winrt/TestCppWinRT.h, module.g.cpp, Widget.g.h
+#   $scriptDir     → Widget.h, Widget.cpp
+#   $cppwinrtInc   → C++/WinRT SDK base headers
+#   $sdkIncUm/Shared/Winrt → windows.h, winstring.h, etc. (for server/proxy)
+$includeFlags = @()
+foreach ($dir in @($projDir, $componentDir, $scriptDir, $cppwinrtInc, $sdkIncUm, $sdkIncShared, $sdkIncWinrt)) {
+    $includeFlags += "/I"
+    $includeFlags += $dir
+}
+
+# Source files for in-proc
+$inprocSources = @(
+    "$scriptDir/Widget.cpp",
+    "$scriptDir/TestInProc.cpp"
+)
+if ($moduleGCpp) {
+    $inprocSources += $moduleGCpp
+}
+
+$inprocExe = "$buildDir/TestInProc.exe"
+$inprocObjs = @()
+
+# Compile each source to object file
+foreach ($src in $inprocSources) {
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($src)
+    $objFile = "$buildDir/${baseName}.obj"
+    $inprocObjs += $objFile
+
+    Write-Host "  Compiling $([System.IO.Path]::GetFileName($src))..."
+    $output = & $cl @commonFlags @includeFlags /c /Fo"$objFile" $src 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "FAIL: Compilation of $([System.IO.Path]::GetFileName($src)) failed:" -ForegroundColor Red
+        $output | ForEach-Object { Write-Host "    $_" }
+        exit 1
+    }
+    if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
+}
+
+# Link
+Write-Host "  Linking TestInProc.exe..."
+$linkOutput = & $cl /nologo /Fe"$inprocExe" @inprocObjs /link `
+    /LIBPATH:"$sdkLibUm" /LIBPATH:"$sdkLibUcrt" `
+    windowsapp.lib ole32.lib 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Link failed:" -ForegroundColor Red
+    $linkOutput | ForEach-Object { Write-Host "    $_" }
+    exit 1
+}
+if ($Verbose) { $linkOutput | ForEach-Object { Write-Host "    $_" } }
+
+Check (Test-Path $inprocExe) "TestInProc.exe built"
+
+Write-Step "Running in-proc tests"
+
+$stdoutFile = "$buildDir/inproc_stdout.txt"
+$stderrFile = "$buildDir/inproc_stderr.txt"
+$inprocProc = Start-Process -FilePath $inprocExe -Wait -PassThru `
+    -RedirectStandardOutput $stdoutFile `
+    -RedirectStandardError $stderrFile
+$inprocExitCode = $inprocProc.ExitCode
+
+if (Test-Path $stdoutFile) { Get-Content $stdoutFile | ForEach-Object { Write-Host "  $_" } }
+if (Test-Path $stderrFile) {
+    $errContent = Get-Content $stderrFile -Raw
+    if ($errContent -and $errContent.Trim()) {
+        Write-Host "  STDERR:" -ForegroundColor Yellow
+        Write-Host $errContent
+    }
+}
+
+Check ($inprocExitCode -eq 0) "In-proc tests passed (exit code $inprocExitCode)"
+
+if ($InProcOnly) {
+    Write-Host "`n"
+    Write-Host ("=" * 60)
+    Write-Host "Results: $passCount passed, $failCount failed" -ForegroundColor $(if ($failCount -gt 0) { "Red" } else { "Green" })
+    Write-Host ("=" * 60)
+    exit $failCount
+}
+
+# ── Step 5: Build out-of-proc components ────────────────────────────────
+Write-Step "Building out-of-proc components"
+
+# 5a: Compile proxy DLL
+Write-Host "  Compiling TestCppWinRTProxy.dll..."
+$proxyObj = "$buildDir/TestCppWinRT_proxy.obj"
+$proxyDll = "$buildDir/TestCppWinRTProxy.dll"
+
+$proxyIncludes = @("/I", "$outDir", "/I", "$repoRoot/include", "/I", "$sdkIncUm", "/I", "$sdkIncShared", "/I", "$sdkIncWinrt")
+$output = & $cl @commonFlags @proxyIncludes /c /Fo"$proxyObj" "$outDir/TestCppWinRT_proxy.cpp" 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Proxy compilation failed:" -ForegroundColor Red
+    $output | ForEach-Object { Write-Host "    $_" }
+    exit 1
+}
+if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
+
+$output = & $cl /nologo /LD /Fe"$proxyDll" $proxyObj /link `
+    /DEF:"$scriptDir/TestCppWinRTProxy.def" `
+    /LIBPATH:"$sdkLibUm" /LIBPATH:"$sdkLibUcrt" `
+    ole32.lib oleaut32.lib rpcrt4.lib advapi32.lib user32.lib runtimeobject.lib 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Proxy DLL link failed:" -ForegroundColor Red
+    $output | ForEach-Object { Write-Host "    $_" }
+    exit 1
+}
+if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
+
+Check (Test-Path $proxyDll) "TestCppWinRTProxy.dll built"
+
+# 5b: Compile server EXE
+Write-Host "  Compiling CppWinRTServer.exe..."
+$serverSources = @("$scriptDir/ServerMain.cpp", "$scriptDir/Widget.cpp")
+$serverObjs = @()
+
+foreach ($src in $serverSources) {
+    $baseName = "server_$([System.IO.Path]::GetFileNameWithoutExtension($src))"
+    $objFile = "$buildDir/${baseName}.obj"
+    $serverObjs += $objFile
+
+    $output = & $cl @commonFlags @includeFlags /c /Fo"$objFile" $src 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "FAIL: Server compilation of $([System.IO.Path]::GetFileName($src)) failed:" -ForegroundColor Red
+        $output | ForEach-Object { Write-Host "    $_" }
+        exit 1
+    }
+    if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
+}
+
+$serverExe = "$buildDir/CppWinRTServer.exe"
+$output = & $cl /nologo /Fe"$serverExe" @serverObjs /link `
+    /SUBSYSTEM:CONSOLE `
+    /LIBPATH:"$sdkLibUm" /LIBPATH:"$sdkLibUcrt" `
+    windowsapp.lib ole32.lib oleaut32.lib 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Server link failed:" -ForegroundColor Red
+    $output | ForEach-Object { Write-Host "    $_" }
+    exit 1
+}
+if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
+
+Check (Test-Path $serverExe) "CppWinRTServer.exe built"
+
+# 5c: Compile out-of-proc client EXE
+Write-Host "  Compiling TestOutOfProc.exe..."
+$clientObj = "$buildDir/TestOutOfProc.obj"
+$clientExe = "$buildDir/TestOutOfProc.exe"
+
+# Client only needs projection headers + SDK (for windows.h used by CoCreateInstance)
+$clientIncludes = @("/I", "$projDir", "/I", "$cppwinrtInc", "/I", "$sdkIncUm", "/I", "$sdkIncShared")
+
+$output = & $cl @commonFlags @clientIncludes /c /Fo"$clientObj" "$scriptDir/TestOutOfProc.cpp" 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Client compilation failed:" -ForegroundColor Red
+    $output | ForEach-Object { Write-Host "    $_" }
+    exit 1
+}
+if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
+
+$output = & $cl /nologo /Fe"$clientExe" $clientObj /link `
+    /SUBSYSTEM:CONSOLE `
+    /LIBPATH:"$sdkLibUm" /LIBPATH:"$sdkLibUcrt" `
+    windowsapp.lib ole32.lib oleaut32.lib 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "FAIL: Client link failed:" -ForegroundColor Red
+    $output | ForEach-Object { Write-Host "    $_" }
+    exit 1
+}
+if ($Verbose) { $output | ForEach-Object { Write-Host "    $_" } }
+
+Check (Test-Path $clientExe) "TestOutOfProc.exe built"
+
+# ── Step 6: Register proxy DLL and server EXE (HKCU) ───────────────────
+Write-Step "Registering COM classes (HKCU, no admin needed)"
+
+$serverExePath = (Resolve-Path $serverExe).Path
+$proxyDllPath = (Resolve-Path $proxyDll).Path
+
+$CLSID_Widget = "{A7B8C9D0-E1F2-4A3B-8C5D-6E7F8091A2B3}"
+$regBase = "HKCU:\Software\Classes"
+
+# Register CLSID → LocalServer32
+$clsidKey = "$regBase\CLSID\$CLSID_Widget\LocalServer32"
+New-Item -Path $clsidKey -Force | Out-Null
+Set-ItemProperty -Path $clsidKey -Name "(Default)" -Value $serverExePath
+Write-Host "  CLSID $CLSID_Widget → LocalServer32"
+
+# Parse IID → GUID mapping from the generated _i.c
+$iidContent = Get-Content "$outDir/TestCppWinRT_i.c"
+$iidMap = @{}
+$prevComment = $null
+foreach ($line in $iidContent) {
+    if ($line -match '^\s*//\s*\{([0-9a-fA-F-]+)\}\s*$') {
+        $prevComment = $Matches[1]
+    }
+    elseif ($line -match 'MIDL_DEFINE_GUID\(IID\s*,\s*(IID___x_\S+)\s*,' -and $prevComment) {
+        $iidMap[$Matches[1]] = "{$prevComment}"
+        $prevComment = $null
+    }
+    else {
+        $prevComment = $null
+    }
+}
+Write-Host "  Found $($iidMap.Count) interface IIDs for registration"
+
+# Extract CLSID_PSFactoryBuffer from generated proxy
+$proxyContent = Get-Content "$outDir/TestCppWinRT_proxy.cpp" -Raw
+if ($proxyContent -match 'CLSID_PSFactoryBuffer\s*=\s*\{\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*\{\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+),\s*(0x[0-9a-fA-F]+)\s*\}') {
+    $a = [uint32]($Matches[1])
+    $b = [uint16]($Matches[2])
+    $c = [uint16]($Matches[3])
+    $d = @(4..11 | ForEach-Object { [byte]($Matches[$_]) })
+    $lastSeg = (($d[2..7] | ForEach-Object { $_.ToString("X2") }) -join '')
+    $CLSID_PSFactory = "{$($a.ToString("X8"))-$($b.ToString("X4"))-$($c.ToString("X4"))-$($d[0].ToString("X2"))$($d[1].ToString("X2"))-$lastSeg}"
+} else {
+    Write-Host "FAIL: Could not extract CLSID_PSFactoryBuffer from generated proxy" -ForegroundColor Red
+    exit 1
+}
+Write-Host "  CLSID_PSFactory: $CLSID_PSFactory"
+
+# Register PSFactoryBuffer CLSID → InprocServer32
+$psKey = "$regBase\CLSID\$CLSID_PSFactory\InprocServer32"
+New-Item -Path $psKey -Force | Out-Null
+Set-ItemProperty -Path $psKey -Name "(Default)" -Value $proxyDllPath
+Set-ItemProperty -Path $psKey -Name "ThreadingModel" -Value "Both"
+Write-Host "  PSFactory → InprocServer32"
+
+# Register each IID → ProxyStubClsid32
+foreach ($iidName in $iidMap.Keys) {
+    $iidGuid = $iidMap[$iidName]
+    $iidKey = "$regBase\Interface\$iidGuid\ProxyStubClsid32"
+    New-Item -Path $iidKey -Force | Out-Null
+    Set-ItemProperty -Path $iidKey -Name "(Default)" -Value $CLSID_PSFactory
+    if ($Verbose) { Write-Host "    IID $iidGuid → $iidName" }
+}
+Write-Host "  Registered $($iidMap.Count) interface IIDs"
+
+# ── Step 7: Run out-of-proc test ────────────────────────────────────────
+Write-Step "Starting server and running out-of-proc tests"
+
+# Kill stale server processes
+Get-Process -Name "CppWinRTServer" -ErrorAction SilentlyContinue |
+    ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
+Start-Sleep -Milliseconds 500
+
+$serverProc = Start-Process -FilePath $serverExePath -PassThru -NoNewWindow
+Write-Host "  Server PID: $($serverProc.Id)"
+Start-Sleep -Seconds 2
+
+if ($serverProc.HasExited) {
+    Write-Host "FAIL: Server exited prematurely with code $($serverProc.ExitCode)" -ForegroundColor Red
+    $failCount++
+} else {
+    # Run client
+    $oopStdout = "$buildDir/oop_stdout.txt"
+    $oopStderr = "$buildDir/oop_stderr.txt"
+    $clientProc = Start-Process -FilePath $clientExe -Wait -PassThru `
+        -RedirectStandardOutput $oopStdout `
+        -RedirectStandardError $oopStderr
+    $oopExitCode = $clientProc.ExitCode
+
+    if (Test-Path $oopStdout) { Get-Content $oopStdout | ForEach-Object { Write-Host "  $_" } }
+    if (Test-Path $oopStderr) {
+        $errContent = Get-Content $oopStderr -Raw
+        if ($errContent -and $errContent.Trim()) {
+            Write-Host "  STDERR:" -ForegroundColor Yellow
+            Write-Host $errContent
+        }
+    }
+
+    Check ($oopExitCode -eq 0) "Out-of-proc tests passed (exit code $oopExitCode)"
+}
+
+# Kill server
+if (-not $serverProc.HasExited) {
+    Stop-Process -Id $serverProc.Id -Force -ErrorAction SilentlyContinue
+    Write-Host "  Server killed"
+}
+
+# ── Step 8: Cleanup registration ────────────────────────────────────────
+if (-not $KeepRegistration) {
+    Write-Step "Cleaning up registration"
+    Remove-Item "$regBase\CLSID\$CLSID_Widget" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item "$regBase\CLSID\$CLSID_PSFactory" -Recurse -Force -ErrorAction SilentlyContinue
+    foreach ($iidGuid in $iidMap.Values) {
+        Remove-Item "$regBase\Interface\$iidGuid" -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Write-Host "  Unregistered"
+}
+
+# ── Summary ─────────────────────────────────────────────────────────────
+Write-Host "`n"
 Write-Host ("=" * 60)
-$total = $passCount + $failCount + $skipCount
-Write-Host "Results: $passCount passed, $failCount failed, $skipCount skipped (of $total)" -ForegroundColor $(if ($failCount -gt 0) { "Red" } else { "Green" })
+Write-Host "Results: $passCount passed, $failCount failed" -ForegroundColor $(if ($failCount -gt 0) { "Red" } else { "Green" })
 Write-Host ("=" * 60)
 
 exit $failCount

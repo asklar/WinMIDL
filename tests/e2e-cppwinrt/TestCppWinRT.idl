@@ -1,16 +1,24 @@
 namespace TestCppWinRT
 {
     enum Priority { Low, Medium, High };
+    [flags] enum Permissions { None = 0, Read = 1, Write = 2, Execute = 4 };
     struct Point { Single X; Single Y; };
+    struct Color { UInt8 R; UInt8 G; UInt8 B; UInt8 A; };
+    delegate void StatusHandler(String message);
 
     runtimeclass Widget
     {
         Widget();
         Widget(String name);
         String Name { get; set; };
-        Priority Level { get; };
+        Priority Level { get; set; };
         Point GetPosition();
         void MoveTo(Point position);
+        Color GetColor();
+        Double ComputeDistance(Point from, Point to);
+        static Widget CreateDefault();
+        static String GetVersion();
+        void Subscribe(StatusHandler handler);
         event Windows.Foundation.TypedEventHandler<Widget, String> NameChanged;
     };
 }
