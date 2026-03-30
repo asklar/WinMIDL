@@ -10,7 +10,7 @@
 
 // CLSID must match ServerMain.cpp
 // {A7B8C9D0-E1F2-4A3B-8C5D-6E7F8091A2B3}
-static const CLSID CLSID_Widget = {
+static constexpr CLSID CLSID_Widget = {
     0xa7b8c9d0, 0xe1f2, 0x4a3b,
     {0x8c, 0x5d, 0x6e, 0x7f, 0x80, 0x91, 0xa2, 0xb3}
 };
