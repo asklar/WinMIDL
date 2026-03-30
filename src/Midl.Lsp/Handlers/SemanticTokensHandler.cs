@@ -101,6 +101,7 @@ public static class SemanticTokensHandler
         }
 
         var allTypes = compilation?.GetAllTypes().ToList();
+        var inactiveRegions = compilation?.InactiveRegions;
 
         var encodedTokens = new List<int>();
         int prevLine = 0;
@@ -161,6 +162,10 @@ public static class SemanticTokensHandler
             int tokenType = ClassifyToken(token, allTypes);
             if (tokenType >= 0 && token.Text.Length > 0)
             {
+                // If this token is inside an inactive preprocessor region, mark it as comment
+                if (inactiveRegions != null && IsInInactiveRegion(textStart, inactiveRegions))
+                    tokenType = TypeComment;
+
                 var (tLine, tChar) = PositionHelper.OffsetToLineChar(lineStarts, textStart);
                 int deltaLine = tLine - prevLine;
                 int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
@@ -179,6 +184,16 @@ public static class SemanticTokensHandler
         }
 
         return (encodedTokens.ToArray(), TokenTypes, TokenModifiers);
+    }
+
+    private static bool IsInInactiveRegion(int position, IReadOnlyList<(int Start, int End)> regions)
+    {
+        foreach (var (start, end) in regions)
+        {
+            if (position >= start && position < end) return true;
+            if (start > position) break; // regions are sorted by start
+        }
+        return false;
     }
 
     private static int ClassifyToken(SyntaxToken token, List<ISymbol>? allTypes)

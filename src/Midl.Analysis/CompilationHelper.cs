@@ -237,6 +237,10 @@ public static class CompilationHelper
             MidlTrace.Write("COMPILE", $"No remap needed (same={originalSource == source}, hasIncludes={preprocessor.HasIncludeDirectives})");
         }
 
+        // Attach inactive regions for editor graying
+        if (preprocessor.InactiveRegions.Count > 0)
+            compilation.InactiveRegions = preprocessor.InactiveRegions;
+
         return compilation;
     }
 

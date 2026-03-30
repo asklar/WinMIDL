@@ -97,6 +97,18 @@ namespace Midl.VsExtension
             set { enableArraySyntax = value; }
         }
 
+        private string defines = "";
+
+        [Category("MIDL Language Server")]
+        [DisplayName("Preprocessor Defines")]
+        [Description("Comma-separated preprocessor defines for IDL compilation (e.g. DEBUG,WITH_ARRAYS). Content inside #ifdef blocks for undefined symbols will be grayed out.")]
+        [DefaultValue("")]
+        public string Defines
+        {
+            get { return defines; }
+            set { defines = value; }
+        }
+
         /// <summary>
         /// Called when the user clicks OK/Apply in Tools > Options.
         /// Notifies the running LSP client to push updated settings to the server.

@@ -106,6 +106,13 @@ public sealed partial class MidlLanguageServer
             var references = GetReferencePaths(uri);
             var includePaths = GetIncludePaths(filePath);
             var defines = _projectFile?.Defines;
+            // Merge in defines from settings (midl.defines)
+            if (_defines.Count > 0)
+            {
+                var merged = new List<string>(defines ?? []);
+                merged.AddRange(_defines);
+                defines = merged;
+            }
             var cachedProviders = GetCachedProviders(references);
 
             // Use cached providers when available to skip disk I/O

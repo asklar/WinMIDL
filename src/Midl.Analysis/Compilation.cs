@@ -13,6 +13,9 @@ public class Compilation
     public SymbolTable? SymbolTable { get; internal set; }
     public SourceMap? SourceMap { get; internal set; }
 
+    /// <summary>Inactive preprocessor regions in original source coordinates (for graying out).</summary>
+    public IReadOnlyList<(int Start, int End)> InactiveRegions { get; internal set; } = [];
+
     private readonly IReadOnlyList<LazyWinMdProvider>? _lazyProviders;
 
     /// <summary>Get the lazy WinMD providers (for code lens type counts per reference).</summary>

@@ -37,6 +37,9 @@ namespace Midl.VsExtension
                     ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
                     ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
                     ["midl.arrays"] = options.EnableArraySyntax,
+                    ["midl.defines"] = new Newtonsoft.Json.Linq.JArray(
+                        string.IsNullOrWhiteSpace(options.Defines) ? Array.Empty<string>() :
+                        options.Defines.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)),
                 };
             }
         }
@@ -216,6 +219,9 @@ namespace Midl.VsExtension
                     ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
                     ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
                     ["midl.arrays"] = options.EnableArraySyntax,
+                    ["midl.defines"] = new Newtonsoft.Json.Linq.JArray(
+                        string.IsNullOrWhiteSpace(options.Defines) ? Array.Empty<string>() :
+                        options.Defines.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)),
                 };
 
                 var msg = new Newtonsoft.Json.Linq.JObject

@@ -24,6 +24,7 @@ public sealed partial class MidlLanguageServer
     private CompilationMode _compilationMode = CompilationMode.Strict;
     private bool _enableQualityHints = true;
     private bool _arraysEnabled;
+    private List<string> _defines = new();
     private bool _useWindowsSdk = true;
     private bool _flatSdkTypeCompletions;
     private bool _clientSupportsMarkdown = true; // VS Code sends markdown; VS sends plaintext only
@@ -383,6 +384,17 @@ public sealed partial class MidlLanguageServer
             MidlTrace.Lsp($"  arrays = {arrays}");
         }
 
+        if (settings.TryGetProperty("midl.defines", out var definesProp) && definesProp.ValueKind == JsonValueKind.Array)
+        {
+            _defines.Clear();
+            foreach (var d in definesProp.EnumerateArray())
+            {
+                if (d.ValueKind == JsonValueKind.String && d.GetString() is { } val)
+                    _defines.Add(val);
+            }
+            MidlTrace.Lsp($"  defines = [{string.Join(", ", _defines)}]");
+        }
+
         // Invalidate all compilation caches so next analysis uses new settings
         _lastAnalyzedHash.Clear();
         _lastCompilation.Clear();
@@ -524,6 +536,18 @@ public sealed partial class MidlLanguageServer
                              arraysProp2.ValueKind == JsonValueKind.True)
                     {
                         _arraysEnabled = true;
+                    }
+
+                    // Read defines from initialization options
+                    if (initOpts.TryGetProperty("midl.defines", out var defProp) && defProp.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var d in defProp.EnumerateArray())
+                            if (d.GetString() is { } val) _defines.Add(val);
+                    }
+                    else if (initOpts.TryGetProperty("defines", out var defProp2) && defProp2.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var d in defProp2.EnumerateArray())
+                            if (d.GetString() is { } val) _defines.Add(val);
                     }
                 }
 

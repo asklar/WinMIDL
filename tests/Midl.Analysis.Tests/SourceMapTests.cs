@@ -1261,4 +1261,124 @@ public class SourceMapTests : IDisposable
     }
 
     #endregion
+
+    #region Inactive Region Tests
+
+    [Fact]
+    public void InactiveRegions_IfdefFalse_RecordsRegion()
+    {
+        var source = "namespace N { }\n#ifdef NOPE\n    hidden content\n#endif\nnamespace M { }";
+        var pp = new Preprocessor();
+        pp.Process(source);
+        Assert.Single(pp.InactiveRegions);
+        var (start, end) = pp.InactiveRegions[0];
+        // The inactive region should cover the content between #ifdef and #endif
+        Assert.True(start > 0);
+        Assert.True(end > start);
+        var inactive = source[start..end];
+        Assert.Contains("hidden content", inactive);
+    }
+
+    [Fact]
+    public void InactiveRegions_IfdefTrue_NoRegion()
+    {
+        var source = "#define HAS_IT\n#ifdef HAS_IT\n    active content\n#endif\nnamespace N { }";
+        var pp = new Preprocessor();
+        pp.Process(source);
+        Assert.Empty(pp.InactiveRegions);
+    }
+
+    [Fact]
+    public void InactiveRegions_ElseBranch_RecordsInactiveElse()
+    {
+        var source = "#define FOO\n#ifdef FOO\n    active\n#else\n    inactive else\n#endif\n";
+        var pp = new Preprocessor();
+        pp.Process(source);
+        Assert.Single(pp.InactiveRegions);
+        var inactive = source[pp.InactiveRegions[0].Start..pp.InactiveRegions[0].End];
+        Assert.Contains("inactive else", inactive);
+    }
+
+    [Fact]
+    public void InactiveRegions_IfndefTrue_RecordsRegion()
+    {
+        var source = "#define EXISTS\n#ifndef EXISTS\n    hidden\n#endif\nnamespace N { }";
+        var pp = new Preprocessor();
+        pp.Process(source);
+        Assert.Single(pp.InactiveRegions);
+        var inactive = source[pp.InactiveRegions[0].Start..pp.InactiveRegions[0].End];
+        Assert.Contains("hidden", inactive);
+    }
+
+    [Fact]
+    public void InactiveRegions_MultipleBlocks_RecordsAll()
+    {
+        var source = "#ifdef A\n    block1\n#endif\nactive\n#ifdef B\n    block2\n#endif\n";
+        var pp = new Preprocessor();
+        pp.Process(source);
+        Assert.Equal(2, pp.InactiveRegions.Count);
+        Assert.Contains("block1", source[pp.InactiveRegions[0].Start..pp.InactiveRegions[0].End]);
+        Assert.Contains("block2", source[pp.InactiveRegions[1].Start..pp.InactiveRegions[1].End]);
+    }
+
+    [Fact]
+    public void InactiveRegions_FlowThroughCompilation()
+    {
+        var source = "#ifdef NOPE\n    hidden\n#endif\nnamespace N { runtimeclass W { W(); } }";
+        var compilation = CompilationHelper.Compile(source);
+        Assert.NotEmpty(compilation.InactiveRegions);
+        var inactive = source[compilation.InactiveRegions[0].Start..compilation.InactiveRegions[0].End];
+        Assert.Contains("hidden", inactive);
+    }
+
+    [Fact]
+    public void InactiveRegions_WithDefine_ActiveBlockNotRecorded()
+    {
+        var source = "#define FEATURE\n#ifdef FEATURE\n    active code\n#endif\nnamespace N { }";
+        var compilation = CompilationHelper.Compile(source);
+        Assert.Empty(compilation.InactiveRegions);
+    }
+
+    [Fact]
+    public void SemanticTokens_InactiveRegion_MarkedAsComment()
+    {
+        var source = "#ifdef NOPE\nruntimeclass Hidden { }\n#endif\nnamespace N { }";
+        var compilation = CompilationHelper.Compile(source);
+        var (data, types, _) = Midl.Lsp.Handlers.SemanticTokensHandler.HandleCore(source, compilation);
+
+        // Find the token for "runtimeclass" — should be classified as comment (type 10) not keyword
+        // Semantic tokens are delta-encoded: [deltaLine, deltaChar, length, type, modifiers]
+        int commentType = Array.IndexOf(types, "comment");
+        int keywordType = Array.IndexOf(types, "keyword");
+
+        // Check that "runtimeclass" (which is in the inactive block) gets comment type
+        bool foundInactiveKeyword = false;
+        for (int i = 0; i < data.Length; i += 5)
+        {
+            int tokenType = data[i + 3];
+            int length = data[i + 2];
+            if (length == "runtimeclass".Length && tokenType == commentType)
+            {
+                foundInactiveKeyword = true;
+                break;
+            }
+        }
+        Assert.True(foundInactiveKeyword, "Keyword in inactive region should be classified as comment");
+
+        // Also check that "namespace" (outside inactive) is still a keyword
+        bool foundActiveKeyword = false;
+        for (int i = 0; i < data.Length; i += 5)
+        {
+            int tokenType = data[i + 3];
+            int length = data[i + 2];
+            if (length == "namespace".Length && tokenType == keywordType)
+            {
+                foundActiveKeyword = true;
+                break;
+            }
+        }
+        Assert.True(foundActiveKeyword, "Keyword outside inactive region should remain keyword");
+    }
+
+    #endregion
 }

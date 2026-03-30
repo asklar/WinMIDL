@@ -39,6 +39,9 @@ public class Preprocessor
     /// <summary>Warnings from preprocessing (#warning directives).</summary>
     public List<(string Message, int Position)> Warnings { get; } = new();
 
+    /// <summary>Ranges of inactive preprocessor regions in the original source (start offset, end offset).</summary>
+    public List<(int Start, int End)> InactiveRegions { get; } = new();
+
     private record FunctionMacro(string[] Params, string Body, bool IsVariadic = false);
 
     public Preprocessor(IReadOnlyList<string>? defines = null,
@@ -198,6 +201,7 @@ public class Preprocessor
         bool hasMacroDeltas = false;
         bool hasDirectiveGaps = false;
         bool wasActive = true; // track active/inactive transitions for #ifdef gap tracking
+        int inactiveRegionStart = -1; // offset in original source where current inactive region began
 
         #pragma warning disable CS0219
         int macroDelta = 0;
@@ -400,25 +404,49 @@ public class Preprocessor
 
             // Track active/inactive transitions for #ifdef gap source mapping
             bool nowActive = IsActive(ifStack);
-            if (wasActive && !nowActive && filePath != null)
+            if (wasActive && !nowActive)
             {
-                // Transitioning to inactive: flush current segment
-                int expandedPos = baseOffset + output.Length;
-                if (expandedPos > segExpandedStart)
+                // Record start of inactive region in original source
+                int origIdx = origLineIndices[i];
+                inactiveRegionStart = rawLineOffsets[origIdx];
+
+                if (filePath != null)
                 {
-                    SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+                    // Transitioning to inactive: flush current segment
+                    int expandedPos = baseOffset + output.Length;
+                    if (expandedPos > segExpandedStart)
+                    {
+                        SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+                        hasIfdefGaps = true;
+                    }
+                }
+            }
+            else if (!wasActive && nowActive)
+            {
+                int origIdx = (i + 1 < origLineIndices.Length) ? origLineIndices[i + 1] : rawLines.Count;
+
+                // Record end of inactive region
+                if (inactiveRegionStart >= 0)
+                {
+                    InactiveRegions.Add((inactiveRegionStart, rawLineOffsets[origIdx]));
+                    inactiveRegionStart = -1;
+                }
+
+                if (filePath != null)
+                {
+                    // Transitioning to active: start a new segment
+                    segExpandedStart = baseOffset + output.Length;
+                    segOriginalStart = rawLineOffsets[origIdx];
                     hasIfdefGaps = true;
                 }
             }
-            else if (!wasActive && nowActive && filePath != null)
-            {
-                // Transitioning to active: start a new segment
-                segExpandedStart = baseOffset + output.Length;
-                int origIdx = (i + 1 < origLineIndices.Length) ? origLineIndices[i + 1] : rawLines.Count;
-                segOriginalStart = rawLineOffsets[origIdx];
-                hasIfdefGaps = true;
-            }
             wasActive = nowActive;
+        }
+
+        // Close any unclosed inactive region at end of file
+        if (inactiveRegionStart >= 0)
+        {
+            InactiveRegions.Add((inactiveRegionStart, rawLineOffsets[rawLines.Count]));
         }
 
         // Remove trailing newline added by final AppendLine

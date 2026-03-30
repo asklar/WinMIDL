@@ -136,6 +136,12 @@
           "type": "boolean",
           "default": false,
           "description": "Enable array parameter syntax (T[]) in MIDL3. When enabled, parameters and return types can use T[] for WinRT array passing conventions."
+        },
+        "midl.defines": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Preprocessor defines for IDL compilation. Content inside #ifdef blocks for undefined symbols will be grayed out."
         }
       }
     }
