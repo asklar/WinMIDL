@@ -127,8 +127,16 @@ if (-not $vsPath) {
 $vcToolsVersion = Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt" -ErrorAction Stop
 $vcToolsVersion = $vcToolsVersion.Trim()
 $vcToolsDir = "$vsPath\VC\Tools\MSVC\$vcToolsVersion"
-$cl = "$vcToolsDir\bin\Hostx64\x64\cl.exe"
-$link = "$vcToolsDir\bin\Hostx64\x64\link.exe"
+
+# Detect target architecture
+$hostArch = $env:VSCMD_ARG_TGT_ARCH
+if (-not $hostArch) {
+    $hostArch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { "arm64" } else { "x64" }
+}
+$hostDir = if ($hostArch -eq "arm64") { "Hostarm64\arm64" } else { "Hostx64\x64" }
+
+$cl = "$vcToolsDir\bin\$hostDir\cl.exe"
+$link = "$vcToolsDir\bin\$hostDir\link.exe"
 if (-not (Test-Path $cl)) {
     Write-Host "SKIP: cl.exe not found at $cl" -ForegroundColor Yellow
     exit 0
@@ -154,17 +162,17 @@ Write-Host "  MSVC: $vcToolsVersion"
 Write-Host "  SDK:  $sdkVersion"
 
 $vcInclude = "$vcToolsDir\include"
-$vcLib = "$vcToolsDir\lib\x64"
+$vcLib = "$vcToolsDir\lib\$hostArch"
 $sdkIncUcrt = "$sdkRoot\Include\$sdkVersion\ucrt"
 $sdkIncShared = "$sdkRoot\Include\$sdkVersion\shared"
 $sdkIncUm = "$sdkRoot\Include\$sdkVersion\um"
 $sdkIncWinrt = "$sdkRoot\Include\$sdkVersion\winrt"
-$sdkLibUcrt = "$sdkRoot\Lib\$sdkVersion\ucrt\x64"
-$sdkLibUm = "$sdkRoot\Lib\$sdkVersion\um\x64"
+$sdkLibUcrt = "$sdkRoot\Lib\$sdkVersion\ucrt\$hostArch"
+$sdkLibUm = "$sdkRoot\Lib\$sdkVersion\um\$hostArch"
 
 $env:INCLUDE = "$vcInclude;$sdkIncUcrt;$sdkIncShared;$sdkIncUm;$sdkIncWinrt"
 $env:LIB = "$vcLib;$sdkLibUcrt;$sdkLibUm"
-$env:PATH = "$vcToolsDir\bin\Hostx64\x64;$sdkRoot\bin\$sdkVersion\x64;$env:PATH"
+$env:PATH = "$vcToolsDir\bin\$hostDir;$sdkRoot\bin\$sdkVersion\$hostArch;$env:PATH"
 
 $commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/W3",
                   "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",

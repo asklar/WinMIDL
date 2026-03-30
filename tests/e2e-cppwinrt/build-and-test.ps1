@@ -66,6 +66,13 @@ if (-not (Test-Path $cppwinrt)) {
     exit 0
 }
 
+# Detect target architecture: use VS dev cmd env if available, else OS arch
+$targetArch = $env:VSCMD_ARG_TGT_ARCH
+if (-not $targetArch) {
+    $targetArch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { "arm64" } else { "x64" }
+}
+$hostDir = if ($targetArch -eq "arm64") { "Hostarm64\arm64" } else { "Hostx64\x64" }
+
 # Find cl.exe — prefer PATH, fall back to vswhere
 $vcInclude = $null
 $vcLib = $null
@@ -74,6 +81,7 @@ $clPath = Get-Command cl.exe -ErrorAction SilentlyContinue
 if ($clPath) {
     $cl = $clPath.Source
     Write-Host "  cl.exe: $cl (from PATH)"
+    Write-Host "  Target arch: $targetArch"
 } else {
     $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
     if (-not (Test-Path $vswhere)) {
@@ -90,10 +98,10 @@ if ($clPath) {
     }
     $vcToolsVersion = (Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt").Trim()
     $vcToolsDir = "$vsPath\VC\Tools\MSVC\$vcToolsVersion"
-    $cl = "$vcToolsDir\bin\Hostx64\x64\cl.exe"
-    $link = "$vcToolsDir\bin\Hostx64\x64\link.exe"
+    $cl = "$vcToolsDir\bin\$hostDir\cl.exe"
+    $link = "$vcToolsDir\bin\$hostDir\link.exe"
     $vcInclude = "$vcToolsDir\include"
-    $vcLib = "$vcToolsDir\lib\x64"
+    $vcLib = "$vcToolsDir\lib\$targetArch"
     if (-not (Test-Path $cl)) {
         Write-Host "SKIP: cl.exe not found at $cl" -ForegroundColor Yellow
         exit 0
@@ -108,8 +116,8 @@ $sdkIncVersion = $sdkIncVersions[0].Name
 
 $cppwinrtInc = "$sdkRoot\Include\$sdkIncVersion\cppwinrt"
 $sdkIncUcrt = "$sdkRoot\Include\$sdkIncVersion\ucrt"
-$sdkLibUm = "$sdkRoot\Lib\$sdkIncVersion\um\x64"
-$sdkLibUcrt = "$sdkRoot\Lib\$sdkIncVersion\ucrt\x64"
+$sdkLibUm = "$sdkRoot\Lib\$sdkIncVersion\um\$targetArch"
+$sdkLibUcrt = "$sdkRoot\Lib\$sdkIncVersion\ucrt\$targetArch"
 $unionMetadata = "$sdkRoot\UnionMetadata\$sdkVersion"
 
 # Full SDK include/lib paths needed for proxy compilation (windows.h etc.)

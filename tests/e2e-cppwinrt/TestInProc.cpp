@@ -48,6 +48,7 @@ int main()
     // Test 2: Parameterized constructor
     {
         auto w = winrt::make<winrt::TestCppWinRT::implementation::Widget>(L"TestWidget");
+        auto w2 = winrt::TestCppWinRT::Widget(L"TestWidget");
         Check(w.Name() == L"TestWidget", "Parameterized constructor");
     }
 

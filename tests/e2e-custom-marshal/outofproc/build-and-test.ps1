@@ -78,9 +78,13 @@ if (-not $WinSdkInclude -or -not $WinSdkLib) {
 }
 
 # Determine target arch
-$arch = if ([Environment]::Is64BitOperatingSystem) { "x64" } else { "x86" }
-$cl = "$vcTools\bin\Hostx64\$arch\cl.exe"
-$link = "$vcTools\bin\Hostx64\$arch\link.exe"
+$arch = $env:VSCMD_ARG_TGT_ARCH
+if (-not $arch) {
+    $arch = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { "arm64" } else { "x64" }
+}
+$hostDir = if ($arch -eq "arm64") { "Hostarm64\arm64" } else { "Hostx64\x64" }
+$cl = "$vcTools\bin\$hostDir\cl.exe"
+$link = "$vcTools\bin\$hostDir\link.exe"
 
 if (-not (Test-Path $cl)) {
     Write-Host "SKIP: cl.exe not found at $cl"
