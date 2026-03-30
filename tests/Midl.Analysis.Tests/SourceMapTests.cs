@@ -719,6 +719,134 @@ public class SourceMapTests : IDisposable
 
     #endregion
 
+    #region Preprocessor Directive Position Tests
+
+    [Fact]
+    public void Ifndef_DiagnosticPosition_Correct()
+    {
+        // #ifndef with false condition (symbol IS defined) removes the block.
+        var source = "#define HAVE_IT\n#ifndef HAVE_IT\n    hidden content\n#endif\nnamespace N { runtimeclass Widget; }";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Widget", source.Substring(pos, "Widget".Length));
+    }
+
+    [Fact]
+    public void Ifndef_ActiveBlock_DiagnosticPosition_Correct()
+    {
+        // #ifndef with true condition (symbol NOT defined) keeps the block.
+        var source = "#ifndef MISSING\nnamespace N { runtimeclass Gizmo; }\n#endif\n";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Gizmo", source.Substring(pos, "Gizmo".Length));
+    }
+
+    [Fact]
+    public void Else_DiagnosticPosition_Correct()
+    {
+        // Content in #else branch after a true #ifdef.
+        var source = "#define HAS_FEATURE\n#ifdef HAS_FEATURE\nnamespace Active { enum E { A }; }\n#else\nnamespace Inactive { runtimeclass Ghost; }\n#endif\nnamespace N { runtimeclass Widget; }";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d =>
+            d.Code == "MIDL1062" && d.Message.Contains("Widget"));
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Widget", source.Substring(pos, "Widget".Length));
+    }
+
+    [Fact]
+    public void Elif_DiagnosticPosition_Correct()
+    {
+        // #elif branch — content after multiple conditional directives.
+        var source = "#define MODE 2\n#if 0\n    hidden\n#elif 1\nnamespace N { runtimeclass Thing; }\n#endif\n";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d =>
+            d.Code == "MIDL1062" && d.Message.Contains("Thing"));
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Thing", source.Substring(pos, "Thing".Length));
+    }
+
+    [Fact]
+    public void Undef_DiagnosticPosition_Correct()
+    {
+        // #undef directive line shifts offsets like #define.
+        var source = "#define FOO\n#undef FOO\nnamespace N { runtimeclass Item; }";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Item", source.Substring(pos, "Item".Length));
+    }
+
+    [Fact]
+    public void PragmaOnce_DiagnosticPosition_Correct()
+    {
+        // #pragma once produces an empty expanded line.
+        var mainFile = Path.Combine(_tempDir, "pragma.idl");
+        var mainSource = "#pragma once\nnamespace N { runtimeclass Box; }";
+        File.WriteAllText(mainFile, mainSource);
+
+        var compilation = CompilationHelper.Compile(
+            mainSource, referencePaths: null, CompilationMode.Strict,
+            includePaths: null, currentFilePath: mainFile);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Box", mainSource.Substring(pos, "Box".Length));
+    }
+
+    [Fact]
+    public void NestedIfdef_DiagnosticPosition_Correct()
+    {
+        // Nested #ifdef blocks — two levels of directive removal.
+        var source = "#ifdef OUTER\n#ifdef INNER\n    double hidden\n#endif\n#endif\nnamespace N { runtimeclass Nested; }";
+        var compilation = CompilationHelper.Compile(source, mode: CompilationMode.Strict);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Nested", source.Substring(pos, "Nested".Length));
+    }
+
+    [Fact]
+    public void ManyDirectives_DiagnosticPosition_Correct()
+    {
+        // Stress test: many different directives before the actual code.
+        var source = "#define A 1\n#define B 2\n#undef A\n#ifdef B\n#ifndef C\n#define C 3\n#endif\n#endif\n#pragma once\nnamespace N { runtimeclass Stress; }";
+        var mainFile = Path.Combine(_tempDir, "stress.idl");
+        File.WriteAllText(mainFile, source);
+
+        var compilation = CompilationHelper.Compile(
+            source, referencePaths: null, CompilationMode.Strict,
+            includePaths: null, currentFilePath: mainFile);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL1062");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Stress", source.Substring(pos, "Stress".Length));
+    }
+
+    #endregion
+
     #region Include Diagnostic Position Tests
 
     [Fact]
