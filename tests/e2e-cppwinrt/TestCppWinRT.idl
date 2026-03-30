@@ -1,0 +1,16 @@
+namespace TestCppWinRT
+{
+    enum Priority { Low, Medium, High };
+    struct Point { Single X; Single Y; };
+
+    runtimeclass Widget
+    {
+        Widget();
+        Widget(String name);
+        String Name { get; set; };
+        Priority Level { get; };
+        Point GetPosition();
+        void MoveTo(Point position);
+        event Windows.Foundation.TypedEventHandler<Widget, String> NameChanged;
+    };
+}
