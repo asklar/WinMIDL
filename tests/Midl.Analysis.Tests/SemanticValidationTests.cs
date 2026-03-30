@@ -530,7 +530,23 @@ public class SemanticValidationTests
         var hint = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3005");
         Assert.NotNull(hint);
         Assert.Contains("Widget", hint.Message);
-        Assert.Contains("constructor", hint.Message);
+        Assert.Contains("activatable", hint.Message);
+    }
+
+    [Fact]
+    public void QualityHint_EventArgs_NoConstructorWarning()
+    {
+        // EventArgs types are produced by event handlers, not constructed directly
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass ClickEventArgs {
+                    String Source { get; };
+                    Int32 X { get; };
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3005");
     }
 
     [Fact]
@@ -774,6 +790,78 @@ public class SemanticValidationTests
         var compilation = CompilationHelper.Compile(
             "namespace N { [webhosthidden] runtimeclass Widget { Widget(); } }");
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3018");
+    }
+
+    // MIDL3019: All-static class should be 'static runtimeclass'
+
+    [Fact]
+    public void QualityHint_AllStaticMembers_SuggestsStaticClass()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass MathHelpers {
+                    static Double Add(Double a, Double b);
+                    static Double Multiply(Double a, Double b);
+                }
+            }
+            """);
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3019");
+        Assert.NotNull(diag);
+        Assert.Contains("MathHelpers", diag.Message);
+        Assert.Contains("static", diag.Message);
+    }
+
+    [Fact]
+    public void QualityHint_MixedStaticAndInstance_NoDiag()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                runtimeclass Widget {
+                    Widget();
+                    String Name { get; };
+                    static String GetVersion();
+                }
+            }
+            """);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3019");
+    }
+
+    [Fact]
+    public void QualityHint_AlreadyStaticClass_NoDiag()
+    {
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                static runtimeclass MathHelpers {
+                    static Double Add(Double a, Double b);
+                }
+            }
+            """);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3019");
+    }
+
+    [Fact]
+    public void QualityHint_DefaultInterfaceWithStaticOnly_NoDiag()
+    {
+        // User explicitly opted into [default_interface] — don't suggest static
+        var compilation = CompileWithQualityHints("""
+            namespace N {
+                [default_interface]
+                runtimeclass Util {
+                    static String GetVersion();
+                }
+            }
+            """);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3019");
+    }
+
+    [Fact]
+    public void QualityHint_AllStaticMembers_SquiggleOnClassName()
+    {
+        var source = "namespace N { runtimeclass Helpers { static String GetInfo(); } }";
+        var compilation = CompileWithQualityHints(source);
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL3019");
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Helpers", source.Substring(pos, diag.Length));
     }
 
     #endregion

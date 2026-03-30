@@ -3453,10 +3453,40 @@ public partial class Binder
         }
 
         // MIDL3005: No constructor and not activatable
+        // Suppress for types likely obtained from elsewhere (EventArgs, etc.)
         if (!hasConstructors && !hasActivatable && !rc.IsStatic && hasMembers)
         {
-            _diagnostics.Add(DiagnosticDescriptors.RuntimeClassNoConstructor(
-                rc.Name, GetSymbolPosition(rc)));
+            bool isEventArgs = rc.Name.EndsWith("EventArgs", StringComparison.Ordinal);
+            bool hasDefaultInterface = rc.IsDefaultInterface;
+            bool allStatic = true;
+            foreach (var m in rc.Members) { if (m is not ConstructorSymbol && !IsStaticMember(m)) { allStatic = false; break; } }
+
+            // Don't warn for EventArgs types (produced by event handlers, not constructed)
+            // Don't warn for all-static classes (MIDL3019 handles those)
+            // Don't warn for [default_interface] classes (explicitly opted in)
+            if (!isEventArgs && !allStatic && !hasDefaultInterface)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.RuntimeClassNoConstructor(
+                    rc.Name, GetSymbolPosition(rc)));
+            }
+        }
+
+        // MIDL3019: All members are static — suggest 'static runtimeclass'
+        if (hasMembers && !rc.IsStatic && !rc.IsDefaultInterface)
+        {
+            bool allStatic = true;
+            bool hasNonCtorMembers = false;
+            foreach (var m in rc.Members)
+            {
+                if (m is ConstructorSymbol) continue;
+                hasNonCtorMembers = true;
+                if (!IsStaticMember(m)) { allStatic = false; break; }
+            }
+            if (allStatic && hasNonCtorMembers && !hasConstructors)
+            {
+                _diagnostics.Add(DiagnosticDescriptors.ClassCouldBeStatic(
+                    rc.Name, GetSymbolPosition(rc)));
+            }
         }
 
         // MIDL3007: Setter-only property
@@ -3564,6 +3594,14 @@ public partial class Binder
     }
 
     #endregion
+
+    private static bool IsStaticMember(ISymbol member) => member switch
+    {
+        MethodSymbol m => m.IsStatic,
+        PropertySymbol p => p.IsStatic,
+        EventSymbol e => e.IsStatic,
+        _ => false
+    };
 
     private static int SumTriviaWidth(GreenNode[] trivia)
     {

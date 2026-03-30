@@ -534,7 +534,8 @@ public static class DiagnosticDescriptors
 
     public static Diagnostic RuntimeClassNoConstructor(string name, int position) =>
         new(DiagnosticSeverity.Info, "MIDL3005",
-            $"Runtimeclass '{name}' has no constructor. It won't be default-activatable unless marked [activatable].",
+            $"Runtimeclass '{name}' does not appear to be activatable: no constructor and not marked [activatable]. " +
+            "If instances are obtained from another type's method, add a comment: // [obtained-from:Namespace.Type.Method]",
             position, Math.Max(name.Length, 1));
 
     public static Diagnostic EventHandlerNamingConvention(string name, string typeName, int position) =>
@@ -613,6 +614,12 @@ public static class DiagnosticDescriptors
         new(DiagnosticSeverity.Info, "MIDL3018",
             $"[{attrName}] has no effect in modern WinRT and can be removed.",
             position, Math.Max(length, 1));
+
+    public static Diagnostic ClassCouldBeStatic(string name, int position) =>
+        new(DiagnosticSeverity.Info, "MIDL3019",
+            $"Runtimeclass '{name}' consists only of static members. Did you intend it to be a 'static runtimeclass'? " +
+            "If not, add [default_interface] to allow creating instances.",
+            position, Math.Max(name.Length, 1));
 
     // Empty enum (MIDL1098)
     public static Diagnostic EmptyEnum(string enumName, int position) =>
