@@ -10,10 +10,41 @@ public static class FoldingRangeHandler
         var ranges = new List<Dictionary<string, object?>>();
         var lineStarts = PositionHelper.BuildLineStarts(text);
         var braceStack = new Stack<int>(); // stack of '{' offsets
+        var ifdefStack = new Stack<int>(); // stack of #ifdef/#ifndef/#if line numbers
 
         for (int i = 0; i < text.Length; i++)
         {
             char c = text[i];
+
+            // Check for preprocessor directives at start of line
+            if (c == '#' && (i == 0 || text[i - 1] == '\n'))
+            {
+                var lineEnd = text.IndexOf('\n', i);
+                if (lineEnd < 0) lineEnd = text.Length;
+                var directive = text[i..lineEnd].TrimStart('#').TrimStart();
+                var (directiveLine, _) = PositionHelper.OffsetToLineChar(lineStarts, i);
+
+                if (directive.StartsWith("ifdef") || directive.StartsWith("ifndef") || directive.StartsWith("if ") || directive.StartsWith("if\t"))
+                {
+                    ifdefStack.Push(directiveLine);
+                }
+                else if (directive.StartsWith("endif") && ifdefStack.Count > 0)
+                {
+                    int startLine = ifdefStack.Pop();
+                    if (directiveLine > startLine)
+                    {
+                        ranges.Add(new Dictionary<string, object?>
+                        {
+                            ["startLine"] = startLine,
+                            ["endLine"] = directiveLine,
+                            ["kind"] = "region"
+                        });
+                    }
+                }
+
+                i = lineEnd - 1; // skip to end of directive line
+                continue;
+            }
 
             // Skip string literals
             if (c == '"')
