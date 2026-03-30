@@ -130,22 +130,25 @@ public static class CompilationHelper
         {
             foreach (var includePos in preprocessor.IncludeDirectivePositions)
             {
-                syntaxDiagnostics.Add(DiagnosticDescriptors.IncludeDirectiveInStrictMode(includePos));
+                syntaxDiagnostics.Add(DiagnosticDescriptors.IncludeDirectiveInStrictMode(includePos)
+                    with { OriginalPosition = includePos, SourceFile = currentFilePath });
             }
         }
 
-        // Report preprocessor errors as diagnostics
+        // Report preprocessor errors as diagnostics (positions are in original source coordinates)
         foreach (var err in preprocessor.Errors)
         {
             syntaxDiagnostics.Add(new Diagnostics.Diagnostic(
-                Diagnostics.DiagnosticSeverity.Error, "MIDL1074", err.Message, err.Position, 1));
+                Diagnostics.DiagnosticSeverity.Error, "MIDL1074", err.Message, err.Position, 1)
+                with { OriginalPosition = err.Position, SourceFile = currentFilePath });
         }
 
         // Report preprocessor warnings as diagnostics
         foreach (var warn in preprocessor.Warnings)
         {
             syntaxDiagnostics.Add(new Diagnostics.Diagnostic(
-                Diagnostics.DiagnosticSeverity.Warning, "MIDL1074", warn.Message, warn.Position, 1));
+                Diagnostics.DiagnosticSeverity.Warning, "MIDL1074", warn.Message, warn.Position, 1)
+                with { OriginalPosition = warn.Position, SourceFile = currentFilePath });
         }
 
         if (profile != null) { profile.Preprocess = sw!.Elapsed; sw.Restart(); }
@@ -247,6 +250,13 @@ public static class CompilationHelper
 
         foreach (var diag in compilation.Diagnostics)
         {
+            // Skip diagnostics that already have positions resolved (preprocessor diagnostics)
+            if (diag.OriginalPosition.HasValue)
+            {
+                resolved.Add(diag);
+                continue;
+            }
+
             var mapping = sourceMap.Resolve(diag.Position);
             if (mapping.HasValue)
             {
@@ -295,6 +305,14 @@ public static class CompilationHelper
 
         foreach (var diag in compilation.Diagnostics)
         {
+            // Skip diagnostics that already have OriginalPosition set
+            // (e.g., preprocessor diagnostics with positions in original coordinates)
+            if (diag.OriginalPosition.HasValue)
+            {
+                resolved.Add(diag);
+                continue;
+            }
+
             int pos = diag.Position;
             // Find line in expanded text
             int line = FindLine(expandedLineStarts, pos);
