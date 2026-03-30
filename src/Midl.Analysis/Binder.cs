@@ -434,6 +434,7 @@ public partial class Binder
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
+        AttachDocComment(symbol, node);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -617,6 +618,7 @@ public partial class Binder
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
+        AttachDocComment(symbol, node);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -766,6 +768,7 @@ public partial class Binder
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
+        AttachDocComment(symbol, node);
         symbol.ReturnType = ExtractTypeRef(returnTypeNode);
         TrackTypeRef(symbol.ReturnType, ns);
         ns.AddMember(symbol);
@@ -807,6 +810,7 @@ public partial class Binder
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
+        AttachDocComment(symbol, node);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -971,6 +975,7 @@ public partial class Binder
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
         if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
+        AttachDocComment(symbol, node);
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
@@ -1434,6 +1439,7 @@ public partial class Binder
         var name = ctorNameToken?.Text ?? "";
         var symbol = new ConstructorSymbol(name, containingSymbol);
         if (ctorNameToken != null) symbol.SourcePosition = GetNodePosition(ctorNameToken);
+        AttachMemberDocComment(symbol, node);
 
         // Extract all attributes
         var ctorAttrList = FindChild(node, SyntaxKind.AttributeList);
@@ -1461,6 +1467,7 @@ public partial class Binder
 
         var symbol = new MethodSymbol(nameText, containingSymbol);
         if (methodNameToken != null) symbol.SourcePosition = GetNodePosition(methodNameToken);
+        AttachMemberDocComment(symbol, node);
         symbol.ReturnType = ExtractTypeRef(returnTypeNode);
         TrackTypeRef(symbol.ReturnType, ns);
 
@@ -1503,6 +1510,7 @@ public partial class Binder
 
         var symbol = new PropertySymbol(nameText, containingSymbol);
         if (propNameToken != null) symbol.SourcePosition = GetNodePosition(propNameToken);
+        AttachMemberDocComment(symbol, node);
         symbol.Type = ExtractTypeRef(typeNode);
         TrackTypeRef(symbol.Type, ns);
 
@@ -1581,6 +1589,7 @@ public partial class Binder
 
         var symbol = new EventSymbol(name, containingSymbol);
         if (nameToken != null) symbol.SourcePosition = GetNodePosition(nameToken);
+        AttachMemberDocComment(symbol, node);
         symbol.DelegateType = ExtractTypeRef(typeNode);
         TrackTypeRef(symbol.DelegateType, ns);
 
@@ -2640,6 +2649,8 @@ public partial class Binder
                     break;
                 case StructSymbol s when !s.IsExternal:
                     ValidateStructFieldTypes(s);
+                    if (_emitQualityHints && s.DocComment == null)
+                        _diagnostics.Add(DiagnosticDescriptors.MissingDocComment(s.Name, GetSymbolPosition(s)));
                     break;
                 case EnumSymbol en when !en.IsExternal:
                     if (en.IsFlags && en.UnderlyingType != "UInt32")
@@ -2648,12 +2659,16 @@ public partial class Binder
                     if (en.EnumMembers.Count == 0)
                         _diagnostics.Add(DiagnosticDescriptors.EmptyEnum(
                             en.Name, GetSymbolPosition(en)));
+                    if (_emitQualityHints && en.DocComment == null)
+                        _diagnostics.Add(DiagnosticDescriptors.MissingDocComment(en.Name, GetSymbolPosition(en)));
                     break;
                 case DelegateSymbol d when !d.IsExternal:
                     ValidateDelegateReturnType(d);
                     ValidateMethodParametersForDelegate(d);
                     if (_emitQualityHints && !d.Name.EndsWith("Handler") && !d.Name.EndsWith("Callback") && !d.Name.EndsWith("EventHandler"))
                         _diagnostics.Add(DiagnosticDescriptors.DelegateNamingConvention(d.Name, GetSymbolPosition(d)));
+                    if (_emitQualityHints && d.DocComment == null)
+                        _diagnostics.Add(DiagnosticDescriptors.MissingDocComment(d.Name, GetSymbolPosition(d)));
                     break;
                 case AttributeTypeSymbol at when !at.IsExternal && _emitQualityHints:
                     if (!at.Name.EndsWith("Attribute", StringComparison.Ordinal))
@@ -3373,6 +3388,13 @@ public partial class Binder
 
     private void ValidateInterfaceQuality(InterfaceSymbol iface)
     {
+        // MIDL3020: Missing doc comment (skip synthesized interfaces)
+        if (iface.DocComment == null && !iface.IsSynthesized)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.MissingDocComment(
+                iface.Name, GetSymbolPosition(iface)));
+        }
+
         // MIDL3001: Interface should follow I + PascalCase convention
         if (iface.Name.Length >= 2 && iface.Name[0] == 'I' && char.IsUpper(iface.Name[1]))
         {
@@ -3439,6 +3461,13 @@ public partial class Binder
 
     private void ValidateRuntimeClassQuality(RuntimeClassSymbol rc)
     {
+        // MIDL3020: Missing doc comment
+        if (rc.DocComment == null)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.MissingDocComment(
+                rc.Name, GetSymbolPosition(rc)));
+        }
+
         bool hasMembers = rc.Members.Count > 0;
         bool hasConstructors = false;
         foreach (var m in rc.Members) { if (m is ConstructorSymbol) { hasConstructors = true; break; } }

@@ -17,6 +17,7 @@ public class DelegateSymbol : ISymbol
     public string? SourceWinMdPath { get; set; }
     public string? SourceFile { get; set; }
     public int SourcePosition { get; set; } = -1;
+    public DocComment? DocComment { get; set; }
 
     public Guid? Uuid { get; set; }
     public int? Version { get; set; }

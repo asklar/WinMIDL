@@ -16,6 +16,7 @@ public partial class RuntimeClassSymbol : ISymbol
     public string? SourceWinMdPath { get; set; }
     public string? SourceFile { get; set; }
     public int SourcePosition { get; set; } = -1;
+    public DocComment? DocComment { get; set; }
 
     public TypeRef? BaseClass{ get; set; }
     public List<TypeRef> Interfaces { get; } = [];

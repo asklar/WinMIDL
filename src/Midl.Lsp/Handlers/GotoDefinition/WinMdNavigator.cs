@@ -312,5 +312,6 @@ internal static class WinMdNavigator
         public string? SourceWinMdPath { get; }
         public string? SourceFile => null;
         public int SourcePosition { get => _inner.SourcePosition; set { } }
+        public DocComment? DocComment { get => _inner.DocComment; set { } }
     }
 }

@@ -16,6 +16,7 @@ public class InterfaceSymbol : ISymbol
     public string? SourceWinMdPath { get; set; }
     public string? SourceFile { get; set; }
     public int SourcePosition { get; set; } = -1;
+    public DocComment? DocComment { get; set; }
 
     public bool IsExclusive { get; set; }
     public string? ExclusiveToClass { get; set; }

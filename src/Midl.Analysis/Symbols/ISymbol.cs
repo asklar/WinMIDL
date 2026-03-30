@@ -12,4 +12,6 @@ public interface ISymbol
     string? SourceFile { get; }
     /// <summary>Absolute source position of this symbol's name token. -1 if unknown.</summary>
     int SourcePosition { get; set; }
+    /// <summary>Parsed XML documentation comment (/// trivia), or null if none.</summary>
+    DocComment? DocComment { get; set; }
 }

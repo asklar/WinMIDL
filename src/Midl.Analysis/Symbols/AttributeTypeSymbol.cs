@@ -18,6 +18,7 @@ public class AttributeTypeSymbol : ISymbol
     public string? SourceWinMdPath { get; set; }
     public string? SourceFile { get; set; }
     public int SourcePosition { get; set; } = -1;
+    public DocComment? DocComment { get; set; }
 
     // Extracted attribute data (attributes on the attribute declaration itself)
     public List<AttributeData> Attributes { get; } = new();

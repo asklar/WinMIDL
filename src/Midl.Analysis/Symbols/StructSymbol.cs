@@ -15,6 +15,7 @@ public class StructSymbol : ISymbol
     public string? SourceWinMdPath { get; set; }
     public string? SourceFile { get; set; }
     public int SourcePosition { get; set; } = -1;
+    public DocComment? DocComment { get; set; }
 
     private readonly List<FieldSymbol> _fields = [];
     public IReadOnlyList<FieldSymbol> Fields => _fields;
