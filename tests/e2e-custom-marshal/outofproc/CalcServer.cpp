@@ -63,6 +63,10 @@ static const CLSID CLSID_AsyncCalculator = {
     0x5e6f7a8b, 0x9c0d, 0x4e1f,
     {0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80, 0x91}};
 
+static const CLSID CLSID_ArrayOps = {
+    0x6f7a8b9c, 0x0d1e, 0x4f2a,
+    {0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80, 0x91, 0xa2}};
+
 static HANDLE g_hShutdown = nullptr;
 static LONG g_cServerObjects = 0;
 
@@ -1055,6 +1059,98 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// ArrayOpsImpl — implements IArrayOps (array parameter marshaling)
+// ---------------------------------------------------------------------------
+class ArrayOpsImpl : public __x_TestApp_OutOfProc_IArrayOps {
+    LONG m_cRef;
+public:
+    ArrayOpsImpl() : m_cRef(1) { ServerObjIncRef(); }
+    ~ArrayOpsImpl() { ServerObjDecRef(); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_OutOfProc_IArrayOps) {
+            *ppv = static_cast<__x_TestApp_OutOfProc_IArrayOps*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_OutOfProc_IArrayOps;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.OutOfProc.ArrayOps", 26, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    // Pass-array (in): receive array of Int32, store sum
+    HRESULT STDMETHODCALLTYPE ProcessScores(UINT32 __scoresSize, INT32* scores) override {
+        if (__scoresSize > 0 && !scores) return E_POINTER;
+        // Just validate we received the data — sum for sanity
+        INT32 sum = 0;
+        for (UINT32 i = 0; i < __scoresSize; i++) {
+            sum += scores[i];
+        }
+        (void)sum;
+        return S_OK;
+    }
+
+    // Receive-array (out): return array of HSTRING names
+    HRESULT STDMETHODCALLTYPE GetNames(UINT32* __namesSize, HSTRING** names) override {
+        if (!__namesSize || !names) return E_POINTER;
+        *__namesSize = 3;
+        *names = (HSTRING*)CoTaskMemAlloc(3 * sizeof(HSTRING));
+        if (!*names) return E_OUTOFMEMORY;
+        WindowsCreateString(L"Alice", 5, &(*names)[0]);
+        WindowsCreateString(L"Bob", 3, &(*names)[1]);
+        WindowsCreateString(L"Charlie", 7, &(*names)[2]);
+        return S_OK;
+    }
+
+    // Fill-array (ref): fill pre-allocated buffer with squares
+    HRESULT STDMETHODCALLTYPE FillBuffer(UINT32 __bufferCapacity, INT32* buffer, UINT32* __bufferActual) override {
+        if (!buffer || !__bufferActual) return E_POINTER;
+        UINT32 count = __bufferCapacity < 5 ? __bufferCapacity : 5;
+        for (UINT32 i = 0; i < count; i++) {
+            buffer[i] = (INT32)((i + 1) * (i + 1));
+        }
+        *__bufferActual = count;
+        return S_OK;
+    }
+
+    // Return-array: return first 5 primes
+    HRESULT STDMETHODCALLTYPE GetPrimes(UINT32* __returnSize, INT32** __returnItems) override {
+        if (!__returnSize || !__returnItems) return E_POINTER;
+        *__returnSize = 5;
+        *__returnItems = (INT32*)CoTaskMemAlloc(5 * sizeof(INT32));
+        if (!*__returnItems) return E_OUTOFMEMORY;
+        (*__returnItems)[0] = 2;
+        (*__returnItems)[1] = 3;
+        (*__returnItems)[2] = 5;
+        (*__returnItems)[3] = 7;
+        (*__returnItems)[4] = 11;
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
 // MultiClassFactory — switches on CLSID to create the right object
 // ---------------------------------------------------------------------------
 class MultiClassFactory : public IClassFactory {
@@ -1106,6 +1202,8 @@ public:
             obj = static_cast<__x_TestApp_OutOfProc_IStringListProvider*>(new (std::nothrow) StringListProviderImpl());
         else if (m_clsid == CLSID_AsyncCalculator)
             obj = static_cast<__x_TestApp_OutOfProc_IAsyncCalculator*>(new (std::nothrow) AsyncCalculatorImpl());
+        else if (m_clsid == CLSID_ArrayOps)
+            obj = static_cast<__x_TestApp_OutOfProc_IArrayOps*>(new (std::nothrow) ArrayOpsImpl());
         else return CLASS_E_CLASSNOTAVAILABLE;
         if (!obj) return E_OUTOFMEMORY;
         HRESULT hr = obj->QueryInterface(riid, ppv);
@@ -1154,6 +1252,7 @@ int main() {
         { CLSID_DelegateInvoker, 0 },
         { CLSID_StringListProvider, 0 },
         { CLSID_AsyncCalculator, 0 },
+        { CLSID_ArrayOps, 0 },
     };
 
     for (auto& reg : regs) {

@@ -127,6 +127,7 @@ $cliOutput = & dotnet run --project $cliProject --no-build -- `
     /iid TestCalculator_i.c `
     /cppproxy TestCalculator_proxy.cpp `
     /noproxy /no_dlldata `
+    /arrays `
     /out $genDir `
     "$testDir/TestCalculator.idl" 2>&1
 
@@ -233,6 +234,8 @@ $IID_IAsyncResult = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IAsyncRe
 $IID_IAsyncResult2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IAsyncResult2"
 $IID_IAsyncCalculator = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IAsyncCalculator"
 $IID_IAsyncCalculator2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IAsyncCalculator2"
+$IID_IArrayOps = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IArrayOps"
+$IID_IArrayOps2 = Extract-Guid $iidContent "IID___x_TestApp_OutOfProc_IArrayOps2"
 
 if (-not $IID_ICalculator) {
     Write-Host "FAIL: Could not extract IID_ICalculator from generated code" -ForegroundColor Red
@@ -251,6 +254,7 @@ $CLSID_EventSource = "{2B3C4D5E-6F7A-4B8C-9DAE-BFC0D1E2F3A4}"
 $CLSID_DelegateInvoker = "{3C4D5E6F-7A8B-4C9D-AEBF-C0D1E2F3A4B5}"
 $CLSID_StringListProvider = "{4D5E6F7A-8B9C-4D0E-1F2A-3B4C5D6E7F81}"
 $CLSID_AsyncCalculator = "{5E6F7A8B-9C0D-4E1F-2A3B-4C5D6E7F8091}"
+$CLSID_ArrayOps = "{6F7A8B9C-0D1E-4F2A-3B4C-5D6E7F8091A2}"
 
 # Read the proxy CLSID from the generated code
 $proxyContent = Get-Content "$genDir/TestCalculator_proxy.cpp" -Raw
@@ -278,6 +282,7 @@ Write-Host "  CLSID_EventSource:   $CLSID_EventSource"
 Write-Host "  CLSID_DelegateInvoker: $CLSID_DelegateInvoker"
 Write-Host "  CLSID_StringListProvider: $CLSID_StringListProvider"
 Write-Host "  CLSID_AsyncCalculator: $CLSID_AsyncCalculator"
+Write-Host "  CLSID_ArrayOps:      $CLSID_ArrayOps"
 Write-Host "  CLSID_PSFactory:     $CLSID_PSFactory"
 Write-Host "  IID_ICalculator:     $IID_ICalculator"
 Write-Host "  IID_ITypeShowcase:   $IID_ITypeShowcase"
@@ -297,12 +302,13 @@ Write-Host "  IID_IStringList:     $IID_IStringList"
 Write-Host "  IID_IStringListProvider: $IID_IStringListProvider"
 Write-Host "  IID_IAsyncResult:    $IID_IAsyncResult"
 Write-Host "  IID_IAsyncCalculator: $IID_IAsyncCalculator"
+Write-Host "  IID_IArrayOps:       $IID_IArrayOps"
 
 # Register under HKCU (no admin needed)
 $regBase = "HKCU:\Software\Classes"
 
 # All CLSIDs for LocalServer32
-$allClsids = @($CLSID_Calculator, $CLSID_TypeShowcase, $CLSID_Notifier, $CLSID_PropertyBag, $CLSID_ComplexOps, $CLSID_OptionalValues, $CLSID_Circle, $CLSID_EventSource, $CLSID_DelegateInvoker, $CLSID_StringListProvider, $CLSID_AsyncCalculator)
+$allClsids = @($CLSID_Calculator, $CLSID_TypeShowcase, $CLSID_Notifier, $CLSID_PropertyBag, $CLSID_ComplexOps, $CLSID_OptionalValues, $CLSID_Circle, $CLSID_EventSource, $CLSID_DelegateInvoker, $CLSID_StringListProvider, $CLSID_AsyncCalculator, $CLSID_ArrayOps)
 
 foreach ($clsid in $allClsids) {
     $clsidKey = "$regBase\CLSID\$clsid\LocalServer32"
@@ -350,7 +356,9 @@ $allIids = @(
     $IID_IAsyncResult,
     $IID_IAsyncResult2,
     $IID_IAsyncCalculator,
-    $IID_IAsyncCalculator2
+    $IID_IAsyncCalculator2,
+    $IID_IArrayOps,
+    $IID_IArrayOps2
 ) | Where-Object { $_ -ne $null }
 
 foreach ($iid in $allIids) {

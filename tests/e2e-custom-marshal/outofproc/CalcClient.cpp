@@ -63,6 +63,10 @@ static const CLSID CLSID_AsyncCalculator = {
     0x5e6f7a8b, 0x9c0d, 0x4e1f,
     {0x2a, 0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80, 0x91}};
 
+static const CLSID CLSID_ArrayOps = {
+    0x6f7a8b9c, 0x0d1e, 0x4f2a,
+    {0x3b, 0x4c, 0x5d, 0x6e, 0x7f, 0x80, 0x91, 0xa2}};
+
 static int g_passed = 0;
 static int g_failed = 0;
 
@@ -1037,6 +1041,82 @@ int main() {
             if (className) WindowsDeleteString(className);
 
             pAsync->Release();
+        }
+    }
+
+    // ===== Test group 13: ArrayOps (array parameter marshaling) =====
+    printf("\n[Client] --- ArrayOps tests ---\n");
+    {
+        __x_TestApp_OutOfProc_IArrayOps* pArr = nullptr;
+        hr = CoCreateInstance(CLSID_ArrayOps, nullptr, CLSCTX_LOCAL_SERVER,
+                              IID___x_TestApp_OutOfProc_IArrayOps, (void**)&pArr);
+        Check(SUCCEEDED(hr), "ArrayOps: CoCreateInstance");
+        if (SUCCEEDED(hr) && pArr) {
+            // ProcessScores — pass-array (in): send array of Int32
+            {
+                INT32 scores[] = { 10, 20, 30, 40 };
+                hr = pArr->ProcessScores(4, scores);
+                Check(SUCCEEDED(hr), "ArrayOps: ProcessScores");
+            }
+
+            // GetPrimes — return-array: receive array of Int32
+            {
+                UINT32 primesSize = 0;
+                INT32* primes = nullptr;
+                hr = pArr->GetPrimes(&primesSize, &primes);
+                Check(SUCCEEDED(hr), "ArrayOps: GetPrimes");
+                Check(primesSize == 5, "ArrayOps: GetPrimes count == 5");
+                if (primes && primesSize == 5) {
+                    Check(primes[0] == 2 && primes[1] == 3 && primes[2] == 5 &&
+                          primes[3] == 7 && primes[4] == 11,
+                          "ArrayOps: GetPrimes values [2,3,5,7,11]");
+                }
+                if (primes) CoTaskMemFree(primes);
+            }
+
+            // GetNames — receive-array (out): receive array of HSTRING
+            {
+                UINT32 namesSize = 0;
+                HSTRING* names = nullptr;
+                hr = pArr->GetNames(&namesSize, &names);
+                Check(SUCCEEDED(hr), "ArrayOps: GetNames");
+                Check(namesSize == 3, "ArrayOps: GetNames count == 3");
+                if (names && namesSize == 3) {
+                    Check(HStringEquals(names[0], L"Alice", 5), "ArrayOps: GetNames[0] == Alice");
+                    Check(HStringEquals(names[1], L"Bob", 3), "ArrayOps: GetNames[1] == Bob");
+                    Check(HStringEquals(names[2], L"Charlie", 7), "ArrayOps: GetNames[2] == Charlie");
+                }
+                if (names) {
+                    for (UINT32 i = 0; i < namesSize; i++) {
+                        WindowsDeleteString(names[i]);
+                    }
+                    CoTaskMemFree(names);
+                }
+            }
+
+            // FillBuffer — fill-array (ref): provide buffer, server fills it
+            {
+                INT32 buffer[10] = {};
+                UINT32 actualCount = 0;
+                hr = pArr->FillBuffer(10, buffer, &actualCount);
+                Check(SUCCEEDED(hr), "ArrayOps: FillBuffer");
+                Check(actualCount == 5, "ArrayOps: FillBuffer actual == 5");
+                if (actualCount == 5) {
+                    Check(buffer[0] == 1 && buffer[1] == 4 && buffer[2] == 9 &&
+                          buffer[3] == 16 && buffer[4] == 25,
+                          "ArrayOps: FillBuffer values [1,4,9,16,25]");
+                }
+            }
+
+            // GetRuntimeClassName
+            HSTRING className = nullptr;
+            hr = pArr->GetRuntimeClassName(&className);
+            Check(SUCCEEDED(hr) &&
+                  HStringEquals(className, L"TestApp.OutOfProc.ArrayOps", 26),
+                  "ArrayOps: GetRuntimeClassName");
+            if (className) WindowsDeleteString(className);
+
+            pArr->Release();
         }
     }
 

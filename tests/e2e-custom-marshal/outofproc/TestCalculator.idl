@@ -181,8 +181,23 @@ namespace TestApp.OutOfProc
         StringListProvider();
     }
 
-    // 11. AsyncCalculator — async return types (IAsyncOperation<T>)
-    // 12. Async-like result — own interface so we generate proxy/stub for it
+    // 11. ArrayOps — array parameter marshaling across process boundary
+    interface IArrayOps
+    {
+        void ProcessScores(Int32[] scores);
+        void GetNames(out String[] names);
+        void FillBuffer(ref Int32[] buffer);
+        Int32[] GetPrimes();
+    };
+
+    [default_interface]
+    runtimeclass ArrayOps : IArrayOps
+    {
+        ArrayOps();
+    }
+
+    // 12. AsyncCalculator — async return types (IAsyncOperation<T>)
+    // 13. Async-like result — own interface so we generate proxy/stub for it
     enum AsyncStatus { Started, Completed, Canceled, Error };
 
     interface IAsyncResult
