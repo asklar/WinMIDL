@@ -77,6 +77,10 @@ static const CLSID CLSID_CollectionOps = {
     0xc5d6e7f8, 0xa9b0, 0x41c2,
     {0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea}};
 
+static const CLSID CLSID_ArrayOps = {
+    0xd6e7f8a9, 0xb0c1, 0x42d3,
+    {0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea, 0xfb}};
+
 // ---------------------------------------------------------------------------
 // Client-side helper: LoggerImpl — implements ILogger for Subscribe test
 // ---------------------------------------------------------------------------
@@ -898,6 +902,110 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
             if (className) WindowsDeleteString(className);
 
             pColl->Release();
+        }
+    }
+
+    // ArrayOps (#18) — array parameter marshaling
+    printf("[MTA] --- ArrayOps tests ---\n");
+    {
+        __x_TestApp_Comprehensive_IArrayOps* pArr = nullptr;
+        hr = CoCreateInstance(CLSID_ArrayOps, nullptr, CLSCTX_INPROC_SERVER,
+            IID___x_TestApp_Comprehensive_IArrayOps, (void**)&pArr);
+        Check(SUCCEEDED(hr), "ArrayOps: CoCreateInstance");
+
+        if (SUCCEEDED(hr) && pArr) {
+            // ProcessScores — pass-array (in): send array of Int32
+            {
+                INT32 scores[] = { 10, 20, 30, 40 };
+                hr = pArr->ProcessScores(4, scores);
+                Check(SUCCEEDED(hr), "ArrayOps: ProcessScores");
+            }
+
+            // GetPrimes — return-array: receive array of Int32
+            {
+                UINT32 primesSize = 0;
+                INT32* primes = nullptr;
+                hr = pArr->GetPrimes(&primesSize, &primes);
+                Check(SUCCEEDED(hr), "ArrayOps: GetPrimes");
+                Check(primesSize == 5, "ArrayOps: GetPrimes count == 5");
+                if (primes && primesSize == 5) {
+                    Check(primes[0] == 2 && primes[1] == 3 && primes[2] == 5 &&
+                          primes[3] == 7 && primes[4] == 11,
+                          "ArrayOps: GetPrimes values [2,3,5,7,11]");
+                }
+                if (primes) CoTaskMemFree(primes);
+            }
+
+            // GetNames — receive-array (out): receive array of HSTRING
+            {
+                UINT32 namesSize = 0;
+                HSTRING* names = nullptr;
+                hr = pArr->GetNames(&namesSize, &names);
+                Check(SUCCEEDED(hr), "ArrayOps: GetNames");
+                Check(namesSize == 3, "ArrayOps: GetNames count == 3");
+                if (names && namesSize == 3) {
+                    Check(HStringEquals(names[0], L"Alice", 5), "ArrayOps: GetNames[0] == Alice");
+                    Check(HStringEquals(names[1], L"Bob", 3), "ArrayOps: GetNames[1] == Bob");
+                    Check(HStringEquals(names[2], L"Charlie", 7), "ArrayOps: GetNames[2] == Charlie");
+                }
+                if (names) {
+                    for (UINT32 i = 0; i < namesSize; i++) {
+                        WindowsDeleteString(names[i]);
+                    }
+                    CoTaskMemFree(names);
+                }
+            }
+
+            // FillBuffer — fill-array (ref): provide buffer, server fills it
+            {
+                INT32 buffer[10] = {};
+                UINT32 actualCount = 0;
+                hr = pArr->FillBuffer(10, buffer, &actualCount);
+                Check(SUCCEEDED(hr), "ArrayOps: FillBuffer");
+                Check(actualCount == 5, "ArrayOps: FillBuffer actual == 5");
+                if (actualCount == 5) {
+                    Check(buffer[0] == 1 && buffer[1] == 4 && buffer[2] == 9 &&
+                          buffer[3] == 16 && buffer[4] == 25,
+                          "ArrayOps: FillBuffer values [1,4,9,16,25]");
+                }
+            }
+
+            // ComputeAverage — pass-array with return value
+            {
+                DOUBLE values[] = { 10.0, 20.0, 30.0, 40.0 };
+                DOUBLE avg = 0.0;
+                hr = pArr->ComputeAverage(4, values, &avg);
+                Check(SUCCEEDED(hr), "ArrayOps: ComputeAverage");
+                Check(avg == 25.0, "ArrayOps: ComputeAverage == 25.0");
+            }
+
+            // GetPoints — out struct array: receive array of Point
+            {
+                UINT32 pointsSize = 0;
+                Point* points = nullptr;
+                hr = pArr->GetPoints(&pointsSize, &points);
+                Check(SUCCEEDED(hr), "ArrayOps: GetPoints");
+                Check(pointsSize == 3, "ArrayOps: GetPoints count == 3");
+                if (points && pointsSize == 3) {
+                    Check(points[0].X == 1.0f && points[0].Y == 2.0f,
+                          "ArrayOps: GetPoints[0] == (1,2)");
+                    Check(points[1].X == 3.0f && points[1].Y == 4.0f,
+                          "ArrayOps: GetPoints[1] == (3,4)");
+                    Check(points[2].X == 5.0f && points[2].Y == 6.0f,
+                          "ArrayOps: GetPoints[2] == (5,6)");
+                }
+                if (points) CoTaskMemFree(points);
+            }
+
+            // GetRuntimeClassName
+            HSTRING className = nullptr;
+            hr = pArr->GetRuntimeClassName(&className);
+            Check(SUCCEEDED(hr) &&
+                  HStringEquals(className, L"TestApp.Comprehensive.ArrayOps", 30),
+                  "ArrayOps: GetRuntimeClassName");
+            if (className) WindowsDeleteString(className);
+
+            pArr->Release();
         }
     }
 

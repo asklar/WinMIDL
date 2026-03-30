@@ -71,6 +71,10 @@ static const CLSID CLSID_CollectionOps = {
     0xc5d6e7f8, 0xa9b0, 0x41c2,
     {0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea}};
 
+static const CLSID CLSID_ArrayOps = {
+    0xd6e7f8a9, 0xb0c1, 0x42d3,
+    {0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea, 0xfb}};
+
 static constexpr double kPi = 3.14159265358979323846;
 static LONG g_cDllRef = 0;
 
@@ -1220,6 +1224,128 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// ArrayOpsImpl — implements IArrayOps (array parameter patterns)
+// ---------------------------------------------------------------------------
+class ArrayOpsImpl : public __x_TestApp_Comprehensive_IArrayOps {
+    LONG m_cRef;
+    // Store last ProcessScores call for verification
+    INT32 m_lastScoreSum;
+    UINT32 m_lastScoreCount;
+public:
+    ArrayOpsImpl() : m_cRef(1), m_lastScoreSum(0), m_lastScoreCount(0) {
+        InterlockedIncrement(&g_cDllRef);
+    }
+    ~ArrayOpsImpl() { InterlockedDecrement(&g_cDllRef); }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_Comprehensive_IArrayOps) {
+            *ppv = static_cast<__x_TestApp_Comprehensive_IArrayOps*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_Comprehensive_IArrayOps;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.Comprehensive.ArrayOps", 30, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    // Pass-array (in): receive an array of Int32, compute sum
+    HRESULT STDMETHODCALLTYPE ProcessScores(UINT32 __scoresSize, INT32* scores) override {
+        if (__scoresSize > 0 && !scores) return E_POINTER;
+        m_lastScoreCount = __scoresSize;
+        m_lastScoreSum = 0;
+        for (UINT32 i = 0; i < __scoresSize; i++) {
+            m_lastScoreSum += scores[i];
+        }
+        return S_OK;
+    }
+
+    // Receive-array (out): return an array of HSTRING names
+    HRESULT STDMETHODCALLTYPE GetNames(UINT32* __namesSize, HSTRING** names) override {
+        if (!__namesSize || !names) return E_POINTER;
+        *__namesSize = 3;
+        *names = (HSTRING*)CoTaskMemAlloc(3 * sizeof(HSTRING));
+        if (!*names) return E_OUTOFMEMORY;
+        WindowsCreateString(L"Alice", 5, &(*names)[0]);
+        WindowsCreateString(L"Bob", 3, &(*names)[1]);
+        WindowsCreateString(L"Charlie", 7, &(*names)[2]);
+        return S_OK;
+    }
+
+    // Fill-array (ref): fill a pre-allocated buffer with squares
+    HRESULT STDMETHODCALLTYPE FillBuffer(UINT32 __bufferCapacity, INT32* buffer, UINT32* __bufferActual) override {
+        if (!buffer || !__bufferActual) return E_POINTER;
+        // Fill with squares: 1, 4, 9, 16, ...
+        UINT32 count = __bufferCapacity < 5 ? __bufferCapacity : 5;
+        for (UINT32 i = 0; i < count; i++) {
+            buffer[i] = (INT32)((i + 1) * (i + 1));
+        }
+        *__bufferActual = count;
+        return S_OK;
+    }
+
+    // Return-array: return first 5 primes
+    HRESULT STDMETHODCALLTYPE GetPrimes(UINT32* __returnSize, INT32** __returnItems) override {
+        if (!__returnSize || !__returnItems) return E_POINTER;
+        *__returnSize = 5;
+        *__returnItems = (INT32*)CoTaskMemAlloc(5 * sizeof(INT32));
+        if (!*__returnItems) return E_OUTOFMEMORY;
+        (*__returnItems)[0] = 2;
+        (*__returnItems)[1] = 3;
+        (*__returnItems)[2] = 5;
+        (*__returnItems)[3] = 7;
+        (*__returnItems)[4] = 11;
+        return S_OK;
+    }
+
+    // Pass-array with return value: compute average of doubles
+    HRESULT STDMETHODCALLTYPE ComputeAverage(UINT32 __valuesSize, DOUBLE* values, DOUBLE* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        if (__valuesSize == 0) { *returnValue = 0.0; return S_OK; }
+        if (!values) return E_POINTER;
+        DOUBLE sum = 0.0;
+        for (UINT32 i = 0; i < __valuesSize; i++) {
+            sum += values[i];
+        }
+        *returnValue = sum / __valuesSize;
+        return S_OK;
+    }
+
+    // Out struct array: return an array of Point structs
+    HRESULT STDMETHODCALLTYPE GetPoints(UINT32* __pointsSize, Point** points) override {
+        if (!__pointsSize || !points) return E_POINTER;
+        *__pointsSize = 3;
+        *points = (Point*)CoTaskMemAlloc(3 * sizeof(Point));
+        if (!*points) return E_OUTOFMEMORY;
+        (*points)[0] = { 1.0f, 2.0f };
+        (*points)[1] = { 3.0f, 4.0f };
+        (*points)[2] = { 5.0f, 6.0f };
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
 // ClassFactory — switches on CLSID to create the right object
 // ---------------------------------------------------------------------------
 class ClassFactory : public IClassFactory {
@@ -1276,6 +1402,8 @@ public:
             obj = static_cast<__x_TestApp_Comprehensive_IObservable*>(new (std::nothrow) ObservableImpl());
         else if (m_clsid == CLSID_CollectionOps)
             obj = static_cast<__x_TestApp_Comprehensive_ICollectionOps*>(new (std::nothrow) CollectionOpsImpl());
+        else if (m_clsid == CLSID_ArrayOps)
+            obj = static_cast<__x_TestApp_Comprehensive_IArrayOps*>(new (std::nothrow) ArrayOpsImpl());
         else return CLASS_E_CLASSNOTAVAILABLE;
         if (!obj) return E_OUTOFMEMORY;
         HRESULT hr = obj->QueryInterface(riid, ppv);
@@ -1300,7 +1428,7 @@ HRESULT STDAPICALLTYPE DllGetClassObject(REFCLSID rclsid, REFIID riid, void** pp
         &CLSID_Animal, &CLSID_Shape, &CLSID_Circle, &CLSID_Document, &CLSID_Calculator,
         &CLSID_Notifier, &CLSID_EventSource, &CLSID_PropertyBag, &CLSID_OptionalValues,
         &CLSID_TypeShowcase, &CLSID_ComplexOps, &CLSID_MathHelpers, &CLSID_Observable,
-        &CLSID_CollectionOps
+        &CLSID_CollectionOps, &CLSID_ArrayOps
     };
     for (auto* c : knownClsids) {
         if (rclsid == *c) {

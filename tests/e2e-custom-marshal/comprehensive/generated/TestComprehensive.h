@@ -20,6 +20,7 @@ typedef interface __x_TestApp_Comprehensive_ITypeShowcase __x_TestApp_Comprehens
 typedef interface __x_TestApp_Comprehensive_IComplexOps __x_TestApp_Comprehensive_IComplexOps;
 typedef interface __x_TestApp_Comprehensive_IObservable __x_TestApp_Comprehensive_IObservable;
 typedef interface __x_TestApp_Comprehensive_ICollectionOps __x_TestApp_Comprehensive_ICollectionOps;
+typedef interface __x_TestApp_Comprehensive_IArrayOps __x_TestApp_Comprehensive_IArrayOps;
 typedef interface __x_TestApp_Comprehensive_IAnimal2 __x_TestApp_Comprehensive_IAnimal2;
 typedef interface __x_TestApp_Comprehensive_IShape __x_TestApp_Comprehensive_IShape;
 typedef interface __x_TestApp_Comprehensive_ICircle __x_TestApp_Comprehensive_ICircle;
@@ -34,6 +35,7 @@ typedef interface __x_TestApp_Comprehensive_IComplexOps2 __x_TestApp_Comprehensi
 typedef interface __x_TestApp_Comprehensive_IMathHelpersStatics __x_TestApp_Comprehensive_IMathHelpersStatics;
 typedef interface __x_TestApp_Comprehensive_IObservable2 __x_TestApp_Comprehensive_IObservable2;
 typedef interface __x_TestApp_Comprehensive_ICollectionOps2 __x_TestApp_Comprehensive_ICollectionOps2;
+typedef interface __x_TestApp_Comprehensive_IArrayOps2 __x_TestApp_Comprehensive_IArrayOps2;
 
 enum Color
 {
@@ -315,6 +317,27 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Comprehensive_CollectionOps[] = L"TestApp.Comprehensive.CollectionOps";
 
+#ifndef ____x_TestApp_Comprehensive_IArrayOps_INTERFACE_DEFINED__
+#define ____x_TestApp_Comprehensive_IArrayOps_INTERFACE_DEFINED__
+
+EXTERN_C const IID IID___x_TestApp_Comprehensive_IArrayOps;
+
+MIDL_INTERFACE("a765ebcb-fbde-c15d-8bab-a3e1932ff416")
+__x_TestApp_Comprehensive_IArrayOps : public IInspectable
+{
+public:
+    virtual HRESULT STDMETHODCALLTYPE ProcessScores(/* [in] */ UINT32 __scoresSize, /* [in] */ INT32* scores) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetNames(/* [out] */ UINT32* __namesSize, /* [out] */ HSTRING** names) = 0;
+    virtual HRESULT STDMETHODCALLTYPE FillBuffer(/* [in] */ UINT32 __bufferCapacity, /* [out] */ INT32* buffer, /* [out] */ UINT32* __bufferActual) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetPrimes(/* [out, retval] */ UINT32* __returnSize, /* [out, retval] */ INT32** __returnItems) = 0;
+    virtual HRESULT STDMETHODCALLTYPE ComputeAverage(/* [in] */ UINT32 __valuesSize, /* [in] */ DOUBLE* values, /* [out, retval] */ DOUBLE* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetPoints(/* [out] */ UINT32* __pointsSize, /* [out] */ Point** points) = 0;
+};
+
+#endif // ____x_TestApp_Comprehensive_IArrayOps_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Comprehensive_ArrayOps[] = L"TestApp.Comprehensive.ArrayOps";
+
 #ifndef ____x_TestApp_Comprehensive_IAnimal2_INTERFACE_DEFINED__
 #define ____x_TestApp_Comprehensive_IAnimal2_INTERFACE_DEFINED__
 
@@ -503,5 +526,18 @@ public:
 };
 
 #endif // ____x_TestApp_Comprehensive_ICollectionOps2_INTERFACE_DEFINED__
+
+#ifndef ____x_TestApp_Comprehensive_IArrayOps2_INTERFACE_DEFINED__
+#define ____x_TestApp_Comprehensive_IArrayOps2_INTERFACE_DEFINED__
+
+EXTERN_C const IID IID___x_TestApp_Comprehensive_IArrayOps2;
+
+MIDL_INTERFACE("f49c17c9-e6d3-d65a-b89c-5b50fa8c28bd")
+__x_TestApp_Comprehensive_IArrayOps2 : public IInspectable
+{
+public:
+};
+
+#endif // ____x_TestApp_Comprehensive_IArrayOps2_INTERFACE_DEFINED__
 
 #endif // __TestApp_Comprehensive_h__

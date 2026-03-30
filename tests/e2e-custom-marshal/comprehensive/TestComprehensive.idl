@@ -205,4 +205,21 @@ namespace TestApp.Comprehensive
     {
         CollectionOps();
     }
+
+    // 18. Array parameters
+    interface IArrayOps
+    {
+        void ProcessScores(Int32[] scores);
+        void GetNames(out String[] names);
+        void FillBuffer(ref Int32[] buffer);
+        Int32[] GetPrimes();
+        Double ComputeAverage(Double[] values);
+        void GetPoints(out Point[] points);
+    };
+
+    [default_interface]
+    runtimeclass ArrayOps : IArrayOps
+    {
+        ArrayOps();
+    }
 }
