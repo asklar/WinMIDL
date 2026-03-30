@@ -3324,8 +3324,13 @@ public partial class Binder
                     }
                     if (!hasDefault && !paramRc.IsStatic)
                     {
-                        _diagnostics.Add(DiagnosticDescriptors.ParamClassNeedsDefaultInterface(
-                            param.Name, paramRc.Name, methodName, GetSymbolPosition(param)));
+                        // Point squiggle at the type reference, not the parameter name
+                        int typePos = param.Type.Position > 0 ? param.Type.Position : GetSymbolPosition(param);
+                        int typeLen = Math.Max(param.Type.Name.Length, 1);
+                        _diagnostics.Add(new Diagnostics.Diagnostic(
+                            Diagnostics.DiagnosticSeverity.Error, "MIDL1077",
+                            $"Parameter '{param.Name}' in '{methodName}': runtimeclass '{paramRc.Name}' has no default interface and cannot be used as a parameter type.",
+                            typePos, typeLen));
                     }
                 }
             }
