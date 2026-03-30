@@ -415,7 +415,7 @@ $clientObj = "$buildDir/TestOutOfProc.obj"
 $clientExe = "$buildDir/TestOutOfProc.exe"
 
 # Client only needs projection headers + SDK (for windows.h used by CoCreateInstance)
-$clientIncludes = @("/I", "$projDir", "/I", "$cppwinrtInc", "/I", "$sdkIncUm", "/I", "$sdkIncShared", "/I", "$sdkIncUcrt")
+$clientIncludes = @("/I", "$projDir", "/I", "$cppwinrtInc", "/I", "$sdkIncUm", "/I", "$sdkIncShared", "/I", "$sdkIncUcrt", "/I", "$sdkIncWinrt")
 if ($vcInclude) { $clientIncludes += "/I"; $clientIncludes += $vcInclude }
 
 $output = & $cl @commonFlags @clientIncludes /c /Fo"$clientObj" "$scriptDir/TestOutOfProc.cpp" 2>&1
@@ -504,14 +504,6 @@ foreach ($iidName in $iidMap.Keys) {
 }
 Write-Host "  Registered $($iidMap.Count) interface IIDs"
 
-# Register WinRT activation for static methods
-# TestCppWinRT.Widget → server EXE path
-$activationKey = "$regBase\ActivatableClassId\TestCppWinRT.Widget\Server"
-New-Item -Path $activationKey -Force | Out-Null
-Set-ItemProperty -Path "$regBase\ActivatableClassId\TestCppWinRT.Widget" -Name "ActivationType" -Value 1 -Type DWord
-Set-ItemProperty -Path "$activationKey" -Name "(Default)" -Value $serverExePath
-Write-Host "  WinRT activation: TestCppWinRT.Widget → $serverExePath"
-
 # ── Step 7: Run out-of-proc test ────────────────────────────────────────
 Write-Step "Starting server and running out-of-proc tests"
 
@@ -559,7 +551,6 @@ if (-not $KeepRegistration) {
     Write-Step "Cleaning up registration"
     Remove-Item "$regBase\CLSID\$CLSID_Widget" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item "$regBase\CLSID\$CLSID_PSFactory" -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item "$regBase\ActivatableClassId\TestCppWinRT.Widget" -Recurse -Force -ErrorAction SilentlyContinue
     foreach ($iidGuid in $iidMap.Values) {
         Remove-Item "$regBase\Interface\$iidGuid" -Recurse -Force -ErrorAction SilentlyContinue
     }
