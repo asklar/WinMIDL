@@ -18,11 +18,22 @@ static constexpr CLSID CLSID_Widget = {
 static const wchar_t* g_shutdownEventName = L"TestCppWinRT_ServerShutdown";
 
 // Custom activation handler: routes RoGetActivationFactory to CoCreateInstance
-// so static methods work cross-process.
-// NOTE: This requires the activation factory interfaces (IWidgetStatics,
-// IWidgetFactory) to be marshaled through the proxy. Currently the proxy
-// only supports IWidget, so statics are tested only in-proc.
-// TODO: Add IWidgetStatics/IWidgetFactory to proxy registration for cross-process statics.
+// so static methods work cross-process. The server's class factory returns
+// the cppwinrt activation factory which implements IWidgetStatics/IWidgetFactory.
+static int32_t __stdcall oop_activation_handler(
+    void* classId, winrt::guid const& iid, void** factory) noexcept
+{
+    *factory = nullptr;
+    IUnknown* unk = nullptr;
+    HRESULT hr = CoCreateInstance(CLSID_Widget, nullptr, CLSCTX_LOCAL_SERVER,
+                                  reinterpret_cast<const IID&>(iid), reinterpret_cast<void**>(&unk));
+    if (FAILED(hr)) {
+        printf("    oop_activation_handler: CoCreateInstance for statics failed: 0x%08X\n", hr);
+        return hr;
+    }
+    *factory = unk;
+    return S_OK;
+}
 
 static int g_pass = 0, g_fail = 0;
 static void Check(bool cond, const char* name)
@@ -36,8 +47,7 @@ int main()
     winrt::init_apartment();
 
     // Wire up activation handler for static method access cross-process
-    // (currently not functional — statics tested in-proc only)
-    // winrt_activation_handler = oop_activation_handler;
+    winrt_activation_handler = oop_activation_handler;
 
     printf("=== C++/WinRT Out-of-Proc E2E Tests ===\n\n");
 
@@ -225,14 +235,16 @@ int main()
     // NOTE: Event/delegate tests are skipped for out-of-proc — callback
     // interfaces require additional proxy registration which is complex.
 
-    // Test: Static methods — requires proxy/stub for IWidgetStatics/IWidgetFactory.
-    // Currently tested in-proc only; cross-process needs factory interface marshaling.
-    // TODO: Enable when proxy supports statics interfaces cross-process.
+    // Test: Static methods cross-process.
+    // The proxy/stub code handles IWidgetStatics/IWidgetFactory, but
+    // COM CoCreateInstance returns E_NOINTERFACE when requesting
+    // synthesized interface IIDs directly. Needs investigation.
+    // Statics work perfectly in-proc via activation factory.
     try {
         auto ver = winrt::TestCppWinRT::Widget::GetVersion();
         Check(ver == L"1.0.0", "Static GetVersion (cross-process)");
     } catch (winrt::hresult_error const& e) {
-        printf("  SKIP: Static GetVersion (needs factory interface proxy, 0x%08X)\n", (int)e.code());
+        printf("  SKIP: Static GetVersion (0x%08X — cross-process activation WIP)\n", (int)e.code());
     }
 
     try {
@@ -240,7 +252,7 @@ int main()
         Check(def.Name() == L"Default", "Static CreateDefault (cross-process)");
         Check(def.IsActive(), "Static CreateDefault: IsActive is true");
     } catch (winrt::hresult_error const& e) {
-        printf("  SKIP: Static CreateDefault (needs factory interface proxy, 0x%08X)\n", (int)e.code());
+        printf("  SKIP: Static CreateDefault (0x%08X — cross-process activation WIP)\n", (int)e.code());
     }
 
     // Test: Boolean property

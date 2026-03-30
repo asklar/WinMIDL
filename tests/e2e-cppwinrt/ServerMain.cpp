@@ -47,8 +47,21 @@ public:
         if (!ppv) return E_POINTER;
         *ppv = nullptr;
         try {
+            // Try creating a Widget instance first
             auto widget = winrt::make<winrt::TestCppWinRT::implementation::Widget>();
-            return winrt::get_unknown(widget)->QueryInterface(riid, ppv);
+            HRESULT hr = winrt::get_unknown(widget)->QueryInterface(riid, ppv);
+            if (SUCCEEDED(hr)) return hr;
+
+            // If the requested IID isn't on Widget (e.g. IWidgetStatics, IWidgetFactory),
+            // return the activation factory which implements those interfaces.
+            void* raw = winrt_get_activation_factory(L"TestCppWinRT.Widget");
+            if (raw) {
+                auto unk = static_cast<IUnknown*>(raw);
+                hr = unk->QueryInterface(riid, ppv);
+                unk->Release();
+                return hr;
+            }
+            return E_NOINTERFACE;
         } catch (winrt::hresult_error const& e) {
             return e.code();
         }
