@@ -135,6 +135,11 @@ public static class CompletionHandler
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = items.ToArray() };
             }
 
+            // Check if cursor is on a /// doc comment line
+            var docItems = DocCommentCompletionProvider.BuildDocCommentCompletions(text, line, character);
+            if (docItems != null)
+                return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = docItems.ToArray() };
+
             // Context-aware completion based on cursor position
             var context = ContextualCompletionProvider.DetectCompletionContext(text, offset, line);
             var contextItems = ContextualCompletionProvider.BuildContextualCompletions(context, text, uri, includePaths, fileDir, cachedCompilation, flatSdkTypeCompletions);
