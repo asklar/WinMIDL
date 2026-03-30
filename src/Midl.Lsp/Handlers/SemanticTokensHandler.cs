@@ -73,16 +73,11 @@ public static class SemanticTokensHandler
             foreach (var (s, e) in cachedCompilation.InactiveRegions)
                 definesHash = HashCode.Combine(definesHash, s, e);
         var hash = HashCode.Combine(text.GetHashCode(), inactiveCount, definesHash);
-
-        MidlTrace.Write("SEMTOK", $"Request for {Path.GetFileName(uri)}: inactiveRegions={inactiveCount}, hash={hash}, cacheHit={_cache.TryGetValue(uri, out var peek) && peek.hash == hash}");
-
         if (_cache.TryGetValue(uri, out var cached) && cached.hash == hash)
         {
-            MidlTrace.Write("SEMTOK", "Cache hit — returning cached tokens");
             return new Dictionary<string, object?> { ["data"] = cached.data };
         }
 
-        MidlTrace.Write("SEMTOK", "Cache miss — recomputing tokens");
         var (data, _, _) = HandleCore(text, cachedCompilation);
         _cache[uri] = (hash, data);
         return new Dictionary<string, object?> { ["data"] = data };
@@ -190,21 +185,11 @@ public static class SemanticTokensHandler
             else if (tokenType >= 0 && token.Text.Length > 0)
             {
                 var (tLine, tChar) = PositionHelper.OffsetToLineChar(lineStarts, textStart);
-                // Log tokens near the #ifdef region for debugging
-                if (tLine >= 208 && tLine <= 228)
-                    MidlTrace.Write("SEMTOK", $"  line {tLine}: '{token.Text}' → type={tokenType} ({(tokenType < TokenTypes.Length ? TokenTypes[tokenType] : "?")}) isInactive={isInactive}");
                 int deltaLine = tLine - prevLine;
                 int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
                 encodedTokens.AddRange([deltaLine, deltaChar, token.Text.Length, tokenType, 0]);
                 prevLine = tLine;
                 prevChar = tChar;
-            }
-            else if (token.Text.Length > 0)
-            {
-                // Unclassified token — log if in the debug range
-                var (tLine, _) = PositionHelper.OffsetToLineChar(lineStarts, textStart);
-                if (tLine >= 208 && tLine <= 228)
-                    MidlTrace.Write("SEMTOK", $"  line {tLine}: '{token.Text}' → UNCLASSIFIED (type={tokenType}) isInactive={isInactive}");
             }
 
             pos = textStart + token.Text.Length;
