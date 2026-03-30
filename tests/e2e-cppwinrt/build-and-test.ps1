@@ -446,13 +446,20 @@ $serverExePath = (Resolve-Path $serverExe).Path
 $proxyDllPath = (Resolve-Path $proxyDll).Path
 
 $CLSID_Widget = "{A7B8C9D0-E1F2-4A3B-8C5D-6E7F8091A2B3}"
+$CLSID_WidgetFactory = "{B8C9D0E1-F2A3-5B4C-9D6E-7F8091A2B3C4}"
 $regBase = "HKCU:\Software\Classes"
 
-# Register CLSID → LocalServer32
+# Register Widget CLSID → LocalServer32
 $clsidKey = "$regBase\CLSID\$CLSID_Widget\LocalServer32"
 New-Item -Path $clsidKey -Force | Out-Null
 Set-ItemProperty -Path $clsidKey -Name "(Default)" -Value $serverExePath
-Write-Host "  CLSID $CLSID_Widget → LocalServer32"
+Write-Host "  CLSID $CLSID_Widget → LocalServer32 (instances)"
+
+# Register WidgetFactory CLSID → LocalServer32 (same server EXE)
+$factoryKey = "$regBase\CLSID\$CLSID_WidgetFactory\LocalServer32"
+New-Item -Path $factoryKey -Force | Out-Null
+Set-ItemProperty -Path $factoryKey -Name "(Default)" -Value $serverExePath
+Write-Host "  CLSID $CLSID_WidgetFactory → LocalServer32 (factory)"
 
 # Parse IID → GUID mapping from the generated _i.c
 $iidContent = Get-Content "$outDir/TestCppWinRT_i.c"
@@ -504,6 +511,14 @@ foreach ($iidName in $iidMap.Keys) {
 }
 Write-Host "  Registered $($iidMap.Count) interface IIDs"
 
+# Register WinRT activation (for RoGetActivationFactory — needed for static methods)
+# ActivatableClassId → Server CLSID → LocalServer32 path
+$activationBase = "$regBase\ActivatableClassId\TestCppWinRT.Widget"
+New-Item -Path $activationBase -Force | Out-Null
+Set-ItemProperty -Path $activationBase -Name "ActivationType" -Value 1 -Type DWord  # 1 = out-of-proc
+Set-ItemProperty -Path $activationBase -Name "Server" -Value $CLSID_Widget
+Write-Host "  WinRT activation: TestCppWinRT.Widget → Server $CLSID_Widget"
+
 # ── Step 7: Run out-of-proc test ────────────────────────────────────────
 Write-Step "Starting server and running out-of-proc tests"
 
@@ -550,6 +565,7 @@ if (-not $serverProc.HasExited) {
 if (-not $KeepRegistration) {
     Write-Step "Cleaning up registration"
     Remove-Item "$regBase\CLSID\$CLSID_Widget" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item "$regBase\CLSID\$CLSID_WidgetFactory" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item "$regBase\CLSID\$CLSID_PSFactory" -Recurse -Force -ErrorAction SilentlyContinue
     foreach ($iidGuid in $iidMap.Values) {
         Remove-Item "$regBase\Interface\$iidGuid" -Recurse -Force -ErrorAction SilentlyContinue
