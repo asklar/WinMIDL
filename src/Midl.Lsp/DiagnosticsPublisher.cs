@@ -21,7 +21,9 @@ public sealed class DiagnosticsPublisher
         _writer = writer;
     }
 
-    public async Task PublishDiagnosticsAsync(string uri, string sourceText, IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics)
+    public async Task PublishDiagnosticsAsync(string uri, string sourceText,
+        IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics,
+        IReadOnlyList<(int Start, int End)>? inactiveRegions = null)
     {
         // Group diagnostics by source file
         var mainFileDiags = new List<Analysis.Diagnostics.Diagnostic>();
@@ -74,7 +76,7 @@ public sealed class DiagnosticsPublisher
         var currentUris = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { uri };
 
         // Publish main file diagnostics using original source text positions
-        await PublishForFileAsync(uri, sourceText, mainFileDiags);
+        await PublishForFileAsync(uri, sourceText, mainFileDiags, inactiveRegions);
 
         // Publish diagnostics for included files using their original text and positions
         foreach (var (filePath, fileDiags) in fileGroups)
@@ -112,7 +114,9 @@ public sealed class DiagnosticsPublisher
             _previousDiagnosticUris.Add(u);
     }
 
-    private async Task PublishForFileAsync(string uri, string sourceText, IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics)
+    private async Task PublishForFileAsync(string uri, string sourceText,
+        IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics,
+        IReadOnlyList<(int Start, int End)>? inactiveRegions = null)
     {
         var lineStarts = PositionHelper.BuildLineStarts(sourceText);
         var lspDiags = new List<object>();
@@ -142,6 +146,30 @@ public sealed class DiagnosticsPublisher
                 diag["codeDescription"] = new Dictionary<string, object?> { ["href"] = d.HelpUri };
             }
             lspDiags.Add(diag);
+        }
+
+        // Emit "unnecessary" hint diagnostics for inactive preprocessor regions
+        // VS Code renders these with reduced opacity (grays out all content including brackets)
+        if (inactiveRegions != null)
+        {
+            foreach (var (start, end) in inactiveRegions)
+            {
+                var clampedEnd = Math.Min(end, sourceText.Length);
+                var (sLine, sChar) = PositionHelper.OffsetToLineChar(lineStarts, start);
+                var (eLine, eChar) = PositionHelper.OffsetToLineChar(lineStarts, clampedEnd);
+                lspDiags.Add(new Dictionary<string, object?>
+                {
+                    ["range"] = new Dictionary<string, object?>
+                    {
+                        ["start"] = new Dictionary<string, object?> { ["line"] = sLine, ["character"] = sChar },
+                        ["end"] = new Dictionary<string, object?> { ["line"] = eLine, ["character"] = eChar }
+                    },
+                    ["severity"] = 4, // Hint
+                    ["tags"] = new[] { 1 }, // 1 = Unnecessary
+                    ["source"] = "midl",
+                    ["message"] = "Inactive preprocessor block"
+                });
+            }
         }
 
         await _writer.SendNotificationAsync("textDocument/publishDiagnostics", new Dictionary<string, object?>

@@ -141,7 +141,7 @@ public sealed partial class MidlLanguageServer
 
             var memAfter = GC.GetTotalMemory(false) / (1024 * 1024);
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics, mem={memAfter}MB, providers={_winmdProviderCache.Count}");
-            await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics);
+            await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics, compilation.InactiveRegions);
             MidlTrace.Lsp($"Diagnostics published");
         }
         catch (Exception ex)
