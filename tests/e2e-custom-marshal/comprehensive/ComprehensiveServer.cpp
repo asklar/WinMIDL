@@ -71,9 +71,11 @@ static const CLSID CLSID_CollectionOps = {
     0xc5d6e7f8, 0xa9b0, 0x41c2,
     {0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea}};
 
+#ifdef WITH_ARRAYS
 static const CLSID CLSID_ArrayOps = {
     0xd6e7f8a9, 0xb0c1, 0x42d3,
     {0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea, 0xfb}};
+#endif
 
 static constexpr double kPi = 3.14159265358979323846;
 static LONG g_cDllRef = 0;
@@ -1223,6 +1225,7 @@ public:
     }
 };
 
+#ifdef WITH_ARRAYS
 // ---------------------------------------------------------------------------
 // ArrayOpsImpl — implements IArrayOps (array parameter patterns)
 // ---------------------------------------------------------------------------
@@ -1344,6 +1347,7 @@ public:
         return S_OK;
     }
 };
+#endif
 
 // ---------------------------------------------------------------------------
 // ClassFactory — switches on CLSID to create the right object
@@ -1402,8 +1406,10 @@ public:
             obj = static_cast<__x_TestApp_Comprehensive_IObservable*>(new (std::nothrow) ObservableImpl());
         else if (m_clsid == CLSID_CollectionOps)
             obj = static_cast<__x_TestApp_Comprehensive_ICollectionOps*>(new (std::nothrow) CollectionOpsImpl());
+#ifdef WITH_ARRAYS
         else if (m_clsid == CLSID_ArrayOps)
             obj = static_cast<__x_TestApp_Comprehensive_IArrayOps*>(new (std::nothrow) ArrayOpsImpl());
+#endif
         else return CLASS_E_CLASSNOTAVAILABLE;
         if (!obj) return E_OUTOFMEMORY;
         HRESULT hr = obj->QueryInterface(riid, ppv);
@@ -1428,7 +1434,10 @@ HRESULT STDAPICALLTYPE DllGetClassObject(REFCLSID rclsid, REFIID riid, void** pp
         &CLSID_Animal, &CLSID_Shape, &CLSID_Circle, &CLSID_Document, &CLSID_Calculator,
         &CLSID_Notifier, &CLSID_EventSource, &CLSID_PropertyBag, &CLSID_OptionalValues,
         &CLSID_TypeShowcase, &CLSID_ComplexOps, &CLSID_MathHelpers, &CLSID_Observable,
-        &CLSID_CollectionOps, &CLSID_ArrayOps
+        &CLSID_CollectionOps,
+#ifdef WITH_ARRAYS
+        &CLSID_ArrayOps,
+#endif
     };
     for (auto* c : knownClsids) {
         if (rclsid == *c) {

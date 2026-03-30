@@ -77,9 +77,11 @@ static const CLSID CLSID_CollectionOps = {
     0xc5d6e7f8, 0xa9b0, 0x41c2,
     {0xd3, 0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea}};
 
+#ifdef WITH_ARRAYS
 static const CLSID CLSID_ArrayOps = {
     0xd6e7f8a9, 0xb0c1, 0x42d3,
     {0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea, 0xfb}};
+#endif
 
 // ---------------------------------------------------------------------------
 // Client-side helper: LoggerImpl — implements ILogger for Subscribe test
@@ -905,6 +907,7 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
         }
     }
 
+#ifdef WITH_ARRAYS
     // ArrayOps (#18) — array parameter marshaling
     printf("[MTA] --- ArrayOps tests ---\n");
     {
@@ -1008,6 +1011,7 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
             pArr->Release();
         }
     }
+#endif
 
     CoUninitialize();
     printf("\n[MTA] Tests complete.\n");

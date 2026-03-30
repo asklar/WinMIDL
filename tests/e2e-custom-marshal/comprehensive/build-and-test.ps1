@@ -58,6 +58,7 @@ $idlFile = "$scriptDir/TestComprehensive.idl"
     /nologo `
     /no_dlldata `
     /arrays `
+    /DWITH_ARRAYS `
     $idlFile 2>&1 | ForEach-Object { if ($Verbose) { Write-Host "  $_" } }
 
 # Exit code 1 = warnings only, which is acceptable
@@ -176,6 +177,7 @@ $env:PATH = "$vcToolsDir\bin\$hostDir;$sdkRoot\bin\$sdkVersion\$hostArch;$env:PA
 
 $commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/W3",
                   "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",
+                  "/DWITH_ARRAYS",
                   "/Zi")
 
 # ── Step 3: Compile IID definitions ─────────────────────────────────────
