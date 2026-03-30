@@ -401,23 +401,23 @@ public sealed partial class MidlLanguageServer
         Handlers.SemanticTokensHandler.ClearCache();
         MidlTrace.Lsp("Settings changed: cleared all caches including semantic tokens");
 
-        // Re-analyze all open documents with new settings
-        foreach (var uri in _docManager.GetOpenDocumentUris())
+        // Re-analyze all open documents with new settings, then refresh semantic tokens
+        _ = Task.Run(async () =>
         {
-            var text = _docManager.GetDocumentText(uri);
-            if (text != null)
+            foreach (var uri in _docManager.GetOpenDocumentUris())
             {
-                _ = Task.Run(async () =>
+                var text = _docManager.GetDocumentText(uri);
+                if (text != null)
                 {
                     try { await AnalyzeAndPublishAsync(uri, text); }
                     catch { }
-                });
+                }
             }
-        }
 
-        // Ask client to re-fetch semantic tokens (they depend on defines/inactive regions)
-        MidlTrace.Lsp("Sending workspace/semanticTokens/refresh");
-        _ = _writer.SendNotificationAsync("workspace/semanticTokens/refresh", null);
+            // Now that all compilations are updated, ask client to re-fetch semantic tokens
+            MidlTrace.Lsp("Sending workspace/semanticTokens/refresh");
+            await _writer.SendNotificationAsync("workspace/semanticTokens/refresh", null);
+        });
     }
 
     private static bool TryGetBool(JsonElement settings, string key, out bool value)
