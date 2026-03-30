@@ -2,7 +2,7 @@
   "name": "midl3-language-server",
   "displayName": "MIDL Language Support",
   "description": "Full-featured IDE for WinRT Interface Definition Language — real-time diagnostics, smart autocomplete, go-to-definition, code actions, WinMD output, and more.",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "publisher": "AlexanderSklarMSFT",
   "engines": {
     "vscode": "^1.85.0"
@@ -144,7 +144,9 @@
         },
         "midl.defines": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "Preprocessor defines for IDL compilation. Content inside #ifdef blocks for undefined symbols will be grayed out."
         }

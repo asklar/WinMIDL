@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
@@ -39,7 +40,7 @@ namespace Midl.VsExtension
                     ["midl.arrays"] = options.EnableArraySyntax,
                     ["midl.defines"] = new Newtonsoft.Json.Linq.JArray(
                         string.IsNullOrWhiteSpace(options.Defines) ? Array.Empty<string>() :
-                        options.Defines.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)),
+                        options.Defines.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray()),
                 };
             }
         }
@@ -221,7 +222,7 @@ namespace Midl.VsExtension
                     ["midl.arrays"] = options.EnableArraySyntax,
                     ["midl.defines"] = new Newtonsoft.Json.Linq.JArray(
                         string.IsNullOrWhiteSpace(options.Defines) ? Array.Empty<string>() :
-                        options.Defines.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)),
+                        options.Defines.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray()),
                 };
 
                 var msg = new Newtonsoft.Json.Linq.JObject
