@@ -762,5 +762,139 @@ public class SourceMapTests : IDisposable
         Assert.Equal("BrokenWidget", helperSource.Substring(origPos, "BrokenWidget".Length));
     }
 
+    [Fact]
+    public void Diagnostic_InMainFile_AfterInclude_PositionCorrect()
+    {
+        // Diagnostic in the main file AFTER #include content must still
+        // point to the correct position in the original main source.
+        var mainFile = Path.Combine(_tempDir, "main.idl");
+        var helperFile = Path.Combine(_tempDir, "types.idl");
+
+        var helperSource = "namespace Types { enum Color { Red, Green }; }\n";
+        var mainSource = "#include \"types.idl\"\nnamespace App { runtimeclass Widget; }\n";
+
+        File.WriteAllText(helperFile, helperSource);
+        File.WriteAllText(mainFile, mainSource);
+
+        var compilation = CompilationHelper.Compile(
+            File.ReadAllText(mainFile),
+            referencePaths: null,
+            CompilationMode.Strict,
+            includePaths: new[] { _tempDir },
+            currentFilePath: mainFile);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d =>
+            d.Code == "MIDL1062" && d.Message.Contains("Widget"));
+        Assert.NotNull(diag);
+
+        // Must be attributed to main file
+        Assert.True(diag.SourceFile == null ||
+            string.Equals(Path.GetFullPath(diag.SourceFile), Path.GetFullPath(mainFile),
+                StringComparison.OrdinalIgnoreCase));
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Widget", mainSource.Substring(pos, "Widget".Length));
+    }
+
+    [Fact]
+    public void Diagnostic_WithInclude_And_Define_PositionCorrect()
+    {
+        // Combines #include AND #define — both affect offsets.
+        var mainFile = Path.Combine(_tempDir, "main.idl");
+        var helperFile = Path.Combine(_tempDir, "base.idl");
+
+        var helperSource = "namespace Base { enum Mode { A, B }; }\n";
+        var mainSource = "#define VER 1.0\n#include \"base.idl\"\nnamespace App { runtimeclass Gadget; }\n";
+
+        File.WriteAllText(helperFile, helperSource);
+        File.WriteAllText(mainFile, mainSource);
+
+        var compilation = CompilationHelper.Compile(
+            File.ReadAllText(mainFile),
+            referencePaths: null,
+            CompilationMode.Strict,
+            includePaths: new[] { _tempDir },
+            currentFilePath: mainFile);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d =>
+            d.Code == "MIDL1062" && d.Message.Contains("Gadget"));
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Gadget", mainSource.Substring(pos, "Gadget".Length));
+    }
+
+    [Fact]
+    public void Diagnostics_InMultipleIncludedFiles_GetCorrectSourceFiles()
+    {
+        // Each included file's diagnostics must be attributed to the correct file.
+        var mainFile = Path.Combine(_tempDir, "main.idl");
+        var file1 = Path.Combine(_tempDir, "alpha.idl");
+        var file2 = Path.Combine(_tempDir, "beta.idl");
+
+        var source1 = "namespace Alpha { runtimeclass BrokenAlpha; }\n";
+        var source2 = "namespace Beta { runtimeclass BrokenBeta; }\n";
+        var mainSource = "#include \"alpha.idl\"\n#include \"beta.idl\"\nnamespace Main { runtimeclass Good { Good(); } }\n";
+
+        File.WriteAllText(file1, source1);
+        File.WriteAllText(file2, source2);
+        File.WriteAllText(mainFile, mainSource);
+
+        var compilation = CompilationHelper.Compile(
+            File.ReadAllText(mainFile),
+            referencePaths: null,
+            CompilationMode.Strict,
+            includePaths: new[] { _tempDir },
+            currentFilePath: mainFile);
+
+        var alphaDiag = compilation.Diagnostics.FirstOrDefault(d =>
+            d.Message.Contains("BrokenAlpha"));
+        var betaDiag = compilation.Diagnostics.FirstOrDefault(d =>
+            d.Message.Contains("BrokenBeta"));
+
+        Assert.NotNull(alphaDiag);
+        Assert.NotNull(betaDiag);
+
+        // Each must be attributed to its own file
+        Assert.Equal(Path.GetFullPath(file1), alphaDiag!.SourceFile);
+        Assert.Equal(Path.GetFullPath(file2), betaDiag!.SourceFile);
+
+        // Positions must point to correct text in each file
+        int alphaPos = alphaDiag.OriginalPosition ?? alphaDiag.Position;
+        Assert.Equal("BrokenAlpha", source1.Substring(alphaPos, "BrokenAlpha".Length));
+
+        int betaPos = betaDiag.OriginalPosition ?? betaDiag.Position;
+        Assert.Equal("BrokenBeta", source2.Substring(betaPos, "BrokenBeta".Length));
+    }
+
+    [Fact]
+    public void Diagnostic_MainFileAfterMultipleIncludes_PositionCorrect()
+    {
+        // Main file diagnostic after multiple includes must still point correctly.
+        var mainFile = Path.Combine(_tempDir, "main.idl");
+        var file1 = Path.Combine(_tempDir, "inc1.idl");
+        var file2 = Path.Combine(_tempDir, "inc2.idl");
+
+        File.WriteAllText(file1, "namespace A { enum E1 { X }; }\n");
+        File.WriteAllText(file2, "namespace B { enum E2 { Y }; }\n");
+
+        var mainSource = "#include \"inc1.idl\"\n#include \"inc2.idl\"\nnamespace Main { runtimeclass Broken; }\n";
+        File.WriteAllText(mainFile, mainSource);
+
+        var compilation = CompilationHelper.Compile(
+            File.ReadAllText(mainFile),
+            referencePaths: null,
+            CompilationMode.Strict,
+            includePaths: new[] { _tempDir },
+            currentFilePath: mainFile);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d =>
+            d.Code == "MIDL1062" && d.Message.Contains("Broken"));
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("Broken", mainSource.Substring(pos, "Broken".Length));
+    }
+
     #endregion
 }
