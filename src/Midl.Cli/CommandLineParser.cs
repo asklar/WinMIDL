@@ -48,6 +48,7 @@ public class CommandLineOptions
     public string? DecompileNamespace { get; set; }      // --namespace (filter decompile to one namespace)
     public bool DumpWinMd { get; set; }                 // --dump-winmd (dump WinMD metadata)
     public bool DebugTrace { get; set; }               // /debug (enable trace output)
+    public bool ShowInfoDiagnostics { get; set; }       // /diag (show info-level diagnostics)
     public bool NoDefIdir { get; set; }                // /no_def_idir — don't add default include dirs
     public bool Profile { get; set; }                  // /profile (emit timing data)
     public bool UseExceptions { get; set; }             // /exceptions (try/catch error handling)
@@ -124,7 +125,7 @@ public static class CommandLineParser
                         var rest = switchName[1..];
                         var asSwitch = switchName.ToLowerInvariant();
                         // Only split if it doesn't match a known multi-char switch
-                        if (asSwitch is not ("iid" or "dlldata"))
+                        if (asSwitch is not ("iid" or "dlldata" or "diag"))
                         {
                             expanded.Insert(i + 1, rest);
                             switchName = switchName[..1];
@@ -389,6 +390,10 @@ public static class CommandLineParser
 
             case "debug":
                 options.DebugTrace = true;
+                i++;
+                return true;
+            case "diag":
+                options.ShowInfoDiagnostics = true;
                 i++;
                 return true;
             case "profile":

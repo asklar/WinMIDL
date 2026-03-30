@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Midl.Syntax;
 
 namespace Midl.Lsp;
 
@@ -120,6 +121,9 @@ public sealed class DiagnosticsPublisher
         {
             var (startLine, startChar) = PositionHelper.OffsetToLineChar(lineStarts, d.Position);
             var (endLine, endChar) = PositionHelper.OffsetToLineChar(lineStarts, d.Position + d.Length);
+
+            if (d.Code == "MIDL3003")
+                MidlTrace.Write("PUB", $"MIDL3003 '{d.Message.Substring(0, Math.Min(30, d.Message.Length))}': pos={d.Position} origPos={d.OriginalPosition} → {startLine}:{startChar} (srcLen={sourceText.Length})");
 
             var diag = new Dictionary<string, object?>
             {

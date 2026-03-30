@@ -611,6 +611,44 @@ public class SourceMapTests : IDisposable
         Assert.DoesNotContain(@":\c:", fullPath); // Must NOT double up drives
     }
 
+    [Fact]
+    public void DefineOnly_EmptyInterface_DiagnosticPosition_IsCorrect()
+    {
+        // Regression: #define without #ifdef caused source map segments to not flush
+        // at directive lines, so positions after the #define were off by the
+        // length difference between "#define FOO bar" and the empty expanded line.
+        var source = "#define VER 1.0\nnamespace N {\n    [uuid(01020304-0506-0708-090a-0b0c0d0e0f10)]\n    interface IFoo : IInspectable {};\n}";
+        var compilation = CompilationHelper.Compile(source, referencePaths: null,
+            CompilationMode.Strict, includePaths: null, currentFilePath: null,
+            emitQualityHints: true);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3003");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        // Must point to "IFoo" in the original source, not shifted by #define length
+        var around = source.Substring(pos, Math.Min(10, source.Length - pos));
+        Assert.StartsWith("IFoo", around);
+    }
+
+    [Fact]
+    public void DefineUsed_EmptyInterface_DiagnosticPosition_IsCorrect()
+    {
+        // When #define macro IS used later, the source map must still correctly
+        // remap positions for code between the #define and the macro usage.
+        var source = "#define VER 1.0\nnamespace N {\n    [uuid(01020304-0506-0708-090a-0b0c0d0e0f10)]\n    interface IBar : IInspectable {};\n    [contractversion(VER)] apicontract C {}\n}";
+        var compilation = CompilationHelper.Compile(source, referencePaths: null,
+            CompilationMode.Strict, includePaths: null, currentFilePath: null,
+            emitQualityHints: true);
+
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3003");
+        Assert.NotNull(diag);
+
+        int pos = diag.OriginalPosition ?? diag.Position;
+        var around = source.Substring(pos, Math.Min(10, source.Length - pos));
+        Assert.StartsWith("IBar", around);
+    }
+
     #endregion
 
     #region Include Diagnostic Position Tests

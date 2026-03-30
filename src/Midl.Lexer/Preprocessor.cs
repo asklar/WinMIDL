@@ -196,6 +196,7 @@ public class Preprocessor
         bool hasIncludes = false;
         bool hasIfdefGaps = false;
         bool hasMacroDeltas = false;
+        bool hasDirectiveGaps = false;
         bool wasActive = true; // track active/inactive transitions for #ifdef gap tracking
 
         #pragma warning disable CS0219
@@ -210,6 +211,20 @@ public class Preprocessor
             if (trimmed.StartsWith('#'))
             {
                 var directive = ParseDirective(trimmed);
+                bool isInclude = directive.Name.Equals("include", StringComparison.OrdinalIgnoreCase);
+
+                // Directive lines produce an empty AppendLine() in expanded text but have
+                // content in the original (e.g. "#define FOO bar"), breaking the source map's
+                // linear mapping within a segment. Flush a segment boundary before the directive.
+                // #include has its own segment handling inside its case.
+                if (!isInclude && filePath != null && wasActive)
+                {
+                    int expandedPos = baseOffset + output.Length;
+                    if (expandedPos > segExpandedStart)
+                    {
+                        SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+                    }
+                }
 
                 switch (directive.Name)
                 {
@@ -329,6 +344,15 @@ public class Preprocessor
                         output.AppendLine();
                         break;
                 }
+
+                // Start new segment after directive line, pointing to next original line
+                if (!isInclude && filePath != null && wasActive)
+                {
+                    segExpandedStart = baseOffset + output.Length;
+                    int origIdx = origLineIndices[i];
+                    segOriginalStart = rawLineOffsets[Math.Min(origIdx + 1, rawLines.Count)];
+                    hasDirectiveGaps = true;
+                }
             }
             else
             {
@@ -398,7 +422,7 @@ public class Preprocessor
         // Record when: file had includes (need segments for content between them),
         // or this is a recursive call for an included file,
         // or there were #ifdef gaps that shifted positions
-        bool needsSegments = hasIncludes || hasIfdefGaps || hasMacroDeltas || isIncludedFile;
+        bool needsSegments = hasIncludes || hasIfdefGaps || hasMacroDeltas || hasDirectiveGaps || isIncludedFile;
         if (needsSegments && filePath != null)
         {
             int finalExpandedPos = baseOffset + output.Length;

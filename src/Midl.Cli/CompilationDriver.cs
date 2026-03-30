@@ -188,6 +188,7 @@ public class CompilationDriver
                 options.IncludePaths.Count > 0 ? options.IncludePaths : null,
                 options.InputFile,
                 options.Defines.Count > 0 ? options.Defines : null,
+                emitQualityHints: options.ShowInfoDiagnostics,
                 profile: profile);
         }
         catch (Exception ex)
@@ -254,6 +255,10 @@ public class CompilationDriver
                 {
                     _err.WriteLine($"{locationPrefix}{prefix} {diag.Code}: {diag.Message}");
                     warningCount++;
+                }
+                else if (diag.Severity == DiagnosticSeverity.Info && options.ShowInfoDiagnostics)
+                {
+                    _err.WriteLine($"{locationPrefix}{prefix} {diag.Code}: {diag.Message}");
                 }
             }
         }
