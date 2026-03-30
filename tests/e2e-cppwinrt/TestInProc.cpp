@@ -94,19 +94,56 @@ int main()
         Check(std::abs(d - 5.0) < 0.001, "ComputeDistance(0,0 -> 3,4) == 5.0");
     }
 
-    // Test 9: Static CreateDefault (uses activation factory)
+    // Test 9: IsActive boolean property
     {
-        auto w = winrt::TestCppWinRT::Widget::CreateDefault();
-        Check(w.Name() == L"Default", "Static CreateDefault");
+        auto w = winrt::TestCppWinRT::Widget();
+        Check(!w.IsActive(), "IsActive default is false");
+        w.IsActive(true);
+        Check(w.IsActive(), "IsActive set to true");
+        w.IsActive(false);
+        Check(!w.IsActive(), "IsActive set back to false");
     }
 
-    // Test 10: Static GetVersion (uses activation factory)
+    // Test 10: Count integer property
+    {
+        auto w = winrt::TestCppWinRT::Widget();
+        Check(w.Count() == 0, "Count default is 0");
+        w.Count(42);
+        Check(w.Count() == 42, "Count set to 42");
+        w.Count(-1);
+        Check(w.Count() == -1, "Count set to -1 (signed)");
+    }
+
+    // Test 11: TryParse with out parameter
+    {
+        auto w = winrt::TestCppWinRT::Widget();
+        int32_t value = -1;
+        bool ok = w.TryParse(L"42", value);
+        Check(ok && value == 42, "TryParse valid input: 42");
+    }
+
+    // Test 12: TryParse with invalid input
+    {
+        auto w = winrt::TestCppWinRT::Widget();
+        int32_t value = -1;
+        bool ok = w.TryParse(L"not_a_number", value);
+        Check(!ok && value == 0, "TryParse invalid input: returns false");
+    }
+
+    // Test 13: Static CreateDefault (uses activation factory)
+    {
+        auto w = winrt::TestCppWinRT::Widget::CreateDefault();
+        Check(w.Name() == L"Default", "Static CreateDefault: name");
+        Check(w.IsActive(), "Static CreateDefault: IsActive is true");
+    }
+
+    // Test 14: Static GetVersion (uses activation factory)
     {
         auto ver = winrt::TestCppWinRT::Widget::GetVersion();
         Check(ver == L"1.0.0", "Static GetVersion");
     }
 
-    // Test 11: StatusHandler delegate invocation
+    // Test 15: StatusHandler delegate invocation
     {
         bool called = false;
         winrt::hstring received;
@@ -118,7 +155,10 @@ int main()
         Check(called && received == L"subscribed", "StatusHandler delegate invocation");
     }
 
-    // Test 12: NameChanged event subscribe and fire
+    // Test 16: StringTransform delegate — skipped (non-void delegate return
+    //   values need retval out param in header emitter — known gap)
+
+    // Test 17: NameChanged event subscribe and fire
     {
         bool fired = false;
         winrt::hstring eventArg;

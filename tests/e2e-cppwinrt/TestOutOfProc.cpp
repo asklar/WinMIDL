@@ -214,6 +214,75 @@ int main()
     // NOTE: Event/delegate tests are skipped for out-of-proc — callback
     // interfaces require additional proxy registration which is complex.
 
+    // Test: Static methods — require WinRT activation which needs app identity
+    // for cross-process. Test gracefully: try, report skip if unavailable.
+    try {
+        auto ver = winrt::TestCppWinRT::Widget::GetVersion();
+        Check(ver == L"1.0.0", "Static GetVersion (cross-process)");
+    } catch (winrt::hresult_error const& e) {
+        if ((int)e.code() == (int)0x80040154 /*REGDB_E_CLASSNOTREG*/) {
+            printf("  SKIP: Static GetVersion (WinRT activation not available for unpackaged apps)\n");
+        } else {
+            printf("    Exception: 0x%08X\n", (int)e.code());
+            Check(false, "Static GetVersion (cross-process)");
+        }
+    }
+
+    try {
+        auto def = winrt::TestCppWinRT::Widget::CreateDefault();
+        Check(def.Name() == L"Default", "Static CreateDefault (cross-process)");
+        Check(def.IsActive(), "Static CreateDefault: IsActive is true");
+    } catch (winrt::hresult_error const& e) {
+        if ((int)e.code() == (int)0x80040154) {
+            printf("  SKIP: Static CreateDefault (WinRT activation not available for unpackaged apps)\n");
+        } else {
+            printf("    Exception: 0x%08X\n", (int)e.code());
+            Check(false, "Static CreateDefault (cross-process)");
+        }
+    }
+
+    // Test: Boolean property
+    try {
+        widget.IsActive(true);
+        Check(widget.IsActive(), "IsActive set to true (cross-process)");
+        widget.IsActive(false);
+        Check(!widget.IsActive(), "IsActive set to false (cross-process)");
+    } catch (winrt::hresult_error const& e) {
+        printf("    Exception: 0x%08X\n", (int)e.code());
+        Check(false, "IsActive boolean property");
+    }
+
+    // Test: Count integer property
+    try {
+        widget.Count(99);
+        Check(widget.Count() == 99, "Count set/get (cross-process)");
+        widget.Count(-7);
+        Check(widget.Count() == -7, "Count negative value (cross-process)");
+    } catch (winrt::hresult_error const& e) {
+        printf("    Exception: 0x%08X\n", (int)e.code());
+        Check(false, "Count integer property");
+    }
+
+    // Test: TryParse with out parameter
+    try {
+        int32_t value = -1;
+        bool ok = widget.TryParse(L"123", value);
+        Check(ok && value == 123, "TryParse valid input (cross-process)");
+    } catch (winrt::hresult_error const& e) {
+        printf("    Exception: 0x%08X\n", (int)e.code());
+        Check(false, "TryParse (cross-process)");
+    }
+
+    // Test: TryParse with invalid input
+    try {
+        int32_t value = -1;
+        bool ok = widget.TryParse(L"abc", value);
+        Check(!ok, "TryParse invalid input returns false (cross-process)");
+    } catch (winrt::hresult_error const& e) {
+        printf("    Exception: 0x%08X\n", (int)e.code());
+        Check(false, "TryParse invalid (cross-process)");
+    }
+
     // Signal server to shut down
     HANDLE hEvent = OpenEventW(EVENT_MODIFY_STATE, FALSE, g_shutdownEventName);
     if (hEvent) {

@@ -4,21 +4,42 @@ namespace TestCppWinRT
     [flags] enum Permissions { None = 0, Read = 1, Write = 2, Execute = 4 };
     struct Point { Single X; Single Y; };
     struct Color { UInt8 R; UInt8 G; UInt8 B; UInt8 A; };
+
     delegate void StatusHandler(String message);
 
     runtimeclass Widget
     {
         Widget();
         Widget(String name);
+
+        // Properties (various types)
         String Name { get; set; };
         Priority Level { get; set; };
+        Boolean IsActive { get; set; };
+        Int32 Count { get; set; };
+
+        // Methods returning structs
         Point GetPosition();
         void MoveTo(Point position);
         Color GetColor();
+
+        // Multi-param method with non-trivial return
         Double ComputeDistance(Point from, Point to);
+
+        // Out parameter
+        Boolean TryParse(String input, out Int32 value);
+
+        // Static methods
         static Widget CreateDefault();
         static String GetVersion();
+
+        // Delegate parameter
         void Subscribe(StatusHandler handler);
+
+        // TODO: delegate with return value (StringTransform) — blocked by
+        // header emitter not adding retval out param for non-void delegates
+
+        // Event
         event Windows.Foundation.TypedEventHandler<Widget, String> NameChanged;
     };
 }

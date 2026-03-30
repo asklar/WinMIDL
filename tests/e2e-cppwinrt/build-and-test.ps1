@@ -378,6 +378,7 @@ Check (Test-Path $proxyDll) "TestCppWinRTProxy.dll built"
 # 5b: Compile server EXE
 Write-Host "  Compiling CppWinRTServer.exe..."
 $serverSources = @("$scriptDir/ServerMain.cpp", "$scriptDir/Widget.cpp")
+if ($moduleGCpp) { $serverSources += $moduleGCpp }
 $serverObjs = @()
 
 foreach ($src in $serverSources) {
@@ -398,7 +399,7 @@ $serverExe = "$buildDir/CppWinRTServer.exe"
 $output = & $cl /nologo /Fe"$serverExe" @serverObjs /link `
     /SUBSYSTEM:CONSOLE `
     @libPaths `
-    windowsapp.lib ole32.lib oleaut32.lib 2>&1
+    windowsapp.lib ole32.lib oleaut32.lib runtimeobject.lib 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "FAIL: Server link failed:" -ForegroundColor Red
     $output | ForEach-Object { Write-Host "    $_" }
@@ -503,6 +504,14 @@ foreach ($iidName in $iidMap.Keys) {
 }
 Write-Host "  Registered $($iidMap.Count) interface IIDs"
 
+# Register WinRT activation for static methods
+# TestCppWinRT.Widget → server EXE path
+$activationKey = "$regBase\ActivatableClassId\TestCppWinRT.Widget\Server"
+New-Item -Path $activationKey -Force | Out-Null
+Set-ItemProperty -Path "$regBase\ActivatableClassId\TestCppWinRT.Widget" -Name "ActivationType" -Value 1 -Type DWord
+Set-ItemProperty -Path "$activationKey" -Name "(Default)" -Value $serverExePath
+Write-Host "  WinRT activation: TestCppWinRT.Widget → $serverExePath"
+
 # ── Step 7: Run out-of-proc test ────────────────────────────────────────
 Write-Step "Starting server and running out-of-proc tests"
 
@@ -550,6 +559,7 @@ if (-not $KeepRegistration) {
     Write-Step "Cleaning up registration"
     Remove-Item "$regBase\CLSID\$CLSID_Widget" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item "$regBase\CLSID\$CLSID_PSFactory" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item "$regBase\ActivatableClassId\TestCppWinRT.Widget" -Recurse -Force -ErrorAction SilentlyContinue
     foreach ($iidGuid in $iidMap.Values) {
         Remove-Item "$regBase\Interface\$iidGuid" -Recurse -Force -ErrorAction SilentlyContinue
     }

@@ -1,10 +1,15 @@
-// ServerMain.cpp — Out-of-proc C++/WinRT server with COM class factory.
-// Registers CLSID_Widget via CoRegisterClassObject and waits for a shutdown event.
+// ServerMain.cpp — Out-of-proc C++/WinRT server with COM class factory
+// and WinRT activation factory (for static methods).
 
 #include "winrt/Windows.Foundation.h"
 #include "Widget.h"
 #include <windows.h>
+#include <winstring.h>
+#include <roapi.h>
 #include <stdio.h>
+
+// Forward-declare from module.g.cpp
+extern void* __stdcall winrt_get_activation_factory(std::wstring_view const& name);
 
 // {A7B8C9D0-E1F2-4A3B-8C5D-6E7F8091A2B3}
 static constexpr CLSID CLSID_Widget = {
@@ -54,6 +59,17 @@ public:
     HRESULT STDMETHODCALLTYPE LockServer(BOOL) override { return S_OK; }
 };
 
+// WinRT activation callback for RoRegisterActivationFactories
+static HRESULT WINAPI WidgetActivationFactory(HSTRING classId, IActivationFactory** factory)
+{
+    *factory = nullptr;
+    auto name = WindowsGetStringRawBuffer(classId, nullptr);
+    void* raw = winrt_get_activation_factory(name);
+    if (!raw) return CLASS_E_CLASSNOTAVAILABLE;
+    *factory = static_cast<IActivationFactory*>(raw);
+    return S_OK;
+}
+
 int main()
 {
     winrt::init_apartment();
@@ -67,6 +83,7 @@ int main()
         return 1;
     }
 
+    // Register COM class factory (for CoCreateInstance)
     auto factory = new WidgetClassFactory();
     DWORD cookie = 0;
     HRESULT hr = CoRegisterClassObject(CLSID_Widget, factory,
@@ -78,6 +95,17 @@ int main()
         return 1;
     }
 
+    // Register WinRT activation factory (for static methods / RoGetActivationFactory)
+    HSTRING className = nullptr;
+    WindowsCreateString(L"TestCppWinRT.Widget", 19, &className);
+    PFNGETACTIVATIONFACTORY callbacks[] = { WidgetActivationFactory };
+    HSTRING classNames[] = { className };
+    RO_REGISTRATION_COOKIE roToken = nullptr;
+    hr = RoRegisterActivationFactories(classNames, callbacks, 1, &roToken);
+    if (FAILED(hr)) {
+        printf("CppWinRTServer: RoRegisterActivationFactories failed: 0x%08X (statics won't work)\n", hr);
+    }
+
     printf("CppWinRTServer: Registered, waiting for clients...\n");
     fflush(stdout);
 
@@ -87,6 +115,8 @@ int main()
     fflush(stdout);
 
     CoRevokeClassObject(cookie);
+    if (roToken) RoRevokeActivationFactories(roToken);
+    if (className) WindowsDeleteString(className);
     factory->Release();
     CloseHandle(hShutdown);
 
