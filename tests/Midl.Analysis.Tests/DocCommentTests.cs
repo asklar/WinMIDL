@@ -299,4 +299,37 @@ public class DocCommentTests
     }
 
     #endregion
+
+    #region Doc Comment Syntax Highlighting
+
+    [Fact]
+    public void SemanticTokens_DocComment_SplitsIntoTagsAndContent()
+    {
+        var source = "/// <summary>A widget.</summary>\nnamespace N { }";
+        var compilation = CompilationHelper.Compile(source);
+        var (data, types, _) = Midl.Lsp.Handlers.SemanticTokensHandler.HandleCore(source, compilation);
+
+        int commentType = Array.IndexOf(types, "comment");
+        int decoratorType = Array.IndexOf(types, "decorator");
+        int stringType = Array.IndexOf(types, "string");
+
+        // First token on line 0 should be "///" as comment
+        Assert.True(data.Length >= 5);
+        Assert.Equal(0, data[0]); // deltaLine
+        Assert.Equal(3, data[2]); // length of "///"
+        Assert.Equal(commentType, data[3]); // type = comment
+
+        // Should also have decorator tokens for <summary> and </summary>
+        bool hasDecorator = false;
+        bool hasString = false;
+        for (int i = 0; i < data.Length; i += 5)
+        {
+            if (data[i + 3] == decoratorType) hasDecorator = true;
+            if (data[i + 3] == stringType && i > 0) hasString = true; // content between tags
+        }
+        Assert.True(hasDecorator, "Doc comment should have decorator tokens for XML tags");
+        Assert.True(hasString, "Doc comment should have string tokens for content");
+    }
+
+    #endregion
 }

@@ -153,6 +153,11 @@ public static class SemanticTokensHandler
                             prevChar = pathChar;
                         }
                     }
+                    else if (trivia.Kind == SyntaxKind.DocCommentTrivia)
+                    {
+                        // Split doc comment: "///" as comment, XML tags as decorator
+                        EmitDocCommentTokens(st.Text, pos, lineStarts, encodedTokens, ref prevLine, ref prevChar);
+                    }
                     else
                     {
                         int deltaLine = tLine - prevLine;
@@ -310,6 +315,65 @@ public static class SemanticTokensHandler
         SyntaxKind.StringKeyword or SyntaxKind.GuidKeyword or
         SyntaxKind.ObjectKeyword or SyntaxKind.TrueKeyword or
         SyntaxKind.FalseKeyword or SyntaxKind.NullKeyword;
+
+    /// <summary>
+    /// <summary>
+    /// Emits semantic tokens for a doc comment, splitting into:
+    ///   "///" → comment, XML tags → decorator, content → string
+    /// </summary>
+    private static void EmitDocCommentTokens(string text, int offset, int[] lineStarts,
+        List<int> encodedTokens, ref int prevLine, ref int prevChar)
+    {
+        var (baseLine, baseChar) = PositionHelper.OffsetToLineChar(lineStarts, offset);
+
+        // Emit "///" prefix as comment
+        int slashCount = 3;
+        while (slashCount < text.Length && text[slashCount] == '/') slashCount++;
+        int deltaLine = baseLine - prevLine;
+        int deltaChar = deltaLine == 0 ? baseChar - prevChar : baseChar;
+        encodedTokens.AddRange([deltaLine, deltaChar, slashCount, TypeComment, 0]);
+        prevLine = baseLine;
+        prevChar = baseChar;
+
+        // Scan the rest for XML tags vs content
+        int i = slashCount;
+        while (i < text.Length)
+        {
+            if (text[i] == '<')
+            {
+                // Find end of tag
+                int tagStart = i;
+                int tagEnd = text.IndexOf('>', i);
+                if (tagEnd < 0) tagEnd = text.Length - 1;
+                int tagLen = tagEnd - tagStart + 1;
+
+                int tagChar = baseChar + tagStart;
+                deltaLine = 0;
+                deltaChar = tagChar - prevChar;
+                encodedTokens.AddRange([deltaLine, deltaChar, tagLen, TypeDecorator, 0]);
+                prevChar = tagChar;
+                i = tagEnd + 1;
+            }
+            else
+            {
+                // Content between tags — find next '<' or end
+                int contentStart = i;
+                int nextTag = text.IndexOf('<', i);
+                if (nextTag < 0) nextTag = text.Length;
+                int contentLen = nextTag - contentStart;
+
+                if (contentLen > 0 && text[contentStart..nextTag].Trim().Length > 0)
+                {
+                    int contentChar = baseChar + contentStart;
+                    deltaLine = 0;
+                    deltaChar = contentChar - prevChar;
+                    encodedTokens.AddRange([deltaLine, deltaChar, contentLen, TypeString, 0]);
+                    prevChar = contentChar;
+                }
+                i = nextTag;
+            }
+        }
+    }
 
     /// <summary>
     /// Checks if a comment is a // @ref: directive and returns the spans of each part.
