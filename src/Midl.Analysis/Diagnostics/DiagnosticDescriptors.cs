@@ -604,6 +604,16 @@ public static class DiagnosticDescriptors
             $"Property '{propName}' on '{typeName}' has both get and set. Consider using shorthand: '{propName};' instead of '{{ get; set; }}'.",
             position, Math.Max(propName.Length, 1));
 
+    public static Diagnostic RedundantDefaultAttribute(string attrName, string defaultValue, int position, int length) =>
+        new(DiagnosticSeverity.Info, "MIDL3017",
+            $"[{attrName}({defaultValue})] is the default and can be omitted.",
+            position, Math.Max(length, 1));
+
+    public static Diagnostic ObsoleteAttribute(string attrName, int position, int length) =>
+        new(DiagnosticSeverity.Info, "MIDL3018",
+            $"[{attrName}] has no effect in modern WinRT and can be removed.",
+            position, Math.Max(length, 1));
+
     // Empty enum (MIDL1098)
     public static Diagnostic EmptyEnum(string enumName, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1098",

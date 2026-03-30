@@ -3495,6 +3495,55 @@ public partial class Binder
                     memberName, rc.Name, _posMap.GetPositionOf(memberName)));
             }
         }
+
+        // MIDL3017: Redundant default attributes
+        ValidateRedundantDefaults(rc.Attributes, rc.ThreadingModel, rc.MarshalingBehavior);
+
+        // MIDL3018: Obsolete/dead attributes
+        ValidateObsoleteAttributes(rc.Attributes);
+    }
+
+    private static readonly HashSet<string> ObsoleteAttributes =
+        new(StringComparer.OrdinalIgnoreCase) { "dualapipartition", "allowforweb", "webhosthidden" };
+
+    private void ValidateRedundantDefaults(List<AttributeData> attributes, string? threadingModel, string? marshalingBehavior)
+    {
+        foreach (var attr in attributes)
+        {
+            if (attr.Name.Equals("threading", StringComparison.OrdinalIgnoreCase) &&
+                threadingModel != null &&
+                threadingModel.Equals("both", StringComparison.OrdinalIgnoreCase))
+            {
+                // [threading(both)] is the default — can be omitted
+                int len = attr.Arguments.Count > 0 && attr.Arguments[0].Length > 0
+                    ? attr.Arguments[0].Position + attr.Arguments[0].Length - attr.Position + 1 // include closing paren
+                    : attr.Name.Length;
+                _diagnostics.Add(DiagnosticDescriptors.RedundantDefaultAttribute(
+                    "threading", "both", attr.Position, len));
+            }
+            else if (attr.Name.Equals("marshaling_behavior", StringComparison.OrdinalIgnoreCase) &&
+                     marshalingBehavior != null &&
+                     marshalingBehavior.Equals("agile", StringComparison.OrdinalIgnoreCase))
+            {
+                int len = attr.Arguments.Count > 0 && attr.Arguments[0].Length > 0
+                    ? attr.Arguments[0].Position + attr.Arguments[0].Length - attr.Position + 1
+                    : attr.Name.Length;
+                _diagnostics.Add(DiagnosticDescriptors.RedundantDefaultAttribute(
+                    "marshaling_behavior", "agile", attr.Position, len));
+            }
+        }
+    }
+
+    private void ValidateObsoleteAttributes(List<AttributeData> attributes)
+    {
+        foreach (var attr in attributes)
+        {
+            if (ObsoleteAttributes.Contains(attr.Name))
+            {
+                _diagnostics.Add(DiagnosticDescriptors.ObsoleteAttribute(
+                    attr.Name, attr.Position, attr.Name.Length));
+            }
+        }
     }
 
     #endregion

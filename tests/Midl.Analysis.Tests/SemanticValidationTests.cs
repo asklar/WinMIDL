@@ -675,5 +675,106 @@ public class SemanticValidationTests
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code.StartsWith("MIDL3"));
     }
 
+    // MIDL3017: Redundant default attributes
+
+    [Fact]
+    public void QualityHint_ThreadingBoth_IsRedundant()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N { [threading(both)] runtimeclass Widget { Widget(); } }");
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3017");
+        Assert.NotNull(diag);
+        Assert.Contains("threading", diag.Message);
+        Assert.Contains("default", diag.Message);
+    }
+
+    [Fact]
+    public void QualityHint_ThreadingSta_NotRedundant()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N { [threading(sta)] runtimeclass Widget { Widget(); } }");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3017" && d.Message.Contains("threading"));
+    }
+
+    [Fact]
+    public void QualityHint_MarshalingAgile_IsRedundant()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N { [marshaling_behavior(agile)] runtimeclass Widget { Widget(); } }");
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3017");
+        Assert.NotNull(diag);
+        Assert.Contains("marshaling_behavior", diag.Message);
+    }
+
+    [Fact]
+    public void QualityHint_MarshalingStandard_NotRedundant()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N { [marshaling_behavior(standard)] runtimeclass Widget { Widget(); } }");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3017" && d.Message.Contains("marshaling"));
+    }
+
+    [Fact]
+    public void QualityHint_ThreadingBoth_SquigglePosition()
+    {
+        var source = "namespace N { [threading(both)] runtimeclass Widget { Widget(); } }";
+        var compilation = CompileWithQualityHints(source);
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL3017");
+        int pos = diag.OriginalPosition ?? diag.Position;
+        // Squiggle should start at "threading"
+        Assert.Equal("threading", source.Substring(pos, "threading".Length));
+    }
+
+    // MIDL3018: Obsolete/dead attributes
+
+    [Fact]
+    public void QualityHint_DualApiPartition_IsObsolete()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N { [dualapipartition(1)] runtimeclass Widget { Widget(); } }");
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3018");
+        Assert.NotNull(diag);
+        Assert.Contains("dualapipartition", diag.Message);
+        Assert.Contains("no effect", diag.Message);
+    }
+
+    [Fact]
+    public void QualityHint_AllowForWeb_IsObsolete()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N { [allowforweb] runtimeclass Widget { Widget(); } }");
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3018");
+        Assert.NotNull(diag);
+        Assert.Contains("allowforweb", diag.Message);
+    }
+
+    [Fact]
+    public void QualityHint_WebHostHidden_IsObsolete()
+    {
+        var compilation = CompileWithQualityHints(
+            "namespace N { [webhosthidden] runtimeclass Widget { Widget(); } }");
+        var diag = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3018");
+        Assert.NotNull(diag);
+        Assert.Contains("webhosthidden", diag.Message);
+    }
+
+    [Fact]
+    public void QualityHint_ObsoleteAttr_SquiggleOnAttrName()
+    {
+        var source = "namespace N { [webhosthidden] runtimeclass Widget { Widget(); } }";
+        var compilation = CompileWithQualityHints(source);
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL3018");
+        int pos = diag.OriginalPosition ?? diag.Position;
+        Assert.Equal("webhosthidden", source.Substring(pos, diag.Length));
+    }
+
+    [Fact]
+    public void QualityHint_ObsoleteAttr_NotFiredWhenDisabled()
+    {
+        var compilation = CompilationHelper.Compile(
+            "namespace N { [webhosthidden] runtimeclass Widget { Widget(); } }");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3018");
+    }
+
     #endregion
 }
