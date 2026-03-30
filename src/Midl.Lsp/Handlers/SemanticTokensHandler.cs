@@ -122,7 +122,7 @@ public static class SemanticTokensHandler
             // Classify trivia (comments)
             foreach (var trivia in token.LeadingTrivia)
             {
-                if (trivia.Kind is SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia
+                if (trivia.Kind is SyntaxKind.SingleLineCommentTrivia or SyntaxKind.DocCommentTrivia or SyntaxKind.MultiLineCommentTrivia
                     && trivia is SyntaxTrivia st)
                 {
                     var (tLine, tChar) = PositionHelper.OffsetToLineChar(lineStarts, pos);

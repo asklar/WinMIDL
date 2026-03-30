@@ -153,6 +153,10 @@ public sealed class Lexer
     {
         int start = _window.Position;
         _window.AdvanceChar(2); // skip //
+        // Distinguish /// doc comments from regular // comments
+        bool isDocComment = !_window.IsAtEnd && _window.PeekChar() == '/' && (_window.IsAtEnd || _window.PeekChar(1) != '/');
+        if (isDocComment)
+            _window.AdvanceChar(); // skip third /
         while (!_window.IsAtEnd)
         {
             char ch = _window.PeekChar();
@@ -160,7 +164,8 @@ public sealed class Lexer
                 break;
             _window.AdvanceChar();
         }
-        return new SyntaxTrivia(SyntaxKind.SingleLineCommentTrivia,
+        var kind = isDocComment ? SyntaxKind.DocCommentTrivia : SyntaxKind.SingleLineCommentTrivia;
+        return new SyntaxTrivia(kind,
             _window.GetText(start, _window.Position - start));
     }
 

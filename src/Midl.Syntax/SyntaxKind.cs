@@ -11,6 +11,7 @@ public enum SyntaxKind : ushort
     WhitespaceTrivia,
     EndOfLineTrivia,
     SingleLineCommentTrivia,
+    DocCommentTrivia,
     MultiLineCommentTrivia,
     SkippedTokensTrivia,
 
