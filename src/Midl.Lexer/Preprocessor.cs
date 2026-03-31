@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Midl.Lexer;
 
@@ -8,7 +7,7 @@ namespace Midl.Lexer;
 /// Handles #define, #undef, #ifdef/#ifndef/#if/#elif/#else/#endif,
 /// #include, #pragma, and simple macro substitution.
 /// </summary>
-public partial class Preprocessor
+public class Preprocessor
 {
     private readonly Dictionary<string, string> _defines = new(StringComparer.Ordinal);
     private readonly Dictionary<string, FunctionMacro> _functionMacros = new(StringComparer.Ordinal);
@@ -16,12 +15,6 @@ public partial class Preprocessor
     private readonly string? _currentFilePath;
     private readonly HashSet<string> _pragmaOnceFiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _includeStack = new(StringComparer.OrdinalIgnoreCase);
-
-    [GeneratedRegex(@"defined\s*\(\s*(\w+)\s*\)")]
-    private static partial Regex DefinedParenRegex();
-
-    [GeneratedRegex(@"defined\s+(\w+)")]
-    private static partial Regex DefinedSpaceRegex();
 
     /// <summary>True if any #include directive was encountered during processing.</summary>
     public bool HasIncludeDirectives { get; private set; }
@@ -844,13 +837,115 @@ public partial class Preprocessor
         return line;
     }
 
-    [GeneratedRegex(@"\s*##\s*")]
-    private static partial Regex TokenPasteRegex();
-
     private static string ProcessTokenPaste(string text)
     {
-        return TokenPasteRegex().Replace(text, string.Empty);
+        var sb = new StringBuilder(text.Length);
+        int i = 0;
+        while (i < text.Length)
+        {
+            int idx = text.IndexOf("##", i);
+            if (idx < 0)
+            {
+                sb.Append(text, i, text.Length - i);
+                break;
+            }
+            // Trim trailing whitespace before ##
+            int end = idx;
+            while (end > i && char.IsWhiteSpace(text[end - 1])) end--;
+            sb.Append(text, i, end - i);
+            // Skip ## and leading whitespace after it
+            i = idx + 2;
+            while (i < text.Length && char.IsWhiteSpace(text[i])) i++;
+        }
+        return sb.ToString();
     }
+
+    /// <summary>
+    /// Replaces all occurrences of <c>defined(NAME)</c> and <c>defined NAME</c>
+    /// with the result of <paramref name="evaluator"/>.
+    /// </summary>
+    private static string ReplaceDefined(string expr, Func<string, string> evaluator)
+    {
+        var sb = new StringBuilder(expr.Length);
+        int i = 0;
+        while (i < expr.Length)
+        {
+            int idx = expr.IndexOf("defined", i, StringComparison.Ordinal);
+            if (idx < 0)
+            {
+                sb.Append(expr, i, expr.Length - i);
+                break;
+            }
+            // Make sure "defined" is not part of a larger identifier
+            if (idx > 0 && IsWordChar(expr[idx - 1]))
+            {
+                sb.Append(expr, i, idx + 7 - i);
+                i = idx + 7;
+                continue;
+            }
+            int afterDefined = idx + 7; // length of "defined"
+            if (afterDefined < expr.Length && IsWordChar(expr[afterDefined])
+                && expr[afterDefined] != '(')
+            {
+                // "defined" followed immediately by word char (not '(') → not our pattern, 
+                // but actually this IS the "defined NAME" pattern without space.
+                // The regex required \s+, so this is NOT a match. Skip.
+                sb.Append(expr, i, afterDefined - i);
+                i = afterDefined;
+                continue;
+            }
+
+            sb.Append(expr, i, idx - i);
+            int j = afterDefined;
+
+            // Skip whitespace
+            while (j < expr.Length && char.IsWhiteSpace(expr[j])) j++;
+
+            if (j < expr.Length && expr[j] == '(')
+            {
+                // defined(NAME) form
+                j++; // skip '('
+                while (j < expr.Length && char.IsWhiteSpace(expr[j])) j++;
+                int nameStart = j;
+                while (j < expr.Length && IsWordChar(expr[j])) j++;
+                if (j > nameStart)
+                {
+                    var name = expr[nameStart..j];
+                    while (j < expr.Length && char.IsWhiteSpace(expr[j])) j++;
+                    if (j < expr.Length && expr[j] == ')')
+                    {
+                        j++; // skip ')'
+                        sb.Append(evaluator(name));
+                        i = j;
+                        continue;
+                    }
+                }
+                // Malformed — emit as-is
+                sb.Append("defined");
+                i = afterDefined;
+            }
+            else
+            {
+                // defined NAME form — require at least one whitespace char was skipped
+                if (j > afterDefined && j < expr.Length && IsWordChar(expr[j]))
+                {
+                    int nameStart = j;
+                    while (j < expr.Length && IsWordChar(expr[j])) j++;
+                    var name = expr[nameStart..j];
+                    sb.Append(evaluator(name));
+                    i = j;
+                }
+                else
+                {
+                    sb.Append("defined");
+                    i = afterDefined;
+                }
+            }
+        }
+        return sb.ToString();
+    }
+
+    private static bool IsWordChar(char c) => char.IsLetterOrDigit(c) || c == '_';
 
     private static int FindMatchingParen(string text, int openIdx)
     {
@@ -897,10 +992,8 @@ public partial class Preprocessor
         if (commentIdx >= 0) expr = expr[..commentIdx].Trim();
 
         // Handle defined(NAME) / defined NAME
-        expr = DefinedParenRegex().Replace(expr, m =>
-            (_defines.ContainsKey(m.Groups[1].Value) || _functionMacros.ContainsKey(m.Groups[1].Value)) ? "1" : "0");
-        expr = DefinedSpaceRegex().Replace(expr, m =>
-            (_defines.ContainsKey(m.Groups[1].Value) || _functionMacros.ContainsKey(m.Groups[1].Value)) ? "1" : "0");
+        expr = ReplaceDefined(expr, name =>
+            (_defines.ContainsKey(name) || _functionMacros.ContainsKey(name)) ? "1" : "0");
 
         // Substitute macros in the expression
         expr = SubstituteMacros(expr);

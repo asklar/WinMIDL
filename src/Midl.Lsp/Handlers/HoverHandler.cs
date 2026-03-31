@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net.Http;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Midl.Analysis;
 using Midl.Lsp.Protocol;
 using Midl.Syntax;
@@ -11,7 +10,7 @@ namespace Midl.Lsp.Handlers;
 /// <summary>
 /// Provides hover information for tokens in MIDL documents.
 /// </summary>
-public static partial class HoverHandler
+public static class HoverHandler
 {
     private static readonly HttpClient s_httpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
     private static readonly ConcurrentDictionary<string, string?> s_descriptionCache = new();
@@ -327,22 +326,32 @@ public static partial class HoverHandler
     /// <summary>Extract the type description from a MS Learn HTML page.</summary>
     private static string? ExtractDescription(string html)
     {
-        // Look for the first <p> tag content after the main heading area
-        // MS Learn pages have the description as early paragraph text
-        var match = MetaDescriptionRegex().Match(html);
-        if (match.Success)
-        {
-            var desc = match.Groups[1].Value.Trim();
-            // Clean up HTML entities
-            desc = desc.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">").Replace("&#39;", "'").Replace("&quot;", "\"");
-            // Truncate to first ~200 chars for hover readability
-            if (desc.Length > 200)
-                desc = desc[..197] + "...";
-            return desc;
-        }
-        return null;
-    }
+        // Find name="description" (case-insensitive)
+        int idx = html.IndexOf("name=\"description\"", StringComparison.OrdinalIgnoreCase);
+        if (idx < 0)
+            idx = html.IndexOf("name='description'", StringComparison.OrdinalIgnoreCase);
+        if (idx < 0) return null;
 
-    [GeneratedRegex(@"<meta\s+name=""description""\s+content=""([^""]+)""", RegexOptions.IgnoreCase)]
-    private static partial Regex MetaDescriptionRegex();
+        // Search for content="..." nearby (within the same <meta> tag)
+        // Look backward for '<' to find tag start, forward for '>' to find tag end
+        int tagStart = html.LastIndexOf('<', idx);
+        int tagEnd = html.IndexOf('>', idx);
+        if (tagStart < 0 || tagEnd < 0) return null;
+
+        var tag = html[tagStart..(tagEnd + 1)];
+        int contentIdx = tag.IndexOf("content=\"", StringComparison.OrdinalIgnoreCase);
+        if (contentIdx < 0) return null;
+
+        int valueStart = contentIdx + 9; // length of content="
+        int valueEnd = tag.IndexOf('"', valueStart);
+        if (valueEnd < 0) return null;
+
+        var desc = tag[valueStart..valueEnd].Trim();
+        // Clean up HTML entities
+        desc = desc.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">").Replace("&#39;", "'").Replace("&quot;", "\"");
+        // Truncate to first ~200 chars for hover readability
+        if (desc.Length > 200)
+            desc = desc[..197] + "...";
+        return desc;
+    }
 }

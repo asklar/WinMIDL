@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Lsp.Handlers;
@@ -328,32 +329,99 @@ public sealed partial class MidlLanguageServer
     /// </summary>
     private static string StripMarkdown(string md)
     {
-        var result = BoldRegex().Replace(md, "$1");
-        result = UnderlineRegex().Replace(result, "$1");
-        result = InlineCodeRegex().Replace(result, "$1");
-        result = LinkRegex().Replace(result, "$1");
-        result = HeadingRegex().Replace(result, "");
-        result = HorizontalRuleRegex().Replace(result, "────────────────");
-        return result;
+        var sb = new StringBuilder(md.Length);
+        var lines = md.Split('\n');
+        for (int lineIdx = 0; lineIdx < lines.Length; lineIdx++)
+        {
+            var line = lines[lineIdx];
+            if (lineIdx > 0) sb.Append('\n');
+
+            // Check for horizontal rule: line is all dashes, 3+
+            var trimmed = line.TrimEnd('\r');
+            if (trimmed.Length >= 3 && IsAllDashes(trimmed))
+            {
+                sb.Append("────────────────");
+                continue;
+            }
+
+            int start = 0;
+            // Strip heading markers at start of line: #{1,6} followed by whitespace
+            if (trimmed.Length > 0 && trimmed[0] == '#')
+            {
+                int h = 0;
+                while (h < trimmed.Length && h < 6 && trimmed[h] == '#') h++;
+                if (h < trimmed.Length && char.IsWhiteSpace(trimmed[h]))
+                {
+                    start = h;
+                    while (start < trimmed.Length && char.IsWhiteSpace(trimmed[start])) start++;
+                }
+            }
+
+            // Process inline formatting
+            int i = start;
+            while (i < trimmed.Length)
+            {
+                // Bold: **text**
+                if (i + 1 < trimmed.Length && trimmed[i] == '*' && trimmed[i + 1] == '*')
+                {
+                    int close = trimmed.IndexOf("**", i + 2);
+                    if (close > i + 2)
+                    {
+                        sb.Append(trimmed, i + 2, close - i - 2);
+                        i = close + 2;
+                        continue;
+                    }
+                }
+                // Underline/italic: __text__
+                if (i + 1 < trimmed.Length && trimmed[i] == '_' && trimmed[i + 1] == '_')
+                {
+                    int close = trimmed.IndexOf("__", i + 2);
+                    if (close > i + 2)
+                    {
+                        sb.Append(trimmed, i + 2, close - i - 2);
+                        i = close + 2;
+                        continue;
+                    }
+                }
+                // Inline code: `text`
+                if (trimmed[i] == '`')
+                {
+                    int close = trimmed.IndexOf('`', i + 1);
+                    if (close > i + 1)
+                    {
+                        sb.Append(trimmed, i + 1, close - i - 1);
+                        i = close + 1;
+                        continue;
+                    }
+                }
+                // Links: [text](url)
+                if (trimmed[i] == '[')
+                {
+                    int closeBracket = trimmed.IndexOf(']', i + 1);
+                    if (closeBracket > i + 1 && closeBracket + 1 < trimmed.Length && trimmed[closeBracket + 1] == '(')
+                    {
+                        int closeParen = trimmed.IndexOf(')', closeBracket + 2);
+                        if (closeParen > closeBracket + 1)
+                        {
+                            sb.Append(trimmed, i + 1, closeBracket - i - 1);
+                            i = closeParen + 1;
+                            continue;
+                        }
+                    }
+                }
+                sb.Append(trimmed[i]);
+                i++;
+            }
+        }
+        return sb.ToString();
+
+        static bool IsAllDashes(string s)
+        {
+            foreach (var c in s)
+                if (c != '-') return false;
+            return true;
+        }
     }
-
-    [System.Text.RegularExpressions.GeneratedRegex(@"\*\*(.+?)\*\*")]
-    private static partial System.Text.RegularExpressions.Regex BoldRegex();
-
-    [System.Text.RegularExpressions.GeneratedRegex(@"__(.+?)__")]
-    private static partial System.Text.RegularExpressions.Regex UnderlineRegex();
-
-    [System.Text.RegularExpressions.GeneratedRegex(@"`([^`]+)`")]
-    private static partial System.Text.RegularExpressions.Regex InlineCodeRegex();
-
-    [System.Text.RegularExpressions.GeneratedRegex(@"\[([^\]]+)\]\([^)]+\)")]
-    private static partial System.Text.RegularExpressions.Regex LinkRegex();
-
-    [System.Text.RegularExpressions.GeneratedRegex(@"^#{1,6}\s+", System.Text.RegularExpressions.RegexOptions.Multiline)]
-    private static partial System.Text.RegularExpressions.Regex HeadingRegex();
-
-    [System.Text.RegularExpressions.GeneratedRegex(@"^---+$", System.Text.RegularExpressions.RegexOptions.Multiline)]
-    private static partial System.Text.RegularExpressions.Regex HorizontalRuleRegex();
 
     private void HandleDidChangeConfiguration(JsonElement? @params)
     {

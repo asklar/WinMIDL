@@ -141,15 +141,31 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.AttributeArgument, children);
     }
 
-    // Source-generated regex for unquoted GUID: 8hex-4hex-4hex-4hex-12hex
-    [System.Text.RegularExpressions.GeneratedRegex(
-        @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
-    private static partial System.Text.RegularExpressions.Regex GuidRegex();
+    /// <summary>Check if a string is a valid GUID: 8hex-4hex-4hex-4hex-12hex.</summary>
+    private static bool IsGuidFormat(string s)
+    {
+        if (s.Length != 36) return false;
+        for (int i = 0; i < 36; i++)
+        {
+            if (i is 8 or 13 or 18 or 23)
+            {
+                if (s[i] != '-') return false;
+            }
+            else
+            {
+                if (!IsHexDigit(s[i])) return false;
+            }
+        }
+        return true;
+
+        static bool IsHexDigit(char c) =>
+            (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+    }
 
     /// <summary>Check if tokens from current position form an unquoted GUID.</summary>
     private bool IsGuidPatternFromHere()
     {
-        // Concatenate upcoming token texts (num, ident, minus) and try GUID regex
+        // Concatenate upcoming token texts (num, ident, minus) and check GUID format
         var sb = new System.Text.StringBuilder(40);
         for (int look = 0; look < 20; look++)
         {
@@ -160,7 +176,7 @@ public sealed partial class Parser
             else
                 break;
         }
-        return GuidRegex().IsMatch(sb.ToString());
+        return IsGuidFormat(sb.ToString());
     }
 
     /// <summary>Consume tokens forming an unquoted GUID and produce a single GuidLiteralToken.</summary>
