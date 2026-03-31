@@ -104,6 +104,13 @@ public static class HoverHandler
                 // Only show hover for type-like identifiers (skip lowercase params etc.)
                 if (lookupName.Length == 0 || char.IsLower(lookupName[0])) goto skipDecompileHover;
 
+                // If the name isn't already qualified, prepend the enclosing namespace
+                if (!lookupName.Contains('.'))
+                {
+                    var ns = FindEnclosingNamespace(text, tokenStart);
+                    if (ns != null) lookupName = ns + "." + lookupName;
+                }
+
                 var learnUrl = GetMsLearnUrl(lookupName, decompileWinMdPath);
                 var info = learnUrl != null
                     ? $"(SDK) **type** `{lookupName}`"
@@ -205,6 +212,24 @@ public static class HoverHandler
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Find the enclosing namespace declaration by scanning backwards from the cursor position.
+    /// </summary>
+    private static string? FindEnclosingNamespace(string text, int position)
+    {
+        // Scan backwards for "namespace X.Y.Z"
+        var searchRegion = text[..Math.Min(position, text.Length)];
+        int nsIdx = searchRegion.LastIndexOf("namespace ", StringComparison.Ordinal);
+        if (nsIdx < 0) return null;
+
+        int nameStart = nsIdx + "namespace ".Length;
+        int nameEnd = nameStart;
+        while (nameEnd < text.Length && text[nameEnd] != '{' && text[nameEnd] != '\r' && text[nameEnd] != '\n')
+            nameEnd++;
+        var ns = text[nameStart..nameEnd].Trim();
+        return ns.Length > 0 ? ns : null;
     }
 
     /// <summary>
