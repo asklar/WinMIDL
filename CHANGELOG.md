@@ -3,45 +3,23 @@
 ## v0.1.8 (2026-03-30)
 
 ### Features
-- XDC (XML Doc Comments) support: `///` doc comments, `/doc` CLI switch for XDC XML output, hover shows summaries, `///` autocomplete for XML tag skeletons
-- Syntax highlighting for doc comments: `///` prefix, XML tags, and content rendered in distinct colors
-- MIDL3020 quality diagnostic for missing documentation comments
-- Array params (`T[]`) merged to main: parser, header, WinMD, proxy/stub, LSP (gated behind `/arrays`)
-- C++/WinRT E2E tests: IDL → .winmd → cppwinrt → projection headers → in-proc (39 assertions) + out-of-proc (25 assertions) with cross-process static methods via factory CLSID
-- Inactive `#ifdef` region graying in editors via semantic tokens + Unnecessary diagnostic tag
-- `midl.defines` setting in VS Code and VS for preprocessor defines (live update without restart)
-- `#ifdef`/`#ifndef`/`#if`/`#endif` folding ranges
-- Namespace type count code lens (e.g., "1 enum, 1 struct, 2 classes")
-- `/diag` CLI flag to show Info-level quality diagnostics
-- MIDL3017: redundant default attributes (`[threading(both)]`, `[marshaling_behavior(agile)]`)
-- MIDL3018: obsolete attributes (`[dualapipartition]`, `[allowforweb]`, `[webhosthidden]`)
-- MIDL3019: all-static class should be `static runtimeclass`
-- MIDL3005 improved: suppressed for `*EventArgs` types, all-static classes, `// [obtained-from:]` comments
-- `/release` Copilot skill for automated releases
+- **XML Doc Comments (`///`)**: Add `/// <summary>` comments above types and methods. Syntax highlighted with distinct colors for tags, content, and `///` prefix. Hover shows summaries. `///` autocomplete generates `<param>`/`<returns>` skeletons. New `/doc <file>` CLI switch outputs XDC XML documentation.
+- **Array parameters (`T[]`)**: Pass, receive, and fill arrays in IDL methods. Supported across header, WinMD, and proxy/stub codegen. Gated behind `/arrays` flag.
+- **Inactive `#ifdef` region graying**: Code inside false `#ifdef` blocks appears dimmed. Configure active defines via `midl.defines` setting — changes take effect immediately.
+- **Preprocessor folding**: `#ifdef`/`#ifndef`/`#if`/`#endif` blocks are foldable in the editor.
+- **Namespace type count code lens**: Shows type breakdown (e.g., "1 enum, 2 classes") above each namespace block.
+- **`/diag` CLI flag**: Shows info-level quality hints from the command line.
+- **C++/WinRT E2E validation**: Verified that emitted `.winmd` files work end-to-end with `cppwinrt.exe` projections, including cross-process static methods.
+
+### Quality Diagnostics
+- **MIDL3017**: `[threading(both)]` and `[marshaling_behavior(agile)]` are defaults — can be omitted.
+- **MIDL3018**: `[dualapipartition]`, `[allowforweb]`, `[webhosthidden]` have no effect in modern WinRT.
+- **MIDL3019**: Class with only static members suggests `static runtimeclass`.
+- **MIDL3020**: Public type or method has no documentation comment.
+- **MIDL3005** improved: No longer warns for `*EventArgs` types or types with `// [obtained-from:...]` comments.
 
 ### Bug Fixes
-- Fix sourcemap positions for `#define` directives (preprocessor segment flushing)
-- Fix MIDL1077 squiggle to highlight type reference, not parameter name
-- Fix backslash `\` line continuation position preservation
-- Fix `/doc` and `/diag` switches being parsed as `/D` defines
-- Fix semantic token cache invalidation when defines change
-- Fix `workspace/semanticTokens/refresh` sent as request (not notification)
-- Fix E2E build scripts for ARM64 and cross-compile environments (`VSCMD_ARG_TGT_ARCH`)
-- Fix VS Code config change to include arrays and defines settings
-
-### Tests
-- ~50 diagnostic position tests covering all preprocessor directives
-- LF-only line ending position tests
-- MIDL2006 `#include` position test
-- 13 diagnostic codes position-verified (MIDL1009/1034-1038/1042/1044/1062/1077/2006/3003)
-- 9 DiagnosticsPublisher integration tests
-- Array E2E: 21 in-proc + 4 out-of-proc cross-process array marshaling
-- C++/WinRT E2E: 64 assertions (in-proc + out-of-proc with proxy/stub)
-- XDC emitter: 6 golden XML tests
-- Doc comment: 20+ tests (lexer, binder, emitter, diagnostics, semantic tokens)
-- Both array configurations tested (with/without `WITH_ARRAYS`)
-
-### Other
-- Cleaned up 11 merged worktrees + 50 stale branches
-- Updated TODO.md with current status
-- v0.1.7 tagged and released (previous session)
+- Diagnostic squiggles now appear on the correct line after `#define`, `#ifdef`, and backslash line continuations.
+- MIDL1077 squiggle highlights the type reference (e.g., `SoftwareBitmap`) instead of the parameter name.
+- `/doc` and `/diag` switches no longer incorrectly parsed as `/D` preprocessor defines.
+- Changing `midl.defines` in settings immediately updates syntax highlighting and diagnostics.
