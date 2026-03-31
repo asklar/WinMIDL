@@ -54,6 +54,8 @@ public class CommandLineOptions
     public bool UseExceptions { get; set; }             // /exceptions (try/catch error handling)
     public bool ArraysEnabled { get; set; }              // /arrays (enable T[] array parameter syntax)
     public string? DocFile { get; set; }                 // /doc (XDC XML doc output)
+    public string? ManifestFile { get; set; }            // --manifest (activation manifest output)
+    public string? ServerDll { get; set; }               // --server_dll (DLL name for manifest)
     public List<string> UnknownSwitches { get; } = new();
     public List<string> Errors { get; } = new();
 }
@@ -106,6 +108,20 @@ public static class CommandLineParser
             {
                 options.DumpWinMd = true;
                 i++;
+                continue;
+            }
+
+            if (arg is "--manifest" && i + 1 < expanded.Count)
+            {
+                options.ManifestFile = expanded[i + 1];
+                i += 2;
+                continue;
+            }
+
+            if (arg is "--server_dll" && i + 1 < expanded.Count)
+            {
+                options.ServerDll = expanded[i + 1];
+                i += 2;
                 continue;
             }
 
@@ -395,6 +411,20 @@ public static class CommandLineParser
             case "dump-winmd":
                 options.DumpWinMd = true;
                 i++;
+                return true;
+
+            case "manifest":
+                if (TryConsumeValue(args, ref i, out var manifestFile))
+                    options.ManifestFile = manifestFile;
+                else
+                    options.Errors.Add("Missing value for --manifest");
+                return true;
+
+            case "server_dll":
+                if (TryConsumeValue(args, ref i, out var serverDll))
+                    options.ServerDll = serverDll;
+                else
+                    options.Errors.Add("Missing value for --server_dll");
                 return true;
 
             case "debug":

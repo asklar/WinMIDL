@@ -6,6 +6,7 @@ using Midl.Analysis.Symbols;
 using Midl.CodeGen.Decompiler;
 using Midl.CodeGen.DllData;
 using Midl.CodeGen.Header;
+using Midl.CodeGen.Manifest;
 using Midl.CodeGen.Proxy;
 using Midl.CodeGen.Stub;
 using Midl.CodeGen.WinMd;
@@ -160,6 +161,55 @@ public class CompilationDriver
             catch (Exception ex)
             {
                 _err.WriteLine($"error MIDL0001: decompilation failed: {ex.Message}");
+                return 2;
+            }
+        }
+
+        // Manifest mode — generate activation manifest from .winmd
+        if (options.ManifestFile != null)
+        {
+            if (string.IsNullOrEmpty(options.ServerDll))
+            {
+                _err.WriteLine("error MIDL0001: --server_dll is required when using --manifest");
+                return 2;
+            }
+
+            if (string.IsNullOrEmpty(options.InputFile))
+            {
+                _err.WriteLine("error MIDL1000: no input .winmd file specified");
+                return 2;
+            }
+
+            if (!options.InputFile.EndsWith(".winmd", StringComparison.OrdinalIgnoreCase))
+            {
+                _err.WriteLine($"error MIDL0001: --manifest requires .winmd input, got '{options.InputFile}'");
+                return 2;
+            }
+
+            if (!File.Exists(options.InputFile))
+            {
+                _err.WriteLine($"error MIDL1001: cannot open input file '{options.InputFile}'");
+                return 2;
+            }
+
+            try
+            {
+                var classes = ManifestEmitter.ExtractFromWinMd(options.InputFile);
+                var emitter = new ManifestEmitter();
+                string content;
+
+                if (options.ManifestFile.EndsWith(".appxmanifest", StringComparison.OrdinalIgnoreCase))
+                    content = emitter.EmitAppx(options.ServerDll, classes);
+                else
+                    content = emitter.EmitSxs(options.ServerDll, classes);
+
+                File.WriteAllText(options.ManifestFile, content);
+                _out.WriteLine($"Manifest written to {options.ManifestFile}");
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                _err.WriteLine($"error MIDL0001: manifest generation failed: {ex.Message}");
                 return 2;
             }
         }
@@ -717,6 +767,8 @@ public class CompilationDriver
         _out.WriteLine("  --analyze              Rich analysis output with source context");
         _out.WriteLine("  --decompile            Decompile WinMD to IDL");
         _out.WriteLine("  --dump-winmd           Dump WinMD metadata in canonical sorted format");
+        _out.WriteLine("  --manifest <file>      Generate activation manifest from .winmd (SxS or AppX)");
+        _out.WriteLine("  --server_dll <name>    DLL name for manifest generation");
         _out.WriteLine("  /debug                 Enable debug trace output (or set MIDL_DEBUG=1)");
         _out.WriteLine("  /diag                  Show info-level quality diagnostics");
         _out.WriteLine("  /arrays                Enable array parameter syntax (T[])");

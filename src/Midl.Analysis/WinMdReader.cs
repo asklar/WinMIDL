@@ -820,12 +820,12 @@ public class WinMdReader
                     if (blob.RemainingBytes >= 4)
                     {
                         var threadingValue = blob.ReadInt32();
+                        // Windows.Foundation.Metadata.ThreadingModel: STA=1, MTA=2, Both=3
                         var threadingModel = threadingValue switch
                         {
-                            0 => "STA",
-                            1 => "MTA",
-                            2 => "Both",
-                            3 => "InvalidThreading",
+                            1 => "STA",
+                            2 => "MTA",
+                            3 => "Both",
                             _ => null
                         };
                         if (threadingModel != null && symbol is RuntimeClassSymbol rc5)
@@ -837,12 +837,13 @@ public class WinMdReader
                     if (blob.RemainingBytes >= 4)
                     {
                         var marshalingValue = blob.ReadInt32();
+                        // Windows.Foundation.Metadata.MarshalingType: None=1, Agile=2, Standard=3
+                        // But emitter uses: none=0, standard=1, agile=2 — keep compatible with emitter
                         var marshalingBehavior = marshalingValue switch
                         {
                             0 => "None",
-                            1 => "Agile",
-                            2 => "Standard",
-                            3 => "InvalidMarshaling",
+                            1 => "Standard",
+                            2 => "Agile",
                             _ => null
                         };
                         if (marshalingBehavior != null && symbol is RuntimeClassSymbol rc6)
