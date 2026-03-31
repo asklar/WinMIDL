@@ -37,11 +37,9 @@ public class E2EComprehensiveMarshalTests
         ["{C5D6E7F8-A9B0-41C2-D3E4-F5A6B7C8D9EA}"] = "CollectionOps",
     };
 
-    [Theory]
+    [Fact]
     [Trait("Category", "E2E")]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void ComprehensiveProxyStub_AllTypePatterns_RoundTrips(bool withArrays)
+    public void ComprehensiveProxyStub_AllTypePatterns_RoundTrips()
     {
         Assert.True(RuntimeInformation.IsOSPlatform(OSPlatform.Windows),
             "In-proc COM test requires Windows");
@@ -54,14 +52,12 @@ public class E2EComprehensiveMarshalTests
         using var helper = new E2ETestHelper(testDir, msvc!);
 
         // ── Step 1: Generate code from IDL ──────────────────────────────
-        var defines = withArrays ? new[] { "WITH_ARRAYS" } : null;
         helper.GenerateFromIdl(
             Path.Combine(testDir, "TestComprehensive.idl"),
             "TestComprehensive.h",
             "TestComprehensive_i.c",
             "TestComprehensive_proxy.cpp",
-            defines: defines,
-            arraysEnabled: withArrays);
+            arraysEnabled: true);
 
         foreach (var f in new[] { "TestComprehensive.h", "TestComprehensive_i.c",
                                    "TestComprehensive_proxy.cpp" })
@@ -80,7 +76,7 @@ public class E2EComprehensiveMarshalTests
 
         // ── Step 2: Compile ─────────────────────────────────────────────
         var cppFlags = E2ETestHelper.DefaultCppFlags.ToList();
-        if (withArrays) cppFlags.Add("/DWITH_ARRAYS");
+        cppFlags.Add("/DWITH_ARRAYS");
         var cppFlagsArr = cppFlags.ToArray();
         var cFlags = E2ETestHelper.DefaultCFlags;
 
@@ -140,8 +136,7 @@ public class E2EComprehensiveMarshalTests
         foreach (var clsid in ClsidMap.Keys)
             helper.RegisterInprocServer(clsid, serverDllFull, "Apartment");
 
-        if (withArrays)
-            helper.RegisterInprocServer("{D6E7F8A9-B0C1-42D3-E4F5-A6B7C8D9EAFB}", serverDllFull, "Apartment");
+        helper.RegisterInprocServer("{D6E7F8A9-B0C1-42D3-E4F5-A6B7C8D9EAFB}", serverDllFull, "Apartment");
 
         helper.RegisterInprocServer(clsidPS!, proxyDllFull);
 

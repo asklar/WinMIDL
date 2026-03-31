@@ -33,7 +33,7 @@ public class ArrayIntegrationTests
     }
 
     [Fact]
-    public void ArraysDisabled_ProducesDiagnostic()
+    public void ArraysAlwaysEnabled_NoDiagnostic()
     {
         var compilation = CompilationHelper.Compile("""
             namespace TestApp
@@ -45,7 +45,7 @@ public class ArrayIntegrationTests
             }
             """);
 
-        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1108");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1108");
     }
 
     [Fact]
