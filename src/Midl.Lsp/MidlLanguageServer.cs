@@ -458,12 +458,6 @@ public sealed partial class MidlLanguageServer
             MidlTrace.Lsp($"  flatSdkTypeCompletions = {flat}");
         }
 
-        if (TryGetBool(settings, "midl.fetchSdkDocs", out var fetchDocs))
-        {
-            HoverHandler.FetchSdkDocs = fetchDocs;
-            MidlTrace.Lsp($"  fetchSdkDocs = {fetchDocs}");
-        }
-
         if (TryGetBool(settings, "midl.arrays", out var arrays))
         {
             _arraysEnabled = arrays;
@@ -607,17 +601,6 @@ public sealed partial class MidlLanguageServer
                              flatProp2.ValueKind == JsonValueKind.True)
                     {
                         _flatSdkTypeCompletions = true;
-                    }
-
-                    if (initOpts.TryGetProperty("midl.fetchSdkDocs", out var fetchProp) &&
-                        fetchProp.ValueKind == JsonValueKind.False)
-                    {
-                        HoverHandler.FetchSdkDocs = false;
-                    }
-                    else if (initOpts.TryGetProperty("fetchSdkDocs", out var fetchProp2) &&
-                             fetchProp2.ValueKind == JsonValueKind.False)
-                    {
-                        HoverHandler.FetchSdkDocs = false;
                     }
 
                     if (initOpts.TryGetProperty("midl.arrays", out var arraysProp) &&

@@ -127,12 +127,7 @@
           "default": false,
           "description": "Show all SDK types by short name in completions (e.g. 'Button', 'Control'). When off, only SDK namespace names appear and you drill in with dot notation."
         },
-        "midl.fetchSdkDocs": {
-          "type": "boolean",
-          "default": true,
-          "description": "Fetch type descriptions from Microsoft Learn on hover. Requires internet access."
-        },
-        "midl.inlineDocsBrowser": {
+        "midl.inlineDocsBrowser":{
           "type": "boolean",
           "default": true,
           "description": "Open Microsoft Learn documentation in a VS Code side panel instead of the external browser."

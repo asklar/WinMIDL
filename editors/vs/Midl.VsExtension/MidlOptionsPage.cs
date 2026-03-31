@@ -12,7 +12,6 @@ namespace Midl.VsExtension
         private bool useWindowsSdk = true;
         private string windowsSdkVersion = "latest";
         private bool flatSdkTypeCompletions = false;
-        private bool fetchSdkDocs = true;
         private string serverPath = "";
 
         [Category("MIDL Language Server")]
@@ -73,16 +72,6 @@ namespace Midl.VsExtension
         {
             get { return flatSdkTypeCompletions; }
             set { flatSdkTypeCompletions = value; }
-        }
-
-        [Category("IntelliSense")]
-        [DisplayName("Fetch SDK Documentation")]
-        [Description("Fetch type documentation from Microsoft Learn for hover tooltips.")]
-        [DefaultValue(true)]
-        public bool FetchSdkDocs
-        {
-            get { return fetchSdkDocs; }
-            set { fetchSdkDocs = value; }
         }
 
         private bool enableArraySyntax = false;

@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-using System.Net.Http;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Lsp.Protocol;
@@ -12,10 +10,7 @@ namespace Midl.Lsp.Handlers;
 /// </summary>
 public static class HoverHandler
 {
-    private static readonly HttpClient s_httpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
-    private static readonly ConcurrentDictionary<string, string?> s_descriptionCache = new();
-    internal static bool FetchSdkDocs { get; set; } = true;
-    private static readonly Dictionary<string, string> s_keywordDocs = new(StringComparer.Ordinal)
+    private static readonly Dictionary<string, string> s_keywordDocs= new(StringComparer.Ordinal)
     {
         ["namespace"] = "**namespace** — Declares a namespace scope that groups related types.",
         ["runtimeclass"] = "**runtimeclass** — Declares a Windows Runtime class that can be activated and consumed across language boundaries.",
@@ -109,19 +104,12 @@ public static class HoverHandler
                             : "";
                         info = $"(external) **{symbol.Kind}** `{symbol.FullName}`{source}";
 
-                        // Add cached description if available
-                        var desc = GetCachedDescription(symbol.FullName);
-                        if (desc != null)
-                            info += $"\n\n{desc}";
-
                         // Add Microsoft Learn link for Windows SDK types
                         var learnUrl = GetMsLearnUrl(symbol.FullName, symbol.SourceWinMdPath);
                         if (learnUrl != null)
                         {
                             var cmdArgs = Uri.EscapeDataString("[\"" + learnUrl + "\"]");
                             info += $"\n\n[📖 View on Microsoft Learn](command:midl.openDocs?{cmdArgs})";
-                            if (desc == null && FetchSdkDocs)
-                                _ = FetchDescriptionAsync(symbol.FullName, learnUrl);
                         }
                     }
                     else
@@ -162,17 +150,11 @@ public static class HoverHandler
                     {
                         var info = $"(SDK) **type** `{cleanName}`";
 
-                        var desc = GetCachedDescription(cleanName);
-                        if (desc != null)
-                            info += $"\n\n{desc}";
-
                         var learnUrl = GetMsLearnUrl(cleanName, null);
                         if (learnUrl != null)
                         {
                             var cmdArgs = Uri.EscapeDataString("[\"" + learnUrl + "\"]");
                             info += $"\n\n[📖 View on Microsoft Learn](command:midl.openDocs?{cmdArgs})";
-                            if (desc == null && FetchSdkDocs)
-                                _ = FetchDescriptionAsync(cleanName, learnUrl);
                         }
                         return MakeHover(info, tokenStart, token.Text.Length, lineStarts);
                     }
@@ -296,62 +278,4 @@ public static class HoverHandler
         return compilation.GetAllTypes().FirstOrDefault(s => s.Name == name);
     }
 
-    /// <summary>Get a cached description for a type, or null if not yet fetched.</summary>
-    private static string? GetCachedDescription(string fullName)
-    {
-        return s_descriptionCache.TryGetValue(fullName, out var desc) ? desc : null;
-    }
-
-    /// <summary>Fetch a type description from Microsoft Learn in the background and cache it.</summary>
-    private static async Task FetchDescriptionAsync(string fullName, string learnUrl)
-    {
-        if (s_descriptionCache.ContainsKey(fullName)) return;
-
-        try
-        {
-            var html = await s_httpClient.GetStringAsync(learnUrl);
-
-            // Extract the first paragraph from the page content
-            // The MS Learn markdown/HTML has the description as the first meaningful paragraph
-            var desc = ExtractDescription(html);
-            s_descriptionCache[fullName] = desc;
-        }
-        catch
-        {
-            // Network error — cache null to avoid retrying
-            s_descriptionCache.TryAdd(fullName, null);
-        }
-    }
-
-    /// <summary>Extract the type description from a MS Learn HTML page.</summary>
-    private static string? ExtractDescription(string html)
-    {
-        // Find name="description" (case-insensitive)
-        int idx = html.IndexOf("name=\"description\"", StringComparison.OrdinalIgnoreCase);
-        if (idx < 0)
-            idx = html.IndexOf("name='description'", StringComparison.OrdinalIgnoreCase);
-        if (idx < 0) return null;
-
-        // Search for content="..." nearby (within the same <meta> tag)
-        // Look backward for '<' to find tag start, forward for '>' to find tag end
-        int tagStart = html.LastIndexOf('<', idx);
-        int tagEnd = html.IndexOf('>', idx);
-        if (tagStart < 0 || tagEnd < 0) return null;
-
-        var tag = html[tagStart..(tagEnd + 1)];
-        int contentIdx = tag.IndexOf("content=\"", StringComparison.OrdinalIgnoreCase);
-        if (contentIdx < 0) return null;
-
-        int valueStart = contentIdx + 9; // length of content="
-        int valueEnd = tag.IndexOf('"', valueStart);
-        if (valueEnd < 0) return null;
-
-        var desc = tag[valueStart..valueEnd].Trim();
-        // Clean up HTML entities
-        desc = desc.Replace("&amp;", "&").Replace("&lt;", "<").Replace("&gt;", ">").Replace("&#39;", "'").Replace("&quot;", "\"");
-        // Truncate to first ~200 chars for hover readability
-        if (desc.Length > 200)
-            desc = desc[..197] + "...";
-        return desc;
-    }
 }

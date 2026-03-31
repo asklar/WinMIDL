@@ -36,7 +36,6 @@ namespace Midl.VsExtension
                     ["midl.useWindowsSdk"] = options.UseWindowsSdk,
                     ["midl.windowsSdkVersion"] = options.WindowsSdkVersion,
                     ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
-                    ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
                     ["midl.arrays"] = options.EnableArraySyntax,
                     ["midl.defines"] = new Newtonsoft.Json.Linq.JArray(
                         string.IsNullOrWhiteSpace(options.Defines) ? Array.Empty<string>() :
@@ -45,7 +44,7 @@ namespace Midl.VsExtension
             }
         }
 
-        public IEnumerable<string> FilesToWatch => null;
+        public IEnumerable<string> FilesToWatch=> null;
 
         public bool ShowNotificationOnInitializeFailed => true;
 
@@ -218,7 +217,6 @@ namespace Midl.VsExtension
                     ["midl.useWindowsSdk"] = options.UseWindowsSdk,
                     ["midl.windowsSdkVersion"] = options.WindowsSdkVersion,
                     ["midl.flatSdkTypeCompletions"] = options.FlatSdkTypeCompletions,
-                    ["midl.fetchSdkDocs"] = options.FetchSdkDocs,
                     ["midl.arrays"] = options.EnableArraySyntax,
                     ["midl.defines"] = new Newtonsoft.Json.Linq.JArray(
                         string.IsNullOrWhiteSpace(options.Defines) ? Array.Empty<string>() :

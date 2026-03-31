@@ -144,8 +144,7 @@ export function activate(context: vscode.ExtensionContext) {
                                     'midl.codeQualityHints': config.get<boolean>('codeQualityHints', true),
                                     'midl.useWindowsSdk': config.get<boolean>('useWindowsSdk', true),
                                     'midl.flatSdkTypeCompletions': config.get<boolean>('flatSdkTypeCompletions', false),
-                                    'midl.fetchSdkDocs': config.get<boolean>('fetchSdkDocs', true),
-                                    'midl.arrays': config.get<boolean>('arrays', false),
+                                    'midl.arrays':config.get<boolean>('arrays', false),
                                     'midl.defines': config.get<string[]>('defines', []),
                                 }
                             });

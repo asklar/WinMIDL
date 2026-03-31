@@ -81,6 +81,8 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
 
     const config = vscode.workspace.getConfiguration('midl');
 
+    const descriptionCache = new Map<string, string | null>();
+
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
             { scheme: 'file', language: 'midl' },
@@ -97,8 +99,7 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
             "midl.useWindowsSdk": config.get<boolean>('useWindowsSdk', true),
             "midl.windowsSdkVersion": config.get<string>('windowsSdkVersion', 'latest'),
             "midl.flatSdkTypeCompletions": config.get<boolean>('flatSdkTypeCompletions', false),
-            "midl.fetchSdkDocs": config.get<boolean>('fetchSdkDocs', true),
-            "midl.arrays": config.get<boolean>('arrays', false),
+            "midl.arrays":config.get<boolean>('arrays', false),
             "midl.defines": config.get<string[]>('defines', [])
         },
         middleware: {
@@ -125,6 +126,45 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
                             mdText = String((raw as any).value);
                         }
                         if (mdText && mdText.includes('command:')) {
+                            // Extract Learn URL and fetch description client-side
+                            const urlMatch = mdText.match(/\[📖 View on Microsoft Learn\]\(command:midl\.openDocs\?(.+?)\)/);
+                            if (urlMatch) {
+                                try {
+                                    const args = decodeURIComponent(urlMatch[1]);
+                                    const learnUrl: string = JSON.parse(args)[0];
+                                    let desc = descriptionCache.get(learnUrl);
+                                    if (desc === undefined) {
+                                        // First encounter: fetch with short timeout
+                                        try {
+                                            const resp = await fetch(learnUrl, { signal: AbortSignal.timeout(3000) });
+                                            const html = await resp.text();
+                                            const metaMatch = html.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i)
+                                                || html.match(/content=["']([^"']+)["']\s+name=["']description["']/i);
+                                            if (metaMatch) {
+                                                let d = metaMatch[1]
+                                                    .replace(/&amp;/g, '&').replace(/&lt;/g, '<')
+                                                    .replace(/&gt;/g, '>').replace(/&#39;/g, "'")
+                                                    .replace(/&quot;/g, '"');
+                                                if (d.length > 200) { d = d.substring(0, 197) + '...'; }
+                                                desc = d;
+                                            } else {
+                                                desc = null;
+                                            }
+                                        } catch {
+                                            desc = null;
+                                        }
+                                        descriptionCache.set(learnUrl, desc ?? null);
+                                    }
+                                    if (desc) {
+                                        // Insert description before the Learn link
+                                        mdText = mdText.replace(
+                                            /(\n\n)(\[📖 View on Microsoft Learn\])/,
+                                            `$1${desc}\n\n$2`
+                                        );
+                                    }
+                                } catch { /* ignore parse errors */ }
+                            }
+
                             const md = new vscode.MarkdownString(mdText);
                             md.isTrusted = { enabledCommands: ['midl.openDocs'] };
                             md.supportHtml = true;
