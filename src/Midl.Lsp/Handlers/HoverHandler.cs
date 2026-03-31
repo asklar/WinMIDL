@@ -112,9 +112,10 @@ public static class HoverHandler
                 }
 
                 var learnUrl = GetMsLearnUrl(lookupName, decompileWinMdPath);
+                var kind = InferTypeKind(text, tokenStart);
                 var info = learnUrl != null
-                    ? $"(SDK) **type** `{lookupName}`"
-                    : $"**type** `{lookupName}`";
+                    ? $"(SDK) **{kind}** `{lookupName}`"
+                    : $"**{kind}** `{lookupName}`";
 
                 if (learnUrl != null)
                 {
@@ -212,6 +213,39 @@ public static class HoverHandler
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Infer the type kind by scanning backwards for a keyword like runtimeclass, interface, etc.
+    /// </summary>
+    private static string InferTypeKind(string text, int position)
+    {
+        // Scan backwards from the identifier to find the declaring keyword on the same or preceding line
+        int i = position - 1;
+        // Skip whitespace
+        while (i >= 0 && (text[i] == ' ' || text[i] == '\t')) i--;
+        // Skip modifiers like "unsealed", "static", "partial" + ':'  + base types
+        // Just find the last keyword-like word before the identifier
+        // Scan backwards through the current line
+        int lineStart = text.LastIndexOf('\n', Math.Max(0, position - 1)) + 1;
+        var lineBefore = text[lineStart..position].TrimStart();
+
+        if (lineBefore.Contains("runtimeclass ") || lineBefore.Contains("runtimeclass\t"))
+            return "runtimeclass";
+        if (lineBefore.Contains("interface ") || lineBefore.Contains("interface\t"))
+            return "interface";
+        if (lineBefore.Contains("enum "))
+            return "enum";
+        if (lineBefore.Contains("struct "))
+            return "struct";
+        if (lineBefore.Contains("delegate "))
+            return "delegate";
+        if (lineBefore.Contains("apicontract "))
+            return "apicontract";
+        if (lineBefore.Contains("event "))
+            return "event";
+
+        return "type";
     }
 
     /// <summary>
