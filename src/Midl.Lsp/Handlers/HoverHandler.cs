@@ -104,15 +104,23 @@ public static class HoverHandler
                 // Only show hover for type-like identifiers (skip lowercase params etc.)
                 if (lookupName.Length == 0 || char.IsLower(lookupName[0])) goto skipDecompileHover;
 
-                // If the name isn't already qualified, prepend the enclosing namespace
-                if (!lookupName.Contains('.'))
+                var kind = InferSymbolKind(text, tokenStart);
+
+                // Only prepend namespace for type declarations, not methods/properties/events
+                bool isTypeDecl = kind is "runtimeclass" or "interface" or "enum" or "struct" or "delegate" or "apicontract";
+                if (!lookupName.Contains('.') && isTypeDecl)
                 {
                     var ns = FindEnclosingNamespace(text, tokenStart);
                     if (ns != null) lookupName = ns + "." + lookupName;
                 }
 
-                var learnUrl = GetMsLearnUrl(lookupName, decompileWinMdPath);
-                var kind = InferTypeKind(text, tokenStart);
+                // For methods/properties, show just the short name
+                if (!isTypeDecl)
+                {
+                    lookupName = tokenText;
+                }
+
+                var learnUrl = isTypeDecl ? GetMsLearnUrl(lookupName, decompileWinMdPath) : null;
                 var info = learnUrl != null
                     ? $"(SDK) **{kind}** `{lookupName}`"
                     : $"**{kind}** `{lookupName}`";
@@ -216,20 +224,14 @@ public static class HoverHandler
     }
 
     /// <summary>
-    /// Infer the type kind by scanning backwards for a keyword like runtimeclass, interface, etc.
+    /// Infer the symbol kind by scanning the current line for a declaring keyword.
     /// </summary>
-    private static string InferTypeKind(string text, int position)
+    private static string InferSymbolKind(string text, int position)
     {
-        // Scan backwards from the identifier to find the declaring keyword on the same or preceding line
-        int i = position - 1;
-        // Skip whitespace
-        while (i >= 0 && (text[i] == ' ' || text[i] == '\t')) i--;
-        // Skip modifiers like "unsealed", "static", "partial" + ':'  + base types
-        // Just find the last keyword-like word before the identifier
-        // Scan backwards through the current line
         int lineStart = text.LastIndexOf('\n', Math.Max(0, position - 1)) + 1;
         var lineBefore = text[lineStart..position].TrimStart();
 
+        // Type declarations
         if (lineBefore.Contains("runtimeclass ") || lineBefore.Contains("runtimeclass\t"))
             return "runtimeclass";
         if (lineBefore.Contains("interface ") || lineBefore.Contains("interface\t"))
@@ -242,8 +244,21 @@ public static class HoverHandler
             return "delegate";
         if (lineBefore.Contains("apicontract "))
             return "apicontract";
+
+        // Events
         if (lineBefore.Contains("event "))
             return "event";
+
+        // Methods: preceded by a return type (void, String, Int32, etc.) or "static"
+        // Check if there's a '(' after the identifier — that's a method
+        int afterIdent = position + 1;
+        while (afterIdent < text.Length && (text[afterIdent] == ' ' || text[afterIdent] == '\t')) afterIdent++;
+        if (afterIdent < text.Length && text[afterIdent] == '(')
+            return "method";
+
+        // Properties: preceded by a type and followed by '{' or ';' (shorthand)
+        if (afterIdent < text.Length && (text[afterIdent] == '{' || text[afterIdent] == ';'))
+            return "property";
 
         return "type";
     }

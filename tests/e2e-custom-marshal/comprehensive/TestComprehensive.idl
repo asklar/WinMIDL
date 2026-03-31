@@ -1,3 +1,5 @@
+// @ref: D:\OSClient\build
+
 namespace TestApp.Comprehensive
 {
     // 1. Enum (simple + flags)
@@ -26,6 +28,7 @@ namespace TestApp.Comprehensive
     runtimeclass Animal : IAnimal
     {
         Animal();
+        WindowsUdk.ApplicationModel.AppExtensions.AppExtension Ext;
     }
 
     // 5. Unsealed (composable) runtimeclass
