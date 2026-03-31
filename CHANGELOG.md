@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.1.9 (2026-03-31)
+
+### Features
+- **Manifest generation** (`--manifest`): Generate WinRT activation manifest fragments from `.winmd` files. Supports both SxS (`.manifest`) and AppX (`.appxmanifest`) formats for unpackaged and packaged apps.
+- **Decompiled WinMD views**: Full semantic token highlighting, hover with type kind (runtimeclass/interface/enum/method/property), Microsoft Learn links, document symbols, and folding ranges.
+- **Array syntax always enabled**: `T[]`, `out T[]`, `ref T[]` no longer require `/arrays` flag — standard WinRT syntax like MIDL.exe.
+- **NativeAOT binary 45% smaller**: 10.0 MB → 5.5 MB by removing `System.Xml`, `System.Net.Http`, and `System.Text.RegularExpressions` dependencies.
+
+### Improvements
+- Hover doc fetching moved to VS Code extension (client-side) — descriptions appear on first hover instead of requiring re-hover.
+- All regex replaced with hand-written string operations — faster startup, smaller binary.
+- XDC doc comment parser uses lightweight `XmlTagParser` instead of `System.Xml.XmlDocument`.
+- MIDL3021 diagnostic for malformed doc comments (unclosed/mismatched XML tags).
+
+### Bug Fixes
+- Fixed decompiled hover showing "type" for methods/properties instead of correct kind.
+- Fixed decompiled hover not prepending enclosing namespace for Learn URLs.
+- Fixed WinMdReader ThreadingAttribute/MarshalingBehavior enum value mapping (off-by-one).
+- Fixed test regressions from arrays-always-enabled change.
+
 ## v0.1.8 (2026-03-30)
 
 ### Features
