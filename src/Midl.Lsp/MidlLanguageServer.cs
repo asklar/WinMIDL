@@ -106,20 +106,24 @@ public sealed partial class MidlLanguageServer
             return; // Response messages are ignored (we don't make requests)
 
 
-        // Skip all textDocument/* requests for virtual decompiled documents
-        // Block most textDocument requests for decompiled WinMD documents
-        // (they would try to compile the decompiled IDL text and hang)
-        // Allow semantic tokens through — they work from lexer-only classification
-        if (method.StartsWith("textDocument/") && method != "textDocument/didOpen" && method != "textDocument/didChange" && method != "textDocument/didClose" && method != "textDocument/semanticTokens/full")
+        // Block analysis-heavy textDocument requests for decompiled WinMD documents.
+        // Allow through: semantic tokens, hover, document symbols, folding, open/change/close.
+        if (method.StartsWith("textDocument/"))
         {
             var docUri = @params?.TryGetProperty("textDocument", out var td) == true
                 ? (td.TryGetProperty("uri", out var u) ? u.GetString() : null)
                 : null;
             if (docUri != null && docUri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase))
             {
-                if (id != null)
-                    await _writer.SendResponseAsync(id, (object?)null);
-                return;
+                bool allowed = method is "textDocument/didOpen" or "textDocument/didChange" or "textDocument/didClose"
+                    or "textDocument/semanticTokens/full" or "textDocument/hover"
+                    or "textDocument/documentSymbol" or "textDocument/foldingRange";
+                if (!allowed)
+                {
+                    if (id != null)
+                        await _writer.SendResponseAsync(id, (object?)null);
+                    return;
+                }
             }
         }
 
