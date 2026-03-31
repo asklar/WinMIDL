@@ -1,3 +1,4 @@
+using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
 using Midl.Syntax;
 
@@ -54,21 +55,39 @@ public partial class Binder
 
     /// <summary>
     /// Attach doc comment to a type symbol based on its declaration node.
+    /// Emits MIDL3021 for any parse errors.
     /// </summary>
-    private static void AttachDocComment(ISymbol symbol, GreenNode declarationNode)
+    private void AttachDocComment(ISymbol symbol, GreenNode declarationNode)
     {
         var doc = ExtractDocComment(declarationNode);
         if (doc != null)
+        {
             symbol.DocComment = doc;
+            EmitDocCommentErrors(doc, declarationNode);
+        }
     }
 
     /// <summary>
     /// Attach doc comment to a member symbol based on its declaration node.
+    /// Emits MIDL3021 for any parse errors.
     /// </summary>
-    private static void AttachMemberDocComment(ISymbol symbol, GreenNode memberNode)
+    private void AttachMemberDocComment(ISymbol symbol, GreenNode memberNode)
     {
         var doc = ExtractDocComment(memberNode);
         if (doc != null)
+        {
             symbol.DocComment = doc;
+            EmitDocCommentErrors(doc, memberNode);
+        }
+    }
+
+    private void EmitDocCommentErrors(DocComment doc, GreenNode node)
+    {
+        if (doc.ParseErrors.Count == 0) return;
+        int pos = GetNodePosition(node);
+        foreach (var error in doc.ParseErrors)
+        {
+            _diagnostics.Add(DiagnosticDescriptors.MalformedDocComment(error, pos));
+        }
     }
 }

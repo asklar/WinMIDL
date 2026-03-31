@@ -1,5 +1,3 @@
-using System.Xml;
-
 namespace Midl.Analysis;
 
 /// <summary>
@@ -12,6 +10,7 @@ public class DocComment
     public string? Returns { get; set; }
     public string? Remarks { get; set; }
     public string RawXml { get; set; } = "";
+    public List<string> ParseErrors { get; set; } = new();
 
     /// <summary>
     /// Parse concatenated doc comment XML text into a DocComment.
@@ -22,39 +21,27 @@ public class DocComment
         if (string.IsNullOrWhiteSpace(xmlText))
             return null;
 
+        var result = XmlTagParser.Parse(xmlText);
         var doc = new DocComment { RawXml = xmlText };
 
-        try
+        foreach (var tag in result.Tags)
         {
-            // Wrap in a root element to make it valid XML
-            var xml = new XmlDocument();
-            xml.LoadXml($"<root>{xmlText}</root>");
-            var root = xml.DocumentElement!;
-
-            var summaryNode = root.SelectSingleNode("summary");
-            if (summaryNode != null)
-                doc.Summary = NormalizeWhitespace(summaryNode.InnerText);
-
-            foreach (XmlNode paramNode in root.SelectNodes("param")!)
+            switch (tag.Name.ToLowerInvariant())
             {
-                var name = paramNode.Attributes?["name"]?.Value;
-                if (name != null)
-                    doc.Params[name] = NormalizeWhitespace(paramNode.InnerText);
+                case "summary": doc.Summary = NormalizeWhitespace(tag.Content); break;
+                case "returns": doc.Returns = NormalizeWhitespace(tag.Content); break;
+                case "remarks": doc.Remarks = NormalizeWhitespace(tag.Content); break;
+                case "param":
+                    if (tag.Attributes.TryGetValue("name", out var paramName))
+                        doc.Params[paramName] = NormalizeWhitespace(tag.Content);
+                    break;
             }
-
-            var returnsNode = root.SelectSingleNode("returns");
-            if (returnsNode != null)
-                doc.Returns = NormalizeWhitespace(returnsNode.InnerText);
-
-            var remarksNode = root.SelectSingleNode("remarks");
-            if (remarksNode != null)
-                doc.Remarks = NormalizeWhitespace(remarksNode.InnerText);
         }
-        catch (XmlException)
-        {
-            // If XML is malformed, store raw text as summary
+
+        doc.ParseErrors = result.Errors;
+
+        if (doc.Summary == null && doc.Returns == null && doc.Params.Count == 0 && result.Errors.Count == 0)
             doc.Summary = NormalizeWhitespace(xmlText);
-        }
 
         return doc;
     }

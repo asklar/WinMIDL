@@ -627,6 +627,12 @@ public static class DiagnosticDescriptors
             $"Public type '{name}' has no documentation comment. Add `/// <summary>` above the declaration.",
             position, Math.Max(name.Length, 1));
 
+    // Malformed doc comment (MIDL3021)
+    public static Diagnostic MalformedDocComment(string error, int position) =>
+        new(DiagnosticSeverity.Warning, "MIDL3021",
+            $"Malformed doc comment: {error}",
+            position, 3); // length of "///"
+
     // Empty enum (MIDL1098)
     public static Diagnostic EmptyEnum(string enumName, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1098",

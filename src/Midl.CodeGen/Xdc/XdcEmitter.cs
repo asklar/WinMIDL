@@ -1,5 +1,4 @@
 using System.Text;
-using System.Xml;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
 
@@ -16,49 +15,34 @@ public class XdcEmitter
     /// </summary>
     public string Emit(Compilation compilation, string assemblyName)
     {
-        var settings = new XmlWriterSettings
-        {
-            Indent = true,
-            IndentChars = "  ",
-            OmitXmlDeclaration = false,
-            Encoding = Encoding.UTF8
-        };
-
         var sb = new StringBuilder();
-        using (var writer = XmlWriter.Create(sb, settings))
+        sb.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+        sb.AppendLine("<doc>");
+        sb.AppendLine("  <assembly>");
+        sb.Append("    <name>").Append(Escape(assemblyName)).AppendLine("</name>");
+        sb.AppendLine("  </assembly>");
+        sb.AppendLine("  <members>");
+
+        foreach (var type in compilation.GetAllTypes())
         {
-            writer.WriteStartDocument();
-            writer.WriteStartElement("doc");
-
-            writer.WriteStartElement("assembly");
-            writer.WriteElementString("name", assemblyName);
-            writer.WriteEndElement(); // assembly
-
-            writer.WriteStartElement("members");
-
-            foreach (var type in compilation.GetAllTypes())
-            {
-                if (type.IsExternal) continue;
-                EmitTypeAndMembers(writer, type);
-            }
-
-            writer.WriteEndElement(); // members
-            writer.WriteEndElement(); // doc
-            writer.WriteEndDocument();
+            if (type.IsExternal) continue;
+            EmitTypeAndMembers(sb, type);
         }
+
+        sb.AppendLine("  </members>");
+        sb.AppendLine("</doc>");
 
         return sb.ToString();
     }
 
-    private void EmitTypeAndMembers(XmlWriter writer, ISymbol type)
+    private void EmitTypeAndMembers(StringBuilder sb, ISymbol type)
     {
         if (type.DocComment != null)
         {
             var prefix = GetMemberIdPrefix(type);
-            writer.WriteStartElement("member");
-            writer.WriteAttributeString("name", $"{prefix}:{type.FullName}");
-            WriteDocCommentXml(writer, type.DocComment);
-            writer.WriteEndElement();
+            sb.Append("    <member name=\"").Append(Escape($"{prefix}:{type.FullName}")).AppendLine("\">");
+            WriteDocCommentXml(sb, type.DocComment);
+            sb.AppendLine("    </member>");
         }
 
         // Emit members
@@ -79,10 +63,9 @@ public class XdcEmitter
             if (member.DocComment == null) continue;
 
             var memberId = GetMemberId(member, type);
-            writer.WriteStartElement("member");
-            writer.WriteAttributeString("name", memberId);
-            WriteDocCommentXml(writer, member.DocComment);
-            writer.WriteEndElement();
+            sb.Append("    <member name=\"").Append(Escape(memberId)).AppendLine("\">");
+            WriteDocCommentXml(sb, member.DocComment);
+            sb.AppendLine("    </member>");
         }
     }
 
@@ -127,34 +110,33 @@ public class XdcEmitter
         return string.Join(",", parameters.Select(p => p.Type?.Name ?? "Object"));
     }
 
-    private static void WriteDocCommentXml(XmlWriter writer, DocComment doc)
+    private static void WriteDocCommentXml(StringBuilder sb, DocComment doc)
     {
         if (!string.IsNullOrEmpty(doc.RawXml))
         {
-            // Write the raw XML content directly
-            writer.WriteRaw("\n    " + doc.RawXml.Replace("\n", "\n    ") + "\n  ");
+            sb.Append("    ").Append(doc.RawXml.Replace("\n", "\n    ")).AppendLine();
         }
         else
         {
             if (doc.Summary != null)
-            {
-                writer.WriteElementString("summary", doc.Summary);
-            }
+                sb.Append("      <summary>").Append(Escape(doc.Summary)).AppendLine("</summary>");
             foreach (var kvp in doc.Params)
-            {
-                writer.WriteStartElement("param");
-                writer.WriteAttributeString("name", kvp.Key);
-                writer.WriteString(kvp.Value);
-                writer.WriteEndElement();
-            }
+                sb.Append("      <param name=\"").Append(Escape(kvp.Key)).Append("\">").Append(Escape(kvp.Value)).AppendLine("</param>");
             if (doc.Returns != null)
-            {
-                writer.WriteElementString("returns", doc.Returns);
-            }
+                sb.Append("      <returns>").Append(Escape(doc.Returns)).AppendLine("</returns>");
             if (doc.Remarks != null)
-            {
-                writer.WriteElementString("remarks", doc.Remarks);
-            }
+                sb.Append("      <remarks>").Append(Escape(doc.Remarks)).AppendLine("</remarks>");
         }
+    }
+
+    private static string Escape(string text)
+    {
+        if (text.IndexOfAny(new[] { '&', '<', '>', '"' }) < 0)
+            return text;
+        return text
+            .Replace("&", "&amp;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;")
+            .Replace("\"", "&quot;");
     }
 }
