@@ -214,7 +214,6 @@ namespace TestApp.Comprehensive
         CollectionOps();
     }
 
-#ifdef WITH_ARRAYS
     // 18. Array parameters
     interface IArrayOps
     {
@@ -231,5 +230,4 @@ namespace TestApp.Comprehensive
     {
         ArrayOps();
     }
-#endif
 }

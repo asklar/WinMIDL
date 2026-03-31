@@ -33,7 +33,7 @@ public partial class Binder
     {
         _mode = mode;
         _emitQualityHints = emitQualityHints;
-        _arraysEnabled = arraysEnabled;
+        _arraysEnabled = true; // Arrays always enabled — standard WinRT syntax
     }
 
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,

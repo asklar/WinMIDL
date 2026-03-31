@@ -235,12 +235,12 @@ public class ArrayParamTests
         Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1110");
     }
 
-    // ─── Error: arrays without flag ─────────────────────────────────
+    // ─── Arrays always enabled (standard WinRT syntax) ────────────
 
     [Fact]
-    public void ArrayWithoutFlag_ProducesDiagnostic()
+    public void ArrayWithoutFlag_NoDiagnostic()
     {
-        // Compile WITHOUT arraysEnabled
+        // Arrays are always enabled — no flag needed
         var compilation = CompilationHelper.Compile("""
             namespace N
             {
@@ -251,9 +251,7 @@ public class ArrayParamTests
             }
             """);
 
-        Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1108");
-        Assert.Contains("/arrays",
-            compilation.Diagnostics.First(d => d.Code == "MIDL1108").Message);
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1108");
     }
 
     // ─── Array in runtimeclass method ───────────────────────────────
