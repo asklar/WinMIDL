@@ -119,8 +119,8 @@ Artifacts:
   VS:      publish/Midl.VsExtension.vsix (X.X MB)
 
 Upload manually:
-  VS Code: https://marketplace.visualstudio.com/manage/publishers/ASklar
-  VS:      https://marketplace.visualstudio.com/manage/publishers/ASklar
+  VS Code: https://marketplace.visualstudio.com/manage/publishers/AlexanderSklarMSFT
+  VS:      https://marketplace.visualstudio.com/manage/publishers/AlexanderSklarMSFT
 ```
 
 ## Error Handling
