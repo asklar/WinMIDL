@@ -62,6 +62,19 @@ public static class HoverHandler
         var text = docManager.GetDocumentText(uri);
         if (text is null) return null;
 
+        // For decompiled WinMD views, extract the WinMD path from the URI for Learn links
+        string? decompileWinMdPath = null;
+        if (uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase))
+        {
+            // URI format: midl-winmd:///path/to/file.winmd/Namespace.Name
+            var pathPart = uri.IndexOf("midl-winmd:", StringComparison.OrdinalIgnoreCase);
+            var rawPath = uri[(pathPart + "midl-winmd:".Length)..].TrimStart('/');
+            rawPath = Uri.UnescapeDataString(rawPath);
+            var winmdIdx = rawPath.IndexOf(".winmd", StringComparison.OrdinalIgnoreCase);
+            if (winmdIdx >= 0)
+                decompileWinMdPath = rawPath[..(winmdIdx + 6)];
+        }
+
         var lineStarts = PositionHelper.BuildLineStarts(text);
         int offset = PositionHelper.LineCharToOffset(lineStarts, line, character);
 
@@ -82,6 +95,29 @@ public static class HoverHandler
         // Try to find in compilation symbols
         if (token.Kind == SyntaxKind.IdentifierToken)
         {
+            // For decompiled WinMD views, build Learn links from the identifier directly
+            if (decompileWinMdPath != null)
+            {
+                var fqn = SymbolResolver.ExtractFullQualifiedNameAtCursor(text, tokenStart, tokenText);
+                var lookupName = fqn ?? tokenText;
+
+                // Only show hover for type-like identifiers (skip lowercase params etc.)
+                if (lookupName.Length == 0 || char.IsLower(lookupName[0])) goto skipDecompileHover;
+
+                var learnUrl = GetMsLearnUrl(lookupName, decompileWinMdPath);
+                var info = learnUrl != null
+                    ? $"(SDK) **type** `{lookupName}`"
+                    : $"**type** `{lookupName}`";
+
+                if (learnUrl != null)
+                {
+                    var cmdArgs = Uri.EscapeDataString("[\"" + learnUrl + "\"]");
+                    info += $"\n\n[📖 View on Microsoft Learn](command:midl.openDocs?{cmdArgs})";
+                }
+                return MakeHover(info, tokenStart, token.Text.Length, lineStarts);
+            }
+            skipDecompileHover:
+
             try
             {
                 var compilation = cachedCompilation ?? CompilationHelper.Compile(text);
