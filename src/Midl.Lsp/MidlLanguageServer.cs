@@ -107,8 +107,10 @@ public sealed partial class MidlLanguageServer
 
 
         // Skip all textDocument/* requests for virtual decompiled documents
+        // Block most textDocument requests for decompiled WinMD documents
         // (they would try to compile the decompiled IDL text and hang)
-        if (method.StartsWith("textDocument/") && method != "textDocument/didOpen" && method != "textDocument/didChange" && method != "textDocument/didClose")
+        // Allow semantic tokens through — they work from lexer-only classification
+        if (method.StartsWith("textDocument/") && method != "textDocument/didOpen" && method != "textDocument/didChange" && method != "textDocument/didClose" && method != "textDocument/semanticTokens/full")
         {
             var docUri = @params?.TryGetProperty("textDocument", out var td) == true
                 ? (td.TryGetProperty("uri", out var u) ? u.GetString() : null)
