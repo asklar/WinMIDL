@@ -249,14 +249,14 @@ public static class HoverHandler
         if (lineBefore.Contains("event "))
             return "event";
 
-        // Methods: preceded by a return type (void, String, Int32, etc.) or "static"
-        // Check if there's a '(' after the identifier — that's a method
-        int afterIdent = position + 1;
+        // Methods: check if there's a '(' after the identifier name
+        int afterIdent = position;
+        while (afterIdent < text.Length && (char.IsLetterOrDigit(text[afterIdent]) || text[afterIdent] == '_')) afterIdent++;
         while (afterIdent < text.Length && (text[afterIdent] == ' ' || text[afterIdent] == '\t')) afterIdent++;
         if (afterIdent < text.Length && text[afterIdent] == '(')
             return "method";
 
-        // Properties: preceded by a type and followed by '{' or ';' (shorthand)
+        // Properties: followed by '{' or ';' (shorthand)
         if (afterIdent < text.Length && (text[afterIdent] == '{' || text[afterIdent] == ';'))
             return "property";
 
