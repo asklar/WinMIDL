@@ -8,7 +8,7 @@ namespace Midl.Lexer;
 /// Handles #define, #undef, #ifdef/#ifndef/#if/#elif/#else/#endif,
 /// #include, #pragma, and simple macro substitution.
 /// </summary>
-public class Preprocessor
+public partial class Preprocessor
 {
     private readonly Dictionary<string, string> _defines = new(StringComparer.Ordinal);
     private readonly Dictionary<string, FunctionMacro> _functionMacros = new(StringComparer.Ordinal);
@@ -16,10 +16,12 @@ public class Preprocessor
     private readonly string? _currentFilePath;
     private readonly HashSet<string> _pragmaOnceFiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _includeStack = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, Regex> _macroRegexCache = new(StringComparer.Ordinal);
 
-    private static readonly Regex s_definedParenRegex = new(@"defined\s*\(\s*(\w+)\s*\)", RegexOptions.Compiled);
-    private static readonly Regex s_definedSpaceRegex = new(@"defined\s+(\w+)", RegexOptions.Compiled);
+    [GeneratedRegex(@"defined\s*\(\s*(\w+)\s*\)")]
+    private static partial Regex DefinedParenRegex();
+
+    [GeneratedRegex(@"defined\s+(\w+)")]
+    private static partial Regex DefinedSpaceRegex();
 
     /// <summary>True if any #include directive was encountered during processing.</summary>
     public bool HasIncludeDirectives { get; private set; }
@@ -710,14 +712,58 @@ public class Preprocessor
         return null;
     }
 
-    private Regex GetMacroRegex(string name)
+    private static string ReplaceWholeWord(string text, string word, string replacement)
     {
-        if (!_macroRegexCache.TryGetValue(name, out var regex))
+        var sb = new StringBuilder(text.Length);
+        int i = 0;
+        while (i < text.Length)
         {
-            regex = new Regex(@"(?<!\w)" + Regex.Escape(name) + @"(?!\w)", RegexOptions.Compiled);
-            _macroRegexCache[name] = regex;
+            int idx = text.IndexOf(word, i, StringComparison.Ordinal);
+            if (idx < 0) { sb.Append(text, i, text.Length - i); break; }
+            bool leftOk = idx == 0 || !IsIdentChar(text[idx - 1]);
+            bool rightOk = idx + word.Length >= text.Length || !IsIdentChar(text[idx + word.Length]);
+            sb.Append(text, i, idx - i);
+            if (leftOk && rightOk) sb.Append(replacement);
+            else sb.Append(text, idx, word.Length);
+            i = idx + word.Length;
         }
-        return regex;
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Replace #paramName (stringize operator) — matches standalone # (not ##)
+    /// followed by optional whitespace and the parameter name as a whole word.
+    /// </summary>
+    private static string ReplaceStringize(string text, string paramName, string replacement)
+    {
+        var sb = new StringBuilder(text.Length);
+        int i = 0;
+        while (i < text.Length)
+        {
+            if (text[i] == '#' && (i == 0 || text[i - 1] != '#'))
+            {
+                int j = i + 1;
+                // not ## (token paste)
+                if (j < text.Length && text[j] == '#')
+                {
+                    sb.Append(text[i]);
+                    i++;
+                    continue;
+                }
+                while (j < text.Length && text[j] == ' ') j++; // skip whitespace
+                if (j + paramName.Length <= text.Length &&
+                    text.AsSpan(j, paramName.Length).SequenceEqual(paramName.AsSpan()) &&
+                    (j + paramName.Length >= text.Length || !IsIdentChar(text[j + paramName.Length])))
+                {
+                    sb.Append(replacement);
+                    i = j + paramName.Length;
+                    continue;
+                }
+            }
+            sb.Append(text[i]);
+            i++;
+        }
+        return sb.ToString();
     }
 
     private string SubstituteMacros(string line)
@@ -747,15 +793,13 @@ public class Preprocessor
                 // Match standalone # followed by a parameter name, but not ## (token paste).
                 for (int p = 0; p < macro.Params.Length && p < args.Length; p++)
                 {
-                    var stringizePattern = new Regex(
-                        @"(?<!#)#(?!#)(\s*)" + Regex.Escape(macro.Params[p]) + @"(?!\w)");
-                    expanded = stringizePattern.Replace(expanded,
-                        "\"" + args[p].Trim().Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"");
+                    var quoted = "\"" + args[p].Trim().Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
+                    expanded = ReplaceStringize(expanded, macro.Params[p], quoted);
                 }
 
                 for (int p = 0; p < macro.Params.Length && p < args.Length; p++)
                 {
-                    expanded = GetMacroRegex(macro.Params[p]).Replace(expanded, args[p].Trim());
+                    expanded = ReplaceWholeWord(expanded, macro.Params[p], args[p].Trim());
                 }
 
                 // Handle variadic __VA_ARGS__ substitution
@@ -771,7 +815,7 @@ public class Preprocessor
                         // ALL() with empty parens — zero variadic args
                         vaArgs = "";
                     }
-                    expanded = GetMacroRegex("__VA_ARGS__").Replace(expanded, vaArgs);
+                    expanded = ReplaceWholeWord(expanded, "__VA_ARGS__", vaArgs);
                 }
 
                 // Process ## token-paste operator after parameter substitution
@@ -790,7 +834,7 @@ public class Preprocessor
             {
                 if (line.Contains(name, StringComparison.Ordinal))
                 {
-                    line = GetMacroRegex(name).Replace(line, value);
+                    line = ReplaceWholeWord(line, name, value);
                 }
             }
             // Process ## token-paste operator after macro substitution
@@ -800,11 +844,12 @@ public class Preprocessor
         return line;
     }
 
-    private static readonly Regex TokenPasteRegex = new(@"\s*##\s*", RegexOptions.Compiled);
+    [GeneratedRegex(@"\s*##\s*")]
+    private static partial Regex TokenPasteRegex();
 
     private static string ProcessTokenPaste(string text)
     {
-        return TokenPasteRegex.Replace(text, string.Empty);
+        return TokenPasteRegex().Replace(text, string.Empty);
     }
 
     private static int FindMatchingParen(string text, int openIdx)
@@ -852,9 +897,9 @@ public class Preprocessor
         if (commentIdx >= 0) expr = expr[..commentIdx].Trim();
 
         // Handle defined(NAME) / defined NAME
-        expr = s_definedParenRegex.Replace(expr, m =>
+        expr = DefinedParenRegex().Replace(expr, m =>
             (_defines.ContainsKey(m.Groups[1].Value) || _functionMacros.ContainsKey(m.Groups[1].Value)) ? "1" : "0");
-        expr = s_definedSpaceRegex.Replace(expr, m =>
+        expr = DefinedSpaceRegex().Replace(expr, m =>
             (_defines.ContainsKey(m.Groups[1].Value) || _functionMacros.ContainsKey(m.Groups[1].Value)) ? "1" : "0");
 
         // Substitute macros in the expression

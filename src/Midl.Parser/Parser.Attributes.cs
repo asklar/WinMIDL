@@ -141,10 +141,10 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.AttributeArgument, children);
     }
 
-    // Regex for unquoted GUID: 8hex-4hex-4hex-4hex-12hex (hex groups may span multiple tokens)
-    private static readonly System.Text.RegularExpressions.Regex s_guidRegex = new(
-        @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-        System.Text.RegularExpressions.RegexOptions.Compiled);
+    // Source-generated regex for unquoted GUID: 8hex-4hex-4hex-4hex-12hex
+    [System.Text.RegularExpressions.GeneratedRegex(
+        @"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
+    private static partial System.Text.RegularExpressions.Regex GuidRegex();
 
     /// <summary>Check if tokens from current position form an unquoted GUID.</summary>
     private bool IsGuidPatternFromHere()
@@ -160,7 +160,7 @@ public sealed partial class Parser
             else
                 break;
         }
-        return s_guidRegex.IsMatch(sb.ToString());
+        return GuidRegex().IsMatch(sb.ToString());
     }
 
     /// <summary>Consume tokens forming an unquoted GUID and produce a single GuidLiteralToken.</summary>

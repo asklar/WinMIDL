@@ -328,14 +328,32 @@ public sealed partial class MidlLanguageServer
     /// </summary>
     private static string StripMarkdown(string md)
     {
-        var result = System.Text.RegularExpressions.Regex.Replace(md, @"\*\*(.+?)\*\*", "$1");
-        result = System.Text.RegularExpressions.Regex.Replace(result, @"__(.+?)__", "$1");
-        result = System.Text.RegularExpressions.Regex.Replace(result, @"`([^`]+)`", "$1");
-        result = System.Text.RegularExpressions.Regex.Replace(result, @"\[([^\]]+)\]\([^)]+\)", "$1");
-        result = System.Text.RegularExpressions.Regex.Replace(result, @"^#{1,6}\s+", "", System.Text.RegularExpressions.RegexOptions.Multiline);
-        result = System.Text.RegularExpressions.Regex.Replace(result, @"^---+$", "────────────────", System.Text.RegularExpressions.RegexOptions.Multiline);
+        var result = BoldRegex().Replace(md, "$1");
+        result = UnderlineRegex().Replace(result, "$1");
+        result = InlineCodeRegex().Replace(result, "$1");
+        result = LinkRegex().Replace(result, "$1");
+        result = HeadingRegex().Replace(result, "");
+        result = HorizontalRuleRegex().Replace(result, "────────────────");
         return result;
     }
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"\*\*(.+?)\*\*")]
+    private static partial System.Text.RegularExpressions.Regex BoldRegex();
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"__(.+?)__")]
+    private static partial System.Text.RegularExpressions.Regex UnderlineRegex();
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"`([^`]+)`")]
+    private static partial System.Text.RegularExpressions.Regex InlineCodeRegex();
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"\[([^\]]+)\]\([^)]+\)")]
+    private static partial System.Text.RegularExpressions.Regex LinkRegex();
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^#{1,6}\s+", System.Text.RegularExpressions.RegexOptions.Multiline)]
+    private static partial System.Text.RegularExpressions.Regex HeadingRegex();
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^---+$", System.Text.RegularExpressions.RegexOptions.Multiline)]
+    private static partial System.Text.RegularExpressions.Regex HorizontalRuleRegex();
 
     private void HandleDidChangeConfiguration(JsonElement? @params)
     {

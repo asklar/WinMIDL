@@ -11,7 +11,7 @@ namespace Midl.Lsp.Handlers;
 /// <summary>
 /// Provides hover information for tokens in MIDL documents.
 /// </summary>
-public static class HoverHandler
+public static partial class HoverHandler
 {
     private static readonly HttpClient s_httpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
     private static readonly ConcurrentDictionary<string, string?> s_descriptionCache = new();
@@ -329,7 +329,7 @@ public static class HoverHandler
     {
         // Look for the first <p> tag content after the main heading area
         // MS Learn pages have the description as early paragraph text
-        var match = Regex.Match(html, @"<meta\s+name=""description""\s+content=""([^""]+)""", RegexOptions.IgnoreCase);
+        var match = MetaDescriptionRegex().Match(html);
         if (match.Success)
         {
             var desc = match.Groups[1].Value.Trim();
@@ -342,4 +342,7 @@ public static class HoverHandler
         }
         return null;
     }
+
+    [GeneratedRegex(@"<meta\s+name=""description""\s+content=""([^""]+)""", RegexOptions.IgnoreCase)]
+    private static partial Regex MetaDescriptionRegex();
 }
