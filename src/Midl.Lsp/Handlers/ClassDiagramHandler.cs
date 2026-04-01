@@ -75,15 +75,15 @@ public static class ClassDiagramHandler
             {
                 case EnumSymbol e:
                     EmitDotNode(sb, nid, "enum", "#1e3a1e", "#8fbc8f",
-                        e.Name, e.EnumMembers.Select(m => m.Name).ToList());
+                        e.Name, e.EnumMembers.Select(m => DotH(m.Name)).ToList());
                     break;
                 case StructSymbol s:
                     EmitDotNode(sb, nid, "struct", "#3a2a1a", "#deb887",
-                        s.Name, s.Fields.Select(f => $"{f.Type.DisplayName} {f.Name}").ToList());
+                        s.Name, s.Fields.Select(f => $"{DotH(f.Type.DisplayName)} <FONT COLOR=\"#9cdcfe\"><B>{DotH(f.Name)}</B></FONT>").ToList());
                     break;
                 case DelegateSymbol d:
                     EmitDotNode(sb, nid, "delegate", "#3a1a2a", "#f0b0c0",
-                        d.Name, new List<string> { $"{d.ReturnType.DisplayName} Invoke({FormatParameters(d.Parameters)})" });
+                        d.Name, new List<string> { $"{DotH(d.ReturnType.DisplayName)} <FONT COLOR=\"#dcdcaa\"><B>Invoke</B></FONT>({DotH(FormatParameters(d.Parameters))})" });
                     break;
                 case InterfaceSymbol iface when !iface.IsSynthesized:
                     EmitDotNode(sb, nid, "interface", "#1a2a3a", "#87ceeb",
@@ -135,15 +135,16 @@ public static class ClassDiagramHandler
     private static void EmitDotNode(StringBuilder sb, string nid, string kindLabel, string headerBg, string kindColor, string name, List<string> members)
     {
         sb.Append($"  {nid} [label=<");
-        sb.Append($"<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"5\" COLOR=\"#555555\">");
-        sb.Append($"<TR><TD BGCOLOR=\"{headerBg}\" ALIGN=\"CENTER\">");
-        sb.Append($"<FONT COLOR=\"{kindColor}\" FACE=\"Segoe UI\" POINT-SIZE=\"9\">&laquo;{kindLabel}&raquo;</FONT><BR/>");
-        sb.Append($"<FONT COLOR=\"#e0e0e0\" FACE=\"Segoe UI\"><B>{DotH(name)}</B></FONT></TD></TR>");
+        sb.Append($"<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"6\" COLOR=\"#555555\">");
+        sb.Append($"<TR><TD BGCOLOR=\"{headerBg}\" ALIGN=\"CENTER\" SIDES=\"LRT\">");
+        sb.Append($"<FONT COLOR=\"{kindColor}\" FACE=\"Segoe UI\" POINT-SIZE=\"9\">&laquo;{kindLabel}&raquo;</FONT></TD></TR>");
+        sb.Append($"<TR><TD BGCOLOR=\"{headerBg}\" ALIGN=\"CENTER\" SIDES=\"LRB\">");
+        sb.Append($"<FONT COLOR=\"#e0e0e0\" FACE=\"Segoe UI\" POINT-SIZE=\"12\"><B>{DotH(name)}</B></FONT></TD></TR>");
         if (members.Count > 0)
         {
-            sb.Append("<TR><TD BGCOLOR=\"#2d2d2d\" ALIGN=\"LEFT\"><FONT COLOR=\"#cccccc\" FACE=\"Consolas\" POINT-SIZE=\"10\">");
+            sb.Append("<TR><TD BGCOLOR=\"#2d2d2d\" ALIGN=\"LEFT\"><FONT COLOR=\"#999999\" FACE=\"Consolas\" POINT-SIZE=\"10\">");
             foreach (var m in members)
-                sb.Append($"{DotH(m)}<BR ALIGN=\"LEFT\"/>");
+                sb.Append($"{m}<BR ALIGN=\"LEFT\"/>");
             sb.Append("</FONT></TD></TR>");
         }
         sb.AppendLine("</TABLE>>];");
@@ -157,13 +158,13 @@ public static class ClassDiagramHandler
             switch (m)
             {
                 case MethodSymbol method:
-                    list.Add($"{method.ReturnType.DisplayName} {method.Name}({FormatParameters(method.Parameters)})");
+                    list.Add($"{DotH(method.ReturnType.DisplayName)} <FONT COLOR=\"#dcdcaa\"><B>{DotH(method.Name)}</B></FONT>({DotH(FormatParameters(method.Parameters))})");
                     break;
                 case PropertySymbol prop:
-                    list.Add($"{prop.Type.DisplayName} {prop.Name}");
+                    list.Add($"{DotH(prop.Type.DisplayName)} <FONT COLOR=\"#9cdcfe\"><B>{DotH(prop.Name)}</B></FONT>");
                     break;
                 case EventSymbol evt:
-                    list.Add($"event {evt.DelegateType.DisplayName} {evt.Name}");
+                    list.Add($"event {DotH(evt.DelegateType.DisplayName)} <FONT COLOR=\"#c586c0\"><B>{DotH(evt.Name)}</B></FONT>");
                     break;
             }
         }
@@ -178,16 +179,16 @@ public static class ClassDiagramHandler
             switch (m)
             {
                 case ConstructorSymbol ctor:
-                    list.Add($"{rc.Name}({FormatParameters(ctor.Parameters)})");
+                    list.Add($"<FONT COLOR=\"#dcdcaa\"><B>{DotH(rc.Name)}</B></FONT>({DotH(FormatParameters(ctor.Parameters))})");
                     break;
                 case MethodSymbol method:
-                    list.Add($"{method.ReturnType.DisplayName} {method.Name}({FormatParameters(method.Parameters)})");
+                    list.Add($"{DotH(method.ReturnType.DisplayName)} <FONT COLOR=\"#dcdcaa\"><B>{DotH(method.Name)}</B></FONT>({DotH(FormatParameters(method.Parameters))})");
                     break;
                 case PropertySymbol prop:
-                    list.Add($"{prop.Type.DisplayName} {prop.Name}");
+                    list.Add($"{DotH(prop.Type.DisplayName)} <FONT COLOR=\"#9cdcfe\"><B>{DotH(prop.Name)}</B></FONT>");
                     break;
                 case EventSymbol evt:
-                    list.Add($"event {evt.DelegateType.DisplayName} {evt.Name}");
+                    list.Add($"event {DotH(evt.DelegateType.DisplayName)} <FONT COLOR=\"#c586c0\"><B>{DotH(evt.Name)}</B></FONT>");
                     break;
             }
         }
