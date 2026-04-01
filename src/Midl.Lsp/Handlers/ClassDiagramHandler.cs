@@ -135,10 +135,9 @@ public static class ClassDiagramHandler
     private static void EmitDotNode(StringBuilder sb, string nid, string kindLabel, string headerBg, string kindColor, string name, List<string> members)
     {
         sb.Append($"  {nid} [label=<");
-        sb.Append($"<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"6\" COLOR=\"#555555\">");
-        sb.Append($"<TR><TD BGCOLOR=\"{headerBg}\" ALIGN=\"CENTER\" SIDES=\"LRT\">");
-        sb.Append($"<FONT COLOR=\"{kindColor}\" FACE=\"Segoe UI\" POINT-SIZE=\"9\">&laquo;{kindLabel}&raquo;</FONT></TD></TR>");
-        sb.Append($"<TR><TD BGCOLOR=\"{headerBg}\" ALIGN=\"CENTER\" SIDES=\"LRB\">");
+        sb.Append($"<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"8\" COLOR=\"#555555\">");
+        sb.Append($"<TR><TD BGCOLOR=\"{headerBg}\" ALIGN=\"CENTER\">");
+        sb.Append($"<FONT COLOR=\"{kindColor}\" FACE=\"Segoe UI\" POINT-SIZE=\"9\">&laquo;{kindLabel}&raquo;</FONT><BR/>");
         sb.Append($"<FONT COLOR=\"#e0e0e0\" FACE=\"Segoe UI\" POINT-SIZE=\"12\"><B>{DotH(name)}</B></FONT></TD></TR>");
         if (members.Count > 0)
         {
