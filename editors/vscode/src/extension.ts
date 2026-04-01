@@ -229,7 +229,7 @@ function getDiagramHtml(dotSource: string): string {
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy"
-          content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'unsafe-inline';">
+          content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src blob:;">
     <style>
         body {
             background: transparent;
@@ -242,10 +242,31 @@ function getDiagramHtml(dotSource: string): string {
         #diagram svg > polygon { display: none; }
         #loading { color: var(--vscode-editor-foreground, #ccc); font-family: var(--vscode-font-family); }
         #error { color: #f48771; font-family: var(--vscode-font-family); white-space: pre-wrap; }
+        #ctx-menu {
+            position: fixed; z-index: 9999;
+            background: var(--vscode-menu-background, #2d2d2d);
+            border: 1px solid var(--vscode-menu-border, #555);
+            border-radius: 4px; padding: 4px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,.4);
+        }
+        #ctx-menu div {
+            padding: 6px 24px; cursor: pointer;
+            color: var(--vscode-menu-foreground, #ccc);
+            font: 13px var(--vscode-font-family, 'Segoe UI', sans-serif);
+        }
+        #ctx-menu div:hover { background: var(--vscode-menu-selectionBackground, #094771); }
+        #toast {
+            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+            background: var(--vscode-editorWidget-background, #333); color: var(--vscode-editor-foreground, #ccc);
+            font: 13px var(--vscode-font-family, 'Segoe UI', sans-serif);
+            padding: 6px 16px; border-radius: 4px; opacity: 0; transition: opacity .3s;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <div id="diagram"><p id="loading">Rendering diagram\u2026</p></div>
+    <div id="toast"></div>
     <script type="module" nonce="${nonce}">
         try {
             const { instance } = await import('https://cdn.jsdelivr.net/npm/@viz-js/viz@3.11.0/lib/viz-standalone.mjs');
@@ -254,7 +275,56 @@ function getDiagramHtml(dotSource: string): string {
             document.getElementById('diagram').innerHTML = svg;
         } catch (e) {
             document.getElementById('diagram').innerHTML =
-                '<p id="error">Failed to render diagram:\\n' + e.message + '</p>';
+                '<p id="error">Failed to render diagram:\\\\n' + e.message + '</p>';
+        }
+
+        document.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            document.getElementById('ctx-menu')?.remove();
+            const menu = document.createElement('div');
+            menu.id = 'ctx-menu';
+            menu.style.left = e.clientX + 'px';
+            menu.style.top = e.clientY + 'px';
+            const item = document.createElement('div');
+            item.textContent = 'Copy as PNG';
+            item.onclick = () => { menu.remove(); copyAsPng(); };
+            menu.appendChild(item);
+            document.body.appendChild(menu);
+            setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
+        });
+
+        function toast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg; el.style.opacity = '1';
+            setTimeout(() => el.style.opacity = '0', 1500);
+        }
+
+        async function copyAsPng() {
+            const svgEl = document.querySelector('#diagram svg');
+            if (!svgEl) return;
+            const clone = svgEl.cloneNode(true);
+            const bg = clone.querySelector(':scope > polygon');
+            if (bg) bg.remove();
+            const data = new XMLSerializer().serializeToString(clone);
+            const blob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = async () => {
+                const c = document.createElement('canvas');
+                c.width = img.naturalWidth * 2;
+                c.height = img.naturalHeight * 2;
+                const ctx = c.getContext('2d');
+                ctx.scale(2, 2);
+                ctx.drawImage(img, 0, 0);
+                URL.revokeObjectURL(url);
+                c.toBlob(async b => {
+                    try {
+                        await navigator.clipboard.write([new ClipboardItem({ 'image/png': b })]);
+                        toast('Copied to clipboard');
+                    } catch (e) { toast('Copy failed: ' + e.message); }
+                }, 'image/png');
+            };
+            img.src = url;
         }
     </script>
 </body>
