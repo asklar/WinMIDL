@@ -1095,7 +1095,7 @@ h3 {
 
 <!-- ==================== SLIDE 15: 122 DIAGNOSTIC CODES ==================== -->
 <div class="slide" data-slide="15">
-  <h2><span class="accent">122</span> Diagnostic Codes</h2>
+  <h2><span class="accent">125</span> Diagnostic Codes</h2>
   <div class="diag-grid">
     <div class="diag-card semantic">
       <div class="diag-range" style="color:var(--error);">MIDL1001 – 1105</div>
@@ -1108,14 +1108,26 @@ h3 {
       <div class="diag-count">6 codes — MIDL2 syntax used in MIDL3 context</div>
     </div>
     <div class="diag-card quality">
-      <div class="diag-range" style="color:var(--info);">MIDL3001 – 3016</div>
+      <div class="diag-range" style="color:var(--info);">MIDL3001 – 3021</div>
       <div class="diag-label">Code Quality Hints</div>
-      <div class="diag-count">15 codes — naming conventions, simplifications</div>
+      <div class="diag-count">21 codes — naming, redundant attrs, doc comments</div>
     </div>
   </div>
   <div class="note" style="margin-top:24px;font-size:16px;font-style:normal;">
     ✨ Every diagnostic has an <strong style="color:var(--white);">accurate source position</strong> — no more <code style="background:var(--bg-lighter);padding:2px 8px;border-radius:4px;color:var(--error);font-family:'Cascadia Code',monospace;">line 0, column 0</code>
   </div>
+</div>
+
+<!-- ==================== SLIDE 15.5: CLASS DIAGRAM ==================== -->
+<div class="slide" data-slide="15.5">
+  <h2>Interactive <span class="accent">Class Diagram</span></h2>
+  <p class="slide-desc">Generate UML class diagrams from any IDL file — color-coded type boxes with inheritance and implementation arrows. <strong style="color:var(--white);">Drag</strong> nodes to rearrange, <strong style="color:var(--white);">Ctrl+scroll</strong> to zoom, <strong style="color:var(--white);">right-click → Copy as PNG</strong>.</p>
+  <ul class="bullets" style="margin-top:16px;">
+    <li>Graphviz force-directed layout via viz.js</li>
+    <li>Color-coded: <span style="color:#8fbc8f">enum</span>, <span style="color:#deb887">struct</span>, <span style="color:#87ceeb">interface</span>, <span style="color:#b39ddb">class</span>, <span style="color:#f0b0c0">delegate</span></li>
+    <li>Bold member names with VS Code-style colors</li>
+    <li>Standard UML arrows: solid = extends, dashed = implements</li>
+  </ul>
 </div>
 
 <!-- ==================== SLIDE 16: NAVIGATION & RENAME ==================== -->
@@ -1202,11 +1214,11 @@ h3 {
   <h2>Test <span class="accent">Coverage</span></h2>
   <div class="numbers-grid" id="numbersGrid">
     <div class="number-card">
-      <div class="big-number" data-target="1465">0</div>
+      <div class="big-number" data-target="2309">0</div>
       <div class="number-label">Tests</div>
     </div>
     <div class="number-card">
-      <div class="big-number" data-target="122">0</div>
+      <div class="big-number" data-target="125">0</div>
       <div class="number-label">Diagnostic Codes</div>
     </div>
     <div class="number-card">
@@ -1227,18 +1239,20 @@ h3 {
     </div>
   </div>
   <div class="test-breakdown" id="testBreakdown">
-    <div class="test-bar-segment" style="flex-basis:0%;background:#e06c75;" data-width="5.94%">87</div>
-    <div class="test-bar-segment" style="flex-basis:0%;background:#c678dd;" data-width="5.12%">75</div>
-    <div class="test-bar-segment" style="flex-basis:0%;background:#61afef;" data-width="31.54%">462</div>
-    <div class="test-bar-segment" style="flex-basis:0%;background:#98c379;" data-width="13.65%">200</div>
-    <div class="test-bar-segment" style="flex-basis:0%;background:#e5c07b;" data-width="43.75%">641</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#e06c75;" data-width="4.5%">104</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#c678dd;" data-width="3.2%">75</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#61afef;" data-width="29.5%">681</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#98c379;" data-width="34.7%">801</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#e5c07b;" data-width="19.0%">438</div>
+    <div class="test-bar-segment" style="flex-basis:0%;background:#56b6c2;" data-width="9.1%">210</div>
   </div>
   <div class="test-breakdown-legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#e06c75"></div> Lexer 87</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e06c75"></div> Lexer 104</div>
     <div class="legend-item"><div class="legend-dot" style="background:#c678dd"></div> Parser 75</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#61afef"></div> Analysis 462</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#98c379"></div> CodeGen 200</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#e5c07b"></div> Integration 641</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#61afef"></div> Analysis 681</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#98c379"></div> CodeGen 801</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e5c07b"></div> Integration 438</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#56b6c2"></div> Parity + E2E 210</div>
   </div>
 </div>
 
@@ -1288,13 +1302,13 @@ h3 {
       <tr>
         <td class="metric">Diagnostics</td>
         <td class="old">~20 codes</td>
-        <td class="new">122 codes</td>
+        <td class="new">125 codes</td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <div class="note" style="font-size:15px;margin-top:24px;font-style:normal;">
-    <strong style="color:var(--success);">2.5× faster</strong> than the original across 215 fixture files, with 122 diagnostics, full LSP, and graceful error recovery
+    <strong style="color:var(--success);">2.5× faster</strong> than the original across 215 fixture files, with 125 diagnostics, full LSP, and graceful error recovery
   </div>
 </div>
 
@@ -1306,6 +1320,11 @@ h3 {
     <li class="done">Real-time diagnostics with quick fixes</li>
     <li class="done">Full IntelliSense with 5,517+ SDK types</li>
     <li class="done">F12 go-to-definition with WinMD decompilation</li>
+    <li class="done">Interactive class diagram with drag-to-move</li>
+    <li class="done">Doc comments (<code>///</code>) with hover + XDC export</li>
+    <li class="done">Inactive region graying (<code>#ifdef</code>)</li>
+    <li class="done">Activation manifest generation</li>
+    <li class="done">NativeAOT binary optimized to 5.5 MB</li>
     <li>Code lens — show synthesized interfaces inline</li>
     <li>Incremental text sync for large files</li>
     <li>More CLI switch compatibility</li>

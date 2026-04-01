@@ -1,6 +1,6 @@
 # TODO — MIDL Compiler Rewrite Status
 
-> **Last updated**: 2026-03-30
+> **Last updated**: 2026-04-01
 > This file tracks implementation status. Keep it current with every feature change.
 
 ## ✅ Implemented
@@ -15,10 +15,11 @@
 - [x] IID file generation (_i.c)
 - [x] DllData skeleton generation
 - [x] Proxy/stub skeleton generation
-- [x] CLI with 30+ switches, response files, `/debug` tracing, `/diag` info diagnostics
+- [x] CLI with 30+ switches, response files, `/debug` tracing, `/diag` info diagnostics, `/doc` XML doc comments
 - [x] Custom proxy/stub C++ code generation (`/cppproxy` — direct C++ marshaling, no NDR)
 - [x] `--analyze` mode (Rust-style rich console output with squigglies)
 - [x] `--decompile` mode (WinMD to MIDL3 IDL — idiomatic properties, events, skips exclusive interfaces)
+- [x] `--manifest` mode (generates SxS `.manifest` or AppX `.appxmanifest` activation fragments from `.winmd`)
 - [x] LSP server (JSON-RPC over stdio, no external NuGet deps)
 - [x] VS Code extension (TextMate grammar, 19 snippets, LSP client, F5 debug)
 - [x] Visual Studio extension (LSP client, smart indentation, Tools > Options settings)
@@ -52,7 +53,7 @@
 - [x] `import "file.idl"` (multi-file IDL compilation with transitive imports)
 - [x] `partial runtimeclass` merging across declarations
 - [x] User-defined `attribute` declarations with `[attributeusage]`, `[attributename]`, `[allowmultiple]`
-- [x] Parameter passing: `out`, `ref const` (structs), `ref` (fill arrays), `T[]` arrays (gated behind `/arrays`)
+- [x] Parameter passing: `out`, `ref const` (structs), `ref` (fill arrays), `T[]` arrays
 - [x] Array params: PassArray (`T[]`), ReceiveArray (`out T[]`), FillArray (`ref T[]`) — header, WinMD, proxy/stub codegen
 - [x] Forward declarations (`interface IFoo;`, `struct S;`, `runtimeclass C;`, `attribute A;`, `enum E;`)
 - [x] Float literals (`1.5`, `3.14f`) and negative numeric literals (`-42`, `-3.14`)
@@ -126,7 +127,7 @@
 - [x] Classic constructs in strict mode: coclass, library, typedef, etc. (MIDL2001)
 - [x] Classic `[in]`/`[out]`/`[retval]` attributes in strict mode (MIDL2003)
 
-### Diagnostics (105+ codes)
+### Diagnostics (125+ codes)
 - [x] MIDL1001–MIDL1013: Semantic errors (undefined type, duplicate, namespace required, empty struct, case collision, write-only property, reserved param name, etc.)
 - [x] MIDL1014–MIDL1017: Version/contract errors
 - [x] MIDL1020–MIDL1030: Attribute validation (threading, marshaling, composable, exclusiveto, deprecated, attributeusage, custom attribute target/arg count)
@@ -142,7 +143,7 @@
 - [x] MIDL1103–MIDL1105: Invalid feature stage, experimental reference, cross-feature-gate reference
 - [x] MIDL1100: Syntax errors (skipped tokens, error chars, missing tokens)
 - [x] MIDL2001–MIDL2006: Strict mode **errors** (classic constructs, lowercase types, HRESULT, pointers, classic attrs, #include)
-- [x] MIDL3001–MIDL3016: Code quality hints (interface naming, empty types, constructors, setter-only, method name clash, namespace casing, attribute naming, delegate naming, async naming, PascalCase, property shorthand)
+- [x] MIDL3001–MIDL3021: Code quality hints (interface naming, empty types, constructors, setter-only, method name clash, namespace casing, attribute naming, delegate naming, async naming, PascalCase, property shorthand, redundant default attrs, obsolete attrs, all-static class, missing doc comment, malformed doc comment)
 - [x] All diagnostic positions tracked via green tree FullWidth accumulation — accurate to the usage site
 - [x] Code action fixers for all fixable diagnostics (type corrections, naming, property shorthand)
 
@@ -179,26 +180,34 @@
 - [x] Code actions / quick fixes (type name corrections, naming conventions, property shorthand, constructor insertion, did-you-mean replacements)
 - [x] `midl.strictMode` setting
 - [x] `midl.codeQualityHints` setting (toggle code quality hints)
-- [x] Command palette: Toggle Strict Mode, Restart Server, Show Server Log
+- [x] Command palette: Toggle Strict Mode, Restart Server, Show Server Log, Show Class Diagram
 - [x] Cross-file context via `winmidl.json` project file
 - [x] Cross-file hints via `// @ref: file.idl` directives
+- [x] Inactive region graying (`#ifdef`/`#ifndef` — tokens in skipped regions rendered as comments)
+- [x] `#ifdef` folding ranges
+- [x] Namespace type count code lens
+- [x] Doc comment (`///`) support: hover summaries, autocomplete skeletons, syntax highlighting
+- [x] Interactive class diagram (Graphviz layout, drag-to-move, copy as PNG)
+- [x] `midl.defines` setting for preprocessor defines (inactive region detection)
 - [x] Workspace diagnostics (scans `.idl` files on open, file watcher for changes/deletes)
 - [x] WinMD provider caching + compilation caching (avoids redundant work)
 - [x] Debounce (300ms) — avoids recompilation on every keystroke
 - [x] Content-hash caching — skips recompilation if text unchanged
 - [x] Source-generated JSON types (Protocol/LspTypes.cs, AOT-compatible)
 
-### Testing (1,925+ tests)
+### Testing (2,300+ tests)
 - [x] Lexer: 104 tests (tokens, trivia, edge cases, preprocessor, float/negative literals, line continuation)
 - [x] Parser: 75 tests (structures, error recovery, completeness, classic MIDL, generic disambiguation, forward declarations, [default] base list)
-- [x] Analysis: 491 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, naming conventions, custom attribute types/ranges, protected accessor, feature gates, experimental refs, did-you-mean, default interface, CLR projection, circular requires, UUID format, void properties, static class, SDK attribute resolution)
-- [x] CodeGen: 212 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes, per-namespace output, parity fixtures, generic decompilation, namespace scoping, CLR projection, static members, overridable/protected, base class, version decoding, events, property shorthand)
-- [x] Integration: 660+ tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete, LSP handlers, WinMD parity, goto-definition, rename, workspace diagnostics, SDK attribute completions)
+- [x] Analysis: 681 tests (binding, synthesis, WinMD round-trip, extraction, imports, access validation, version propagation, attribute validation, built-in types, enum value validation, naming conventions, custom attribute types/ranges, protected accessor, feature gates, experimental refs, did-you-mean, default interface, CLR projection, circular requires, UUID format, void properties, static class, SDK attribute resolution, doc comments)
+- [x] CodeGen: 801 tests (WinMD emitter, header, IID, DllData, tables, decompiler, encoding fixes, per-namespace output, parity fixtures, generic decompilation, namespace scoping, CLR projection, static members, overridable/protected, base class, version decoding, events, property shorthand, manifest generation, XDC)
+- [x] Integration: 438+ tests (CLI, diagnostics, formatting, semantic tokens, fixtures, code actions, keyword coverage, OS fixtures, contextual completions, import autocomplete, LSP handlers, WinMD parity, goto-definition, rename, workspace diagnostics, SDK attribute completions, class diagram, hover)
+- [x] Parity: 389 tests (WinMD parity against MIDL.exe, positive + negative fixtures)
 - [x] IDL fixture suite (18 files with `.expected.json` + `.expected.tree` sidecars)
 - [x] OS fixture test script (`scripts/test-os-fixtures.ps1` — 1186 files, 0 crashes)
 - [x] Proxy/stub codegen: 689 tests (proxy generator, stub generator, wire format, signature folding, interface/delegate/nullable/collections marshaling, edge cases)
 - [x] E2E comprehensive in-proc: 89 tests (all WinRT type patterns across STA/MTA)
 - [x] E2E out-of-proc: 88 tests (12 groups: primitives, structs, enums, interfaces, delegates, events, IReference, Object, inheritance, QI, statics, error propagation)
+- [x] C++/WinRT E2E: IDL → WinMD → cppwinrt → projection headers → compile + run (in-proc 39 + out-of-proc 25 assertions)
 
 ### WinMD Decompiler (`--decompile`)
 - [x] Idiomatic MIDL3 property syntax (shorthand for read-write, `{ get; }` for read-only)
@@ -248,8 +257,8 @@
 ### Future Features
 - [x] ~~**Array params (`T[]`)**~~ — PassArray, ReceiveArray, FillArray across parser, header, WinMD, proxy/stub, LSP (gated behind `/arrays`)
 - [ ] **Custom generics (`IRepository<T>`)** — design doc ready, multi-phase effort
-- [ ] **C++/WinRT E2E tests** — IDL → WinMD → cppwinrt → projection headers → compile+run
-- [ ] **AppxManifest ACID generation** — `/manifest` CLI switch, ActivatableClass XML emission
+- [x] ~~**C++/WinRT E2E tests**~~ — IDL → WinMD → cppwinrt → projection headers → compile+run (in-proc + out-of-proc)
+- [x] ~~**AppxManifest ACID generation**~~ — `--manifest` CLI switch, SxS + AppX manifest fragment emission from `.winmd`
 - [ ] **Async completion callback marshaling** — `IAsyncOperation<T>` put_Completed cross-process
 - [ ] **`[noexcept]` proxy optimization** — skip HRESULT propagation in proxy
 - [ ] **Cross-file rename / find-references** — currently single-file only

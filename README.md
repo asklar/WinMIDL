@@ -1,6 +1,6 @@
 # WinMIDL — Microsoft Interface Definition Language Compiler
 
-A modern, fast, editor-friendly MIDL compiler. Ships as a single ~9 MB native executable — no .NET runtime required.
+A modern, fast, editor-friendly MIDL compiler. Ships as a single ~5.5 MB native executable — no .NET runtime required.
 
 ---
 
@@ -17,6 +17,8 @@ WinMIDL is a **ground-up rewrite** of the Microsoft MIDL compiler. It compiles M
 | IID definitions | `_i.c` | `/iid` |
 | Custom proxy/stub | `_proxy.cpp` | `/cppproxy` |
 | DllData | `dlldata.c` | (automatic) |
+| Activation manifest | `.manifest` / `.appxmanifest` | `--manifest` |
+| XML doc comments | `.xdc` | `/doc` |
 
 The same binary also serves as an **LSP server** — editor extensions for VS Code and Visual Studio ship with it bundled.
 
@@ -83,6 +85,11 @@ Both extensions bundle the compiler binary (x64 + ARM64) and provide:
 | Quick fixes | ✅ |
 | Rename symbol | ✅ |
 | Find references | ✅ |
+| Inactive region graying (`#ifdef`) | ✅ |
+| Namespace type count code lens | ✅ |
+| Doc comment (`///`) support + hover | ✅ |
+| Interactive class diagram | ✅ |
+| Microsoft Learn integration (hover docs) | ✅ |
 
 ---
 
@@ -108,6 +115,10 @@ Midl.Cli [switches] <input.idl>
 | `/WX` | Treat warnings as errors |
 | `/D <name>=<val>` | Define a preprocessor macro |
 | `/I <dir>` | Add an include search path |
+| `/diag` | Show info-level diagnostics (code quality hints) |
+| `/doc <file>` | Emit XML doc comments (`.xdc`) |
+| `--manifest <file>` | Generate activation manifest (`.manifest` or `.appxmanifest`) |
+| `--server_dll <name>` | Server DLL name for manifest generation |
 | `--lsp` | Start as an LSP server (stdio) |
 | `--analyze` | Analyze and report diagnostics |
 | `--decompile <.winmd>` | Decompile a WinMD back to IDL |
