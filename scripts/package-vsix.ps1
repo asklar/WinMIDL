@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Publishes Midl.Cli as NativeAOT (or self-contained fallback), then bundles
-    it into the VS Code extension and packages the VSIX.
+    it into the VS Code extension and packages platform-specific VSIXes.
 
 .PARAMETER SkipBuild
     Skip the CLI publish step (use existing publish/win-x64/Midl.Cli.exe)
@@ -13,14 +13,19 @@
     Override the extension version (default: read from package.json)
 
 .PARAMETER OutputPath
-    Output path for the VSIX (default: publish/midl-language.vsix)
+    Output directory for the VSIXes (default: publish/)
+
+.PARAMETER Target
+    Platform targets to build. Comma-separated. Default: win32-x64,win32-arm64
+    Valid: win32-x64, win32-arm64, universal (legacy single VSIX with both binaries)
 #>
 
 [CmdletBinding()]
 param(
     [switch]$SkipBuild,
     [string]$Version,
-    [string]$OutputPath
+    [string]$OutputPath,
+    [string]$Target = "win32-x64,win32-arm64"
 )
 
 $ErrorActionPreference = "Stop"
@@ -58,30 +63,6 @@ if (-not (Test-Path $serverExe)) {
 $sizeMB = [math]::Round((Get-Item $serverExe).Length / 1MB, 1)
 Write-Host "Server binary (x64): $serverExe ($sizeMB MB)" -ForegroundColor Green
 
-# Step 2: Bundle into extension
-Write-Host ""
-Write-Host "Bundling server binaries into extension..." -ForegroundColor Cyan
-
-# Bundle x64
-$x64Dir = Join-Path $extensionDir "server" "win-x64"
-New-Item -ItemType Directory -Force -Path $x64Dir | Out-Null
-Copy-Item $serverExe -Destination $x64Dir -Force
-Remove-Item (Join-Path $x64Dir "*.pdb") -Force -ErrorAction SilentlyContinue
-Write-Host "  Copied x64 to $x64Dir"
-
-# Bundle ARM64
-$arm64Exe = Join-Path $publishDir "win-arm64" "Midl.Cli.exe"
-if (Test-Path $arm64Exe) {
-    $arm64SizeMB = [math]::Round((Get-Item $arm64Exe).Length / 1MB, 1)
-    $arm64Dir = Join-Path $extensionDir "server" "win-arm64"
-    New-Item -ItemType Directory -Force -Path $arm64Dir | Out-Null
-    Copy-Item $arm64Exe -Destination $arm64Dir -Force
-    Remove-Item (Join-Path $arm64Dir "*.pdb") -Force -ErrorAction SilentlyContinue
-    Write-Host "  Copied ARM64 to $arm64Dir ($arm64SizeMB MB)"
-} else {
-    Write-Host "  ARM64 binary not found — skipping" -ForegroundColor Yellow
-}
-
 # Step 3: Set version — from parameter, git tag, or package.json
 if (-not $Version) {
     # Infer from latest git tag (e.g. v0.1.5 → 0.1.5)
@@ -101,9 +82,9 @@ if ($Version) {
     Pop-Location
 }
 
-# Step 4: Package VSIX
+# Step 4: Package VSIX(es)
 Write-Host ""
-Write-Host "Packaging VSIX..." -ForegroundColor Cyan
+Write-Host "Packaging VSIX(es)..." -ForegroundColor Cyan
 Push-Location $extensionDir
 
 # Ensure dependencies are installed
@@ -112,34 +93,94 @@ if (-not (Test-Path "node_modules")) {
     npm ci --silent 2>&1 | Out-Null
 }
 
-# Determine output path
+# Determine output directory
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $publishDir "midl-language.vsix"
+    $OutputPath = $publishDir
 }
-New-Item -ItemType Directory -Force -Path (Split-Path $OutputPath) | Out-Null
+New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null
 
-$result = npx @vscode/vsce package -o $OutputPath 2>&1
-$packExitCode = $LASTEXITCODE
+$targets = $Target -split ','
+$vsixFiles = @()
+
+foreach ($t in $targets) {
+    $t = $t.Trim()
+
+    if ($t -eq "universal") {
+        # Legacy: single VSIX with both binaries (no --target flag)
+        # Bundle both architectures
+        $x64Dir = Join-Path $extensionDir "server" "win-x64"
+        New-Item -ItemType Directory -Force -Path $x64Dir | Out-Null
+        Copy-Item (Join-Path $publishDir "win-x64" "Midl.Cli.exe") -Destination $x64Dir -Force
+        $arm64Exe = Join-Path $publishDir "win-arm64" "Midl.Cli.exe"
+        if (Test-Path $arm64Exe) {
+            $arm64Dir = Join-Path $extensionDir "server" "win-arm64"
+            New-Item -ItemType Directory -Force -Path $arm64Dir | Out-Null
+            Copy-Item $arm64Exe -Destination $arm64Dir -Force
+        }
+        $vsixPath = Join-Path $OutputPath "midl-language.vsix"
+        $result = npx @vscode/vsce package -o $vsixPath 2>&1
+    } else {
+        # Platform-specific VSIX: bundle only the matching binary
+        # Map vsce target to NativeAOT RID
+        $rid = switch ($t) {
+            "win32-x64"    { "win-x64" }
+            "win32-arm64"  { "win-arm64" }
+            "darwin-x64"   { "osx-x64" }
+            "darwin-arm64" { "osx-arm64" }
+            "linux-x64"    { "linux-x64" }
+            "linux-arm64"  { "linux-arm64" }
+            default        { Write-Warning "Unknown target: $t"; continue }
+        }
+        $isWindows = $t.StartsWith("win32")
+        $exeName = if ($isWindows) { "Midl.Cli.exe" } else { "Midl.Cli" }
+        $srcExe = Join-Path $publishDir $rid $exeName
+
+        if (-not (Test-Path $srcExe)) {
+            Write-Warning "  Binary not found for $t at $srcExe — skipping"
+            continue
+        }
+
+        # Clean server dir, bundle only this platform's binary
+        $serverDir = Join-Path $extensionDir "server"
+        if (Test-Path $serverDir) { Remove-Item $serverDir -Recurse -Force }
+        $targetDir = Join-Path $serverDir $rid
+        New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+        Copy-Item $srcExe -Destination $targetDir -Force
+
+        $vsixPath = Join-Path $OutputPath "midl-language-$t.vsix"
+        $result = npx @vscode/vsce package --target $t -o $vsixPath 2>&1
+    }
+
+    $packExitCode = $LASTEXITCODE
+    if ($packExitCode -ne 0) {
+        Write-Error "VSIX packaging failed for $t`: $result"
+        Pop-Location
+        exit 1
+    }
+
+    if (Test-Path $vsixPath) {
+        $vsixSize = [math]::Round((Get-Item $vsixPath).Length / 1MB, 2)
+        $vsixFiles += @{ Target = $t; Path = $vsixPath; Size = $vsixSize }
+        Write-Host "  ✅ $t → $vsixPath ($vsixSize MB)" -ForegroundColor Green
+    }
+}
+
 Pop-Location
 
-if ($packExitCode -ne 0) {
-    Write-Error "VSIX packaging failed: $result"
-    exit 1
-}
+# Clean up bundled server dir
+$serverDir = Join-Path $extensionDir "server"
+if (Test-Path $serverDir) { Remove-Item $serverDir -Recurse -Force }
 
 # Step 5: Report
-if (Test-Path $OutputPath) {
-    $vsixSize = [math]::Round((Get-Item $OutputPath).Length / 1MB, 2)
-    Write-Host ""
-    Write-Host "=======================================" -ForegroundColor Cyan
-    Write-Host "  VSIX packaged!" -ForegroundColor Green
-    Write-Host "=======================================" -ForegroundColor Cyan
-    Write-Host "  Output: $OutputPath"
-    Write-Host "  Size:   $vsixSize MB"
-    Write-Host ""
-    Write-Host "Install with:" -ForegroundColor DarkGray
-    Write-Host "  code --install-extension `"$OutputPath`"" -ForegroundColor DarkGray
-} else {
-    Write-Error "VSIX not found at expected location: $OutputPath"
-    exit 1
+Write-Host ""
+Write-Host "=======================================" -ForegroundColor Cyan
+Write-Host "  VSIX packaging complete!" -ForegroundColor Green
+Write-Host "=======================================" -ForegroundColor Cyan
+foreach ($v in $vsixFiles) {
+    Write-Host "  $($v.Target): $($v.Path) ($($v.Size) MB)"
+}
+Write-Host ""
+Write-Host "Install with:" -ForegroundColor DarkGray
+foreach ($v in $vsixFiles) {
+    Write-Host "  code --install-extension `"$($v.Path)`"" -ForegroundColor DarkGray
 }

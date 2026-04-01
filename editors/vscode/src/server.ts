@@ -16,19 +16,37 @@ export function findServerBinary(context: vscode.ExtensionContext): string | und
     const config = vscode.workspace.getConfiguration('midl');
     const configured = config.get<string>('serverPath');
     if (configured && configured !== 'midl' && configured.trim() !== '') {
-        return configured;
+        if (fs.existsSync(configured)) {
+            return configured;
+        }
+        vscode.window.showWarningMessage(
+            `MIDL: Configured server path "${configured}" not found.`,
+            'Open Settings'
+        ).then(s => { if (s) vscode.commands.executeCommand('workbench.action.openSettings', 'midl.serverPath'); });
+        return undefined;
     }
 
     const extensionDir = context.extensionPath;
+    const isWindows = process.platform === 'win32';
+    const exeName = isWindows ? 'Midl.Cli.exe' : 'Midl.Cli';
+
+    // Determine platform-specific subfolder
+    let platformDir: string;
+    if (isWindows) {
+        platformDir = process.arch === 'arm64' ? 'win-arm64' : 'win-x64';
+    } else if (process.platform === 'darwin') {
+        platformDir = process.arch === 'arm64' ? 'osx-arm64' : 'osx-x64';
+    } else {
+        platformDir = process.arch === 'arm64' ? 'linux-arm64' : 'linux-x64';
+    }
 
     // Bundled server binary (shipped inside the VSIX, per-platform)
-    const arch = process.arch === 'arm64' ? 'win-arm64' : 'win-x64';
-    const bundledExe = path.join(extensionDir, 'server', arch, 'Midl.Cli.exe');
+    const bundledExe = path.join(extensionDir, 'server', platformDir, exeName);
     if (fs.existsSync(bundledExe)) {
         console.log(`MIDL: Found bundled server binary at ${bundledExe}`);
         return bundledExe;
     }
-    const bundledFlat = path.join(extensionDir, 'server', 'Midl.Cli.exe');
+    const bundledFlat = path.join(extensionDir, 'server', exeName);
     if (fs.existsSync(bundledFlat)) {
         console.log(`MIDL: Found bundled server binary at ${bundledFlat}`);
         return bundledFlat;
@@ -37,12 +55,12 @@ export function findServerBinary(context: vscode.ExtensionContext): string | und
     // Dev inner loop: look relative to repo root
     const repoRoot = path.resolve(extensionDir, '..', '..');
     const candidates = [
-        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', 'Midl.Cli.exe'),
-        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', 'win-x64', 'Midl.Cli.exe'),
-        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Release', 'net10.0', 'Midl.Cli.exe'),
-        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Release', 'net10.0', 'win-x64', 'Midl.Cli.exe'),
-        path.join(repoRoot, 'publish', 'Midl.Cli.exe'),
-        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', 'Midl.Cli'),
+        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', exeName),
+        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', platformDir, exeName),
+        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Release', 'net10.0', exeName),
+        path.join(repoRoot, 'src', 'Midl.Cli', 'bin', 'Release', 'net10.0', platformDir, exeName),
+        path.join(repoRoot, 'publish', exeName),
+        path.join(repoRoot, 'publish', platformDir, exeName),
     ];
 
     for (const candidate of candidates) {
@@ -56,7 +74,7 @@ export function findServerBinary(context: vscode.ExtensionContext): string | und
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders) {
         for (const folder of workspaceFolders) {
-            const wsCandidate = path.join(folder.uri.fsPath, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', 'Midl.Cli.exe');
+            const wsCandidate = path.join(folder.uri.fsPath, 'src', 'Midl.Cli', 'bin', 'Debug', 'net10.0', exeName);
             if (fs.existsSync(wsCandidate)) {
                 console.log(`MIDL: Found server binary in workspace at ${wsCandidate}`);
                 return wsCandidate;

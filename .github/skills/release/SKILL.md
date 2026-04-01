@@ -94,8 +94,8 @@ git push origin main --tags
 Run the existing packaging scripts:
 
 ```powershell
-# VS Code extension (NativeAOT x64 + ARM64, bundled into VSIX)
-pwsh -ExecutionPolicy Bypass -File scripts/package-vsix.ps1 -Version $version
+# VS Code extension — platform-specific VSIXes (NativeAOT, one binary per VSIX)
+pwsh -ExecutionPolicy Bypass -File scripts/package-vsix.ps1 -Version $version -Target "win32-x64,win32-arm64"
 
 # VS extension (NativeAOT, bundled into VSIX)  
 pwsh -ExecutionPolicy Bypass -File scripts/package-vs-vsix.ps1 -Version $version
@@ -103,20 +103,21 @@ pwsh -ExecutionPolicy Bypass -File scripts/package-vs-vsix.ps1 -Version $version
 
 These scripts:
 - Build NativeAOT binaries for x64 and ARM64
-- Bundle them into the extension directories
-- Package the VSIX files
-- Output to `publish/midl-language.vsix` and `publish/Midl.VsExtension.vsix`
+- Package **separate platform-specific VSIXes** for VS Code (one per target)
+- Package the VS VSIX
+- Output to `publish/midl-language-win32-x64.vsix`, `publish/midl-language-win32-arm64.vsix`, and `publish/Midl.VsExtension.vsix`
 
 ### Step 8: Report
 
 Print the results:
 
 ```
-✅ Release v0.1.8 complete!
+✅ Release v0.1.11 complete!
 
 Artifacts:
-  VS Code: publish/midl-language.vsix (X.X MB)
-  VS:      publish/Midl.VsExtension.vsix (X.X MB)
+  VS Code (x64):  publish/midl-language-win32-x64.vsix (X.X MB)
+  VS Code (arm64): publish/midl-language-win32-arm64.vsix (X.X MB)
+  VS:              publish/Midl.VsExtension.vsix (X.X MB)
 
 Upload manually:
   VS Code: https://marketplace.visualstudio.com/manage/publishers/AlexanderSklarMSFT
@@ -134,6 +135,9 @@ Upload manually:
 
 - The version bump commit includes the changelog — it's part of the release commit
 - The git tag points to the release commit
-- NativeAOT binaries are ~8-9 MB each (x64 + ARM64)
-- VS Code VSIX is ~8 MB, VS VSIX is ~7 MB
+- NativeAOT binaries are ~5.5 MB each (x64 + ARM64)
+- VS Code VSIXes are ~3 MB each (one binary per platform VSIX)
+- VS VSIX is ~4.5 MB
+- Platform-specific VSIXes use `vsce package --target win32-x64` etc.
+- The marketplace merges platform VSIXes into one listing; Mac/Linux users won't see the extension unless we add those targets
 - The `Co-authored-by: Copilot` trailer is always included in the commit
