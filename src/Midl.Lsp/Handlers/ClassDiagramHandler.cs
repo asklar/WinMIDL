@@ -123,7 +123,7 @@ public static class ClassDiagramHandler
                 "requires" => ("dashed", "open"),
                 _ => ("solid", "normal")
             };
-            sb.AppendLine($"  {fromId} -> {toId} [style={style}, arrowhead={arrow}, arrowsize=1.2, len=3];");
+            sb.AppendLine($"  {fromId} -> {toId} [style={style}, arrowhead={arrow}, arrowsize=1.2, len=4];");
         }
 
         sb.AppendLine("}");

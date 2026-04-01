@@ -271,13 +271,113 @@ function getDiagramHtml(dotSource: string): string {
         try {
             const { instance } = await import('https://cdn.jsdelivr.net/npm/@viz-js/viz@3.11.0/lib/viz-standalone.mjs');
             const viz = await instance();
-            const svg = viz.renderString(${JSON.stringify(dotSource)}, { format: 'svg' });
-            document.getElementById('diagram').innerHTML = svg;
+            const svgStr = viz.renderString(${JSON.stringify(dotSource)}, { format: 'svg' });
+            document.getElementById('diagram').innerHTML = svgStr;
         } catch (e) {
             document.getElementById('diagram').innerHTML =
                 '<p id="error">Failed to render diagram:\\\\n' + e.message + '</p>';
         }
 
+        const svgEl = document.querySelector('#diagram svg');
+        const graphG = svgEl?.querySelector('g.graph');
+
+        // --- Arrow markers (replace Graphviz polygons) ---
+        if (svgEl) {
+            const ns = 'http://www.w3.org/2000/svg';
+            const defs = document.createElementNS(ns, 'defs');
+            defs.innerHTML = '<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="6" orient="auto">'
+                + '<path d="M0,0 L10,5 L0,10 z" fill="none" stroke="#888" stroke-width="1.5"/></marker>';
+            svgEl.insertBefore(defs, svgEl.firstChild);
+        }
+
+        // --- Parse edges ---
+        const edges = [];
+        document.querySelectorAll('.edge').forEach(g => {
+            const raw = g.querySelector('title')?.textContent || '';
+            const m = raw.match(/^(\\w+)\\s*->\\s*(\\w+)$/);
+            if (!m) return;
+            const path = g.querySelector('path');
+            const poly = g.querySelector('polygon');
+            if (path) path.setAttribute('marker-end', 'url(#ah)');
+            if (poly) poly.remove();
+            edges.push({ from: m[1], to: m[2], path, dashed: !!path?.getAttribute('stroke-dasharray') });
+        });
+
+        // --- Parse nodes, store initial bounding boxes ---
+        const nodes = {}, offsets = {};
+        document.querySelectorAll('.node').forEach(g => {
+            const id = g.querySelector('title')?.textContent;
+            if (!id) return;
+            const bb = g.getBBox();
+            nodes[id] = { el: g, cx: bb.x + bb.width/2, cy: bb.y + bb.height/2, w: bb.width, h: bb.height };
+            offsets[id] = { x: 0, y: 0 };
+            g.style.cursor = 'move';
+        });
+
+        // --- Drag state ---
+        let dragId = null, startPt = null, startOff = null;
+
+        function toGraph(e) {
+            if (!svgEl || !graphG) return { x: 0, y: 0 };
+            const pt = svgEl.createSVGPoint();
+            pt.x = e.clientX; pt.y = e.clientY;
+            return pt.matrixTransform(graphG.getScreenCTM().inverse());
+        }
+
+        svgEl?.addEventListener('pointerdown', e => {
+            const node = e.target.closest('.node');
+            if (!node) return;
+            const id = node.querySelector('title')?.textContent;
+            if (!id || !nodes[id]) return;
+            dragId = id;
+            startPt = toGraph(e);
+            startOff = { ...offsets[id] };
+            node.style.cursor = 'grabbing';
+            node.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        });
+
+        svgEl?.addEventListener('pointermove', e => {
+            if (!dragId) return;
+            const pt = toGraph(e);
+            offsets[dragId].x = startOff.x + (pt.x - startPt.x);
+            offsets[dragId].y = startOff.y + (pt.y - startPt.y);
+            nodes[dragId].el.setAttribute('transform', 'translate(' + offsets[dragId].x + ',' + offsets[dragId].y + ')');
+            redrawEdges();
+        });
+
+        svgEl?.addEventListener('pointerup', () => {
+            if (dragId && nodes[dragId]) nodes[dragId].el.style.cursor = 'move';
+            dragId = null;
+        });
+
+        function nodePos(id) {
+            const n = nodes[id], o = offsets[id];
+            if (!n || !o) return null;
+            const cx = n.cx + o.x, cy = n.cy + o.y;
+            return { cx, cy, x: cx - n.w/2, y: cy - n.h/2, w: n.w, h: n.h };
+        }
+
+        function edgePt(fx, fy, r) {
+            const cx = r.x + r.w/2, cy = r.y + r.h/2;
+            const dx = fx - cx, dy = fy - cy;
+            if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return { x: cx, y: cy };
+            const s = Math.min(r.w/2 / Math.abs(dx), r.h/2 / Math.abs(dy));
+            return { x: cx + dx * s, y: cy + dy * s };
+        }
+
+        function redrawEdges() {
+            edges.forEach(({ from, to, path }) => {
+                if (!path) return;
+                const fp = nodePos(from), tp = nodePos(to);
+                if (!fp || !tp) return;
+                const a = edgePt(tp.cx, tp.cy, fp);
+                const b = edgePt(fp.cx, fp.cy, tp);
+                path.setAttribute('d', 'M' + a.x + ',' + a.y + ' L' + b.x + ',' + b.y);
+            });
+        }
+
+        // --- Context menu ---
         document.addEventListener('contextmenu', e => {
             e.preventDefault();
             document.getElementById('ctx-menu')?.remove();
@@ -300,7 +400,6 @@ function getDiagramHtml(dotSource: string): string {
         }
 
         async function copyAsPng() {
-            const svgEl = document.querySelector('#diagram svg');
             if (!svgEl) return;
             const clone = svgEl.cloneNode(true);
             const bg = clone.querySelector(':scope > polygon');
