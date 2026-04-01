@@ -126,6 +126,28 @@ public static class ClassDiagramHandler
             sb.AppendLine($"  {fromId} -> {toId} [style={style}, arrowhead={arrow}, label=\"{kind}\"];");
         }
 
+        // Distribute unconnected types into rows using invisible edges
+        var connectedIds = new HashSet<string>();
+        foreach (var (fromId, targetName, _) in edges)
+        {
+            connectedIds.Add(fromId);
+            if (nameToId.TryGetValue(targetName, out var toId))
+                connectedIds.Add(toId);
+        }
+
+        var unconnected = nameToId.Values.Where(id => !connectedIds.Contains(id)).ToList();
+        if (unconnected.Count > 0)
+        {
+            int perRow = Math.Clamp((int)Math.Ceiling(Math.Sqrt(unconnected.Count)), 3, 6);
+            for (int i = 0; i < unconnected.Count; i += perRow)
+            {
+                var chunk = unconnected.Skip(i).Take(perRow).ToList();
+                sb.AppendLine($"  {{ rank=same; {string.Join("; ", chunk)}; }}");
+            }
+            for (int i = perRow; i < unconnected.Count; i += perRow)
+                sb.AppendLine($"  {unconnected[i - perRow]} -> {unconnected[i]} [style=invis];");
+        }
+
         sb.AppendLine("}");
         return sb.ToString();
     }
