@@ -237,8 +237,8 @@ function getDiagramHtml(dotSource: string): string {
             padding: 16px;
             overflow: auto;
         }
-        #diagram { text-align: center; }
-        #diagram svg { max-width: 100%; height: auto; }
+        #diagram { overflow: auto; }
+        #diagram svg { max-width: none !important; }
         #loading { color: var(--vscode-editor-foreground, #ccc); font-family: var(--vscode-font-family); }
         #error { color: #f48771; font-family: var(--vscode-font-family); white-space: pre-wrap; }
     </style>
