@@ -87,40 +87,48 @@ export function activate(context: vscode.ExtensionContext) {
         }),
 
         vscode.commands.registerCommand('midl.showClassDiagram', async () => {
-            const editor = vscode.window.activeTextEditor;
-            if (!editor || editor.document.languageId !== 'midl') {
-                vscode.window.showInformationMessage('Open an IDL file first.');
-                return;
-            }
-            const client = getClient();
-            if (!client) {
-                vscode.window.showWarningMessage('MIDL: Language server not running.');
-                return;
-            }
-
-            const result = await client.sendRequest('midl/classDiagram', {
-                uri: editor.document.uri.toString()
-            });
-
-            if (result && (result as any).content) {
-                const markdown = (result as any).content as string;
-                // Extract raw Mermaid source from the markdown code fence
-                const match = markdown.match(/```mermaid\n([\s\S]*?)```/);
-                const mermaidSource = match ? match[1].trim() : '';
-                if (!mermaidSource) { return; }
-
-                if (diagramPanel) {
-                    diagramPanel.webview.html = getClassDiagramHtml(mermaidSource);
-                    diagramPanel.reveal(vscode.ViewColumn.Beside);
-                } else {
-                    diagramPanel = vscode.window.createWebviewPanel(
-                        'midlClassDiagram', 'Class Diagram',
-                        vscode.ViewColumn.Beside,
-                        { enableScripts: true, retainContextWhenHidden: true }
-                    );
-                    diagramPanel.webview.html = getClassDiagramHtml(mermaidSource);
-                    diagramPanel.onDidDispose(() => { diagramPanel = undefined; });
+            try {
+                const editor = vscode.window.activeTextEditor;
+                if (!editor || editor.document.languageId !== 'midl') {
+                    vscode.window.showInformationMessage('Open an IDL file first.');
+                    return;
                 }
+                const client = getClient();
+                if (!client) {
+                    vscode.window.showWarningMessage('MIDL: Language server not running.');
+                    return;
+                }
+
+                const result = await client.sendRequest('midl/classDiagram', {
+                    uri: editor.document.uri.toString()
+                }) as any;
+
+                if (result?.content) {
+                    const markdown = result.content as string;
+                    const match = markdown.match(/```mermaid\r?\n([\s\S]*?)```/);
+                    const mermaidSource = match ? match[1].trim() : '';
+                    if (!mermaidSource) {
+                        vscode.window.showWarningMessage('MIDL: No diagram content returned.');
+                        return;
+                    }
+
+                    if (diagramPanel) {
+                        diagramPanel.webview.html = getClassDiagramHtml(mermaidSource);
+                        diagramPanel.reveal(vscode.ViewColumn.Beside);
+                    } else {
+                        diagramPanel = vscode.window.createWebviewPanel(
+                            'midlClassDiagram', 'Class Diagram',
+                            vscode.ViewColumn.Beside,
+                            { enableScripts: true, retainContextWhenHidden: true }
+                        );
+                        diagramPanel.webview.html = getClassDiagramHtml(mermaidSource);
+                        diagramPanel.onDidDispose(() => { diagramPanel = undefined; });
+                    }
+                } else {
+                    vscode.window.showWarningMessage('MIDL: Server returned no diagram.');
+                }
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`MIDL Class Diagram: ${err.message || err}`);
             }
         }),
 
