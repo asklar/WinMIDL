@@ -52,7 +52,7 @@ public static class ClassDiagramHandler
     }
 
     /// <summary>Generate Graphviz DOT source for a class diagram.</summary>
-    public static string GenerateDot(Compilation compilation)
+    public static string GenerateDot(Compilation compilation, bool showReferences = false)
     {
         var sb = new StringBuilder();
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
@@ -69,29 +69,33 @@ public static class ClassDiagramHandler
         foreach (var symbol in allTypes)
         {
             var nid = $"n{idx++}";
-            nameToId[symbol.Name] = nid;
 
             switch (symbol)
             {
                 case EnumSymbol e:
+                    nameToId[symbol.Name] = nid;
                     EmitDotNode(sb, nid, "enum", "#1e3a1e", "#8fbc8f",
                         e.Name, e.EnumMembers.Select(m => DotH(m.Name)).ToList());
                     break;
                 case StructSymbol s:
+                    nameToId[symbol.Name] = nid;
                     EmitDotNode(sb, nid, "struct", "#3a2a1a", "#deb887",
                         s.Name, s.Fields.Select(f => $"{DotH(f.Type.DisplayName)} <FONT COLOR=\"#9cdcfe\"><B>{DotH(f.Name)}</B></FONT>").ToList());
                     break;
                 case DelegateSymbol d:
+                    nameToId[symbol.Name] = nid;
                     EmitDotNode(sb, nid, "delegate", "#3a1a2a", "#f0b0c0",
                         d.Name, new List<string> { $"{DotH(d.ReturnType.DisplayName)} <FONT COLOR=\"#dcdcaa\"><B>Invoke</B></FONT>({DotH(FormatParameters(d.Parameters))})" });
                     break;
                 case InterfaceSymbol iface when !iface.IsSynthesized:
+                    nameToId[symbol.Name] = nid;
                     EmitDotNode(sb, nid, "interface", "#1a2a3a", "#87ceeb",
                         iface.Name, FormatInterfaceMembers(iface));
                     foreach (var req in iface.RequiredInterfaces)
                         edges.Add((nid, req.Name, "requires"));
                     break;
                 case RuntimeClassSymbol rc:
+                    nameToId[symbol.Name] = nid;
                     EmitDotNode(sb, nid, "class", "#2a1a3a", "#b39ddb",
                         rc.Name, FormatClassMembers(rc));
                     if (rc.BaseClass is { } baseRef)
@@ -113,9 +117,14 @@ public static class ClassDiagramHandler
             }
         }
 
+        // Track which (fromId, toId) pairs already have structural edges
+        var connectedPairs = new HashSet<(string, string)>();
+
         foreach (var (fromId, targetName, kind) in edges)
         {
             if (!nameToId.TryGetValue(targetName, out var toId)) continue;
+            connectedPairs.Add((fromId, toId));
+            connectedPairs.Add((toId, fromId));
             var (style, arrow) = kind switch
             {
                 "extends" => ("solid", "empty"),
@@ -126,8 +135,69 @@ public static class ClassDiagramHandler
             sb.AppendLine($"  {fromId} -> {toId} [style={style}, arrowhead={arrow}, arrowsize=1.2, len=4];");
         }
 
+        if (showReferences)
+        {
+            var refEdges = new HashSet<(string, string)>();
+            foreach (var symbol in allTypes)
+            {
+                if (!nameToId.TryGetValue(symbol.Name, out var fromId)) continue;
+                var referencedNames = CollectTypeReferences(symbol);
+                foreach (var refName in referencedNames)
+                {
+                    if (refName == symbol.Name) continue; // skip self
+                    if (!nameToId.TryGetValue(refName, out var toId)) continue;
+                    if (connectedPairs.Contains((fromId, toId))) continue;
+                    refEdges.Add((fromId, toId));
+                }
+            }
+            foreach (var (fromId, toId) in refEdges)
+                sb.AppendLine($"  {fromId} -> {toId} [style=dotted, color=\"#555555\", arrowhead=vee, arrowsize=0.8, len=5];");
+        }
+
         sb.AppendLine("}");
         return sb.ToString();
+    }
+
+    private static HashSet<string> CollectTypeReferences(ISymbol symbol)
+    {
+        var names = new HashSet<string>();
+        switch (symbol)
+        {
+            case RuntimeClassSymbol rc:
+                foreach (var m in rc.Members) CollectMemberReferences(m, names);
+                break;
+            case InterfaceSymbol iface:
+                foreach (var m in iface.Members) CollectMemberReferences(m, names);
+                break;
+            case StructSymbol s:
+                foreach (var f in s.Fields) names.Add(f.Type.DisplayName);
+                break;
+            case DelegateSymbol d:
+                names.Add(d.ReturnType.DisplayName);
+                foreach (var p in d.Parameters) names.Add(p.Type.DisplayName);
+                break;
+        }
+        return names;
+    }
+
+    private static void CollectMemberReferences(ISymbol member, HashSet<string> names)
+    {
+        switch (member)
+        {
+            case MethodSymbol method:
+                names.Add(method.ReturnType.DisplayName);
+                foreach (var p in method.Parameters) names.Add(p.Type.DisplayName);
+                break;
+            case PropertySymbol prop:
+                names.Add(prop.Type.DisplayName);
+                break;
+            case EventSymbol evt:
+                names.Add(evt.DelegateType.DisplayName);
+                break;
+            case ConstructorSymbol ctor:
+                foreach (var p in ctor.Parameters) names.Add(p.Type.DisplayName);
+                break;
+        }
     }
 
     private static string DotH(string s) => s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");

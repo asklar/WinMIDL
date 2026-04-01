@@ -4,6 +4,8 @@ import { WinMdContentProvider } from './winmdProvider';
 import { createWinMdDefinitionProvider } from './winmdDefinition';
 
 let diagramPanel: vscode.WebviewPanel | undefined;
+let diagramShowReferences = false;
+let diagramUri: string | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('MIDL Language Support activated');
@@ -100,11 +102,13 @@ export function activate(context: vscode.ExtensionContext) {
                 }
 
                 const result = await client.sendRequest('midl/classDiagram', {
-                    uri: editor.document.uri.toString()
+                    uri: editor.document.uri.toString(),
+                    showReferences: diagramShowReferences
                 }) as any;
 
                 if (result?.dot) {
-                    const webviewHtml = getDiagramHtml(result.dot as string);
+                    diagramUri = editor.document.uri.toString();
+                    const webviewHtml = getDiagramHtml(result.dot as string, diagramShowReferences);
                     if (diagramPanel) {
                         diagramPanel.webview.html = webviewHtml;
                         diagramPanel.reveal(vscode.ViewColumn.Beside);
@@ -115,6 +119,20 @@ export function activate(context: vscode.ExtensionContext) {
                             { enableScripts: true, retainContextWhenHidden: true }
                         );
                         diagramPanel.webview.html = webviewHtml;
+                        diagramPanel.webview.onDidReceiveMessage(async (msg) => {
+                            if (msg.command === 'toggleReferences') {
+                                diagramShowReferences = msg.value;
+                                if (diagramUri && client) {
+                                    const refreshResult = await client.sendRequest('midl/classDiagram', {
+                                        uri: diagramUri,
+                                        showReferences: diagramShowReferences
+                                    }) as any;
+                                    if (refreshResult?.dot && diagramPanel) {
+                                        diagramPanel.webview.html = getDiagramHtml(refreshResult.dot as string, diagramShowReferences);
+                                    }
+                                }
+                            }
+                        });
                         diagramPanel.onDidDispose(() => { diagramPanel = undefined; });
                     }
                 } else {
@@ -222,7 +240,7 @@ function getNonce(): string {
     return result;
 }
 
-function getDiagramHtml(dotSource: string): string {
+function getDiagramHtml(dotSource: string, showReferences: boolean = false): string {
     const nonce = getNonce();
     return `<!DOCTYPE html>
 <html lang="en">
@@ -237,6 +255,14 @@ function getDiagramHtml(dotSource: string): string {
             padding: 16px;
             overflow: auto;
         }
+        #toolbar {
+            padding: 4px 0 8px 0;
+            font: 13px var(--vscode-font-family, 'Segoe UI', sans-serif);
+            color: var(--vscode-editor-foreground, #ccc);
+            user-select: none;
+        }
+        #toolbar label { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+        #toolbar input[type="checkbox"] { accent-color: var(--vscode-focusBorder, #007acc); cursor: pointer; }
         #diagram { overflow: auto; }
         #diagram svg { max-width: none !important; }
         #diagram svg > polygon { display: none; }
@@ -265,9 +291,16 @@ function getDiagramHtml(dotSource: string): string {
     </style>
 </head>
 <body>
+    <div id="toolbar">
+        <label><input type="checkbox" id="showRefs" ${showReferences ? 'checked' : ''}>Show references</label>
+    </div>
     <div id="diagram"><p id="loading">Rendering diagram\u2026</p></div>
     <div id="toast"></div>
     <script type="module" nonce="${nonce}">
+        const vscode = acquireVsCodeApi();
+        document.getElementById('showRefs').onchange = function() {
+            vscode.postMessage({ command: 'toggleReferences', value: this.checked });
+        };
         try {
             const { instance } = await import('https://cdn.jsdelivr.net/npm/@viz-js/viz@3.11.0/lib/viz-standalone.mjs');
             const viz = await instance();
