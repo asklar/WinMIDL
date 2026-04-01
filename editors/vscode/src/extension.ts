@@ -249,6 +249,9 @@ function getClassDiagramHtml(mermaidSource: string): string {
             padding: 20px;
             overflow: auto;
         }
+        #diagram {
+            overflow: auto;
+        }
         #diagram svg {
             max-width: none !important;
         }
@@ -261,7 +264,18 @@ function getClassDiagramHtml(mermaidSource: string): string {
         mermaid.initialize({ startOnLoad: false, theme: '${theme}' });
         (async () => {
             const { svg } = await mermaid.render('class-diagram', ${JSON.stringify(mermaidSource)});
-            document.getElementById('diagram').innerHTML = svg;
+            const container = document.getElementById('diagram');
+            container.innerHTML = svg;
+            const svgEl = container.querySelector('svg');
+            if (svgEl) {
+                const vb = svgEl.viewBox.baseVal;
+                if (vb && vb.width > 0) {
+                    svgEl.removeAttribute('width');
+                    svgEl.style.width = vb.width + 'px';
+                    svgEl.style.height = vb.height + 'px';
+                    svgEl.style.maxWidth = 'none';
+                }
+            }
         })();
     </script>
 </body>
