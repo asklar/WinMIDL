@@ -410,6 +410,20 @@ function getDiagramHtml(dotSource: string, showReferences: boolean = false): str
             });
         }
 
+        // --- Ctrl+mousewheel zoom ---
+        let zoomLevel = 1;
+        const diagramDiv = document.getElementById('diagram');
+
+        document.addEventListener('wheel', e => {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            zoomLevel = Math.max(0.2, Math.min(5, zoomLevel + delta));
+            const svg = diagramDiv?.querySelector('svg');
+            if (svg) svg.style.transform = 'scale(' + zoomLevel + ')';
+            if (svg) svg.style.transformOrigin = 'top left';
+        }, { passive: false });
+
         // --- Context menu ---
         document.addEventListener('contextmenu', e => {
             e.preventDefault();

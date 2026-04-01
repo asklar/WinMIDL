@@ -151,7 +151,7 @@ public static class ClassDiagramHandler
                 }
             }
             foreach (var (fromId, toId) in refEdges)
-                sb.AppendLine($"  {fromId} -> {toId} [style=dotted, color=\"#555555\", arrowhead=vee, arrowsize=0.8, len=5];");
+                sb.AppendLine($"  {fromId} -> {toId} [style=dotted, color=\"#444444\", arrowhead=open, arrowsize=0.8, len=5];");
         }
 
         sb.AppendLine("}");

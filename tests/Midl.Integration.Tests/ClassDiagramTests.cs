@@ -731,7 +731,7 @@ public class ClassDiagramTests
         var dot = ClassDiagramHandler.GenerateDot(compilation, showReferences: true);
 
         Assert.Contains("style=dotted", dot);
-        Assert.Contains("color=\"#555555\"", dot);
+        Assert.Contains("color=\"#444444\"", dot);
     }
 
     [Fact]
