@@ -51,156 +51,147 @@ public static class ClassDiagramHandler
         return sb.ToString();
     }
 
-    /// <summary>Generate an HTML class diagram with CSS Grid card layout.</summary>
-    public static string GenerateHtml(Compilation compilation, string? title = null)
+    /// <summary>Generate Graphviz DOT source for a class diagram.</summary>
+    public static string GenerateDot(Compilation compilation)
     {
         var sb = new StringBuilder();
-        var diagramTitle = title ?? compilation.GlobalNamespace.Name;
-        if (string.IsNullOrEmpty(diagramTitle))
-            diagramTitle = "IDL";
-
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
+        var nameToId = new Dictionary<string, string>();
+        var edges = new List<(string fromId, string targetName, string kind)>();
+        int idx = 0;
 
-        sb.Append(@"<!DOCTYPE html><html lang=""en""><head><meta charset=""UTF-8""><style>
-*{box-sizing:border-box}
-body{font-family:var(--vscode-font-family,'Segoe UI',sans-serif);background:var(--vscode-editor-background,#1e1e1e);color:var(--vscode-editor-foreground,#ccc);margin:0;padding:16px}
-h1{font-size:16px;margin:0 0 14px;font-weight:400;opacity:.8}
-.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;align-items:start}
-.c{border:1px solid var(--vscode-panel-border,#444);border-radius:5px;overflow:hidden;background:var(--vscode-editorWidget-background,#252526)}
-.ch{padding:6px 10px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
-.kb{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:400;opacity:.7;border:1px solid currentColor}
-.cb{padding:4px 10px;font-size:12px;font-family:var(--vscode-editor-font-family,'Cascadia Code',monospace);line-height:1.5}
-.cf{padding:4px 10px;font-size:11px;border-top:1px solid var(--vscode-panel-border,#444);opacity:.7;line-height:1.5}
-.ke{background:rgba(80,180,80,.12);border-bottom:2px solid rgba(80,180,80,.4)}
-.ks{background:rgba(200,140,50,.12);border-bottom:2px solid rgba(200,140,50,.4)}
-.kd{background:rgba(200,80,140,.12);border-bottom:2px solid rgba(200,80,140,.4)}
-.ki{background:rgba(70,140,220,.12);border-bottom:2px solid rgba(70,140,220,.4)}
-.kc{background:rgba(160,80,220,.12);border-bottom:2px solid rgba(160,80,220,.4)}
-</style></head><body>");
-
-        sb.Append($"<h1>{H(diagramTitle)}</h1><div class=\"g\">");
+        sb.AppendLine("digraph {");
+        sb.AppendLine("  rankdir=TB; bgcolor=transparent;");
+        sb.AppendLine("  graph [pad=\"0.4\", nodesep=\"0.5\", ranksep=\"0.7\"];");
+        sb.AppendLine("  node [shape=plaintext];");
+        sb.AppendLine("  edge [fontname=\"Segoe UI\", fontsize=9, color=\"#888888\", fontcolor=\"#aaaaaa\"];");
 
         foreach (var symbol in allTypes)
         {
+            var nid = $"n{idx++}";
+            nameToId[symbol.Name] = nid;
+
             switch (symbol)
             {
-                case EnumSymbol e: EmitEnumCard(sb, e); break;
-                case StructSymbol s: EmitStructCard(sb, s); break;
-                case DelegateSymbol d: EmitDelegateCard(sb, d); break;
-                case InterfaceSymbol i when !i.IsSynthesized: EmitInterfaceCard(sb, i); break;
-                case RuntimeClassSymbol rc: EmitRuntimeClassCard(sb, rc); break;
+                case EnumSymbol e:
+                    EmitDotNode(sb, nid, "enum", "#1e3a1e", "#8fbc8f",
+                        e.Name, e.EnumMembers.Select(m => m.Name).ToList());
+                    break;
+                case StructSymbol s:
+                    EmitDotNode(sb, nid, "struct", "#3a2a1a", "#deb887",
+                        s.Name, s.Fields.Select(f => $"{f.Type.DisplayName} {f.Name}").ToList());
+                    break;
+                case DelegateSymbol d:
+                    EmitDotNode(sb, nid, "delegate", "#3a1a2a", "#f0b0c0",
+                        d.Name, new List<string> { $"{d.ReturnType.DisplayName} Invoke({FormatParameters(d.Parameters)})" });
+                    break;
+                case InterfaceSymbol iface when !iface.IsSynthesized:
+                    EmitDotNode(sb, nid, "interface", "#1a2a3a", "#87ceeb",
+                        iface.Name, FormatInterfaceMembers(iface));
+                    foreach (var req in iface.RequiredInterfaces)
+                        edges.Add((nid, req.Name, "requires"));
+                    break;
+                case RuntimeClassSymbol rc:
+                    EmitDotNode(sb, nid, "class", "#2a1a3a", "#b39ddb",
+                        rc.Name, FormatClassMembers(rc));
+                    if (rc.BaseClass is { } baseRef)
+                    {
+                        if (baseRef.IsDefaultInterface)
+                        {
+                            if (baseRef.ResolvedSymbol is not InterfaceSymbol { IsSynthesized: true })
+                                edges.Add((nid, baseRef.Name, "implements"));
+                        }
+                        else
+                            edges.Add((nid, baseRef.Name, "extends"));
+                    }
+                    foreach (var iface in rc.Interfaces)
+                    {
+                        if (iface.ResolvedSymbol is not InterfaceSymbol { IsSynthesized: true })
+                            edges.Add((nid, iface.Name, "implements"));
+                    }
+                    break;
             }
         }
 
-        sb.Append("</div></body></html>");
+        foreach (var (fromId, targetName, kind) in edges)
+        {
+            if (!nameToId.TryGetValue(targetName, out var toId)) continue;
+            var (style, arrow) = kind switch
+            {
+                "extends" => ("solid", "empty"),
+                "implements" => ("dashed", "empty"),
+                "requires" => ("dashed", "open"),
+                _ => ("solid", "normal")
+            };
+            sb.AppendLine($"  {fromId} -> {toId} [style={style}, arrowhead={arrow}, label=\"{kind}\"];");
+        }
+
+        sb.AppendLine("}");
         return sb.ToString();
     }
 
-    private static string H(string s) => s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+    private static string DotH(string s) => s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
 
-    private static void CardStart(StringBuilder sb, string kind, string kindCss, string name) =>
-        sb.Append($"<div class=\"c\"><div class=\"ch {kindCss}\"><span class=\"kb\">{kind}</span>{H(name)}</div><div class=\"cb\">");
-
-    private static void CardMember(StringBuilder sb, string text) =>
-        sb.Append($"<div>{H(text)}</div>");
-
-    private static void CardEnd(StringBuilder sb, List<(string rel, string target)>? rels = null)
+    private static void EmitDotNode(StringBuilder sb, string nid, string kindLabel, string headerBg, string kindColor, string name, List<string> members)
     {
-        sb.Append("</div>"); // close .cb
-        if (rels is { Count: > 0 })
+        sb.Append($"  {nid} [label=<");
+        sb.Append($"<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"5\" COLOR=\"#555555\">");
+        sb.Append($"<TR><TD BGCOLOR=\"{headerBg}\" ALIGN=\"CENTER\">");
+        sb.Append($"<FONT COLOR=\"{kindColor}\" POINT-SIZE=\"9\">&laquo;{kindLabel}&raquo;</FONT><BR/>");
+        sb.Append($"<FONT COLOR=\"#e0e0e0\"><B>{DotH(name)}</B></FONT></TD></TR>");
+        if (members.Count > 0)
         {
-            sb.Append("<div class=\"cf\">");
-            foreach (var (rel, target) in rels)
-            {
-                var icon = rel switch { "extends" => "⬆", "implements" => "◆", "requires" => "▸", _ => "·" };
-                sb.Append($"<div>{icon} {rel} <b>{H(target)}</b></div>");
-            }
-            sb.Append("</div>");
+            sb.Append("<TR><TD BGCOLOR=\"#2d2d2d\" ALIGN=\"LEFT\"><FONT COLOR=\"#cccccc\" FACE=\"Consolas\" POINT-SIZE=\"10\">");
+            foreach (var m in members)
+                sb.Append($"{DotH(m)}<BR ALIGN=\"LEFT\"/>");
+            sb.Append("</FONT></TD></TR>");
         }
-        sb.Append("</div>"); // close .c
+        sb.AppendLine("</TABLE>>];");
     }
 
-    private static void EmitEnumCard(StringBuilder sb, EnumSymbol e)
+    private static List<string> FormatInterfaceMembers(InterfaceSymbol iface)
     {
-        CardStart(sb, "enum", "ke", e.Name);
-        foreach (var m in e.EnumMembers) CardMember(sb, m.Name);
-        CardEnd(sb);
-    }
-
-    private static void EmitStructCard(StringBuilder sb, StructSymbol s)
-    {
-        CardStart(sb, "struct", "ks", s.Name);
-        foreach (var f in s.Fields) CardMember(sb, $"{f.Type.DisplayName} {f.Name}");
-        CardEnd(sb);
-    }
-
-    private static void EmitDelegateCard(StringBuilder sb, DelegateSymbol d)
-    {
-        CardStart(sb, "delegate", "kd", d.Name);
-        CardMember(sb, $"{d.ReturnType.DisplayName} Invoke({FormatParameters(d.Parameters)})");
-        CardEnd(sb);
-    }
-
-    private static void EmitInterfaceCard(StringBuilder sb, InterfaceSymbol iface)
-    {
-        CardStart(sb, "interface", "ki", iface.Name);
+        var list = new List<string>();
         foreach (var m in iface.Members)
         {
             switch (m)
             {
                 case MethodSymbol method:
-                    CardMember(sb, $"{method.ReturnType.DisplayName} {method.Name}({FormatParameters(method.Parameters)}){(method.IsStatic ? " ⊛" : "")}");
+                    list.Add($"{method.ReturnType.DisplayName} {method.Name}({FormatParameters(method.Parameters)})");
                     break;
                 case PropertySymbol prop:
-                    CardMember(sb, $"{prop.Type.DisplayName} {prop.Name}{(prop.IsStatic ? " ⊛" : "")}");
+                    list.Add($"{prop.Type.DisplayName} {prop.Name}");
                     break;
                 case EventSymbol evt:
-                    CardMember(sb, $"event {evt.DelegateType.DisplayName} {evt.Name}{(evt.IsStatic ? " ⊛" : "")}");
+                    list.Add($"event {evt.DelegateType.DisplayName} {evt.Name}");
                     break;
             }
         }
-        var rels = iface.RequiredInterfaces.Select(r => ("requires", r.Name)).ToList();
-        CardEnd(sb, rels);
+        return list;
     }
 
-    private static void EmitRuntimeClassCard(StringBuilder sb, RuntimeClassSymbol rc)
+    private static List<string> FormatClassMembers(RuntimeClassSymbol rc)
     {
-        CardStart(sb, "class", "kc", rc.Name);
+        var list = new List<string>();
         foreach (var m in rc.Members)
         {
             switch (m)
             {
                 case ConstructorSymbol ctor:
-                    CardMember(sb, $"{rc.Name}({FormatParameters(ctor.Parameters)})");
+                    list.Add($"{rc.Name}({FormatParameters(ctor.Parameters)})");
                     break;
                 case MethodSymbol method:
-                    CardMember(sb, $"{method.ReturnType.DisplayName} {method.Name}({FormatParameters(method.Parameters)}){(method.IsStatic ? " ⊛" : "")}");
+                    list.Add($"{method.ReturnType.DisplayName} {method.Name}({FormatParameters(method.Parameters)})");
                     break;
                 case PropertySymbol prop:
-                    CardMember(sb, $"{prop.Type.DisplayName} {prop.Name}{(prop.IsStatic ? " ⊛" : "")}");
+                    list.Add($"{prop.Type.DisplayName} {prop.Name}");
                     break;
                 case EventSymbol evt:
-                    CardMember(sb, $"event {evt.DelegateType.DisplayName} {evt.Name}{(evt.IsStatic ? " ⊛" : "")}");
+                    list.Add($"event {evt.DelegateType.DisplayName} {evt.Name}");
                     break;
             }
         }
-        var rels = new List<(string, string)>();
-        if (rc.BaseClass is { } baseRef)
-        {
-            if (baseRef.IsDefaultInterface)
-            {
-                if (baseRef.ResolvedSymbol is not InterfaceSymbol { IsSynthesized: true })
-                    rels.Add(("implements", baseRef.Name));
-            }
-            else
-                rels.Add(("extends", baseRef.Name));
-        }
-        foreach (var iface in rc.Interfaces)
-        {
-            if (iface.ResolvedSymbol is not InterfaceSymbol { IsSynthesized: true })
-                rels.Add(("implements", iface.Name));
-        }
-        CardEnd(sb, rels);
+        return list;
     }
 
     private static void EmitRuntimeClass(StringBuilder sb, RuntimeClassSymbol rc, List<string> relationships)

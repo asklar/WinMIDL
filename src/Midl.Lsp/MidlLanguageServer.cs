@@ -231,8 +231,8 @@ public sealed partial class MidlLanguageServer
                     if (diagText != null)
                     {
                         var comp = _lastCompilation.TryGetValue(diagUri!, out var c) ? c : CompilationHelper.Compile(diagText);
-                        var html = ClassDiagramHandler.GenerateHtml(comp);
-                        await _writer.SendResponseAsync(id, new Dictionary<string, object?> { ["html"] = html });
+                        var dot = ClassDiagramHandler.GenerateDot(comp);
+                        await _writer.SendResponseAsync(id, new Dictionary<string, object?> { ["dot"] = dot });
                     }
                     else
                     {

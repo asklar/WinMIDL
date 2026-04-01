@@ -103,18 +103,18 @@ export function activate(context: vscode.ExtensionContext) {
                     uri: editor.document.uri.toString()
                 }) as any;
 
-                if (result?.html) {
-                    const html = result.html as string;
+                if (result?.dot) {
+                    const webviewHtml = getDiagramHtml(result.dot as string);
                     if (diagramPanel) {
-                        diagramPanel.webview.html = html;
+                        diagramPanel.webview.html = webviewHtml;
                         diagramPanel.reveal(vscode.ViewColumn.Beside);
                     } else {
                         diagramPanel = vscode.window.createWebviewPanel(
                             'midlClassDiagram', 'Class Diagram',
                             vscode.ViewColumn.Beside,
-                            { retainContextWhenHidden: true }
+                            { enableScripts: true, retainContextWhenHidden: true }
                         );
-                        diagramPanel.webview.html = html;
+                        diagramPanel.webview.html = webviewHtml;
                         diagramPanel.onDidDispose(() => { diagramPanel = undefined; });
                     }
                 } else {
@@ -211,4 +211,51 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate(): Thenable<void> | undefined {
     return stopLanguageServer();
+}
+
+function getNonce(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+function getDiagramHtml(dotSource: string): string {
+    const nonce = getNonce();
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'unsafe-inline';">
+    <style>
+        body {
+            background: var(--vscode-editor-background, #1e1e1e);
+            margin: 0;
+            padding: 16px;
+            overflow: auto;
+        }
+        #diagram { text-align: center; }
+        #diagram svg { max-width: 100%; height: auto; }
+        #loading { color: var(--vscode-editor-foreground, #ccc); font-family: var(--vscode-font-family); }
+        #error { color: #f48771; font-family: var(--vscode-font-family); white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div id="diagram"><p id="loading">Rendering diagram\u2026</p></div>
+    <script type="module" nonce="${nonce}">
+        try {
+            const { instance } = await import('https://cdn.jsdelivr.net/npm/@viz-js/viz@3.11.0/lib/viz-standalone.mjs');
+            const viz = await instance();
+            const svg = viz.renderString(${JSON.stringify(dotSource)}, { format: 'svg' });
+            document.getElementById('diagram').innerHTML = svg;
+        } catch (e) {
+            document.getElementById('diagram').innerHTML =
+                '<p id="error">Failed to render diagram:\\n' + e.message + '</p>';
+        }
+    </script>
+</body>
+</html>`;
 }
