@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.1.10 (2026-04-01)
+
+### Features
+- Add interactive class diagram generation (MIDL: Show Class Diagram command)
+- Graphviz-based UML layout via viz.js with color-coded type headers
+- Drag-to-move nodes with live arrow updating
+- Right-click "Copy as PNG" to clipboard
+- Color-coded member names: methods (yellow), properties (blue), events (purple)
+- Standard UML arrows: solid = extends, dashed = implements/requires
+
+### Bug Fixes
+- Fix deterministic diagram layout with fixed fdp random seed
+
 ## v0.1.9 (2026-03-31)
 
 ### Features
