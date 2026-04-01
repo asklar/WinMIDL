@@ -131,8 +131,8 @@ foreach ($t in $targets) {
             "linux-arm64"  { "linux-arm64" }
             default        { Write-Warning "Unknown target: $t"; continue }
         }
-        $isWindows = $t.StartsWith("win32")
-        $exeName = if ($isWindows) { "Midl.Cli.exe" } else { "Midl.Cli" }
+        $isWinTarget = $t.StartsWith("win32")
+        $exeName = if ($isWinTarget) { "Midl.Cli.exe" } else { "Midl.Cli" }
         $srcExe = Join-Path $publishDir $rid $exeName
 
         if (-not (Test-Path $srcExe)) {
