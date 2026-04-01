@@ -712,4 +712,129 @@ public class ClassDiagramTests
         Assert.DoesNotContain("class String {", mermaid);
         Assert.DoesNotContain("class Object {", mermaid);
     }
+
+    [Fact]
+    public void ReferenceArrows_MethodParamType_ShowsEdge()
+    {
+        var source = """
+            namespace TestNs
+            {
+                enum Status { Active, Inactive };
+                runtimeclass Widget
+                {
+                    Widget();
+                    void SetStatus(Status s);
+                }
+            }
+            """;
+        var compilation = CompilationHelper.Compile(source);
+        var dot = ClassDiagramHandler.GenerateDot(compilation, showReferences: true);
+
+        Assert.Contains("style=dotted", dot);
+        Assert.Contains("color=\"#444444\"", dot);
+    }
+
+    [Fact]
+    public void ReferenceArrows_ReturnType_ShowsEdge()
+    {
+        var source = """
+            namespace TestNs
+            {
+                enum Status { Active, Inactive };
+                runtimeclass Widget
+                {
+                    Widget();
+                    Status GetStatus();
+                }
+            }
+            """;
+        var compilation = CompilationHelper.Compile(source);
+        var dot = ClassDiagramHandler.GenerateDot(compilation, showReferences: true);
+
+        Assert.Contains("style=dotted", dot);
+    }
+
+    [Fact]
+    public void ReferenceArrows_PropertyType_ShowsEdge()
+    {
+        var source = """
+            namespace TestNs
+            {
+                enum Status { Active, Inactive };
+                runtimeclass Widget
+                {
+                    Widget();
+                    Status CurrentStatus { get; };
+                }
+            }
+            """;
+        var compilation = CompilationHelper.Compile(source);
+        var dot = ClassDiagramHandler.GenerateDot(compilation, showReferences: true);
+
+        Assert.Contains("style=dotted", dot);
+    }
+
+    [Fact]
+    public void ReferenceArrows_Disabled_NoReferenceEdges()
+    {
+        var source = """
+            namespace TestNs
+            {
+                enum Status { Active, Inactive };
+                runtimeclass Widget
+                {
+                    Widget();
+                    void SetStatus(Status s);
+                }
+            }
+            """;
+        var compilation = CompilationHelper.Compile(source);
+        var dot = ClassDiagramHandler.GenerateDot(compilation);
+
+        Assert.DoesNotContain("style=dotted", dot);
+    }
+
+    [Fact]
+    public void ReferenceArrows_SkipAlreadyConnected()
+    {
+        var source = """
+            namespace TestNs
+            {
+                interface IWidget
+                {
+                    void Activate();
+                }
+                runtimeclass Widget : [default] IWidget
+                {
+                    Widget();
+                    IWidget GetSelf();
+                }
+            }
+            """;
+        var compilation = CompilationHelper.Compile(source);
+        var dot = ClassDiagramHandler.GenerateDot(compilation, showReferences: true);
+
+        // Widget already implements IWidget, so no extra dotted edge
+        Assert.DoesNotContain("style=dotted", dot);
+    }
+
+    [Fact]
+    public void ReferenceArrows_ExternalType_NoEdge()
+    {
+        var source = """
+            namespace TestNs
+            {
+                runtimeclass Widget
+                {
+                    Widget();
+                    void SetName(String name);
+                }
+            }
+            """;
+        var compilation = CompilationHelper.Compile(source);
+        var dot = ClassDiagramHandler.GenerateDot(compilation, showReferences: true);
+
+        // String is not in the diagram, so no reference edge
+        Assert.DoesNotContain("style=dotted", dot);
+    }
 }
