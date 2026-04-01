@@ -22,26 +22,43 @@ public static class ClassDiagramHandler
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         var relationships = new List<string>();
 
+        // Categorize types by kind
+        var enums = new List<EnumSymbol>();
+        var structs = new List<StructSymbol>();
+        var delegates = new List<DelegateSymbol>();
+        var interfaces = new List<InterfaceSymbol>();
+        var classes = new List<RuntimeClassSymbol>();
+
         foreach (var symbol in allTypes)
         {
             switch (symbol)
             {
-                case RuntimeClassSymbol rc:
-                    EmitRuntimeClass(sb, rc, relationships);
-                    break;
-                case InterfaceSymbol iface when !iface.IsSynthesized:
-                    EmitInterface(sb, iface, relationships);
-                    break;
-                case EnumSymbol enumSym:
-                    EmitEnum(sb, enumSym);
-                    break;
-                case StructSymbol structSym:
-                    EmitStruct(sb, structSym);
-                    break;
-                case DelegateSymbol del:
-                    EmitDelegate(sb, del);
-                    break;
+                case RuntimeClassSymbol rc: classes.Add(rc); break;
+                case InterfaceSymbol iface when !iface.IsSynthesized: interfaces.Add(iface); break;
+                case EnumSymbol e: enums.Add(e); break;
+                case StructSymbol s: structs.Add(s); break;
+                case DelegateSymbol d: delegates.Add(d); break;
             }
+        }
+
+        int totalTypes = enums.Count + structs.Count + delegates.Count + interfaces.Count + classes.Count;
+        bool useGroups = totalTypes > 4;
+
+        if (useGroups)
+        {
+            EmitNamespaceGroup(sb, "Enumerations", enums, (s, e) => EmitEnum(s, e));
+            EmitNamespaceGroup(sb, "Structures", structs, (s, st) => EmitStruct(s, st));
+            EmitNamespaceGroup(sb, "Delegates", delegates, (s, d) => EmitDelegate(s, d));
+            EmitNamespaceGroup(sb, "Interfaces", interfaces, (s, i) => EmitInterface(s, i, relationships));
+            EmitNamespaceGroup(sb, "Classes", classes, (s, rc) => EmitRuntimeClass(s, rc, relationships));
+        }
+        else
+        {
+            foreach (var e in enums) EmitEnum(sb, e);
+            foreach (var s in structs) EmitStruct(sb, s);
+            foreach (var d in delegates) EmitDelegate(sb, d);
+            foreach (var i in interfaces) EmitInterface(sb, i, relationships);
+            foreach (var rc in classes) EmitRuntimeClass(sb, rc, relationships);
         }
 
         foreach (var rel in relationships)
@@ -49,6 +66,14 @@ public static class ClassDiagramHandler
 
         sb.AppendLine("```");
         return sb.ToString();
+    }
+
+    private static void EmitNamespaceGroup<T>(StringBuilder sb, string groupName, List<T> items, Action<StringBuilder, T> emitter)
+    {
+        if (items.Count == 0) return;
+        sb.AppendLine($"    namespace {groupName} {{");
+        foreach (var item in items) emitter(sb, item);
+        sb.AppendLine("    }");
     }
 
     private static void EmitRuntimeClass(StringBuilder sb, RuntimeClassSymbol rc, List<string> relationships)
