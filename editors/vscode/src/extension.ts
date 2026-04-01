@@ -3,18 +3,7 @@ import { findServerBinary, startLanguageServer, stopLanguageServer, getClient } 
 import { WinMdContentProvider } from './winmdProvider';
 import { createWinMdDefinitionProvider } from './winmdDefinition';
 
-let diagramContent = '';
-
-class ClassDiagramContentProvider implements vscode.TextDocumentContentProvider {
-    onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
-    onDidChange = this.onDidChangeEmitter.event;
-
-    provideTextDocumentContent(_uri: vscode.Uri): string {
-        return diagramContent;
-    }
-}
-
-const diagramProvider = new ClassDiagramContentProvider();
+let diagramPanel: vscode.WebviewPanel | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('MIDL Language Support activated');
@@ -114,12 +103,24 @@ export function activate(context: vscode.ExtensionContext) {
             });
 
             if (result && (result as any).content) {
-                const content = (result as any).content as string;
-                diagramContent = content;
-                const uri = vscode.Uri.parse('midl-diagram:Class Diagram.md');
-                diagramProvider.onDidChangeEmitter.fire(uri);
-                const doc = await vscode.workspace.openTextDocument(uri);
-                await vscode.commands.executeCommand('markdown.showPreviewToSide', uri);
+                const markdown = (result as any).content as string;
+                // Extract raw Mermaid source from the markdown code fence
+                const match = markdown.match(/```mermaid\n([\s\S]*?)```/);
+                const mermaidSource = match ? match[1].trim() : '';
+                if (!mermaidSource) { return; }
+
+                if (diagramPanel) {
+                    diagramPanel.webview.html = getClassDiagramHtml(mermaidSource);
+                    diagramPanel.reveal(vscode.ViewColumn.Beside);
+                } else {
+                    diagramPanel = vscode.window.createWebviewPanel(
+                        'midlClassDiagram', 'Class Diagram',
+                        vscode.ViewColumn.Beside,
+                        { enableScripts: true, retainContextWhenHidden: true }
+                    );
+                    diagramPanel.webview.html = getClassDiagramHtml(mermaidSource);
+                    diagramPanel.onDidDispose(() => { diagramPanel = undefined; });
+                }
             }
         }),
 
@@ -156,11 +157,6 @@ export function activate(context: vscode.ExtensionContext) {
         // WinMD decompiled view content provider
         context.subscriptions.push(
             vscode.workspace.registerTextDocumentContentProvider('midl-winmd', new WinMdContentProvider())
-        );
-
-        // Class diagram content provider
-        context.subscriptions.push(
-            vscode.workspace.registerTextDocumentContentProvider('midl-diagram', diagramProvider)
         );
 
         // F12 within decompiled WinMD views
@@ -214,4 +210,52 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate(): Thenable<void> | undefined {
     return stopLanguageServer();
+}
+
+function getNonce(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+function getClassDiagramHtml(mermaidSource: string): string {
+    const nonce = getNonce();
+    const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
+        || vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast;
+    const theme = isDark ? 'dark' : 'default';
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; style-src 'unsafe-inline';">
+    <style>
+        body {
+            background: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            margin: 0;
+            padding: 20px;
+            overflow: auto;
+        }
+        #diagram svg {
+            max-width: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="diagram"></div>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js" nonce="${nonce}"></script>
+    <script nonce="${nonce}">
+        mermaid.initialize({ startOnLoad: false, theme: '${theme}' });
+        (async () => {
+            const { svg } = await mermaid.render('class-diagram', ${JSON.stringify(mermaidSource)});
+            document.getElementById('diagram').innerHTML = svg;
+        })();
+    </script>
+</body>
+</html>`;
 }
