@@ -137,8 +137,8 @@ public static class ClassDiagramHandler
         sb.Append($"  {nid} [label=<");
         sb.Append($"<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"5\" COLOR=\"#555555\">");
         sb.Append($"<TR><TD BGCOLOR=\"{headerBg}\" ALIGN=\"CENTER\">");
-        sb.Append($"<FONT COLOR=\"{kindColor}\" POINT-SIZE=\"9\">&laquo;{kindLabel}&raquo;</FONT><BR/>");
-        sb.Append($"<FONT COLOR=\"#e0e0e0\"><B>{DotH(name)}</B></FONT></TD></TR>");
+        sb.Append($"<FONT COLOR=\"{kindColor}\" FACE=\"Segoe UI\" POINT-SIZE=\"9\">&laquo;{kindLabel}&raquo;</FONT><BR/>");
+        sb.Append($"<FONT COLOR=\"#e0e0e0\" FACE=\"Segoe UI\"><B>{DotH(name)}</B></FONT></TD></TR>");
         if (members.Count > 0)
         {
             sb.Append("<TR><TD BGCOLOR=\"#2d2d2d\" ALIGN=\"LEFT\"><FONT COLOR=\"#cccccc\" FACE=\"Consolas\" POINT-SIZE=\"10\">");
