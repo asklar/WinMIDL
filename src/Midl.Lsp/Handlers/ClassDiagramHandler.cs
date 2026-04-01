@@ -62,7 +62,7 @@ public static class ClassDiagramHandler
 
         sb.AppendLine("digraph {");
         sb.AppendLine("  layout=fdp; bgcolor=transparent;");
-        sb.AppendLine("  graph [pad=\"0.3\", K=\"1.8\", overlap=false, splines=true];");
+        sb.AppendLine("  graph [pad=\"0.3\", K=\"1.8\", overlap=false, splines=true, start=42];");
         sb.AppendLine("  node [shape=plaintext, margin=\"0\"];");
         sb.AppendLine("  edge [fontname=\"Segoe UI\", fontsize=9, color=\"#888888\", penwidth=1.5];");
 
