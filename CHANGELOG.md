@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.1.11 (2026-04-01)
+
+### Features
+- Add "Show references" toggle to class diagram — dotted arrows for type references in method params, return types, and properties
+- Add Ctrl+mousewheel zoom in class diagram webview
+- Refine reference arrow styling (open arrowhead, dimmer color)
+
+### Bug Fixes
+- Fix #58: extension no longer activates on non-Windows platforms or projects without IDL files
+- Add lazy activation events (onLanguage:midl, workspaceContains)
+- Make findServerBinary platform-aware with graceful error + "Open Settings" button
+
+### Other
+- Package platform-specific VSIXes (win32-x64, win32-arm64) — Mac/Linux users no longer see a broken extension
+- Update release skill for platform-specific packaging
+- Update docs for v0.1.7–v0.1.10 features
+
 ## v0.1.10 (2026-04-01)
 
 ### Features
