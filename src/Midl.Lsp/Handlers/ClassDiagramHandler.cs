@@ -61,8 +61,8 @@ public static class ClassDiagramHandler
         int idx = 0;
 
         sb.AppendLine("digraph {");
-        sb.AppendLine("  rankdir=TB; bgcolor=transparent;");
-        sb.AppendLine("  graph [pad=\"0.4\", nodesep=\"0.5\", ranksep=\"0.7\"];");
+        sb.AppendLine("  layout=fdp; bgcolor=transparent;");
+        sb.AppendLine("  graph [pad=\"0.3\", K=\"1.4\", overlap=false, splines=true];");
         sb.AppendLine("  node [shape=plaintext];");
         sb.AppendLine("  edge [fontname=\"Segoe UI\", fontsize=9, color=\"#888888\", fontcolor=\"#aaaaaa\"];");
 
@@ -124,28 +124,6 @@ public static class ClassDiagramHandler
                 _ => ("solid", "normal")
             };
             sb.AppendLine($"  {fromId} -> {toId} [style={style}, arrowhead={arrow}, label=\"{kind}\"];");
-        }
-
-        // Distribute unconnected types into rows using invisible edges
-        var connectedIds = new HashSet<string>();
-        foreach (var (fromId, targetName, _) in edges)
-        {
-            connectedIds.Add(fromId);
-            if (nameToId.TryGetValue(targetName, out var toId))
-                connectedIds.Add(toId);
-        }
-
-        var unconnected = nameToId.Values.Where(id => !connectedIds.Contains(id)).ToList();
-        if (unconnected.Count > 0)
-        {
-            int perRow = Math.Clamp((int)Math.Ceiling(Math.Sqrt(unconnected.Count)), 3, 6);
-            for (int i = 0; i < unconnected.Count; i += perRow)
-            {
-                var chunk = unconnected.Skip(i).Take(perRow).ToList();
-                sb.AppendLine($"  {{ rank=same; {string.Join("; ", chunk)}; }}");
-            }
-            for (int i = perRow; i < unconnected.Count; i += perRow)
-                sb.AppendLine($"  {unconnected[i - perRow]} -> {unconnected[i]} [style=invis];");
         }
 
         sb.AppendLine("}");
