@@ -66,6 +66,8 @@ Write to `CHANGELOG.md` at the repo root. If the file exists, prepend the new ve
 - Add comprehensive diagnostic position tests
 ```
 
+After writing the changelog, **show the diff to the user for review** using the `show_file` tool with `diff: true` on `CHANGELOG.md`. Wait for the user to confirm before proceeding. If they request changes, edit accordingly and show the diff again.
+
 ### Step 4: Bump Version
 
 Update version strings in two files:
