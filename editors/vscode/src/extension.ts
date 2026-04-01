@@ -232,13 +232,14 @@ function getDiagramHtml(dotSource: string): string {
           content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'unsafe-inline';">
     <style>
         body {
-            background: var(--vscode-editor-background, #1e1e1e);
+            background: transparent;
             margin: 0;
             padding: 16px;
             overflow: auto;
         }
         #diagram { overflow: auto; }
         #diagram svg { max-width: none !important; }
+        #diagram svg > polygon { display: none; }
         #loading { color: var(--vscode-editor-foreground, #ccc); font-family: var(--vscode-font-family); }
         #error { color: #f48771; font-family: var(--vscode-font-family); white-space: pre-wrap; }
     </style>
