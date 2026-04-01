@@ -224,6 +224,23 @@ public sealed partial class MidlLanguageServer
                 await _writer.SendResponseAsync(id, decompResult);
                 break;
 
+            case "midl/classDiagram":
+                {
+                    var diagUri = @params?.GetProperty("uri").GetString();
+                    var diagText = diagUri != null ? _docManager.GetDocumentText(diagUri) : null;
+                    if (diagText != null)
+                    {
+                        var comp = _lastCompilation.TryGetValue(diagUri!, out var c) ? c : CompilationHelper.Compile(diagText);
+                        var mermaid = ClassDiagramHandler.GenerateMermaid(comp);
+                        await _writer.SendResponseAsync(id, new Dictionary<string, object?> { ["content"] = mermaid });
+                    }
+                    else
+                    {
+                        await _writer.SendResponseAsync(id, null);
+                    }
+                }
+                break;
+
             case "textDocument/references":
                 {
                     var refUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();

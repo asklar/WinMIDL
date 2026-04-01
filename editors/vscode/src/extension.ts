@@ -3,6 +3,19 @@ import { findServerBinary, startLanguageServer, stopLanguageServer, getClient } 
 import { WinMdContentProvider } from './winmdProvider';
 import { createWinMdDefinitionProvider } from './winmdDefinition';
 
+let diagramContent = '';
+
+class ClassDiagramContentProvider implements vscode.TextDocumentContentProvider {
+    onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
+    onDidChange = this.onDidChangeEmitter.event;
+
+    provideTextDocumentContent(_uri: vscode.Uri): string {
+        return diagramContent;
+    }
+}
+
+const diagramProvider = new ClassDiagramContentProvider();
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('MIDL Language Support activated');
 
@@ -84,6 +97,32 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
 
+        vscode.commands.registerCommand('midl.showClassDiagram', async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor || editor.document.languageId !== 'midl') {
+                vscode.window.showInformationMessage('Open an IDL file first.');
+                return;
+            }
+            const client = getClient();
+            if (!client) {
+                vscode.window.showWarningMessage('MIDL: Language server not running.');
+                return;
+            }
+
+            const result = await client.sendRequest('midl/classDiagram', {
+                uri: editor.document.uri.toString()
+            });
+
+            if (result && (result as any).content) {
+                const content = (result as any).content as string;
+                diagramContent = content;
+                const uri = vscode.Uri.parse('midl-diagram:Class Diagram.md');
+                diagramProvider.onDidChangeEmitter.fire(uri);
+                const doc = await vscode.workspace.openTextDocument(uri);
+                await vscode.commands.executeCommand('markdown.showPreviewToSide', uri);
+            }
+        }),
+
         vscode.commands.registerCommand('midl.openDocs', async (...args: any[]) => {
             // Args come from command URI: may be a single URL string or parsed from JSON array
             let url: string | undefined;
@@ -117,6 +156,11 @@ export function activate(context: vscode.ExtensionContext) {
         // WinMD decompiled view content provider
         context.subscriptions.push(
             vscode.workspace.registerTextDocumentContentProvider('midl-winmd', new WinMdContentProvider())
+        );
+
+        // Class diagram content provider
+        context.subscriptions.push(
+            vscode.workspace.registerTextDocumentContentProvider('midl-diagram', diagramProvider)
         );
 
         // F12 within decompiled WinMD views
