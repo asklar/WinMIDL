@@ -62,9 +62,9 @@ public static class ClassDiagramHandler
 
         sb.AppendLine("digraph {");
         sb.AppendLine("  layout=fdp; bgcolor=transparent;");
-        sb.AppendLine("  graph [pad=\"0.3\", K=\"1.4\", overlap=false, splines=true];");
-        sb.AppendLine("  node [shape=plaintext];");
-        sb.AppendLine("  edge [fontname=\"Segoe UI\", fontsize=9, color=\"#888888\", fontcolor=\"#aaaaaa\"];");
+        sb.AppendLine("  graph [pad=\"0.3\", K=\"1.8\", overlap=false, splines=true];");
+        sb.AppendLine("  node [shape=plaintext, margin=\"0\"];");
+        sb.AppendLine("  edge [fontname=\"Segoe UI\", fontsize=9, color=\"#888888\", penwidth=1.5];");
 
         foreach (var symbol in allTypes)
         {
@@ -123,7 +123,7 @@ public static class ClassDiagramHandler
                 "requires" => ("dashed", "open"),
                 _ => ("solid", "normal")
             };
-            sb.AppendLine($"  {fromId} -> {toId} [style={style}, arrowhead={arrow}, label=\"{kind}\"];");
+            sb.AppendLine($"  {fromId} -> {toId} [style={style}, arrowhead={arrow}, arrowsize=1.2];");
         }
 
         sb.AppendLine("}");
