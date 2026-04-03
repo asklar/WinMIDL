@@ -33,7 +33,7 @@ $vsExtDir = Join-Path $repoRoot "editors" "vs" "Midl.VsExtension"
 $publishDir = Join-Path $repoRoot "publish"
 
 # Also check the main repo publish directory (worktrees share it)
-$mainRepoPublish = "E:\midl\publish"
+$mainRepoPublish = Join-Path (git -C $repoRoot rev-parse --show-toplevel 2>$null ?? $repoRoot) "publish"
 if ((Test-Path (Join-Path $mainRepoPublish "win-x64" "Midl.Cli.exe")) -and
     -not (Test-Path (Join-Path $publishDir "win-x64" "Midl.Cli.exe"))) {
     $publishDir = $mainRepoPublish
