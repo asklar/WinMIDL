@@ -1,20 +1,28 @@
 # Changelog
 
-## v0.1.11 (2026-04-01)
+## v0.1.11 (2026-04-03)
 
 ### Features
-- Add "Show references" toggle to class diagram — dotted arrows for type references in method params, return types, and properties
+- Add "MIDL: Report Issue" command — collects server diagnostics, opens pre-filled GitHub issue with consent dialog
+- Add DiagnosticEventLog ring buffer (500 events) as server flight recorder
+- Add `midl/diagnosticReport` LSP request with source-gen JSON serialization
+- Add memory budget (512MB) and error-count heuristic to workspace scan — self-healing for large workspaces
+- Detect non-MIDL3 files via keyword heuristic, evict high-error compilations from cache
+- Report private bytes, working set, and GC heap memory in diagnostic report
+- Split type counts into user-defined vs resolved (with WinMD source breakdown)
+- Add "Show references" toggle to class diagram — dotted arrows for type references
 - Add Ctrl+mousewheel zoom in class diagram webview
-- Refine reference arrow styling (open arrowhead, dimmer color)
 
 ### Bug Fixes
+- Fix #59: extension no longer activates on workspaces with IDL files unless an IDL file is opened
+- Remove `workspaceContains` activation events; only activate on `onLanguage:midl`
 - Fix #58: extension no longer activates on non-Windows platforms or projects without IDL files
-- Add lazy activation events (onLanguage:midl, workspaceContains)
 - Make findServerBinary platform-aware with graceful error + "Open Settings" button
 
 ### Other
-- Package platform-specific VSIXes (win32-x64, win32-arm64) — Mac/Linux users no longer see a broken extension
-- Update release skill for platform-specific packaging
+- Redact absolute paths to workspace-relative in diagnostic reports for privacy
+- Package platform-specific VSIXes (win32-x64, win32-arm64)
+- 22 new tests (ring buffer, MIDL3 detection, LSP integration, path redaction)
 - Update docs for v0.1.7–v0.1.10 features
 
 ## v0.1.10 (2026-04-01)
