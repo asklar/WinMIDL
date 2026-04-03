@@ -2,7 +2,7 @@
   "name": "midl3-language-server",
   "displayName": "MIDL Language Support",
   "description": "Full-featured IDE for WinRT Interface Definition Language — real-time diagnostics, smart autocomplete, go-to-definition, code actions, WinMD output, and more.",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "publisher": "AlexanderSklarMSFT",
   "engines": {
     "vscode": "^1.85.0"

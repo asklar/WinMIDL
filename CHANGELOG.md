@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.1.11 (2026-04-03)
+## v0.1.12 (2026-04-03)
 
 ### Features
 - Add "MIDL: Report Issue" command — collects server diagnostics, opens pre-filled GitHub issue with consent dialog
@@ -10,19 +10,30 @@
 - Detect non-MIDL3 files via keyword heuristic, evict high-error compilations from cache
 - Report private bytes, working set, and GC heap memory in diagnostic report
 - Split type counts into user-defined vs resolved (with WinMD source breakdown)
-- Add "Show references" toggle to class diagram — dotted arrows for type references
-- Add Ctrl+mousewheel zoom in class diagram webview
 
 ### Bug Fixes
 - Fix #59: extension no longer activates on workspaces with IDL files unless an IDL file is opened
 - Remove `workspaceContains` activation events; only activate on `onLanguage:midl`
+- Fix E2E test: remove hardcoded ref path and unavailable SDK type
+- Fix hardcoded path in VS packaging script
+
+### Other
+- Redact absolute paths to workspace-relative in diagnostic reports for privacy
+- 22 new tests (ring buffer, MIDL3 detection, LSP integration, path redaction)
+
+## v0.1.11 (2026-04-01)
+
+### Features
+- Add "Show references" toggle to class diagram — dotted arrows for type references
+- Add Ctrl+mousewheel zoom in class diagram webview
+
+### Bug Fixes
 - Fix #58: extension no longer activates on non-Windows platforms or projects without IDL files
 - Make findServerBinary platform-aware with graceful error + "Open Settings" button
 
 ### Other
-- Redact absolute paths to workspace-relative in diagnostic reports for privacy
 - Package platform-specific VSIXes (win32-x64, win32-arm64)
-- 22 new tests (ring buffer, MIDL3 detection, LSP integration, path redaction)
+- Update release skill for platform-specific packaging
 - Update docs for v0.1.7–v0.1.10 features
 
 ## v0.1.10 (2026-04-01)
