@@ -30,3 +30,40 @@ public record WorkspaceEdit(Dictionary<string, TextEdit[]> Changes);
 
 // Code action
 public record CodeAction(string Title, string Kind, WorkspaceEdit? Edit = null);
+
+// Diagnostic report (midl/diagnosticReport)
+public record DiagnosticReportResult(
+    string ServerVersion,
+    string Platform,
+    string Architecture,
+    string Runtime,
+    long PrivateBytesMB,
+    long WorkingSetMB,
+    long GcHeapMB,
+    string? WorkspaceRoot,
+    int FilesScanned,
+    int FilesOpen,
+    int CompilationsCached,
+    int WinmdProvidersCached,
+    bool HasProjectFile,
+    string CompilationMode,
+    DiagnosticEvent[] Events,
+    FileStatEntry[] FileStats);
+
+public record FileStatEntry(
+    string RelativePath,
+    int Lines,
+    int SizeBytes,
+    int Errors,
+    int Warnings,
+    int UserTypes,
+    int ResolvedTypes,
+    Dictionary<string, int> ResolvedFrom,
+    bool IsMidl3,
+    string? Content);
+
+public record DiagnosticEvent(
+    string Timestamp,
+    string Category,
+    string Message,
+    Dictionary<string, string>? Metadata);

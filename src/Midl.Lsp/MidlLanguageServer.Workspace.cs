@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Midl.Syntax;
 
@@ -7,6 +8,9 @@ public sealed partial class MidlLanguageServer
 {
     private async Task HandleInitializedAsync()
     {
+        _eventLog.Log(DiagnosticEventLog.Categories.Init, "Server initialized",
+            new() { ["workspaceRoot"] = _workspaceRoot ?? "(none)", ["compilationMode"] = _compilationMode.ToString() });
+
         // Register for file watching. SendRequestAsync only writes the message
         // (doesn't await a response), so this won't block even without a real client.
         try
@@ -41,6 +45,8 @@ public sealed partial class MidlLanguageServer
 
     private const int MaxWorkspaceFiles = 100;
     private const long MaxFileSizeBytes = 100 * 1024; // 100 KB — skip huge generated files
+    private const long MemoryBudgetMB = 512; // abort scan if GC memory exceeds this
+    private const int MaxErrorsBeforeSkip = 100; // skip files producing too many errors (likely not MIDL3)
 
     private static readonly HashSet<string> DefaultSkipDirectories = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -66,9 +72,38 @@ public sealed partial class MidlLanguageServer
                 .ToList();
 
             MidlTrace.Lsp($"Workspace scan: found {idlFiles.Count} .idl files in {_workspaceRoot}");
+            _eventLog.Log(DiagnosticEventLog.Categories.Scan, "Workspace scan started",
+                new() { ["filesFound"] = idlFiles.Count.ToString(), ["recurse"] = recurse.ToString() });
+
+            int compiled = 0;
+            int skippedErrors = 0;
+            int skippedMemory = 0;
 
             foreach (var filePath in idlFiles)
             {
+                // Memory budget check (private bytes — matches Task Manager)
+                var memMB = Process.GetCurrentProcess().PrivateMemorySize64 / (1024 * 1024);
+                if (memMB > MemoryBudgetMB)
+                {
+                    _eventLog.Log(DiagnosticEventLog.Categories.Memory,
+                        $"Memory budget exceeded ({memMB}MB > {MemoryBudgetMB}MB), aborting workspace scan",
+                        new() { ["memoryMB"] = memMB.ToString(), ["filesCompiled"] = compiled.ToString(), ["filesRemaining"] = (idlFiles.Count - compiled).ToString() });
+                    MidlTrace.Lsp($"Memory budget exceeded ({memMB}MB), aborting scan after {compiled} files");
+
+                    try
+                    {
+                        await _writer.SendNotificationAsync("window/showMessage", new Dictionary<string, object?>
+                        {
+                            ["type"] = 2, // Warning
+                            ["message"] = $"MIDL: Workspace scan stopped — memory usage is {memMB}MB. Consider adding a winmidl.json with \"scanSubfolders\": false."
+                        });
+                    }
+                    catch { /* stream may be closed */ }
+
+                    skippedMemory = idlFiles.Count - compiled;
+                    break;
+                }
+
                 var uri = "file:///" + Uri.EscapeDataString(filePath.Replace('\\', '/')).Replace("%2F", "/");
                 // Skip files already open in the editor
                 if (_docManager.GetDocumentText(uri) != null)
@@ -77,12 +112,63 @@ public sealed partial class MidlLanguageServer
                 try
                 {
                     var text = await File.ReadAllTextAsync(filePath);
+                    var lineCount = text.Split('\n').Length;
+                    var isMidl3 = LooksLikeMidl3(text);
+                    var memBefore = Process.GetCurrentProcess().PrivateMemorySize64 / (1024 * 1024);
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
+
                     await AnalyzeAndPublishAsync(uri, text);
+                    sw.Stop();
+
+                    var memAfter = Process.GetCurrentProcess().PrivateMemorySize64 / (1024 * 1024);
+                    compiled++;
+
+                    // Collect stats from the compilation
+                    int errorCount = 0;
+                    int typeCount = 0;
+                    if (_lastCompilation.TryGetValue(uri, out var comp))
+                    {
+                        errorCount = comp.Diagnostics.Count(d => d.Severity == Analysis.Diagnostics.DiagnosticSeverity.Error);
+                        typeCount = comp.GetAllTypes().Count();
+                    }
+
+                    _eventLog.Log(DiagnosticEventLog.Categories.Compile, $"Compiled {RedactPath(filePath)}",
+                        new()
+                        {
+                            ["file"] = RedactPath(filePath),
+                            ["sizeBytes"] = text.Length.ToString(),
+                            ["lines"] = lineCount.ToString(),
+                            ["errors"] = errorCount.ToString(),
+                            ["types"] = typeCount.ToString(),
+                            ["durationMs"] = sw.ElapsedMilliseconds.ToString(),
+                            ["memoryMB"] = memAfter.ToString(),
+                            ["memoryDeltaMB"] = (memAfter - memBefore).ToString(),
+                            ["isMidl3"] = isMidl3.ToString(),
+                        });
+
+                    // If this file produced too many errors, it's probably not MIDL3 — evict its compilation
+                    if (errorCount > MaxErrorsBeforeSkip)
+                    {
+                        _lastCompilation.TryRemove(uri, out _);
+                        _lastAnalyzedHash.TryRemove(uri, out _);
+                        skippedErrors++;
+                        _eventLog.Log(DiagnosticEventLog.Categories.Scan,
+                            $"Evicted {RedactPath(filePath)} — too many errors ({errorCount}), likely not MIDL3");
+                    }
                 }
                 catch (Exception)
                 {
                 }
             }
+
+            _eventLog.Log(DiagnosticEventLog.Categories.Scan, "Workspace scan completed",
+                new()
+                {
+                    ["filesCompiled"] = compiled.ToString(),
+                    ["skippedHighErrors"] = skippedErrors.ToString(),
+                    ["skippedMemoryBudget"] = skippedMemory.ToString(),
+                    ["memoryMB"] = (Process.GetCurrentProcess().PrivateMemorySize64 / (1024 * 1024)).ToString(),
+                });
         }
         catch (Exception)
         {
@@ -158,6 +244,8 @@ public sealed partial class MidlLanguageServer
                 continue;
 
             MidlTrace.Lsp($"File watcher: {uri} type={type}");
+            _eventLog.Log(DiagnosticEventLog.Categories.Watcher, $"File changed: {RedactUri(uri)}",
+                new() { ["type"] = type == 1 ? "created" : type == 2 ? "changed" : "deleted" });
 
             if (type == 3) // Deleted
             {

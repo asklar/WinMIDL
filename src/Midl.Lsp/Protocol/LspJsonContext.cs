@@ -20,6 +20,9 @@ namespace Midl.Lsp.Protocol;
 [JsonSerializable(typeof(LspDiagnostic))]
 [JsonSerializable(typeof(DocumentSymbolResult))]
 [JsonSerializable(typeof(CodeAction))]
+[JsonSerializable(typeof(DiagnosticReportResult))]
+[JsonSerializable(typeof(FileStatEntry))]
+[JsonSerializable(typeof(DiagnosticEvent))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]

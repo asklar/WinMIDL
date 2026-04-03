@@ -8,9 +8,7 @@
     "vscode": "^1.85.0"
   },
   "activationEvents": [
-    "onLanguage:midl",
-    "workspaceContains:**/*.idl",
-    "workspaceContains:**/*.idlrt"
+    "onLanguage:midl"
   ],
   "categories": [
     "Programming Languages",
@@ -83,6 +81,10 @@
       {
         "command": "midl.showClassDiagram",
         "title": "MIDL: Show Class Diagram"
+      },
+      {
+        "command": "midl.reportIssue",
+        "title": "MIDL: Report Issue"
       }
     ],
     "configurationDefaults": {

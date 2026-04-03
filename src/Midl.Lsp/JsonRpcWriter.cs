@@ -168,6 +168,7 @@ public sealed class JsonRpcWriter
             LspRange => LspJsonContext.Default.LspRange,
             LspPosition => LspJsonContext.Default.LspPosition,
             MarkupContent => LspJsonContext.Default.MarkupContent,
+            DiagnosticReportResult => LspJsonContext.Default.DiagnosticReportResult,
             _ => null
         };
 

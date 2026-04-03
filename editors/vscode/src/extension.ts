@@ -143,6 +143,130 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }),
 
+        vscode.commands.registerCommand('midl.reportIssue', async () => {
+            const client = getClient();
+            if (!client) {
+                // No server running — open a basic issue with just VS Code info
+                const body = [
+                    '<h2>Environment</h2>',
+                    `- VS Code: ${vscode.version}`,
+                    `- OS: ${process.platform} ${process.arch}`,
+                    `- Extension: ${vscode.extensions.getExtension('AlexanderSklarMSFT.midl3-language-server')?.packageJSON?.version ?? 'unknown'}`,
+                    `- Server: not running`,
+                    '',
+                    '<h2>Description</h2>',
+                    '',
+                    '_Please describe the issue_',
+                ].join('\n');
+
+                openGitHubIssue('Bug: ', body);
+                return;
+            }
+
+            try {
+                const report = await client.sendRequest('midl/diagnosticReport') as any;
+
+                // Ask about including IDL file contents
+                const consent = await vscode.window.showQuickPick(
+                    [
+                        { label: 'Include IDL files', description: 'Attach IDL file contents for diagnosis', value: true },
+                        { label: 'Summary only', description: 'Only include statistics (no file contents)', value: false },
+                    ],
+                    { title: 'MIDL: Report Issue — what to include?', placeHolder: 'Choose what diagnostic data to share' }
+                );
+                if (!consent) { return; } // cancelled
+
+                // Build the issue body
+                const sections: string[] = [];
+
+                // Environment
+                sections.push('<h2>Environment</h2>');
+                sections.push('');
+                sections.push(`| Key | Value |`);
+                sections.push(`|-----|-------|`);
+                sections.push(`| VS Code | ${vscode.version} |`);
+                sections.push(`| OS | ${report.platform ?? process.platform} |`);
+                sections.push(`| Architecture | ${report.architecture ?? process.arch} |`);
+                sections.push(`| Runtime | ${report.runtime ?? 'unknown'} |`);
+                sections.push(`| Extension | ${vscode.extensions.getExtension('AlexanderSklarMSFT.midl3-language-server')?.packageJSON?.version ?? 'unknown'} |`);
+                sections.push(`| Server | ${report.serverVersion ?? 'unknown'} |`);
+                sections.push(`| Memory (private) | ${report.privateBytesMB ?? '~'} MB |`);
+                sections.push(`| Memory (working set) | ${report.workingSetMB ?? '~'} MB |`);
+                sections.push(`| Memory (GC heap) | ${report.gcHeapMB ?? '~'} MB |`);
+                sections.push(`| Compilation mode | ${report.compilationMode ?? 'unknown'} |`);
+                sections.push(`| Files scanned | ${report.filesScanned ?? 0} |`);
+                sections.push(`| Files open | ${report.filesOpen ?? 0} |`);
+                sections.push(`| Compilations cached | ${report.compilationsCached ?? 0} |`);
+                sections.push(`| WinMD providers cached | ${report.winmdProvidersCached ?? 0} |`);
+                sections.push(`| Project file | ${report.hasProjectFile ? 'yes' : 'no'} |`);
+                sections.push('');
+
+                // File stats
+                const fileStats = report.fileStats as any[] ?? [];
+                if (fileStats.length > 0) {
+                    sections.push('<h2>File Statistics</h2>');
+                    sections.push('');
+                    sections.push('| File | Size | Lines | User Types | Resolved Types | Errors | Warnings | MIDL3 |');
+                    sections.push('|------|------|-------|------------|----------------|--------|----------|-------|');
+                    for (const f of fileStats) {
+                        const resolved = f.resolvedFrom ? Object.entries(f.resolvedFrom as Record<string, number>).map(([k, v]) => `${v} from ${k}`).join(', ') : '';
+                        const resolvedCell = f.resolvedTypes ? `${f.resolvedTypes} (${resolved})` : '0';
+                        sections.push(`| ${f.relativePath} | ${f.sizeBytes}B | ${f.lines} | ${f.userTypes} | ${resolvedCell} | ${f.errors} | ${f.warnings} | ${f.isMidl3 ? '✓' : '✗'} |`);
+                    }
+                    sections.push('');
+                }
+
+                // Event log (last 50 events to stay within URL limits)
+                const events = report.events as any[] ?? [];
+                if (events.length > 0) {
+                    sections.push('<details><summary>Event Log (last ' + Math.min(events.length, 50) + ' events)</summary>');
+                    sections.push('');
+                    sections.push('```');
+                    for (const e of events.slice(-50)) {
+                        const meta = e.metadata ? ' ' + JSON.stringify(e.metadata) : '';
+                        sections.push(`[${e.timestamp}] [${e.category}] ${e.message}${meta}`);
+                    }
+                    sections.push('```');
+                    sections.push('</details>');
+                    sections.push('');
+                }
+
+                // IDL file contents (if consented)
+                if (consent.label === 'Include IDL files') {
+                    const idlContents: string[] = [];
+                    for (const f of fileStats) {
+                        if (f.content) {
+                            const truncated = f.content.length > 5000 ? f.content.substring(0, 5000) + '\n... (truncated)' : f.content;
+                            idlContents.push(`<details><summary>${f.relativePath} (${f.sizeBytes}B, ${f.lines} lines)</summary>\n\n\`\`\`idl\n${truncated}\n\`\`\`\n</details>`);
+                        }
+                    }
+                    if (idlContents.length > 0) {
+                        sections.push('<h2>IDL Files</h2>');
+                        sections.push('');
+                        sections.push(idlContents.join('\n'));
+                        sections.push('');
+                    }
+                }
+
+                sections.push('<h2>Description</h2>');
+                sections.push('');
+                sections.push('_Please describe the issue_');
+                sections.push('');
+
+                const body = sections.join('\n');
+
+                // GitHub issue URL — truncate body if needed for URL length limits
+                const maxBodyLength = 6000; // conservative limit for URL encoding
+                const truncatedBody = body.length > maxBodyLength
+                    ? body.substring(0, maxBodyLength) + '\n\n... (truncated — please paste additional details manually)'
+                    : body;
+
+                openGitHubIssue('Bug: ', truncatedBody);
+            } catch (err: any) {
+                vscode.window.showErrorMessage(`MIDL Report Issue: ${err.message || err}`);
+            }
+        }),
+
         vscode.commands.registerCommand('midl.openDocs', async (...args: any[]) => {
             // Args come from command URI: may be a single URL string or parsed from JSON array
             let url: string | undefined;
@@ -229,6 +353,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate(): Thenable<void> | undefined {
     return stopLanguageServer();
+}
+
+function openGitHubIssue(title: string, body: string) {
+    // Use encodeURIComponent for query values + Uri.parse (same pattern as VS Code's
+    // built-in issue reporter). HTML headings (<h2>) are used instead of markdown ##
+    // to avoid # and ? encoding issues with vscode.env.openExternal.
+    const url = `https://github.com/asklar/midl-langserv/issues/new?body=${encodeURIComponent(body)}&labels=bug`;
+    vscode.env.openExternal(vscode.Uri.parse(url));
 }
 
 function getNonce(): string {

@@ -45,6 +45,9 @@ public sealed partial class MidlLanguageServer
     // Compilation cache: reuse last compilation result for code actions / completions
     private readonly ConcurrentDictionary<string, Compilation> _lastCompilation = new();
 
+    // Diagnostic event log — flight recorder for self-diagnostics
+    private readonly DiagnosticEventLog _eventLog = new();
+
     // Suppress CS0649 — _referencePaths can be set via SetReferencePaths for testing/config
     public void SetReferencePaths(List<string> paths) => _referencePaths = paths;
     public void SetSdkIncludePaths(List<string> paths) => _sdkIncludePaths = paths;
@@ -218,6 +221,10 @@ public sealed partial class MidlLanguageServer
                     await _writer.SendResponseAsync(id, defResult);
                     break;
                 }
+
+            case "midl/diagnosticReport":
+                await _writer.SendResponseAsync(id, HandleDiagnosticReport());
+                break;
 
             case "midl/decompileDefinition":
                 var decompResult = HandleDecompileDefinition(@params);
