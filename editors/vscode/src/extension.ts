@@ -146,20 +146,44 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('midl.reportIssue', async () => {
             const client = getClient();
             if (!client) {
-                // No server running — open a basic issue with just VS Code info
-                const body = [
+                // No server running — try to read the persistent log file
+                const fs = await import('fs');
+                const path = await import('path');
+                const logDir = path.join(process.env.USERPROFILE ?? process.env.HOME ?? '', '.midl');
+                const logFile = path.join(logDir, 'server.log');
+                let logTail = '';
+                try {
+                    if (fs.existsSync(logFile)) {
+                        const lines = fs.readFileSync(logFile, 'utf-8').split('\n');
+                        logTail = lines.slice(-100).join('\n');
+                    }
+                } catch { /* ignore */ }
+
+                const sections = [
                     '<h2>Environment</h2>',
+                    '',
                     `- VS Code: ${vscode.version}`,
                     `- OS: ${process.platform} ${process.arch}`,
                     `- Extension: ${vscode.extensions.getExtension('AlexanderSklarMSFT.midl3-language-server')?.packageJSON?.version ?? 'unknown'}`,
                     `- Server: not running`,
                     '',
-                    '<h2>Description</h2>',
-                    '',
-                    '_Please describe the issue_',
-                ].join('\n');
+                ];
 
-                openGitHubIssue('Bug: ', body);
+                if (logTail) {
+                    sections.push('<details><summary>Server Log (last 100 lines from previous session)</summary>');
+                    sections.push('');
+                    sections.push('```');
+                    sections.push(logTail);
+                    sections.push('```');
+                    sections.push('</details>');
+                    sections.push('');
+                }
+
+                sections.push('<h2>Description</h2>');
+                sections.push('');
+                sections.push('_Please describe the issue_');
+
+                openGitHubIssue('Bug: ', sections.join('\n'));
                 return;
             }
 

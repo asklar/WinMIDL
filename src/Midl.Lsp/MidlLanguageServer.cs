@@ -46,7 +46,10 @@ public sealed partial class MidlLanguageServer
     private readonly ConcurrentDictionary<string, Compilation> _lastCompilation = new();
 
     // Diagnostic event log — flight recorder for self-diagnostics
-    private readonly DiagnosticEventLog _eventLog = new();
+    // Persists to ~/.midl/server.log so the extension can read it even after a crash
+    private static readonly string s_logDirectory = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".midl");
+    private readonly DiagnosticEventLog _eventLog = new(logDirectory: s_logDirectory);
 
     // Suppress CS0649 — _referencePaths can be set via SetReferencePaths for testing/config
     public void SetReferencePaths(List<string> paths) => _referencePaths = paths;

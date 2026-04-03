@@ -67,6 +67,7 @@ public sealed partial class MidlLanguageServer
             WinmdProvidersCached: _winmdProviderCache.Count,
             HasProjectFile: _projectFile != null,
             CompilationMode: _compilationMode.ToString(),
+            LogFilePath: _eventLog.LogFilePath,
             Events: _eventLog.ToArray(),
             FileStats: fileStats.ToArray());
     }

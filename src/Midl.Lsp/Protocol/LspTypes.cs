@@ -47,6 +47,7 @@ public record DiagnosticReportResult(
     int WinmdProvidersCached,
     bool HasProjectFile,
     string CompilationMode,
+    string? LogFilePath,
     DiagnosticEvent[] Events,
     FileStatEntry[] FileStats);
 
