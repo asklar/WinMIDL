@@ -60,7 +60,7 @@ public partial class ProxyGeneratorTests
         // Variable-size request should NOT use constexpr for request
         Assert.DoesNotContain("RequestSize", output);
         // But should still compute buffer size with inline expression
-        Assert.Contains("WindowsGetStringLen(name)", output);
+        Assert.Contains("winmidl::hstring_len(name)", output);
     }
 
     [Fact]

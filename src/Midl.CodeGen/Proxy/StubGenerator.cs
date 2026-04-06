@@ -428,11 +428,11 @@ public class StubGenerator
         // For HSTRING out params/retval, we need to get their lengths before computing buffer size
         foreach (var p in outParams.Where(p => !p.IsArray && p.Type.Name == "String"))
         {
-            sb.AppendLine($"        UINT32 {p.Name}_len = WindowsGetStringLen({p.Name});");
+            sb.AppendLine($"        UINT32 {p.Name}_len = winmidl::hstring_len({p.Name});");
         }
         if (hasRetval && !slot.ReturnType.IsArray && slot.ReturnType.Name == "String")
         {
-            sb.AppendLine("        UINT32 returnValue_len = WindowsGetStringLen(returnValue);");
+            sb.AppendLine("        UINT32 returnValue_len = winmidl::hstring_len(returnValue);");
         }
 
         // Pre-compute marshal sizes for interface-typed out params/retval

@@ -24,7 +24,7 @@ struct type_info_t {
     std::span<const qi_entry_t> qiEntries;
 };
 
-inline HRESULT get_iids(type_info_t const& info, ULONG* count, IID** iids) {
+inline HRESULT get_iids(type_info_t const& info, ULONG* count, IID** iids) noexcept {
     *count = static_cast<ULONG>(info.iids.size());
     auto cb = info.iids.size() * sizeof(IID);
     *iids = static_cast<IID*>(CoTaskMemAlloc(cb));
@@ -33,7 +33,7 @@ inline HRESULT get_iids(type_info_t const& info, ULONG* count, IID** iids) {
     return S_OK;
 }
 
-inline HRESULT get_runtime_class_name(type_info_t const& info, HSTRING* name) {
+inline HRESULT get_runtime_class_name(type_info_t const& info, HSTRING* name) noexcept {
     // WindowsCreateString (allocating) is correct here because the caller takes
     // ownership of the HSTRING and may hold it indefinitely.
     // WindowsCreateStringReference would require a stable HSTRING_HEADER per proxy
@@ -44,14 +44,14 @@ inline HRESULT get_runtime_class_name(type_info_t const& info, HSTRING* name) {
         name);
 }
 
-inline HRESULT get_trust_level(TrustLevel* level) {
+inline HRESULT get_trust_level(TrustLevel* level) noexcept {
     *level = BaseTrust;
     return S_OK;
 }
 
 inline HRESULT qi_check(type_info_t const& info,
                          void* pThis, IUnknown* pOuter,
-                         REFIID riid, void** ppv) {
+                         REFIID riid, void** ppv) noexcept {
     for (auto& e : info.qiEntries) {
         if (e.iid == riid) {
             *ppv = reinterpret_cast<std::byte*>(pThis) + e.offset;
@@ -68,7 +68,7 @@ inline HRESULT qi_check(type_info_t const& info,
 template<size_t N>
 inline HRESULT qi_check(const qi_entry_t (&entries)[N],
                          void* pThis, IUnknown* pOuter,
-                         REFIID riid, void** ppv) {
+                         REFIID riid, void** ppv) noexcept {
     for (auto& e : entries) {
         if (e.iid == riid) {
             *ppv = reinterpret_cast<std::byte*>(pThis) + e.offset;
@@ -85,55 +85,61 @@ inline HRESULT qi_check(const qi_entry_t (&entries)[N],
 // Serialization helpers — advance buffer pointer after writing
 // ════════════════════════════════════════════════════════════════
 
-inline void marshal_bool(BYTE*& buf, boolean val) {
+inline void marshal_bool(BYTE*& buf, boolean val) noexcept {
     memcpy(buf, &val, sizeof(boolean)); buf += sizeof(boolean);
 }
-inline void marshal_uint8(BYTE*& buf, BYTE val) {
+inline void marshal_uint8(BYTE*& buf, BYTE val) noexcept {
     memcpy(buf, &val, sizeof(BYTE)); buf += sizeof(BYTE);
 }
-inline void marshal_char16(BYTE*& buf, WCHAR val) {
+inline void marshal_char16(BYTE*& buf, WCHAR val) noexcept {
     memcpy(buf, &val, sizeof(WCHAR)); buf += sizeof(WCHAR);
 }
-inline void marshal_int16(BYTE*& buf, INT16 val) {
+inline void marshal_int16(BYTE*& buf, INT16 val) noexcept {
     memcpy(buf, &val, sizeof(INT16)); buf += sizeof(INT16);
 }
-inline void marshal_uint16(BYTE*& buf, UINT16 val) {
+inline void marshal_uint16(BYTE*& buf, UINT16 val) noexcept {
     memcpy(buf, &val, sizeof(UINT16)); buf += sizeof(UINT16);
 }
-inline void marshal_int32(BYTE*& buf, INT32 val) {
+inline void marshal_int32(BYTE*& buf, INT32 val) noexcept {
     memcpy(buf, &val, sizeof(INT32)); buf += sizeof(INT32);
 }
-inline void marshal_uint32(BYTE*& buf, UINT32 val) {
+inline void marshal_uint32(BYTE*& buf, UINT32 val) noexcept {
     memcpy(buf, &val, sizeof(UINT32)); buf += sizeof(UINT32);
 }
-inline void marshal_float(BYTE*& buf, FLOAT val) {
+inline void marshal_float(BYTE*& buf, FLOAT val) noexcept {
     memcpy(buf, &val, sizeof(FLOAT)); buf += sizeof(FLOAT);
 }
-inline void marshal_int64(BYTE*& buf, INT64 val) {
+inline void marshal_int64(BYTE*& buf, INT64 val) noexcept {
     memcpy(buf, &val, sizeof(INT64)); buf += sizeof(INT64);
 }
-inline void marshal_uint64(BYTE*& buf, UINT64 val) {
+inline void marshal_uint64(BYTE*& buf, UINT64 val) noexcept {
     memcpy(buf, &val, sizeof(UINT64)); buf += sizeof(UINT64);
 }
-inline void marshal_double(BYTE*& buf, DOUBLE val) {
+inline void marshal_double(BYTE*& buf, DOUBLE val) noexcept {
     memcpy(buf, &val, sizeof(DOUBLE)); buf += sizeof(DOUBLE);
 }
-inline void marshal_guid(BYTE*& buf, const GUID& val) {
+inline void marshal_guid(BYTE*& buf, const GUID& val) noexcept {
     memcpy(buf, &val, sizeof(GUID)); buf += sizeof(GUID);
 }
-inline void marshal_event_token(BYTE*& buf, EventRegistrationToken val) {
+inline void marshal_event_token(BYTE*& buf, EventRegistrationToken val) noexcept {
     memcpy(buf, &val, sizeof(EventRegistrationToken)); buf += sizeof(EventRegistrationToken);
 }
 template<typename E>
-inline void marshal_enum(BYTE*& buf, E val) {
+inline void marshal_enum(BYTE*& buf, E val) noexcept {
     INT32 v = static_cast<INT32>(val);
     memcpy(buf, &v, sizeof(INT32)); buf += sizeof(INT32);
 }
+// Read HSTRING length directly from the ABI header layout (offset 4),
+// avoiding the WindowsGetStringLen function call. Layout is stable ABI.
+inline UINT32 hstring_len(HSTRING h) noexcept {
+    return h ? *(reinterpret_cast<const UINT32*>(h) + 1) : 0;
+}
+
 // Null-safe: nullptr HSTRING writes count=0.
 // Wire format: [uint32 charCount][wchar_t × charCount][wchar_t 0x0000]
 // Null terminator included so stub can use WindowsCreateStringReference (zero-copy).
-inline void marshal_hstring(BYTE*& buf, HSTRING val) {
-    UINT32 len = val ? WindowsGetStringLen(val) : 0;
+inline void marshal_hstring(BYTE*& buf, HSTRING val) noexcept {
+    UINT32 len = hstring_len(val);
     memcpy(buf, &len, sizeof(UINT32)); buf += sizeof(UINT32);
     if (len > 0) {
         PCWSTR raw = WindowsGetStringRawBuffer(val, nullptr);
@@ -144,7 +150,7 @@ inline void marshal_hstring(BYTE*& buf, HSTRING val) {
     memcpy(buf, &nul, sizeof(WCHAR)); buf += sizeof(WCHAR);
 }
 template<typename T>
-inline void marshal_struct(BYTE*& buf, const T& val) {
+inline void marshal_struct(BYTE*& buf, const T& val) noexcept {
     static_assert(std::is_trivially_copyable_v<T>);
     static_assert(std::is_standard_layout_v<T>);
     memcpy(buf, &val, sizeof(T)); buf += sizeof(T);
@@ -154,53 +160,53 @@ inline void marshal_struct(BYTE*& buf, const T& val) {
 // Deserialization helpers — advance buffer pointer after reading
 // ════════════════════════════════════════════════════════════════
 
-inline void unmarshal_bool(const BYTE*& buf, boolean& out) {
+inline void unmarshal_bool(const BYTE*& buf, boolean& out) noexcept {
     memcpy(&out, buf, sizeof(boolean)); buf += sizeof(boolean);
 }
-inline void unmarshal_uint8(const BYTE*& buf, BYTE& out) {
+inline void unmarshal_uint8(const BYTE*& buf, BYTE& out) noexcept {
     memcpy(&out, buf, sizeof(BYTE)); buf += sizeof(BYTE);
 }
-inline void unmarshal_char16(const BYTE*& buf, WCHAR& out) {
+inline void unmarshal_char16(const BYTE*& buf, WCHAR& out) noexcept {
     memcpy(&out, buf, sizeof(WCHAR)); buf += sizeof(WCHAR);
 }
-inline void unmarshal_int16(const BYTE*& buf, INT16& out) {
+inline void unmarshal_int16(const BYTE*& buf, INT16& out) noexcept {
     memcpy(&out, buf, sizeof(INT16)); buf += sizeof(INT16);
 }
-inline void unmarshal_uint16(const BYTE*& buf, UINT16& out) {
+inline void unmarshal_uint16(const BYTE*& buf, UINT16& out) noexcept {
     memcpy(&out, buf, sizeof(UINT16)); buf += sizeof(UINT16);
 }
-inline void unmarshal_int32(const BYTE*& buf, INT32& out) {
+inline void unmarshal_int32(const BYTE*& buf, INT32& out) noexcept {
     memcpy(&out, buf, sizeof(INT32)); buf += sizeof(INT32);
 }
-inline void unmarshal_uint32(const BYTE*& buf, UINT32& out) {
+inline void unmarshal_uint32(const BYTE*& buf, UINT32& out) noexcept {
     memcpy(&out, buf, sizeof(UINT32)); buf += sizeof(UINT32);
 }
-inline void unmarshal_float(const BYTE*& buf, FLOAT& out) {
+inline void unmarshal_float(const BYTE*& buf, FLOAT& out) noexcept {
     memcpy(&out, buf, sizeof(FLOAT)); buf += sizeof(FLOAT);
 }
-inline void unmarshal_int64(const BYTE*& buf, INT64& out) {
+inline void unmarshal_int64(const BYTE*& buf, INT64& out) noexcept {
     memcpy(&out, buf, sizeof(INT64)); buf += sizeof(INT64);
 }
-inline void unmarshal_uint64(const BYTE*& buf, UINT64& out) {
+inline void unmarshal_uint64(const BYTE*& buf, UINT64& out) noexcept {
     memcpy(&out, buf, sizeof(UINT64)); buf += sizeof(UINT64);
 }
-inline void unmarshal_double(const BYTE*& buf, DOUBLE& out) {
+inline void unmarshal_double(const BYTE*& buf, DOUBLE& out) noexcept {
     memcpy(&out, buf, sizeof(DOUBLE)); buf += sizeof(DOUBLE);
 }
-inline void unmarshal_guid(const BYTE*& buf, GUID& out) {
+inline void unmarshal_guid(const BYTE*& buf, GUID& out) noexcept {
     memcpy(&out, buf, sizeof(GUID)); buf += sizeof(GUID);
 }
-inline void unmarshal_event_token(const BYTE*& buf, EventRegistrationToken& out) {
+inline void unmarshal_event_token(const BYTE*& buf, EventRegistrationToken& out) noexcept {
     memcpy(&out, buf, sizeof(EventRegistrationToken)); buf += sizeof(EventRegistrationToken);
 }
 template<typename E>
-inline void unmarshal_enum(const BYTE*& buf, E& out) {
+inline void unmarshal_enum(const BYTE*& buf, E& out) noexcept {
     INT32 v; memcpy(&v, buf, sizeof(INT32)); buf += sizeof(INT32);
     out = static_cast<E>(v);
 }
 // Zero-copy HSTRING deserialization (stub-side).
 // Wire format includes null terminator, so WindowsCreateStringReference works directly.
-inline HSTRING unmarshal_hstring_ref(BYTE*& buf, HSTRING_HEADER& hdr) {
+inline HSTRING unmarshal_hstring_ref(BYTE*& buf, HSTRING_HEADER& hdr) noexcept {
     UINT32 len; memcpy(&len, buf, sizeof(UINT32)); buf += sizeof(UINT32);
     HSTRING result = nullptr;
     if (len > 0) {
@@ -210,70 +216,70 @@ inline HSTRING unmarshal_hstring_ref(BYTE*& buf, HSTRING_HEADER& hdr) {
     return result;
 }
 // Allocating HSTRING deserialization (proxy reply side)
-inline HRESULT unmarshal_hstring(BYTE*& buf, HSTRING* out) {
+inline HRESULT unmarshal_hstring(BYTE*& buf, HSTRING* out) noexcept {
     UINT32 len; memcpy(&len, buf, sizeof(UINT32)); buf += sizeof(UINT32);
     HRESULT hr = WindowsCreateString(reinterpret_cast<PCWSTR>(buf), len, out);
     buf += len * sizeof(WCHAR) + sizeof(WCHAR); // chars + null terminator
     return hr;
 }
 // Allocating HSTRING deserialization (stub-side, async methods)
-inline HRESULT unmarshal_hstring_alloc(BYTE*& buf, HSTRING* out) {
+inline HRESULT unmarshal_hstring_alloc(BYTE*& buf, HSTRING* out) noexcept {
     return unmarshal_hstring(buf, out);
 }
 template<typename T>
-inline void unmarshal_struct(const BYTE*& buf, T& out) {
+inline void unmarshal_struct(const BYTE*& buf, T& out) noexcept {
     static_assert(std::is_trivially_copyable_v<T>);
     static_assert(std::is_standard_layout_v<T>);
     memcpy(&out, buf, sizeof(T)); buf += sizeof(T);
 }
 
 // Overloads with mutable buf pointer (for stub-side code that uses BYTE* not const BYTE*)
-inline void unmarshal_int32(BYTE*& buf, INT32& out) {
+inline void unmarshal_int32(BYTE*& buf, INT32& out) noexcept {
     memcpy(&out, buf, sizeof(INT32)); buf += sizeof(INT32);
 }
-inline void unmarshal_uint32(BYTE*& buf, UINT32& out) {
+inline void unmarshal_uint32(BYTE*& buf, UINT32& out) noexcept {
     memcpy(&out, buf, sizeof(UINT32)); buf += sizeof(UINT32);
 }
-inline void unmarshal_int64(BYTE*& buf, INT64& out) {
+inline void unmarshal_int64(BYTE*& buf, INT64& out) noexcept {
     memcpy(&out, buf, sizeof(INT64)); buf += sizeof(INT64);
 }
-inline void unmarshal_uint64(BYTE*& buf, UINT64& out) {
+inline void unmarshal_uint64(BYTE*& buf, UINT64& out) noexcept {
     memcpy(&out, buf, sizeof(UINT64)); buf += sizeof(UINT64);
 }
-inline void unmarshal_int16(BYTE*& buf, INT16& out) {
+inline void unmarshal_int16(BYTE*& buf, INT16& out) noexcept {
     memcpy(&out, buf, sizeof(INT16)); buf += sizeof(INT16);
 }
-inline void unmarshal_uint16(BYTE*& buf, UINT16& out) {
+inline void unmarshal_uint16(BYTE*& buf, UINT16& out) noexcept {
     memcpy(&out, buf, sizeof(UINT16)); buf += sizeof(UINT16);
 }
-inline void unmarshal_float(BYTE*& buf, FLOAT& out) {
+inline void unmarshal_float(BYTE*& buf, FLOAT& out) noexcept {
     memcpy(&out, buf, sizeof(FLOAT)); buf += sizeof(FLOAT);
 }
-inline void unmarshal_double(BYTE*& buf, DOUBLE& out) {
+inline void unmarshal_double(BYTE*& buf, DOUBLE& out) noexcept {
     memcpy(&out, buf, sizeof(DOUBLE)); buf += sizeof(DOUBLE);
 }
-inline void unmarshal_bool(BYTE*& buf, boolean& out) {
+inline void unmarshal_bool(BYTE*& buf, boolean& out) noexcept {
     memcpy(&out, buf, sizeof(boolean)); buf += sizeof(boolean);
 }
-inline void unmarshal_uint8(BYTE*& buf, BYTE& out) {
+inline void unmarshal_uint8(BYTE*& buf, BYTE& out) noexcept {
     memcpy(&out, buf, sizeof(BYTE)); buf += sizeof(BYTE);
 }
-inline void unmarshal_char16(BYTE*& buf, WCHAR& out) {
+inline void unmarshal_char16(BYTE*& buf, WCHAR& out) noexcept {
     memcpy(&out, buf, sizeof(WCHAR)); buf += sizeof(WCHAR);
 }
-inline void unmarshal_guid(BYTE*& buf, GUID& out) {
+inline void unmarshal_guid(BYTE*& buf, GUID& out) noexcept {
     memcpy(&out, buf, sizeof(GUID)); buf += sizeof(GUID);
 }
-inline void unmarshal_event_token(BYTE*& buf, EventRegistrationToken& out) {
+inline void unmarshal_event_token(BYTE*& buf, EventRegistrationToken& out) noexcept {
     memcpy(&out, buf, sizeof(EventRegistrationToken)); buf += sizeof(EventRegistrationToken);
 }
 template<typename E>
-inline void unmarshal_enum(BYTE*& buf, E& out) {
+inline void unmarshal_enum(BYTE*& buf, E& out) noexcept {
     INT32 v; memcpy(&v, buf, sizeof(INT32)); buf += sizeof(INT32);
     out = static_cast<E>(v);
 }
 template<typename T>
-inline void unmarshal_struct(BYTE*& buf, T& out) {
+inline void unmarshal_struct(BYTE*& buf, T& out) noexcept {
     static_assert(std::is_trivially_copyable_v<T>);
     static_assert(std::is_standard_layout_v<T>);
     memcpy(&out, buf, sizeof(T)); buf += sizeof(T);
@@ -281,7 +287,7 @@ inline void unmarshal_struct(BYTE*& buf, T& out) {
 
 // Get the marshaled size of an interface pointer for buffer allocation.
 // Uses IID_IUnknown for universal compatibility — works with any COM object.
-inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size) {
+inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size) noexcept {
     if (!pInterface) {
         size = sizeof(UINT32);
         return S_OK;
@@ -307,7 +313,7 @@ inline HRESULT get_marshal_size(IUnknown* pInterface, REFIID riid, UINT32& size)
 // to IID_IUnknown for system objects that don't expose typed IIDs (e.g. PropertyValue).
 // Null-safe: nullptr writes size=0 without calling CoMarshalInterface.
 // Returns S_OK on success. Advances buf past the written data.
-inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) {
+inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) noexcept {
     if (!pInterface) {
         UINT32 zero = 0;
         memcpy(buf, &zero, sizeof(UINT32));
@@ -346,7 +352,7 @@ inline HRESULT marshal_interface(BYTE*& buf, IUnknown* pInterface, REFIID riid) 
 // Uses the requested IID directly for CoUnmarshalInterface so the proxy manager
 // creates the correct proxy facelet with a connected RPC channel.
 // Returns S_OK on success. Advances buf past the read data.
-inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID riid, void** ppInterface) {
+inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID riid, void** ppInterface) noexcept {
     UINT32 streamSize;
     memcpy(&streamSize, buf, sizeof(UINT32));
     buf += sizeof(UINT32);
@@ -386,7 +392,7 @@ inline HRESULT unmarshal_interface(const BYTE*& buf, REFIID riid, void** ppInter
 }
 
 // Overload for mutable buf pointer (stub-side code that uses BYTE* not const BYTE*)
-inline HRESULT unmarshal_interface(BYTE*& buf, REFIID riid, void** ppInterface) {
+inline HRESULT unmarshal_interface(BYTE*& buf, REFIID riid, void** ppInterface) noexcept {
     const BYTE* cbuf = buf;
     HRESULT hr = unmarshal_interface(cbuf, riid, ppInterface);
     buf = const_cast<BYTE*>(cbuf);
@@ -400,7 +406,7 @@ inline HRESULT unmarshal_interface(BYTE*& buf, REFIID riid, void** ppInterface) 
 // Marshal a fixed-size array: [uint32 count][element × count]
 // Null-safe: count=0 writes only the count prefix; items is not dereferenced.
 template<typename T>
-inline void marshal_array(BYTE*& buf, const T* items, UINT32 count) {
+inline void marshal_array(BYTE*& buf, const T* items, UINT32 count) noexcept {
     static_assert(std::is_trivially_copyable_v<T>);
     static_assert(std::is_standard_layout_v<T>);
     memcpy(buf, &count, sizeof(UINT32));
@@ -413,7 +419,7 @@ inline void marshal_array(BYTE*& buf, const T* items, UINT32 count) {
 
 // Unmarshal a fixed-size array (allocating with CoTaskMemAlloc)
 template<typename T>
-inline HRESULT unmarshal_array(const BYTE*& buf, T** items, UINT32* count) {
+inline HRESULT unmarshal_array(const BYTE*& buf, T** items, UINT32* count) noexcept {
     static_assert(std::is_trivially_copyable_v<T>);
     static_assert(std::is_standard_layout_v<T>);
     memcpy(count, buf, sizeof(UINT32));
@@ -428,7 +434,7 @@ inline HRESULT unmarshal_array(const BYTE*& buf, T** items, UINT32* count) {
 
 // Overload with mutable buf pointer (for stub-side code)
 template<typename T>
-inline HRESULT unmarshal_array(BYTE*& buf, T** items, UINT32* count) {
+inline HRESULT unmarshal_array(BYTE*& buf, T** items, UINT32* count) noexcept {
     static_assert(std::is_trivially_copyable_v<T>);
     static_assert(std::is_standard_layout_v<T>);
     memcpy(count, buf, sizeof(UINT32));
@@ -442,7 +448,7 @@ inline HRESULT unmarshal_array(BYTE*& buf, T** items, UINT32* count) {
 }
 
 // Marshal an HSTRING array: [uint32 count][hstring × count]
-inline void marshal_hstring_array(BYTE*& buf, HSTRING* items, UINT32 count) {
+inline void marshal_hstring_array(BYTE*& buf, HSTRING* items, UINT32 count) noexcept {
     memcpy(buf, &count, sizeof(UINT32));
     buf += sizeof(UINT32);
     for (UINT32 i = 0; i < count; i++) {
@@ -451,7 +457,7 @@ inline void marshal_hstring_array(BYTE*& buf, HSTRING* items, UINT32 count) {
 }
 
 // Unmarshal an HSTRING array (allocating with CoTaskMemAlloc)
-inline HRESULT unmarshal_hstring_array(BYTE*& buf, HSTRING** items, UINT32* count) {
+inline HRESULT unmarshal_hstring_array(BYTE*& buf, HSTRING** items, UINT32* count) noexcept {
     memcpy(count, buf, sizeof(UINT32));
     buf += sizeof(UINT32);
     if (*count == 0) { *items = nullptr; return S_OK; }
@@ -471,10 +477,10 @@ inline HRESULT unmarshal_hstring_array(BYTE*& buf, HSTRING** items, UINT32* coun
 }
 
 // Compute buffer size for an HSTRING array
-inline UINT32 hstring_array_size(HSTRING* items, UINT32 count) {
+inline UINT32 hstring_array_size(HSTRING* items, UINT32 count) noexcept {
     UINT32 size = sizeof(UINT32); // count prefix
     for (UINT32 i = 0; i < count; i++) {
-        size += sizeof(UINT32) + WindowsGetStringLen(items[i]) * sizeof(WCHAR) + sizeof(WCHAR); // +null terminator
+        size += sizeof(UINT32) + hstring_len(items[i]) * sizeof(WCHAR) + sizeof(WCHAR); // +null terminator
     }
     return size;
 }

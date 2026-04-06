@@ -67,7 +67,7 @@ public partial class ProxyGeneratorTests
     {
         var typeRef = new TypeRef("String");
         var result = ProxyGenerator.GetTypeSize(typeRef);
-        Assert.Contains("WindowsGetStringLen", result);
+        Assert.Contains("winmidl::hstring_len", result);
     }
 
     [Fact]
