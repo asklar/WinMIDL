@@ -31,11 +31,11 @@ public partial class StubGeneratorTests
         var output = _generator.Generate(compilation);
 
         Assert.Contains("class CStub___x_TestApp_IWidget", output);
-        Assert.Contains("public IRpcStubBuffer", output);
+        Assert.Contains("winmidl::stub_base_t<CStub___x_TestApp_IWidget>", output);
     }
 
     [Fact]
-    public void EmitStubClass_HasRefCountAndServerPointer()
+    public void EmitStubClass_HasServerPointer_NoCRef()
     {
         var source = """
             namespace TestApp
@@ -50,10 +50,12 @@ public partial class StubGeneratorTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
+        // Server pointer still present
         Assert.Contains("__x_TestApp_IWidget* m_pServer;", output);
-        Assert.Contains("LONG m_cRef;", output);
         Assert.Contains("m_pServer(nullptr)", output);
-        Assert.Contains("m_cRef(1)", output);
+        // Ref count is now managed by stub_base_t — not emitted in generated class
+        Assert.DoesNotContain("LONG m_cRef;", output);
+        Assert.DoesNotContain("m_cRef(1)", output);
     }
 
     [Fact]
@@ -206,7 +208,7 @@ public partial class StubGeneratorTests
     }
 
     [Fact]
-    public void EmitStubClass_QueryInterface()
+    public void EmitStubClass_QueryInterface_DelegatedToStubBase()
     {
         var source = """
             namespace TestApp
@@ -221,13 +223,16 @@ public partial class StubGeneratorTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv)", output);
+        // QI is now provided by stub_base_t — generated class only supplies the entry table
+        Assert.Contains("kStubQIEntries", output);
         Assert.Contains("IID_IRpcStubBuffer", output);
         Assert.Contains("IID_IUnknown", output);
+        // No inline QI implementation in the generated class body
+        Assert.DoesNotContain("HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override", output);
     }
 
     [Fact]
-    public void EmitStubClass_AddRefRelease()
+    public void EmitStubClass_AddRefRelease_DelegatedToStubBase()
     {
         var source = """
             namespace TestApp
@@ -242,9 +247,10 @@ public partial class StubGeneratorTests
         var compilation = Compile(source);
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("ULONG STDMETHODCALLTYPE AddRef()", output);
-        Assert.Contains("InterlockedIncrement(&m_cRef)", output);
-        Assert.Contains("ULONG STDMETHODCALLTYPE Release()", output);
-        Assert.Contains("InterlockedDecrement(&m_cRef)", output);
+        // AddRef/Release are now provided by stub_base_t — not emitted in generated class
+        Assert.DoesNotContain("ULONG STDMETHODCALLTYPE AddRef()", output);
+        Assert.DoesNotContain("InterlockedIncrement(&m_cRef)", output);
+        Assert.DoesNotContain("ULONG STDMETHODCALLTYPE Release()", output);
+        Assert.DoesNotContain("InterlockedDecrement(&m_cRef)", output);
     }
 }

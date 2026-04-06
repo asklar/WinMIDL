@@ -50,7 +50,8 @@ public partial class StubGeneratorTests
     {
         var output = GenerateSimpleWidget();
 
-        Assert.Contains("winmidl::qi_check(kStubQIEntries", output);
+        // stub_base_t uses qi_check internally; generated code provides the kStubQIEntries table
+        Assert.Contains("kStubQIEntries", output);
     }
 
     [Fact]
@@ -85,8 +86,10 @@ public partial class StubGeneratorTests
     {
         var output = GenerateSimpleWidget();
 
-        // Stubs have no outer unknown — pass nullptr
-        Assert.Contains("winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv)", output);
+        // stub_base_t<Derived> calls qi_check(Derived::kStubQIEntries, this, nullptr, riid, ppv)
+        // The generated class provides kStubQIEntries with non-delegating entries (offset=0, delegating=false)
+        Assert.Contains("{ IID_IUnknown, 0, false }", output);
+        Assert.Contains("{ IID_IRpcStubBuffer, 0, false }", output);
     }
 
     // ─── IsIIDSupported with type_info ───
@@ -123,5 +126,29 @@ public partial class StubGeneratorTests
 
         // Old pattern was: if (riid == IID___x_TestApp_IWidget) { ... }
         Assert.DoesNotContain("riid == IID___x_TestApp_IWidget", output);
+    }
+
+    // ─── stub_base_t CRTP inheritance ───
+
+    [Fact]
+    public void EmitStubClass_UsesStubBaseT_NotDirectIRpcStubBuffer()
+    {
+        var output = GenerateSimpleWidget();
+
+        // Stubs now inherit from winmidl::stub_base_t<Derived> (mirrors winrt::implements pattern)
+        Assert.Contains("winmidl::stub_base_t<CStub___x_TestApp_IWidget>", output);
+        // Direct IRpcStubBuffer inheritance is replaced by the base template
+        Assert.DoesNotContain(": public IRpcStubBuffer", output);
+    }
+
+    [Fact]
+    public void EmitStubClass_StubBaseT_QIEntryTableStillEmitted()
+    {
+        var output = GenerateSimpleWidget();
+
+        // kStubQIEntries must still be in generated code — stub_base_t accesses it via Derived::kStubQIEntries
+        Assert.Contains("static inline const winmidl::qi_entry_t kStubQIEntries[]", output);
+        Assert.Contains("{ IID_IUnknown, 0, false }", output);
+        Assert.Contains("{ IID_IRpcStubBuffer, 0, false }", output);
     }
 }

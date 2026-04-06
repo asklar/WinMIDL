@@ -91,12 +91,11 @@ public class StubGenerator
             }
         }
 
-        sb.AppendLine($"class {className} : public IRpcStubBuffer {{");
+        sb.AppendLine($"class {className} : public winmidl::stub_base_t<{className}> {{");
         sb.AppendLine($"    {mangledName}* m_pServer;");
-        sb.AppendLine("    LONG m_cRef;");
         sb.AppendLine();
         sb.AppendLine("public:");
-        sb.AppendLine($"    {className}() : m_pServer(nullptr), m_cRef(1) {{}}");
+        sb.AppendLine($"    {className}() : m_pServer(nullptr) {{}}");
         sb.AppendLine();
 
         // Connect
@@ -138,27 +137,11 @@ public class StubGenerator
         sb.AppendLine("        if (pv) ((IUnknown*)pv)->Release();");
         sb.AppendLine("    }");
 
-        // QueryInterface — table-driven via qi_check
+        // QueryInterface entry table — used by stub_base_t<Derived>::QueryInterface
         sb.AppendLine("    static inline const winmidl::qi_entry_t kStubQIEntries[] = {");
         sb.AppendLine("        { IID_IUnknown, 0, false },");
         sb.AppendLine("        { IID_IRpcStubBuffer, 0, false },");
         sb.AppendLine("    };");
-        sb.AppendLine();
-        sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
-        sb.AppendLine("        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);");
-        sb.AppendLine("    }");
-
-        // AddRef
-        sb.AppendLine("    ULONG STDMETHODCALLTYPE AddRef() override {");
-        sb.AppendLine("        return InterlockedIncrement(&m_cRef);");
-        sb.AppendLine("    }");
-
-        // Release
-        sb.AppendLine("    ULONG STDMETHODCALLTYPE Release() override {");
-        sb.AppendLine("        ULONG c = InterlockedDecrement(&m_cRef);");
-        sb.AppendLine("        if (c == 0) delete this;");
-        sb.AppendLine("        return c;");
-        sb.AppendLine("    }");
         sb.AppendLine();
 
         // Private per-method invoke handlers
@@ -792,12 +775,11 @@ public class StubGenerator
         };
 
         sb.AppendLine($"// Stub for delegate {del.FullName}");
-        sb.AppendLine($"class {className} : public IRpcStubBuffer {{");
+        sb.AppendLine($"class {className} : public winmidl::stub_base_t<{className}> {{");
         sb.AppendLine($"    {mangledName}* m_pServer;");
-        sb.AppendLine("    LONG m_cRef;");
         sb.AppendLine();
         sb.AppendLine("public:");
-        sb.AppendLine($"    {className}() : m_pServer(nullptr), m_cRef(1) {{}}");
+        sb.AppendLine($"    {className}() : m_pServer(nullptr) {{}}");
         sb.AppendLine();
 
         // Connect
@@ -842,27 +824,11 @@ public class StubGenerator
         sb.AppendLine("        if (pv) ((IUnknown*)pv)->Release();");
         sb.AppendLine("    }");
 
-        // QueryInterface
+        // QueryInterface entry table — used by stub_base_t<Derived>::QueryInterface
         sb.AppendLine("    static inline const winmidl::qi_entry_t kStubQIEntries[] = {");
         sb.AppendLine("        { IID_IUnknown, 0, false },");
         sb.AppendLine("        { IID_IRpcStubBuffer, 0, false },");
         sb.AppendLine("    };");
-        sb.AppendLine();
-        sb.AppendLine("    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {");
-        sb.AppendLine("        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);");
-        sb.AppendLine("    }");
-
-        // AddRef
-        sb.AppendLine("    ULONG STDMETHODCALLTYPE AddRef() override {");
-        sb.AppendLine("        return InterlockedIncrement(&m_cRef);");
-        sb.AppendLine("    }");
-
-        // Release
-        sb.AppendLine("    ULONG STDMETHODCALLTYPE Release() override {");
-        sb.AppendLine("        ULONG c = InterlockedDecrement(&m_cRef);");
-        sb.AppendLine("        if (c == 0) delete this;");
-        sb.AppendLine("        return c;");
-        sb.AppendLine("    }");
         sb.AppendLine();
 
         // Private invoke handler for the single Invoke method

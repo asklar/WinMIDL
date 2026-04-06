@@ -146,6 +146,7 @@ inline void marshal_hstring(BYTE*& buf, HSTRING val) {
 template<typename T>
 inline void marshal_struct(BYTE*& buf, const T& val) {
     static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(std::is_standard_layout_v<T>);
     memcpy(buf, &val, sizeof(T)); buf += sizeof(T);
 }
 
@@ -222,6 +223,7 @@ inline HRESULT unmarshal_hstring_alloc(BYTE*& buf, HSTRING* out) {
 template<typename T>
 inline void unmarshal_struct(const BYTE*& buf, T& out) {
     static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(std::is_standard_layout_v<T>);
     memcpy(&out, buf, sizeof(T)); buf += sizeof(T);
 }
 
@@ -273,6 +275,7 @@ inline void unmarshal_enum(BYTE*& buf, E& out) {
 template<typename T>
 inline void unmarshal_struct(BYTE*& buf, T& out) {
     static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(std::is_standard_layout_v<T>);
     memcpy(&out, buf, sizeof(T)); buf += sizeof(T);
 }
 
@@ -398,6 +401,8 @@ inline HRESULT unmarshal_interface(BYTE*& buf, REFIID riid, void** ppInterface) 
 // Null-safe: count=0 writes only the count prefix; items is not dereferenced.
 template<typename T>
 inline void marshal_array(BYTE*& buf, const T* items, UINT32 count) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(std::is_standard_layout_v<T>);
     memcpy(buf, &count, sizeof(UINT32));
     buf += sizeof(UINT32);
     if (count > 0) {
@@ -409,6 +414,8 @@ inline void marshal_array(BYTE*& buf, const T* items, UINT32 count) {
 // Unmarshal a fixed-size array (allocating with CoTaskMemAlloc)
 template<typename T>
 inline HRESULT unmarshal_array(const BYTE*& buf, T** items, UINT32* count) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(std::is_standard_layout_v<T>);
     memcpy(count, buf, sizeof(UINT32));
     buf += sizeof(UINT32);
     if (*count == 0) { *items = nullptr; return S_OK; }
@@ -422,6 +429,8 @@ inline HRESULT unmarshal_array(const BYTE*& buf, T** items, UINT32* count) {
 // Overload with mutable buf pointer (for stub-side code)
 template<typename T>
 inline HRESULT unmarshal_array(BYTE*& buf, T** items, UINT32* count) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    static_assert(std::is_standard_layout_v<T>);
     memcpy(count, buf, sizeof(UINT32));
     buf += sizeof(UINT32);
     if (*count == 0) { *items = nullptr; return S_OK; }
@@ -503,6 +512,35 @@ struct interface_descriptor {
     const IID* iid;
     const method_descriptor* methods;
     uint32_t method_count;
+};
+
+// ════════════════════════════════════════════════════════════════
+// stub_base_t — CRTP base for generated stub classes
+//
+// Provides IUnknown methods (AddRef, Release, QueryInterface) with
+// atomic ref counting, mirroring the winrt::implements<> pattern
+// from C++/WinRT without requiring C++/WinRT headers.
+//
+// Usage:
+//   class CStub_IFoo : public winmidl::stub_base_t<CStub_IFoo> {
+//       // Must declare: static inline const winmidl::qi_entry_t kStubQIEntries[]
+//   };
+// ════════════════════════════════════════════════════════════════
+template<typename Derived>
+class stub_base_t : public IRpcStubBuffer {
+    LONG m_cRef = 1;
+public:
+    ULONG STDMETHODCALLTYPE AddRef() noexcept override {
+        return InterlockedIncrement(&m_cRef);
+    }
+    ULONG STDMETHODCALLTYPE Release() noexcept override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete static_cast<Derived*>(this);
+        return c;
+    }
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) noexcept override {
+        return qi_check(Derived::kStubQIEntries, this, nullptr, riid, ppv);
+    }
 };
 
 } // namespace winmidl
