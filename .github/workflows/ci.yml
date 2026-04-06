@@ -64,7 +64,7 @@ jobs:
         run: dotnet publish src/Midl.Cli -c Release -r win-x64 --self-contained -o publish/win-x64
 
       - name: Upload artifact
-        if: github.event_name != 'pull_request'
+        if: false  # Artifacts are produced by the Release workflow; CI only validates the build
         uses: actions/upload-artifact@v4
         with:
           name: midl-win-x64
