@@ -61,6 +61,8 @@ public partial class ProxyGeneratorTests
         Assert.DoesNotContain("RequestSize", output);
         // But should still compute buffer size with inline expression
         Assert.Contains("winmidl::hstring_len(name)", output);
+        // Must never call WindowsGetStringLen — use winmidl::hstring_len instead
+        Assert.DoesNotContain("WindowsGetStringLen", output);
     }
 
     [Fact]
