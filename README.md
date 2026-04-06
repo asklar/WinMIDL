@@ -215,7 +215,7 @@ The proxy code depends on `include/winmidl/proxy_helpers.h` which provides:
 - **Events** — add/remove with `EventRegistrationToken`
 - **Multiple interfaces** — QI, `GetIids`, inheritance chains
 
-> See [docs/marshaling-architecture.md](docs/marshaling-architecture.md) and [docs/wire-format-spec.md](docs/wire-format-spec.md) for the full design.
+> See [docs/marshaling-architecture.md](docs/marshaling-architecture.md) and [docs/payload-format-spec.md](docs/payload-format-spec.md) for the full design.
 
 ---
 
@@ -258,7 +258,7 @@ The LSP discovers this file automatically, enabling cross-file symbol resolution
 
 - [Diagnostics Reference](docs/diagnostics.md)
 - [Marshaling Architecture](docs/marshaling-architecture.md)
-- [Wire Format Spec](docs/wire-format-spec.md)
+- [Payload Format Spec](docs/payload-format-spec.md)
 - [Project Configuration (winmidl.json)](docs/winmidl-json.md)
 - [MIDL3 Documentation](https://learn.microsoft.com/en-us/uwp/midl-3/)
 

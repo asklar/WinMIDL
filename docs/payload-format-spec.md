@@ -1,6 +1,8 @@
-# Wire Format Specification
+# Payload Format Specification
 
-This document describes the binary wire format used by the MIDL-generated proxy/stub code for WinRT COM marshaling. This format replaces NDR (Network Data Representation) format strings with direct compiled serialization.
+This document describes the binary payload format used by the MIDL-generated proxy/stub code for WinRT COM marshaling. This format replaces NDR (Network Data Representation) format strings with direct compiled serialization.
+
+> **Terminology**: We use "payload format" rather than "wire format" because this serialization is used for same-machine cross-apartment and cross-process COM calls — never for cross-machine networking.
 
 ## Overview
 
@@ -9,6 +11,10 @@ Each RPC call is transmitted as two buffers:
 - **Reply buffer**: Contains serialized output parameters, return value, and HRESULT (sent by the stub)
 
 There is **no header** in either buffer — the method index is carried in `RPCOLEMESSAGE.iMethod`.
+
+## Byte Ordering
+
+All values are encoded in **machine-native byte order** (little-endian on all supported Windows platforms). This is safe because the proxy and stub always run on the same machine. Cross-machine marshaling is not supported.
 
 ## Vtable Slot Assignment
 
@@ -41,7 +47,7 @@ msg.cbBuffer = kSetPosition_RequestSize;
 For variable-size signatures:
 
 ```cpp
-msg.cbBuffer = sizeof(uint32_t) + WindowsGetStringLen(name) * sizeof(wchar_t);
+msg.cbBuffer = sizeof(uint32_t) + winmidl::hstring_len(name) * sizeof(wchar_t);
 ```
 
 ## Reply Buffer Layout
@@ -119,7 +125,7 @@ Strings use a length-prefixed UTF-16 encoding:
 
 ```cpp
 // Serialize
-UINT32 len = WindowsGetStringLen(name);
+UINT32 len = winmidl::hstring_len(name);
 memcpy(p, &len, sizeof(len)); p += sizeof(len);
 PCWSTR raw = WindowsGetStringRawBuffer(name, nullptr);
 memcpy(p, raw, len * sizeof(wchar_t)); p += len * sizeof(wchar_t);
@@ -153,13 +159,15 @@ static_assert(offsetof(Point, X) == 0);
 static_assert(offsetof(Point, Y) == 4);
 static_assert(sizeof(Point) == 8);
 static_assert(std::is_trivially_copyable_v<Point>);
+static_assert(std::is_standard_layout_v<Point>);
 memcpy(p, &pos, sizeof(Point)); p += sizeof(Point);
 ```
 
 This is safe because:
-1. The `static_assert` on `offsetof` verifies the C++ compiler's layout matches the wire format
+1. The `static_assert` on `offsetof` verifies the C++ compiler's layout matches the payload format
 2. `is_trivially_copyable_v` ensures `memcpy` is a valid copy mechanism
-3. No padding gaps exist (verified by `sizeof` == sum of field sizes)
+3. `is_standard_layout_v` ensures C-compatible layout with no hidden padding
+4. No padding gaps exist (verified by `sizeof` == sum of field sizes)
 
 #### Non-blittable Structs
 
