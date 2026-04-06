@@ -253,4 +253,25 @@ public partial class StubGeneratorTests
         Assert.DoesNotContain("ULONG STDMETHODCALLTYPE Release()", output);
         Assert.DoesNotContain("InterlockedDecrement(&m_cRef)", output);
     }
+
+    [Fact]
+    public void EmitStubClass_StringReturn_UsesHstringLen()
+    {
+        var source = """
+            namespace TestApp
+            {
+                interface IWidget
+                {
+                    String GetName();
+                }
+            }
+            """;
+
+        var compilation = Compile(source);
+        var output = _generator.Generate(compilation);
+
+        // Stub reply buffer sizing must use winmidl::hstring_len, not WindowsGetStringLen
+        Assert.Contains("winmidl::hstring_len", output);
+        Assert.DoesNotContain("WindowsGetStringLen", output);
+    }
 }

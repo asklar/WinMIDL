@@ -100,7 +100,7 @@ public static partial class WireFormat
             return "sizeof(UINT32) + __{0}Size * " + GetCppSizeExpression(elemType);
         }
         if (type.Name == "String")
-            return "sizeof(UINT32) + WindowsGetStringLen({0}) * sizeof(WCHAR) + sizeof(WCHAR)";
+            return "sizeof(UINT32) + winmidl::hstring_len({0}) * sizeof(WCHAR) + sizeof(WCHAR)";
         if (IsInterfaceType(type))
             return "{0}_marshalSize";
         if (type.ResolvedSymbol is StructSymbol structSym)
@@ -480,7 +480,7 @@ public static partial class WireFormat
     public static void EmitSerializeHString(StringBuilder sb, string varName, string bufferPtr, string indent = "        ")
     {
         var safeName = SanitizeVarName(varName);
-        sb.AppendLine($"{indent}UINT32 {safeName}_len = WindowsGetStringLen({varName});");
+        sb.AppendLine($"{indent}UINT32 {safeName}_len = winmidl::hstring_len({varName});");
         sb.AppendLine($"{indent}memcpy({bufferPtr}, &{safeName}_len, sizeof(UINT32)); {bufferPtr} += sizeof(UINT32);");
         sb.AppendLine($"{indent}PCWSTR {safeName}_raw = WindowsGetStringRawBuffer({varName}, nullptr);");
         sb.AppendLine($"{indent}memcpy({bufferPtr}, {safeName}_raw, {safeName}_len * sizeof(WCHAR)); {bufferPtr} += {safeName}_len * sizeof(WCHAR);");
