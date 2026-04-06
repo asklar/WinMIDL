@@ -51,7 +51,7 @@ public class StubGeneratorIntegrationTests
 
         // Class definition
         Assert.Contains("class CStub___x_Widgets_IWidget", output);
-        Assert.Contains("public IRpcStubBuffer", output);
+        Assert.Contains("winmidl::stub_base_t<CStub___x_Widgets_IWidget>", output);
 
         // IRpcStubBuffer methods
         Assert.Contains("Connect(IUnknown* pUnkServer)", output);
@@ -61,9 +61,10 @@ public class StubGeneratorIntegrationTests
         Assert.Contains("CountRefs()", output);
         Assert.Contains("DebugServerQueryInterface(void** ppv)", output);
         Assert.Contains("DebugServerRelease(void* pv)", output);
-        Assert.Contains("QueryInterface(REFIID riid, void** ppv)", output);
-        Assert.Contains("AddRef()", output);
-        Assert.Contains("Release()", output);
+        // IUnknown methods now provided by stub_base_t — verify entry table instead
+        Assert.Contains("kStubQIEntries", output);
+        Assert.Contains("{ IID_IUnknown, 0, false }", output);
+        Assert.Contains("{ IID_IRpcStubBuffer, 0, false }", output);
 
         // Method dispatch — slots 6+
         Assert.Contains("case 6: return Invoke_GetName(pMsg, pChannel);", output);
