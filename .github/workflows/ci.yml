@@ -64,6 +64,7 @@ jobs:
         run: dotnet publish src/Midl.Cli -c Release -r win-x64 --self-contained -o publish/win-x64
 
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: midl-win-x64
