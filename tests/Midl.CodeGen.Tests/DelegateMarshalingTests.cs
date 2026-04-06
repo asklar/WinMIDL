@@ -221,7 +221,7 @@ public class DelegateMarshalingTests
 
         // Stub class should be emitted for the delegate
         Assert.Contains("class CStub___x_TestApp_MyCallback", output);
-        Assert.Contains("public IRpcStubBuffer", output);
+        Assert.Contains("winmidl::stub_base_t<CStub___x_TestApp_MyCallback>", output);
     }
 
     [Fact]

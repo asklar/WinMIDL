@@ -655,9 +655,12 @@ public static partial class WireFormat
 
     /// <summary>
     /// Emits C++ static_assert statements verifying struct layout matches expected offsets and size.
+    /// Also emits a static_assert for std::is_standard_layout to ensure the struct is C-compatible
+    /// and safe for wire-format memcpy operations.
     /// </summary>
     public static void EmitStructLayoutAsserts(StringBuilder sb, StructSymbol structSym, string cTypeName, string indent = "")
     {
+        sb.AppendLine($"{indent}static_assert(std::is_standard_layout_v<{cTypeName}>);");
         int offset = 0;
         foreach (var field in structSym.Fields)
         {

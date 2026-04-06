@@ -160,6 +160,20 @@ public partial class WireFormatTests
     // ─── EmitStructLayoutAsserts ───
 
     [Fact]
+    public void EmitStructLayoutAsserts_EmitsStandardLayoutAssert()
+    {
+        var structSym = new StructSymbol("Point", null);
+        structSym.AddField(new FieldSymbol("X", structSym) { Type = new TypeRef("Single") });
+        structSym.AddField(new FieldSymbol("Y", structSym) { Type = new TypeRef("Single") });
+
+        var sb = new StringBuilder();
+        WireFormat.EmitStructLayoutAsserts(sb, structSym, "Point");
+        var code = sb.ToString();
+
+        Assert.Contains("static_assert(std::is_standard_layout_v<Point>)", code);
+    }
+
+    [Fact]
     public void EmitStructLayoutAsserts_EmitsOffsetAndSizeof()
     {
         var structSym = new StructSymbol("Point", null);
@@ -186,6 +200,7 @@ public partial class WireFormatTests
         WireFormat.EmitStructLayoutAsserts(sb, structSym, "Record");
         var code = sb.ToString();
 
+        Assert.Contains("static_assert(std::is_standard_layout_v<Record>)", code);
         Assert.Contains("static_assert(offsetof(Record, Id) == 0)", code);
         Assert.Contains("static_assert(offsetof(Record, Value) == 4)", code);
         Assert.Contains("static_assert(sizeof(Record) == 12)", code);
