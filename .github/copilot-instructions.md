@@ -41,7 +41,7 @@ WinMIDL is a MIDL3 compiler with an LSP server, two editor extensions, and custo
 
 **Proxy/stub** (in `src/Midl.CodeGen/Proxy/`):
 - Generates direct C++ proxy/stub code (no NDR) for COM cross-apartment/cross-process marshaling
-- Wire format: simple packed binary with null-terminated HSTRING
+- Payload format: simple packed binary with null-terminated HSTRING
 - Interface pointer marshaling: typed IID first, IID_IUnknown fallback for system objects
 - Runtime helpers in `include/winmidl/proxy_helpers.h`
 
