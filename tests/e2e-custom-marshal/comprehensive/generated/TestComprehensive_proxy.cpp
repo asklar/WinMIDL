@@ -105,7 +105,7 @@ static constexpr IID IID_IMap_2_String_Object = { 0x1b0d3570, 0x0877, 0x5ec2, { 
 static HRESULT proxy_shape_hstring_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, HSTRING arg0) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR);
+    msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(arg0) * sizeof(WCHAR) + sizeof(WCHAR);
     HRESULT hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -176,7 +176,7 @@ class CILoggerProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 6;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(message) * sizeof(WCHAR) + sizeof(WCHAR);
+            msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(message) * sizeof(WCHAR) + sizeof(WCHAR);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ILogger);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -1579,7 +1579,7 @@ static HRESULT proxy_shape_hstring_object_to_void(IRpcChannelBuffer* channel, co
     HRESULT hr;
     UINT32 arg1_marshalSize = 0;
     hr = winmidl::get_marshal_size(arg1, IID_IUnknown, arg1_marshalSize); RETURN_IF_FAILED(hr);
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR) + arg1_marshalSize;
+    msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(arg0) * sizeof(WCHAR) + sizeof(WCHAR) + arg1_marshalSize;
     hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -1599,7 +1599,7 @@ static HRESULT proxy_shape_hstring_object_to_void(IRpcChannelBuffer* channel, co
 static HRESULT proxy_shape_hstring_to_object(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, HSTRING arg0, IInspectable** retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR);
+    msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(arg0) * sizeof(WCHAR) + sizeof(WCHAR);
     HRESULT hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -1656,7 +1656,7 @@ class CIPropertyBagProxy : public IRpcProxyBuffer {
             HRESULT hr;
             UINT32 value_marshalSize = 0;
             hr = winmidl::get_marshal_size(value, IID_IUnknown, value_marshalSize); RETURN_IF_FAILED(hr);
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(key) * sizeof(WCHAR) + sizeof(WCHAR) + value_marshalSize;
+            msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(key) * sizeof(WCHAR) + sizeof(WCHAR) + value_marshalSize;
             hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IPropertyBag);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -1677,7 +1677,7 @@ class CIPropertyBagProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 7;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(key) * sizeof(WCHAR) + sizeof(WCHAR);
+            msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(key) * sizeof(WCHAR) + sizeof(WCHAR);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IPropertyBag);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -2400,7 +2400,7 @@ static constexpr winmidl::interface_descriptor __x_TestApp_Comprehensive_ITypeSh
 static HRESULT proxy_shape_hstring_int32_int32_double_bool_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, HSTRING arg0, INT32 arg1, INT32 arg2, DOUBLE arg3, boolean arg4) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(INT32) + sizeof(INT32) + sizeof(DOUBLE) + sizeof(boolean);
+    msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(arg0) * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(INT32) + sizeof(INT32) + sizeof(DOUBLE) + sizeof(boolean);
     HRESULT hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -2423,7 +2423,7 @@ static HRESULT proxy_shape_hstring_int32_int32_double_bool_to_void(IRpcChannelBu
 static HRESULT proxy_shape_hstring_to_bool(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, HSTRING arg0, INT32* out1, DOUBLE* out2, boolean* retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(arg0) * sizeof(WCHAR) + sizeof(WCHAR);
+    msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(arg0) * sizeof(WCHAR) + sizeof(WCHAR);
     HRESULT hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
@@ -2501,7 +2501,7 @@ class CIComplexOpsProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 6;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(name) * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(INT32) + sizeof(INT32) + sizeof(DOUBLE) + sizeof(boolean);
+            msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(name) * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(INT32) + sizeof(INT32) + sizeof(DOUBLE) + sizeof(boolean);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IComplexOps);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -2526,7 +2526,7 @@ class CIComplexOpsProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 7;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(input) * sizeof(WCHAR) + sizeof(WCHAR);
+            msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(input) * sizeof(WCHAR) + sizeof(WCHAR);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IComplexOps);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -2774,7 +2774,7 @@ class CIObservableProxy : public IRpcProxyBuffer {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 9;
-            msg.cbBuffer = sizeof(UINT32) + WindowsGetStringLen(value) * sizeof(WCHAR) + sizeof(WCHAR);
+            msg.cbBuffer = sizeof(UINT32) + winmidl::hstring_len(value) * sizeof(WCHAR) + sizeof(WCHAR);
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IObservable);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -5037,12 +5037,11 @@ const winmidl::type_info_t CIArrayOps2Proxy::kTypeInfo = { CIArrayOps2Proxy::Fac
 
 // Shared stub shape: stub_shape_hstring_to_void
 // Shared stub shape: stub_shape_void_to_hstring
-class CStub___x_TestApp_Comprehensive_ILogger : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ILogger : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ILogger> {
     __x_TestApp_Comprehensive_ILogger* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ILogger() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ILogger() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ILogger, (void**)&m_pServer);
@@ -5078,18 +5077,6 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
     HRESULT Invoke_Log(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         BYTE* p = (BYTE*)pMsg->Buffer;
@@ -5107,7 +5094,7 @@ private:
     HRESULT Invoke_get_LastMessage(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_LastMessage(&returnValue);
-        UINT32 returnValue_len = WindowsGetStringLen(returnValue);
+        UINT32 returnValue_len = winmidl::hstring_len(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ILogger);
         if (FAILED(hrBuf)) {
@@ -5138,12 +5125,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IL
 
 // Shared stub shape: stub_shape_void_to_hstring
 // Shared stub shape: stub_shape_void_to_int32
-class CStub___x_TestApp_Comprehensive_IAnimal : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IAnimal : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IAnimal> {
     __x_TestApp_Comprehensive_IAnimal* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IAnimal() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IAnimal() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IAnimal, (void**)&m_pServer);
@@ -5179,23 +5165,11 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
     HRESULT Invoke_get_Name(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Name(&returnValue);
-        UINT32 returnValue_len = WindowsGetStringLen(returnValue);
+        UINT32 returnValue_len = winmidl::hstring_len(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IAnimal);
         if (FAILED(hrBuf)) {
@@ -5237,12 +5211,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IA
 };
 
 // Shared stub shape: stub_shape_void_to_hstring
-class CStub___x_TestApp_Comprehensive_ISerializable : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ISerializable : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ISerializable> {
     __x_TestApp_Comprehensive_ISerializable* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ISerializable() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ISerializable() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ISerializable, (void**)&m_pServer);
@@ -5277,23 +5250,11 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
     HRESULT Invoke_Serialize(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HSTRING returnValue{};
         HRESULT hr = m_pServer->Serialize(&returnValue);
-        UINT32 returnValue_len = WindowsGetStringLen(returnValue);
+        UINT32 returnValue_len = winmidl::hstring_len(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ISerializable);
         if (FAILED(hrBuf)) {
@@ -5319,12 +5280,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IS
 };
 
 // Shared stub shape: stub_shape_void_to_hstring
-class CStub___x_TestApp_Comprehensive_ICloneable : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ICloneable : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ICloneable> {
     __x_TestApp_Comprehensive_ICloneable* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ICloneable() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ICloneable() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ICloneable, (void**)&m_pServer);
@@ -5359,23 +5319,11 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
     HRESULT Invoke_CloneAsString(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HSTRING returnValue{};
         HRESULT hr = m_pServer->CloneAsString(&returnValue);
-        UINT32 returnValue_len = WindowsGetStringLen(returnValue);
+        UINT32 returnValue_len = winmidl::hstring_len(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICloneable);
         if (FAILED(hrBuf)) {
@@ -5406,12 +5354,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IC
 // Shared stub shape: stub_shape_enum_to_void
 // Shared stub shape: stub_shape_void_to_enum
 // Shared stub shape: stub_shape_struct_ColoredPoint_float_float_to_struct_ColoredPoint
-class CStub___x_TestApp_Comprehensive_ICalculator : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ICalculator : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ICalculator> {
     __x_TestApp_Comprehensive_ICalculator* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ICalculator() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ICalculator() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ICalculator, (void**)&m_pServer);
@@ -5450,18 +5397,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_Add(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -5606,12 +5541,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IC
 
 // Shared stub shape: stub_shape_ilogger_to_void
 // Shared stub shape: stub_shape_void_to_ilogger
-class CStub___x_TestApp_Comprehensive_INotifier : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_INotifier : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_INotifier> {
     __x_TestApp_Comprehensive_INotifier* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_INotifier() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_INotifier() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_INotifier, (void**)&m_pServer);
@@ -5646,18 +5580,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_Subscribe(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -5711,12 +5633,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IN
 // Shared stub shape: stub_shape_struct_EventRegistrationToken_to_void
 // Shared stub shape: stub_shape_statuscallback_to_event_token
 // Shared stub shape: stub_shape_event_token_to_void
-class CStub___x_TestApp_Comprehensive_IEventSource : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IEventSource : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IEventSource> {
     __x_TestApp_Comprehensive_IEventSource* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IEventSource() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IEventSource() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IEventSource, (void**)&m_pServer);
@@ -5753,18 +5674,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_AddStatusChanged(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -5853,12 +5762,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IE
 
 // Shared stub shape: stub_shape_hstring_object_to_void
 // Shared stub shape: stub_shape_hstring_to_object
-class CStub___x_TestApp_Comprehensive_IPropertyBag : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IPropertyBag : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IPropertyBag> {
     __x_TestApp_Comprehensive_IPropertyBag* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IPropertyBag() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IPropertyBag() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IPropertyBag, (void**)&m_pServer);
@@ -5893,18 +5801,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_SetValue(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -5965,12 +5861,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IP
 
 // Shared stub shape: stub_shape_void_to_windows_foundation_ireference
 // Shared stub shape: stub_shape_windows_foundation_ireference_to_void
-class CStub___x_TestApp_Comprehensive_IOptional : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IOptional : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IOptional> {
     __x_TestApp_Comprehensive_IOptional* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IOptional() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IOptional() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IOptional, (void**)&m_pServer);
@@ -6006,18 +5901,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_GetOptionalCount(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -6096,12 +5979,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IO
 // Shared stub shape: stub_shape_void_to_char16
 // Shared stub shape: stub_shape_void_to_uint8
 // Shared stub shape: stub_shape_void_to_int16
-class CStub___x_TestApp_Comprehensive_ITypeShowcase : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ITypeShowcase : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ITypeShowcase> {
     __x_TestApp_Comprehensive_ITypeShowcase* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ITypeShowcase() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ITypeShowcase() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ITypeShowcase, (void**)&m_pServer);
@@ -6142,18 +6024,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_GetBigNumber(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -6295,12 +6165,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IT
 // Shared stub shape: stub_shape_hstring_int32_int32_double_bool_to_void
 // Shared stub shape: stub_shape_hstring_to_bool
 // Shared stub shape: stub_shape_int32_int32_to_void
-class CStub___x_TestApp_Comprehensive_IComplexOps : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IComplexOps : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IComplexOps> {
     __x_TestApp_Comprehensive_IComplexOps* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IComplexOps() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IComplexOps() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IComplexOps, (void**)&m_pServer);
@@ -6336,18 +6205,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_MultiParam(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -6444,12 +6301,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IC
 // Shared stub shape: stub_shape_event_token_to_void
 // Shared stub shape: stub_shape_void_to_hstring
 // Shared stub shape: stub_shape_hstring_to_void
-class CStub___x_TestApp_Comprehensive_IObservable : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IObservable : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IObservable> {
     __x_TestApp_Comprehensive_IObservable* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IObservable() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IObservable() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IObservable, (void**)&m_pServer);
@@ -6487,18 +6343,6 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
     HRESULT Invoke_add_ValueChanged(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HRESULT hr;
@@ -6532,7 +6376,7 @@ private:
     HRESULT Invoke_get_Value(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Value(&returnValue);
-        UINT32 returnValue_len = WindowsGetStringLen(returnValue);
+        UINT32 returnValue_len = winmidl::hstring_len(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IObservable);
         if (FAILED(hrBuf)) {
@@ -6588,12 +6432,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IO
 // Shared stub shape: stub_shape_void_to_windows_foundation_collections_imap
 // Shared stub shape: stub_shape_windows_foundation_collections_imapview_to_void
 // Shared stub shape: stub_shape_void_to_windows_foundation_collections_iiterable
-class CStub___x_TestApp_Comprehensive_ICollectionOps : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ICollectionOps : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ICollectionOps> {
     __x_TestApp_Comprehensive_ICollectionOps* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ICollectionOps() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ICollectionOps() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ICollectionOps, (void**)&m_pServer);
@@ -6634,18 +6477,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_GetNames(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -6822,12 +6653,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IC
 // Shared stub shape: stub_shape_void_to_void
 // Shared stub shape: stub_shape_void_to_int32
 // Shared stub shape: stub_shape_double_to_double
-class CStub___x_TestApp_Comprehensive_IArrayOps : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IArrayOps : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IArrayOps> {
     __x_TestApp_Comprehensive_IArrayOps* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IArrayOps() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IArrayOps() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IArrayOps, (void**)&m_pServer);
@@ -6866,18 +6696,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_ProcessScores(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -7013,12 +6831,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IA
     &IID___x_TestApp_Comprehensive_IArrayOps, stub___x_TestApp_Comprehensive_IArrayOps_methods, 6
 };
 
-class CStub___x_TestApp_Comprehensive_IAnimal2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IAnimal2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IAnimal2> {
     __x_TestApp_Comprehensive_IAnimal2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IAnimal2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IAnimal2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IAnimal2, (void**)&m_pServer);
@@ -7051,29 +6868,16 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
 // Shared stub shape: stub_shape_void_to_hstring
 // Shared stub shape: stub_shape_void_to_double
-class CStub___x_TestApp_Comprehensive_IShape : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IShape : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IShape> {
     __x_TestApp_Comprehensive_IShape* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IShape() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IShape() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IShape, (void**)&m_pServer);
@@ -7109,23 +6913,11 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
     HRESULT Invoke_get_Kind(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Kind(&returnValue);
-        UINT32 returnValue_len = WindowsGetStringLen(returnValue);
+        UINT32 returnValue_len = winmidl::hstring_len(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IShape);
         if (FAILED(hrBuf)) {
@@ -7167,12 +6959,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IS
 };
 
 // Shared stub shape: stub_shape_void_to_double
-class CStub___x_TestApp_Comprehensive_ICircle : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ICircle : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ICircle> {
     __x_TestApp_Comprehensive_ICircle* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ICircle() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ICircle() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ICircle, (void**)&m_pServer);
@@ -7207,18 +6998,6 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
     HRESULT Invoke_get_Radius(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         DOUBLE returnValue{};
@@ -7245,12 +7024,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IC
 };
 
 // Shared stub shape: stub_shape_void_to_hstring
-class CStub___x_TestApp_Comprehensive_IDocument : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IDocument : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IDocument> {
     __x_TestApp_Comprehensive_IDocument* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IDocument() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IDocument() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IDocument, (void**)&m_pServer);
@@ -7285,23 +7063,11 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
     HRESULT Invoke_get_Title(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         HSTRING returnValue{};
         HRESULT hr = m_pServer->get_Title(&returnValue);
-        UINT32 returnValue_len = WindowsGetStringLen(returnValue);
+        UINT32 returnValue_len = winmidl::hstring_len(returnValue);
         pMsg->cbBuffer = sizeof(UINT32) + returnValue_len * sizeof(WCHAR) + sizeof(WCHAR) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IDocument);
         if (FAILED(hrBuf)) {
@@ -7326,12 +7092,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_ID
     &IID___x_TestApp_Comprehensive_IDocument, stub___x_TestApp_Comprehensive_IDocument_methods, 1
 };
 
-class CStub___x_TestApp_Comprehensive_ICalculator2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ICalculator2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ICalculator2> {
     __x_TestApp_Comprehensive_ICalculator2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ICalculator2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ICalculator2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ICalculator2, (void**)&m_pServer);
@@ -7364,27 +7129,14 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
-class CStub___x_TestApp_Comprehensive_INotifier2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_INotifier2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_INotifier2> {
     __x_TestApp_Comprehensive_INotifier2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_INotifier2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_INotifier2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_INotifier2, (void**)&m_pServer);
@@ -7417,27 +7169,14 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
-class CStub___x_TestApp_Comprehensive_IEventSource2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IEventSource2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IEventSource2> {
     __x_TestApp_Comprehensive_IEventSource2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IEventSource2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IEventSource2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IEventSource2, (void**)&m_pServer);
@@ -7470,27 +7209,14 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
-class CStub___x_TestApp_Comprehensive_IPropertyBag2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IPropertyBag2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IPropertyBag2> {
     __x_TestApp_Comprehensive_IPropertyBag2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IPropertyBag2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IPropertyBag2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IPropertyBag2, (void**)&m_pServer);
@@ -7523,27 +7249,14 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
-class CStub___x_TestApp_Comprehensive_IOptionalValues : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IOptionalValues : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IOptionalValues> {
     __x_TestApp_Comprehensive_IOptionalValues* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IOptionalValues() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IOptionalValues() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IOptionalValues, (void**)&m_pServer);
@@ -7576,27 +7289,14 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
-class CStub___x_TestApp_Comprehensive_ITypeShowcase2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ITypeShowcase2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ITypeShowcase2> {
     __x_TestApp_Comprehensive_ITypeShowcase2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ITypeShowcase2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ITypeShowcase2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ITypeShowcase2, (void**)&m_pServer);
@@ -7629,27 +7329,14 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
-class CStub___x_TestApp_Comprehensive_IComplexOps2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IComplexOps2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IComplexOps2> {
     __x_TestApp_Comprehensive_IComplexOps2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IComplexOps2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IComplexOps2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IComplexOps2, (void**)&m_pServer);
@@ -7682,30 +7369,17 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
 // Shared stub shape: stub_shape_void_to_double
 // Shared stub shape: stub_shape_double_to_double
 // Shared stub shape: stub_shape_void_to_struct_Point
-class CStub___x_TestApp_Comprehensive_IMathHelpersStatics : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IMathHelpersStatics : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IMathHelpersStatics> {
     __x_TestApp_Comprehensive_IMathHelpersStatics* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IMathHelpersStatics() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IMathHelpersStatics() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IMathHelpersStatics, (void**)&m_pServer);
@@ -7741,18 +7415,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_get_Pi(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
@@ -7815,12 +7477,11 @@ static constexpr winmidl::interface_descriptor stub___x_TestApp_Comprehensive_IM
     &IID___x_TestApp_Comprehensive_IMathHelpersStatics, stub___x_TestApp_Comprehensive_IMathHelpersStatics_methods, 3
 };
 
-class CStub___x_TestApp_Comprehensive_IObservable2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IObservable2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IObservable2> {
     __x_TestApp_Comprehensive_IObservable2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IObservable2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IObservable2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IObservable2, (void**)&m_pServer);
@@ -7853,27 +7514,14 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
-class CStub___x_TestApp_Comprehensive_ICollectionOps2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_ICollectionOps2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_ICollectionOps2> {
     __x_TestApp_Comprehensive_ICollectionOps2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_ICollectionOps2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_ICollectionOps2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_ICollectionOps2, (void**)&m_pServer);
@@ -7906,27 +7554,14 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
-class CStub___x_TestApp_Comprehensive_IArrayOps2 : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_IArrayOps2 : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_IArrayOps2> {
     __x_TestApp_Comprehensive_IArrayOps2* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_IArrayOps2() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_IArrayOps2() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_IArrayOps2, (void**)&m_pServer);
@@ -7959,28 +7594,15 @@ public:
         { IID_IRpcStubBuffer, 0, false },
     };
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
-
 private:
 };
 
 // Stub for delegate TestApp.Comprehensive.StatusCallback
-class CStub___x_TestApp_Comprehensive_StatusCallback : public IRpcStubBuffer {
+class CStub___x_TestApp_Comprehensive_StatusCallback : public winmidl::stub_base_t<CStub___x_TestApp_Comprehensive_StatusCallback> {
     __x_TestApp_Comprehensive_StatusCallback* m_pServer;
-    LONG m_cRef;
 
 public:
-    CStub___x_TestApp_Comprehensive_StatusCallback() : m_pServer(nullptr), m_cRef(1) {}
+    CStub___x_TestApp_Comprehensive_StatusCallback() : m_pServer(nullptr) {}
 
     HRESULT STDMETHODCALLTYPE Connect(IUnknown* pUnkServer) override {
         return pUnkServer->QueryInterface(IID___x_TestApp_Comprehensive_StatusCallback, (void**)&m_pServer);
@@ -8012,18 +7634,6 @@ public:
         { IID_IUnknown, 0, false },
         { IID_IRpcStubBuffer, 0, false },
     };
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
-        return winmidl::qi_check(kStubQIEntries, this, nullptr, riid, ppv);
-    }
-    ULONG STDMETHODCALLTYPE AddRef() override {
-        return InterlockedIncrement(&m_cRef);
-    }
-    ULONG STDMETHODCALLTYPE Release() override {
-        ULONG c = InterlockedDecrement(&m_cRef);
-        if (c == 0) delete this;
-        return c;
-    }
 
 private:
     HRESULT Invoke_Invoke(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
