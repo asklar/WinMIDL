@@ -168,16 +168,18 @@ $sdkIncUcrt = "$sdkRoot\Include\$sdkVersion\ucrt"
 $sdkIncShared = "$sdkRoot\Include\$sdkVersion\shared"
 $sdkIncUm = "$sdkRoot\Include\$sdkVersion\um"
 $sdkIncWinrt = "$sdkRoot\Include\$sdkVersion\winrt"
+$sdkIncCppWinrt = "$sdkRoot\Include\$sdkVersion\cppwinrt"
 $sdkLibUcrt = "$sdkRoot\Lib\$sdkVersion\ucrt\$hostArch"
 $sdkLibUm = "$sdkRoot\Lib\$sdkVersion\um\$hostArch"
 
-$env:INCLUDE = "$vcInclude;$sdkIncUcrt;$sdkIncShared;$sdkIncUm;$sdkIncWinrt"
+$env:INCLUDE = "$vcInclude;$sdkIncUcrt;$sdkIncShared;$sdkIncUm;$sdkIncWinrt;$sdkIncCppWinrt"
 $env:LIB = "$vcLib;$sdkLibUcrt;$sdkLibUm"
 $env:PATH = "$vcToolsDir\bin\$hostDir;$sdkRoot\bin\$sdkVersion\$hostArch;$env:PATH"
 
 $commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/W3",
                   "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",
                   "/DWITH_ARRAYS",
+                  "/permissive-",
                   "/Zi")
 
 # ── Step 3: Compile IID definitions ─────────────────────────────────────

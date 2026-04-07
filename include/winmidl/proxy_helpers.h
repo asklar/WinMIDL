@@ -9,6 +9,7 @@
 #include <string_view>
 #include <cstdint>
 #include <type_traits>
+#include <winrt/Windows.Foundation.h>
 
 namespace winmidl {
 
@@ -538,87 +539,58 @@ struct interface_descriptor {
 // IReference<T> inline serialization
 //
 // Replaces CoMarshalInterface/CoUnmarshalInterface for nullable
-// value types with a fixed-size inline encoding:
+// value types in struct fields with a fixed-size inline encoding:
 //   [uint8 hasValue][T value]   — always 1 + sizeof(T) bytes
 //
-// Proxy side: unbox via IReference<T>::get_Value (vtable slot 6)
-// Stub side: rebox via IPropertyValueStatics::CreateXxx
+// Uses C++/WinRT ::winrt::unbox_value / ::winrt::box_value for clean
+// PropertyValue interop without vtable slot hacks.
 // ════════════════════════════════════════════════════════════════
-
-// Forward-declare to avoid #include <roapi.h>
-EXTERN_C HRESULT WINAPI RoGetActivationFactory(_In_ HSTRING activatableClassId, _In_ REFIID iid, _COM_Outptr_ void** factory);
-
-// Cached IPropertyValueStatics factory for reboxing nullable values.
-// IID_IPropertyValueStatics = {629BDBC8-D932-4FF4-96B9-8D96C5C1E858}
-inline IInspectable* nullable_factory() noexcept {
-    static IInspectable* s_factory = [] {
-        static constexpr IID iid = {0x629BDBC8,0xD932,0x4FF4,{0x96,0xB9,0x8D,0x96,0xC5,0xC1,0xE8,0x58}};
-        static constexpr WCHAR name[] = L"Windows.Foundation.PropertyValue";
-        HSTRING_HEADER hdr; HSTRING hn;
-        WindowsCreateStringReference(name, ARRAYSIZE(name) - 1, &hdr, &hn);
-        IInspectable* f = nullptr;
-        RoGetActivationFactory(hn, iid, (void**)&f);
-        return f;
-    }();
-    return s_factory;
-}
-
-// Unbox a value from IReference<T> via vtable slot 6 (get_Value).
-template<typename T>
-inline HRESULT unbox_value(IInspectable* pRef, REFIID iidRef, T* out) noexcept {
-    void* pTyped = nullptr;
-    HRESULT hr = pRef->QueryInterface(iidRef, &pTyped);
-    if (FAILED(hr)) return hr;
-    using Fn = HRESULT(STDMETHODCALLTYPE*)(void*, T*);
-    hr = reinterpret_cast<Fn>((*reinterpret_cast<void***>(pTyped))[6])(pTyped, out);
-    static_cast<IUnknown*>(pTyped)->Release();
-    return hr;
-}
-
-// Rebox a value via IPropertyValueStatics::CreateXxx (vtable slot BoxSlot).
-template<typename T, unsigned BoxSlot>
-inline HRESULT box_value(T value, IInspectable** out) noexcept {
-    auto f = nullable_factory();
-    if (!f) return E_FAIL;
-    using Fn = HRESULT(STDMETHODCALLTYPE*)(void*, T, IInspectable**);
-    return reinterpret_cast<Fn>((*reinterpret_cast<void***>(f))[BoxSlot])(f, value, out);
-}
 
 // Marshal IReference<T> inline: [uint8 hasValue][T value]
 // Fixed size: always writes 1 + sizeof(T) bytes.
 template<typename T>
-inline HRESULT marshal_nullable(BYTE*& buf, IInspectable* pRef, REFIID iidRef) noexcept {
+inline HRESULT marshal_nullable(BYTE*& buf, IInspectable* pRef) noexcept {
     if (!pRef) {
         *buf++ = 0;
         memset(buf, 0, sizeof(T)); buf += sizeof(T);
         return S_OK;
     }
     *buf++ = 1;
-    T value{};
-    HRESULT hr = unbox_value<T>(pRef, iidRef, &value);
-    if (FAILED(hr)) return hr;
-    memcpy(buf, &value, sizeof(T)); buf += sizeof(T);
-    return S_OK;
+    try {
+        ::winrt::Windows::Foundation::IInspectable obj{nullptr};
+        ::winrt::copy_from_abi(obj, pRef);
+        T value = ::winrt::unbox_value<T>(obj);
+        memcpy(buf, &value, sizeof(T)); buf += sizeof(T);
+        return S_OK;
+    } catch (...) { return ::winrt::to_hresult(); }
 }
 
 // Unmarshal IReference<T> inline (stub-side, mutable buf).
-template<typename T, unsigned BoxSlot>
+template<typename T>
 inline HRESULT unmarshal_nullable(BYTE*& buf, IInspectable** out) noexcept {
     uint8_t hasValue = *buf++;
     T value{};
     memcpy(&value, buf, sizeof(T)); buf += sizeof(T);
     if (!hasValue) { *out = nullptr; return S_OK; }
-    return box_value<T, BoxSlot>(value, out);
+    try {
+        auto boxed = ::winrt::box_value(value);
+        *out = static_cast<IInspectable*>(::winrt::detach_abi(boxed));
+        return S_OK;
+    } catch (...) { return ::winrt::to_hresult(); }
 }
 
 // Unmarshal IReference<T> inline (proxy reply side, const buf).
-template<typename T, unsigned BoxSlot>
+template<typename T>
 inline HRESULT unmarshal_nullable(const BYTE*& buf, IInspectable** out) noexcept {
     uint8_t hasValue = *buf++;
     T value{};
     memcpy(&value, buf, sizeof(T)); buf += sizeof(T);
     if (!hasValue) { *out = nullptr; return S_OK; }
-    return box_value<T, BoxSlot>(value, out);
+    try {
+        auto boxed = ::winrt::box_value(value);
+        *out = static_cast<IInspectable*>(::winrt::detach_abi(boxed));
+        return S_OK;
+    } catch (...) { return ::winrt::to_hresult(); }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -651,3 +623,5 @@ public:
 };
 
 } // namespace winmidl
+
+

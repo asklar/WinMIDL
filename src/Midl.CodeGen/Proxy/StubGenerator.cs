@@ -350,11 +350,7 @@ public class StubGenerator
                     if (WireFormat.IsNullableValueType(field.Type))
                     {
                         var innerType = WireFormat.GetNullableInnerCppType(field.Type);
-                        var boxSlot = WireFormat.HasNullableBoxSlot(field.Type) ? WireFormat.GetNullableBoxSlot(field.Type) : -1;
-                        if (boxSlot >= 0)
-                            sb.AppendLine($"        hr = winmidl::unmarshal_nullable<{innerType}, {boxSlot}>(p, &{name}.{field.Name}); RETURN_IF_FAILED(hr);");
-                        else
-                            WireFormat.EmitDeserialize(sb, field.Type, $"{name}.{field.Name}", "p");
+                        sb.AppendLine($"        hr = winmidl::unmarshal_nullable<{innerType}>(p, &{name}.{field.Name}); RETURN_IF_FAILED(hr);");
                     }
                     else
                     {
@@ -1075,3 +1071,5 @@ public class StubGenerator
         public required TypeRef ReturnType { get; init; }
     }
 }
+
+

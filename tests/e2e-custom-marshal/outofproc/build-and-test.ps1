@@ -98,10 +98,11 @@ $umInc = "$WinSdkInclude\um"
 $sharedInc = "$WinSdkInclude\shared"
 $ucrtInc = "$WinSdkInclude\ucrt"
 $winrtInc = "$WinSdkInclude\winrt"
+$cppwinrtInc = "$WinSdkInclude\cppwinrt"
 $umLib = "$WinSdkLib\um\$arch"
 $ucrtLib = "$WinSdkLib\ucrt\$arch"
 
-$includes = @("/I$vcInc", "/I$umInc", "/I$sharedInc", "/I$ucrtInc", "/I$winrtInc", "/I$genDir", "/I$repoRoot\include")
+$includes = @("/I$vcInc", "/I$umInc", "/I$sharedInc", "/I$ucrtInc", "/I$winrtInc", "/I$cppwinrtInc", "/I$genDir", "/I$repoRoot\include")
 $libpaths = @("/LIBPATH:$vcLib", "/LIBPATH:$umLib", "/LIBPATH:$ucrtLib")
 
 Write-Host "=== Out-of-Proc Custom Marshal E2E Test ===" -ForegroundColor Cyan

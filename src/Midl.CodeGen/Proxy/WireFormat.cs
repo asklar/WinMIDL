@@ -15,22 +15,12 @@ public static partial class WireFormat
     public const int HResultSize = 4;
 
     /// <summary>
-    /// IPropertyValueStatics::CreateXxx vtable slot numbers for nullable value reboxing.
-    /// Keyed by WinRT type name. Used by unmarshal_nullable&lt;T, BoxSlot&gt;.
+    /// Primitive types that support inline IReference&lt;T&gt; encoding via winrt::box_value/unbox_value.
     /// </summary>
-    private static readonly Dictionary<string, int> NullableBoxSlot = new(StringComparer.Ordinal)
+    private static readonly HashSet<string> NullablePrimitives = new(StringComparer.Ordinal)
     {
-        ["UInt8"] = 7,
-        ["Int16"] = 8,
-        ["UInt16"] = 9,
-        ["Int32"] = 10,
-        ["UInt32"] = 11,
-        ["Int64"] = 12,
-        ["UInt64"] = 13,
-        ["Single"] = 14,
-        ["Double"] = 15,
-        ["Char"] = 16,
-        ["Boolean"] = 17,
+        "UInt8", "Int16", "UInt16", "Int32", "UInt32",
+        "Int64", "UInt64", "Single", "Double", "Char", "Boolean",
     };
 
     /// <summary>
@@ -47,27 +37,9 @@ public static partial class WireFormat
         if (iface.FullName != "Windows.Foundation.IReference")
             return false;
         var inner = typeRef.TypeArguments[0];
-        // Primitives, enums, and structs are all value types
-        return NullableBoxSlot.ContainsKey(inner.Name)
+        return NullablePrimitives.Contains(inner.Name)
             || inner.ResolvedSymbol is EnumSymbol
             || inner.ResolvedSymbol is StructSymbol;
-    }
-
-    /// <summary>
-    /// Returns true if the IReference&lt;T&gt; inner type has a known IPropertyValueStatics
-    /// CreateXxx slot for reboxing. Only primitives qualify.
-    /// </summary>
-    public static bool HasNullableBoxSlot(TypeRef typeRef)
-    {
-        return typeRef.TypeArguments.Count == 1 && NullableBoxSlot.ContainsKey(typeRef.TypeArguments[0].Name);
-    }
-
-    /// <summary>
-    /// Returns the IPropertyValueStatics::CreateXxx vtable slot for a nullable primitive's inner type.
-    /// </summary>
-    public static int GetNullableBoxSlot(TypeRef typeRef)
-    {
-        return NullableBoxSlot[typeRef.TypeArguments[0].Name];
     }
 
     /// <summary>
@@ -290,7 +262,7 @@ public static partial class WireFormat
                     {
                         var iidName = GetInterfaceIidName(field.Type);
                         var innerType = GetNullableInnerCppType(field.Type);
-                        sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}.{field.Name}, {iidName}); RETURN_IF_FAILED(hr);");
+                        sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}.{field.Name}); RETURN_IF_FAILED(hr);");
                     }
                     else
                     {
@@ -445,11 +417,7 @@ public static partial class WireFormat
                     if (IsNullableValueType(field.Type))
                     {
                         var innerType = GetNullableInnerCppType(field.Type);
-                        var boxSlot = HasNullableBoxSlot(field.Type) ? GetNullableBoxSlot(field.Type) : -1;
-                        if (boxSlot >= 0)
-                            sb.AppendLine($"{indent}hr = winmidl::unmarshal_nullable<{innerType}, {boxSlot}>({bufferPtr}, &{varName}.{field.Name}); RETURN_IF_FAILED(hr);");
-                        else
-                            sb.AppendLine($"{indent}// TODO: unmarshal IReference<{innerType}> for struct field (no box slot)");
+                        sb.AppendLine($"{indent}hr = winmidl::unmarshal_nullable<{innerType}>({bufferPtr}, &{varName}.{field.Name}); RETURN_IF_FAILED(hr);");
                     }
                     else
                     {
@@ -524,11 +492,7 @@ public static partial class WireFormat
                     if (IsNullableValueType(field.Type))
                     {
                         var innerType = GetNullableInnerCppType(field.Type);
-                        var boxSlot = HasNullableBoxSlot(field.Type) ? GetNullableBoxSlot(field.Type) : -1;
-                        if (boxSlot >= 0)
-                            sb.AppendLine($"{indent}hr = winmidl::unmarshal_nullable<{innerType}, {boxSlot}>({bufferPtr}, &{fieldTarget}); RETURN_IF_FAILED(hr);");
-                        else
-                            EmitDeserializeReply(sb, field.Type, fieldTarget, bufferPtr, isPointer: false, indent);
+                        sb.AppendLine($"{indent}hr = winmidl::unmarshal_nullable<{innerType}>({bufferPtr}, &{fieldTarget}); RETURN_IF_FAILED(hr);");
                     }
                     else
                     {
@@ -659,7 +623,7 @@ public static partial class WireFormat
                     {
                         var iidName = GetInterfaceIidName(field.Type);
                         var innerType = GetNullableInnerCppType(field.Type);
-                        sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}.{field.Name}, {iidName}); RETURN_IF_FAILED(hr);");
+                        sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}.{field.Name}); RETURN_IF_FAILED(hr);");
                     }
                     else
                     {
@@ -968,3 +932,5 @@ public static partial class WireFormat
         }
     }
 }
+
+
