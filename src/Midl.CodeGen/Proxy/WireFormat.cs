@@ -519,7 +519,19 @@ public static partial class WireFormat
                 foreach (var field in structSym.Fields)
                 {
                     var fieldTarget = $"{prefix}{field.Name}";
-                    EmitDeserializeReply(sb, field.Type, fieldTarget, bufferPtr, isPointer: false, indent);
+                    if (IsNullableValueType(field.Type))
+                    {
+                        var innerType = GetNullableInnerCppType(field.Type);
+                        var boxSlot = HasNullableBoxSlot(field.Type) ? GetNullableBoxSlot(field.Type) : -1;
+                        if (boxSlot >= 0)
+                            sb.AppendLine($"{indent}hr = winmidl::unmarshal_nullable<{innerType}, {boxSlot}>({bufferPtr}, &{fieldTarget}); RETURN_IF_FAILED(hr);");
+                        else
+                            EmitDeserializeReply(sb, field.Type, fieldTarget, bufferPtr, isPointer: false, indent);
+                    }
+                    else
+                    {
+                        EmitDeserializeReply(sb, field.Type, fieldTarget, bufferPtr, isPointer: false, indent);
+                    }
                 }
             }
             return;
@@ -641,7 +653,16 @@ public static partial class WireFormat
             {
                 foreach (var field in structSym.Fields)
                 {
-                    EmitSerializeReplyValue(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                    if (IsNullableValueType(field.Type))
+                    {
+                        var iidName = GetInterfaceIidName(field.Type);
+                        var innerType = GetNullableInnerCppType(field.Type);
+                        sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}.{field.Name}, {iidName}); RETURN_IF_FAILED(hr);");
+                    }
+                    else
+                    {
+                        EmitSerializeReplyValue(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                    }
                 }
             }
             return;
