@@ -319,29 +319,45 @@ public static class SemanticTokensHandler
     /// <summary>
     /// <summary>
     /// Emits semantic tokens for a doc comment, splitting into:
-    ///   "///" → comment, XML tags → decorator, content → string
+    ///   prefix → comment, XML tags or Doxygen @commands → decorator, content → string
+    /// Handles ///, //!, /** */, /*! */ prefixes.
     /// </summary>
     private static void EmitDocCommentTokens(string text, int offset, int[] lineStarts,
         List<int> encodedTokens, ref int prevLine, ref int prevChar)
     {
         var (baseLine, baseChar) = PositionHelper.OffsetToLineChar(lineStarts, offset);
 
-        // Emit "///" prefix as comment
-        int slashCount = 3;
-        while (slashCount < text.Length && text[slashCount] == '/') slashCount++;
+        // Determine prefix length: /// (3+), //! (3), /** or /*! (handled as multiline)
+        int prefixLen;
+        bool isMultiLine = text.StartsWith("/*");
+        if (isMultiLine)
+        {
+            // For /** or /*!, just emit the whole block as comment + decorator for Doxygen tags
+            EmitMultiLineDocCommentTokens(text, offset, lineStarts, encodedTokens, ref prevLine, ref prevChar);
+            return;
+        }
+
+        if (text.StartsWith("//!"))
+            prefixLen = 3;
+        else
+        {
+            prefixLen = 3; // ///
+            while (prefixLen < text.Length && text[prefixLen] == '/') prefixLen++;
+        }
+
+        // Emit prefix as comment
         int deltaLine = baseLine - prevLine;
         int deltaChar = deltaLine == 0 ? baseChar - prevChar : baseChar;
-        encodedTokens.AddRange([deltaLine, deltaChar, slashCount, TypeComment, 0]);
+        encodedTokens.AddRange([deltaLine, deltaChar, prefixLen, TypeComment, 0]);
         prevLine = baseLine;
         prevChar = baseChar;
 
-        // Scan the rest for XML tags vs content
-        int i = slashCount;
+        // Scan the rest for XML tags or Doxygen @/\ commands vs content
+        int i = prefixLen;
         while (i < text.Length)
         {
             if (text[i] == '<')
             {
-                // Find end of tag
                 int tagStart = i;
                 int tagEnd = text.IndexOf('>', i);
                 if (tagEnd < 0) tagEnd = text.Length - 1;
@@ -354,15 +370,37 @@ public static class SemanticTokensHandler
                 prevChar = tagChar;
                 i = tagEnd + 1;
             }
+            else if ((text[i] == '@' || text[i] == '\\') && i + 1 < text.Length && char.IsLetter(text[i + 1]))
+            {
+                // Doxygen command — find end of command name
+                int cmdStart = i;
+                int cmdEnd = i + 1;
+                while (cmdEnd < text.Length && char.IsLetterOrDigit(text[cmdEnd])) cmdEnd++;
+                int cmdLen = cmdEnd - cmdStart;
+
+                int cmdChar = baseChar + cmdStart;
+                deltaLine = 0;
+                deltaChar = cmdChar - prevChar;
+                encodedTokens.AddRange([deltaLine, deltaChar, cmdLen, TypeDecorator, 0]);
+                prevChar = cmdChar;
+                i = cmdEnd;
+            }
             else
             {
-                // Content between tags — find next '<' or end
+                // Content — find next tag or command
                 int contentStart = i;
-                int nextTag = text.IndexOf('<', i);
-                if (nextTag < 0) nextTag = text.Length;
-                int contentLen = nextTag - contentStart;
+                int nextSpecial = text.Length;
+                for (int j = i; j < text.Length; j++)
+                {
+                    if (text[j] == '<' || ((text[j] == '@' || text[j] == '\\') && j + 1 < text.Length && char.IsLetter(text[j + 1])))
+                    {
+                        nextSpecial = j;
+                        break;
+                    }
+                }
+                int contentLen = nextSpecial - contentStart;
 
-                if (contentLen > 0 && text[contentStart..nextTag].Trim().Length > 0)
+                if (contentLen > 0 && text[contentStart..nextSpecial].Trim().Length > 0)
                 {
                     int contentChar = baseChar + contentStart;
                     deltaLine = 0;
@@ -370,7 +408,105 @@ public static class SemanticTokensHandler
                     encodedTokens.AddRange([deltaLine, deltaChar, contentLen, TypeString, 0]);
                     prevChar = contentChar;
                 }
-                i = nextTag;
+                i = nextSpecial;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Emits semantic tokens for a multiline doc comment (/** */ or /*! */).
+    /// Classifies the opening/closing markers and leading * as comment,
+    /// Doxygen @commands and XML tags as decorator, and content as string.
+    /// </summary>
+    private static void EmitMultiLineDocCommentTokens(string text, int offset, int[] lineStarts,
+        List<int> encodedTokens, ref int prevLine, ref int prevChar)
+    {
+        var (baseLine, baseChar) = PositionHelper.OffsetToLineChar(lineStarts, offset);
+
+        // Walk through the text character by character, classifying spans
+        int i = 0;
+        int currentOffset = offset;
+
+        while (i < text.Length)
+        {
+            var (tLine, tChar) = PositionHelper.OffsetToLineChar(lineStarts, currentOffset);
+
+            if (text[i] == '<')
+            {
+                // XML tag → decorator
+                int tagStart = i;
+                int tagEnd = text.IndexOf('>', i);
+                if (tagEnd < 0) tagEnd = text.Length - 1;
+                int tagLen = tagEnd - tagStart + 1;
+
+                int deltaLine = tLine - prevLine;
+                int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
+                encodedTokens.AddRange([deltaLine, deltaChar, tagLen, TypeDecorator, 0]);
+                prevLine = tLine;
+                prevChar = tChar;
+                i += tagLen;
+                currentOffset += tagLen;
+            }
+            else if ((text[i] == '@' || text[i] == '\\') && i + 1 < text.Length && char.IsLetter(text[i + 1]))
+            {
+                // Doxygen command → decorator
+                int cmdStart = i;
+                int cmdEnd = i + 1;
+                while (cmdEnd < text.Length && char.IsLetterOrDigit(text[cmdEnd])) cmdEnd++;
+                int cmdLen = cmdEnd - cmdStart;
+
+                int deltaLine = tLine - prevLine;
+                int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
+                encodedTokens.AddRange([deltaLine, deltaChar, cmdLen, TypeDecorator, 0]);
+                prevLine = tLine;
+                prevChar = tChar;
+                i += cmdLen;
+                currentOffset += cmdLen;
+            }
+            else
+            {
+                // Determine span type: comment for markers/whitespace/stars, string for content
+                int spanStart = i;
+                bool isCommentSpan = (i < 3) || // opening /** or /*!
+                    (text[i] == '*' && (i + 1 >= text.Length || text[i + 1] == '/')) || // closing */
+                    (text[i] == '*' && (i + 1 < text.Length && (text[i + 1] == ' ' || text[i + 1] == '\n' || text[i + 1] == '\r'))) || // leading *
+                    text[i] == '\n' || text[i] == '\r';
+
+                // Find next special character
+                int nextSpecial = text.Length;
+                for (int j = i + 1; j < text.Length; j++)
+                {
+                    if (text[j] == '<' || ((text[j] == '@' || text[j] == '\\') && j + 1 < text.Length && char.IsLetter(text[j + 1])))
+                    {
+                        nextSpecial = j;
+                        break;
+                    }
+                    // Also break at newlines to keep tokens per-line
+                    if (text[j] == '\n')
+                    {
+                        nextSpecial = j + 1;
+                        break;
+                    }
+                }
+
+                int spanLen = nextSpecial - spanStart;
+                var spanText = text[spanStart..nextSpecial];
+                bool hasContent = spanText.Trim().Length > 0 &&
+                    spanText.Trim() != "*" && spanText.Trim() != "*/";
+
+                int tokenType = hasContent && !isCommentSpan ? TypeString : TypeComment;
+
+                if (spanLen > 0)
+                {
+                    int deltaLine = tLine - prevLine;
+                    int deltaChar = deltaLine == 0 ? tChar - prevChar : tChar;
+                    encodedTokens.AddRange([deltaLine, deltaChar, spanLen, tokenType, 0]);
+                    prevLine = tLine;
+                    prevChar = tChar;
+                }
+
+                i += spanLen;
+                currentOffset += spanLen;
             }
         }
     }

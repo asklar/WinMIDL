@@ -397,6 +397,380 @@ public class DocCommentTests
 
     #endregion
 
+    #region Doxygen — Lexer: DocCommentTrivia for Doxygen comment styles
+
+    [Fact]
+    public void DoxygenSlashBang_ProducesDocCommentTrivia()
+    {
+        var lexer = new Lexer.Lexer("//! A doc comment\nint x;");
+        var tokens = lexer.Lex();
+        Assert.Contains(tokens[0].LeadingTrivia,
+            t => t.Kind == SyntaxKind.DocCommentTrivia);
+    }
+
+    [Fact]
+    public void DoxygenBlockStarStar_ProducesDocCommentTrivia()
+    {
+        var lexer = new Lexer.Lexer("/** A doc comment */ int x;");
+        var tokens = lexer.Lex();
+        Assert.Contains(tokens[0].LeadingTrivia,
+            t => t.Kind == SyntaxKind.DocCommentTrivia);
+    }
+
+    [Fact]
+    public void DoxygenBlockBangStar_ProducesDocCommentTrivia()
+    {
+        var lexer = new Lexer.Lexer("/*! A doc comment */ int x;");
+        var tokens = lexer.Lex();
+        Assert.Contains(tokens[0].LeadingTrivia,
+            t => t.Kind == SyntaxKind.DocCommentTrivia);
+    }
+
+    [Fact]
+    public void TripleStarBlock_ProducesMultiLineCommentTrivia()
+    {
+        // /*** is NOT a doc comment — 3+ stars
+        var lexer = new Lexer.Lexer("/*** not a doc comment */ int x;");
+        var tokens = lexer.Lex();
+        Assert.Contains(tokens[0].LeadingTrivia,
+            t => t.Kind == SyntaxKind.MultiLineCommentTrivia);
+        Assert.DoesNotContain(tokens[0].LeadingTrivia,
+            t => t.Kind == SyntaxKind.DocCommentTrivia);
+    }
+
+    [Fact]
+    public void DoxygenBlockEmpty_ProducesDocCommentTrivia()
+    {
+        // /** */ is a valid doc comment (empty)
+        var lexer = new Lexer.Lexer("/**/ int x;");
+        var tokens = lexer.Lex();
+        // /**/ is actually just a regular comment since there's no content after /**
+        // It's "/*" + "*/" which is a regular multiline comment
+        Assert.Contains(tokens[0].LeadingTrivia,
+            t => t.Kind == SyntaxKind.MultiLineCommentTrivia);
+    }
+
+    [Fact]
+    public void DoxygenBlockMultiLine_ProducesDocCommentTrivia()
+    {
+        var source = "/**\n * @brief Summary\n * @param x desc\n */\nint x;";
+        var lexer = new Lexer.Lexer(source);
+        var tokens = lexer.Lex();
+        Assert.Contains(tokens[0].LeadingTrivia,
+            t => t.Kind == SyntaxKind.DocCommentTrivia);
+    }
+
+    #endregion
+
+    #region Doxygen — DocComment.Parse: Doxygen tag translation
+
+    [Fact]
+    public void DoxygenParse_BriefAt()
+    {
+        var doc = DocComment.Parse("@brief This is a summary");
+        Assert.NotNull(doc);
+        Assert.Equal("This is a summary", doc!.Summary);
+    }
+
+    [Fact]
+    public void DoxygenParse_BriefBackslash()
+    {
+        var doc = DocComment.Parse("\\brief Same thing");
+        Assert.NotNull(doc);
+        Assert.Equal("Same thing", doc!.Summary);
+    }
+
+    [Fact]
+    public void DoxygenParse_ParamAt()
+    {
+        var doc = DocComment.Parse("@param name The description");
+        Assert.NotNull(doc);
+        Assert.True(doc!.Params.ContainsKey("name"));
+        Assert.Equal("The description", doc.Params["name"]);
+    }
+
+    [Fact]
+    public void DoxygenParse_ParamBackslash()
+    {
+        var doc = DocComment.Parse("\\param name The description");
+        Assert.NotNull(doc);
+        Assert.True(doc!.Params.ContainsKey("name"));
+        Assert.Equal("The description", doc.Params["name"]);
+    }
+
+    [Fact]
+    public void DoxygenParse_ReturnAt()
+    {
+        var doc = DocComment.Parse("@return The result");
+        Assert.NotNull(doc);
+        Assert.Equal("The result", doc!.Returns);
+    }
+
+    [Fact]
+    public void DoxygenParse_ReturnsAt()
+    {
+        var doc = DocComment.Parse("@returns The result");
+        Assert.NotNull(doc);
+        Assert.Equal("The result", doc!.Returns);
+    }
+
+    [Fact]
+    public void DoxygenParse_ReturnBackslash()
+    {
+        var doc = DocComment.Parse("\\return The result");
+        Assert.NotNull(doc);
+        Assert.Equal("The result", doc!.Returns);
+    }
+
+    [Fact]
+    public void DoxygenParse_ReturnsBackslash()
+    {
+        var doc = DocComment.Parse("\\returns The result");
+        Assert.NotNull(doc);
+        Assert.Equal("The result", doc!.Returns);
+    }
+
+    [Fact]
+    public void DoxygenParse_SeeAt()
+    {
+        var doc = DocComment.Parse("@see SomeType");
+        Assert.NotNull(doc);
+        Assert.NotNull(doc!.RawXml);
+        // @see translates to <seealso cref="SomeType"/>
+        Assert.Contains("SomeType", doc.RawXml);
+    }
+
+    [Fact]
+    public void DoxygenParse_NoteAt()
+    {
+        var doc = DocComment.Parse("@note Important note");
+        Assert.NotNull(doc);
+        Assert.Equal("Important note", doc!.Remarks);
+    }
+
+    [Fact]
+    public void DoxygenParse_DeprecatedAt()
+    {
+        var doc = DocComment.Parse("@deprecated Use NewThing instead");
+        Assert.NotNull(doc);
+        Assert.NotNull(doc!.Remarks);
+        Assert.Contains("Deprecated:", doc.Remarks);
+        Assert.Contains("Use NewThing instead", doc.Remarks);
+    }
+
+    [Fact]
+    public void DoxygenParse_Mixed()
+    {
+        var doc = DocComment.Parse("@brief Summary text\n@param x The x param\n@returns The result");
+        Assert.NotNull(doc);
+        Assert.Equal("Summary text", doc!.Summary);
+        Assert.True(doc.Params.ContainsKey("x"));
+        Assert.Equal("The x param", doc.Params["x"]);
+        Assert.Equal("The result", doc.Returns);
+    }
+
+    [Fact]
+    public void DoxygenParse_PlainText_BecomesSummary()
+    {
+        var doc = DocComment.Parse("Just a plain description");
+        Assert.NotNull(doc);
+        Assert.Equal("Just a plain description", doc!.Summary);
+    }
+
+    [Fact]
+    public void DoxygenParse_XdcStillWorks()
+    {
+        // Existing XDC format must not regress
+        var doc = DocComment.Parse("<summary>XML summary</summary>");
+        Assert.NotNull(doc);
+        Assert.Equal("XML summary", doc!.Summary);
+    }
+
+    [Fact]
+    public void DoxygenParse_MultipleParams()
+    {
+        var doc = DocComment.Parse("@brief Do something\n@param x First\n@param y Second");
+        Assert.NotNull(doc);
+        Assert.Equal("Do something", doc!.Summary);
+        Assert.Equal(2, doc.Params.Count);
+        Assert.Equal("First", doc.Params["x"]);
+        Assert.Equal("Second", doc.Params["y"]);
+    }
+
+    #endregion
+
+    #region Doxygen — Binder: extraction from Doxygen comments
+
+    [Fact]
+    public void DocComment_DoxygenBlockOnRuntimeClass()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                /**
+                 * @brief A widget class.
+                 */
+                runtimeclass Widget
+                {
+                    void DoStuff();
+                }
+            }
+            """);
+
+        var widget = compilation.GetAllTypes()
+            .OfType<Symbols.RuntimeClassSymbol>()
+            .FirstOrDefault(t => t.Name == "Widget");
+        Assert.NotNull(widget);
+        Assert.NotNull(widget!.DocComment);
+        Assert.Equal("A widget class.", widget.DocComment!.Summary);
+    }
+
+    [Fact]
+    public void DocComment_DoxygenBlockMethodWithParams()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass Widget
+                {
+                    /**
+                     * @brief Does stuff.
+                     * @param count The count.
+                     * @returns A result.
+                     */
+                    Int32 DoStuff(Int32 count);
+                }
+            }
+            """);
+
+        var widget = compilation.GetAllTypes()
+            .OfType<Symbols.RuntimeClassSymbol>()
+            .First(t => t.Name == "Widget");
+        var method = widget.Members.OfType<Symbols.MethodSymbol>()
+            .First(m => m.Name == "DoStuff");
+        Assert.NotNull(method.DocComment);
+        Assert.Equal("Does stuff.", method.DocComment!.Summary);
+        Assert.True(method.DocComment.Params.ContainsKey("count"));
+        Assert.Equal("The count.", method.DocComment.Params["count"]);
+        Assert.Equal("A result.", method.DocComment.Returns);
+    }
+
+    [Fact]
+    public void DocComment_DoxygenSlashBangOnClass()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                //! @brief A bang widget.
+                runtimeclass Widget
+                {
+                    void DoStuff();
+                }
+            }
+            """);
+
+        var widget = compilation.GetAllTypes()
+            .OfType<Symbols.RuntimeClassSymbol>()
+            .FirstOrDefault(t => t.Name == "Widget");
+        Assert.NotNull(widget);
+        Assert.NotNull(widget!.DocComment);
+        Assert.Equal("A bang widget.", widget.DocComment!.Summary);
+    }
+
+    [Fact]
+    public void DocComment_DoxygenTripleSlashTags()
+    {
+        // Doxygen tags with /// prefix should also work
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                /// @brief A class.
+                runtimeclass Widget
+                {
+                    void DoStuff();
+                }
+            }
+            """);
+
+        var widget = compilation.GetAllTypes()
+            .OfType<Symbols.RuntimeClassSymbol>()
+            .FirstOrDefault(t => t.Name == "Widget");
+        Assert.NotNull(widget);
+        Assert.NotNull(widget!.DocComment);
+        Assert.Equal("A class.", widget.DocComment!.Summary);
+    }
+
+    [Fact]
+    public void DocComment_DoxygenExclamationBlockOnClass()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                /*!
+                 * @brief An excl widget.
+                 */
+                runtimeclass Widget
+                {
+                    void DoStuff();
+                }
+            }
+            """);
+
+        var widget = compilation.GetAllTypes()
+            .OfType<Symbols.RuntimeClassSymbol>()
+            .FirstOrDefault(t => t.Name == "Widget");
+        Assert.NotNull(widget);
+        Assert.NotNull(widget!.DocComment);
+        Assert.Equal("An excl widget.", widget.DocComment!.Summary);
+    }
+
+    #endregion
+
+    #region Doxygen — Semantic tokens
+
+    [Fact]
+    public void SemanticTokens_DoxygenTags_ClassifiedAsDecorator()
+    {
+        var source = "/// @brief A widget.\nnamespace N { }";
+        var compilation = CompilationHelper.Compile(source);
+        var (data, types, _) = Midl.Lsp.Handlers.SemanticTokensHandler.HandleCore(source, compilation);
+
+        int decoratorType = Array.IndexOf(types, "decorator");
+
+        // Should have a decorator token for "@brief"
+        bool hasDecorator = false;
+        for (int i = 0; i < data.Length; i += 5)
+        {
+            if (data[i + 3] == decoratorType) hasDecorator = true;
+        }
+        Assert.True(hasDecorator, "Doxygen @brief tag should produce a decorator semantic token");
+    }
+
+    [Fact]
+    public void SemanticTokens_DoxygenSlashBang_ClassifiedCorrectly()
+    {
+        var source = "//! @brief A widget.\nnamespace N { }";
+        var compilation = CompilationHelper.Compile(source);
+        var (data, types, _) = Midl.Lsp.Handlers.SemanticTokensHandler.HandleCore(source, compilation);
+
+        int commentType = Array.IndexOf(types, "comment");
+        int decoratorType = Array.IndexOf(types, "decorator");
+
+        // First token should be "//!" as comment
+        Assert.True(data.Length >= 5);
+        Assert.Equal(commentType, data[3]); // type = comment
+
+        // Should have decorator for @brief
+        bool hasDecorator = false;
+        for (int i = 0; i < data.Length; i += 5)
+        {
+            if (data[i + 3] == decoratorType) hasDecorator = true;
+        }
+        Assert.True(hasDecorator, "Doxygen @brief in //! comment should produce decorator token");
+    }
+
+    #endregion
+
     #region Phase 7 — MIDL3021 malformed doc comment diagnostic
 
     [Fact]
@@ -431,6 +805,216 @@ public class DocCommentTests
             """);
 
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL3021");
+    }
+
+    #endregion
+
+    #region CR fix 1 — @param[in] direction modifier
+
+    [Fact]
+    public void DoxygenParse_ParamIn()
+    {
+        var doc = DocComment.Parse("@param[in] x The input param");
+        Assert.NotNull(doc);
+        Assert.True(doc!.Params.ContainsKey("x"));
+        Assert.Equal("The input param", doc.Params["x"]);
+    }
+
+    [Fact]
+    public void DoxygenParse_ParamOut()
+    {
+        var doc = DocComment.Parse("@param[out] y The output param");
+        Assert.NotNull(doc);
+        Assert.True(doc!.Params.ContainsKey("y"));
+        Assert.Equal("The output param", doc.Params["y"]);
+    }
+
+    [Fact]
+    public void DoxygenParse_ParamInOut()
+    {
+        var doc = DocComment.Parse("@param[in,out] z The bidirectional param");
+        Assert.NotNull(doc);
+        Assert.True(doc!.Params.ContainsKey("z"));
+        Assert.Equal("The bidirectional param", doc.Params["z"]);
+    }
+
+    [Fact]
+    public void DoxygenParse_ParamIn_Backslash()
+    {
+        var doc = DocComment.Parse("\\param[in] w A param");
+        Assert.NotNull(doc);
+        Assert.True(doc!.Params.ContainsKey("w"));
+        Assert.Equal("A param", doc.Params["w"]);
+    }
+
+    #endregion
+
+    #region CR fix 2 — Multiline /** */ semantic tokens for Doxygen tags
+
+    [Fact]
+    public void SemanticTokens_DoxygenBlockComment_HasDecoratorTokens()
+    {
+        var source = "/** @brief A widget. */\nnamespace N { }";
+        var compilation = CompilationHelper.Compile(source);
+        var (data, types, _) = Midl.Lsp.Handlers.SemanticTokensHandler.HandleCore(source, compilation);
+
+        int decoratorType = Array.IndexOf(types, "decorator");
+
+        bool hasDecorator = false;
+        for (int i = 0; i < data.Length; i += 5)
+        {
+            if (data[i + 3] == decoratorType) hasDecorator = true;
+        }
+        Assert.True(hasDecorator, "Doxygen @brief in /** */ block should produce a decorator semantic token");
+    }
+
+    #endregion
+
+    #region CR fix 3 — Prefix stripping: *@brief without space
+
+    [Fact]
+    public void DocComment_StarAtBrief_NoSpace()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                /**
+                 *@brief A widget without space.
+                 */
+                runtimeclass Widget
+                {
+                    void DoStuff();
+                }
+            }
+            """);
+
+        var widget = compilation.GetAllTypes()
+            .OfType<Symbols.RuntimeClassSymbol>()
+            .FirstOrDefault(t => t.Name == "Widget");
+        Assert.NotNull(widget);
+        Assert.NotNull(widget!.DocComment);
+        Assert.Equal("A widget without space.", widget.DocComment!.Summary);
+    }
+
+    [Fact]
+    public void DocComment_StarBackslashBrief_NoSpace()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                /**
+                 *\brief A backslash widget.
+                 */
+                runtimeclass Widget
+                {
+                    void DoStuff();
+                }
+            }
+            """);
+
+        var widget = compilation.GetAllTypes()
+            .OfType<Symbols.RuntimeClassSymbol>()
+            .FirstOrDefault(t => t.Name == "Widget");
+        Assert.NotNull(widget);
+        Assert.NotNull(widget!.DocComment);
+        Assert.Equal("A backslash widget.", widget.DocComment!.Summary);
+    }
+
+    #endregion
+
+    #region CR fix 4 — /***/ edge case
+
+    [Fact]
+    public void TripleStarSlash_ProducesMultiLineCommentTrivia()
+    {
+        // /***/ — 3 stars then close — should NOT be a doc comment
+        var lexer = new Lexer.Lexer("/***/ int x;");
+        var tokens = lexer.Lex();
+        Assert.Contains(tokens[0].LeadingTrivia,
+            t => t.Kind == SyntaxKind.MultiLineCommentTrivia);
+        Assert.DoesNotContain(tokens[0].LeadingTrivia,
+            t => t.Kind == SyntaxKind.DocCommentTrivia);
+    }
+
+    #endregion
+
+    #region CR fix 5 — Integration: hover + XDC with Doxygen comments
+
+    [Fact]
+    public void Hover_DoxygenDocComment_ReturnsSummary()
+    {
+        var uri = "file:///test_doxygen_hover.midl";
+        var source = """
+            namespace N
+            {
+                /** @brief A cool widget. */
+                runtimeclass Widget
+                {
+                    void Do();
+                }
+            }
+            """;
+        var dm = new Midl.Lsp.DocumentManager();
+        dm.OpenDocument(uri, source);
+
+        // Find line/char of "Widget" in "runtimeclass Widget"
+        var lines = source.Split('\n');
+        int widgetLine = -1, widgetChar = -1;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int idx = lines[i].IndexOf("runtimeclass Widget");
+            if (idx >= 0)
+            {
+                widgetLine = i;
+                widgetChar = idx + "runtimeclass ".Length;
+                break;
+            }
+        }
+        Assert.True(widgetLine >= 0);
+
+        var posParams = System.Text.Json.JsonDocument.Parse($$"""
+            {
+                "textDocument": { "uri": "{{uri}}" },
+                "position": { "line": {{widgetLine}}, "character": {{widgetChar}} }
+            }
+            """).RootElement;
+
+        var result = Midl.Lsp.Handlers.HoverHandler.Handle(posParams, dm);
+        Assert.NotNull(result);
+
+        var json = System.Text.Json.JsonSerializer.Serialize(result, Midl.Lsp.Protocol.LspJsonContext.Default.HoverResult);
+        Assert.Contains("A cool widget.", json);
+    }
+
+    [Fact]
+    public void XdcEmitter_DoxygenComments_ProducesOutput()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace MyLib
+            {
+                /**
+                 * @brief A Doxygen widget.
+                 */
+                runtimeclass Widget
+                {
+                    /**
+                     * @brief Does stuff.
+                     * @param count The count.
+                     * @returns A result.
+                     */
+                    Int32 DoStuff(Int32 count);
+                }
+            }
+            """);
+
+        var emitter = new Midl.CodeGen.Xdc.XdcEmitter();
+        var xml = emitter.Emit(compilation, "MyLib");
+
+        Assert.Contains("T:MyLib.Widget", xml);
+        Assert.Contains("A Doxygen widget.", xml);
+        Assert.Contains("M:MyLib.Widget.DoStuff(Int32)", xml);
+        Assert.Contains("Does stuff.", xml);
+        Assert.Contains("count", xml);
     }
 
     #endregion

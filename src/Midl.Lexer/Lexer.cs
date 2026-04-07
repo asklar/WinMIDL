@@ -153,10 +153,13 @@ public sealed class Lexer
     {
         int start = _window.Position;
         _window.AdvanceChar(2); // skip //
-        // Distinguish /// doc comments from regular // comments
-        bool isDocComment = !_window.IsAtEnd && _window.PeekChar() == '/' && (_window.IsAtEnd || _window.PeekChar(1) != '/');
+        // Distinguish doc comments from regular // comments:
+        //   /// (but not ////) and //! are doc comments
+        bool isDocComment = !_window.IsAtEnd &&
+            ((_window.PeekChar() == '/' && (_window.IsAtEnd || _window.PeekChar(1) != '/')) ||
+             _window.PeekChar() == '!');
         if (isDocComment)
-            _window.AdvanceChar(); // skip third /
+            _window.AdvanceChar(); // skip third char (/ or !)
         while (!_window.IsAtEnd)
         {
             char ch = _window.PeekChar();
@@ -173,6 +176,10 @@ public sealed class Lexer
     {
         int start = _window.Position;
         _window.AdvanceChar(2); // skip /*
+        // Detect /** or /*! (but not /***) as doc comments
+        bool isDocComment = !_window.IsAtEnd &&
+            ((_window.PeekChar() == '*' && _window.PeekChar(1) != '*' && _window.PeekChar(1) != '/') ||
+             _window.PeekChar() == '!');
         while (!_window.IsAtEnd)
         {
             if (_window.PeekChar() == '*' && _window.PeekChar(1) == '/')
@@ -182,7 +189,8 @@ public sealed class Lexer
             }
             _window.AdvanceChar();
         }
-        return new SyntaxTrivia(SyntaxKind.MultiLineCommentTrivia,
+        var kind = isDocComment ? SyntaxKind.DocCommentTrivia : SyntaxKind.MultiLineCommentTrivia;
+        return new SyntaxTrivia(kind,
             _window.GetText(start, _window.Position - start));
     }
 
