@@ -6,8 +6,9 @@ namespace Midl.CodeGen.Tests;
 
 /// <summary>
 /// Tests for nullable / IReference&lt;T&gt; marshaling in proxy/stub codegen.
-/// IReference&lt;T&gt; is a WinRT interface — marshaled via CoMarshalInterface
-/// like other interface pointers.
+/// Primitive IReference&lt;T&gt; (Int32, Double, etc.) uses inline encoding:
+///   [uint8 hasValue][T value]  — fixed size, no CoMarshalInterface.
+/// Non-primitive IReference&lt;T&gt; (user structs) falls back to interface marshaling.
 /// </summary>
 public class NullableMarshalingTests
 {
@@ -16,7 +17,7 @@ public class NullableMarshalingTests
 
     private static Compilation Compile(string source) => CompilationHelper.Compile(source);
 
-    // ─── Proxy: IReference<T> return emits marshal_interface ───
+    // ─── Proxy: IReference<Int32> return uses marshal_interface (method param) ───
 
     [Fact]
     public void ProxyGenerator_NullableInt32_EmitsMarshalInterface()
@@ -30,12 +31,12 @@ public class NullableMarshalingTests
 
         var output = _proxyGen.Generate(compilation);
 
-        // IReference<T> is an interface — should use interface marshaling
+        // IReference<T> as method return — uses interface marshaling
         Assert.Contains("marshal_interface", output);
-        Assert.DoesNotContain("// TODO", output);
+        Assert.DoesNotContain("marshal_nullable", output);
     }
 
-    // ─── Stub: IReference<T> param emits unmarshal_interface ───
+    // ─── Stub: IReference<Int32> param uses unmarshal_interface (method param) ───
 
     [Fact]
     public void StubGenerator_NullableParam_EmitsUnmarshalInterface()
@@ -50,24 +51,58 @@ public class NullableMarshalingTests
         var output = _stubGen.Generate(compilation);
 
         Assert.Contains("unmarshal_interface", output);
+        Assert.DoesNotContain("unmarshal_nullable", output);
     }
 
-    // ─── WireFormat: IReference<T> is not fixed size ───
+    // ─── WireFormat: IReference<Int32> as method param is NOT fixed size ───
 
     [Fact]
-    public void WireFormat_NullableParam_IsNotFixedSize()
+    public void WireFormat_NullableMethodParam_IsNotFixedSize()
     {
-        var ifaceSym = new InterfaceSymbol("IReference", null);
+        var ns = new NamespaceSymbol("Windows.Foundation", null);
+        var ifaceSym = new InterfaceSymbol("IReference", ns);
         var typeArg = new TypeRef("Int32") { IsBuiltIn = true };
         var typeRef = new TypeRef("IReference", [typeArg]) { ResolvedSymbol = ifaceSym };
 
+        // Method params use marshal_interface — not fixed size
         Assert.False(WireFormat.IsFixedSize(typeRef));
     }
 
-    // ─── Proxy: IReference<T> retval unmarshals as interface ───
+    // ─── WireFormat: IReference<Int32> IS a nullable value type (for struct fields) ───
 
     [Fact]
-    public void ProxyGenerator_NullableRetval_HandledCorrectly()
+    public void WireFormat_NullableInt32_IsNullableValueType()
+    {
+        var ns = new NamespaceSymbol("Windows.Foundation", null);
+        var ifaceSym = new InterfaceSymbol("IReference", ns);
+        var typeArg = new TypeRef("Int32") { IsBuiltIn = true };
+        var typeRef = new TypeRef("IReference", [typeArg]) { ResolvedSymbol = ifaceSym };
+
+        Assert.True(WireFormat.IsNullableValueType(typeRef));
+        Assert.Equal(5, WireFormat.GetNullableWireSize(typeRef)); // 1 + sizeof(INT32)
+    }
+
+    // ─── WireFormat: IReference<Point> IS also a nullable value type ───
+
+    [Fact]
+    public void WireFormat_NullableStruct_IsNullableValueType()
+    {
+        var ns = new NamespaceSymbol("Windows.Foundation", null);
+        var ifaceSym = new InterfaceSymbol("IReference", ns);
+        var structSym = new StructSymbol("Point", null);
+        structSym.AddField(new FieldSymbol("X", structSym) { Type = new TypeRef("Single") });
+        structSym.AddField(new FieldSymbol("Y", structSym) { Type = new TypeRef("Single") });
+        var typeArg = new TypeRef("Point") { ResolvedSymbol = structSym };
+        var typeRef = new TypeRef("IReference", [typeArg]) { ResolvedSymbol = ifaceSym };
+
+        Assert.True(WireFormat.IsNullableValueType(typeRef));
+        Assert.Equal(9, WireFormat.GetNullableWireSize(typeRef)); // 1 + sizeof(float)*2
+    }
+
+    // ─── Proxy: IReference<Int32> retval still uses marshal_interface ───
+
+    [Fact]
+    public void ProxyGenerator_NullableRetval_UsesMarshalInterface()
     {
         var compilation = Compile(@"
             namespace TestApp {
@@ -78,11 +113,12 @@ public class NullableMarshalingTests
 
         var output = _proxyGen.Generate(compilation);
 
-        // Return type IReference<T> should unmarshal as interface on the proxy side
+        // Return type IReference<Int32> on method — uses interface marshaling
         Assert.Contains("unmarshal_interface", output);
+        Assert.DoesNotContain("unmarshal_nullable", output);
     }
 
-    // ─── WireFormat: IReference<T> detected as interface type ───
+    // ─── WireFormat: IReference<T> still detected as interface type ───
 
     [Fact]
     public void WireFormat_NullableType_IsInterfaceType()
@@ -142,7 +178,7 @@ public class NullableMarshalingTests
         Assert.Equal("IID___x_TestApp_IWidget", iidName);
     }
 
-    // ─── Proxy: IReference<T> param emits marshal_interface with IID ───
+    // ─── Proxy: IReference<Int32> param emits marshal_interface (method param) ───
 
     [Fact]
     public void ProxyGenerator_NullableParam_EmitsMarshalInterfaceWithIid()
@@ -157,12 +193,11 @@ public class NullableMarshalingTests
         var output = _proxyGen.Generate(compilation);
 
         Assert.Contains("winmidl::marshal_interface", output);
-        // The IID should reference the parameterized instantiation, not just the base
         Assert.Contains("IReference", output);
         Assert.Contains("Int32", output);
     }
 
-    // ─── Stub: IReference<T> retval emits marshal_interface ───
+    // ─── Stub: IReference<Int32> retval emits marshal_interface ───
 
     [Fact]
     public void StubGenerator_NullableRetval_EmitsMarshalInterface()
@@ -176,7 +211,7 @@ public class NullableMarshalingTests
 
         var output = _stubGen.Generate(compilation);
 
-        // Stub serializes reply with marshal_interface
+        // Stub serializes reply with marshal_interface (method retval, not struct field)
         Assert.Contains("winmidl::marshal_interface", output);
     }
 
@@ -194,8 +229,10 @@ public class NullableMarshalingTests
         Assert.Equal("winmidl::param_type::t_interface", paramType);
     }
 
+    // ─── Both IReference params use marshal_interface as method params ───
+
     [Fact]
-    public void ProxyGenerator_TwoIReferenceParams_UseDifferentIids()
+    public void ProxyGenerator_TwoIReferenceParams_BothUseMarshalInterface()
     {
         var idl = @"
             namespace TestApp {
@@ -213,15 +250,9 @@ public class NullableMarshalingTests
         var proxyOutput = proxyGen.Generate(compilation);
         var stubOutput = stubGen.Generate(compilation);
 
-        // Both IIDs should be present and different
-        Assert.Contains("IID_IReference_1_Int32", proxyOutput);
-        Assert.Contains("IID_IReference_1___x_TestApp_Point", proxyOutput);
-
-        // Proxy marshals each param with its own IID
+        // Both are method params → marshal_interface (not inline)
         Assert.Contains("marshal_interface(p, optCount, IID_IReference_1_Int32)", proxyOutput);
         Assert.Contains("marshal_interface(p, optPos, IID_IReference_1___x_TestApp_Point)", proxyOutput);
-
-        // Stub unmarshals each param with its own IID
         Assert.Contains("unmarshal_interface(p, IID_IReference_1_Int32", stubOutput);
         Assert.Contains("unmarshal_interface(p, IID_IReference_1___x_TestApp_Point", stubOutput);
     }
@@ -241,7 +272,7 @@ public class NullableMarshalingTests
         var proxyGen = new ProxyGenerator();
         var proxyOutput = proxyGen.Generate(compilation);
 
-        // Return values should unmarshal with different IIDs
+        // Both are method retvals → use unmarshal_interface
         Assert.Contains("unmarshal_interface(pReply, IID_IReference_1_Int32", proxyOutput);
         Assert.Contains("unmarshal_interface(pReply, IID_IReference_1___x_TestApp_Point", proxyOutput);
     }
