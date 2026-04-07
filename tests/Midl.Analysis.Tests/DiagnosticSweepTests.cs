@@ -159,7 +159,49 @@ public class DiagnosticSweepTests
         // Should have MIDL1044 (duplicate method name) and possibly MIDL1011 (same arity)
         Assert.Contains(compilation.Diagnostics, d =>
             d.Code == "MIDL1044" && d.Severity == DiagnosticSeverity.Warning
-            && d.Message.Contains("Do") && d.Message.Contains("[overload("));
+            && d.Message.Contains("Do") && d.Message.Contains("[method_name("));
+    }
+
+    [Fact]
+    public void DuplicateMethodName_SuggestsMethodNameNotOverload()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass C
+                {
+                    void Do(Int32 x);
+                    void Do(String x);
+                }
+            }
+            """);
+
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL1044");
+        // Must NOT recommend [overload]
+        Assert.DoesNotContain("[overload(", diag.Message);
+        // Must recommend [method_name("UniqueName")]
+        Assert.Contains("[method_name(", diag.Message);
+        // Must mention [default_overload]
+        Assert.Contains("[default_overload]", diag.Message);
+    }
+
+    [Fact]
+    public void DuplicateMethodWithMethodNameOk()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass C
+                {
+                    void Do(Int32 x);
+                    [method_name("DoWithString")]
+                    void Do(String x);
+                }
+            }
+            """);
+
+        // [method_name] is present on at least one, so no MIDL1044
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1044");
     }
 
     [Fact]

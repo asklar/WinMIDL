@@ -286,7 +286,7 @@ public static class DiagnosticDescriptors
 
     public static Diagnostic DuplicateMethodNameWithoutOverload(string name, int position) =>
         new(DiagnosticSeverity.Warning, "MIDL1044",
-            $"Methods '{name}' have same name but different signatures. Use [overload(\"name\")] and [method_name(\"name\")] to disambiguate.",
+            $"Methods '{name}' have same name but different signatures. The first overload needs no attributes; subsequent same-arity overloads need [default_overload] and [method_name(\"UniqueName\")] to disambiguate.",
             position, name.Length);
 
     public static Diagnostic CircularStructReference(string structA, string structB, int position) =>
