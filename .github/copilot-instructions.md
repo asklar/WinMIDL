@@ -96,6 +96,22 @@ All attributes must be emitted to WinMD. Well-known attributes use dedicated `Ad
 - Never use regex to edit source code — use exact string matching
 - Never hardcode IIDs — use generated `_i.c` files
 - Every agent must run tests before committing
+- **Audit sub-agent changes**: always diff sub-agent commits in `src/` and `tests/` against the design intent before accepting. Sub-agents may change the design (e.g., modify test assertions) to make their code pass rather than fixing actual bugs. Verify the diff explicitly — do not trust "all tests pass" from a sub-agent.
+
+### Pre-push verification
+
+**ALL** of the following must pass locally before pushing:
+```bash
+dotnet test --filter "Category!=E2E"                          # Unit tests (~2500)
+pwsh tests/e2e-custom-marshal/comprehensive/build-and-test.ps1  # In-proc E2E (133 tests)
+pwsh tests/e2e-custom-marshal/outofproc/build-and-test.ps1      # Cross-process E2E (123 tests)
+dotnet test tests/Midl.E2E.Tests                                # C# E2E runner (runs build scripts from C#)
+```
+Never push after running only a subset. The C# E2E runner (`Midl.E2E.Tests`) exercises different code paths than the pwsh scripts (different INCLUDE setup, different process management).
+
+### TDD for proxy/stub
+
+Proxy/stub changes must follow TDD: write unit tests for the new codegen pattern first (`Midl.CodeGen.Tests`), verify they fail, implement, verify they pass, then add E2E tests that exercise the actual C++ compilation and cross-apartment round-trip.
 
 ### VS extension limitations
 
@@ -103,6 +119,22 @@ All attributes must be emitted to WinMD. Well-known attributes use dedicated `Ad
 - VS doesn't support LSP `onTypeFormatting` — use native `ISmartIndent` instead
 - VS built-in C++ project system hijacks `.idl` files — use `.idlrt` as primary extension
 - VS extension uses traditional VSSDK (AsyncPackage + ILanguageClient), not VisualStudio.Extensibility SDK
+
+### proxy_helpers.h compilation paths
+
+`include/winmidl/proxy_helpers.h` is compiled in multiple contexts. When adding new `#include` directives or dependencies, ALL of these must be updated:
+- `tests/e2e-custom-marshal/comprehensive/build-and-test.ps1` — `$env:INCLUDE`
+- `tests/e2e-custom-marshal/outofproc/build-and-test.ps1` — `$includes` array
+- `tests/Midl.E2E.Tests/E2ETestHelper.cs` — `MsvcToolchain` record + `Environment["INCLUDE"]`
+- `tests/e2e-custom-marshal/comprehensive/generated/winmidl/proxy_helpers.h` — tracked copy
+
+### IReference<T> encoding
+
+`IReference<T>` (nullable value types) has different encoding depending on context:
+- **Method params/retvals**: use `marshal_interface`/`unmarshal_interface` (COM marshaling, preserves object identity)
+- **Struct fields**: use `marshal_nullable<T>`/`unmarshal_nullable<T>` (inline `[uint8 hasValue][T value]`, uses `winrt::box_value`/`winrt::unbox_value`)
+
+This distinction exists because method-level `IReference<T>` is an `IInspectable*` that may carry custom behavior, while struct-field `IReference<T>` is conceptually just "T or null" with no identity to preserve.
 
 ### Testing patterns
 
