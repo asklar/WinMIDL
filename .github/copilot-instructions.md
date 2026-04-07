@@ -109,9 +109,9 @@ dotnet test tests/Midl.E2E.Tests                                # C# E2E runner 
 ```
 Never push after running only a subset. The C# E2E runner (`Midl.E2E.Tests`) exercises different code paths than the pwsh scripts (different INCLUDE setup, different process management).
 
-### TDD for proxy/stub
+### TDD
 
-Proxy/stub changes must follow TDD: write unit tests for the new codegen pattern first (`Midl.CodeGen.Tests`), verify they fail, implement, verify they pass, then add E2E tests that exercise the actual C++ compilation and cross-apartment round-trip.
+All changes must follow TDD: write tests first, verify they fail, implement, verify they pass. For proxy/stub changes, this means unit tests in `Midl.CodeGen.Tests` first, then E2E tests that exercise actual C++ compilation and cross-apartment round-trip.
 
 ### VS extension limitations
 
