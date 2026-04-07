@@ -37,14 +37,14 @@ typedef interface __x_TestApp_Comprehensive_IObservable2 __x_TestApp_Comprehensi
 typedef interface __x_TestApp_Comprehensive_ICollectionOps2 __x_TestApp_Comprehensive_ICollectionOps2;
 typedef interface __x_TestApp_Comprehensive_IArrayOps2 __x_TestApp_Comprehensive_IArrayOps2;
 
-enum Color
+enum Color : INT32
 {
     Color_Red = 0,
     Color_Green = 1,
     Color_Blue = 2,
 };
 
-enum Permissions
+enum Permissions : UINT32
 {
     Permissions_None = 0,
     Permissions_Read = 1,

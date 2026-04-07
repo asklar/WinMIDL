@@ -126,8 +126,10 @@ inline void marshal_event_token(BYTE*& buf, EventRegistrationToken val) noexcept
 }
 template<typename E>
 inline void marshal_enum(BYTE*& buf, E val) noexcept {
-    INT32 v = static_cast<INT32>(val);
-    memcpy(buf, &v, sizeof(INT32)); buf += sizeof(INT32);
+    using U = std::underlying_type_t<E>;
+    static_assert(sizeof(U) == 4, "WinRT enums must be 4 bytes");
+    U v = static_cast<U>(val);
+    memcpy(buf, &v, sizeof(U)); buf += sizeof(U);
 }
 // Read HSTRING length directly from the ABI header layout (offset 4),
 // avoiding the WindowsGetStringLen function call. Layout is stable ABI.
@@ -201,7 +203,9 @@ inline void unmarshal_event_token(const BYTE*& buf, EventRegistrationToken& out)
 }
 template<typename E>
 inline void unmarshal_enum(const BYTE*& buf, E& out) noexcept {
-    INT32 v; memcpy(&v, buf, sizeof(INT32)); buf += sizeof(INT32);
+    using U = std::underlying_type_t<E>;
+    static_assert(sizeof(U) == 4, "WinRT enums must be 4 bytes");
+    U v; memcpy(&v, buf, sizeof(U)); buf += sizeof(U);
     out = static_cast<E>(v);
 }
 // Zero-copy HSTRING deserialization (stub-side).
@@ -275,7 +279,9 @@ inline void unmarshal_event_token(BYTE*& buf, EventRegistrationToken& out) noexc
 }
 template<typename E>
 inline void unmarshal_enum(BYTE*& buf, E& out) noexcept {
-    INT32 v; memcpy(&v, buf, sizeof(INT32)); buf += sizeof(INT32);
+    using U = std::underlying_type_t<E>;
+    static_assert(sizeof(U) == 4, "WinRT enums must be 4 bytes");
+    U v; memcpy(&v, buf, sizeof(U)); buf += sizeof(U);
     out = static_cast<E>(v);
 }
 template<typename T>
