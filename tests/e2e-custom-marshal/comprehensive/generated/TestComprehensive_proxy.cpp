@@ -1774,11 +1774,14 @@ static HRESULT proxy_shape_void_to_windows_foundation_ireference(IRpcChannelBuff
 static HRESULT proxy_shape_windows_foundation_ireference_to_void(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, IInspectable* arg0) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = (1 + sizeof(INT32));
-    HRESULT hr = channel->GetBuffer(&msg, iid);
+    HRESULT hr;
+    UINT32 arg0_marshalSize = 0;
+    hr = winmidl::get_marshal_size(arg0, IID_IReference_1_Int32, arg0_marshalSize); RETURN_IF_FAILED(hr);
+    msg.cbBuffer = arg0_marshalSize;
+    hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
-    hr = winmidl::marshal_nullable<INT32>(p, arg0, IID_IReference_1_Int32); RETURN_IF_FAILED(hr);
+    hr = winmidl::marshal_interface(p, arg0, IID_IReference_1_Int32); RETURN_IF_FAILED(hr);
     ULONG status;
     hr = channel->SendReceive(&msg, &status);
     RETURN_IF_FAILED(hr);
@@ -1821,7 +1824,6 @@ class CIOptionalProxy : public IRpcProxyBuffer {
 
         // GetOptionalCount (vtable slot 6)
         static constexpr UINT32 kGetOptionalCount_RequestSize = 0;
-        static constexpr UINT32 kGetOptionalCount_ReplySize = (1 + sizeof(INT32)) + sizeof(HRESULT);
         HRESULT STDMETHODCALLTYPE GetOptionalCount(IInspectable** returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
@@ -1841,17 +1843,19 @@ class CIOptionalProxy : public IRpcProxyBuffer {
         }
 
         // SetOptionalCount (vtable slot 7)
-        static constexpr UINT32 kSetOptionalCount_RequestSize = (1 + sizeof(INT32));
         static constexpr UINT32 kSetOptionalCount_ReplySize = sizeof(HRESULT);
         HRESULT STDMETHODCALLTYPE SetOptionalCount(IInspectable* count) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 7;
-            msg.cbBuffer = kSetOptionalCount_RequestSize;
-            HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IOptional);
+            HRESULT hr;
+            UINT32 count_marshalSize = 0;
+            hr = winmidl::get_marshal_size(count, IID_IReference_1_Int32, count_marshalSize); RETURN_IF_FAILED(hr);
+            msg.cbBuffer = count_marshalSize;
+            hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_IOptional);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
-            hr = winmidl::marshal_nullable<INT32>(p, count, IID_IReference_1_Int32); RETURN_IF_FAILED(hr);
+            hr = winmidl::marshal_interface(p, count, IID_IReference_1_Int32); RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
             RETURN_IF_FAILED(hr);
@@ -1864,7 +1868,6 @@ class CIOptionalProxy : public IRpcProxyBuffer {
 
         // GetOptionalPosition (vtable slot 8)
         static constexpr UINT32 kGetOptionalPosition_RequestSize = 0;
-        static constexpr UINT32 kGetOptionalPosition_ReplySize = (1 + sizeof(Point)) + sizeof(HRESULT);
         HRESULT STDMETHODCALLTYPE GetOptionalPosition(IInspectable** returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
@@ -3553,13 +3556,18 @@ static constexpr winmidl::interface_descriptor __x_TestApp_Comprehensive_IArrayO
 static HRESULT proxy_shape_int32_windows_foundation_ireference_windows_foundation_ireference_to_struct_NullableRecord(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, INT32 arg0, IInspectable* arg1, IInspectable* arg2, NullableRecord* retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE));
-    HRESULT hr = channel->GetBuffer(&msg, iid);
+    HRESULT hr;
+    UINT32 arg1_marshalSize = 0;
+    hr = winmidl::get_marshal_size(arg1, IID_IReference_1_Int32, arg1_marshalSize); RETURN_IF_FAILED(hr);
+    UINT32 arg2_marshalSize = 0;
+    hr = winmidl::get_marshal_size(arg2, IID_IReference_1_Double, arg2_marshalSize); RETURN_IF_FAILED(hr);
+    msg.cbBuffer = sizeof(INT32) + arg1_marshalSize + arg2_marshalSize;
+    hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
     winmidl::marshal_int32(p, arg0);
-    hr = winmidl::marshal_nullable<INT32>(p, arg1, IID_IReference_1_Int32); RETURN_IF_FAILED(hr);
-    hr = winmidl::marshal_nullable<DOUBLE>(p, arg2, IID_IReference_1_Double); RETURN_IF_FAILED(hr);
+    hr = winmidl::marshal_interface(p, arg1, IID_IReference_1_Int32); RETURN_IF_FAILED(hr);
+    hr = winmidl::marshal_interface(p, arg2, IID_IReference_1_Double); RETURN_IF_FAILED(hr);
     ULONG status;
     hr = channel->SendReceive(&msg, &status);
     RETURN_IF_FAILED(hr);
@@ -3651,19 +3659,22 @@ class CINullableOpsProxy : public IRpcProxyBuffer {
         }
 
         // CreateRecord (vtable slot 6)
-        static constexpr UINT32 kCreateRecord_RequestSize = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE));
-        static constexpr UINT32 kCreateRecord_ReplySize = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE)) + sizeof(HRESULT);
         HRESULT STDMETHODCALLTYPE CreateRecord(INT32 id, IInspectable* score, IInspectable* weight, NullableRecord* returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 6;
-            msg.cbBuffer = kCreateRecord_RequestSize;
-            HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_INullableOps);
+            HRESULT hr;
+            UINT32 score_marshalSize = 0;
+            hr = winmidl::get_marshal_size(score, IID_IReference_1_Int32, score_marshalSize); RETURN_IF_FAILED(hr);
+            UINT32 weight_marshalSize = 0;
+            hr = winmidl::get_marshal_size(weight, IID_IReference_1_Double, weight_marshalSize); RETURN_IF_FAILED(hr);
+            msg.cbBuffer = sizeof(INT32) + score_marshalSize + weight_marshalSize;
+            hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_INullableOps);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
             winmidl::marshal_int32(p, id);
-            hr = winmidl::marshal_nullable<INT32>(p, score, IID_IReference_1_Int32); RETURN_IF_FAILED(hr);
-            hr = winmidl::marshal_nullable<DOUBLE>(p, weight, IID_IReference_1_Double); RETURN_IF_FAILED(hr);
+            hr = winmidl::marshal_interface(p, score, IID_IReference_1_Int32); RETURN_IF_FAILED(hr);
+            hr = winmidl::marshal_interface(p, weight, IID_IReference_1_Double); RETURN_IF_FAILED(hr);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
             RETURN_IF_FAILED(hr);
@@ -3679,7 +3690,6 @@ class CINullableOpsProxy : public IRpcProxyBuffer {
 
         // GetDefaultRecord (vtable slot 7)
         static constexpr UINT32 kGetDefaultRecord_RequestSize = 0;
-        static constexpr UINT32 kGetDefaultRecord_ReplySize = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE)) + sizeof(HRESULT);
         HRESULT STDMETHODCALLTYPE GetDefaultRecord(NullableRecord* returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
@@ -3701,13 +3711,12 @@ class CINullableOpsProxy : public IRpcProxyBuffer {
         }
 
         // SumScores (vtable slot 8)
-        static constexpr UINT32 kSumScores_RequestSize = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE)) + sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE));
         static constexpr UINT32 kSumScores_ReplySize = sizeof(INT32) + sizeof(HRESULT);
         HRESULT STDMETHODCALLTYPE SumScores(NullableRecord a, NullableRecord b, INT32* returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
             msg.iMethod = 8;
-            msg.cbBuffer = kSumScores_RequestSize;
+            msg.cbBuffer = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE)) + sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE));
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_INullableOps);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
@@ -6213,8 +6222,7 @@ private:
         HRESULT hr = m_pServer->GetOptionalCount(&returnValue);
         UINT32 returnValue_marshalSize = 0;
         hr = winmidl::get_marshal_size(returnValue, IID_IReference_1_Int32, returnValue_marshalSize); RETURN_IF_FAILED(hr);
-        static constexpr UINT32 kReplySize = (1 + sizeof(INT32)) + sizeof(HRESULT);
-        pMsg->cbBuffer = kReplySize;
+        pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IOptional);
         if (FAILED(hrBuf)) {
             if (returnValue) returnValue->Release();
@@ -6230,7 +6238,7 @@ private:
         HRESULT hr;
         BYTE* p = (BYTE*)pMsg->Buffer;
         IInspectable* count = nullptr;
-        hr = winmidl::unmarshal_nullable<INT32, 10>(p, &count); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Int32, (void**)&count); RETURN_IF_FAILED(hr);
         hr = m_pServer->SetOptionalCount(count);
         static constexpr UINT32 kReplySize = sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
@@ -6245,8 +6253,7 @@ private:
         HRESULT hr = m_pServer->GetOptionalPosition(&returnValue);
         UINT32 returnValue_marshalSize = 0;
         hr = winmidl::get_marshal_size(returnValue, IID_IReference_1___x_TestApp_Comprehensive_Point, returnValue_marshalSize); RETURN_IF_FAILED(hr);
-        static constexpr UINT32 kReplySize = (1 + sizeof(Point)) + sizeof(HRESULT);
-        pMsg->cbBuffer = kReplySize;
+        pMsg->cbBuffer = returnValue_marshalSize + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_IOptional);
         if (FAILED(hrBuf)) {
             if (returnValue) returnValue->Release();
@@ -7189,13 +7196,12 @@ private:
         INT32 id;
         winmidl::unmarshal_int32(p, id);
         IInspectable* score = nullptr;
-        hr = winmidl::unmarshal_nullable<INT32, 10>(p, &score); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Int32, (void**)&score); RETURN_IF_FAILED(hr);
         IInspectable* weight = nullptr;
-        hr = winmidl::unmarshal_nullable<DOUBLE, 15>(p, &weight); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Double, (void**)&weight); RETURN_IF_FAILED(hr);
         NullableRecord returnValue{};
         hr = m_pServer->CreateRecord(id, score, weight, &returnValue);
-        static constexpr UINT32 kReplySize = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE)) + sizeof(HRESULT);
-        pMsg->cbBuffer = kReplySize;
+        pMsg->cbBuffer = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE)) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_INullableOps);
         RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
@@ -7210,8 +7216,7 @@ private:
     HRESULT Invoke_GetDefaultRecord(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         NullableRecord returnValue{};
         HRESULT hr = m_pServer->GetDefaultRecord(&returnValue);
-        static constexpr UINT32 kReplySize = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE)) + sizeof(HRESULT);
-        pMsg->cbBuffer = kReplySize;
+        pMsg->cbBuffer = sizeof(INT32) + (1 + sizeof(INT32)) + (1 + sizeof(DOUBLE)) + sizeof(HRESULT);
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_INullableOps);
         RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
@@ -7226,12 +7231,12 @@ private:
         BYTE* p = (BYTE*)pMsg->Buffer;
         NullableRecord a;
         winmidl::unmarshal_int32(p, a.Id);
-        hr = winmidl::unmarshal_nullable<INT32, 10>(p, &a.OptionalScore); RETURN_IF_FAILED(hr);
-        hr = winmidl::unmarshal_nullable<DOUBLE, 15>(p, &a.OptionalWeight); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Int32, (void**)&a.OptionalScore); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Double, (void**)&a.OptionalWeight); RETURN_IF_FAILED(hr);
         NullableRecord b;
         winmidl::unmarshal_int32(p, b.Id);
-        hr = winmidl::unmarshal_nullable<INT32, 10>(p, &b.OptionalScore); RETURN_IF_FAILED(hr);
-        hr = winmidl::unmarshal_nullable<DOUBLE, 15>(p, &b.OptionalWeight); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Int32, (void**)&b.OptionalScore); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Double, (void**)&b.OptionalWeight); RETURN_IF_FAILED(hr);
         INT32 returnValue{};
         hr = m_pServer->SumScores(a, b, &returnValue);
         static constexpr UINT32 kReplySize = sizeof(INT32) + sizeof(HRESULT);

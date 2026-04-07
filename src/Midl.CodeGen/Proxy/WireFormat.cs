@@ -138,8 +138,6 @@ public static partial class WireFormat
             return size;
         if (typeRef.ResolvedSymbol is EnumSymbol)
             return 4;
-        if (IsNullableValueType(typeRef))
-            return GetNullableWireSize(typeRef);
         if (typeRef.ResolvedSymbol is StructSymbol structSym)
             return structSym.Fields.Sum(f => GetWireSize(f.Type));
         return 4; // default fallback
@@ -175,8 +173,6 @@ public static partial class WireFormat
         }
         if (type.Name == "String")
             return "sizeof(UINT32) + winmidl::hstring_len({0}) * sizeof(WCHAR) + sizeof(WCHAR)";
-        if (IsNullableValueType(type))
-            return GetCppSizeExpression(type);
         if (IsInterfaceType(type))
             return "{0}_marshalSize";
         if (type.ResolvedSymbol is StructSymbol structSym)
@@ -302,15 +298,6 @@ public static partial class WireFormat
                     }
                 }
             }
-            return;
-        }
-
-        // IReference<T> nullable value type — inline encoding: [uint8 hasValue][T value]
-        if (IsNullableValueType(typeRef))
-        {
-            var iidName = GetInterfaceIidName(typeRef);
-            var innerType = GetNullableInnerCppType(typeRef);
-            sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}, {iidName}); RETURN_IF_FAILED(hr);");
             return;
         }
 
@@ -470,18 +457,6 @@ public static partial class WireFormat
                     }
                 }
             }
-            return;
-        }
-
-        // IReference<T> nullable value type — inline encoding: [uint8 hasValue][T value]
-        if (IsNullableValueType(typeRef))
-        {
-            var innerType = GetNullableInnerCppType(typeRef);
-            var boxSlot = HasNullableBoxSlot(typeRef) ? GetNullableBoxSlot(typeRef) : -1;
-            if (boxSlot >= 0)
-                sb.AppendLine($"{indent}hr = winmidl::unmarshal_nullable<{innerType}, {boxSlot}>({bufferPtr}, &{varName}); RETURN_IF_FAILED(hr);");
-            else
-                sb.AppendLine($"{indent}// TODO: unmarshal IReference<{innerType}> (no box slot)");
             return;
         }
 
@@ -745,8 +720,6 @@ public static partial class WireFormat
             return false;
         if (typeRef.Name == "String")
             return false;
-        if (IsNullableValueType(typeRef))
-            return true;
         if (IsInterfaceType(typeRef))
             return false;
         if (WireSizeMap.ContainsKey(typeRef.Name))
