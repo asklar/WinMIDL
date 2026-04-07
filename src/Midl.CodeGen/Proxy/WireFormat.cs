@@ -46,8 +46,8 @@ public static partial class WireFormat
     };
 
     /// <summary>
-    /// Set of primitive type names that are blittable (directly memcpy-able without casting).
-    /// Enums require a cast so are not blittable. Strings are variable-length.
+    /// Set of primitive type names that are blittable (directly memcpy-able).
+    /// Strings are variable-length. Enums are handled separately in IsFieldBlittable.
     /// </summary>
     private static readonly HashSet<string> BlittablePrimitives = new(StringComparer.Ordinal)
     {
@@ -616,9 +616,9 @@ public static partial class WireFormat
     }
 
     /// <summary>
-    /// Returns true if a struct is blittable: all fields are primitive types that can be
-    /// memcpy'd without casting. Enums are NOT blittable (require INT32 cast).
-    /// Strings are NOT blittable (variable length). Empty structs are NOT blittable.
+    /// Returns true if a struct is blittable: all fields are types that can be
+    /// memcpy'd directly. Strings and interface pointers are NOT blittable.
+    /// Empty structs are NOT blittable.
     /// Nested structs are blittable only if all their fields are also blittable.
     /// </summary>
     public static bool IsBlittable(StructSymbol structSym)
@@ -631,6 +631,9 @@ public static partial class WireFormat
     private static bool IsFieldBlittable(TypeRef typeRef)
     {
         if (BlittablePrimitives.Contains(typeRef.Name))
+            return true;
+        // WinRT enums are always 4 bytes (Int32/UInt32) — same as a primitive
+        if (typeRef.ResolvedSymbol is EnumSymbol)
             return true;
         if (typeRef.ResolvedSymbol is StructSymbol nested)
             return IsBlittable(nested);

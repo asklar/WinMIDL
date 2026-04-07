@@ -246,9 +246,9 @@ public partial class WireFormatTests
     }
 
     [Fact]
-    public void EmitSerialize_Struct_EmitsFieldByField()
+    public void EmitSerialize_StructWithEnum_EmitsMarshalStruct()
     {
-        // Non-blittable struct (has enum field) should still do field-by-field
+        // Struct with enum field is now blittable — single memcpy
         var enumSym = new EnumSymbol("Status", null);
         var structSym = new StructSymbol("Item", null);
         structSym.AddField(new FieldSymbol("Id", structSym) { Type = new TypeRef("Int32") });
@@ -259,14 +259,15 @@ public partial class WireFormatTests
         WireFormat.EmitSerialize(sb, typeRef, "item", "p");
         var code = sb.ToString();
 
-        Assert.Contains("item.Id", code);
-        Assert.Contains("item.State", code);
+        Assert.Contains("winmidl::marshal_struct(p, item)", code);
+        Assert.DoesNotContain("item.Id", code);
+        Assert.DoesNotContain("item.State", code);
     }
 
     [Fact]
-    public void EmitDeserialize_Struct_EmitsFieldByField()
+    public void EmitDeserialize_StructWithEnum_EmitsUnmarshalStruct()
     {
-        // Non-blittable struct (has enum field) should still do field-by-field
+        // Struct with enum field is now blittable — single memcpy
         var enumSym = new EnumSymbol("Status", null);
         var structSym = new StructSymbol("Item", null);
         structSym.AddField(new FieldSymbol("Id", structSym) { Type = new TypeRef("Int32") });
@@ -277,8 +278,9 @@ public partial class WireFormatTests
         WireFormat.EmitDeserialize(sb, typeRef, "item", "pReply");
         var code = sb.ToString();
 
-        Assert.Contains("item.Id", code);
-        Assert.Contains("item.State", code);
+        Assert.Contains("winmidl::unmarshal_struct(pReply, item)", code);
+        Assert.DoesNotContain("item.Id", code);
+        Assert.DoesNotContain("item.State", code);
     }
 
     [Fact]

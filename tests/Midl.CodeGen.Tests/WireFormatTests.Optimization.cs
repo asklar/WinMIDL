@@ -86,15 +86,15 @@ public partial class WireFormatTests
     }
 
     [Fact]
-    public void IsBlittable_WithEnumField_ReturnsFalse()
+    public void IsBlittable_WithEnumField_ReturnsTrue()
     {
-        // Enums are not trivially copyable in the C++ sense (cast needed), so not blittable
+        // WinRT enums are always 4 bytes (Int32/UInt32) — blittable via explicit underlying type
         var enumSym = new EnumSymbol("Status", null);
         var structSym = new StructSymbol("Item", null);
         structSym.AddField(new FieldSymbol("Value", structSym) { Type = new TypeRef("Int32") });
         structSym.AddField(new FieldSymbol("State", structSym) { Type = new TypeRef("Status") { ResolvedSymbol = enumSym } });
 
-        Assert.False(WireFormat.IsBlittable(structSym));
+        Assert.True(WireFormat.IsBlittable(structSym));
     }
 
     [Fact]
@@ -230,11 +230,11 @@ public partial class WireFormatTests
     [Fact]
     public void EmitSerialize_NonBlittableStruct_StillFieldByField()
     {
-        var enumSym = new EnumSymbol("Status", null);
-        var structSym = new StructSymbol("Item", null);
+        // Struct with String field is non-blittable — must serialize field-by-field
+        var structSym = new StructSymbol("NamedItem", null);
         structSym.AddField(new FieldSymbol("Id", structSym) { Type = new TypeRef("Int32") });
-        structSym.AddField(new FieldSymbol("State", structSym) { Type = new TypeRef("Status") { ResolvedSymbol = enumSym } });
-        var typeRef = new TypeRef("Item") { ResolvedSymbol = structSym };
+        structSym.AddField(new FieldSymbol("Name", structSym) { Type = new TypeRef("String") });
+        var typeRef = new TypeRef("NamedItem") { ResolvedSymbol = structSym };
 
         var sb = new StringBuilder();
         WireFormat.EmitSerialize(sb, typeRef, "item", "p");
@@ -242,8 +242,8 @@ public partial class WireFormatTests
 
         // Non-blittable should still do field-by-field
         Assert.Contains("item.Id", code);
-        Assert.Contains("item.State", code);
-        Assert.DoesNotContain("sizeof(Item)", code);
+        Assert.Contains("item.Name", code);
+        Assert.DoesNotContain("sizeof(NamedItem)", code);
     }
 
     [Fact]
