@@ -36,10 +36,10 @@ public class NullableMarshalingTests
         Assert.DoesNotContain("marshal_nullable", output);
     }
 
-    // ─── Stub: IReference<Int32> param uses unmarshal_interface (method param) ───
+    // ─── Stub: IReference<Int32> param uses unmarshal_nullable (inline encoding) ───
 
     [Fact]
-    public void StubGenerator_NullableParam_EmitsUnmarshalInterface()
+    public void StubGenerator_NullableParam_EmitsUnmarshalNullable()
     {
         var compilation = Compile(@"
             namespace TestApp {
@@ -50,22 +50,21 @@ public class NullableMarshalingTests
 
         var output = _stubGen.Generate(compilation);
 
-        Assert.Contains("unmarshal_interface", output);
-        Assert.DoesNotContain("unmarshal_nullable", output);
+        Assert.Contains("unmarshal_nullable<INT32, 10>", output);
     }
 
-    // ─── WireFormat: IReference<Int32> as method param is NOT fixed size ───
+    // ─── WireFormat: IReference<Int32> as method param IS fixed size (inline nullable) ───
 
     [Fact]
-    public void WireFormat_NullableMethodParam_IsNotFixedSize()
+    public void WireFormat_NullableMethodParam_IsFixedSize()
     {
         var ns = new NamespaceSymbol("Windows.Foundation", null);
         var ifaceSym = new InterfaceSymbol("IReference", ns);
         var typeArg = new TypeRef("Int32") { IsBuiltIn = true };
         var typeRef = new TypeRef("IReference", [typeArg]) { ResolvedSymbol = ifaceSym };
 
-        // Method params use marshal_interface — not fixed size
-        Assert.False(WireFormat.IsFixedSize(typeRef));
+        // IReference<T> method params use inline nullable encoding — fixed size
+        Assert.True(WireFormat.IsFixedSize(typeRef));
     }
 
     // ─── WireFormat: IReference<Int32> IS a nullable value type (for struct fields) ───
@@ -178,10 +177,10 @@ public class NullableMarshalingTests
         Assert.Equal("IID___x_TestApp_IWidget", iidName);
     }
 
-    // ─── Proxy: IReference<Int32> param emits marshal_interface (method param) ───
+    // ─── Proxy: IReference<Int32> param emits marshal_nullable (inline encoding) ───
 
     [Fact]
-    public void ProxyGenerator_NullableParam_EmitsMarshalInterfaceWithIid()
+    public void ProxyGenerator_NullableParam_EmitsMarshalNullableWithIid()
     {
         var compilation = Compile(@"
             namespace TestApp {
@@ -192,7 +191,7 @@ public class NullableMarshalingTests
 
         var output = _proxyGen.Generate(compilation);
 
-        Assert.Contains("winmidl::marshal_interface", output);
+        Assert.Contains("winmidl::marshal_nullable<INT32>", output);
         Assert.Contains("IReference", output);
         Assert.Contains("Int32", output);
     }
@@ -229,10 +228,10 @@ public class NullableMarshalingTests
         Assert.Equal("winmidl::param_type::t_interface", paramType);
     }
 
-    // ─── Both IReference params use marshal_interface as method params ───
+    // ─── Both IReference params use marshal_nullable as method params ───
 
     [Fact]
-    public void ProxyGenerator_TwoIReferenceParams_BothUseMarshalInterface()
+    public void ProxyGenerator_TwoIReferenceParams_BothUseMarshalNullable()
     {
         var idl = @"
             namespace TestApp {
@@ -250,11 +249,9 @@ public class NullableMarshalingTests
         var proxyOutput = proxyGen.Generate(compilation);
         var stubOutput = stubGen.Generate(compilation);
 
-        // Both are method params → marshal_interface (not inline)
-        Assert.Contains("marshal_interface(p, optCount, IID_IReference_1_Int32)", proxyOutput);
-        Assert.Contains("marshal_interface(p, optPos, IID_IReference_1___x_TestApp_Point)", proxyOutput);
-        Assert.Contains("unmarshal_interface(p, IID_IReference_1_Int32", stubOutput);
-        Assert.Contains("unmarshal_interface(p, IID_IReference_1___x_TestApp_Point", stubOutput);
+        // Both are method params → marshal_nullable (inline encoding)
+        Assert.Contains("marshal_nullable<INT32>(p, optCount, IID_IReference_1_Int32)", proxyOutput);
+        Assert.Contains("unmarshal_nullable<INT32, 10>(p, &optCount)", stubOutput);
     }
 
     [Fact]

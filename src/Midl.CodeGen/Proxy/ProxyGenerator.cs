@@ -327,15 +327,15 @@ public class ProxyGenerator
         sb.AppendLine("    RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"    msg.iMethod = slot;");
 
-        // Buffer size — pre-compute marshal sizes for interface params
-        bool hasInterfaceParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type));
+        // Buffer size — pre-compute marshal sizes for interface params (excluding nullable value types which use inline encoding)
+        bool hasInterfaceParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type) && !WireFormat.IsNullableValueType(p.Type));
         if (hasInterfaceParams)
         {
             sb.AppendLine("    HRESULT hr;");
             argIdx = 0;
             foreach (var p in inParams)
             {
-                if (WireFormat.IsInterfaceType(p.Type))
+                if (WireFormat.IsInterfaceType(p.Type) && !WireFormat.IsNullableValueType(p.Type))
                 {
                     var iidName = WireFormat.GetInterfaceIidName(p.Type);
                     sb.AppendLine($"    UINT32 arg{argIdx}_marshalSize = 0;");
@@ -996,8 +996,8 @@ public class ProxyGenerator
         sb.AppendLine("            RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"            msg.iMethod = {vtableSlot};");
 
-        // Pre-compute marshal sizes for interface-typed input params
-        var ifaceInParams = inParams.Where(p => WireFormat.IsInterfaceType(p.Type)).ToList();
+        // Pre-compute marshal sizes for interface-typed input params (excluding nullable value types)
+        var ifaceInParams = inParams.Where(p => WireFormat.IsInterfaceType(p.Type) && !WireFormat.IsNullableValueType(p.Type)).ToList();
         bool hasIfaceInParams = ifaceInParams.Count > 0;
         if (hasIfaceInParams)
         {
@@ -1212,8 +1212,8 @@ public class ProxyGenerator
         sb.AppendLine("        RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"        msg.iMethod = {vtableSlot};");
 
-        // Pre-compute marshal sizes for interface-typed input params
-        var ifaceInParams2 = inParams.Where(p => WireFormat.IsInterfaceType(p.Type)).ToList();
+        // Pre-compute marshal sizes for interface-typed input params (excluding nullable value types)
+        var ifaceInParams2 = inParams.Where(p => WireFormat.IsInterfaceType(p.Type) && !WireFormat.IsNullableValueType(p.Type)).ToList();
         bool hasIfaceInParams2 = ifaceInParams2.Count > 0;
         if (hasIfaceInParams2)
         {

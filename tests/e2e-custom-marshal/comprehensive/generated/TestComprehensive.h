@@ -21,6 +21,7 @@ typedef interface __x_TestApp_Comprehensive_IComplexOps __x_TestApp_Comprehensiv
 typedef interface __x_TestApp_Comprehensive_IObservable __x_TestApp_Comprehensive_IObservable;
 typedef interface __x_TestApp_Comprehensive_ICollectionOps __x_TestApp_Comprehensive_ICollectionOps;
 typedef interface __x_TestApp_Comprehensive_IArrayOps __x_TestApp_Comprehensive_IArrayOps;
+typedef interface __x_TestApp_Comprehensive_INullableOps __x_TestApp_Comprehensive_INullableOps;
 typedef interface __x_TestApp_Comprehensive_IAnimal2 __x_TestApp_Comprehensive_IAnimal2;
 typedef interface __x_TestApp_Comprehensive_IShape __x_TestApp_Comprehensive_IShape;
 typedef interface __x_TestApp_Comprehensive_ICircle __x_TestApp_Comprehensive_ICircle;
@@ -36,6 +37,7 @@ typedef interface __x_TestApp_Comprehensive_IMathHelpersStatics __x_TestApp_Comp
 typedef interface __x_TestApp_Comprehensive_IObservable2 __x_TestApp_Comprehensive_IObservable2;
 typedef interface __x_TestApp_Comprehensive_ICollectionOps2 __x_TestApp_Comprehensive_ICollectionOps2;
 typedef interface __x_TestApp_Comprehensive_IArrayOps2 __x_TestApp_Comprehensive_IArrayOps2;
+typedef interface __x_TestApp_Comprehensive_INullableOps2 __x_TestApp_Comprehensive_INullableOps2;
 
 enum Color : INT32
 {
@@ -63,6 +65,13 @@ struct ColoredPoint
 {
     Point Position;
     Color PointColor;
+};
+
+struct NullableRecord
+{
+    INT32 Id;
+    IInspectable* OptionalScore;
+    IInspectable* OptionalWeight;
 };
 
 #ifndef ____x_TestApp_Comprehensive_ILogger_INTERFACE_DEFINED__
@@ -338,6 +347,24 @@ public:
 
 extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Comprehensive_ArrayOps[] = L"TestApp.Comprehensive.ArrayOps";
 
+#ifndef ____x_TestApp_Comprehensive_INullableOps_INTERFACE_DEFINED__
+#define ____x_TestApp_Comprehensive_INullableOps_INTERFACE_DEFINED__
+
+EXTERN_C const IID IID___x_TestApp_Comprehensive_INullableOps;
+
+MIDL_INTERFACE("71df42f6-72f1-e359-9250-e638cf441d09")
+__x_TestApp_Comprehensive_INullableOps : public IInspectable
+{
+public:
+    virtual HRESULT STDMETHODCALLTYPE CreateRecord(/* [in] */ INT32 id, /* [in] */ IInspectable* score, /* [in] */ IInspectable* weight, /* [out, retval] */ NullableRecord* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE GetDefaultRecord(/* [out, retval] */ NullableRecord* returnValue) = 0;
+    virtual HRESULT STDMETHODCALLTYPE SumScores(/* [in] */ NullableRecord a, /* [in] */ NullableRecord b, /* [out, retval] */ INT32* returnValue) = 0;
+};
+
+#endif // ____x_TestApp_Comprehensive_INullableOps_INTERFACE_DEFINED__
+
+extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_Comprehensive_NullableOps[] = L"TestApp.Comprehensive.NullableOps";
+
 #ifndef ____x_TestApp_Comprehensive_IAnimal2_INTERFACE_DEFINED__
 #define ____x_TestApp_Comprehensive_IAnimal2_INTERFACE_DEFINED__
 
@@ -539,5 +566,18 @@ public:
 };
 
 #endif // ____x_TestApp_Comprehensive_IArrayOps2_INTERFACE_DEFINED__
+
+#ifndef ____x_TestApp_Comprehensive_INullableOps2_INTERFACE_DEFINED__
+#define ____x_TestApp_Comprehensive_INullableOps2_INTERFACE_DEFINED__
+
+EXTERN_C const IID IID___x_TestApp_Comprehensive_INullableOps2;
+
+MIDL_INTERFACE("e8a215a6-236e-715b-8366-3ea4de195e03")
+__x_TestApp_Comprehensive_INullableOps2 : public IInspectable
+{
+public:
+};
+
+#endif // ____x_TestApp_Comprehensive_INullableOps2_INTERFACE_DEFINED__
 
 #endif // __TestApp_Comprehensive_h__
