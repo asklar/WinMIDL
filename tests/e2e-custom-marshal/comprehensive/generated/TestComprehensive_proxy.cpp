@@ -7231,12 +7231,12 @@ private:
         BYTE* p = (BYTE*)pMsg->Buffer;
         NullableRecord a;
         winmidl::unmarshal_int32(p, a.Id);
-        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Int32, (void**)&a.OptionalScore); RETURN_IF_FAILED(hr);
-        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Double, (void**)&a.OptionalWeight); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_nullable<INT32, 10>(p, &a.OptionalScore); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_nullable<DOUBLE, 15>(p, &a.OptionalWeight); RETURN_IF_FAILED(hr);
         NullableRecord b;
         winmidl::unmarshal_int32(p, b.Id);
-        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Int32, (void**)&b.OptionalScore); RETURN_IF_FAILED(hr);
-        hr = winmidl::unmarshal_interface(p, IID_IReference_1_Double, (void**)&b.OptionalWeight); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_nullable<INT32, 10>(p, &b.OptionalScore); RETURN_IF_FAILED(hr);
+        hr = winmidl::unmarshal_nullable<DOUBLE, 15>(p, &b.OptionalWeight); RETURN_IF_FAILED(hr);
         INT32 returnValue{};
         hr = m_pServer->SumScores(a, b, &returnValue);
         static constexpr UINT32 kReplySize = sizeof(INT32) + sizeof(HRESULT);

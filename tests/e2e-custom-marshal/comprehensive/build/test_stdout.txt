@@ -1,6 +1,6 @@
-SERVER TryParse: len=2 raw=0000020AAAF84FF4 hstring=0000001D81FFEF70
+SERVER TryParse: len=2 raw=000001A072D1CFF4 hstring=0000002E86BFEA90
   chars: 0034 0032
-SERVER TryParse: len=3 raw=0000020AAAF95FF4 hstring=0000001D81FFEF70
+SERVER TryParse: len=3 raw=000001A072D2DFF4 hstring=0000002E86BFEA90
   chars: 0061 0062 0063
 === E2E Comprehensive Custom Marshal Test ===
 
@@ -152,11 +152,11 @@ SERVER TryParse: len=3 raw=0000020AAAF95FF4 hstring=0000001D81FFEF70
   PASS: NullableOps: CreateRecord null Id==200
   PASS: NullableOps: CreateRecord null OptionalScore==null
   PASS: NullableOps: CreateRecord null OptionalWeight==null
-  FAIL: NullableOps: SumScores
-  FAIL: NullableOps: SumScores == 141 (42+99)
-  FAIL: NullableOps: SumScores with null
-  FAIL: NullableOps: SumScores null == 42 (42+0)
+  PASS: NullableOps: SumScores
+  PASS: NullableOps: SumScores == 141 (42+99)
+  PASS: NullableOps: SumScores with null
+  PASS: NullableOps: SumScores null == 42 (42+0)
 
 [MTA] Tests complete.
 
-=== Results: 129 passed, 4 failed ===
+=== Results: 133 passed, 0 failed ===

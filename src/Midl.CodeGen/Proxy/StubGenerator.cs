@@ -347,7 +347,19 @@ public class StubGenerator
             {
                 foreach (var field in structSym.Fields)
                 {
-                    WireFormat.EmitDeserialize(sb, field.Type, $"{name}.{field.Name}", "p");
+                    if (WireFormat.IsNullableValueType(field.Type))
+                    {
+                        var innerType = WireFormat.GetNullableInnerCppType(field.Type);
+                        var boxSlot = WireFormat.HasNullableBoxSlot(field.Type) ? WireFormat.GetNullableBoxSlot(field.Type) : -1;
+                        if (boxSlot >= 0)
+                            sb.AppendLine($"        hr = winmidl::unmarshal_nullable<{innerType}, {boxSlot}>(p, &{name}.{field.Name}); RETURN_IF_FAILED(hr);");
+                        else
+                            WireFormat.EmitDeserialize(sb, field.Type, $"{name}.{field.Name}", "p");
+                    }
+                    else
+                    {
+                        WireFormat.EmitDeserialize(sb, field.Type, $"{name}.{field.Name}", "p");
+                    }
                 }
             }
         }
