@@ -751,20 +751,18 @@ static HRESULT proxy_shape_void_to_enum(IRpcChannelBuffer* channel, const GUID& 
 static HRESULT proxy_shape_struct_ColoredPoint_float_float_to_struct_ColoredPoint(IRpcChannelBuffer* channel, const GUID& iid, UINT32 slot, ColoredPoint arg0, FLOAT arg1, FLOAT arg2, ColoredPoint* retval) {
     RPCOLEMESSAGE msg = {};
     msg.iMethod = slot;
-    msg.cbBuffer = sizeof(Point) + sizeof(INT32) + sizeof(FLOAT) + sizeof(FLOAT);
+    msg.cbBuffer = sizeof(ColoredPoint) + sizeof(FLOAT) + sizeof(FLOAT);
     HRESULT hr = channel->GetBuffer(&msg, iid);
     RETURN_IF_FAILED(hr);
     BYTE* p = (BYTE*)msg.Buffer;
-    winmidl::marshal_struct(p, arg0.Position);
-    winmidl::marshal_enum(p, arg0.PointColor);
+    winmidl::marshal_struct(p, arg0);
     winmidl::marshal_float(p, arg1);
     winmidl::marshal_float(p, arg2);
     ULONG status;
     hr = channel->SendReceive(&msg, &status);
     RETURN_IF_FAILED(hr);
     BYTE* pReply = (BYTE*)msg.Buffer;
-    winmidl::unmarshal_struct(pReply, retval->Position);
-    winmidl::unmarshal_enum(pReply, retval->PointColor);
+    winmidl::unmarshal_struct(pReply, *retval);
     HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
     hr = channel->FreeBuffer(&msg);
     RETURN_IF_FAILED(hr);
@@ -918,8 +916,8 @@ class CICalculatorProxy : public IRpcProxyBuffer {
         }
 
         // Translate (vtable slot 11)
-        static constexpr UINT32 kTranslate_RequestSize = sizeof(Point) + sizeof(INT32) + sizeof(FLOAT) + sizeof(FLOAT);
-        static constexpr UINT32 kTranslate_ReplySize = sizeof(Point) + sizeof(INT32) + sizeof(HRESULT);
+        static constexpr UINT32 kTranslate_RequestSize = sizeof(ColoredPoint) + sizeof(FLOAT) + sizeof(FLOAT);
+        static constexpr UINT32 kTranslate_ReplySize = sizeof(ColoredPoint) + sizeof(HRESULT);
         HRESULT STDMETHODCALLTYPE Translate(ColoredPoint pt, FLOAT dx, FLOAT dy, ColoredPoint* returnValue) override {
             if (!m_owner->m_pChannel) return RPC_E_DISCONNECTED;
             RPCOLEMESSAGE msg = {};
@@ -928,16 +926,14 @@ class CICalculatorProxy : public IRpcProxyBuffer {
             HRESULT hr = m_owner->m_pChannel->GetBuffer(&msg, IID___x_TestApp_Comprehensive_ICalculator);
             RETURN_IF_FAILED(hr);
             BYTE* p = (BYTE*)msg.Buffer;
-            winmidl::marshal_struct(p, pt.Position);
-            winmidl::marshal_enum(p, pt.PointColor);
+            winmidl::marshal_struct(p, pt);
             winmidl::marshal_float(p, dx);
             winmidl::marshal_float(p, dy);
             ULONG status;
             hr = m_owner->m_pChannel->SendReceive(&msg, &status);
             RETURN_IF_FAILED(hr);
             BYTE* pReply = (BYTE*)msg.Buffer;
-            winmidl::unmarshal_struct(pReply, returnValue->Position);
-            winmidl::unmarshal_enum(pReply, returnValue->PointColor);
+            winmidl::unmarshal_struct(pReply, *returnValue);
             HRESULT retHr; memcpy(&retHr, pReply, sizeof(HRESULT));
             hr = m_owner->m_pChannel->FreeBuffer(&msg);
             RETURN_IF_FAILED(hr);
@@ -5451,21 +5447,23 @@ private:
     HRESULT Invoke_Translate(RPCOLEMESSAGE* pMsg, IRpcChannelBuffer* pChannel) {
         BYTE* p = (BYTE*)pMsg->Buffer;
         ColoredPoint pt;
-        winmidl::unmarshal_struct(p, pt.Position);
-        winmidl::unmarshal_enum(p, pt.PointColor);
+        static_assert(std::is_standard_layout_v<ColoredPoint>);
+        static_assert(offsetof(ColoredPoint, Position) == 0);
+        static_assert(offsetof(ColoredPoint, PointColor) == 8);
+        static_assert(sizeof(ColoredPoint) == 12);
+        winmidl::unmarshal_struct(p, pt);
         FLOAT dx;
         winmidl::unmarshal_float(p, dx);
         FLOAT dy;
         winmidl::unmarshal_float(p, dy);
         ColoredPoint returnValue{};
         HRESULT hr = m_pServer->Translate(pt, dx, dy, &returnValue);
-        static constexpr UINT32 kReplySize = sizeof(Point) + sizeof(INT32) + sizeof(HRESULT);
+        static constexpr UINT32 kReplySize = sizeof(ColoredPoint) + sizeof(HRESULT);
         pMsg->cbBuffer = kReplySize;
         HRESULT hrBuf = pChannel->GetBuffer(pMsg, IID___x_TestApp_Comprehensive_ICalculator);
         RETURN_IF_FAILED(hrBuf);
         BYTE* pOut = (BYTE*)pMsg->Buffer;
-        winmidl::marshal_struct(pOut, returnValue.Position);
-        winmidl::marshal_enum(pOut, returnValue.PointColor);
+        winmidl::marshal_struct(pOut, returnValue);
         winmidl::marshal_int32(pOut, hr);
         return S_OK;
     }
