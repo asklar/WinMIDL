@@ -2563,7 +2563,10 @@ public partial class Binder
         {
             if (member is MethodSymbol existing &&
                 existing.Name == newMethod.Name &&
-                existing.Parameters.Count == newMethod.Parameters.Count)
+                existing.Parameters.Count == newMethod.Parameters.Count &&
+                !(existing.ContractVersion != null && newMethod.ContractVersion != null &&
+                  (existing.ContractVersion != newMethod.ContractVersion ||
+                   existing.ContractName != newMethod.ContractName)))
             {
                 _diagnostics.Add(DiagnosticDescriptors.SameArityOverload(newMethod.Name, existing.Name, GetSymbolPosition(newMethod)));
                 return;
@@ -2866,21 +2869,22 @@ public partial class Binder
     /// <summary>MIDL1044: Warn when methods share a name but none has [method_name].</summary>
     private void ValidateDuplicateMethodNames(IReadOnlyList<ISymbol> members)
     {
-        var methodsByName = new Dictionary<string, List<MethodSymbol>>(StringComparer.Ordinal);
+        var methodsByNameAndContract = new Dictionary<(string, string?, int?), List<MethodSymbol>>();
         foreach (var member in members)
         {
             if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name))
             {
-                if (!methodsByName.TryGetValue(m.Name, out var list))
+                var key = (m.Name, m.ContractName, m.ContractVersion);
+                if (!methodsByNameAndContract.TryGetValue(key, out var list))
                 {
                     list = [];
-                    methodsByName[m.Name] = list;
+                    methodsByNameAndContract[key] = list;
                 }
                 list.Add(m);
             }
         }
 
-        foreach (var (name, methods) in methodsByName)
+        foreach (var ((name, _, _), methods) in methodsByNameAndContract)
         {
             if (methods.Count > 1 && methods.TrueForAll(m => string.IsNullOrEmpty(m.OverloadGroup) && string.IsNullOrEmpty(m.MethodNameOverride)))
             {
@@ -3129,7 +3133,7 @@ public partial class Binder
     private void CheckWinRtTypeCompatibility(TypeRef typeRef) { if (typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return; if (COnlyTypes.Contains(typeRef.Name)) _diagnostics.Add(DiagnosticDescriptors.WinRtTypeNotAllowed(typeRef.Name, typeRef.Position)); }
     private void ValidateDelegateReturnType(DelegateSymbol d) { /* WinRT delegates can return any type */ }
     private void ValidateInterfaceMemberNameUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal); foreach (var member in iface.Members) { var name = member.Name; if (string.IsNullOrEmpty(name)) continue; if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup)) continue; if (seen.TryGetValue(name, out var existing)) { if (existing is MethodSymbol em && !string.IsNullOrEmpty(em.OverloadGroup)) continue; _diagnostics.Add(DiagnosticDescriptors.InterfaceMemberNameCollision(name, iface.Name, GetSymbolPosition(member))); } else seen[name] = member; } }
-    private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; int dc = 0; foreach (var m in ms) { if (m.IsDefaultOverload) dc++; } if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOf(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOf(k.Item1))); } }
+    private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int,string?,int?), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count, m.ContractName, m.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; int dc = 0; foreach (var m in ms) { if (m.IsDefaultOverload) dc++; } if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOf(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOf(k.Item1))); } }
     private void ValidateDeprecatedInheritance(RuntimeClassSymbol rc) { if (rc.BaseClass?.ResolvedSymbol is not RuntimeClassSymbol baseRc) return; if (string.IsNullOrEmpty(baseRc.DeprecatedMessage)) return; if (!string.IsNullOrEmpty(rc.DeprecatedMessage)) return; _diagnostics.Add(DiagnosticDescriptors.DeprecatedBaseClassInheritance(rc.Name, baseRc.Name, GetSymbolPosition(rc))); }
     private void ValidateMethodNameOverrideUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, string>(StringComparer.Ordinal); foreach (var member in iface.Members) { if (member is not MethodSymbol m || string.IsNullOrEmpty(m.MethodNameOverride)) continue; if (!seen.TryAdd(m.MethodNameOverride, m.Name)) _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameOverride(m.MethodNameOverride, iface.Name, GetSymbolPosition(m))); } }
     private void ValidateConstructorArityPerVersion(RuntimeClassSymbol rc) { List<ConstructorSymbol>? ctors = null; foreach (var member in rc.Members) { if (member is ConstructorSymbol ctor) { ctors ??= new List<ConstructorSymbol>(); ctors.Add(ctor); } } if (ctors == null || ctors.Count < 2) return; var g = new Dictionary<(int,int?), List<ConstructorSymbol>>(); foreach (var ctor in ctors) { var k = (ctor.Parameters.Count, ctor.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(ctor); } foreach (var (k, l) in g) if (l.Count > 1) _diagnostics.Add(DiagnosticDescriptors.ConstructorArityConflict(rc.Name, k.Item1, GetSymbolPosition(rc))); }
