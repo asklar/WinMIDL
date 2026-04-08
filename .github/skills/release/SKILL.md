@@ -128,9 +128,8 @@ New-Item -ItemType Directory -Force $staging/x64, $staging/arm64 | Out-Null
 Copy-Item publish/win-x64/Midl.Cli.exe $staging/x64/
 Copy-Item publish/win-arm64/Midl.Cli.exe $staging/arm64/
 
-# Copy CLI guide and include headers
+# Copy CLI guide
 Copy-Item docs/cli-guide.md $staging/
-Copy-Item -Recurse include/winmidl $staging/include/winmidl
 
 # Create zip
 Compress-Archive -Path $staging/* -DestinationPath "publish/winmidl-$version.zip" -Force
@@ -141,10 +140,10 @@ Output: `publish/winmidl-0.1.13.zip` containing:
 ```
 x64/Midl.Cli.exe
 arm64/Midl.Cli.exe
-include/winmidl/proxy_helpers.h
-include/winmidl/wil_compat.h
 cli-guide.md
 ```
+
+Note: Runtime headers (`proxy_helpers.h`, `wil_compat.h`) are embedded in the compiler binary and extracted automatically to the output directory when generating proxy code.
 
 ### Step 8: Report
 
