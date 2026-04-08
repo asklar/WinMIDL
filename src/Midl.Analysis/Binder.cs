@@ -2863,7 +2863,7 @@ public partial class Binder
         }
     }
 
-    /// <summary>MIDL1044: Warn when methods share a name but neither has [overload].</summary>
+    /// <summary>MIDL1044: Warn when methods share a name but none has [method_name].</summary>
     private void ValidateDuplicateMethodNames(IReadOnlyList<ISymbol> members)
     {
         var methodsByName = new Dictionary<string, List<MethodSymbol>>(StringComparer.Ordinal);
@@ -2882,7 +2882,7 @@ public partial class Binder
 
         foreach (var (name, methods) in methodsByName)
         {
-            if (methods.Count > 1 && methods.TrueForAll(m => string.IsNullOrEmpty(m.OverloadGroup)))
+            if (methods.Count > 1 && methods.TrueForAll(m => string.IsNullOrEmpty(m.OverloadGroup) && string.IsNullOrEmpty(m.MethodNameOverride)))
             {
                 // Emit on the second method (first duplicate)
                 _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameWithoutOverload(
