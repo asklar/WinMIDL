@@ -148,10 +148,29 @@ Hierarchical symbol tree in **Outline** view and **Breadcrumbs** — namespaces,
 
 Each namespace block shows a summary of its contained types — e.g., `2 enums, 3 classes, 1 interface`.
 
-### 📝 Doc Comments (`///`)
+### 📝 Doc Comments (`///`, `//!`, `/** */`)
 
-Triple-slash comments are parsed as XML doc comments:
-- **Hover** shows `<summary>` text for documented types and members
+Both XML doc comments and Doxygen-style comments are supported:
+
+**XML (XDC) style:**
+```idl
+/// <summary>Represents a widget.</summary>
+/// <param name="name">The widget name</param>
+```
+
+**Doxygen style:**
+```idl
+/** @brief Represents a widget.
+ *  @param name The widget name
+ */
+
+//! @brief A shorter doc comment
+```
+
+Supported Doxygen tags: `@brief`/`\brief`, `@param`/`\param` (including `@param[in]`), `@return`/`\returns`, `@see`, `@note`, `@deprecated`.
+
+- **Hover** shows summary text for documented types and members
+- **Syntax highlighting** for Doxygen `@tags` inside doc comments
 - **Autocomplete** generates `<param>` and `<returns>` skeletons
 - **`/doc` CLI switch** emits `.xdc` XML doc comment files
 
