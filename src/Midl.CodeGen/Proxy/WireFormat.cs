@@ -260,7 +260,6 @@ public static partial class WireFormat
                 {
                     if (IsNullableValueType(field.Type))
                     {
-                        var iidName = GetInterfaceIidName(field.Type);
                         var innerType = GetNullableInnerCppType(field.Type);
                         sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}.{field.Name}); RETURN_IF_FAILED(hr);");
                     }
@@ -621,7 +620,6 @@ public static partial class WireFormat
                 {
                     if (IsNullableValueType(field.Type))
                     {
-                        var iidName = GetInterfaceIidName(field.Type);
                         var innerType = GetNullableInnerCppType(field.Type);
                         sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}.{field.Name}); RETURN_IF_FAILED(hr);");
                     }
@@ -932,5 +930,6 @@ public static partial class WireFormat
         }
     }
 }
+
 
 

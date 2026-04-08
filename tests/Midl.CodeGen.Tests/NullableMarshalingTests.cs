@@ -6,9 +6,9 @@ namespace Midl.CodeGen.Tests;
 
 /// <summary>
 /// Tests for nullable / IReference&lt;T&gt; marshaling in proxy/stub codegen.
-/// Primitive IReference&lt;T&gt; (Int32, Double, etc.) uses inline encoding:
-///   [uint8 hasValue][T value]  — fixed size, no CoMarshalInterface.
-/// Non-primitive IReference&lt;T&gt; (user structs) falls back to interface marshaling.
+/// Method params/retvals: always use marshal_interface (preserves COM identity).
+/// Struct fields: use inline encoding [uint8 hasValue][T value] for all value types
+/// (primitives, enums, structs) via winrt::box_value/unbox_value.
 /// </summary>
 public class NullableMarshalingTests
 {
