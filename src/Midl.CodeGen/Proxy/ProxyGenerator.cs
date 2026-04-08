@@ -487,7 +487,8 @@ public class ProxyGenerator
         sb.AppendLine($"    {{ IID_IRpcProxyBuffer, 0, false }},");
         sb.AppendLine($"    {{ {iidName}, static_cast<uint32_t>(offsetof({className}, m_face)), true }},");
         sb.AppendLine($"}};");
-        sb.AppendLine($"const winmidl::type_info_t {className}::kTypeInfo = {{ {className}::Face::kIIDs, L\"{rcName}\", {className}::kQIEntries }};");
+        sb.AppendLine($"static constexpr wchar_t {className}_className[] = L\"{rcName}\";");
+        sb.AppendLine($"const winmidl::type_info_t {className}::kTypeInfo = {{ {className}::Face::kIIDs, {className}_className, {className}::kQIEntries, {{ 1, std::size({className}_className) - 1, 0, 0, {className}_className }} }};");
         sb.AppendLine();
 
         // Emit method descriptor tables (Phase 5) — reuse methods from signature folding
@@ -605,7 +606,8 @@ public class ProxyGenerator
         sb.AppendLine($"    {{ IID_IRpcProxyBuffer, 0, false }},");
         sb.AppendLine($"    {{ {iidName}, static_cast<uint32_t>(offsetof({className}, m_face)), true }},");
         sb.AppendLine($"}};");
-        sb.AppendLine($"const winmidl::type_info_t {className}::kTypeInfo = {{ {className}::Face::kIIDs, L\"{del.FullName}\", {className}::kQIEntries }};");
+        sb.AppendLine($"static constexpr wchar_t {className}_className[] = L\"{del.FullName}\";");
+        sb.AppendLine($"const winmidl::type_info_t {className}::kTypeInfo = {{ {className}::Face::kIIDs, {className}_className, {className}::kQIEntries, {{ 1, std::size({className}_className) - 1, 0, 0, {className}_className }} }};");
         sb.AppendLine();
     }
 
@@ -776,9 +778,7 @@ public class ProxyGenerator
         sb.AppendLine("            return winmidl::get_iids(kTypeInfo, iidCount, iids);");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {");
-        sb.AppendLine($"            static constexpr WCHAR s_name[] = L\"{runtimeClassName}\";");
-        sb.AppendLine($"            static HSTRING s_h = [] {{ static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }}();");
-        sb.AppendLine("            *className = s_h; return S_OK;");
+        sb.AppendLine("            return winmidl::get_runtime_class_name(kTypeInfo, className);");
         sb.AppendLine("        }");
         sb.AppendLine("        HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {");
         sb.AppendLine("            return winmidl::get_trust_level(trustLevel);");

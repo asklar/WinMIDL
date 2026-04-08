@@ -18,10 +18,21 @@ struct qi_entry_t {
     bool delegating;
 };
 
+// Constexpr HSTRING header for reference strings — stays in .rdata.
+// Mirrors the layout from cppwinrt's base_string.h.
+struct hstring_header {
+    uint32_t flags;
+    uint32_t length;
+    uint32_t padding1;
+    uint32_t padding2;
+    wchar_t const* ptr;
+};
+
 struct type_info_t {
     std::span<const IID> iids;
     std::wstring_view className;
     std::span<const qi_entry_t> qiEntries;
+    hstring_header classNameHeader; // constexpr — lives in .rdata
 };
 
 inline HRESULT get_iids(type_info_t const& info, ULONG* count, IID** iids) noexcept {
@@ -34,14 +45,11 @@ inline HRESULT get_iids(type_info_t const& info, ULONG* count, IID** iids) noexc
 }
 
 inline HRESULT get_runtime_class_name(type_info_t const& info, HSTRING* name) noexcept {
-    // WindowsCreateString (allocating) is correct here because the caller takes
-    // ownership of the HSTRING and may hold it indefinitely.
-    // WindowsCreateStringReference would require a stable HSTRING_HEADER per proxy
-    // instance, which isn't worth the complexity for this cold path.
-    return WindowsCreateString(
-        info.className.data(),
-        static_cast<UINT32>(info.className.size()),
-        name);
+    // The classNameHeader is a constexpr reference HSTRING header in .rdata.
+    // Cast to HSTRING (which is just an HSTRING_HEADER*). The caller's
+    // WindowsDeleteString is a no-op on reference HSTRINGs (flag bit set).
+    *name = reinterpret_cast<HSTRING>(const_cast<hstring_header*>(&info.classNameHeader));
+    return S_OK;
 }
 
 inline HRESULT get_trust_level(TrustLevel* level) noexcept {

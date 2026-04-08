@@ -69,7 +69,7 @@ public partial class ProxyGeneratorTests
     }
 
     [Fact]
-    public void Proxy_GetRuntimeClassName_UsesStaticReference()
+    public void Proxy_GetRuntimeClassName_DelegatesToHelper()
     {
         var compilation = Compile(@"
             namespace TestApp {
@@ -77,8 +77,10 @@ public partial class ProxyGeneratorTests
             }");
         var output = _generator.Generate(compilation);
 
-        Assert.Contains("constexpr WCHAR s_name[]", output);
-        Assert.Contains("ARRAYSIZE(s_name) - 1", output);
+        // GetRuntimeClassName now delegates to the shared helper (zero-alloc via WindowsCreateStringReference)
+        Assert.Contains("winmidl::get_runtime_class_name(kTypeInfo", output);
+        // No inline s_name/ARRAYSIZE pattern — the class name is in kTypeInfo.className
+        Assert.DoesNotContain("constexpr WCHAR s_name[]", output);
     }
 
     [Fact]
