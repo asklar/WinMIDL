@@ -626,6 +626,31 @@ public class DocCommentTests
     }
 
     [Fact]
+    public void DocComment_DoxygenBlockWithoutLeadingAsterisks()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                /**
+                @brief A widget without leading asterisks.
+                @param name The widget name.
+                */
+                runtimeclass Widget
+                {
+                    void DoStuff(String name);
+                }
+            }
+            """);
+
+        var widget = compilation.GetAllTypes()
+            .OfType<Symbols.RuntimeClassSymbol>()
+            .FirstOrDefault(t => t.Name == "Widget");
+        Assert.NotNull(widget);
+        Assert.NotNull(widget!.DocComment);
+        Assert.Equal("A widget without leading asterisks.", widget.DocComment!.Summary);
+    }
+
+    [Fact]
     public void DocComment_DoxygenBlockMethodWithParams()
     {
         var compilation = CompilationHelper.Compile("""
