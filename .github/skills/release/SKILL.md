@@ -115,6 +115,37 @@ These scripts:
 - Package the VS VSIX
 - Output to `publish/midl-language-win32-x64.vsix`, `publish/midl-language-win32-arm64.vsix`, and `publish/Midl.VsExtension.vsix`
 
+### Step 7b: Package CLI Distribution Zip
+
+Create a zip containing the CLI binaries and guide for standalone distribution:
+
+```powershell
+# Create staging directory
+$staging = "publish/winmidl-$version"
+New-Item -ItemType Directory -Force $staging/x64, $staging/arm64 | Out-Null
+
+# Copy binaries
+Copy-Item publish/win-x64/Midl.Cli.exe $staging/x64/
+Copy-Item publish/win-arm64/Midl.Cli.exe $staging/arm64/
+
+# Copy CLI guide and include headers
+Copy-Item docs/cli-guide.md $staging/
+Copy-Item -Recurse include/winmidl $staging/include/winmidl
+
+# Create zip
+Compress-Archive -Path $staging/* -DestinationPath "publish/winmidl-$version.zip" -Force
+Remove-Item -Recurse $staging
+```
+
+Output: `publish/winmidl-0.1.13.zip` containing:
+```
+x64/Midl.Cli.exe
+arm64/Midl.Cli.exe
+include/winmidl/proxy_helpers.h
+include/winmidl/wil_compat.h
+cli-guide.md
+```
+
 ### Step 8: Report
 
 Print the results:
@@ -123,7 +154,8 @@ Print the results:
 ✅ Release v0.1.11 complete!
 
 Artifacts:
-  VS Code (x64):  publish/midl-language-win32-x64.vsix (X.X MB)
+  CLI zip:         publish/winmidl-0.1.11.zip (X.X MB)
+  VS Code (x64):   publish/midl-language-win32-x64.vsix (X.X MB)
   VS Code (arm64): publish/midl-language-win32-arm64.vsix (X.X MB)
   VS:              publish/Midl.VsExtension.vsix (X.X MB)
 
