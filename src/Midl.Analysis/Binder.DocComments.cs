@@ -41,15 +41,44 @@ public partial class Binder
     }
 
     /// <summary>
-    /// Strip the /// prefix (and optional leading space) from a doc comment line.
+    /// Strip doc comment prefixes from trivia text.
+    /// Handles: /// , //! , /** ... */, /*! ... */
     /// </summary>
     private static string StripDocCommentPrefix(string text)
     {
-        // Text starts with "///" — strip it, plus one optional space
+        // Single-line: "/// " or "///"
         if (text.StartsWith("/// "))
             return text[4..];
         if (text.StartsWith("///"))
             return text[3..];
+        // Single-line: "//! " or "//!"
+        if (text.StartsWith("//! "))
+            return text[4..];
+        if (text.StartsWith("//!"))
+            return text[3..];
+        // Multi-line: /** ... */ or /*! ... */
+        if ((text.StartsWith("/**") || text.StartsWith("/*!")) && text.EndsWith("*/"))
+        {
+            var inner = text[3..^2]; // strip /** and */
+            // Split into lines and strip leading * on each
+            var lines = inner.Split('\n');
+            var sb = new System.Text.StringBuilder();
+            foreach (var rawLine in lines)
+            {
+                var line = rawLine.TrimStart();
+                if (line.StartsWith("* "))
+                    line = line[2..];
+                else if (line.Length > 1 && line[0] == '*' && (line[1] == '@' || line[1] == '\\'))
+                    line = line[1..]; // *@brief or *\brief — strip only the *
+                else if (line == "*")
+                    line = "";
+                if (sb.Length > 0 && line.Length > 0)
+                    sb.Append('\n');
+                if (line.Length > 0)
+                    sb.Append(line);
+            }
+            return sb.ToString();
+        }
         return text;
     }
 

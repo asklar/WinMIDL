@@ -18,7 +18,7 @@ WinMIDL is a **ground-up rewrite** of the Microsoft MIDL compiler. It compiles M
 | Custom proxy/stub | `_proxy.cpp` | `/cppproxy` |
 | DllData | `dlldata.c` | (automatic) |
 | Activation manifest | `.manifest` / `.appxmanifest` | `--manifest` |
-| XML doc comments | `.xdc` | `/doc` |
+| XML doc comments | `.xdc` | `/doc` (supports both XDC and Doxygen-style comments) |
 
 The same binary also serves as an **LSP server** — editor extensions for VS Code and Visual Studio ship with it bundled.
 
@@ -87,7 +87,7 @@ Both extensions bundle the compiler binary (x64 + ARM64) and provide:
 | Find references | ✅ |
 | Inactive region graying (`#ifdef`) | ✅ |
 | Namespace type count code lens | ✅ |
-| Doc comment (`///`) support + hover | ✅ |
+| Doc comment (`///`, `//!`, `/** */`) support + hover | ✅ |
 | Interactive class diagram | ✅ |
 | Microsoft Learn integration (hover docs) | ✅ |
 
