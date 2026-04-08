@@ -159,7 +159,49 @@ public class DiagnosticSweepTests
         // Should have MIDL1044 (duplicate method name) and possibly MIDL1011 (same arity)
         Assert.Contains(compilation.Diagnostics, d =>
             d.Code == "MIDL1044" && d.Severity == DiagnosticSeverity.Warning
-            && d.Message.Contains("Do") && d.Message.Contains("[overload("));
+            && d.Message.Contains("Do") && d.Message.Contains("[method_name("));
+    }
+
+    [Fact]
+    public void DuplicateMethodName_SuggestsMethodNameNotOverload()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass C
+                {
+                    void Do(Int32 x);
+                    void Do(String x);
+                }
+            }
+            """);
+
+        var diag = compilation.Diagnostics.First(d => d.Code == "MIDL1044");
+        // Must NOT recommend [overload]
+        Assert.DoesNotContain("[overload(", diag.Message);
+        // Must recommend [method_name("UniqueName")]
+        Assert.Contains("[method_name(", diag.Message);
+        // Must mention [default_overload]
+        Assert.Contains("[default_overload]", diag.Message);
+    }
+
+    [Fact]
+    public void DuplicateMethodWithMethodNameOk()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass C
+                {
+                    void Do(Int32 x);
+                    [method_name("DoWithString")]
+                    void Do(String x);
+                }
+            }
+            """);
+
+        // [method_name] is present on at least one, so no MIDL1044
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1044");
     }
 
     [Fact]
@@ -285,5 +327,200 @@ public class DiagnosticSweepTests
             """);
 
         Assert.Empty(compilation.Diagnostics);
+    }
+
+    [Fact]
+    public void SameNameMethodsDifferentContractVersions_NoMIDL1044()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(2)]
+                apicontract PaletteContract {};
+
+                [contract(PaletteContract, 1)]
+                runtimeclass PaletteExtension
+                {
+                    static String CreateExtension(Int32 reporter);
+
+                    [contract(PaletteContract, 2)]
+                    {
+                        static String CreateExtension(String host);
+                    }
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1044");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1011");
+    }
+
+    [Fact]
+    public void SameNameMethodsNoContractBlock_StillWarnsMIDL1044()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                runtimeclass Widget
+                {
+                    void DoWork(Int32 x);
+                    void DoWork(String s);
+                }
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d =>
+            d.Code == "MIDL1044" && d.Message.Contains("DoWork"));
+    }
+
+    [Fact]
+    public void SameNameMethodsSameContractVersion_StillWarnsMIDL1044()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(1)]
+                apicontract TestContract {};
+
+                [contract(TestContract, 1)]
+                runtimeclass Widget
+                {
+                    void DoWork(Int32 x);
+                    void DoWork(String s);
+                }
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d =>
+            d.Code == "MIDL1044" && d.Message.Contains("DoWork"));
+    }
+
+    [Fact]
+    public void SameNameMethodsMixedContractAndNoContract_NoMIDL1044()
+    {
+        // One method has no contract version (default interface), the other has a contract
+        // version (versioned interface) — they're on different synthesized interfaces.
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(1)]
+                apicontract TestContract {};
+
+                runtimeclass Widget
+                {
+                    void DoWork(Int32 x);
+
+                    [contract(TestContract, 1)]
+                    {
+                        void DoWork(String s);
+                    }
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1044");
+    }
+
+    [Fact]
+    public void SameNameMethodsDifferentContractVersions_NoDefaultOverloadRequired()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(2)]
+                apicontract PaletteContract {};
+
+                [contract(PaletteContract, 1)]
+                runtimeclass PaletteExtension
+                {
+                    static String CreateExtension(Int32 reporter);
+
+                    [contract(PaletteContract, 2)]
+                    {
+                        static String CreateExtension(String host);
+                    }
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1044");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1011");
+        Assert.DoesNotContain(compilation.Diagnostics, d =>
+            d.Code is "MIDL1055" or "MIDL1059");
+    }
+
+    [Fact]
+    public void SameNameMethodsDifferentContractNames_SameVersion_NoMIDL1044()
+    {
+        // Different contract names with the same version number are on different
+        // synthesized interfaces — no warning needed.
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(1)]
+                apicontract FooContract {};
+
+                [contractversion(1)]
+                apicontract BarContract {};
+
+                runtimeclass Widget
+                {
+                    [contract(FooContract, 1)]
+                    {
+                        static String Create(Int32 reporter);
+                    }
+
+                    [contract(BarContract, 1)]
+                    {
+                        static String Create(String host);
+                    }
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1044");
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1011");
+    }
+
+    [Fact]
+    public void SameNameMethodsSameContractNameAndVersion_StillWarnsMIDL1044()
+    {
+        // Same contract name + same version → same synthesized interface → must warn.
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(2)]
+                apicontract TestContract {};
+
+                [contract(TestContract, 1)]
+                runtimeclass Widget
+                {
+                    void DoWork(Int32 x);
+                    void DoWork(String s);
+                }
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d =>
+            d.Code == "MIDL1044" && d.Message.Contains("DoWork"));
+    }
+
+    [Fact]
+    public void SameNameMethodsBothNullContractVersion_StillWarnsMIDL1044()
+    {
+        // Neither method has a contract block → both null → same interface → must warn.
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                runtimeclass Widget
+                {
+                    void Process(Int32 x);
+                    void Process(String s);
+                }
+            }
+            """);
+
+        Assert.Contains(compilation.Diagnostics, d =>
+            d.Code == "MIDL1044" && d.Message.Contains("Process"));
     }
 }
