@@ -80,6 +80,9 @@ if ($Version) {
     $pkg.version = $Version -replace '-.*$', ''
     $pkg | ConvertTo-Json -Depth 10 | Set-Content package.json
     Pop-Location
+
+    # Sync changelog from repo root into extension directory
+    Copy-Item "$repoRoot\CHANGELOG.md" "$extensionDir\CHANGELOG.md" -Force
 }
 
 # Step 4: Package VSIX(es)

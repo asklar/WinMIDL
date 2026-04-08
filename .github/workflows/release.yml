@@ -128,6 +128,8 @@ jobs:
           $pkg = Get-Content package.json | ConvertFrom-Json
           $pkg.version = "${{ steps.version.outputs.VERSION }}" -replace '-.*$', ''
           $pkg | ConvertTo-Json -Depth 10 | Set-Content package.json
+          # Sync changelog from repo root into extension directory
+          Copy-Item "${{ github.workspace }}/CHANGELOG.md" CHANGELOG.md -Force
 
       - name: Download win-x64 artifact
         uses: actions/download-artifact@v4

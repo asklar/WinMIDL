@@ -68,17 +68,23 @@ Write to `CHANGELOG.md` at the repo root. If the file exists, prepend the new ve
 
 After writing the changelog, **show the diff to the user for review** using the `show_file` tool with `diff: true` on `CHANGELOG.md`. Wait for the user to confirm before proceeding. If they request changes, edit accordingly and show the diff again.
 
-### Step 4: Bump Version
+### Step 4: Bump Version & Sync Changelog
 
 Update version strings in two files:
 
 1. **`editors/vscode/package.json`**: Change `"version": "X.Y.Z"` to the new version
 2. **`editors/vs/Midl.VsExtension/source.extension.vsixmanifest`**: Change `Version="X.Y.Z"` in the `<Identity>` element
 
+Copy the root `CHANGELOG.md` into `editors/vscode/CHANGELOG.md` so the VS Code marketplace shows the real changelog:
+
+```powershell
+Copy-Item CHANGELOG.md editors/vscode/CHANGELOG.md -Force
+```
+
 ### Step 5: Commit & Tag
 
 ```powershell
-git add CHANGELOG.md editors/vscode/package.json editors/vs/Midl.VsExtension/source.extension.vsixmanifest
+git add CHANGELOG.md editors/vscode/CHANGELOG.md editors/vscode/package.json editors/vs/Midl.VsExtension/source.extension.vsixmanifest
 git commit -m "Release v$version
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
