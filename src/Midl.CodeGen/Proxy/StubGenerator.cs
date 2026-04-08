@@ -199,9 +199,11 @@ public class StubGenerator
         var refParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.Ref).ToList();
         var hasRetval = slot.ReturnType.Name != "void";
         bool hasIfaceInParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type));
+        bool hasNonBlittableStructInParams = inParams.Any(p =>
+            p.Type.ResolvedSymbol is StructSymbol s && !WireFormat.IsBlittable(s));
 
-        // Declare hr early if needed for interface deserialization
-        if (hasIfaceInParams)
+        // Declare hr early if needed for interface deserialization or non-blittable struct field deserialization
+        if (hasIfaceInParams || hasNonBlittableStructInParams)
         {
             sb.AppendLine("        HRESULT hr;");
         }
@@ -273,7 +275,7 @@ public class StubGenerator
         }
 
         // Build server call
-        EmitServerCall(sb, slot, inParams, outParams, hasRetval, hrAlreadyDeclared: hasIfaceInParams);
+        EmitServerCall(sb, slot, inParams, outParams, hasRetval, hrAlreadyDeclared: hasIfaceInParams || hasNonBlittableStructInParams);
 
         // Serialize reply
         EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams, useExceptions, refParams);
@@ -345,7 +347,15 @@ public class StubGenerator
             {
                 foreach (var field in structSym.Fields)
                 {
-                    WireFormat.EmitDeserialize(sb, field.Type, $"{name}.{field.Name}", "p");
+                    if (WireFormat.IsNullableValueType(field.Type))
+                    {
+                        var innerType = WireFormat.GetNullableInnerCppType(field.Type);
+                        sb.AppendLine($"        hr = winmidl::unmarshal_nullable<{innerType}>(p, &{name}.{field.Name}); RETURN_IF_FAILED(hr);");
+                    }
+                    else
+                    {
+                        WireFormat.EmitDeserialize(sb, field.Type, $"{name}.{field.Name}", "p");
+                    }
                 }
             }
         }
@@ -852,8 +862,10 @@ public class StubGenerator
         var refParams = slot.Parameters.Where(p => p.Direction == ParameterDirection.Ref).ToList();
         var hasRetval = slot.ReturnType.Name != "void";
         bool hasIfaceInParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type));
+        bool hasNonBlittableStructInParams = inParams.Any(p =>
+            p.Type.ResolvedSymbol is StructSymbol s && !WireFormat.IsBlittable(s));
 
-        if (hasIfaceInParams)
+        if (hasIfaceInParams || hasNonBlittableStructInParams)
         {
             sb.AppendLine("        HRESULT hr;");
         }
@@ -924,7 +936,7 @@ public class StubGenerator
         }
 
         // Build server call
-        EmitServerCall(sb, slot, inParams, outParams, hasRetval, hrAlreadyDeclared: hasIfaceInParams);
+        EmitServerCall(sb, slot, inParams, outParams, hasRetval, hrAlreadyDeclared: hasIfaceInParams || hasNonBlittableStructInParams);
 
         // Serialize reply
         EmitSerializeReply(sb, slot, outParams, hasRetval, iidName, inParams, useExceptions, refParams);
@@ -1059,3 +1071,5 @@ public class StubGenerator
         public required TypeRef ReturnType { get; init; }
     }
 }
+
+

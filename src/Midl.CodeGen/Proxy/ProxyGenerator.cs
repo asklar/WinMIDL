@@ -327,7 +327,7 @@ public class ProxyGenerator
         sb.AppendLine("    RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"    msg.iMethod = slot;");
 
-        // Buffer size — pre-compute marshal sizes for interface params
+        // Buffer size — pre-compute marshal sizes for interface params (excluding nullable value types which use inline encoding)
         bool hasInterfaceParams = inParams.Any(p => WireFormat.IsInterfaceType(p.Type));
         if (hasInterfaceParams)
         {
@@ -996,7 +996,7 @@ public class ProxyGenerator
         sb.AppendLine("            RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"            msg.iMethod = {vtableSlot};");
 
-        // Pre-compute marshal sizes for interface-typed input params
+        // Pre-compute marshal sizes for interface-typed input params (excluding nullable value types)
         var ifaceInParams = inParams.Where(p => WireFormat.IsInterfaceType(p.Type)).ToList();
         bool hasIfaceInParams = ifaceInParams.Count > 0;
         if (hasIfaceInParams)
@@ -1212,7 +1212,7 @@ public class ProxyGenerator
         sb.AppendLine("        RPCOLEMESSAGE msg = {};");
         sb.AppendLine($"        msg.iMethod = {vtableSlot};");
 
-        // Pre-compute marshal sizes for interface-typed input params
+        // Pre-compute marshal sizes for interface-typed input params (excluding nullable value types)
         var ifaceInParams2 = inParams.Where(p => WireFormat.IsInterfaceType(p.Type)).ToList();
         bool hasIfaceInParams2 = ifaceInParams2.Count > 0;
         if (hasIfaceInParams2)

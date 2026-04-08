@@ -9,6 +9,7 @@
 #include <string_view>
 #include <cstdint>
 #include <type_traits>
+#include <winrt/Windows.Foundation.h>
 
 namespace winmidl {
 
@@ -134,8 +135,10 @@ inline void marshal_event_token(BYTE*& buf, EventRegistrationToken val) noexcept
 }
 template<typename E>
 inline void marshal_enum(BYTE*& buf, E val) noexcept {
-    INT32 v = static_cast<INT32>(val);
-    memcpy(buf, &v, sizeof(INT32)); buf += sizeof(INT32);
+    using U = std::underlying_type_t<E>;
+    static_assert(sizeof(U) == 4, "WinRT enums must be 4 bytes");
+    U v = static_cast<U>(val);
+    memcpy(buf, &v, sizeof(U)); buf += sizeof(U);
 }
 // Read HSTRING length directly from the ABI header layout (offset 4),
 // avoiding the WindowsGetStringLen function call. Layout is stable ABI.
@@ -209,7 +212,9 @@ inline void unmarshal_event_token(const BYTE*& buf, EventRegistrationToken& out)
 }
 template<typename E>
 inline void unmarshal_enum(const BYTE*& buf, E& out) noexcept {
-    INT32 v; memcpy(&v, buf, sizeof(INT32)); buf += sizeof(INT32);
+    using U = std::underlying_type_t<E>;
+    static_assert(sizeof(U) == 4, "WinRT enums must be 4 bytes");
+    U v; memcpy(&v, buf, sizeof(U)); buf += sizeof(U);
     out = static_cast<E>(v);
 }
 // Zero-copy HSTRING deserialization (stub-side).
@@ -283,7 +288,9 @@ inline void unmarshal_event_token(BYTE*& buf, EventRegistrationToken& out) noexc
 }
 template<typename E>
 inline void unmarshal_enum(BYTE*& buf, E& out) noexcept {
-    INT32 v; memcpy(&v, buf, sizeof(INT32)); buf += sizeof(INT32);
+    using U = std::underlying_type_t<E>;
+    static_assert(sizeof(U) == 4, "WinRT enums must be 4 bytes");
+    U v; memcpy(&v, buf, sizeof(U)); buf += sizeof(U);
     out = static_cast<E>(v);
 }
 template<typename T>
@@ -529,6 +536,64 @@ struct interface_descriptor {
 };
 
 // ════════════════════════════════════════════════════════════════
+// IReference<T> inline serialization
+//
+// Replaces CoMarshalInterface/CoUnmarshalInterface for nullable
+// value types in struct fields with a fixed-size inline encoding:
+//   [uint8 hasValue][T value]   — always 1 + sizeof(T) bytes
+//
+// Uses C++/WinRT ::winrt::unbox_value / ::winrt::box_value for clean
+// PropertyValue interop without vtable slot hacks.
+// ════════════════════════════════════════════════════════════════
+
+// Marshal IReference<T> inline: [uint8 hasValue][T value]
+// Fixed size: always writes 1 + sizeof(T) bytes.
+template<typename T>
+inline HRESULT marshal_nullable(BYTE*& buf, IInspectable* pRef) noexcept {
+    if (!pRef) {
+        *buf++ = 0;
+        memset(buf, 0, sizeof(T)); buf += sizeof(T);
+        return S_OK;
+    }
+    *buf++ = 1;
+    try {
+        ::winrt::Windows::Foundation::IInspectable obj{nullptr};
+        ::winrt::copy_from_abi(obj, pRef);
+        T value = ::winrt::unbox_value<T>(obj);
+        memcpy(buf, &value, sizeof(T)); buf += sizeof(T);
+        return S_OK;
+    } catch (...) { return ::winrt::to_hresult(); }
+}
+
+// Unmarshal IReference<T> inline (stub-side, mutable buf).
+template<typename T>
+inline HRESULT unmarshal_nullable(BYTE*& buf, IInspectable** out) noexcept {
+    uint8_t hasValue = *buf++;
+    T value{};
+    memcpy(&value, buf, sizeof(T)); buf += sizeof(T);
+    if (!hasValue) { *out = nullptr; return S_OK; }
+    try {
+        auto boxed = ::winrt::box_value(value);
+        *out = static_cast<IInspectable*>(::winrt::detach_abi(boxed));
+        return S_OK;
+    } catch (...) { return ::winrt::to_hresult(); }
+}
+
+// Unmarshal IReference<T> inline (proxy reply side, const buf).
+template<typename T>
+inline HRESULT unmarshal_nullable(const BYTE*& buf, IInspectable** out) noexcept {
+    uint8_t hasValue = *buf++;
+    T value{};
+    memcpy(&value, buf, sizeof(T)); buf += sizeof(T);
+    if (!hasValue) { *out = nullptr; return S_OK; }
+    try {
+        auto boxed = ::winrt::box_value(value);
+        *out = static_cast<IInspectable*>(::winrt::detach_abi(boxed));
+        return S_OK;
+    } catch (...) { return ::winrt::to_hresult(); }
+}
+
+// ════════════════════════════════════════════════════════════════
 // stub_base_t — CRTP base for generated stub classes
 //
 // Provides IUnknown methods (AddRef, Release, QueryInterface) with
@@ -558,3 +623,5 @@ public:
 };
 
 } // namespace winmidl
+
+

@@ -15,6 +15,50 @@ public static partial class WireFormat
     public const int HResultSize = 4;
 
     /// <summary>
+    /// Primitive types that support inline IReference&lt;T&gt; encoding via winrt::box_value/unbox_value.
+    /// </summary>
+    private static readonly HashSet<string> NullablePrimitives = new(StringComparer.Ordinal)
+    {
+        "UInt8", "Int16", "UInt16", "Int32", "UInt32",
+        "Int64", "UInt64", "Single", "Double", "Char", "Boolean",
+    };
+
+    /// <summary>
+    /// Returns true if the type is IReference&lt;T&gt; where T is a value type that supports
+    /// inline nullable encoding: [uint8 hasValue][T value].
+    /// Used for struct field serialization where inline encoding avoids CoMarshalInterface.
+    /// </summary>
+    public static bool IsNullableValueType(TypeRef typeRef)
+    {
+        if (typeRef.TypeArguments.Count != 1)
+            return false;
+        if (typeRef.ResolvedSymbol is not InterfaceSymbol iface)
+            return false;
+        if (iface.FullName != "Windows.Foundation.IReference")
+            return false;
+        var inner = typeRef.TypeArguments[0];
+        return NullablePrimitives.Contains(inner.Name)
+            || inner.ResolvedSymbol is EnumSymbol
+            || inner.ResolvedSymbol is StructSymbol;
+    }
+
+    /// <summary>
+    /// Returns the C++ type name for a nullable primitive's inner type.
+    /// </summary>
+    public static string GetNullableInnerCppType(TypeRef typeRef)
+    {
+        return GetCppTypeName(typeRef.TypeArguments[0]);
+    }
+
+    /// <summary>
+    /// Returns the fixed wire size for a nullable primitive: 1 (hasValue) + sizeof(T).
+    /// </summary>
+    public static int GetNullableWireSize(TypeRef typeRef)
+    {
+        return 1 + GetWireSize(typeRef.TypeArguments[0]);
+    }
+
+    /// <summary>
     /// Returns a TypeRef representing the element type of an array TypeRef.
     /// The element type has the same name and resolved symbol but IsArray = false.
     /// </summary>
@@ -46,8 +90,8 @@ public static partial class WireFormat
     };
 
     /// <summary>
-    /// Set of primitive type names that are blittable (directly memcpy-able without casting).
-    /// Enums require a cast so are not blittable. Strings are variable-length.
+    /// Set of primitive type names that are blittable (directly memcpy-able).
+    /// Strings are variable-length. Enums are handled separately in IsFieldBlittable.
     /// </summary>
     private static readonly HashSet<string> BlittablePrimitives = new(StringComparer.Ordinal)
     {
@@ -133,6 +177,8 @@ public static partial class WireFormat
             _ when typeRef.ResolvedSymbol is EnumSymbol => "sizeof(INT32)",
             _ when typeRef.ResolvedSymbol is StructSymbol s && !IsBlittable(s) =>
                 string.Join(" + ", s.Fields.Select(f => GetCppSizeExpression(f.Type))),
+            _ when IsNullableValueType(typeRef) =>
+                $"(1 + {GetCppSizeExpression(typeRef.TypeArguments[0])})",
             _ => $"sizeof({typeRef.Name})",
         };
     }
@@ -212,7 +258,15 @@ public static partial class WireFormat
             {
                 foreach (var field in structSym.Fields)
                 {
-                    EmitSerialize(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                    if (IsNullableValueType(field.Type))
+                    {
+                        var innerType = GetNullableInnerCppType(field.Type);
+                        sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}.{field.Name}); RETURN_IF_FAILED(hr);");
+                    }
+                    else
+                    {
+                        EmitSerialize(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                    }
                 }
             }
             return;
@@ -359,7 +413,15 @@ public static partial class WireFormat
             {
                 foreach (var field in structSym.Fields)
                 {
-                    EmitDeserialize(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                    if (IsNullableValueType(field.Type))
+                    {
+                        var innerType = GetNullableInnerCppType(field.Type);
+                        sb.AppendLine($"{indent}hr = winmidl::unmarshal_nullable<{innerType}>({bufferPtr}, &{varName}.{field.Name}); RETURN_IF_FAILED(hr);");
+                    }
+                    else
+                    {
+                        EmitDeserialize(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                    }
                 }
             }
             return;
@@ -426,7 +488,15 @@ public static partial class WireFormat
                 foreach (var field in structSym.Fields)
                 {
                     var fieldTarget = $"{prefix}{field.Name}";
-                    EmitDeserializeReply(sb, field.Type, fieldTarget, bufferPtr, isPointer: false, indent);
+                    if (IsNullableValueType(field.Type))
+                    {
+                        var innerType = GetNullableInnerCppType(field.Type);
+                        sb.AppendLine($"{indent}hr = winmidl::unmarshal_nullable<{innerType}>({bufferPtr}, &{fieldTarget}); RETURN_IF_FAILED(hr);");
+                    }
+                    else
+                    {
+                        EmitDeserializeReply(sb, field.Type, fieldTarget, bufferPtr, isPointer: false, indent);
+                    }
                 }
             }
             return;
@@ -548,7 +618,15 @@ public static partial class WireFormat
             {
                 foreach (var field in structSym.Fields)
                 {
-                    EmitSerializeReplyValue(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                    if (IsNullableValueType(field.Type))
+                    {
+                        var innerType = GetNullableInnerCppType(field.Type);
+                        sb.AppendLine($"{indent}hr = winmidl::marshal_nullable<{innerType}>({bufferPtr}, {varName}.{field.Name}); RETURN_IF_FAILED(hr);");
+                    }
+                    else
+                    {
+                        EmitSerializeReplyValue(sb, field.Type, $"{varName}.{field.Name}", bufferPtr, indent);
+                    }
                 }
             }
             return;
@@ -616,9 +694,9 @@ public static partial class WireFormat
     }
 
     /// <summary>
-    /// Returns true if a struct is blittable: all fields are primitive types that can be
-    /// memcpy'd without casting. Enums are NOT blittable (require INT32 cast).
-    /// Strings are NOT blittable (variable length). Empty structs are NOT blittable.
+    /// Returns true if a struct is blittable: all fields are types that can be
+    /// memcpy'd directly. Strings and interface pointers are NOT blittable.
+    /// Empty structs are NOT blittable.
     /// Nested structs are blittable only if all their fields are also blittable.
     /// </summary>
     public static bool IsBlittable(StructSymbol structSym)
@@ -631,6 +709,9 @@ public static partial class WireFormat
     private static bool IsFieldBlittable(TypeRef typeRef)
     {
         if (BlittablePrimitives.Contains(typeRef.Name))
+            return true;
+        // WinRT enums are always 4 bytes (Int32/UInt32) — same as a primitive
+        if (typeRef.ResolvedSymbol is EnumSymbol)
             return true;
         if (typeRef.ResolvedSymbol is StructSymbol nested)
             return IsBlittable(nested);
@@ -849,3 +930,6 @@ public static partial class WireFormat
         }
     }
 }
+
+
+

@@ -83,6 +83,10 @@ static const CLSID CLSID_ArrayOps = {
     {0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea, 0xfb}};
 #endif
 
+static const CLSID CLSID_NullableOps = {
+    0x7a8b9c0d, 0x1e2f, 0x4a3b,
+    {0x4c, 0x5d, 0x6e, 0x7f, 0x80, 0x91, 0xa2, 0xb3}};
+
 // ---------------------------------------------------------------------------
 // Client-side helper: LoggerImpl — implements ILogger for Subscribe test
 // ---------------------------------------------------------------------------
@@ -1012,6 +1016,152 @@ static DWORD WINAPI MtaWorkerThread(LPVOID param) {
         }
     }
 #endif
+
+    // ===== Test group: NullableOps (struct with IReference<T> fields) =====
+    printf("[MTA] --- NullableOps tests ---\n");
+    {
+        __x_TestApp_Comprehensive_INullableOps* pNullOps = nullptr;
+        hr = CoCreateInstance(CLSID_NullableOps, nullptr, CLSCTX_INPROC_SERVER,
+                              IID___x_TestApp_Comprehensive_INullableOps, (void**)&pNullOps);
+        Check(SUCCEEDED(hr), "NullableOps: CoCreateInstance");
+        if (SUCCEEDED(hr)) {
+            // --- GetDefaultRecord: Id=42, nulls ---
+            NullableRecord defRec = {};
+            hr = pNullOps->GetDefaultRecord(&defRec);
+            Check(SUCCEEDED(hr), "NullableOps: GetDefaultRecord");
+            Check(defRec.Id == 42, "NullableOps: GetDefaultRecord Id==42");
+            Check(defRec.OptionalScore == nullptr,
+                  "NullableOps: GetDefaultRecord OptionalScore==null");
+            Check(defRec.OptionalWeight == nullptr,
+                  "NullableOps: GetDefaultRecord OptionalWeight==null");
+
+            // --- Box values using IPropertyValueStatics ---
+            // IPropertyValueStatics IID: {629bdbc8-d932-4ff4-96b9-8d96c5c1e858}
+            static const IID IID_IPropertyValueStatics = {
+                0x629bdbc8, 0xd932, 0x4ff4,
+                {0x96, 0xb9, 0x8d, 0x96, 0xc5, 0xc1, 0xe8, 0x58}};
+            // IPropertyValue IID: {4bd682dd-7554-40e9-9a9b-82654ede7e62}
+            static const IID IID_IPropertyValue = {
+                0x4bd682dd, 0x7554, 0x40e9,
+                {0x9a, 0x9b, 0x82, 0x65, 0x4e, 0xde, 0x7e, 0x62}};
+
+            HSTRING hsPV = nullptr;
+            WindowsCreateString(L"Windows.Foundation.PropertyValue", 32, &hsPV);
+            IInspectable* pvStatics = nullptr;
+            hr = RoGetActivationFactory(hsPV, IID_IPropertyValueStatics, (void**)&pvStatics);
+            WindowsDeleteString(hsPV);
+            Check(SUCCEEDED(hr), "NullableOps: RoGetActivationFactory(PropertyValue)");
+
+            IInspectable* boxed42 = nullptr;
+            IInspectable* boxed99 = nullptr;
+            IInspectable* boxed314 = nullptr;
+
+            if (SUCCEEDED(hr)) {
+                // CreateInt32 is vtable slot 10 on IPropertyValueStatics
+                // IUnknown(3) + IInspectable(3) + CreateEmpty(1) + CreateUInt8(1) + CreateInt16(1) + CreateUInt16(1) + CreateInt32 = slot 10
+                auto** vtbl = (void***)pvStatics;
+                typedef HRESULT(STDMETHODCALLTYPE* CreateInt32Fn)(void*, INT32, IInspectable**);
+                auto createInt32 = (CreateInt32Fn)(*vtbl)[10];
+
+                hr = createInt32(pvStatics, 42, &boxed42);
+                Check(SUCCEEDED(hr) && boxed42 != nullptr, "NullableOps: Box Int32(42)");
+
+                hr = createInt32(pvStatics, 99, &boxed99);
+                Check(SUCCEEDED(hr) && boxed99 != nullptr, "NullableOps: Box Int32(99)");
+
+                // CreateDouble is vtable slot 15
+                // ... + CreateUInt32(1) + CreateInt64(1) + CreateUInt64(1) + CreateSingle(1) + CreateDouble = slot 15
+                typedef HRESULT(STDMETHODCALLTYPE* CreateDoubleFn)(void*, DOUBLE, IInspectable**);
+                auto createDouble = (CreateDoubleFn)(*vtbl)[15];
+
+                hr = createDouble(pvStatics, 3.14, &boxed314);
+                Check(SUCCEEDED(hr) && boxed314 != nullptr, "NullableOps: Box Double(3.14)");
+            }
+
+            // --- CreateRecord with values ---
+            if (boxed42 && boxed314) {
+                NullableRecord rec = {};
+                hr = pNullOps->CreateRecord(100, boxed42, boxed314, &rec);
+                Check(SUCCEEDED(hr), "NullableOps: CreateRecord(100, 42, 3.14)");
+                Check(rec.Id == 100, "NullableOps: CreateRecord Id==100");
+                Check(rec.OptionalScore != nullptr,
+                      "NullableOps: CreateRecord OptionalScore!=null");
+                Check(rec.OptionalWeight != nullptr,
+                      "NullableOps: CreateRecord OptionalWeight!=null");
+
+                // Verify the boxed Int32 value
+                if (rec.OptionalScore) {
+                    void* pv = nullptr;
+                    if (SUCCEEDED(rec.OptionalScore->QueryInterface(IID_IPropertyValue, &pv))) {
+                        auto** vt = (void***)pv;
+                        typedef HRESULT(STDMETHODCALLTYPE* GetInt32Fn)(void*, INT32*);
+                        auto getInt32 = (GetInt32Fn)(*vt)[11];
+                        INT32 val = 0;
+                        getInt32(pv, &val);
+                        Check(val == 42, "NullableOps: CreateRecord score==42");
+                        ((IUnknown*)pv)->Release();
+                    }
+                    rec.OptionalScore->Release();
+                }
+                // Verify the boxed Double value
+                if (rec.OptionalWeight) {
+                    void* pv = nullptr;
+                    if (SUCCEEDED(rec.OptionalWeight->QueryInterface(IID_IPropertyValue, &pv))) {
+                        auto** vt = (void***)pv;
+                        // GetDouble is vtable slot 16
+                        typedef HRESULT(STDMETHODCALLTYPE* GetDoubleFn)(void*, DOUBLE*);
+                        auto getDouble = (GetDoubleFn)(*vt)[16];
+                        DOUBLE val = 0.0;
+                        getDouble(pv, &val);
+                        Check(fabs(val - 3.14) < 0.001,
+                              "NullableOps: CreateRecord weight==3.14");
+                        ((IUnknown*)pv)->Release();
+                    }
+                    rec.OptionalWeight->Release();
+                }
+            }
+
+            // --- CreateRecord with nulls ---
+            {
+                NullableRecord rec = {};
+                hr = pNullOps->CreateRecord(200, nullptr, nullptr, &rec);
+                Check(SUCCEEDED(hr), "NullableOps: CreateRecord(200, null, null)");
+                Check(rec.Id == 200, "NullableOps: CreateRecord null Id==200");
+                Check(rec.OptionalScore == nullptr,
+                      "NullableOps: CreateRecord null OptionalScore==null");
+                Check(rec.OptionalWeight == nullptr,
+                      "NullableOps: CreateRecord null OptionalWeight==null");
+            }
+
+            // --- SumScores with values ---
+            if (boxed42 && boxed99) {
+                NullableRecord recA = { 1, boxed42, nullptr };
+                NullableRecord recB = { 2, boxed99, nullptr };
+                INT32 sum = 0;
+                hr = pNullOps->SumScores(recA, recB, &sum);
+                Check(SUCCEEDED(hr), "NullableOps: SumScores");
+                Check(sum == 141, "NullableOps: SumScores == 141 (42+99)");
+            }
+
+            // --- SumScores with null scores ---
+            {
+                NullableRecord recA = { 1, boxed42, nullptr };
+                NullableRecord recB = { 2, nullptr, nullptr };
+                INT32 sum = 0;
+                hr = pNullOps->SumScores(recA, recB, &sum);
+                Check(SUCCEEDED(hr), "NullableOps: SumScores with null");
+                Check(sum == 42, "NullableOps: SumScores null == 42 (42+0)");
+            }
+
+            // Cleanup boxed values
+            if (boxed42) boxed42->Release();
+            if (boxed99) boxed99->Release();
+            if (boxed314) boxed314->Release();
+            if (pvStatics) pvStatics->Release();
+
+            pNullOps->Release();
+        }
+    }
 
     CoUninitialize();
     printf("\n[MTA] Tests complete.\n");

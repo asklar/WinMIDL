@@ -20,6 +20,7 @@ public record MsvcToolchain(
     string SdkIncludeShared,
     string SdkIncludeUm,
     string SdkIncludeWinrt,
+    string SdkIncludeCppWinrt,
     string SdkLibUcrt,
     string SdkLibUm);
 
@@ -184,6 +185,7 @@ public class E2ETestHelper : IDisposable
             Path.Combine(sdkRoot, "Include", sdkVersion, "shared"),
             Path.Combine(sdkRoot, "Include", sdkVersion, "um"),
             Path.Combine(sdkRoot, "Include", sdkVersion, "winrt"),
+            Path.Combine(sdkRoot, "Include", sdkVersion, "cppwinrt"),
             Path.Combine(sdkRoot, "Lib", sdkVersion, "ucrt", "x64"),
             Path.Combine(sdkRoot, "Lib", sdkVersion, "um", "x64"));
     }
@@ -564,7 +566,7 @@ public class E2ETestHelper : IDisposable
         // Set MSVC environment so cl/link find system headers and libs
         proc.StartInfo.Environment["INCLUDE"] = string.Join(";",
             Msvc.VcInclude, Msvc.SdkIncludeUcrt, Msvc.SdkIncludeShared,
-            Msvc.SdkIncludeUm, Msvc.SdkIncludeWinrt);
+            Msvc.SdkIncludeUm, Msvc.SdkIncludeWinrt, Msvc.SdkIncludeCppWinrt);
         proc.StartInfo.Environment["LIB"] = string.Join(";",
             Msvc.VcLib, Msvc.SdkLibUcrt, Msvc.SdkLibUm);
 

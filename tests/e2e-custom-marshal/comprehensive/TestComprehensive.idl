@@ -4,9 +4,14 @@ namespace TestApp.Comprehensive
     enum Color { Red, Green, Blue };
     [flags] enum Permissions { None = 0, Read = 1, Write = 2, Execute = 4, All = 7 };
 
-    // 2. Structs (simple + nested enum field)
+    // 2. Structs (simple + nested enum field + nullable fields)
     struct Point { Single X; Single Y; };
     struct ColoredPoint { Point Position; Color PointColor; };
+    struct NullableRecord {
+        Int32 Id;
+        Windows.Foundation.IReference<Int32> OptionalScore;
+        Windows.Foundation.IReference<Double> OptionalWeight;
+    };
 
     // 3. Standalone interface
     interface ILogger
@@ -229,5 +234,19 @@ namespace TestApp.Comprehensive
     runtimeclass ArrayOps : IArrayOps
     {
         ArrayOps();
+    }
+
+    // 19. Struct with nullable fields (inline IReference encoding)
+    interface INullableOps
+    {
+        NullableRecord CreateRecord(Int32 id, Windows.Foundation.IReference<Int32> score, Windows.Foundation.IReference<Double> weight);
+        NullableRecord GetDefaultRecord();
+        Int32 SumScores(NullableRecord a, NullableRecord b);
+    };
+
+    [default_interface]
+    runtimeclass NullableOps : INullableOps
+    {
+        NullableOps();
     }
 }

@@ -3110,7 +3110,26 @@ public partial class Binder
 
     private static readonly HashSet<string> AllowedStructFieldBuiltIns = new(StringComparer.Ordinal) { "Boolean","Char","Int16","Int32","Int64","UInt8","UInt16","UInt32","UInt64","Single","Double","String","Guid" };
     private void ValidateStructFieldTypes(StructSymbol s) { foreach (var field in s.Fields) if (!IsAllowedStructFieldType(field.Type)) _diagnostics.Add(DiagnosticDescriptors.StructFieldNotValueType(field.Name, GetSymbolPosition(field))); }
-    private static bool IsAllowedStructFieldType(TypeRef typeRef) { if (AllowedStructFieldBuiltIns.Contains(typeRef.Name)) return true; if (typeRef.Name == "IReference" && typeRef.TypeArguments.Count > 0) return true; if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol) return true; return false; }
+    private static bool IsAllowedStructFieldType(TypeRef typeRef)
+    {
+        if (AllowedStructFieldBuiltIns.Contains(typeRef.Name))
+            return true;
+        if (IsIReferenceType(typeRef))
+            return true;
+        if (typeRef.ResolvedSymbol is EnumSymbol or StructSymbol)
+            return true;
+        return false;
+    }
+
+    private static bool IsIReferenceType(TypeRef typeRef)
+    {
+        if (typeRef.TypeArguments.Count == 0)
+            return false;
+        if (typeRef.Name is "IReference" or "Windows.Foundation.IReference")
+            return true;
+        return typeRef.ResolvedSymbol is InterfaceSymbol iface
+            && iface.FullName == "Windows.Foundation.IReference";
+    }
     private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; string methodName = ""; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; methodName = m.Name; } else if (member is ConstructorSymbol c) { p = c.Parameters; methodName = c.Name; } if (p != null) { foreach (var param in p) ValidateParameter(param); ValidateDuplicateParameterNames(p, methodName); } if (rt != null) { if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(rt); ValidateArrayReturnType(rt, _posMap.GetPositionOf(methodName)); } } }
     private void ValidateMethodParametersForDelegate(DelegateSymbol d) { foreach (var param in d.Parameters) ValidateParameter(param); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(d.ReturnType); ValidateArrayReturnType(d.ReturnType, GetSymbolPosition(d)); }
     private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref && !param.IsArray) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, GetSymbolPosition(param))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, GetSymbolPosition(param))); } if (param.IsArray) { if (!_arraysEnabled) { _diagnostics.Add(DiagnosticDescriptors.ArraySyntaxNotEnabled(GetSymbolPosition(param))); } else { ValidateArrayElementType(param.Type, GetSymbolPosition(param)); } } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }

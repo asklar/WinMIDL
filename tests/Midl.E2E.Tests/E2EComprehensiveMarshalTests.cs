@@ -35,6 +35,7 @@ public class E2EComprehensiveMarshalTests
         ["{A3B4C5D6-E7F8-4091-A2B3-C4D5E6F7A8B9}"] = "MathHelpers",
         ["{B4C5D6E7-F8A9-40B1-C2D3-E4F5A6B7C8D9}"] = "Observable",
         ["{C5D6E7F8-A9B0-41C2-D3E4-F5A6B7C8D9EA}"] = "CollectionOps",
+        ["{7A8B9C0D-1E2F-4A3B-4C5D-6E7F8091A2B3}"] = "NullableOps",
     };
 
     [Fact]

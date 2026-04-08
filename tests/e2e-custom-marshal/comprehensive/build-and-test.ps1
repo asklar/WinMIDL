@@ -168,16 +168,18 @@ $sdkIncUcrt = "$sdkRoot\Include\$sdkVersion\ucrt"
 $sdkIncShared = "$sdkRoot\Include\$sdkVersion\shared"
 $sdkIncUm = "$sdkRoot\Include\$sdkVersion\um"
 $sdkIncWinrt = "$sdkRoot\Include\$sdkVersion\winrt"
+$sdkIncCppWinrt = "$sdkRoot\Include\$sdkVersion\cppwinrt"
 $sdkLibUcrt = "$sdkRoot\Lib\$sdkVersion\ucrt\$hostArch"
 $sdkLibUm = "$sdkRoot\Lib\$sdkVersion\um\$hostArch"
 
-$env:INCLUDE = "$vcInclude;$sdkIncUcrt;$sdkIncShared;$sdkIncUm;$sdkIncWinrt"
+$env:INCLUDE = "$vcInclude;$sdkIncUcrt;$sdkIncShared;$sdkIncUm;$sdkIncWinrt;$sdkIncCppWinrt"
 $env:LIB = "$vcLib;$sdkLibUcrt;$sdkLibUm"
 $env:PATH = "$vcToolsDir\bin\$hostDir;$sdkRoot\bin\$sdkVersion\$hostArch;$env:PATH"
 
 $commonFlags = @("/nologo", "/std:c++latest", "/EHsc", "/W3",
                   "/DWIN32", "/D_WINDOWS", "/DUNICODE", "/D_UNICODE",
                   "/DWITH_ARRAYS",
+                  "/permissive-",
                   "/Zi")
 
 # ── Step 3: Compile IID definitions ─────────────────────────────────────
@@ -259,6 +261,7 @@ $clsidMap = @{
     "{B4C5D6E7-F8A9-40B1-C2D3-E4F5A6B7C8D9}" = "Observable"
     "{C5D6E7F8-A9B0-41C2-D3E4-F5A6B7C8D9EA}" = "CollectionOps"
     "{D6E7F8A9-B0C1-42D3-E4F5-A6B7C8D9EAFB}" = "ArrayOps"
+    "{7A8B9C0D-1E2F-4A3B-4C5D-6E7F8091A2B3}" = "NullableOps"
 }
 
 foreach ($clsid in $clsidMap.Keys) {

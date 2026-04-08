@@ -77,6 +77,10 @@ static const CLSID CLSID_ArrayOps = {
     {0xe4, 0xf5, 0xa6, 0xb7, 0xc8, 0xd9, 0xea, 0xfb}};
 #endif
 
+static const CLSID CLSID_NullableOps = {
+    0x7a8b9c0d, 0x1e2f, 0x4a3b,
+    {0x4c, 0x5d, 0x6e, 0x7f, 0x80, 0x91, 0xa2, 0xb3}};
+
 static constexpr double kPi = 3.14159265358979323846;
 static LONG g_cDllRef = 0;
 
@@ -1350,6 +1354,105 @@ public:
 #endif
 
 // ---------------------------------------------------------------------------
+// NullableOpsImpl — implements INullableOps (struct with IReference<T> fields)
+// ---------------------------------------------------------------------------
+static const IID IID_IPropertyValue = {
+    0x4bd682dd, 0x7554, 0x40e9,
+    {0x9a, 0x9b, 0x82, 0x65, 0x4e, 0xde, 0x7e, 0x62}};
+
+class NullableOpsImpl : public __x_TestApp_Comprehensive_INullableOps {
+    LONG m_cRef;
+public:
+    NullableOpsImpl() : m_cRef(1) {
+        InterlockedIncrement(&g_cDllRef);
+    }
+    ~NullableOpsImpl() {
+        InterlockedDecrement(&g_cDllRef);
+    }
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == IID_IUnknown || riid == IID_IInspectable ||
+            riid == IID___x_TestApp_Comprehensive_INullableOps) {
+            *ppv = static_cast<__x_TestApp_Comprehensive_INullableOps*>(this);
+            AddRef();
+            return S_OK;
+        }
+        if (riid == IID_IMarshal) { *ppv = nullptr; return E_NOINTERFACE; }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&m_cRef); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG c = InterlockedDecrement(&m_cRef);
+        if (c == 0) delete this;
+        return c;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetIids(ULONG* iidCount, IID** iids) override {
+        *iidCount = 1;
+        *iids = (IID*)CoTaskMemAlloc(sizeof(IID));
+        if (!*iids) return E_OUTOFMEMORY;
+        (*iids)[0] = IID___x_TestApp_Comprehensive_INullableOps;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
+        return WindowsCreateString(L"TestApp.Comprehensive.NullableOps", 33, className);
+    }
+    HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
+        *trustLevel = BaseTrust; return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE CreateRecord(INT32 id, IInspectable* score, IInspectable* weight,
+                                           NullableRecord* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        returnValue->Id = id;
+        returnValue->OptionalScore = score;
+        if (score) score->AddRef();
+        returnValue->OptionalWeight = weight;
+        if (weight) weight->AddRef();
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE GetDefaultRecord(NullableRecord* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        returnValue->Id = 42;
+        returnValue->OptionalScore = nullptr;
+        returnValue->OptionalWeight = nullptr;
+        return S_OK;
+    }
+
+    HRESULT STDMETHODCALLTYPE SumScores(NullableRecord a, NullableRecord b,
+                                        INT32* returnValue) override {
+        if (!returnValue) return E_POINTER;
+        INT32 scoreA = 0, scoreB = 0;
+        if (a.OptionalScore) {
+            void* pv = nullptr;
+            if (SUCCEEDED(a.OptionalScore->QueryInterface(IID_IPropertyValue, &pv))) {
+                // IPropertyValue::GetInt32 is vtable slot 11
+                auto** vtbl = (void***)pv;
+                typedef HRESULT(STDMETHODCALLTYPE* GetInt32Fn)(void*, INT32*);
+                auto fn = (GetInt32Fn)(*vtbl)[11];
+                fn(pv, &scoreA);
+                ((IUnknown*)pv)->Release();
+            }
+        }
+        if (b.OptionalScore) {
+            void* pv = nullptr;
+            if (SUCCEEDED(b.OptionalScore->QueryInterface(IID_IPropertyValue, &pv))) {
+                auto** vtbl = (void***)pv;
+                typedef HRESULT(STDMETHODCALLTYPE* GetInt32Fn)(void*, INT32*);
+                auto fn = (GetInt32Fn)(*vtbl)[11];
+                fn(pv, &scoreB);
+                ((IUnknown*)pv)->Release();
+            }
+        }
+        *returnValue = scoreA + scoreB;
+        return S_OK;
+    }
+};
+
+// ---------------------------------------------------------------------------
 // ClassFactory — switches on CLSID to create the right object
 // ---------------------------------------------------------------------------
 class ClassFactory : public IClassFactory {
@@ -1410,6 +1513,8 @@ public:
         else if (m_clsid == CLSID_ArrayOps)
             obj = static_cast<__x_TestApp_Comprehensive_IArrayOps*>(new (std::nothrow) ArrayOpsImpl());
 #endif
+        else if (m_clsid == CLSID_NullableOps)
+            obj = static_cast<__x_TestApp_Comprehensive_INullableOps*>(new (std::nothrow) NullableOpsImpl());
         else return CLASS_E_CLASSNOTAVAILABLE;
         if (!obj) return E_OUTOFMEMORY;
         HRESULT hr = obj->QueryInterface(riid, ppv);
@@ -1438,6 +1543,7 @@ HRESULT STDAPICALLTYPE DllGetClassObject(REFCLSID rclsid, REFIID riid, void** pp
 #ifdef WITH_ARRAYS
         &CLSID_ArrayOps,
 #endif
+        &CLSID_NullableOps,
     };
     for (auto* c : knownClsids) {
         if (rclsid == *c) {

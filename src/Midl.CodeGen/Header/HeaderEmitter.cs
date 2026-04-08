@@ -267,7 +267,8 @@ public class HeaderEmitter
 
     private static void EmitEnum(StringBuilder sb, EnumSymbol e)
     {
-        sb.AppendLine($"enum {e.Name}");
+        var underlyingCType = e.UnderlyingType == "UInt32" ? "UINT32" : "INT32";
+        sb.AppendLine($"enum {e.Name} : {underlyingCType}");
         sb.AppendLine("{");
         for (int i = 0; i < e.EnumMembers.Count; i++)
         {
