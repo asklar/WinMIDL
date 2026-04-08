@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.1.13 (2026-04-08)
+
+### Features
+- Doxygen-style doc comments: `/** */`, `/*! */`, `//!` blocks with `@brief`, `@param`, `@return`, `@see`, `@note`, `@deprecated` tag translation (#26)
+- Inline `IReference<T>` encoding for struct fields — replaces `CoMarshalInterface` with `[hasValue][T value]` using `winrt::box_value`/`unbox_value` (#20)
+- Enum blittability: structs with enum fields now use single `memcpy` instead of field-by-field serialization (#20)
+- Zero-alloc `GetRuntimeClassName` via constexpr HSTRING header in `.rdata` (#17)
+- `noexcept` on all proxy/stub marshal/unmarshal helpers (#14)
+- Inline `hstring_len()` replacing `WindowsGetStringLen` calls (#14)
+- `stub_base_t<Derived>` CRTP base for generated stub classes (#12)
+- `std::is_standard_layout` checks alongside `is_trivially_copyable` for blittable structs (#12)
+- Semantic token highlighting for Doxygen `@tags` in doc comments
+
+### Bug Fixes
+- Fix #22: diagnostic MIDL1044 now suggests `[method_name]` instead of `[overload]` (#24)
+- Fix #23: MIDL1044 no longer fires for same-name methods in different `[contract]` blocks (#25)
+- Fix IReference base PIID: corrected to `61c17706-2d65-11e0-9ae8-d48564015472`
+- Fix enum underlying type in generated headers: now emits `enum Foo : INT32`/`UINT32` explicitly
+- Fix pwsh 7 argument quoting in out-of-proc E2E script
+- Fix `marshal_enum`/`unmarshal_enum` to use `std::underlying_type_t<E>` with `static_assert`
+
+### Documentation
+- Rename wire-format-spec → payload-format-spec (avoids implying cross-machine networking)
+- Add byte ordering section to payload format spec
+- Update VS Code README with Doxygen comment documentation
+- Add telemetry/observability plan (`docs/telemetry-plan.md`)
+- Update copilot instructions with session learnings (pre-push checklist, TDD, agent audit)
+
+### Infrastructure
+- Skip NativeAOT artifact upload on PRs in CI
+- Persist diagnostic events to `~/.midl/server.log`
+
 ## v0.1.12 (2026-04-03)
 
 ### Features
