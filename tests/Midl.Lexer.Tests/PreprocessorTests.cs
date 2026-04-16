@@ -522,4 +522,34 @@ public class PreprocessorTests
         var result = pp.Process(source);
         Assert.Equal(source, result.TrimEnd()); // nothing changed — no macros to expand
     }
+
+    [Fact]
+    public void MacroExpansion_SpecstringsH_DoesNotExplode()
+    {
+        // Regression test for the 25 GB specstrings.h bug.
+        // specstrings.h contains documentation comments with SAL annotation macros
+        // (_Inout_, _SAL1_Source_, etc.) that are real macros defined by sal.h.
+        // Without comment-awareness, SubstituteMacros recursively expands them
+        // inside comments, allocating ~28 GB for 307 KB of output.
+        var sdkShared = @"C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared";
+        if (!Directory.Exists(sdkShared))
+        {
+            // Skip on machines without the Windows SDK installed
+            return;
+        }
+
+        var pp = new Preprocessor(includePaths: [sdkShared]);
+        var source = "#include <specstrings.h>\nInt32 x;";
+
+        var before = GC.GetTotalAllocatedBytes(precise: true);
+        var result = pp.Process(source);
+        var after = GC.GetTotalAllocatedBytes(precise: true);
+        var allocMB = (after - before) / (1024.0 * 1024.0);
+
+        Assert.Contains("Int32 x;", result);
+        // With the fix this allocates < 100 MB. Without it, it blows up to 25+ GB.
+        Assert.True(allocMB < 512,
+            $"Processing specstrings.h allocated {allocMB:F0} MB — " +
+            $"possible macro expansion inside comments (pre-fix was ~28,000 MB)");
+    }
 }
