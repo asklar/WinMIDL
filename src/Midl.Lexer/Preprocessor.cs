@@ -202,6 +202,9 @@ public class Preprocessor
         int macroDelta = 0;
         #pragma warning restore CS0219
 
+        // Track /* ... */ block comments spanning multiple source lines.
+        bool inBlockComment = false;
+
         for (int i = 0; i < lines.Count; i++)
         {
             var line = lines[i];
@@ -357,7 +360,7 @@ public class Preprocessor
             {
                 if (IsActive(ifStack))
                 {
-                    var substituted = SubstituteMacros(line);
+                    var substituted = SubstituteMacrosPreservingComments(line, ref inBlockComment);
                     int lenDiff = line.Length - substituted.Length;
                     if (lenDiff != 0 && filePath != null)
                     {
@@ -756,6 +759,73 @@ public class Preprocessor
             sb.Append(text[i]);
             i++;
         }
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Macro-expand a source line while preserving comments verbatim in the output.
+    /// Comments are kept so that doc comments (///) survive for the lexer and column
+    /// offsets remain correct. Only the code portions between comments are expanded.
+    /// This prevents catastrophic expansion of SAL macros inside documentation comments
+    /// in Windows SDK headers (specstrings.h allocated ~28 GB without this).
+    /// </summary>
+    private string SubstituteMacrosPreservingComments(string line, ref bool inBlockComment)
+    {
+        if (_defines.Count == 0 && _functionMacros.Count == 0) return line;
+
+        var sb = new StringBuilder(line.Length);
+        int i = 0;
+
+        // If we're inside a block comment from a previous line, find the end
+        if (inBlockComment)
+        {
+            int end = line.IndexOf("*/", StringComparison.Ordinal);
+            if (end < 0)
+                return line; // entire line is inside a block comment — emit as-is
+            // Preserve comment text through the closing */
+            sb.Append(line, 0, end + 2);
+            i = end + 2;
+            inBlockComment = false;
+        }
+
+        int codeStart = i;
+        while (i < line.Length)
+        {
+            if (i + 1 < line.Length && line[i] == '/' && line[i + 1] == '/')
+            {
+                // Line comment: expand code before it, preserve the rest verbatim
+                if (i > codeStart)
+                    sb.Append(SubstituteMacros(line[codeStart..i]));
+                sb.Append(line, i, line.Length - i);
+                return sb.ToString();
+            }
+            if (i + 1 < line.Length && line[i] == '/' && line[i + 1] == '*')
+            {
+                // Block comment start: expand code before it
+                if (i > codeStart)
+                    sb.Append(SubstituteMacros(line[codeStart..i]));
+                int end = line.IndexOf("*/", i + 2, StringComparison.Ordinal);
+                if (end < 0)
+                {
+                    // Unterminated — preserve rest of line, mark state
+                    inBlockComment = true;
+                    sb.Append(line, i, line.Length - i);
+                    return sb.ToString();
+                }
+                // Preserve the entire /* ... */ comment verbatim
+                sb.Append(line, i, end + 2 - i);
+                i = end + 2;
+                codeStart = i;
+                continue;
+            }
+            i++;
+        }
+
+        // Remaining code after the last comment (or entire line if no comments)
+        if (codeStart == 0 && i == line.Length)
+            return SubstituteMacros(line); // fast path: no comments at all
+        if (i > codeStart)
+            sb.Append(SubstituteMacros(line[codeStart..i]));
         return sb.ToString();
     }
 

@@ -295,8 +295,9 @@ public static class CompilationHelper
     /// <summary>
     /// Remaps diagnostic positions from expanded text to original text using line+column correspondence.
     /// The preprocessor preserves line count (directive/inactive lines → empty lines), so
-    /// line numbers are identical between expanded and original. Only column offsets may differ
-    /// on lines with macro substitution — but diagnostics rarely point to macro-substituted text.
+    /// line numbers are identical between expanded and original. When a macro substitution
+    /// changes a line's length, columns are adjusted by searching for the diagnostic's token
+    /// text in the original line near the expected position.
     /// </summary>
     private static Compilation RemapDiagnosticPositionsByLine(
         Compilation compilation, string expandedText, string originalText, string? filePath)
@@ -329,6 +330,56 @@ public static class CompilationHelper
             if (line < originalLineStarts.Length)
             {
                 int originalPos = originalLineStarts[line] + col;
+
+                // When macro substitution changed the line length, the naïve same-column
+                // mapping lands on the wrong character. Find the diagnostic's token text
+                // in the original line to correct the column.
+                int expandedLineEnd = (line + 1 < expandedLineStarts.Length)
+                    ? expandedLineStarts[line + 1] : expandedText.Length;
+                int originalLineEnd = (line + 1 < originalLineStarts.Length)
+                    ? originalLineStarts[line + 1] : originalText.Length;
+
+                var expandedLine = expandedText.AsSpan(expandedLineStarts[line],
+                    expandedLineEnd - expandedLineStarts[line]);
+                var originalLine = originalText.AsSpan(originalLineStarts[line],
+                    originalLineEnd - originalLineStarts[line]);
+
+                if (!expandedLine.SequenceEqual(originalLine) && diag.Length > 0 && col + diag.Length <= expandedLine.Length)
+                {
+                    // Structural alignment: find common prefix and suffix between
+                    // expanded and original lines. Code in the prefix maps 1:1,
+                    // code in the suffix maps 1:1 offset by the length difference,
+                    // and the middle (macro expansion zone) maps to the start of
+                    // the macro invocation in the original.
+                    int maxPrefix = Math.Min(expandedLine.Length, originalLine.Length);
+                    int prefixLen = 0;
+                    while (prefixLen < maxPrefix && expandedLine[prefixLen] == originalLine[prefixLen])
+                        prefixLen++;
+
+                    int maxSuffix = Math.Min(expandedLine.Length - prefixLen, originalLine.Length - prefixLen);
+                    int suffixLen = 0;
+                    while (suffixLen < maxSuffix &&
+                           expandedLine[expandedLine.Length - 1 - suffixLen] == originalLine[originalLine.Length - 1 - suffixLen])
+                        suffixLen++;
+
+                    if (col < prefixLen)
+                    {
+                        // In the common prefix — column is exact
+                        originalPos = originalLineStarts[line] + col;
+                    }
+                    else if (col >= expandedLine.Length - suffixLen)
+                    {
+                        // In the common suffix — adjust by the length difference
+                        int offsetFromEnd = expandedLine.Length - col;
+                        originalPos = originalLineStarts[line] + (originalLine.Length - offsetFromEnd);
+                    }
+                    else
+                    {
+                        // In the middle (macro expansion) — point to start of
+                        // the divergent region in the original
+                        originalPos = originalLineStarts[line] + prefixLen;
+                    }
+                }
 
                 // Clamp to original text length
                 if (originalPos > originalText.Length)
