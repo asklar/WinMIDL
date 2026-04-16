@@ -420,4 +420,106 @@ public class PreprocessorTests
         var result = pp.Process("#define ALL(...) __VA_ARGS__\nALL(solo)");
         Assert.Contains("solo", result);
     }
+
+    [Fact]
+    public void CommentStripping_LineComment_MacroNotExpanded()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO replaced\n// FOO should not expand\nInt32 x;");
+        Assert.DoesNotContain("replaced", result);
+        Assert.Contains("// FOO should not expand", result); // comment preserved
+        Assert.Contains("Int32 x;", result);
+    }
+
+    [Fact]
+    public void CommentStripping_InlineBlockComment_MacroNotExpanded()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO replaced\nInt32 /* FOO */ x;");
+        Assert.DoesNotContain("replaced", result);
+        Assert.Contains("/* FOO */", result); // comment preserved verbatim
+        Assert.Contains("Int32", result);
+        Assert.Contains("x;", result);
+    }
+
+    [Fact]
+    public void CommentStripping_MultiLineBlockComment_MacroNotExpanded()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO replaced\n/* FOO\nFOO\nFOO */\nInt32 x;");
+        Assert.DoesNotContain("replaced", result);
+        Assert.Contains("/* FOO", result);  // comment text preserved
+        Assert.Contains("FOO */", result);
+        Assert.Contains("Int32 x;", result);
+    }
+
+    [Fact]
+    public void CommentStripping_PreservesLineCount()
+    {
+        var pp = new Preprocessor();
+        // 6 source lines (including #define) → 6 output lines
+        var source = "#define M val\n/* start\nM inside\nend */\nM outside\nInt32 x;";
+        var result = pp.Process(source);
+        var lines = result.Split('\n');
+        Assert.Equal(6, lines.Length);
+        Assert.Contains("val", result);       // M expanded on code line
+        Assert.Contains("Int32 x;", result);
+    }
+
+    [Fact]
+    public void CommentStripping_CodeAfterBlockCommentEnd_StillProcessed()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO replaced\n/* comment */ FOO;");
+        Assert.Contains("replaced;", result);
+        Assert.Contains("/* comment */", result); // comment preserved
+    }
+
+    [Fact]
+    public void CommentStripping_CodeBeforeBlockCommentStart_StillProcessed()
+    {
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO replaced\nFOO /* comment */;");
+        Assert.Contains("replaced", result);
+        Assert.Contains("/* comment */", result); // comment preserved
+    }
+
+    [Fact]
+    public void CommentStripping_SALLikeMacrosInComments_NoExplosion()
+    {
+        // Simulates the specstrings.h scenario: macros that expand to other macros,
+        // appearing inside documentation comments. Without comment stripping this would
+        // cause exponential string growth.
+        var pp = new Preprocessor();
+        var source = """
+            #define _Inner_ INNER_EXPANDED
+            #define _Outer_(x) _Inner_ x
+            #define _SAL_(a,b) _Outer_(a) _Outer_(b)
+            // Example: _SAL_(_Inner_, _Outer_(z)) should NOT expand
+            Int32 x;
+            """;
+        var result = pp.Process(source);
+        Assert.DoesNotContain("INNER_EXPANDED", result);
+        Assert.Contains("Int32 x;", result);
+    }
+
+    [Fact]
+    public void CommentStripping_DocComment_Preserved()
+    {
+        // /// doc comments must survive preprocessing for the lexer
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO bar\n/// This is a doc comment about FOO\nInt32 x;");
+        Assert.Contains("/// This is a doc comment about FOO", result);
+        Assert.DoesNotContain("bar", result); // macro NOT expanded inside comment
+    }
+
+    [Fact]
+    public void CommentStripping_ColumnOffset_Preserved()
+    {
+        // Code after an inline comment should keep its original column offset
+        var pp = new Preprocessor();
+        var source = "Int32 /* comment */ x;";
+        var result = pp.Process(source);
+        Assert.Equal(source, result.TrimEnd()); // nothing changed — no macros to expand
+    }
 }
