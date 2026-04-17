@@ -145,18 +145,34 @@ cli-guide.md
 
 Note: Runtime headers (`proxy_helpers.h`, `wil_compat.h`) are embedded in the compiler binary and extracted automatically to the output directory when generating proxy code.
 
+### Step 7c: Package and Publish NuGet Tool
+
+Pack and push the dotnet tool package to nuget.org. This enables `dotnet tool install -g WinMIDL` and `dnx winmidl`.
+
+```powershell
+dotnet pack src/Midl.Cli/Midl.Cli.csproj -c Release -p:Version=$version -o publish/nuget --nologo -v q
+dotnet nuget push "publish/nuget/WinMIDL.$version.nupkg" --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+```
+
+The NuGet API key should be set in the `NUGET_API_KEY` environment variable. If not set, prompt the user for it. The key can be created at https://www.nuget.org/account/apikeys (scope: "Push new packages and package versions", package: "WinMIDL").
+
 ### Step 8: Report
 
 Print the results:
 
 ```
-✅ Release v0.1.11 complete!
+✅ Release v0.1.14 complete!
 
 Artifacts:
-  CLI zip:         publish/winmidl-0.1.11.zip (X.X MB)
+  NuGet:           publish/nuget/WinMIDL.0.1.14.nupkg (X KB) → nuget.org
+  CLI zip:         publish/winmidl-0.1.14.zip (X.X MB)
   VS Code (x64):   publish/midl-language-win32-x64.vsix (X.X MB)
   VS Code (arm64): publish/midl-language-win32-arm64.vsix (X.X MB)
   VS:              publish/Midl.VsExtension.vsix (X.X MB)
+
+Install:
+  dnx winmidl /winrt myfile.idl                    # one-shot (no install)
+  dotnet tool install -g WinMIDL                    # permanent global install
 
 Upload manually:
   VS Code: https://marketplace.visualstudio.com/manage/publishers/AlexanderSklarMSFT
@@ -177,6 +193,7 @@ Upload manually:
 - NativeAOT binaries are ~5.5 MB each (x64 + ARM64)
 - VS Code VSIXes are ~3 MB each (one binary per platform VSIX)
 - VS VSIX is ~4.5 MB
+- NuGet tool package is ~600 KB (framework-dependent, requires .NET 10 runtime)
 - Platform-specific VSIXes use `vsce package --target win32-x64` etc.
 - The marketplace merges platform VSIXes into one listing; Mac/Linux users won't see the extension unless we add those targets
 - The `Co-authored-by: Copilot` trailer is always included in the commit
