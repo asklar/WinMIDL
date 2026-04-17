@@ -6,7 +6,24 @@ A modern MIDL compiler that produces Windows Metadata, C/C++ headers, and custom
 
 ## Installation
 
-Download the latest `Midl.Cli.exe` from the [Releases](https://github.com/asklar/WinMIDL/releases) page. No installer needed — it's a single self-contained binary.
+### Option 1: dotnet tool (requires .NET 10 SDK)
+
+```bash
+# One-shot execution (no install)
+dnx winmidl /winrt Widget.idl
+
+# Global install
+dotnet tool install -g WinMIDL
+winmidl /winrt Widget.idl
+```
+
+### Option 2: Standalone binary (no .NET required)
+
+Download the latest `winmidl-<version>.zip` from the [Releases](https://github.com/asklar/WinMIDL/releases) page. Contains a single self-contained NativeAOT binary per architecture — no installer needed.
+
+### Option 3: VS Code / Visual Studio extensions
+
+Search for "MIDL" in the extension marketplace, or install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=AlexanderSklarMSFT.midl3-language-server).
 
 ---
 
