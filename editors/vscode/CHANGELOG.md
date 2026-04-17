@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.1.16 (2026-04-18)
+
+### Bug Fixes
+- **WinMD parity with midl.exe**: Fixed four regressions uncovered by real-world classic-MIDL runtimeclass IDLs
+  - Runtimeclass base list: an interface appearing as the first entry (e.g. `runtimeclass C : IBar`) is now correctly classified as an implemented interface, not a base class
+  - External TypeRefs are now CLR-projected to match midl.exe output (e.g. `EventHandler\`1` → `System.EventHandler\`1`, `EventRegistrationToken` → `System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken`, `INotifyPropertyChanged` → `System.ComponentModel.INotifyPropertyChanged`)
+  - Runtimeclasses now flatten members (methods, properties, events) from the transitive closure of required external interfaces onto the class TypeDef, matching midl.exe's method/property/event map layout
+  - Parameterized constructors no longer emit a duplicate `[Activatable(1)]` attribute alongside the versioned `[Activatable(factory, version)]`
+- `[Default]` marker is now correctly applied when an explicitly-declared interface is chosen as the default
+- Unresolved external type references in flattened member signatures are now emitted as proper TypeRefs (previously fell back to `Object`)
+- Overload retention: method-overload dedupe during flattening now uses signature keys (name + param types + return type) so overloads are preserved
+- HRESULT return types (in `/winrt` compat mode) are now encoded as `Windows.Foundation.HResult` value struct (CLR projection surfaces them as `System.Exception`), matching midl.exe. Previously emitted as a bare unresolved TypeRef named `HRESULT`
+- `MIDL1044` (overload disambiguation warning) no longer fires for different-arity overloads. It now only warns when two overloads share the same name AND the same parameter count
+- **Classic MIDL imports**: recognize additional classic attributes (`annotation`, `async`, `eventadd`, `eventremove`, plus RPC/DCE attrs like `switch_type`, `case`, `transmit_as`, etc.) so imports of `inspectable.idl` / classic `windows.foundation.idl` don't error with MIDL1065. Still produce MIDL2003 in strict mode — only valid with `/compat`
+- `typedef struct tagFoo { ... } Foo;` now registers both the tag name and the alias so either form resolves
+- Additional classic COM typedef aliases in compat mode: `LPCOLESTR`, `LPOLESTR`, `LCID`, `LANGID`, `ULONG_PTR`, `LONG_PTR`, `DWORD_PTR`, `UINT_PTR`, `INT_PTR`, `WPARAM`, `LPARAM`, `LRESULT`, `BOOLEAN`, `PVOID`, `DWORDLONG`, `QWORD`, `SCODE`, `DATE`, `CY`, `DECIMAL`, `VARIANT_BOOL`, `RPCOLEDATAREP`
+- **Referenced-WinMD apicontract resolution**: apicontract types read from a referenced WinMD (e.g. `Windows.Foundation.UniversalApiContract` from `Windows.winmd`) are now returned as `ApiContractSymbol` instead of `StructSymbol`, fixing false-positive `MIDL1075` ("is not declared as an apicontract") for `[contract(Foo, ...)]` attributes that reference SDK-defined contracts
+- **Decompiler**: deduplicate members when a runtimeclass has multiple `[static(SameInterface, ...)]` attributes (different versions/contracts). Previously emitted every member N× (once per attribute)
+
+### Tests
+- Added targeted parity tests for base-list reclassification and overload retention (`WinMdParityRealWorldTests`)
+- Added tests for HRESULT→System.Exception projection in compat mode
+- Added tests for MIDL1044 arity-aware behaviour (different-arity overloads don't warn; same-arity overloads still warn)
+
 ## v0.1.15 (2026-04-17)
 
 ### Features
