@@ -480,8 +480,10 @@ public class WinMdParityFixTests
                 if (reader.GetString(typeRef.Name) == "EventRegistrationToken")
                 {
                     var ns = reader.GetString(typeRef.Namespace);
-                    // C++ dumper confirms: original midl uses Windows.Foundation namespace
-                    Assert.Equal("Windows.Foundation", ns);
+                    // midl.exe baseline: EventRegistrationToken is CLR-projected to
+                    // System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken
+                    // (in mscorlib). Verified against Task Manager app baseline WINMDs.
+                    Assert.Equal("System.Runtime.InteropServices.WindowsRuntime", ns);
                     found = true;
                     break;
                 }

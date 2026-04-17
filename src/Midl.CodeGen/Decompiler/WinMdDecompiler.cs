@@ -872,6 +872,7 @@ public class WinMdDecompiler
     private void EmitStaticMembers(MetadataReader reader, TypeDefinitionHandle classHandle, StringBuilder sb, string indent)
     {
         var td = reader.GetTypeDefinition(classHandle);
+        var seenInterfaces = new HashSet<string>(StringComparer.Ordinal);
         foreach (var attrHandle in td.GetCustomAttributes())
         {
             var attr = reader.GetCustomAttribute(attrHandle);
@@ -884,6 +885,10 @@ public class WinMdDecompiler
                 blob.ReadUInt16(); // prolog
                 var staticInterfaceName = ReadSerializedString(ref blob);
                 if (staticInterfaceName == null) continue;
+
+                // Multiple [static(Foo, ...)] attributes can reference the same interface
+                // (once per contract/version). Emit its members only once.
+                if (!seenInterfaces.Add(staticInterfaceName)) continue;
 
                 var staticsTdHandle = FindTypeDefByFullName(reader, staticInterfaceName);
                 if (staticsTdHandle == null) continue;

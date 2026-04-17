@@ -126,6 +126,30 @@ public static class BuiltInTypes
             symbolTable.RegisterAlias("REFIID", "Guid");
             symbolTable.RegisterAlias("REFCLSID", "Guid");
             symbolTable.RegisterAlias("REFGUID", "Guid");
+            // Additional classic COM / OLE pointer typedefs
+            symbolTable.RegisterAlias("LPOLESTR", "String");
+            symbolTable.RegisterAlias("LPCOLESTR", "String");
+            symbolTable.RegisterAlias("BSTR", "String");
+            symbolTable.RegisterAlias("LCID", "UInt32");
+            symbolTable.RegisterAlias("LANGID", "UInt16");
+            symbolTable.RegisterAlias("ULONG_PTR", "UInt64");
+            symbolTable.RegisterAlias("LONG_PTR", "Int64");
+            symbolTable.RegisterAlias("DWORD_PTR", "UInt64");
+            symbolTable.RegisterAlias("UINT_PTR", "UInt64");
+            symbolTable.RegisterAlias("INT_PTR", "Int64");
+            symbolTable.RegisterAlias("WPARAM", "UInt64");
+            symbolTable.RegisterAlias("LPARAM", "Int64");
+            symbolTable.RegisterAlias("LRESULT", "Int64");
+            symbolTable.RegisterAlias("BOOLEAN", "Boolean");
+            symbolTable.RegisterAlias("PVOID", "Object");
+            symbolTable.RegisterAlias("DWORDLONG", "UInt64");
+            symbolTable.RegisterAlias("QWORD", "UInt64");
+            symbolTable.RegisterAlias("SCODE", "Int32");
+            symbolTable.RegisterAlias("DATE", "Double");
+            symbolTable.RegisterAlias("CY", "Int64");
+            symbolTable.RegisterAlias("DECIMAL", "Int64");
+            symbolTable.RegisterAlias("VARIANT_BOOL", "Int16");
+            symbolTable.RegisterAlias("RPCOLEDATAREP", "UInt32");
         }
 
         // 6. Compat-mode classic C lowercase types

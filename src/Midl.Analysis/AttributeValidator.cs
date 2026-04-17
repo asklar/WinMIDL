@@ -96,6 +96,14 @@ public partial class AttributeValidator
             "context_handle", "v1_enum", "async_uuid",
             "noncreatable", "aggregatable", "appobject",
             "entry", "dllname", "custom",
+            "annotation", "async", "eventadd", "eventremove",
+            "switch_type", "switch_is", "case", "default_case",
+            "ignore", "transmit_as", "represent_as", "wire_marshal",
+            "first_is", "last_is", "byte_count", "ms_union",
+            "handle", "error_status_t", "heap", "idempotent",
+            "broadcast", "maybe", "message", "notify", "reflect",
+            "disable_consistency_check", "implicit_handle", "explicit_handle",
+            "cpp_quote", "midl_pragma",
 #if WINDOWS_INTERNAL
             "feature", "feature_name",
 #endif
@@ -144,25 +152,37 @@ public partial class AttributeValidator
         }
 
         // Preload SDK attribute types from lazy WinMD providers
-        // so we can validate attributes like [noexcept] (NoExceptionAttribute)
+        // so we can validate attributes like [noexcept] (NoExceptionAttribute).
+        // Also preload apicontract types from referenced WinMDs so
+        // [contract(Windows.Foundation.UniversalApiContract, ...)] validates.
         foreach (var fullName in _compilation.GetAllLazyTypeNames())
         {
-            if (!fullName.EndsWith("Attribute", StringComparison.Ordinal))
-                continue;
-            // Only resolve types from Windows.Foundation.Metadata (where WinRT attributes live)
-            if (!fullName.StartsWith("Windows.Foundation.Metadata.", StringComparison.Ordinal))
-                continue;
-            if (attrTypes.Values.Any(a => a.FullName == fullName))
-                continue; // already loaded
-
-            var symbol = _compilation.GetTypeByName(fullName);
-            if (symbol is AttributeTypeSymbol sdkAttr)
+            if (fullName.EndsWith("Attribute", StringComparison.Ordinal) &&
+                fullName.StartsWith("Windows.Foundation.Metadata.", StringComparison.Ordinal))
             {
-                attrTypes[sdkAttr.Name] = sdkAttr;
-                if (sdkAttr.Name.EndsWith("Attribute", StringComparison.Ordinal) && sdkAttr.Name.Length > 9)
-                    attrTypes[sdkAttr.Name[..^9]] = sdkAttr;
-                if (sdkAttr.AttributeNameOverride != null)
-                    attrTypes[sdkAttr.AttributeNameOverride] = sdkAttr;
+                if (attrTypes.Values.Any(a => a.FullName == fullName))
+                    continue; // already loaded
+
+                var symbol = _compilation.GetTypeByName(fullName);
+                if (symbol is AttributeTypeSymbol sdkAttr)
+                {
+                    attrTypes[sdkAttr.Name] = sdkAttr;
+                    if (sdkAttr.Name.EndsWith("Attribute", StringComparison.Ordinal) && sdkAttr.Name.Length > 9)
+                        attrTypes[sdkAttr.Name[..^9]] = sdkAttr;
+                    if (sdkAttr.AttributeNameOverride != null)
+                        attrTypes[sdkAttr.AttributeNameOverride] = sdkAttr;
+                }
+            }
+            else if (fullName.EndsWith("ApiContract", StringComparison.Ordinal) ||
+                     fullName.EndsWith("Contract", StringComparison.Ordinal))
+            {
+                // Resolve candidate — will be an ApiContractSymbol if it really is one.
+                var symbol = _compilation.GetTypeByName(fullName);
+                if (symbol is ApiContractSymbol)
+                {
+                    apiContracts.Add(symbol.FullName);
+                    apiContracts.Add(symbol.Name);
+                }
             }
         }
 
@@ -683,3 +703,4 @@ public partial class AttributeValidator
         };
     }
 }
+
