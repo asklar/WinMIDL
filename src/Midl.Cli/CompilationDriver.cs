@@ -718,10 +718,26 @@ public class CompilationDriver
         if (options.References.Count > 0) _out.WriteLine($"  References  : {string.Join(", ", options.References)}");
     }
 
+    private static string GetExeName()
+    {
+        var processName = Path.GetFileNameWithoutExtension(Environment.ProcessPath ?? "winmidl");
+        // When invoked via 'dotnet tool exec' / 'dnx', the process is dotnet.exe
+        // running our DLL directly. Distinguish from global tool shim (.exe).
+        if (processName.Equals("dotnet", StringComparison.OrdinalIgnoreCase))
+        {
+            var entryAsm = System.Reflection.Assembly.GetEntryAssembly()?.Location;
+            if (entryAsm != null && entryAsm.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                return "dnx WinMIDL --";
+            return "winmidl";
+        }
+        return processName;
+    }
+
     private void PrintHelp()
     {
+        var exe = GetExeName();
         _out.WriteLine();
-        _out.WriteLine("Usage: midl [options] <input.idl>");
+        _out.WriteLine($"Usage: {exe} [options] <input.idl>");
         _out.WriteLine();
         _out.WriteLine("Options:");
         _out.WriteLine("  /h, /header <file>     Specify header file name");
