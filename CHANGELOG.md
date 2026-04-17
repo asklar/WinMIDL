@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.1.14 (2026-04-16)
+
+### Bug Fixes
+- Fix 25 GB memory / hung CPU when preprocessing IDL files that include `windows.h` — SAL macros inside comments in `specstrings.h` were recursively expanded; new `SubstituteMacrosPreservingComments` skips macro expansion inside comments while preserving doc comments and column offsets (#27)
+- Fix diagnostic squiggle placement after macro expansions — `RemapDiagnosticPositionsByLine` now uses structural prefix/suffix alignment instead of naïve same-column mapping (#27)
+- Fix `#define FOO` (no value) incorrectly expanding to `1` instead of empty string per C11 §6.10.3
+- Fix parser error recovery wrapping valid return type in `SkippedTokens` — `Int32 FOO x;` no longer produces a spurious "Unexpected code 'Int32'" diagnostic
+- Fix MIDL1100 squiggle span including leading whitespace indentation
+- Fix nested `#include` diagnostics (MIDL2006) from SDK headers leaking into the user's file
+- Fix inactive preprocessor region hints from included headers appearing at end of file
+- Filter diagnostics from included content that lack source file metadata
+
+### Tests
+- Regression test using real `specstrings.h` from Windows SDK (hangs without fix, 63ms with fix)
+
 ## v0.1.13 (2026-04-08)
 
 ### Features
