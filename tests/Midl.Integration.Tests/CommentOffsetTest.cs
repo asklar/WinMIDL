@@ -118,6 +118,44 @@ public class CommentOffsetTest
     }
 
     [Fact]
+    public void DiagnosticAfterMacro_DefineNoValue_PointsToOriginalX()
+    {
+        // #define FOO (no trailing space) must expand to empty, not "1".
+        // MIDL3015 on 'x' must point to x's position in the original source.
+        var source = "#define FOO\nnamespace N { runtimeclass C { FOO Int32 x; } }";
+        var compilation = CompilationHelper.Compile(source, referencePaths: null,
+            mode: CompilationMode.Strict, includePaths: null, currentFilePath: null,
+            defines: null, emitQualityHints: true);
+
+        var xPos = source.IndexOf(" x;") + 1;
+        var naming = compilation.Diagnostics.FirstOrDefault(d => d.Code == "MIDL3015");
+        Assert.NotNull(naming);
+        var pos = naming.OriginalPosition ?? naming.Position;
+        Assert.Equal(xPos, pos);
+    }
+
+    [Fact]
+    public void MIDL1100_SkippedTokens_SquiggleExcludesLeadingWhitespace()
+    {
+        // When the parser skips unexpected tokens, the diagnostic span must
+        // cover only the token text, not the leading indentation whitespace.
+        var source = "#define FOO 1\nnamespace X {\n    runtimeclass C {\n        Int32 FOO x;\n    }\n}";
+        var compilation = CompilationHelper.Compile(source);
+
+        var midl1100 = compilation.Diagnostics.Where(d => d.Code == "MIDL1100").ToList();
+        Assert.True(midl1100.Count > 0, "Expected at least one MIDL1100 diagnostic");
+
+        foreach (var d in midl1100)
+        {
+            var pos = d.OriginalPosition ?? d.Position;
+            // The squiggle must not start in leading whitespace (col 0-7 on the indented line)
+            var snippet = source.Substring(pos, Math.Min(d.Length, source.Length - pos));
+            Assert.False(snippet.StartsWith(" ") || snippet.StartsWith("\t"),
+                $"MIDL1100 squiggle includes leading whitespace: pos={pos} len={d.Length} snippet='{snippet}'");
+        }
+    }
+
+    [Fact]
     public void DiagnosticRemap_DuplicateToken_MatchesCorrectOccurrence()
     {
         // Two identically-named members on the same line after a macro expansion.

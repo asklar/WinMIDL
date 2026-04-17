@@ -66,6 +66,12 @@ public sealed class DiagnosticsPublisher
                 }
                 list.Add(adjusted);
             }
+            else if (adjusted.Position >= sourceText.Length)
+            {
+                // Position is past the user's source — this diagnostic leaked from
+                // included content without SourceFile metadata. Don't show it in
+                // the user's file.
+            }
             else
             {
                 // Diagnostic from the main file (or same file after SourceMap resolution)
@@ -154,6 +160,9 @@ public sealed class DiagnosticsPublisher
         {
             foreach (var (start, end) in inactiveRegions)
             {
+                // Skip regions from included content (positions past the original source)
+                if (start >= sourceText.Length) continue;
+
                 var clampedEnd = Math.Min(end, sourceText.Length);
                 var (sLine, sChar) = PositionHelper.OffsetToLineChar(lineStarts, start);
                 var (eLine, eChar) = PositionHelper.OffsetToLineChar(lineStarts, clampedEnd);

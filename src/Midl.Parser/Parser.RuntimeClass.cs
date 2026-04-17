@@ -170,12 +170,12 @@ public sealed partial class Parser
         // Then we expect a name
         if (!IsIdentifierOrKeyword(Current.Kind))
         {
-            // Error recovery: maybe this is a constructor after all, or malformed
-            var parts = RentChildren();
-            if (attributes != null) parts.Add(attributes);
-            if (modifiers != null) parts.Add(modifiers);
-            parts.Add(returnType);
-            return MakeNode(SyntaxKind.SkippedTokens, parts);
+            // The return type was valid (consumed by ParseTypeReference) but the
+            // name token is bad. Return the return type as-is so its width is
+            // preserved in the tree (needed for position tracking). The binder
+            // ignores unknown member kinds. The outer loop will then call
+            // SkipToMemberStart to handle the remaining bad tokens.
+            return returnType;
         }
 
         var name = EatIdentifierOrKeyword();

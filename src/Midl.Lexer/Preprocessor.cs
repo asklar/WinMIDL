@@ -275,9 +275,14 @@ public class Preprocessor
                     case "include":
                         if (IsActive(ifStack))
                         {
-                            // Record position for diagnostic squiggles
                             int origIdx = origLineIndices[i];
-                            IncludeDirectivePositions.Add(rawLineOffsets[origIdx]);
+
+                            // Record position for diagnostic squiggles — only for the
+                            // user's file, not nested includes inside SDK headers.
+                            if (!isIncludedFile)
+                            {
+                                IncludeDirectivePositions.Add(rawLineOffsets[origIdx]);
+                            }
 
                             // Flush current segment before calling HandleInclude
                             // (HandleInclude's recursive ProcessInternal will add child segments first)
@@ -507,7 +512,9 @@ public class Preprocessor
         // Simple object-like macro
         if (spaceIdx < 0)
         {
-            _defines[rest.Trim()] = "1";
+            // #define FOO (no value) — expands to empty string in code,
+            // but #ifdef FOO / defined(FOO) still returns true (ContainsKey).
+            _defines[rest.Trim()] = "";
         }
         else
         {

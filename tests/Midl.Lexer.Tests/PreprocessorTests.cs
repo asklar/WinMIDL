@@ -14,6 +14,36 @@ public class PreprocessorTests
     }
 
     [Fact]
+    public void DefineWithoutValue_ExpandsToEmpty()
+    {
+        // #define FOO (no value) should expand to empty string, not "1"
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO\nFOO hello");
+        Assert.Contains("hello", result);
+        Assert.DoesNotContain("1", result); // must NOT expand to "1"
+    }
+
+    [Fact]
+    public void DefineWithoutValue_IfdefStillWorks()
+    {
+        // #define FOO (no value) — #ifdef FOO must still be true
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO\n#ifdef FOO\nYES\n#else\nNO\n#endif");
+        Assert.Contains("YES", result);
+        Assert.DoesNotContain("NO", result);
+    }
+
+    [Fact]
+    public void DefineWithTrailingSpace_ExpandsToEmpty()
+    {
+        // #define FOO  (with trailing space) should also expand to empty
+        var pp = new Preprocessor();
+        var result = pp.Process("#define FOO \nFOO hello");
+        Assert.Contains("hello", result);
+        Assert.DoesNotContain("1", result);
+    }
+
+    [Fact]
     public void IfdefTrue()
     {
         var pp = new Preprocessor();

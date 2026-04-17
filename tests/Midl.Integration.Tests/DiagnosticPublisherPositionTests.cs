@@ -323,4 +323,39 @@ public class DiagnosticPublisherPositionTests
         Assert.Equal(4, line); // "void Use(Empty e);" is line 4 (after #define on line 0)
         Assert.Equal(emptyCol, col);
     }
+
+    [Fact]
+    public async Task InactiveRegions_FromIncludes_NotPublished()
+    {
+        // Inactive regions with positions past the source text (from included SDK headers)
+        // must not be published as "inactive preprocessor block" hints.
+        var editorText = "#include \"sdk.h\"\nnamespace N { }";
+        var inactiveRegions = new List<(int Start, int End)>
+        {
+            (5, 15),     // within the source — should be published
+            (100, 200),  // past source length — from included content, skip
+            (500, 600),  // past source length — from included content, skip
+        };
+
+        var output = new MemoryStream();
+        var writer = new JsonRpcWriter(output);
+        var publisher = new DiagnosticsPublisher(writer);
+
+        await publisher.PublishDiagnosticsAsync(
+            "file:///test.idl", editorText,
+            Array.Empty<Diagnostic>(), inactiveRegions);
+
+        output.Position = 0;
+        var content = await new StreamReader(output, Encoding.UTF8).ReadToEndAsync();
+        var doc = JsonDocument.Parse(
+            content.Split('\n').First(l => l.TrimStart().StartsWith('{')));
+
+        var diags = doc.RootElement.GetProperty("params").GetProperty("diagnostics");
+        var inactiveHints = diags.EnumerateArray()
+            .Where(d => d.GetProperty("message").GetString() == "Inactive preprocessor block")
+            .ToList();
+
+        // Only the region within source bounds should be published
+        Assert.Single(inactiveHints);
+    }
 }

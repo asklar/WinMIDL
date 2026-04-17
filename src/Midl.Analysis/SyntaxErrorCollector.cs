@@ -25,12 +25,13 @@ public static class SyntaxErrorCollector
                 if (trivia.Kind == SyntaxKind.SkippedTokensTrivia && trivia is SyntaxTrivia st && st.Text.Trim().Length > 0)
                 {
                     var text = st.Text.Trim();
+                    var leadingWs = st.Text.Length - st.Text.TrimStart().Length;
                     diagnostics.Add(new Diagnostic(
                         DiagnosticSeverity.Error,
                         "MIDL1100",
                         $"Unexpected code '{text}'. Did you mean to put this inside a namespace or runtimeclass?",
-                        position,
-                        Math.Max(1, trivia.FullWidth)));
+                        position + leadingWs,
+                        Math.Max(1, text.Length)));
                 }
                 position += trivia.FullWidth;
             }
@@ -55,12 +56,13 @@ public static class SyntaxErrorCollector
                 if (trivia.Kind == SyntaxKind.SkippedTokensTrivia && trivia is SyntaxTrivia st2 && st2.Text.Trim().Length > 0)
                 {
                     var text = st2.Text.Trim();
+                    var leadingWs = st2.Text.Length - st2.Text.TrimStart().Length;
                     diagnostics.Add(new Diagnostic(
                         DiagnosticSeverity.Error,
                         "MIDL1100",
                         $"Unexpected code '{text}'. Did you mean to put this inside a namespace or runtimeclass?",
-                        position,
-                        Math.Max(1, trivia.FullWidth)));
+                        position + leadingWs,
+                        Math.Max(1, text.Length)));
                 }
                 position += trivia.FullWidth;
             }
@@ -100,12 +102,15 @@ public static class SyntaxErrorCollector
             // Skip content that's purely semicolons (trailing semicolons after declarations)
             if (text.Length > 0 && text.Replace(";", "").Trim().Length > 0)
             {
+                // Offset past leading trivia so the squiggle starts at the
+                // first real token, not at the preceding whitespace.
+                int leadingTriviaWidth = GetLeadingTriviaWidth(node);
                 diagnostics.Add(new Diagnostic(
                     DiagnosticSeverity.Error,
                     "MIDL1100",
                     $"Unexpected code '{TruncateText(text)}'.",
-                    position,
-                    Math.Max(1, node.FullWidth)));
+                    position + leadingTriviaWidth,
+                    Math.Max(1, text.Length)));
             }
             return position + node.FullWidth;
         }
@@ -141,6 +146,23 @@ public static class SyntaxErrorCollector
             }
         }
         return string.Join(" ", parts);
+    }
+
+    /// <summary>
+    /// Returns the total leading trivia width of the first token in a node subtree.
+    /// Used to offset diagnostic positions past whitespace to the real content.
+    /// </summary>
+    private static int GetLeadingTriviaWidth(GreenNode node)
+    {
+        if (node is SyntaxToken t)
+            return t.LeadingTrivia.Sum(tr => tr.FullWidth);
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            var slot = node.GetSlot(i);
+            if (slot != null)
+                return GetLeadingTriviaWidth(slot);
+        }
+        return 0;
     }
 
     private static string FormatErrorTokenMessage(string text)
