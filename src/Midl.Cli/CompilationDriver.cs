@@ -725,8 +725,13 @@ public class CompilationDriver
         // running our DLL directly. Distinguish from global tool shim (.exe).
         if (processName.Equals("dotnet", StringComparison.OrdinalIgnoreCase))
         {
-            var entryAsm = System.Reflection.Assembly.GetEntryAssembly()?.Location;
-            if (entryAsm != null && entryAsm.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+            // Global tool shim is an .exe; dnx runs the .dll via dotnet exec.
+            // AppContext.BaseDirectory for a tool points to the package cache
+            // containing .dll files, not a shim .exe directory.
+            var baseDir = AppContext.BaseDirectory;
+            var hasDll = File.Exists(Path.Combine(baseDir, "Midl.Cli.dll"));
+            var hasExe = File.Exists(Path.Combine(baseDir, "Midl.Cli.exe"));
+            if (hasDll && !hasExe)
                 return "dnx WinMIDL --";
             return "winmidl";
         }

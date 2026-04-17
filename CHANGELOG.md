@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.15 (2026-04-17)
+
+### Features
+- Distribute as a dotnet tool on NuGet — `dnx WinMIDL` (one-shot) or `dotnet tool install -g WinMIDL` (permanent)
+- Usage text dynamically shows the correct invocation (`winmidl`, `dnx WinMIDL --`, or `Midl.Cli`) based on how the tool was launched
+
 ## v0.1.14 (2026-04-16)
 
 ### Bug Fixes
