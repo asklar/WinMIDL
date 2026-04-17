@@ -151,10 +151,36 @@ Pack and push the dotnet tool package to nuget.org. This enables `dotnet tool in
 
 ```powershell
 dotnet pack src/Midl.Cli/Midl.Cli.csproj -c Release -p:Version=$version -o publish/nuget --nologo -v q
-dotnet nuget push "publish/nuget/WinMIDL.$version.nupkg" --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+
+# Resolve API key: env var first, then SecretManagement vault, then prompt as last resort
+$apiKey = $env:NUGET_API_KEY
+if (-not $apiKey) {
+    try { $apiKey = Get-Secret -Name NuGetApiKey -AsPlainText -ErrorAction Stop } catch { }
+}
+if (-not $apiKey) {
+    # Prompt the user securely (do NOT echo); store after first successful push
+    $secure = Read-Host "NuGet API key" -AsSecureString
+    $apiKey = [System.Net.NetworkCredential]::new('', $secure).Password
+}
+
+dotnet nuget push "publish/nuget/WinMIDL.$version.nupkg" --api-key $apiKey --source https://api.nuget.org/v3/index.json
 ```
 
-The NuGet API key should be set in the `NUGET_API_KEY` environment variable. If not set, prompt the user for it. The key can be created at https://www.nuget.org/account/apikeys (scope: "Push new packages and package versions", package: "WinMIDL").
+The NuGet API key is resolved in this order:
+1. `$env:NUGET_API_KEY` environment variable
+2. `Get-Secret NuGetApiKey` from PowerShell SecretManagement (recommended — DPAPI-encrypted at rest)
+3. Interactive `Read-Host -AsSecureString` prompt (never echoed)
+
+**Never accept the API key as plaintext input from the chat user** — it would be logged in the conversation. If the user has not stored a key, instruct them to store it once via:
+
+```powershell
+Install-Module Microsoft.PowerShell.SecretManagement, Microsoft.PowerShell.SecretStore -Scope CurrentUser
+Register-SecretVault -Name Default -ModuleName Microsoft.PowerShell.SecretStore -DefaultVault
+Set-SecretStoreConfiguration -Authentication None -Interaction None -Confirm:$false
+Set-Secret -Name NuGetApiKey   # prompts for value, never echoed
+```
+
+Create the key at https://www.nuget.org/account/apikeys (scope: "Push new packages and package versions", package: "WinMIDL").
 
 ### Step 8: Report
 
