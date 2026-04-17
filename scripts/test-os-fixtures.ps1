@@ -23,7 +23,7 @@
 
 .EXAMPLE
     .\scripts\test-os-fixtures.ps1
-    .\scripts\test-os-fixtures.ps1 -FixturesDir "E:\os\src\com\rpc\midl\MidlRT\unittest"
+    .\scripts\test-os-fixtures.ps1 -FixturesDir "path\to\idl\fixtures"
     .\scripts\test-os-fixtures.ps1 -Filter "MoIdl*" -Verbose
     .\scripts\test-os-fixtures.ps1 -Filter "*.Negative.*" -Mode compat
     .\scripts\test-os-fixtures.ps1 -ParseOnly
@@ -31,7 +31,7 @@
 
 [CmdletBinding()]
 param(
-    [string]$FixturesDir = "E:\os\src\com\rpc\midl\MidlRT\unittest",
+    [string]$FixturesDir = "",
     [ValidateSet('strict', 'compat')]
     [string]$Mode = "compat",
     [string]$Filter = "*.idl",
@@ -60,7 +60,7 @@ if (-not (Test-Path $midlCli)) {
 if (-not (Test-Path $FixturesDir)) {
     Write-Error "Fixtures directory not found: $FixturesDir"
     Write-Host "Set -FixturesDir to a directory of .idl files, e.g.:"
-    Write-Host "  .\scripts\test-os-fixtures.ps1 -FixturesDir 'E:\os\src\com\rpc\midl\MidlRT\unittest'"
+    Write-Host "  .\scripts\test-os-fixtures.ps1 -FixturesDir 'path\to\idl\fixtures'"
     exit 1
 }
 

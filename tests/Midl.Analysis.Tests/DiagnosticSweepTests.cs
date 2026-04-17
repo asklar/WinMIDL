@@ -523,4 +523,46 @@ public class DiagnosticSweepTests
         Assert.Contains(compilation.Diagnostics, d =>
             d.Code == "MIDL1044" && d.Message.Contains("Process"));
     }
+
+    [Fact]
+    public void DifferentArityOverloads_NoMIDL1044()
+    {
+        // Overloads that differ by parameter count are unambiguous in WinRT metadata
+        // and do NOT require [method_name] / [default_overload] disambiguation.
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass Widget
+                {
+                    void DoWork();
+                    void DoWork(Int32 x);
+                    void DoWork(Int32 x, String s);
+                }
+            }
+            """);
+
+        Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1044");
+    }
+
+    [Fact]
+    public void MixedArityOverloads_OnlySameArityWarns()
+    {
+        // Two methods at arity 1, two methods at arity 2. Only the same-arity pair
+        // should fire MIDL1044 (requires [method_name] to disambiguate).
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                runtimeclass Widget
+                {
+                    void DoWork(Int32 x);
+                    void DoWork(String s);
+                    void DoWork(Int32 x, Int32 y);
+                }
+            }
+            """);
+
+        // Expect exactly one MIDL1044 (the arity-1 pair), not arity-2.
+        var warnings = compilation.Diagnostics.Where(d => d.Code == "MIDL1044").ToList();
+        Assert.Single(warnings);
+    }
 }

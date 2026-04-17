@@ -121,7 +121,7 @@ End-to-end tests spanning the full pipeline: CLI parsing, compilation, LSP handl
 |------|-------|-------------|----------|--------|
 | **T0** | Unit | Per-project xUnit tests (this guide) | Every PR | ✅ Implemented |
 | **T1** | Internal corpus | MidlRT test IDL files from `midlrt/test/` | Every PR | 🔲 Future |
-| **T2** | Product IDLs | Real Windows OS `.idl` files from `onecoreuap\` | Nightly | 🔲 Future |
+| **T2** | Product IDLs | Real-world `.idl` files from an external fixture directory | Nightly | 🔲 Future |
 | **T3** | Golden-file | Binary-compare `.winmd`/`.h` output against `midl.exe` reference output | Nightly | 🔲 Future |
 | **T4** | Drop-in | Replace `midl.exe` in a razzle build and verify the build succeeds | Milestone | 🔲 Future |
 
@@ -714,16 +714,16 @@ dotnet test --list-tests -v d 2>&1 | head -50
 
 ---
 
-## Running against OS IDL files (T1/T2 testing)
+## Running against external IDL fixtures (T1/T2 testing)
 
-The `OsFixtureTests` class in `Midl.Integration.Tests` can parse real Windows OS IDL
-files from the MidlRT test suite. These tests skip gracefully when the environment
-variable is not set, so CI won't fail.
+The `OsFixtureTests` class in `Midl.Integration.Tests` can parse real-world IDL
+files from an external fixture directory. These tests skip gracefully when the
+environment variable is not set, so CI won't fail.
 
 Set the `MIDL_TEST_FIXTURES` environment variable to point at a directory of IDL files:
 
 ```powershell
-$env:MIDL_TEST_FIXTURES = "E:\os\src\com\rpc\midl\MidlRT\unittest"
+$env:MIDL_TEST_FIXTURES = "path\to\idl\fixtures"
 dotnet test --filter "OsFixture"
 ```
 

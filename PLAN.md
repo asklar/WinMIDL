@@ -546,16 +546,16 @@ E:\midl\
 
 ### Test Corpus Sources
 
-1. **MidlRT unit tests** (`E:\os\src\com\rpc\midl\MidlRT\unittest\`) — ~200+ IDL files covering:
+1. **MidlRT unit tests** (external fixture directory, ~200+ IDL files) covering:
    - Activatable, composable, delegate, event, overload, contract, async, deprecation, struct, enum, pinterface, static, constructor, namespace, custom attribute, and many edge cases
    - Positive and negative test cases (expected errors)
    - Mixed MIDL2 + MIDL3 coexistence files
 
-2. **MidlRT functional tests** (`E:\os\src\com\rpc\midl\MidlRT\FunctionalTests\`) — metadata validation tests
+2. **MidlRT functional tests** (external fixture directory) — metadata validation tests
 
-3. **Windows product IDLs** (curated from `E:\os\src\**\*.idl`) — real-world IDL files from the Windows OS, including:
-   - Windows.Foundation, Windows.UI.Xaml, Windows.ApplicationModel, WinUI, etc.
-   - Internal APIs with `[feature]`, `[experimental]`, `[internal]` attributes
+3. **Curated real-world IDL corpus** (external fixture directory) — real-world IDL files, including:
+   - Public WinRT namespaces (Windows.Foundation, Windows.UI.Xaml, Windows.ApplicationModel, WinUI, etc.)
+   - APIs using `[feature]`, `[experimental]` attributes
    - APIs using every contract, versioning, and activation pattern
    - Mixed classic MIDL + MIDL3 files
    - Files with `cpp_quote()`, `import`, `importlib`, embedded C code

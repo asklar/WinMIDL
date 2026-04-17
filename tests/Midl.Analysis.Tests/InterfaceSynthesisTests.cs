@@ -379,9 +379,10 @@ public class InterfaceSynthesisTests
         var method = rc.DefaultInterface.Members.OfType<MethodSymbol>().Single();
         Assert.Equal("Extra", method.Name);
 
-        // IFoo is the first in base list, so treated as BaseClass by the binder
-        Assert.NotNull(rc.BaseClass);
-        Assert.Equal("IFoo", rc.BaseClass!.Name);
+        // IFoo is in the base list but is an interface — after reclassification it
+        // moves into Interfaces (the class still derives from Object).
+        Assert.Null(rc.BaseClass);
+        Assert.Contains(rc.Interfaces, i => i.Name == "IFoo");
     }
 
     [Fact]

@@ -546,55 +546,96 @@ internal class TypeDefEmitter
 
         bool hasDirectMembers = symbol.Members.Any(m => m is MethodSymbol or PropertySymbol or EventSymbol);
 
-        // Emit runtime method stubs for direct members, tracking handles for MethodImpl
+        // Build phased member lists to match midl.exe MethodList ordering:
+        // (1) ctors (already emitted above), (2) direct instance, (3) flattened external
+        // instance members, (4) direct static.
         var classMethodStubs = new List<(string memberName, MethodDefinitionHandle handle)>();
         var classProperties = new List<(PropertySymbol prop, MethodDefinitionHandle getter, MethodDefinitionHandle? setter)>();
         var classEvents = new List<(EventSymbol evt, MethodDefinitionHandle adder, MethodDefinitionHandle remover)>();
-        if (hasDirectMembers)
+
+        // Tracks method-level names already emitted on the class (used to dedupe inherited
+        // interface stubs against direct members). Keys are the underlying method names
+        // (e.g. "Foo", "get_Bar", "add_Baz"). We also track property/event names separately
+        // so the PropertyMap/EventMap stays de-duplicated.
+        var emittedMethodNames = new HashSet<string>(StringComparer.Ordinal);
+        var emittedPropertyNames = new HashSet<string>(StringComparer.Ordinal);
+        var emittedEventNames = new HashSet<string>(StringComparer.Ordinal);
+
+        void EmitMemberAsStub(ISymbol member)
         {
-            foreach (var member in symbol.Members)
+            switch (member)
             {
-                switch (member)
+                case MethodSymbol method:
                 {
-                    case MethodSymbol method:
+                    // Methods are keyed by full signature (name + param types + return type)
+                    // to allow overloads but drop exact duplicates (e.g., when the same
+                    // interface appears transitively through multiple required-interface chains).
+                    var sigKey = MethodSignatureKey(method);
+                    if (!emittedMethodNames.Add(sigKey)) return;
+                    var stubHandle = EmitRuntimeMethodStub(method);
+                    classMethodStubs.Add((method.Name, stubHandle));
+                    if (method.ContractVersion is int cv)
+                        _attrs.AddVersionAttribute(stubHandle, (uint)cv);
+                    break;
+                }
+                case PropertySymbol prop:
+                {
+                    if (!emittedPropertyNames.Add(prop.Name)) return;
+                    var (getterStub, setterStub) = EmitRuntimePropertyStubs(prop);
+                    classProperties.Add((prop, getterStub, setterStub));
+                    if (prop.ContractVersion is int pcv)
                     {
-                        var stubHandle = EmitRuntimeMethodStub(method);
-                        classMethodStubs.Add((method.Name, stubHandle));
-                        if (method.ContractVersion is int cv)
-                            _attrs.AddVersionAttribute(stubHandle, (uint)cv);
-                        break;
+                        if (!getterStub.IsNil) _attrs.AddVersionAttribute(getterStub, (uint)pcv);
+                        if (setterStub.HasValue) _attrs.AddVersionAttribute(setterStub.Value, (uint)pcv);
                     }
-                    case PropertySymbol prop:
+                    if (!getterStub.IsNil) classMethodStubs.Add(($"get_{prop.Name}", getterStub));
+                    if (setterStub.HasValue) classMethodStubs.Add(($"put_{prop.Name}", setterStub.Value));
+                    break;
+                }
+                case EventSymbol evt:
+                {
+                    if (!emittedEventNames.Add(evt.Name)) return;
+                    var (adderStub, removerStub) = EmitRuntimeEventStubs(evt);
+                    classMethodStubs.Add(($"add_{evt.Name}", adderStub));
+                    classMethodStubs.Add(($"remove_{evt.Name}", removerStub));
+                    classEvents.Add((evt, adderStub, removerStub));
+                    if (evt.ContractVersion is int ecv)
                     {
-                        var (getterStub, setterStub) = EmitRuntimePropertyStubs(prop);
-                        if (!getterStub.IsNil) classMethodStubs.Add(($"get_{prop.Name}", getterStub));
-                        if (setterStub.HasValue) classMethodStubs.Add(($"put_{prop.Name}", setterStub.Value));
-                        classProperties.Add((prop, getterStub, setterStub));
-                        if (prop.ContractVersion is int pcv)
-                        {
-                            if (!getterStub.IsNil) _attrs.AddVersionAttribute(getterStub, (uint)pcv);
-                            if (setterStub.HasValue) _attrs.AddVersionAttribute(setterStub.Value, (uint)pcv);
-                        }
-                        break;
+                        _attrs.AddVersionAttribute(adderStub, (uint)ecv);
+                        _attrs.AddVersionAttribute(removerStub, (uint)ecv);
                     }
-                    case EventSymbol evt:
-                    {
-                        var (adderStub, removerStub) = EmitRuntimeEventStubs(evt);
-                        classMethodStubs.Add(($"add_{evt.Name}", adderStub));
-                        classMethodStubs.Add(($"remove_{evt.Name}", removerStub));
-                        classEvents.Add((evt, adderStub, removerStub));
-                        if (evt.ContractVersion is int ecv)
-                        {
-                            _attrs.AddVersionAttribute(adderStub, (uint)ecv);
-                            _attrs.AddVersionAttribute(removerStub, (uint)ecv);
-                        }
-                        break;
-                    }
+                    break;
                 }
             }
         }
 
-        // Emit Property/Event map tables on the runtimeclass TypeDef
+        // Phase 2: direct instance members
+        foreach (var member in symbol.Members)
+        {
+            if (member is MethodSymbol { IsStatic: false } or PropertySymbol { IsStatic: false } or EventSymbol { IsStatic: false })
+                EmitMemberAsStub(member);
+        }
+
+        // Phase 3: flattened members of external interfaces declared on this class
+        // (plus their transitively required interfaces). midl.exe flattens these onto the
+        // runtimeclass after the direct-instance surface but before statics.
+        foreach (var iface in EnumerateFlattenInterfaceClosure(symbol))
+        {
+            foreach (var member in iface.Members)
+            {
+                if (member is MethodSymbol { IsStatic: false } or PropertySymbol { IsStatic: false } or EventSymbol { IsStatic: false })
+                    EmitMemberAsStub(member);
+            }
+        }
+
+        // Phase 4: direct static members
+        foreach (var member in symbol.Members)
+        {
+            if (member is MethodSymbol { IsStatic: true } or PropertySymbol { IsStatic: true } or EventSymbol { IsStatic: true })
+                EmitMemberAsStub(member);
+        }
+
+        // Emit Property/Event map tables on the runtimeclass TypeDef (single batch).
         EmitPropertyTable(typeDef, classProperties);
         EmitEventTable(typeDef, classEvents);
 
@@ -612,12 +653,25 @@ internal class TypeDefEmitter
             }
         }
 
-        // InterfaceImpl for explicit interfaces
+        // InterfaceImpl for explicit interfaces (from base list).
+        // If the class has no synthesized default interface, mark one of the explicit
+        // interfaces as [Default] (either the one tagged with [default], or the first).
+        bool needsDefaultFromExplicit = symbol.DefaultInterface is null && symbol.Interfaces.Count > 0;
+        TypeRef? explicitDefault = null;
+        if (needsDefaultFromExplicit)
+        {
+            explicitDefault = symbol.Interfaces.FirstOrDefault(i => i.IsDefaultInterface)
+                ?? symbol.Interfaces[0];
+        }
         foreach (var iface in symbol.Interfaces)
         {
             var h = _emitter.ResolveTypeHandle(iface);
             if (!h.IsNil)
-                M.AddInterfaceImplementation(typeDef, h);
+            {
+                var ifaceImpl = M.AddInterfaceImplementation(typeDef, h);
+                if (iface.IsDefaultInterface || ReferenceEquals(iface, explicitDefault))
+                    _attrs.AddDefaultAttribute(ifaceImpl);
+            }
         }
 
         // InterfaceImpl for protected interface (if separate from default)
@@ -643,7 +697,7 @@ internal class TypeDefEmitter
         }
 
         // MethodImpl: link class method stubs to synthesized interface method declarations
-        if (hasDirectMembers && _synthMethodHandles.TryGetValue(symbol.FullName, out var ifaceMethods))
+        if (_synthMethodHandles.TryGetValue(symbol.FullName, out var ifaceMethods))
         {
             foreach (var (stubName, stubHandle) in classMethodStubs)
             {
@@ -708,7 +762,10 @@ internal class TypeDefEmitter
         if (symbol.FactoryInterface != null)
             _attrs.AddActivatableAttribute(typeDef, symbol.FactoryInterface.FullName, activatableVersion);
 
-        if (symbol.Members.Any(m => m is ConstructorSymbol) || symbol.HasDefaultActivation)
+        // Default activation ([Activatable(version)] short form) only when the class has a
+        // zero-arg constructor. Parameterized constructors are covered by the factory-interface
+        // long form above; emitting both would produce duplicate [Activatable] attributes.
+        if (symbol.HasDefaultActivation)
             _attrs.AddActivatableAttribute(typeDef, activatableVersion);
 
         // ComposableAttribute
@@ -772,6 +829,71 @@ internal class TypeDefEmitter
             _attrs.AddContractVersionAttribute(typeDef, symbol.ContractName, (uint)symbol.ContractVersion.Value);
 
         EmitRemainingAttributes(typeDef, symbol.Attributes);
+    }
+
+    /// <summary>
+    /// Enumerates the external interfaces whose members should be flattened onto
+    /// <paramref name="symbol"/>'s class-level MethodList. Walks the class's explicit
+    /// interfaces and their transitive <c>RequiredInterfaces</c> closure, yielding each
+    /// resolved <see cref="InterfaceSymbol"/> at most once in a stable source order.
+    /// Parameterized (generic) interfaces are skipped: their members reference type
+    /// parameters rather than concrete types, so flattening them cannot produce a
+    /// well-formed class MethodDefSig.
+    /// </summary>
+    private static IEnumerable<InterfaceSymbol> EnumerateFlattenInterfaceClosure(RuntimeClassSymbol symbol)
+    {
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        var result = new List<InterfaceSymbol>();
+
+        void Visit(TypeRef? tr)
+        {
+            if (tr is null) return;
+            // Skip generic instantiations — flattening those requires substituting type
+            // arguments into member signatures, which we don't yet do.
+            if (tr.TypeArguments.Count > 0) return;
+            if (tr.ResolvedSymbol is not InterfaceSymbol iface) return;
+            if (!visited.Add(iface.FullName)) return;
+            result.Add(iface);
+            foreach (var req in iface.RequiredInterfaces)
+                Visit(req);
+        }
+
+        foreach (var iface in symbol.Interfaces)
+            Visit(iface);
+
+        return result;
+    }
+
+    /// <summary>Builds a dedup key that preserves overloads but collapses exact-duplicate signatures.</summary>
+    private static string MethodSignatureKey(MethodSymbol m)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.Append(m.Name).Append('(');
+        for (int i = 0; i < m.Parameters.Count; i++)
+        {
+            if (i > 0) sb.Append(',');
+            AppendTypeRefKey(sb, m.Parameters[i].Type);
+        }
+        sb.Append(")->");
+        AppendTypeRefKey(sb, m.ReturnType);
+        return sb.ToString();
+    }
+
+    private static void AppendTypeRefKey(System.Text.StringBuilder sb, TypeRef? t)
+    {
+        if (t is null) { sb.Append('?'); return; }
+        sb.Append(t.Name);
+        if (t.TypeArguments.Count > 0)
+        {
+            sb.Append('<');
+            for (int i = 0; i < t.TypeArguments.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                AppendTypeRefKey(sb, t.TypeArguments[i]);
+            }
+            sb.Append('>');
+        }
+        if (t.IsArray) sb.Append("[]");
     }
 
     private void EmitConstructor(ConstructorSymbol ctor, bool isUnsealed)
@@ -1703,6 +1825,12 @@ internal static class SignatureTypeEncoderExtensions
             case "Guid":
                 encoder.Type(emitter.SystemGuidRef, isValueType: true);
                 break;
+            case "HRESULT":
+                // /winrt compat mode: HRESULT return/param types are emitted as the
+                // Windows.Foundation.HResult value struct. CLR projection converts this
+                // to System.Exception when the WinMD is read by .NET tools (matching midlrt).
+                encoder.Type(emitter.ResolveExternalByName("Windows.Foundation.HResult"), isValueType: true);
+                break;
             default:
                 if (typeRef.TypeArguments.Count > 0)
                 {
@@ -1713,6 +1841,16 @@ internal static class SignatureTypeEncoderExtensions
                     var handle = emitter.ResolveSymbolHandle(typeRef.ResolvedSymbol);
                     bool isValueType = typeRef.ResolvedSymbol is EnumSymbol or StructSymbol;
                     encoder.Type(handle, isValueType);
+                }
+                else if (!string.IsNullOrEmpty(typeRef.Name))
+                {
+                    // Unresolved external type (e.g., flattened interface member signatures
+                    // carry raw name strings). Emit a TypeRef by name.
+                    var handle = emitter.ResolveExternalByName(typeRef.Name);
+                    if (!handle.IsNil)
+                        encoder.Type(handle, isValueType: false);
+                    else
+                        encoder.Object();
                 }
                 else
                 {
@@ -1731,6 +1869,11 @@ internal static class SignatureTypeEncoderExtensions
         {
             genTypeHandle = emitter.ResolveSymbolHandle(typeRef.ResolvedSymbol, typeRef.TypeArguments.Count);
             isValueType = typeRef.ResolvedSymbol is EnumSymbol or StructSymbol;
+        }
+        else if (!string.IsNullOrEmpty(typeRef.Name))
+        {
+            // Unresolved external generic instantiation — look up by full name + arity.
+            genTypeHandle = emitter.ResolveExternalByName(typeRef.Name, typeRef.TypeArguments.Count);
         }
 
         if (genTypeHandle.IsNil)

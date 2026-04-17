@@ -81,12 +81,27 @@ public class WinMdReader
         return baseTypeName switch
         {
             "System.Enum" => ReadEnum(mdReader, typeDef, handle, name, ns, sourcePath),
-            "System.ValueType" => ReadStruct(mdReader, typeDef, handle, name, ns, sourcePath),
+            "System.ValueType" =>
+                HasCustomAttribute(mdReader, handle, "Windows.Foundation.Metadata", "ApiContractAttribute")
+                    ? ReadApiContract(mdReader, typeDef, handle, name, ns, sourcePath)
+                    : (ISymbol)ReadStruct(mdReader, typeDef, handle, name, ns, sourcePath),
             "System.MulticastDelegate" => ReadDelegate(mdReader, typeDef, handle, name, ns, sourcePath),
             "System.Attribute" => ReadAttributeType(mdReader, typeDef, name, ns, sourcePath),
             _ when (typeDef.Attributes & TypeAttributes.Interface) != 0
                 => ReadInterface(mdReader, typeDef, handle, name, ns, sourcePath),
             _ => ReadRuntimeClass(mdReader, typeDef, handle, name, ns, sourcePath),
+        };
+    }
+
+    private static ApiContractSymbol ReadApiContract(
+        MetadataReader mdReader, TypeDefinition typeDef, TypeDefinitionHandle handle,
+        string name, string ns, string? sourcePath)
+    {
+        var nsSymbol = CreateNamespaceChain(ns);
+        return new ApiContractSymbol(name, nsSymbol)
+        {
+            IsExternal = true,
+            SourceWinMdPath = sourcePath,
         };
     }
 
@@ -224,6 +239,18 @@ public class WinMdReader
 
         // Read GUID
         symbol.Uuid = ReadGuidAttribute(mdReader, handle);
+
+        // Read required interfaces (InterfaceImpl rows)
+        foreach (var ifaceImplHandle in typeDef.GetInterfaceImplementations())
+        {
+            var ifaceImpl = mdReader.GetInterfaceImplementation(ifaceImplHandle);
+            var ifaceName = GetEntityName(mdReader, ifaceImpl.Interface);
+            if (!string.IsNullOrEmpty(ifaceName))
+            {
+                var ifaceTypeRef = ParseTypeRef(ifaceName);
+                symbol.RequiredInterfaces.Add(ifaceTypeRef);
+            }
+        }
 
         // Read methods
         foreach (var methodHandle in typeDef.GetMethods())
@@ -665,7 +692,7 @@ public class WinMdReader
         _ => "Object",
     };
 
-    private static string GetEntityName(MetadataReader mdReader, EntityHandle handle)
+    internal static string GetEntityName(MetadataReader mdReader, EntityHandle handle)
     {
         if (handle.IsNil) return string.Empty;
         return handle.Kind switch

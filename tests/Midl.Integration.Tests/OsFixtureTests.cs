@@ -4,11 +4,11 @@ using Midl.Syntax;
 namespace Midl.Integration.Tests;
 
 /// <summary>
-/// Tests that parse real Windows OS IDL files from the MidlRT test suite.
+/// Tests that parse real-world IDL files from an external fixture directory.
 /// These tests reference external IDL files via the MIDL_TEST_FIXTURES env var
 /// and skip gracefully when the env var is not set.
 ///
-/// To run: set MIDL_TEST_FIXTURES=E:\os\src\com\rpc\midl\MidlRT\unittest
+/// To run: set MIDL_TEST_FIXTURES=path\to\idl\fixtures
 /// </summary>
 public class OsFixtureTests
 {
