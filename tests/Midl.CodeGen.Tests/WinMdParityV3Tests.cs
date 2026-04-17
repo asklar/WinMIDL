@@ -214,7 +214,7 @@ public class WinMdParityV3Tests
     #region Fix 5: EventRegistrationToken uses WinRT name
 
     [Fact]
-    public void EventRegistrationToken_WindowsFoundation_NotMscorlib()
+    public void EventRegistrationToken_ProjectedToMscorlib()
     {
         var source = """
             namespace TestApp
@@ -236,7 +236,10 @@ public class WinMdParityV3Tests
                 var tr = reader.GetTypeReference(h);
                 if (reader.GetString(tr.Name) == "EventRegistrationToken")
                 {
-                    Assert.Equal("Windows.Foundation", reader.GetString(tr.Namespace));
+                    // midl.exe CLR-projects Windows.Foundation.EventRegistrationToken to
+                    // System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken
+                    // (in mscorlib). Verified against midl.exe baseline WinMDs.
+                    Assert.Equal("System.Runtime.InteropServices.WindowsRuntime", reader.GetString(tr.Namespace));
                     found = true;
                     break;
                 }
@@ -246,7 +249,7 @@ public class WinMdParityV3Tests
     }
 
     [Fact]
-    public void EventHandler_UsesWinRTName_NotClrProjection()
+    public void EventHandler_UsesClrProjection()
     {
         var source = """
             namespace TestApp
@@ -274,8 +277,10 @@ public class WinMdParityV3Tests
                     if (ns == "System") foundCLR = true;
                 }
             }
-            Assert.True(foundWinRT, "Should use Windows.Foundation.EventHandler");
-            Assert.False(foundCLR, "Should NOT use System.EventHandler CLR projection");
+            // Verified against windows.winmd: Windows.Foundation.EventHandler`1 is
+            // CLR-projected to System.EventHandler`1 in emitted WinMDs.
+            Assert.True(foundCLR, "Should use System.EventHandler CLR projection");
+            Assert.False(foundWinRT, "Should NOT use Windows.Foundation.EventHandler WinRT name");
         }
     }
 

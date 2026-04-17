@@ -76,10 +76,13 @@ public class DefaultInterfaceTests
         var ns = compilation.GlobalNamespace.ChildNamespaces["N"];
         var rc = ns.Members.OfType<RuntimeClassSymbol>().Single();
 
-        // First item in base list is the base class (IFoo), marked as default
-        Assert.NotNull(rc.BaseClass);
-        Assert.Equal("IFoo", rc.BaseClass!.Name);
-        Assert.True(rc.BaseClass.IsDefaultInterface);
+        // After reclassification, an interface in the base list is promoted into
+        // Interfaces (with IsDefaultInterface flag preserved). BaseClass stays null
+        // so the runtimeclass derives from Object.
+        Assert.Null(rc.BaseClass);
+        var defaultIface = rc.Interfaces.FirstOrDefault(i => i.IsDefaultInterface);
+        Assert.NotNull(defaultIface);
+        Assert.Equal("IFoo", defaultIface!.Name);
     }
 
     [Fact]
@@ -95,9 +98,10 @@ public class DefaultInterfaceTests
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Severity == DiagnosticSeverity.Error);
         var ns = compilation.GlobalNamespace.ChildNamespaces["N"];
         var rc = ns.Members.OfType<RuntimeClassSymbol>().Single();
-        Assert.NotNull(rc.BaseClass);
-        Assert.Equal("IFoo", rc.BaseClass!.Name);
-        Assert.True(rc.BaseClass.IsDefaultInterface);
+        Assert.Null(rc.BaseClass);
+        var defaultIface = rc.Interfaces.FirstOrDefault(i => i.IsDefaultInterface);
+        Assert.NotNull(defaultIface);
+        Assert.Equal("IFoo", defaultIface!.Name);
     }
 
     [Fact]
@@ -108,10 +112,11 @@ public class DefaultInterfaceTests
         var ns = compilation.GlobalNamespace.ChildNamespaces["N"];
         var rc = ns.Members.OfType<RuntimeClassSymbol>().Single();
 
-        // Without [default], the first interface is still the base class
-        Assert.NotNull(rc.BaseClass);
-        Assert.Equal("IFoo", rc.BaseClass!.Name);
-        // But IsDefaultInterface flag is not set (no explicit [default] attribute)
-        Assert.False(rc.BaseClass.IsDefaultInterface);
+        // Without [default], no interface carries the IsDefaultInterface flag and
+        // the class has no base class (derives from Object).
+        Assert.Null(rc.BaseClass);
+        Assert.All(rc.Interfaces, i => Assert.False(i.IsDefaultInterface));
+        Assert.Contains(rc.Interfaces, i => i.Name == "IFoo");
+        Assert.Contains(rc.Interfaces, i => i.Name == "IBar");
     }
 }

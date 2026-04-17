@@ -3650,9 +3650,7 @@ class CINullableOpsProxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.NullableOps";
-            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
-            *className = s_h; return S_OK;
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -3784,7 +3782,8 @@ const winmidl::qi_entry_t CINullableOpsProxy::kQIEntries[] = {
     { IID_IRpcProxyBuffer, 0, false },
     { IID___x_TestApp_Comprehensive_INullableOps, static_cast<uint32_t>(offsetof(CINullableOpsProxy, m_face)), true },
 };
-const winmidl::type_info_t CINullableOpsProxy::kTypeInfo = { CINullableOpsProxy::Face::kIIDs, L"TestApp.Comprehensive.NullableOps", CINullableOpsProxy::kQIEntries };
+static constexpr wchar_t CINullableOpsProxy_className[] = L"TestApp.Comprehensive.NullableOps";
+const winmidl::type_info_t CINullableOpsProxy::kTypeInfo = { CINullableOpsProxy::Face::kIIDs, CINullableOpsProxy_className, CINullableOpsProxy::kQIEntries, { 1, std::size(CINullableOpsProxy_className) - 1, 0, 0, CINullableOpsProxy_className } };
 
 static constexpr winmidl::param_descriptor __x_TestApp_Comprehensive_INullableOps_CreateRecord_params[] = {
     { winmidl::param_type::t_int32, winmidl::param_dir::dir_in },
@@ -5269,9 +5268,7 @@ class CINullableOps2Proxy : public IRpcProxyBuffer {
             return winmidl::get_iids(kTypeInfo, iidCount, iids);
         }
         HRESULT STDMETHODCALLTYPE GetRuntimeClassName(HSTRING* className) override {
-            static constexpr WCHAR s_name[] = L"TestApp.Comprehensive.NullableOps";
-            static HSTRING s_h = [] { static HSTRING_HEADER hdr; HSTRING h; WindowsCreateStringReference(s_name, ARRAYSIZE(s_name) - 1, &hdr, &h); return h; }();
-            *className = s_h; return S_OK;
+            return winmidl::get_runtime_class_name(kTypeInfo, className);
         }
         HRESULT STDMETHODCALLTYPE GetTrustLevel(TrustLevel* trustLevel) override {
             return winmidl::get_trust_level(trustLevel);
@@ -5324,7 +5321,8 @@ const winmidl::qi_entry_t CINullableOps2Proxy::kQIEntries[] = {
     { IID_IRpcProxyBuffer, 0, false },
     { IID___x_TestApp_Comprehensive_INullableOps2, static_cast<uint32_t>(offsetof(CINullableOps2Proxy, m_face)), true },
 };
-const winmidl::type_info_t CINullableOps2Proxy::kTypeInfo = { CINullableOps2Proxy::Face::kIIDs, L"TestApp.Comprehensive.NullableOps", CINullableOps2Proxy::kQIEntries };
+static constexpr wchar_t CINullableOps2Proxy_className[] = L"TestApp.Comprehensive.NullableOps";
+const winmidl::type_info_t CINullableOps2Proxy::kTypeInfo = { CINullableOps2Proxy::Face::kIIDs, CINullableOps2Proxy_className, CINullableOps2Proxy::kQIEntries, { 1, std::size(CINullableOps2Proxy_className) - 1, 0, 0, CINullableOps2Proxy_className } };
 
 // End of generated proxy file
 

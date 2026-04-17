@@ -160,11 +160,11 @@ public class SemanticValidationTests
 
         var c = ns.Members.OfType<RuntimeClassSymbol>().Single();
         Assert.Equal("C", c.Name);
-        // IFoo appears as the BaseClass (first item in base list)
-        Assert.NotNull(c.BaseClass);
-        Assert.Equal("IFoo", c.BaseClass!.Name);
-        Assert.NotNull(c.BaseClass.ResolvedSymbol);
-        Assert.IsType<InterfaceSymbol>(c.BaseClass.ResolvedSymbol);
+        // IFoo appears in the Interfaces list (derives from Object, implements IFoo).
+        Assert.Null(c.BaseClass);
+        var ifoofRef = c.Interfaces.FirstOrDefault(i => i.Name == "IFoo");
+        Assert.NotNull(ifoofRef);
+        Assert.IsType<InterfaceSymbol>(ifoofRef!.ResolvedSymbol);
     }
 
     [Fact]

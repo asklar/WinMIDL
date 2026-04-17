@@ -94,6 +94,17 @@ public partial class Binder
         var resolver = new TypeResolver(_symbolTable);
         resolver.ResolveAll(_unresolvedRefs, _diagnostics);
 
+        // Pass 2.4: resolve required-interface TypeRefs on external interfaces so
+        // that flattening external classes (Pass 3/emit) can traverse the transitive
+        // closure. These TypeRefs were created by WinMdReader and are not in
+        // _unresolvedRefs because they originate from imported metadata, not source.
+        ResolveExternalRequiredInterfaces(resolver);
+
+        // Pass 2.5: reclassify base lists — a type reference in the first slot of a
+        // runtimeclass base list is a base class only if it resolves to another runtimeclass.
+        // If it resolves to an interface, it's an implemented interface (class derives from Object).
+        ReclassifyBaseLists(_globalNamespace);
+
         // Pass 3: semantic validation (inheritance, access modifiers, requires)
         ValidateSemantics(_globalNamespace);
 
@@ -1251,9 +1262,11 @@ public partial class Binder
         // typedef [attrs] enum Name { members } AliasName;
         // typedef [attrs] struct Name { fields } AliasName;
         // typedef enum Name AliasName;  (forward decl)
-        
+
         string? typeName = null;
+        string? aliasName = null;
         bool hasBody = false;
+        bool seenCloseBrace = false;
         SyntaxKind typeKind = SyntaxKind.None;
 
         for (int i = 0; i < node.SlotCount; i++)
@@ -1265,10 +1278,22 @@ public partial class Binder
             {
                 if (tok.Kind is SyntaxKind.EnumKeyword or SyntaxKind.StructKeyword or SyntaxKind.UnionKeyword)
                     typeKind = tok.Kind;
-                else if (tok.Kind == SyntaxKind.IdentifierToken && typeKind != SyntaxKind.None && typeName == null)
-                    typeName = tok.Text;
                 else if (tok.Kind == SyntaxKind.OpenBraceToken)
                     hasBody = true;
+                else if (tok.Kind == SyntaxKind.CloseBraceToken)
+                    seenCloseBrace = true;
+                else if (tok.Kind == SyntaxKind.IdentifierToken && typeKind != SyntaxKind.None)
+                {
+                    if (typeName == null && !seenCloseBrace)
+                        typeName = tok.Text;
+                    else if (seenCloseBrace && aliasName == null)
+                        aliasName = tok.Text;
+                    else if (typeName != null && !hasBody && aliasName == null)
+                    {
+                        // Forward decl: `typedef struct TagName AliasName;`
+                        aliasName = tok.Text;
+                    }
+                }
             }
             // Also check for inner EnumDeclaration/StructDeclaration nodes (from old parser path)
             else if (child.Kind == SyntaxKind.EnumDeclaration)
@@ -1322,6 +1347,13 @@ public partial class Binder
             if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
             ns.AddMember(symbol);
             _symbolTable.Define(symbol);
+        }
+
+        // Register the alias name (e.g. `Xxx` in `typedef struct tagXxx { ... } Xxx;`)
+        // as a simple alias so both forms resolve to the same type.
+        if (!string.IsNullOrEmpty(aliasName) && aliasName != typeName)
+        {
+            _symbolTable.RegisterAlias(aliasName, typeName);
         }
     }
 
@@ -2181,6 +2213,31 @@ public partial class Binder
         }
     }
 
+    // Classic MIDL (MIDL2) attributes that should produce MIDL2003 in strict mode.
+    // These are recognized by BuiltinAttributes (so no MIDL1065) but are not
+    // valid MIDL3 constructs — /compat enables them.
+    private static readonly HashSet<string> ClassicOnlyAttributes =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "object", "local", "pointer_default", "helpstring",
+            "dual", "oleautomation", "nonextensible", "hidden",
+            "restricted", "source", "propget", "propput", "propputref",
+            "id", "in", "out", "retval", "optional", "defaultvalue",
+            "size_is", "length_is", "max_is", "iid_is", "range",
+            "call_as", "endpoint", "string", "unique", "ptr", "ref",
+            "context_handle", "v1_enum", "async_uuid",
+            "noncreatable", "aggregatable", "appobject",
+            "entry", "dllname", "custom",
+            "annotation", "async", "eventadd", "eventremove",
+            "switch_type", "switch_is", "case", "default_case",
+            "ignore", "transmit_as", "represent_as", "wire_marshal",
+            "first_is", "last_is", "byte_count", "ms_union",
+            "handle", "error_status_t", "heap", "idempotent",
+            "broadcast", "maybe", "message", "notify", "reflect",
+            "disable_consistency_check", "implicit_handle", "explicit_handle",
+            "cpp_quote", "midl_pragma",
+        };
+
     private void CheckStrictModeAttributes(GreenNode attrList)
     {
         for (int i = 0; i < attrList.SlotCount; i++)
@@ -2198,8 +2255,7 @@ public partial class Binder
             {
                 var nameNode = slot.GetSlot(0);
                 var name = nameNode is SyntaxToken t ? t.Text : ExtractDottedName(nameNode);
-                if (string.Equals(name, "in", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(name, "out", StringComparison.OrdinalIgnoreCase))
+                if (name != null && ClassicOnlyAttributes.Contains(name))
                 {
                     _diagnostics.Add(DiagnosticDescriptors.ClassicAttribute(name, _posMap.GetPositionOf(name)));
                 }
@@ -2713,6 +2769,70 @@ public partial class Binder
         // classes where the modifiers actually matter for the type system.
     }
 
+    private void ReclassifyBaseLists(NamespaceSymbol ns)
+    {
+        foreach (var member in ns.Members)
+        {
+            switch (member)
+            {
+                case NamespaceSymbol childNs:
+                    ReclassifyBaseLists(childNs);
+                    break;
+                case RuntimeClassSymbol rc when !rc.IsExternal:
+                    ReclassifyClassBaseList(rc);
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Walks external interfaces (loaded via WinMdReader) and resolves the TypeRefs
+    /// in their RequiredInterfaces lists. WinMdReader parses these TypeRefs from the
+    /// imported InterfaceImpl rows but cannot resolve them — only the source-binding
+    /// TypeResolver can do that. Runtimeclass flattening relies on these being bound
+    /// so it can transitively walk required-interface chains.
+    /// </summary>
+    private void ResolveExternalRequiredInterfaces(TypeResolver resolver)
+    {
+        var throwaway = new List<Diagnostic>();
+        foreach (var fullName in _symbolTable.GetAllDefinedTypeFullNames().ToList())
+        {
+            var sym = _symbolTable.LookupDefinedType(fullName);
+            if (sym is InterfaceSymbol { IsExternal: true } iface)
+            {
+                var ns = iface.ContainingSymbol as NamespaceSymbol ?? _globalNamespace;
+                foreach (var tr in iface.RequiredInterfaces)
+                {
+                    if (tr.ResolvedSymbol is null)
+                        resolver.Resolve(tr, ns, throwaway);
+                }
+            }
+        }
+    }
+
+    private static void ReclassifyClassBaseList(RuntimeClassSymbol rc)
+    {
+        // The parser captures whatever follows ':' in order; the binder conservatively
+        // assigned the first entry to BaseClass. If resolution shows that entry is an
+        // interface (or a delegate/other non-class), promote it into Interfaces and clear
+        // BaseClass so WinMD emission defaults to System.Object.
+        if (rc.BaseClass == null) return;
+        var resolved = rc.BaseClass.ResolvedSymbol;
+        if (resolved is null) return;
+        if (resolved is RuntimeClassSymbol) return; // genuine base class
+
+        if (resolved is InterfaceSymbol)
+        {
+            // Move to Interfaces list if not already present
+            if (!rc.Interfaces.Any(i => ReferenceEquals(i.ResolvedSymbol, resolved)))
+            {
+                // Insert at the front to preserve source order (it was the first entry)
+                rc.Interfaces.Insert(0, rc.BaseClass);
+            }
+            rc.BaseClass = null;
+        }
+    }
+
     private void ValidateBaseClass(RuntimeClassSymbol rc)
     {
         if (rc.BaseClass == null || rc.BaseClass.ResolvedSymbol == null) return;
@@ -2866,25 +2986,28 @@ public partial class Binder
         }
     }
 
-    /// <summary>MIDL1044: Warn when methods share a name but none has [method_name].</summary>
+    /// <summary>MIDL1044: Warn when methods share a name AND arity but none has [method_name] / [default_overload].
+    /// Overloads with different arity are unambiguous in WinRT metadata (the projection disambiguates by
+    /// parameter count) and do NOT require the attributes.</summary>
     private void ValidateDuplicateMethodNames(IReadOnlyList<ISymbol> members)
     {
-        var methodsByNameAndContract = new Dictionary<(string, string?, int?), List<MethodSymbol>>();
+        // Key includes arity so overloads that differ only by parameter count are not flagged.
+        var methodsByNameArityAndContract = new Dictionary<(string, int, string?, int?), List<MethodSymbol>>();
         foreach (var member in members)
         {
             if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name))
             {
-                var key = (m.Name, m.ContractName, m.ContractVersion);
-                if (!methodsByNameAndContract.TryGetValue(key, out var list))
+                var key = (m.Name, m.Parameters.Count, m.ContractName, m.ContractVersion);
+                if (!methodsByNameArityAndContract.TryGetValue(key, out var list))
                 {
                     list = [];
-                    methodsByNameAndContract[key] = list;
+                    methodsByNameArityAndContract[key] = list;
                 }
                 list.Add(m);
             }
         }
 
-        foreach (var ((name, _, _), methods) in methodsByNameAndContract)
+        foreach (var ((name, _, _, _), methods) in methodsByNameArityAndContract)
         {
             if (methods.Count > 1 && methods.TrueForAll(m => string.IsNullOrEmpty(m.OverloadGroup) && string.IsNullOrEmpty(m.MethodNameOverride)))
             {
