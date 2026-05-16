@@ -43,7 +43,7 @@
           ".idl",
           ".idlrt"
         ],
-        "firstLine": "^\\s*(namespace|import|\\[|runtimeclass|interface|delegate|struct|enum|//)",
+        "firstLine": "^\\s*(namespace|import|runtimeclass|interface|delegate|struct|enum|//)",
         "configuration": "./language-configuration.json"
       }
     ],
