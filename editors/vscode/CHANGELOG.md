@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.17 (2026-05-16)
+
+### Bug Fixes
+- **VS Code activation**: Removed `[` from the `firstLine` language-detection regex to prevent false activation on TOML files (e.g. `Cargo.toml`, `pyproject.toml`) whose first line is a section header like `[package]`
+
 ## v0.1.16 (2026-04-18)
 
 ### Bug Fixes
