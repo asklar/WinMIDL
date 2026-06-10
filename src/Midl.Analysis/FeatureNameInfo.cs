@@ -1,8 +1,8 @@
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
 namespace Midl.Analysis;
 
 /// <summary>
-/// Velocity/Feature staging level, maps to Windows.Foundation.Metadata.FeatureStage.
+/// Feature staging level, maps to Windows.Foundation.Metadata.FeatureStage.
 /// </summary>
 public enum FeatureStage
 {

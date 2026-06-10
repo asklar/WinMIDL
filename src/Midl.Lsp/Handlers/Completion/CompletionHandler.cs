@@ -57,7 +57,7 @@ public static class CompletionHandler
                 fileDir = string.IsNullOrEmpty(dir) ? null : dir;
             }
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
             var featureItems = ImportCompletionProvider.DetectFeatureNameContext(text, line, character);
             if (featureItems != null)
                 return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = featureItems.ToArray() };
@@ -126,7 +126,7 @@ public static class CompletionHandler
 
             if (attrContext != null)
             {
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
                 var featureAttrItems = ImportCompletionProvider.DetectFeatureAttributeArgContext(text, offset, cachedCompilation);
                 if (featureAttrItems != null)
                     return new Dictionary<string, object?> { ["isIncomplete"] = false, ["items"] = featureAttrItems.ToArray() };

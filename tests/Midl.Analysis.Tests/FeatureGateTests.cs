@@ -1,4 +1,4 @@
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;

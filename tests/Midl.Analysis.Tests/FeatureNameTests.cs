@@ -1,4 +1,4 @@
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
@@ -125,20 +125,20 @@ public class FeatureNameTests
     }
 
     [Fact]
-    public void FeatureName_VelocityPattern_ParsesCorrectly()
+    public void FeatureName_FeatureStagingPattern_ParsesCorrectly()
     {
         // Simplified version of the OS MoIdlFeature.0.idl fixture pattern
         var compilation = CompilationHelper.Compile("""
-            namespace MoIdlVelocity
+            namespace MoIdlFeatureStaging
             {
-                feature_name Velocity_AlwaysAlwaysEnabled = {AlwaysEnabled, TRUE};
-                feature_name Velocity_AlwaysDisabledByDefault = {DisabledByDefault, TRUE};
-                feature_name Velocity_AlwaysEnabledByDefault = {EnabledByDefault, TRUE};
-                feature_name Velocity_AlwaysAlwaysDisabled = {AlwaysDisabled, TRUE};
+                feature_name FeatureStaging_AlwaysAlwaysEnabled = {AlwaysEnabled, TRUE};
+                feature_name FeatureStaging_AlwaysDisabledByDefault = {DisabledByDefault, TRUE};
+                feature_name FeatureStaging_AlwaysEnabledByDefault = {EnabledByDefault, TRUE};
+                feature_name FeatureStaging_AlwaysAlwaysDisabled = {AlwaysDisabled, TRUE};
 
                 apicontract TestContract {};
 
-                [feature(Velocity_AlwaysAlwaysEnabled)]
+                [feature(FeatureStaging_AlwaysAlwaysEnabled)]
                 [contract(TestContract, 1)]
                 [default_interface]
                 runtimeclass EnabledWidget
@@ -146,7 +146,7 @@ public class FeatureNameTests
                     EnabledWidget();
                 };
 
-                [feature(Velocity_AlwaysDisabledByDefault)]
+                [feature(FeatureStaging_AlwaysDisabledByDefault)]
                 [contract(TestContract, 1)]
                 [default_interface]
                 runtimeclass DisabledWidget
@@ -158,10 +158,10 @@ public class FeatureNameTests
 
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Severity == DiagnosticSeverity.Error);
         Assert.Equal(4, compilation.FeatureNames.Count);
-        Assert.Equal(FeatureStage.AlwaysEnabled, compilation.FeatureNames["Velocity_AlwaysAlwaysEnabled"].Stage);
-        Assert.Equal(FeatureStage.DisabledByDefault, compilation.FeatureNames["Velocity_AlwaysDisabledByDefault"].Stage);
-        Assert.Equal(FeatureStage.EnabledByDefault, compilation.FeatureNames["Velocity_AlwaysEnabledByDefault"].Stage);
-        Assert.Equal(FeatureStage.AlwaysDisabled, compilation.FeatureNames["Velocity_AlwaysAlwaysDisabled"].Stage);
+        Assert.Equal(FeatureStage.AlwaysEnabled, compilation.FeatureNames["FeatureStaging_AlwaysAlwaysEnabled"].Stage);
+        Assert.Equal(FeatureStage.DisabledByDefault, compilation.FeatureNames["FeatureStaging_AlwaysDisabledByDefault"].Stage);
+        Assert.Equal(FeatureStage.EnabledByDefault, compilation.FeatureNames["FeatureStaging_AlwaysEnabledByDefault"].Stage);
+        Assert.Equal(FeatureStage.AlwaysDisabled, compilation.FeatureNames["FeatureStaging_AlwaysAlwaysDisabled"].Stage);
     }
 }
 #endif

@@ -104,7 +104,7 @@ public partial class AttributeValidator
             "broadcast", "maybe", "message", "notify", "reflect",
             "disable_consistency_check", "implicit_handle", "explicit_handle",
             "cpp_quote", "midl_pragma",
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
             "feature", "feature_name",
 #endif
             "internal",
@@ -577,7 +577,7 @@ public partial class AttributeValidator
                         ownerName, contractRef, attr.Position));
                 }
             }
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
             else if (lowerName == "feature")
             {
                 var featureRef = attr.GetTypeName(0) ?? attr.GetIdentifier(0);

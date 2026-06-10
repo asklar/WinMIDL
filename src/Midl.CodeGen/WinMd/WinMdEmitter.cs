@@ -36,7 +36,7 @@ public class WinMdEmitter
     internal IReadOnlyDictionary<string, TypeDefinitionHandle> TypeDefHandles => _typeDefHandles;
     internal IReadOnlyDictionary<string, TypeDefinitionHandle> SynthInterfaceHandles => _synthInterfaceHandles;
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     internal IReadOnlyDictionary<string, FeatureNameInfo>? FeatureNames { get; private set; }
 #endif
 
@@ -92,7 +92,7 @@ public class WinMdEmitter
         _fieldRow = 1;
         _methodRow = 1;
         _paramRow = 1;
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         FeatureNames = compilation.FeatureNames;
 #endif
 
@@ -484,7 +484,7 @@ public class WinMdEmitter
         _fieldRow = 1;
         _methodRow = 1;
         _paramRow = 1;
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         FeatureNames = compilation.FeatureNames;
 #endif
 

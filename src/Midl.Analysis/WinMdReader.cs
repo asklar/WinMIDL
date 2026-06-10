@@ -878,7 +878,7 @@ public class WinMdReader
                     }
                     break;
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
                 case "FeatureAttribute":
                     // FeatureAttribute(FeatureStage stage, bool validInAllBranches)
                     if (blob.RemainingBytes >= 5)

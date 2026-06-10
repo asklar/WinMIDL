@@ -258,8 +258,8 @@ internal static class ContextualCompletionProvider
                 CompletionHandler.AddItem(items, "static", CompletionHandler.KindKeyword, "Static runtimeclass modifier");
                 CompletionHandler.AddItem(items, "partial", CompletionHandler.KindKeyword, "Partial runtimeclass modifier");
                 CompletionHandler.AddItem(items, "unsealed", CompletionHandler.KindKeyword, "Unsealed runtimeclass modifier");
-#if WINDOWS_INTERNAL
-                CompletionHandler.AddItem(items, "feature_name", CompletionHandler.KindKeyword, "Velocity feature staging declaration");
+#if FEATURE_STAGING
+                CompletionHandler.AddItem(items, "feature_name", CompletionHandler.KindKeyword, "Feature staging declaration");
 #endif
                 CompletionHandler.AddItem(items, "}", CompletionHandler.KindKeyword, "Close scope");
                 break;

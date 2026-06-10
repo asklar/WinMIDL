@@ -7,7 +7,7 @@ namespace Midl.Lsp.Handlers;
 /// </summary>
 internal static class ImportCompletionProvider
 {
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     /// <summary>
     /// Detects if the cursor is inside a feature_name body: feature_name Name = {Stage, Bool}
     /// Returns completion items for stage (first position) or bool (after comma), or null if not in context.
