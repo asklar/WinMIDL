@@ -6,7 +6,7 @@ namespace Midl.Parity.Tests;
 
 /// <summary>
 /// Validates that positive IDL test files produce WinMD output matching
-/// XML expectation files from the MidlRT test suite.
+/// XML expectation files from an external fixture suite.
 /// Skips when MIDL_TEST_FIXTURES is not set.
 /// </summary>
 public class XmlExpectationTests
@@ -25,7 +25,7 @@ public class XmlExpectationTests
             .Concat(Directory.GetFiles(FixturesDir!, "*.Xml"))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Where(f => !Path.GetFileName(f).Contains("DataDriven", StringComparison.OrdinalIgnoreCase)
-                     && !Path.GetFileName(f).Contains("Velocity", StringComparison.OrdinalIgnoreCase))
+                     && !Path.GetFileName(f).Contains("FeatureStaging", StringComparison.OrdinalIgnoreCase))
             .ToArray();
 
         Skip.If(xmlFiles.Length == 0, "No XML expectation files found");

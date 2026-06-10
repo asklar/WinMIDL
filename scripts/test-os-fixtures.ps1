@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Run MIDL compiler tests against OS IDL fixture files.
+    Run MIDL compiler tests against a directory of IDL fixture files.
 
 .DESCRIPTION
-    Parses and compiles IDL files from the MidlRT unittest directory (or any directory
-    of IDL files) and reports results. Does NOT copy files — references them in-place.
+    Parses and compiles IDL files from a directory and reports results.
+    Does NOT copy files — references them in-place.
 
 .PARAMETER FixturesDir
-    Path to directory of IDL files. Defaults to the MidlRT unittest directory.
+    Path to directory of IDL files.
 
 .PARAMETER Mode
     Compilation mode: 'strict' (default) or 'compat'.

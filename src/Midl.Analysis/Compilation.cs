@@ -21,7 +21,7 @@ public class Compilation
     /// <summary>Get the lazy WinMD providers (for code lens type counts per reference).</summary>
     public IReadOnlyList<LazyWinMdProvider>? LazyProviders => _lazyProviders;
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     /// <summary>Feature_name declarations encountered during binding, keyed by name.</summary>
     public Dictionary<string, FeatureNameInfo> FeatureNames { get; } = new(StringComparer.OrdinalIgnoreCase);
 #endif
@@ -42,7 +42,7 @@ public class Compilation
         merged.AddRange(Diagnostics);
         var result = new Compilation(GlobalNamespace, merged, _lazyProviders);
         result.SourceMap = SourceMap;
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         foreach (var kvp in FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
 #endif
         return result;

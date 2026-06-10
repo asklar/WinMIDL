@@ -2028,7 +2028,7 @@ public class LspHandlerTests
 
     #endregion
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     #region FeatureName Completion Tests
 
     [Fact]

@@ -460,7 +460,7 @@ internal class CustomAttributeEmitter
         Metadata.AddCustomAttribute(parent, ctorRef, Metadata.GetOrAddBlob(blob));
     }
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     private MemberReferenceHandle? _featureCtorRef;
 
     public void AddFeatureAttribute(EntityHandle parent, int stage, bool validInAllBranches)

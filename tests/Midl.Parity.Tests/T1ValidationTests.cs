@@ -5,7 +5,7 @@ using Midl.Cli;
 namespace Midl.Parity.Tests;
 
 /// <summary>
-/// T1 validation tests for OS MidlRT fixture files.
+/// T1 validation tests for external IDL fixture files.
 /// Verifies negative tests produce errors and positive tests compile cleanly.
 /// Skips when MIDL_TEST_FIXTURES is not set.
 /// </summary>

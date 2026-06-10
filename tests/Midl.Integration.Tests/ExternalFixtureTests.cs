@@ -10,13 +10,13 @@ namespace Midl.Integration.Tests;
 ///
 /// To run: set MIDL_TEST_FIXTURES=path\to\idl\fixtures
 /// </summary>
-public class OsFixtureTests
+public class ExternalFixtureTests
 {
     private static readonly string? FixturesDir = Environment.GetEnvironmentVariable("MIDL_TEST_FIXTURES");
 
     public static bool HasFixtures => FixturesDir != null && Directory.Exists(FixturesDir);
 
-    public static IEnumerable<object[]> GetOsIdlFiles()
+    public static IEnumerable<object[]> GetExternalIdlFiles()
     {
         if (!HasFixtures)
         {
@@ -32,8 +32,8 @@ public class OsFixtureTests
     }
 
     [SkippableTheory]
-    [MemberData(nameof(GetOsIdlFiles))]
-    public void OsIdlFile_ParsesWithoutCrash(string name, string path)
+    [MemberData(nameof(GetExternalIdlFiles))]
+    public void ExternalIdlFile_ParsesWithoutCrash(string name, string path)
     {
         Skip.If(!HasFixtures, "MIDL_TEST_FIXTURES not set");
         _ = name; // used for xUnit test display name
@@ -53,8 +53,8 @@ public class OsFixtureTests
 
 #if WITH_COMPAT
     [SkippableTheory]
-    [MemberData(nameof(GetOsIdlFiles))]
-    public void OsIdlFile_CompilesWithoutCrash(string name, string path)
+    [MemberData(nameof(GetExternalIdlFiles))]
+    public void ExternalIdlFile_CompilesWithoutCrash(string name, string path)
     {
         Skip.If(!HasFixtures, "MIDL_TEST_FIXTURES not set");
         _ = name; // used for xUnit test display name

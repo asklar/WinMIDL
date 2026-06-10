@@ -46,7 +46,7 @@ public partial class RuntimeClassSymbol : ISymbol
     public string? MarshalingBehavior { get; set; }
     public string? DeprecatedMessage { get; set; }
     public bool IsExperimental { get; set; }
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     public string? FeatureName { get; set; }
 #endif
     public bool IsDefaultInterface { get; set; }

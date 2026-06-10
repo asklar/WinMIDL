@@ -27,7 +27,7 @@ public class EnumSymbol : ISymbol
     public string? ContractName { get; set; }
     public int? ContractVersion { get; set; }
     public bool IsExperimental { get; set; }
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     public string? FeatureName { get; set; }
 #endif
 
