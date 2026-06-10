@@ -19,7 +19,7 @@ winmidl /winrt Widget.idl
 
 ### Option 2: Standalone binary (no .NET required)
 
-Download the latest `winmidl-<version>.zip` from the [Releases](https://github.com/asklar/WinMIDL/releases) page. Contains a single self-contained NativeAOT binary per architecture — no installer needed.
+Download the latest `winmidl-<version>.zip` from the [Releases](https://github.com/microsoft/midl/releases) page. Contains a single self-contained NativeAOT binary per architecture — no installer needed.
 
 ### Option 3: VS Code / Visual Studio extensions
 
@@ -261,6 +261,6 @@ Midl.Cli /winrt /doc Widget.xdc Widget.idl
 WinMIDL includes editor extensions for VS Code and Visual Studio that use the same compiler binary as an LSP server:
 
 - **VS Code**: Install from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=AlexanderSklarMSFT.midl3-language-server)
-- **Visual Studio**: Install the `.vsix` from the [Releases](https://github.com/asklar/WinMIDL/releases) page
+- **Visual Studio**: Install the `.vsix` from the [Releases](https://github.com/microsoft/midl/releases) page
 
 Features: real-time diagnostics, IntelliSense, go-to-definition (including into SDK types), semantic highlighting, code actions, formatting, doc comment support, class diagrams.
