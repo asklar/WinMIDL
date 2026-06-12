@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # build-and-test.ps1 — Build & test out-of-proc WinRT custom marshal E2E
 #
 # This script can also be run via: dotnet test --filter "Category=E2E"

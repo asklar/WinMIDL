@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 #include "winrt/Windows.Foundation.h"
 #include "Widget.h"
 #include <cmath>

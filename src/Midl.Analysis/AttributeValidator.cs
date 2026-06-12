@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Linq;
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;

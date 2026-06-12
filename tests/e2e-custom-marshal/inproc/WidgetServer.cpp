@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // WidgetServer.cpp - In-proc COM server implementing Widget (IPuppy + IWidget)
 //
 // This DLL is the "real" server. It knows nothing about the proxy DLL.

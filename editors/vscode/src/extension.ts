@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { findServerBinary, startLanguageServer, stopLanguageServer, getClient } from './server';
 import { WinMdContentProvider } from './winmdProvider';

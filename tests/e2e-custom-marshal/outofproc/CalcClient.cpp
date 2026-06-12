@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // CalcClient.cpp — Out-of-proc COM client that validates cross-process marshaling
 //
 // Creates objects via CLSCTX_LOCAL_SERVER, calls methods through the proxy,

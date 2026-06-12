@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 <#
 .SYNOPSIS
     Build and package the Visual Studio extension VSIX with bundled NativeAOT server binary.

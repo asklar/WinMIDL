@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Xunit.Abstractions;

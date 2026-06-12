@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // CalcServer.cpp — Out-of-proc COM/WinRT server hosting multiple runtimeclasses
 //
 // This EXE registers class factories via CoRegisterClassObject and serves

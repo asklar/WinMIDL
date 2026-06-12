@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // TestClient.cpp - Cross-apartment proxy/stub validation
 //
 // Creates a Widget in the main STA, then exercises it from an MTA thread.
