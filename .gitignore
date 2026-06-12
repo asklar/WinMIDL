@@ -21,7 +21,6 @@ editors/vscode/server/
 
 # Binaries
 *.exe
-!tools/winmd-dump/winmd-dump.exe
 *.dll
 *.pdb
 *.ilk
