@@ -717,7 +717,7 @@ public class WinMdParityV3Tests
         }
     }
 
-    [Fact]
+    [SkippableFact]
     public void RefConstGuid_GroundTruthDump()
     {
         var tempPath = Path.Combine(Path.GetTempPath(), $"test_refconst_{Guid.NewGuid():N}.winmd");
@@ -728,10 +728,13 @@ public class WinMdParityV3Tests
 
             var dumperPath = WinmdDumpTool.EnsureBuilt();
 
-            if (dumperPath == null)
-                return; // Ground-truth dumper unavailable (no CMake/MSVC/network) — skip
+            // Surface as Skipped (not a silent pass) when the ground-truth tool can't be produced.
+            Skip.If(dumperPath is null,
+                $"winmd-dump ground-truth tool unavailable — skipping ground-truth check. {WinmdDumpTool.LastError}");
 
-            var psi = new System.Diagnostics.ProcessStartInfo(dumperPath, tempPath)
+            // Skip.If above throws when the condition is true, so dumperPath is non-null here.
+            var dumper = dumperPath!;
+            var psi = new System.Diagnostics.ProcessStartInfo(dumper, tempPath)
             {
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
