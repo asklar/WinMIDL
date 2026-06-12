@@ -50,6 +50,9 @@ docs/email/
 # Generated decompiled IDL (can be huge)
 tools/winmd-dump/windows.idl
 
+# winmd-dump CMake build output
+tools/winmd-dump/build/
+
 *.tgz
 *.zip
 

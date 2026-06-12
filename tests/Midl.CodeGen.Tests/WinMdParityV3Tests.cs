@@ -726,11 +726,10 @@ public class WinMdParityV3Tests
             var bytes = CompileAndEmit(RefConstGuidSource);
             File.WriteAllBytes(tempPath, bytes);
 
-            var dumperPath = Path.GetFullPath(Path.Combine(
-                AppContext.BaseDirectory, "..", "..", "..", "..", "..", "tools", "winmd-dump", "winmd-dump.exe"));
+            var dumperPath = WinmdDumpTool.EnsureBuilt();
 
-            if (!File.Exists(dumperPath))
-                return; // Skip if dumper not available
+            if (dumperPath == null)
+                return; // Ground-truth dumper unavailable (no CMake/MSVC/network) — skip
 
             var psi = new System.Diagnostics.ProcessStartInfo(dumperPath, tempPath)
             {
