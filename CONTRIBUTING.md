@@ -1,6 +1,6 @@
-# Contributing to the MIDL Compiler Rewrite
+# Contributing to WinMIDL
 
-Thank you for your interest in contributing to the MIDL compiler rewrite! This guide covers everything you need to get started, from building the project to submitting pull requests.
+Thank you for your interest in contributing to WinMIDL — a modern, editor-friendly MIDL3 compiler! This guide covers everything you need to get started, from building the project to submitting pull requests.
 
 ## Contributor License Agreement
 
@@ -48,6 +48,34 @@ dotnet test --filter "FullyQualifiedName~ParseNamespace"
 ```
 
 The test suite uses **xUnit** as the test framework and **Verify** for snapshot-based assertion testing.
+
+### End-to-End (Proxy/Stub) Tests
+
+The proxy/stub E2E tests generate C++, compile it, and exercise real COM cross-apartment/cross-process marshaling, so they require an **MSVC x64 developer environment** (Visual Studio with the C++ workload plus the Windows SDK):
+
+```powershell
+# In-process proxy/stub round-trip
+pwsh tests/e2e-custom-marshal/comprehensive/build-and-test.ps1
+
+# Cross-process proxy/stub round-trip
+pwsh tests/e2e-custom-marshal/outofproc/build-and-test.ps1
+
+# C# E2E runner (drives the build scripts from xUnit)
+dotnet test tests/Midl.E2E.Tests
+```
+
+### Pre-Submit Verification
+
+Run **all** of the following locally before opening or updating a pull request:
+
+```bash
+dotnet test --filter "Category!=E2E"                            # Unit + integration (~2,500 tests)
+pwsh tests/e2e-custom-marshal/comprehensive/build-and-test.ps1  # In-proc E2E
+pwsh tests/e2e-custom-marshal/outofproc/build-and-test.ps1      # Cross-process E2E
+dotnet test tests/Midl.E2E.Tests                                # C# E2E runner
+```
+
+Do not rely on a subset — the C# E2E runner exercises different code paths (INCLUDE setup, process management) than the PowerShell scripts.
 
 ## Project Architecture
 
@@ -111,6 +139,12 @@ graph TD
 | Local variables | camelCase | `tokenIndex`, `currentNode` |
 | Private fields | _camelCase | `_diagnostics`, `_position` |
 
+### Repository Conventions
+
+- **Use C# partial classes** for new functionality where practical — this keeps files focused and minimizes merge conflicts.
+- **Never hardcode IIDs/GUIDs** — always reference the generated `_i.c` files.
+- **Work in a focused branch** and run the full [Pre-Submit Verification](#pre-submit-verification) before pushing.
+
 ## Adding New Syntax
 
 When adding support for a new MIDL language construct, follow these steps in order:
@@ -157,6 +191,23 @@ Feed the parser deliberately malformed input and verify:
 - The parser does **not** crash.
 - The resulting tree contains appropriate `MissingToken` and `SkippedTokens` error nodes.
 - Valid portions of the input are still parsed correctly.
+
+## Feature & Bug-Fix Checklist
+
+A change rarely touches just one layer. When adding a feature or fixing a bug, evaluate its impact across **all** of these aspects:
+
+1. **Authoring (lexer/parser):** New keywords or token types? New syntax nodes, error recovery, forward declarations? TextMate grammar updates for highlighting (VS Code **and** VS)?
+2. **Semantic analysis:** New symbols, type resolution, or attribute extraction in the binder? New validation in `AttributeValidator`/`VersionPropagator`? Type-system constraints (WinRT types, struct fields)?
+3. **Diagnostics:** New `MIDL####` code in `DiagnosticDescriptors.cs`, accurate source positions, quick fixes, and "did-you-mean" suggestions?
+4. **Contextual autocomplete:** Target-filtered attribute completions, context-aware type completions, snippets, and SDK-driven completions?
+5. **Signature help:** Method/constructor signatures and attribute-argument help?
+6. **Hover / go-to-definition / code lens:** Keyword and symbol docs; go-to-def within file, cross-file, and into WinMD?
+7. **WinMD emission:** Correct TypeDef flags; custom attributes on **all** targets (types, methods, properties, events, params, fields); `InterfaceImpl`/`MethodImpl`; default-value suppression?
+8. **Header / IID emission:** Correct ABI types (`IInspectable*` for parameterized types), `_i.c` GUIDs, and forward declarations?
+9. **Proxy/stub codegen:** Wire format for new types, interface-pointer marshaling (typed IID + `IID_IUnknown` fallback), delegate proxy/stub, and signature folding?
+10. **Decompiler:** Compile → WinMD → decompile → recompile round-trip; non-default attribute display; versioned blocks; default suppression?
+11. **Extension parity (VS Code ↔ VS):** Same server binary, diagnostics, and completions; respect VS limitations (no markdown in hover, no `onTypeFormatting` — use `ISmartIndent`)?
+12. **Testing:** Unit tests per layer; integration tests (CLI/LSP/WinMD parity); in-proc **and** out-of-proc E2E proxy/stub tests; parity fixtures; negative tests?
 
 ## Pull Request Process
 

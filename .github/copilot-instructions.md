@@ -47,7 +47,7 @@ WinMIDL is a MIDL3 compiler with an LSP server, two editor extensions, and custo
 
 ## Conventions
 
-### Feature/bug checklist (see CONTRIBUTING-SOP.md)
+### Feature/bug checklist (see CONTRIBUTING.md)
 
 Every change must be evaluated across 12 aspects: lexer/parser, analysis, diagnostics, autocomplete, signature help, hover/goto-def, WinMD emission (on ALL targets: types, methods, properties, events, params, fields), header/IID, proxy/stub codegen, decompiler round-trip, VS Code ↔ VS parity, and testing.
 
