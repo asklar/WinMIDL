@@ -29,7 +29,7 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 ### Clone and Build
 
 ```bash
-git clone https://github.com/microsoft/midl
+git clone https://github.com/microsoft/WinMIDL
 cd midl
 dotnet build
 ```

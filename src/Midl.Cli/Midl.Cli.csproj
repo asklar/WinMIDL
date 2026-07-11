@@ -28,11 +28,11 @@
     <ToolCommandName>winmidl</ToolCommandName>
     <PackageId>WinMIDL</PackageId>
     <Authors>Microsoft Corporation</Authors>
-    <PackageProjectUrl>https://github.com/microsoft/midl</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/microsoft/WinMIDL</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>midl;idl;winrt;winmd;compiler;language-server</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/microsoft/midl</RepositoryUrl>
+    <RepositoryUrl>https://github.com/microsoft/WinMIDL</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
