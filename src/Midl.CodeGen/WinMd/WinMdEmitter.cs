@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
+using System.Text;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
 using Midl.Syntax;
@@ -18,6 +20,25 @@ public class WinMdEmitter
 {
     private MetadataBuilder _metadata = null!;
     private BlobBuilder _ilStream = null!;
+
+    // When true, emit a reproducible .winmd: a content-derived module MVID (not
+    // Guid.NewGuid()) and a fixed PE timestamp, so two builds of the same input
+    // produce byte-identical output. Enabled by the /deterministic CLI switch.
+    private readonly bool _deterministic;
+
+    // Fixed PE COFF TimeDateStamp used in deterministic mode: 2000-01-01 00:00:00
+    // UTC (Unix seconds 946684800 = 0x386D4380).
+    private const uint DeterministicTimestamp = 0x386D4380;
+
+    /// <summary>Create a WinMD emitter.</summary>
+    /// <param name="deterministic">
+    /// When true, produce reproducible output (content-derived MVID + fixed
+    /// timestamp) instead of a random MVID and the current build time.
+    /// </param>
+    public WinMdEmitter(bool deterministic = false)
+    {
+        _deterministic = deterministic;
+    }
 
     // Assembly references
     internal AssemblyReferenceHandle MscorlibRef { get; private set; }
@@ -111,7 +132,7 @@ public class WinMdEmitter
         _metadata.AddModule(
             0,
             _metadata.GetOrAddString(moduleName),
-            _metadata.GetOrAddGuid(Guid.NewGuid()),
+            _metadata.GetOrAddGuid(_deterministic ? ComputeDeterministicMvid(compilation) : Guid.NewGuid()),
             default, default);
 
         // 2. Assembly (name = output filename or root namespace, WindowsRuntime flag)
@@ -507,7 +528,7 @@ public class WinMdEmitter
         _metadata.AddModule(
             0,
             _metadata.GetOrAddString($"{rootNs}.winmd"),
-            _metadata.GetOrAddGuid(Guid.NewGuid()),
+            _metadata.GetOrAddGuid(_deterministic ? ComputeDeterministicMvid(compilation) : Guid.NewGuid()),
             default, default);
 
         // 2. Assembly
@@ -618,6 +639,37 @@ public class WinMdEmitter
             : "WinRT";
     }
 
+    /// <summary>
+    /// Computes a deterministic module MVID from the compilation's public API
+    /// surface (sorted type names + interface/delegate IIDs). This makes two
+    /// builds of the same input produce a byte-identical .winmd, and makes the
+    /// MVID change only when the API changes -- matching the approach already used
+    /// for interface IIDs (AbiGuidComputer) and the downstream
+    /// mvid.exe /makeDeterministic post-processing. Only used in /deterministic mode.
+    /// </summary>
+    private static Guid ComputeDeterministicMvid(Compilation compilation)
+    {
+        var lines = new List<string>();
+        foreach (var type in compilation.GetAllTypes())
+        {
+            if (type.IsExternal) continue;
+            var iid = type switch
+            {
+                InterfaceSymbol iface => (iface.Uuid ?? AbiGuidComputer.ComputeGuid(iface)).ToString(),
+                DelegateSymbol del => (del.Uuid ?? AbiGuidComputer.ComputeGuid(del)).ToString(),
+                _ => string.Empty,
+            };
+            lines.Add($"{type.FullName}|{iid}");
+        }
+        lines.Sort(StringComparer.Ordinal);
+
+        var input = Encoding.UTF8.GetBytes(string.Join('\n', lines));
+        var hash = SHA256.HashData(input);
+        // Use the first 16 bytes of the content hash as the MVID (same approach as
+        // mvid.exe /makeDeterministic).
+        return new Guid(hash.AsSpan(0, 16));
+    }
+
     private byte[] SerializePE()
     {
         var metadataRootBuilder = new MetadataRootBuilder(_metadata, MetadataConstants.VersionString);
@@ -628,7 +680,13 @@ public class WinMdEmitter
         var peBuilder = new ManagedPEBuilder(
             peHeaderBuilder,
             metadataRootBuilder,
-            _ilStream);
+            _ilStream,
+            // In deterministic mode, pin the PE COFF TimeDateStamp to a fixed value
+            // (2000-01-01) instead of the current build time. (The MVID is made
+            // deterministic separately via the Module table above.)
+            deterministicIdProvider: _deterministic
+                ? (_ => new BlobContentId(Guid.Empty, DeterministicTimestamp))
+                : null);
 
         var blobBuilder = new BlobBuilder();
         peBuilder.Serialize(blobBuilder);
