@@ -440,4 +440,45 @@ public class CliSwitchTests : IDisposable
         // Should fail because the include can't be resolved
         Assert.NotEqual(0, exit);
     }
+
+    // -----------------------------------------------------------------------
+    // /deterministic — two builds of the same input are byte-identical
+    // -----------------------------------------------------------------------
+    [Fact]
+    public void Deterministic_ProducesByteIdenticalWinMd()
+    {
+        var idl = WriteIdl(SimpleIdl);
+
+        // Emit the same output filename twice into separate directories so the
+        // module name (which embeds the filename) is constant across runs.
+        var dir1 = Path.Combine(_tempDir, "d1");
+        var dir2 = Path.Combine(_tempDir, "d2");
+        Directory.CreateDirectory(dir1);
+        Directory.CreateDirectory(dir2);
+        var winmd1 = Path.Combine(dir1, "TestNs.winmd");
+        var winmd2 = Path.Combine(dir2, "TestNs.winmd");
+
+        var (exit1, _, _) = Run("/nologo", "/winmd", winmd1, "/deterministic", "/no_def_idir", idl);
+        var (exit2, _, _) = Run("/nologo", "/winmd", winmd2, "/deterministic", "/no_def_idir", idl);
+
+        Assert.Equal(0, exit1);
+        Assert.Equal(0, exit2);
+        Assert.Equal(File.ReadAllBytes(winmd1), File.ReadAllBytes(winmd2));
+    }
+
+    [Fact]
+    public void Deterministic_UsesFixedTimestamp()
+    {
+        var idl = WriteIdl(SimpleIdl);
+        var winmd = Path.Combine(_tempDir, "TestNs.winmd");
+
+        var (exit, _, _) = Run("/nologo", "/winmd", winmd, "/deterministic", "/no_def_idir", idl);
+
+        Assert.Equal(0, exit);
+        // PE COFF TimeDateStamp lives at offset 0x88 in the .winmd; deterministic
+        // mode pins it to 2000-01-01 00:00:00 UTC (Unix 946684800 = 0x386D4380).
+        var bytes = File.ReadAllBytes(winmd);
+        var timestamp = BitConverter.ToUInt32(bytes, 0x88);
+        Assert.Equal(0x386D4380u, timestamp);
+    }
 }

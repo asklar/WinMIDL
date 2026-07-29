@@ -42,6 +42,7 @@ public class CommandLineOptions
     public bool NoDllData { get; set; }                // /no_dlldata
     public string? MetadataDir { get; set; }           // /metadata_dir
     public bool NoMidl { get; set; }                   // /nomidl
+    public bool Deterministic { get; set; }            // /deterministic
     public Midl.Analysis.CompilationMode Mode { get; set; } = Midl.Analysis.CompilationMode.Strict;
     public bool AnalyzeMode { get; set; }              // --analyze (rich console output)
     public bool DecompileMode { get; set; }             // --decompile (WinMD to IDL)
@@ -143,7 +144,7 @@ public static class CommandLineParser
                         var rest = switchName[1..];
                         var asSwitch = switchName.ToLowerInvariant();
                         // Only split if it doesn't match a known multi-char switch
-                        if (asSwitch is not ("iid" or "dlldata" or "diag" or "doc"))
+                        if (asSwitch is not ("iid" or "dlldata" or "diag" or "doc" or "deterministic"))
                         {
                             expanded.Insert(i + 1, rest);
                             switchName = switchName[..1];
@@ -381,6 +382,11 @@ public static class CommandLineParser
 
             case "nomidl":
                 options.NoMidl = true;
+                i++;
+                return true;
+
+            case "deterministic":
+                options.Deterministic = true;
                 i++;
                 return true;
 
