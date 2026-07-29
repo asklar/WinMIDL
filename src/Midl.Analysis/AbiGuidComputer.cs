@@ -163,7 +163,7 @@ public static class AbiGuidComputer
     /// <summary>
     /// Computes a UUID v5 (SHA-1 based) from a namespace UUID and a name string.
     /// </summary>
-    public static Guid GenerateUuidV5(Guid namespaceId, string name)
+    private static Guid GenerateUuidV5(Guid namespaceId, string name)
     {
         var nsBytes = namespaceId.ToByteArray();
         // Convert to big-endian (network byte order / RFC 4122)
