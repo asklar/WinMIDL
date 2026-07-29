@@ -17,7 +17,7 @@
     <AssemblyName>Midl.Cli</AssemblyName>
     <Product>WinMIDL</Product>
     <Description>WinRT MIDL3 compiler — diagnostics, WinMD generation, header/proxy codegen, LSP server</Description>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) Microsoft Corporation</Copyright>
     <!-- Version set via /p:Version= from CI/CD or defaults to dev version -->
     <Version Condition="'$(Version)' == ''">0.1.0-dev</Version>
     <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">0.1.0.0</AssemblyVersion>
@@ -27,12 +27,12 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>winmidl</ToolCommandName>
     <PackageId>WinMIDL</PackageId>
-    <Authors>Alexander Sklar</Authors>
-    <PackageProjectUrl>https://github.com/asklar/WinMIDL</PackageProjectUrl>
+    <Authors>Microsoft Corporation</Authors>
+    <PackageProjectUrl>https://github.com/microsoft/WinMIDL</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>midl;idl;winrt;winmd;compiler;language-server</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/asklar/WinMIDL</RepositoryUrl>
+    <RepositoryUrl>https://github.com/microsoft/WinMIDL</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 

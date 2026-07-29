@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -5,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Midl.VsExtension")]
 [assembly: AssemblyDescription("Language support for WinRT Interface Definition Language (MIDL/IDL)")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("AlexanderSklarMSFT")]
+[assembly: AssemblyCompany("Microsoft Corporation")]
 [assembly: AssemblyProduct("MIDL Language Support")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCopyright("Copyright (c) Microsoft Corporation")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]

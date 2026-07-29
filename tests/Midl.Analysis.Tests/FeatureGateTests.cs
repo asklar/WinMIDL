@@ -1,4 +1,7 @@
-#if WINDOWS_INTERNAL
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+#if FEATURE_STAGING
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;

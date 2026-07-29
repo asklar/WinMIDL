@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // TestInProc.cpp — In-proc C++/WinRT E2E test
 // Creates Widget objects via the projected API (not implementation namespace).
 // Uses local activation handler to route factory calls to our in-proc implementation.

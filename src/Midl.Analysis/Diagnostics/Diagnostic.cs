@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 namespace Midl.Analysis.Diagnostics;
 
 public enum DiagnosticSeverity { Error, Warning, Info }

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using Midl.Syntax;
 
 namespace Midl.Parser;
@@ -99,8 +102,8 @@ public sealed partial class Parser
             SyntaxKind.CppQuoteKeyword => ParseCppQuoteDirective(attrNode),
             SyntaxKind.UnionKeyword => ParseUnionDeclaration(attrNode),
             SyntaxKind.DispinterfaceKeyword => ParseDispinterfaceDeclaration(attrNode),
-#if WINDOWS_INTERNAL
-            // feature_name is a Velocity/Feature staging declaration (not a keyword)
+#if FEATURE_STAGING
+            // feature_name is a Feature staging declaration (not a keyword)
             _ when Current.Kind == SyntaxKind.IdentifierToken && Current.Text == "feature_name"
                 => ParseFeatureNameDeclaration(),
 #endif
@@ -125,8 +128,8 @@ public sealed partial class Parser
         return null;
     }
 
-#if WITH_COMPAT && WINDOWS_INTERNAL
-    /// <summary>Parse: feature_name Name = {Stage, ValidInAllBranches}; — Velocity/Feature staging declaration.</summary>
+#if WITH_COMPAT && FEATURE_STAGING
+    /// <summary>Parse: feature_name Name = {Stage, ValidInAllBranches}; — Feature staging declaration.</summary>
     private GreenNode ParseFeatureNameDeclaration()
     {
         var children = RentChildren();

@@ -47,7 +47,7 @@ WinMIDL is a MIDL3 compiler with an LSP server, two editor extensions, and custo
 
 ## Conventions
 
-### Feature/bug checklist (see CONTRIBUTING-SOP.md)
+### Feature/bug checklist (see CONTRIBUTING.md)
 
 Every change must be evaluated across 12 aspects: lexer/parser, analysis, diagnostics, autocomplete, signature help, hover/goto-def, WinMD emission (on ALL targets: types, methods, properties, events, params, fields), header/IID, proxy/stub codegen, decompiler round-trip, VS Code ↔ VS parity, and testing.
 
@@ -56,7 +56,7 @@ Every change must be evaluated across 12 aspects: lexer/parser, analysis, diagno
 - `CompilationMode.Strict` — MIDL3 only, classic constructs produce errors
 - `CompilationMode.Compat` — allows classic MIDL2 constructs (coclass, typedef, etc.)
 - `WITH_COMPAT` define — enables compat-mode code paths
-- `WINDOWS_INTERNAL` define — enables internal features (feature_name, feature gates)
+- `FEATURE_STAGING` define — enables feature-staging support (feature_name declarations, [feature] gating)
 
 ### Diagnostics
 

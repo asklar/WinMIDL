@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using Midl.Lsp.Handlers;
 
 namespace Midl.Integration.Tests;
