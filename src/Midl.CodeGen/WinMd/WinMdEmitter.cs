@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
+using System.Text;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
 using Midl.Syntax;
@@ -645,7 +647,39 @@ public class WinMdEmitter
         }
         lines.Sort(StringComparer.Ordinal);
 
-        return AbiGuidComputer.GenerateUuidV5(ModuleMvidNamespace, string.Join('\n', lines));
+        return GenerateUuidV5(ModuleMvidNamespace, string.Join('\n', lines));
+    }
+
+    /// <summary>
+    /// Computes a UUID v5 (SHA-1 based) from a namespace UUID and a name string.
+    /// </summary>
+    private static Guid GenerateUuidV5(Guid namespaceId, string name)
+    {
+        var nsBytes = namespaceId.ToByteArray();
+        // Convert to big-endian (network byte order / RFC 4122)
+        (nsBytes[0], nsBytes[3]) = (nsBytes[3], nsBytes[0]);
+        (nsBytes[1], nsBytes[2]) = (nsBytes[2], nsBytes[1]);
+        (nsBytes[4], nsBytes[5]) = (nsBytes[5], nsBytes[4]);
+        (nsBytes[6], nsBytes[7]) = (nsBytes[7], nsBytes[6]);
+
+        var nameBytes = Encoding.UTF8.GetBytes(name);
+        var input = new byte[nsBytes.Length + nameBytes.Length];
+        Array.Copy(nsBytes, input, nsBytes.Length);
+        Array.Copy(nameBytes, 0, input, nsBytes.Length, nameBytes.Length);
+
+        var hash = SHA1.HashData(input);
+
+        // Set version 5 and variant RFC 4122
+        hash[6] = (byte)((hash[6] & 0x0F) | 0x50);
+        hash[8] = (byte)((hash[8] & 0x3F) | 0x80);
+
+        // Convert from big-endian UUID to .NET Guid
+        int a = (hash[0] << 24) | (hash[1] << 16) | (hash[2] << 8) | hash[3];
+        short b = (short)((hash[4] << 8) | hash[5]);
+        short c = (short)((hash[6] << 8) | hash[7]);
+        byte[] d = { hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15] };
+
+        return new Guid(a, b, c, d);
     }
 
     private byte[] SerializePE()
