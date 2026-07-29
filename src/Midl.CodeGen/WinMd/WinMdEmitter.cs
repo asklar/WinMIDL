@@ -23,8 +23,6 @@ public class WinMdEmitter
 
     private const uint DeterministicTimestamp = 0x386D4380;
 
-    // Namespace GUID used to derive the deterministic module MVID from the API
-    // surface (RFC 4122 v5, via AbiGuidComputer.GenerateUuidV5).
     private static readonly Guid ModuleMvidNamespace = new("1a4e4b0e-2a2d-4b6f-9c8a-5d3e7f0a1b2c");
 
     public WinMdEmitter(bool deterministic = false)
@@ -661,9 +659,6 @@ public class WinMdEmitter
             peHeaderBuilder,
             metadataRootBuilder,
             _ilStream,
-            // In deterministic mode, pin the PE COFF TimeDateStamp to a fixed value
-            // (2000-01-01) instead of the current build time. (The MVID is made
-            // deterministic separately via the Module table above.)
             deterministicIdProvider: _deterministic
                 ? (_ => new BlobContentId(Guid.Empty, DeterministicTimestamp))
                 : null);
