@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Security.Cryptography;
-using System.Text;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
 using Midl.Syntax;
@@ -21,20 +19,14 @@ public class WinMdEmitter
     private MetadataBuilder _metadata = null!;
     private BlobBuilder _ilStream = null!;
 
-    // When true, emit a reproducible .winmd: a content-derived module MVID (not
-    // Guid.NewGuid()) and a fixed PE timestamp, so two builds of the same input
-    // produce byte-identical output. Enabled by the /deterministic CLI switch.
     private readonly bool _deterministic;
 
-    // Fixed PE COFF TimeDateStamp used in deterministic mode: 2000-01-01 00:00:00
-    // UTC (Unix seconds 946684800 = 0x386D4380).
     private const uint DeterministicTimestamp = 0x386D4380;
 
-    /// <summary>Create a WinMD emitter.</summary>
-    /// <param name="deterministic">
-    /// When true, produce reproducible output (content-derived MVID + fixed
-    /// timestamp) instead of a random MVID and the current build time.
-    /// </param>
+    // Namespace GUID used to derive the deterministic module MVID from the API
+    // surface (RFC 4122 v5, via AbiGuidComputer.GenerateUuidV5).
+    private static readonly Guid ModuleMvidNamespace = new("1a4e4b0e-2a2d-4b6f-9c8a-5d3e7f0a1b2c");
+
     public WinMdEmitter(bool deterministic = false)
     {
         _deterministic = deterministic;
@@ -639,14 +631,6 @@ public class WinMdEmitter
             : "WinRT";
     }
 
-    /// <summary>
-    /// Computes a deterministic module MVID from the compilation's public API
-    /// surface (sorted type names + interface/delegate IIDs). This makes two
-    /// builds of the same input produce a byte-identical .winmd, and makes the
-    /// MVID change only when the API changes -- matching the approach already used
-    /// for interface IIDs (AbiGuidComputer) and the downstream
-    /// mvid.exe /makeDeterministic post-processing. Only used in /deterministic mode.
-    /// </summary>
     private static Guid ComputeDeterministicMvid(Compilation compilation)
     {
         var lines = new List<string>();
@@ -655,19 +639,15 @@ public class WinMdEmitter
             if (type.IsExternal) continue;
             var iid = type switch
             {
-                InterfaceSymbol iface => (iface.Uuid ?? AbiGuidComputer.ComputeGuid(iface)).ToString(),
-                DelegateSymbol del => (del.Uuid ?? AbiGuidComputer.ComputeGuid(del)).ToString(),
+                InterfaceSymbol iface => AbiGuidComputer.ComputeGuid(iface).ToString(),
+                DelegateSymbol del => AbiGuidComputer.ComputeGuid(del).ToString(),
                 _ => string.Empty,
             };
             lines.Add($"{type.FullName}|{iid}");
         }
         lines.Sort(StringComparer.Ordinal);
 
-        var input = Encoding.UTF8.GetBytes(string.Join('\n', lines));
-        var hash = SHA256.HashData(input);
-        // Use the first 16 bytes of the content hash as the MVID (same approach as
-        // mvid.exe /makeDeterministic).
-        return new Guid(hash.AsSpan(0, 16));
+        return AbiGuidComputer.GenerateUuidV5(ModuleMvidNamespace, string.Join('\n', lines));
     }
 
     private byte[] SerializePE()
