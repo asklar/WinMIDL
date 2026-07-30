@@ -69,6 +69,9 @@ public class WinMdFidelityTests
         using (pe)
         {
             Assert.Equal(MetadataConstants.VersionString, reader.MetadataVersion);
+
+            Assert.StartsWith("WindowsRuntime ", reader.MetadataVersion);
+            Assert.Equal(MetadataKind.WindowsMetadata, reader.MetadataKind);
         }
     }
 

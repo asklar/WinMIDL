@@ -24,7 +24,7 @@ public static class WinMdDumper
     public static string Dump(byte[] winmdBytes)
     {
         using var peReader = new PEReader(new MemoryStream(winmdBytes));
-        var reader = peReader.GetMetadataReader();
+        var reader = peReader.GetMetadataReader(MetadataReaderOptions.None);
         return DumpFromReader(reader);
     }
 

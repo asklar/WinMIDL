@@ -7,7 +7,7 @@ public static class MetadataConstants
 {
     public const string MscorlibAssembly = "mscorlib";
     public const string WindowsFoundationAssembly = "Windows.Foundation";
-    public const string VersionString = "Windows Runtime 1.2";
+    public const string VersionString = "WindowsRuntime 1.4";
 
     // Base type names (in mscorlib)
     public const string SystemNamespace = "System";
