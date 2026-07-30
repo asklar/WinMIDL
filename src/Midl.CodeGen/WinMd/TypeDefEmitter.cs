@@ -940,7 +940,7 @@ internal class TypeDefEmitter
 
     private MethodDefinitionHandle EmitRuntimeMethodStub(MethodSymbol method)
     {
-        var sig = EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: false);
+        var sig = EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: !method.IsStatic);
         var paramList = _emitter.NextParamHandle;
 
         // Static methods: Public | Static | HideBySig
@@ -1006,7 +1006,7 @@ internal class TypeDefEmitter
 
         if (prop.HasGetter)
         {
-            var sig = EncodeMethodSig(prop.Type, Array.Empty<ParameterSymbol>(), hasThis: false);
+            var sig = EncodeMethodSig(prop.Type, Array.Empty<ParameterSymbol>(), hasThis: !prop.IsStatic);
             getter = M.AddMethodDefinition(
                 baseFlags,
                 MethodImplAttributes.Runtime,
@@ -1200,7 +1200,7 @@ internal class TypeDefEmitter
 
     private MethodDefinitionHandle EmitInterfaceMethod(MethodSymbol method)
     {
-        var sig = EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: false);
+        var sig = EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: true);
         var paramList = _emitter.NextParamHandle;
 
         var methodDef = M.AddMethodDefinition(
@@ -1265,7 +1265,7 @@ internal class TypeDefEmitter
 
     private MethodDefinitionHandle EmitPropertyGetter(PropertySymbol prop)
     {
-        var sig = EncodeMethodSig(prop.Type, Array.Empty<ParameterSymbol>(), hasThis: false);
+        var sig = EncodeMethodSig(prop.Type, Array.Empty<ParameterSymbol>(), hasThis: true);
         var paramList = _emitter.NextParamHandle;
 
         var handle = M.AddMethodDefinition(
@@ -1506,7 +1506,7 @@ internal class TypeDefEmitter
     {
         var blob = new BlobBuilder();
         new BlobEncoder(blob)
-            .MethodSignature()
+            .MethodSignature(isInstanceMethod: true)
             .Parameters(1,
                 ret => ret.Void(),
                 p => p.AddParameter().Type().FromTypeRef(propertyType, _emitter));
@@ -1531,7 +1531,7 @@ internal class TypeDefEmitter
         {
             // add: takes delegate handler, returns EventRegistrationToken
             new BlobEncoder(blob)
-                .MethodSignature()
+                .MethodSignature(isInstanceMethod: true)
                 .Parameters(1,
                     ret => ret.Type().Type(_emitter.EventRegistrationTokenRef, isValueType: true),
                     p =>
@@ -1553,7 +1553,7 @@ internal class TypeDefEmitter
         {
             // remove: takes EventRegistrationToken, returns void
             new BlobEncoder(blob)
-                .MethodSignature()
+                .MethodSignature(isInstanceMethod: true)
                 .Parameters(1,
                     ret => ret.Void(),
                     p => p.AddParameter().Type().Type(_emitter.EventRegistrationTokenRef, isValueType: true));

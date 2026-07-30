@@ -831,4 +831,46 @@ public class WinMdEmitterTests
     }
 
     #endregion
+
+    #region Calling Convention (HASTHIS)
+
+    [Fact]
+    public void InterfaceMembers_AreInstanceMethods_StaticsAreNot()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                runtimeclass Widget
+                {
+                    void DoWork();
+                    Int32 Value { get; set; };
+                    static void Reset();
+                }
+            }
+            """);
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceTd = reader.GetTypeDefinition(FindTypeDef(reader, "IWidget"));
+            foreach (var mh in ifaceTd.GetMethods())
+            {
+                var m = reader.GetMethodDefinition(mh);
+                var header = reader.GetBlobReader(m.Signature).ReadSignatureHeader();
+                Assert.True(header.IsInstance,
+                    $"Interface member '{reader.GetString(m.Name)}' must be an instance method (HASTHIS).");
+            }
+
+            var classTd = reader.GetTypeDefinition(FindTypeDef(reader, "Widget"));
+            foreach (var mh in classTd.GetMethods())
+            {
+                var m = reader.GetMethodDefinition(mh);
+                var name = reader.GetString(m.Name);
+                var isStatic = m.Attributes.HasFlag(MethodAttributes.Static);
+                var header = reader.GetBlobReader(m.Signature).ReadSignatureHeader();
+                Assert.Equal(!isStatic, header.IsInstance);
+            }
+        }
+    }
+
+    #endregion
 }
