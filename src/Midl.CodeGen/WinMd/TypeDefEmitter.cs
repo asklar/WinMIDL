@@ -413,10 +413,10 @@ internal class TypeDefEmitter
         // Invoke method with delegate's signature
         EmitDelegateInvoke(symbol);
 
-        // GUID for delegates uses the Invoke method signature
+        // GUID for delegates uses the Invoke method signature, unless pinned via [uuid(...)]
         var invokeMethod = new MethodSymbol("Invoke", null) { ReturnType = symbol.ReturnType };
         invokeMethod.Parameters.AddRange(symbol.Parameters);
-        var guid = GenerateDeterministicGuid(symbol.FullName, [invokeMethod]);
+        var guid = symbol.Uuid ?? GenerateDeterministicGuid(symbol.FullName, [invokeMethod]);
         _attrs.AddGuidAttribute(typeDef, guid);
 
         // ExperimentalAttribute

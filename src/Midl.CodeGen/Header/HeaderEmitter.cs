@@ -297,7 +297,7 @@ public class HeaderEmitter
     private static void EmitDelegate(StringBuilder sb, DelegateSymbol d)
     {
         var mangledName = MangleName(d.FullName);
-        var uuid = GenerateUuid(d.FullName);
+        var uuid = d.Uuid?.ToString("D") ?? GenerateUuid(d.FullName);
 
         sb.AppendLine($"EXTERN_C const IID IID_{mangledName};");
         sb.AppendLine();
@@ -318,7 +318,7 @@ public class HeaderEmitter
     private static void EmitInterface(StringBuilder sb, InterfaceSymbol iface)
     {
         var mangledName = MangleName(iface.FullName);
-        var uuid = GenerateUuid(iface.FullName);
+        var uuid = iface.Uuid?.ToString("D") ?? GenerateUuid(iface.FullName);
         var guard = $"____{mangledName.TrimStart('_')}_INTERFACE_DEFINED__";
 
         sb.AppendLine($"#ifndef {guard}");

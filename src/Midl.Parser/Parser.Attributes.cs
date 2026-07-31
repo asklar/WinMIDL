@@ -200,8 +200,46 @@ public sealed partial class Parser
             else break;
         }
         var guidText = string.Join("", parts);
-        // Create a composite node so FullWidth is correct
+
+        // Collapse into a real GuidLiteralToken so downstream consumers
+        // (Binder.TryExtractUuidAttribute, AttributeExtractor) recognize it as a literal.
+        if (TryCollapseGuidTokens(consumed, guidText, out var guidToken))
+        {
+            _childListPool.Push(consumed);
+            return guidToken;
+        }
+
+        // Interior trivia would be lost by collapsing — keep the composite node so
+        // the green tree stays lossless.
         return MakeNode(SyntaxKind.GuidExpression, consumed);
+    }
+
+    /// <summary>
+    /// Collapse consumed GUID part tokens into one <see cref="SyntaxKind.GuidLiteralToken"/>.
+    /// Fails when interior trivia exists, since the collapsed token's FullWidth would no
+    /// longer match the source span.
+    /// </summary>
+    private static bool TryCollapseGuidTokens(List<GreenNode?> consumed, string guidText, out SyntaxToken token)
+    {
+        token = null!;
+        if (consumed.Count == 0) return false;
+
+        for (int i = 0; i < consumed.Count; i++)
+        {
+            if (consumed[i] is not SyntaxToken t) return false;
+            if (i > 0 && t.LeadingTrivia.Length > 0) return false;
+            if (i < consumed.Count - 1 && t.TrailingTrivia.Length > 0) return false;
+        }
+
+        var first = (SyntaxToken)consumed[0]!;
+        var last = (SyntaxToken)consumed[^1]!;
+        token = new SyntaxToken(
+            SyntaxKind.GuidLiteralToken,
+            guidText,
+            Guid.TryParse(guidText, out var g) ? g : null,
+            first.LeadingTrivia,
+            last.TrailingTrivia);
+        return true;
     }
 
     /// <summary>Parse a parenthesized attribute argument: (expr)</summary>
