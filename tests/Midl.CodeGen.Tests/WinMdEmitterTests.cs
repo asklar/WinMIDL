@@ -852,6 +852,9 @@ public class WinMdEmitterTests
                     static Int32 StaticProp { get; set; };
                     static void Reset();
                     event MyHandler Changed;
+                    static event MyHandler StaticChanged;
+                    overridable Int32 OnOverride();
+                    protected void OnProtected();
                 }
                 interface IStandalone
                 {
@@ -873,9 +876,10 @@ public class WinMdEmitterTests
                     var m = reader.GetMethodDefinition(mh);
                     var isStatic = m.Attributes.HasFlag(MethodAttributes.Static);
                     var header = reader.GetBlobReader(m.Signature).ReadSignatureHeader();
-                    Assert.Equal(!isStatic, header.IsInstance);
-                }
-            }
+                    Assert.True(header.IsInstance == !isStatic,
+                        $"{typeName}.{reader.GetString(m.Name)}: Static={isStatic} but HASTHIS={header.IsInstance}. "
+                        + "An instance method must set HASTHIS; a static method must not.");
+                }            }
         }
     }
 

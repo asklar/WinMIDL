@@ -1065,7 +1065,7 @@ internal class TypeDefEmitter
                 | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.SpecialName;
 
         // add_ method: takes delegate handler, returns EventRegistrationToken
-        var addSig = EncodeEventAccessorSig(evt, isAdd: true);
+        var addSig = EncodeEventAccessorSig(evt, isAdd: true, hasThis: !evt.IsStatic);
         var adder = M.AddMethodDefinition(
             baseFlags,
             MethodImplAttributes.Runtime,
@@ -1080,7 +1080,7 @@ internal class TypeDefEmitter
         EmitRemainingAttributes(adder, evt.Attributes);
 
         // remove_ method
-        var removeSig = EncodeEventAccessorSig(evt, isAdd: false);
+        var removeSig = EncodeEventAccessorSig(evt, isAdd: false, hasThis: !evt.IsStatic);
         var remover = M.AddMethodDefinition(
             baseFlags,
             MethodImplAttributes.Runtime,
@@ -1527,14 +1527,14 @@ internal class TypeDefEmitter
         return blob;
     }
 
-    private BlobBuilder EncodeEventAccessorSig(EventSymbol evt, bool isAdd)
+    private BlobBuilder EncodeEventAccessorSig(EventSymbol evt, bool isAdd, bool hasThis = true)
     {
         var blob = new BlobBuilder();
         if (isAdd)
         {
             // add: takes delegate handler, returns EventRegistrationToken
             new BlobEncoder(blob)
-                .MethodSignature(isInstanceMethod: true)
+                .MethodSignature(isInstanceMethod: hasThis)
                 .Parameters(1,
                     ret => ret.Type().Type(_emitter.EventRegistrationTokenRef, isValueType: true),
                     p =>
@@ -1556,7 +1556,7 @@ internal class TypeDefEmitter
         {
             // remove: takes EventRegistrationToken, returns void
             new BlobEncoder(blob)
-                .MethodSignature(isInstanceMethod: true)
+                .MethodSignature(isInstanceMethod: hasThis)
                 .Parameters(1,
                     ret => ret.Void(),
                     p => p.AddParameter().Type().Type(_emitter.EventRegistrationTokenRef, isValueType: true));
