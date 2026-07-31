@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { findServerBinary, startLanguageServer, stopLanguageServer, getClient } from './server';
 import { WinMdContentProvider } from './winmdProvider';
@@ -383,7 +386,7 @@ function openGitHubIssue(title: string, body: string) {
     // Use encodeURIComponent for query values + Uri.parse (same pattern as VS Code's
     // built-in issue reporter). HTML headings (<h2>) are used instead of markdown ##
     // to avoid # and ? encoding issues with vscode.env.openExternal.
-    const url = `https://github.com/asklar/midl-langserv/issues/new?body=${encodeURIComponent(body)}&labels=bug`;
+    const url = `https://github.com/microsoft/WinMIDL/issues/new?body=${encodeURIComponent(body)}&labels=bug`;
     vscode.env.openExternal(vscode.Uri.parse(url));
 }
 

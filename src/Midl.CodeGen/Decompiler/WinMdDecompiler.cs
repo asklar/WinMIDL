@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -25,7 +28,7 @@ public class WinMdDecompiler
     public string Decompile(byte[] winmdBytes, string? namespaceFilter = null, string? sourcePath = null)
     {
         using var peReader = new PEReader(new MemoryStream(winmdBytes));
-        var reader = peReader.GetMetadataReader();
+        var reader = peReader.GetMetadataReader(MetadataReaderOptions.None);
         return DecompileFromReader(reader, namespaceFilter, sourcePath);
     }
 

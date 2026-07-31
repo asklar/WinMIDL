@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -69,6 +72,9 @@ public class WinMdFidelityTests
         using (pe)
         {
             Assert.Equal(MetadataConstants.VersionString, reader.MetadataVersion);
+
+            Assert.StartsWith("WindowsRuntime ", reader.MetadataVersion);
+            Assert.Equal(MetadataKind.WindowsMetadata, reader.MetadataKind);
         }
     }
 

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // ComprehensiveClient.cpp — Cross-apartment proxy/stub validation
 //
 // Creates objects in the main STA, then exercises them from an MTA thread.

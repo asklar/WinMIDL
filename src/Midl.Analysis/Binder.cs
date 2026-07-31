@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
 using Midl.Syntax;
@@ -15,7 +18,7 @@ public partial class Binder
     private readonly HashSet<string> _definedTypes = new(StringComparer.Ordinal);
     private readonly HashSet<string> _forwardDeclaredTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _definedTypesCaseInsensitive = new(StringComparer.OrdinalIgnoreCase);
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     private readonly Dictionary<string, FeatureNameInfo> _featureNames = new(StringComparer.OrdinalIgnoreCase);
 #endif
     private readonly CompilationMode _mode;
@@ -117,7 +120,7 @@ public partial class Binder
 
         var compilation = new Compilation(_globalNamespace, _diagnostics, lazyProviders);
         compilation.SymbolTable = _symbolTable;
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         foreach (var kvp in _featureNames) compilation.FeatureNames[kvp.Key] = kvp.Value;
 #endif
         return compilation;
@@ -785,8 +788,14 @@ public partial class Binder
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
-        // Extract all attributes
+        // Extract [uuid(...)] if present
         var delAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (delAttrList != null && TryExtractUuidAttribute(delAttrList, out var delUuid))
+        {
+            symbol.Uuid = delUuid;
+        }
+
+        // Extract all attributes
         if (delAttrList != null)
         {
             var attrs = ExtractAttributes(delAttrList);
@@ -1362,7 +1371,7 @@ public partial class Binder
 
     #region DeclareBlock / feature_name
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     private static readonly Dictionary<string, FeatureStage> ValidFeatureStages = new(StringComparer.OrdinalIgnoreCase)
     {
         ["AlwaysDisabled"] = FeatureStage.AlwaysDisabled,
@@ -1374,7 +1383,7 @@ public partial class Binder
 
     private void BindDeclareBlock(GreenNode node, NamespaceSymbol ns)
     {
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         // Check for feature_name declarations:
         //   feature_name MyFeature = {AlwaysEnabled, TRUE};
         if (node.SlotCount >= 2)
@@ -1401,7 +1410,7 @@ public partial class Binder
         }
     }
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     /// <summary>Bind a feature_name declaration, extracting stage and valid-in-all-branches flag.</summary>
     private void BindFeatureNameDeclaration(GreenNode node)
     {
@@ -2345,7 +2354,7 @@ public partial class Binder
                     if (symbol is StructSymbol st2) st2.IsExperimental = true;
                     if (symbol is DelegateSymbol del3) del3.IsExperimental = true;
                     break;
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
                 case "feature":
                 {
                     var featureRef = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
@@ -2751,7 +2760,7 @@ public partial class Binder
         // Validate experimental type references across all types
         ValidateExperimentalReferences(ns);
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         // Validate feature-gated type references
         ValidateFeatureReferences(ns);
 #endif
@@ -3097,7 +3106,7 @@ public partial class Binder
             _ => false
         };
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     private void ValidateFeatureReferences(NamespaceSymbol ns)
     {
         foreach (var member in ns.Members)

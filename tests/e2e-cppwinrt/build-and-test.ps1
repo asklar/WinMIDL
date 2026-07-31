@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 <#
 .SYNOPSIS
     Build and run the C++/WinRT E2E test suite — validates WinMIDL .winmd

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Diagnostics;
 using System.Reflection;
 using Midl.Analysis;
@@ -365,7 +368,7 @@ public class CompilationDriver
 
         if (options.WinRtMode)
         {
-            var winmdEmitter = new WinMdEmitter();
+            var winmdEmitter = new WinMdEmitter(options.Deterministic);
 
             if (options.WinMdFile != null)
             {
@@ -778,6 +781,7 @@ public class CompilationDriver
         _out.WriteLine("  /no_dlldata            Do not generate DLL data file");
         _out.WriteLine("  /metadata_dir <dir>    Specify metadata directory");
         _out.WriteLine("  /nomidl                Do not invoke MIDL");
+        _out.WriteLine("  /deterministic         Reproducible .winmd: content-derived MVID and timestamp");
         _out.WriteLine("  /strict                Pure MIDL3 mode (default) — warn on classic constructs");
 #if WITH_COMPAT
         _out.WriteLine("  /no_strict, /compat    Compatibility mode — accept classic MIDL syntax");

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
@@ -28,7 +31,7 @@ public class WinMdEmissionGapTests
     private static MetadataReader CreateReader(byte[] bytes, out PEReader peReader)
     {
         peReader = new PEReader(new MemoryStream(bytes));
-        return peReader.GetMetadataReader();
+        return peReader.GetMetadataReader(MetadataReaderOptions.None);
     }
 
     private static TypeDefinitionHandle FindTypeDef(MetadataReader reader, string name)

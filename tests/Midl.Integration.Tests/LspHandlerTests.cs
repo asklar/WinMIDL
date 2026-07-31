@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
@@ -2028,7 +2031,7 @@ public class LspHandlerTests
 
     #endregion
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     #region FeatureName Completion Tests
 
     [Fact]

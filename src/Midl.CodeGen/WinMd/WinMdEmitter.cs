@@ -1,7 +1,11 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
 using Midl.Syntax;
@@ -15,6 +19,20 @@ public class WinMdEmitter
 {
     private MetadataBuilder _metadata = null!;
     private BlobBuilder _ilStream = null!;
+
+    private readonly bool _deterministic;
+
+    /// <summary>
+    /// Reserved slot for the module MVID in deterministic mode. The slot is serialized
+    /// as zeros and patched in place afterwards with the hash of the emitted content.
+    /// </summary>
+    private ReservedBlob<GuidHandle> _mvidFixup;
+    private bool _hasMvidFixup;
+
+    public WinMdEmitter(bool deterministic = false)
+    {
+        _deterministic = deterministic;
+    }
 
     // Assembly references
     internal AssemblyReferenceHandle MscorlibRef { get; private set; }
@@ -36,7 +54,7 @@ public class WinMdEmitter
     internal IReadOnlyDictionary<string, TypeDefinitionHandle> TypeDefHandles => _typeDefHandles;
     internal IReadOnlyDictionary<string, TypeDefinitionHandle> SynthInterfaceHandles => _synthInterfaceHandles;
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     internal IReadOnlyDictionary<string, FeatureNameInfo>? FeatureNames { get; private set; }
 #endif
 
@@ -92,7 +110,7 @@ public class WinMdEmitter
         _fieldRow = 1;
         _methodRow = 1;
         _paramRow = 1;
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         FeatureNames = compilation.FeatureNames;
 #endif
 
@@ -108,7 +126,7 @@ public class WinMdEmitter
         _metadata.AddModule(
             0,
             _metadata.GetOrAddString(moduleName),
-            _metadata.GetOrAddGuid(Guid.NewGuid()),
+            CreateModuleMvid(),
             default, default);
 
         // 2. Assembly (name = output filename or root namespace, WindowsRuntime flag)
@@ -484,7 +502,7 @@ public class WinMdEmitter
         _fieldRow = 1;
         _methodRow = 1;
         _paramRow = 1;
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         FeatureNames = compilation.FeatureNames;
 #endif
 
@@ -504,7 +522,7 @@ public class WinMdEmitter
         _metadata.AddModule(
             0,
             _metadata.GetOrAddString($"{rootNs}.winmd"),
-            _metadata.GetOrAddGuid(Guid.NewGuid()),
+            CreateModuleMvid(),
             default, default);
 
         // 2. Assembly
@@ -615,6 +633,40 @@ public class WinMdEmitter
             : "WinRT";
     }
 
+    /// <summary>
+    /// Produces the GUID handle for the Module table's Mvid column.
+    /// In deterministic mode this reserves a slot to be patched after serialization
+    /// with a hash of the emitted content; otherwise a fresh random GUID is used.
+    /// </summary>
+    private GuidHandle CreateModuleMvid()
+    {
+        _hasMvidFixup = false;
+
+        if (!_deterministic)
+            return _metadata.GetOrAddGuid(Guid.NewGuid());
+
+        _mvidFixup = _metadata.ReserveGuid();
+        _hasMvidFixup = true;
+        return _mvidFixup.Handle;
+    }
+
+    /// <summary>
+    /// Hashes every serialized content blob to produce the deterministic content id.
+    /// Both the MVID and the PE timestamp derive from this, so any change to the
+    /// emitted bytes changes both — matching how the C# compiler implements
+    /// <c>/deterministic</c>.
+    /// </summary>
+    private static BlobContentId ComputeContentId(IEnumerable<Blob> content)
+    {
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        foreach (var blob in content)
+        {
+            var segment = blob.GetBytes();
+            hash.AppendData(segment.Array!, segment.Offset, segment.Count);
+        }
+        return BlobContentId.FromHash(hash.GetHashAndReset());
+    }
+
     private byte[] SerializePE()
     {
         var metadataRootBuilder = new MetadataRootBuilder(_metadata, MetadataConstants.VersionString);
@@ -625,10 +677,17 @@ public class WinMdEmitter
         var peBuilder = new ManagedPEBuilder(
             peHeaderBuilder,
             metadataRootBuilder,
-            _ilStream);
+            _ilStream,
+            deterministicIdProvider: _deterministic ? ComputeContentId : null);
 
         var blobBuilder = new BlobBuilder();
-        peBuilder.Serialize(blobBuilder);
+        var contentId = peBuilder.Serialize(blobBuilder);
+
+        // The MVID slot was serialized as zeros; patch it in place with the content
+        // hash so the identifier actually identifies this module's bytes.
+        if (_hasMvidFixup)
+            new BlobWriter(_mvidFixup.Content).WriteGuid(contentId.Guid);
+
         return blobBuilder.ToArray();
     }
 }

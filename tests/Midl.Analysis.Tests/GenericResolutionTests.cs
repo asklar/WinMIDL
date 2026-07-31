@@ -1,4 +1,7 @@
-﻿using Midl.Analysis;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
 using Midl.CodeGen.WinMd;
