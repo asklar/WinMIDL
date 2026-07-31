@@ -788,8 +788,14 @@ public partial class Binder
         ns.AddMember(symbol);
         _symbolTable.Define(symbol);
 
-        // Extract all attributes
+        // Extract [uuid(...)] if present
         var delAttrList = FindChild(node, SyntaxKind.AttributeList);
+        if (delAttrList != null && TryExtractUuidAttribute(delAttrList, out var delUuid))
+        {
+            symbol.Uuid = delUuid;
+        }
+
+        // Extract all attributes
         if (delAttrList != null)
         {
             var attrs = ExtractAttributes(delAttrList);
