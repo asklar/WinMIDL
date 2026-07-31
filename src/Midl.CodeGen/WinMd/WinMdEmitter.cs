@@ -6,7 +6,6 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
-using System.Text;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
 using Midl.Syntax;
@@ -23,9 +22,12 @@ public class WinMdEmitter
 
     private readonly bool _deterministic;
 
-    private const uint DeterministicTimestamp = 0x386D4380;
-
-    private static readonly Guid ModuleMvidNamespace = new("1a4e4b0e-2a2d-4b6f-9c8a-5d3e7f0a1b2c");
+    /// <summary>
+    /// Reserved slot for the module MVID in deterministic mode. The slot is serialized
+    /// as zeros and patched in place afterwards with the hash of the emitted content.
+    /// </summary>
+    private ReservedBlob<GuidHandle> _mvidFixup;
+    private bool _hasMvidFixup;
 
     public WinMdEmitter(bool deterministic = false)
     {
@@ -124,7 +126,7 @@ public class WinMdEmitter
         _metadata.AddModule(
             0,
             _metadata.GetOrAddString(moduleName),
-            _metadata.GetOrAddGuid(_deterministic ? ComputeDeterministicMvid(compilation) : Guid.NewGuid()),
+            CreateModuleMvid(),
             default, default);
 
         // 2. Assembly (name = output filename or root namespace, WindowsRuntime flag)
@@ -520,7 +522,7 @@ public class WinMdEmitter
         _metadata.AddModule(
             0,
             _metadata.GetOrAddString($"{rootNs}.winmd"),
-            _metadata.GetOrAddGuid(_deterministic ? ComputeDeterministicMvid(compilation) : Guid.NewGuid()),
+            CreateModuleMvid(),
             default, default);
 
         // 2. Assembly
@@ -631,55 +633,38 @@ public class WinMdEmitter
             : "WinRT";
     }
 
-    private static Guid ComputeDeterministicMvid(Compilation compilation)
+    /// <summary>
+    /// Produces the GUID handle for the Module table's Mvid column.
+    /// In deterministic mode this reserves a slot to be patched after serialization
+    /// with a hash of the emitted content; otherwise a fresh random GUID is used.
+    /// </summary>
+    private GuidHandle CreateModuleMvid()
     {
-        var lines = new List<string>();
-        foreach (var type in compilation.GetAllTypes())
-        {
-            if (type.IsExternal) continue;
-            var iid = type switch
-            {
-                InterfaceSymbol iface => AbiGuidComputer.ComputeGuid(iface).ToString(),
-                DelegateSymbol del => AbiGuidComputer.ComputeGuid(del).ToString(),
-                _ => string.Empty,
-            };
-            lines.Add($"{type.FullName}|{iid}");
-        }
-        lines.Sort(StringComparer.Ordinal);
+        _hasMvidFixup = false;
 
-        return GenerateUuidV5(ModuleMvidNamespace, string.Join('\n', lines));
+        if (!_deterministic)
+            return _metadata.GetOrAddGuid(Guid.NewGuid());
+
+        _mvidFixup = _metadata.ReserveGuid();
+        _hasMvidFixup = true;
+        return _mvidFixup.Handle;
     }
 
     /// <summary>
-    /// Computes a UUID v5 (SHA-1 based) from a namespace UUID and a name string.
+    /// Hashes every serialized content blob to produce the deterministic content id.
+    /// Both the MVID and the PE timestamp derive from this, so any change to the
+    /// emitted bytes changes both — matching how the C# compiler implements
+    /// <c>/deterministic</c>.
     /// </summary>
-    private static Guid GenerateUuidV5(Guid namespaceId, string name)
+    private static BlobContentId ComputeContentId(IEnumerable<Blob> content)
     {
-        var nsBytes = namespaceId.ToByteArray();
-        // Convert to big-endian (network byte order / RFC 4122)
-        (nsBytes[0], nsBytes[3]) = (nsBytes[3], nsBytes[0]);
-        (nsBytes[1], nsBytes[2]) = (nsBytes[2], nsBytes[1]);
-        (nsBytes[4], nsBytes[5]) = (nsBytes[5], nsBytes[4]);
-        (nsBytes[6], nsBytes[7]) = (nsBytes[7], nsBytes[6]);
-
-        var nameBytes = Encoding.UTF8.GetBytes(name);
-        var input = new byte[nsBytes.Length + nameBytes.Length];
-        Array.Copy(nsBytes, input, nsBytes.Length);
-        Array.Copy(nameBytes, 0, input, nsBytes.Length, nameBytes.Length);
-
-        var hash = SHA1.HashData(input);
-
-        // Set version 5 and variant RFC 4122
-        hash[6] = (byte)((hash[6] & 0x0F) | 0x50);
-        hash[8] = (byte)((hash[8] & 0x3F) | 0x80);
-
-        // Convert from big-endian UUID to .NET Guid
-        int a = (hash[0] << 24) | (hash[1] << 16) | (hash[2] << 8) | hash[3];
-        short b = (short)((hash[4] << 8) | hash[5]);
-        short c = (short)((hash[6] << 8) | hash[7]);
-        byte[] d = { hash[8], hash[9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15] };
-
-        return new Guid(a, b, c, d);
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        foreach (var blob in content)
+        {
+            var segment = blob.GetBytes();
+            hash.AppendData(segment.Array!, segment.Offset, segment.Count);
+        }
+        return BlobContentId.FromHash(hash.GetHashAndReset());
     }
 
     private byte[] SerializePE()
@@ -693,12 +678,16 @@ public class WinMdEmitter
             peHeaderBuilder,
             metadataRootBuilder,
             _ilStream,
-            deterministicIdProvider: _deterministic
-                ? (_ => new BlobContentId(Guid.Empty, DeterministicTimestamp))
-                : null);
+            deterministicIdProvider: _deterministic ? ComputeContentId : null);
 
         var blobBuilder = new BlobBuilder();
-        peBuilder.Serialize(blobBuilder);
+        var contentId = peBuilder.Serialize(blobBuilder);
+
+        // The MVID slot was serialized as zeros; patch it in place with the content
+        // hash so the identifier actually identifies this module's bytes.
+        if (_hasMvidFixup)
+            new BlobWriter(_mvidFixup.Content).WriteGuid(contentId.Guid);
+
         return blobBuilder.ToArray();
     }
 }
