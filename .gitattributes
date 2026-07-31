@@ -1,0 +1,18 @@
+# Normalize line endings on commit; Git auto-detects text vs binary.
+* text=auto
+
+# Scripts that must use LF
+*.sh text eol=lf
+
+# Windows scripts use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Treat common binary assets as binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.winmd binary
+*.vsix binary
+*.snk binary

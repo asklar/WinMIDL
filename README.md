@@ -2,11 +2,13 @@
 
 A modern, fast, editor-friendly MIDL compiler. Ships as a single ~5.5 MB native executable — no .NET runtime required.
 
+> **Status:** WinMIDL is an independent, actively developed MIDL3 compiler. It is not the `midl.exe` that ships in the Windows SDK, and is provided as-is (see [SUPPORT.md](SUPPORT.md)).
+
 ---
 
 ## Overview
 
-WinMIDL is a **ground-up rewrite** of the Microsoft MIDL compiler. It compiles MIDL3 (and classic MIDL) source into Windows Metadata, C/C++ headers, IID files, and custom proxy/stub code for COM marshaling — all from a single self-contained binary.
+WinMIDL is an independent implementation of a MIDL compiler. It compiles MIDL3 (and classic MIDL) source into Windows Metadata, C/C++ headers, IID files, and custom proxy/stub code for COM marshaling — all from a single self-contained binary.
 
 ### Outputs
 
@@ -278,4 +280,10 @@ dotnet test
 
 ## License
 
-© Microsoft Corporation. All rights reserved.
+Licensed under the [MIT License](LICENSE).
+
+---
+
+## Trademarks
+
+See [TRADEMARKS.md](TRADEMARKS.md).

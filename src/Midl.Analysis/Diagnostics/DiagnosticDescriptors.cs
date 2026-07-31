@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 namespace Midl.Analysis.Diagnostics;
 
 public static class DiagnosticDescriptors
@@ -404,7 +407,7 @@ public static class DiagnosticDescriptors
             position, Math.Max(contractName.Length, 1));
 
     // [feature] argument not a feature_name (MIDL1076)
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     public static Diagnostic FeatureArgNotFeatureName(string attrTarget, string featureName, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1076",
             $"[feature] on '{attrTarget}': '{featureName}' is not declared via feature_name.",
@@ -664,7 +667,7 @@ public static class DiagnosticDescriptors
             position, length);
 
     // feature_name with invalid stage (MIDL1103)
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     public static Diagnostic InvalidFeatureStage(string featureName, string stage, int position) =>
         new(DiagnosticSeverity.Error, "MIDL1103",
             $"feature_name '{featureName}': '{stage}' is not a valid FeatureStage. Expected AlwaysDisabled, DisabledByDefault, EnabledByDefault, or AlwaysEnabled.",
@@ -677,7 +680,7 @@ public static class DiagnosticDescriptors
             $"Type '{typeName}' references experimental type '{experimentalTypeName}'. Mark '{typeName}' as [experimental] or remove the reference.",
             position, Math.Max(experimentalTypeName.Length, 1));
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     // Non-feature-gated type references feature-gated type (MIDL1105)
     public static Diagnostic FeatureGatedTypeReference(string typeName, string featureGatedType, string featureName, int position) =>
         new(DiagnosticSeverity.Warning, "MIDL1105",

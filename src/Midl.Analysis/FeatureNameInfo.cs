@@ -1,8 +1,11 @@
-#if WINDOWS_INTERNAL
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+#if FEATURE_STAGING
 namespace Midl.Analysis;
 
 /// <summary>
-/// Velocity/Feature staging level, maps to Windows.Foundation.Metadata.FeatureStage.
+/// Feature staging level, maps to Windows.Foundation.Metadata.FeatureStage.
 /// </summary>
 public enum FeatureStage
 {

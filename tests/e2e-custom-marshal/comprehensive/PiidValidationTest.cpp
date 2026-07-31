@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // PiidValidationTest.cpp — Standalone test that validates our computed PIIDs
 // against RoGetParameterizedTypeInstanceIID.
 //

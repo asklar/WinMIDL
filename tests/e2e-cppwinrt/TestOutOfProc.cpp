@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // TestOutOfProc.cpp — Out-of-proc C++/WinRT E2E test client.
 // Creates Widget via CoCreateInstance (CLSCTX_LOCAL_SERVER) and exercises
 // properties/methods through the proxy/stub layer.

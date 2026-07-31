@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // ServerMain.cpp — Out-of-proc C++/WinRT server.
 // Registers two CLSIDs:
 //   CLSID_Widget        → creates Widget instances (for CoCreateInstance)

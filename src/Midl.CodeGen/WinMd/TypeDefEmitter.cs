@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -53,7 +56,7 @@ internal class TypeDefEmitter
             "attributeusage", "attributename", "allowmultiple",
             "experimental", "default", "overridable", "protected",
             "remote_async",
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
             "feature", "feature_name",
 #endif
         };
@@ -232,7 +235,7 @@ internal class TypeDefEmitter
         if (symbol.IsExperimental)
             _attrs.AddExperimentalAttribute(typeDef);
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         // FeatureAttribute
         if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var enumFInfo) == true)
             _attrs.AddFeatureAttribute(typeDef, (int)enumFInfo.Stage, enumFInfo.ValidInAllBranches);
@@ -282,7 +285,7 @@ internal class TypeDefEmitter
         if (symbol.IsExperimental)
             _attrs.AddExperimentalAttribute(typeDef);
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         // FeatureAttribute
         if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var structFInfo) == true)
             _attrs.AddFeatureAttribute(typeDef, (int)structFInfo.Stage, structFInfo.ValidInAllBranches);
@@ -373,7 +376,7 @@ internal class TypeDefEmitter
         if (symbol.IsExperimental)
             _attrs.AddExperimentalAttribute(typeDef);
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         // FeatureAttribute
         if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var ifaceFInfo) == true)
             _attrs.AddFeatureAttribute(typeDef, (int)ifaceFInfo.Stage, ifaceFInfo.ValidInAllBranches);
@@ -420,7 +423,7 @@ internal class TypeDefEmitter
         if (symbol.IsExperimental)
             _attrs.AddExperimentalAttribute(typeDef);
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         // FeatureAttribute
         if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var delFInfo) == true)
             _attrs.AddFeatureAttribute(typeDef, (int)delFInfo.Stage, delFInfo.ValidInAllBranches);
@@ -818,7 +821,7 @@ internal class TypeDefEmitter
         if (symbol.IsExperimental)
             _attrs.AddExperimentalAttribute(typeDef);
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         // FeatureAttribute
         if (symbol.FeatureName != null && _emitter.FeatureNames?.TryGetValue(symbol.FeatureName, out var rcFInfo) == true)
             _attrs.AddFeatureAttribute(typeDef, (int)rcFInfo.Stage, rcFInfo.ValidInAllBranches);

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using Midl.Analysis;
 using Midl.CodeGen.Manifest;
 using Midl.CodeGen.WinMd;

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 namespace Midl.CodeGen.Tests;
 
 public class SmokeTests

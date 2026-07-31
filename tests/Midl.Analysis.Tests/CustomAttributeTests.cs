@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
@@ -982,7 +985,7 @@ public class CustomAttributeTests
         Assert.Contains(compilation.Diagnostics, d => d.Code == "MIDL1075");
     }
 
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     [Fact]
     public void FeatureAttribute_InvalidName_ProducesError()
     {

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 namespace Midl.Analysis.Symbols;
 
 public class EnumSymbol : ISymbol
@@ -27,7 +30,7 @@ public class EnumSymbol : ISymbol
     public string? ContractName { get; set; }
     public int? ContractVersion { get; set; }
     public bool IsExperimental { get; set; }
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     public string? FeatureName { get; set; }
 #endif
 

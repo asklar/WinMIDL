@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Diagnostics;
 using Midl.Analysis.Diagnostics;
 using Midl.Analysis.Symbols;
@@ -286,7 +289,7 @@ public static class CompilationHelper
         var result = new Compilation(compilation.GlobalNamespace, resolved, compilation.LazyProviders);
         result.SourceMap = sourceMap;
         result.SymbolTable = compilation.SymbolTable;
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         foreach (var kvp in compilation.FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
 #endif
         return result;
@@ -403,7 +406,7 @@ public static class CompilationHelper
         var result = new Compilation(compilation.GlobalNamespace, resolved, compilation.LazyProviders);
         result.SourceMap = compilation.SourceMap;
         result.SymbolTable = compilation.SymbolTable;
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
         foreach (var kvp in compilation.FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
 #endif
         return result;

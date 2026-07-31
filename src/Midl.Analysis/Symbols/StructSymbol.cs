@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 namespace Midl.Analysis.Symbols;
 
 public class StructSymbol : ISymbol
@@ -23,7 +26,7 @@ public class StructSymbol : ISymbol
     // Extracted attribute data
     public List<AttributeData> Attributes { get; } = new();
     public bool IsExperimental { get; set; }
-#if WINDOWS_INTERNAL
+#if FEATURE_STAGING
     public string? FeatureName { get; set; }
 #endif
 

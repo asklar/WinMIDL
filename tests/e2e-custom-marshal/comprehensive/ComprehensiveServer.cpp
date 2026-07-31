@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // ComprehensiveServer.cpp — In-proc COM server implementing all runtimeclasses
 // for the comprehensive proxy/stub e2e test.
 

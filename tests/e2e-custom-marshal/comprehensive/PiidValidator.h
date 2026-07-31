@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // PiidValidator.h — Validates computed parameterized IIDs against the Windows Runtime
 // Uses RoGetParameterizedTypeInstanceIID with a minimal IRoMetaDataLocator implementation.
 
