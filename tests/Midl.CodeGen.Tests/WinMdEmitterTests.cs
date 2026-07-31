@@ -840,34 +840,38 @@ public class WinMdEmitterTests
         var bytes = CompileAndEmit("""
             namespace Test
             {
+                delegate void MyHandler(Int32 v);
                 runtimeclass Widget
                 {
+                    Widget();
                     void DoWork();
                     Int32 Value { get; set; };
+                    static Int32 StaticProp { get; set; };
                     static void Reset();
+                    event MyHandler Changed;
+                }
+                interface IStandalone
+                {
+                    Int32 Go();
+                    Int32 Prop { get; set; };
+                    event MyHandler Ev;
                 }
             }
             """);
         var reader = CreateReader(bytes, out var pe);
         using (pe)
         {
-            var ifaceTd = reader.GetTypeDefinition(FindTypeDef(reader, "IWidget"));
-            foreach (var mh in ifaceTd.GetMethods())
+            foreach (var tdHandle in reader.TypeDefinitions)
             {
-                var m = reader.GetMethodDefinition(mh);
-                var header = reader.GetBlobReader(m.Signature).ReadSignatureHeader();
-                Assert.True(header.IsInstance,
-                    $"Interface member '{reader.GetString(m.Name)}' must be an instance method (HASTHIS).");
-            }
-
-            var classTd = reader.GetTypeDefinition(FindTypeDef(reader, "Widget"));
-            foreach (var mh in classTd.GetMethods())
-            {
-                var m = reader.GetMethodDefinition(mh);
-                var name = reader.GetString(m.Name);
-                var isStatic = m.Attributes.HasFlag(MethodAttributes.Static);
-                var header = reader.GetBlobReader(m.Signature).ReadSignatureHeader();
-                Assert.Equal(!isStatic, header.IsInstance);
+                var td = reader.GetTypeDefinition(tdHandle);
+                var typeName = reader.GetString(td.Name);
+                foreach (var mh in td.GetMethods())
+                {
+                    var m = reader.GetMethodDefinition(mh);
+                    var isStatic = m.Attributes.HasFlag(MethodAttributes.Static);
+                    var header = reader.GetBlobReader(m.Signature).ReadSignatureHeader();
+                    Assert.Equal(!isStatic, header.IsInstance);
+                }
             }
         }
     }

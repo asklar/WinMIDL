@@ -1029,7 +1029,7 @@ internal class TypeDefEmitter
         }
         if (prop.HasSetter)
         {
-            var sig = EncodeSetterSig(prop.Type);
+            var sig = EncodeSetterSig(prop.Type, hasThis: !prop.IsStatic);
             setter = M.AddMethodDefinition(
                 baseFlags,
                 MethodImplAttributes.Runtime,
@@ -1502,11 +1502,11 @@ internal class TypeDefEmitter
         return blob;
     }
 
-    private BlobBuilder EncodeSetterSig(TypeRef propertyType)
+    private BlobBuilder EncodeSetterSig(TypeRef propertyType, bool hasThis = true)
     {
         var blob = new BlobBuilder();
         new BlobEncoder(blob)
-            .MethodSignature(isInstanceMethod: true)
+            .MethodSignature(isInstanceMethod: hasThis)
             .Parameters(1,
                 ret => ret.Void(),
                 p => p.AddParameter().Type().FromTypeRef(propertyType, _emitter));
