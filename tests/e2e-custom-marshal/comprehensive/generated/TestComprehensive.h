@@ -79,7 +79,7 @@ struct NullableRecord
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ILogger;
 
-MIDL_INTERFACE("c7d99964-495c-5c59-8b24-e8bc1cc6233d")
+MIDL_INTERFACE("c29973a9-abb2-534a-88e7-1ba36a394762")
 __x_TestApp_Comprehensive_ILogger : public IInspectable
 {
 public:
@@ -94,7 +94,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IAnimal;
 
-MIDL_INTERFACE("754a84e8-d9f2-ef50-aba0-932d10f7fd3e")
+MIDL_INTERFACE("f060b3dd-c7a0-5c09-924b-71f4af66a5e4")
 __x_TestApp_Comprehensive_IAnimal : public IInspectable
 {
 public:
@@ -115,7 +115,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ISerializable;
 
-MIDL_INTERFACE("b92e8a7e-d7d9-615a-9f4a-eefe5c218bdc")
+MIDL_INTERFACE("4fc2c7cb-d698-5045-98f6-efa487b790f1")
 __x_TestApp_Comprehensive_ISerializable : public IInspectable
 {
 public:
@@ -129,7 +129,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ICloneable;
 
-MIDL_INTERFACE("fb0aa86f-4ec8-7251-b005-cdbaceb6372a")
+MIDL_INTERFACE("54c095c0-e3ed-584b-842a-82b92aec7069")
 __x_TestApp_Comprehensive_ICloneable : public IInspectable
 {
 public:
@@ -145,7 +145,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ICalculator;
 
-MIDL_INTERFACE("538659d0-8a14-6953-9967-f2484e51a80d")
+MIDL_INTERFACE("ffd93276-fd61-5138-8b31-b8c6bdddbb07")
 __x_TestApp_Comprehensive_ICalculator : public IInspectable
 {
 public:
@@ -163,7 +163,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_StatusCallback;
 
-MIDL_INTERFACE("e8bf1b87-90a2-595a-8dc9-e53e9fa14e4b")
+MIDL_INTERFACE("8e2007c6-a498-57d1-95bb-0729a5d2e838")
 __x_TestApp_Comprehensive_StatusCallback : public IUnknown
 {
 public:
@@ -175,7 +175,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_INotifier;
 
-MIDL_INTERFACE("adaa1249-9126-f854-ac5a-f6f0d6acf837")
+MIDL_INTERFACE("b1a80cb4-2164-5bf9-b037-2aa56ef0cd0c")
 __x_TestApp_Comprehensive_INotifier : public IInspectable
 {
 public:
@@ -192,7 +192,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IEventSource;
 
-MIDL_INTERFACE("fe931b8c-b145-2153-a343-23f1a3b3d4e8")
+MIDL_INTERFACE("f785f82e-4d8a-5855-9f29-c183983f97b8")
 __x_TestApp_Comprehensive_IEventSource : public IInspectable
 {
 public:
@@ -211,7 +211,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IPropertyBag;
 
-MIDL_INTERFACE("cf95a914-103e-7157-9861-4f6fc3ca383c")
+MIDL_INTERFACE("7403a824-1b0e-5fb3-9b0e-c3986e40c585")
 __x_TestApp_Comprehensive_IPropertyBag : public IInspectable
 {
 public:
@@ -228,7 +228,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IOptional;
 
-MIDL_INTERFACE("3d58d75c-74c0-ef54-a8f3-da92a95aa007")
+MIDL_INTERFACE("3c83303b-0728-524c-9750-870733dbc5ad")
 __x_TestApp_Comprehensive_IOptional : public IInspectable
 {
 public:
@@ -246,7 +246,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ITypeShowcase;
 
-MIDL_INTERFACE("fd7ca1e9-7659-d859-a58b-c1c6c0c2f64b")
+MIDL_INTERFACE("e05a086b-949b-5341-8389-746eb80b766b")
 __x_TestApp_Comprehensive_ITypeShowcase : public IInspectable
 {
 public:
@@ -269,7 +269,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IComplexOps;
 
-MIDL_INTERFACE("9e06e629-cffe-1556-b727-c1d3ba0a671b")
+MIDL_INTERFACE("cbd2c614-0ce7-5bef-8b1d-d3d3c7bd8c05")
 __x_TestApp_Comprehensive_IComplexOps : public IInspectable
 {
 public:
@@ -289,7 +289,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IObservable;
 
-MIDL_INTERFACE("4e187735-9f98-8158-8680-786231a37af1")
+MIDL_INTERFACE("0509c9bc-2088-5b76-8d6d-eab23a165210")
 __x_TestApp_Comprehensive_IObservable : public IInspectable
 {
 public:
@@ -308,7 +308,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ICollectionOps;
 
-MIDL_INTERFACE("1d75483a-3b9b-8a56-9ae9-f25ae705f711")
+MIDL_INTERFACE("ca3e2fec-af3e-50e6-9d16-cdcea3cbc427")
 __x_TestApp_Comprehensive_ICollectionOps : public IInspectable
 {
 public:
@@ -331,7 +331,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IArrayOps;
 
-MIDL_INTERFACE("a765ebcb-fbde-c15d-8bab-a3e1932ff416")
+MIDL_INTERFACE("de325fed-2f7b-518f-8041-ac5b8cb58647")
 __x_TestApp_Comprehensive_IArrayOps : public IInspectable
 {
 public:
@@ -352,7 +352,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_INullableOps;
 
-MIDL_INTERFACE("71df42f6-72f1-e359-9250-e638cf441d09")
+MIDL_INTERFACE("053f4237-ce24-5ab6-9cdc-9bd3ea55769d")
 __x_TestApp_Comprehensive_INullableOps : public IInspectable
 {
 public:
@@ -370,7 +370,7 @@ extern const __declspec(selectany) _Null_terminated_ WCHAR RuntimeClass_TestApp_
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IAnimal2;
 
-MIDL_INTERFACE("f3d011d5-0de4-dc5d-977c-fee2bed01625")
+MIDL_INTERFACE("4e6adf0e-820a-5176-8a99-f251882ab08c")
 __x_TestApp_Comprehensive_IAnimal2 : public IInspectable
 {
 public:
@@ -383,7 +383,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IShape;
 
-MIDL_INTERFACE("5918edf2-e422-9955-9c81-f1a2f1398fbf")
+MIDL_INTERFACE("65909e31-0079-5832-8c88-f2adc762dae6")
 __x_TestApp_Comprehensive_IShape : public IInspectable
 {
 public:
@@ -398,7 +398,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ICircle;
 
-MIDL_INTERFACE("c29eee60-9042-2b5e-8557-b56f84e149b8")
+MIDL_INTERFACE("edb25a2d-e0f8-5a67-98f3-b8513938a049")
 __x_TestApp_Comprehensive_ICircle : public IInspectable
 {
 public:
@@ -412,7 +412,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IDocument;
 
-MIDL_INTERFACE("ec14a068-7df7-2e52-9ef5-453cb1caca1d")
+MIDL_INTERFACE("42227426-10b0-50f4-9d85-70a17a045d7b")
 __x_TestApp_Comprehensive_IDocument : public IInspectable
 {
 public:
@@ -426,7 +426,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ICalculator2;
 
-MIDL_INTERFACE("971144bb-92a3-285c-b151-ff45d4626499")
+MIDL_INTERFACE("c042ffc1-fa2e-59f1-b6ac-2b2612f142f8")
 __x_TestApp_Comprehensive_ICalculator2 : public IInspectable
 {
 public:
@@ -439,7 +439,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_INotifier2;
 
-MIDL_INTERFACE("11ded1ed-93f4-ad57-8d6c-123c6309ade1")
+MIDL_INTERFACE("993d517c-ebcf-5a85-83a4-044a85aeca3a")
 __x_TestApp_Comprehensive_INotifier2 : public IInspectable
 {
 public:
@@ -452,7 +452,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IEventSource2;
 
-MIDL_INTERFACE("1cfc3e5a-418b-3155-bc3d-26011f6a5868")
+MIDL_INTERFACE("01e33cc6-0648-5a0f-8224-98d68f408b96")
 __x_TestApp_Comprehensive_IEventSource2 : public IInspectable
 {
 public:
@@ -465,7 +465,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IPropertyBag2;
 
-MIDL_INTERFACE("cb82b29d-7766-2250-bdad-bb8b1ee6b2df")
+MIDL_INTERFACE("9ec5e2a0-9c30-5dc4-b615-2ab94806a226")
 __x_TestApp_Comprehensive_IPropertyBag2 : public IInspectable
 {
 public:
@@ -478,7 +478,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IOptionalValues;
 
-MIDL_INTERFACE("00747bca-5360-6e5b-830f-39f4976d6530")
+MIDL_INTERFACE("5d178992-c85f-56cc-a172-0f119a4fda59")
 __x_TestApp_Comprehensive_IOptionalValues : public IInspectable
 {
 public:
@@ -491,7 +491,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ITypeShowcase2;
 
-MIDL_INTERFACE("811aa5eb-51af-375f-bba5-a9679128d722")
+MIDL_INTERFACE("b46870c1-5ea0-5a01-9046-0d5bf89818dd")
 __x_TestApp_Comprehensive_ITypeShowcase2 : public IInspectable
 {
 public:
@@ -504,7 +504,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IComplexOps2;
 
-MIDL_INTERFACE("27a1f09b-5f5e-3e56-9580-954872f3b7df")
+MIDL_INTERFACE("aa29c949-707c-52ab-9b80-47f2c934a24d")
 __x_TestApp_Comprehensive_IComplexOps2 : public IInspectable
 {
 public:
@@ -517,7 +517,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IMathHelpersStatics;
 
-MIDL_INTERFACE("c2728a91-fc80-8753-9f0d-e1a553ee93cb")
+MIDL_INTERFACE("32409437-eeaf-5956-bf18-7bf6f1e1a557")
 __x_TestApp_Comprehensive_IMathHelpersStatics : public IInspectable
 {
 public:
@@ -533,7 +533,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IObservable2;
 
-MIDL_INTERFACE("add45819-55f8-f954-b3d5-a2d3f650c624")
+MIDL_INTERFACE("cd0d9b23-73b0-56db-9635-e79494e64035")
 __x_TestApp_Comprehensive_IObservable2 : public IInspectable
 {
 public:
@@ -546,7 +546,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_ICollectionOps2;
 
-MIDL_INTERFACE("d55f32e0-c8b8-8752-886b-3eee42f0089b")
+MIDL_INTERFACE("12a36bab-8151-5086-8f67-a84beea3be7d")
 __x_TestApp_Comprehensive_ICollectionOps2 : public IInspectable
 {
 public:
@@ -559,7 +559,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_IArrayOps2;
 
-MIDL_INTERFACE("f49c17c9-e6d3-d65a-b89c-5b50fa8c28bd")
+MIDL_INTERFACE("9891101d-48f3-522f-9b18-c14de304e76a")
 __x_TestApp_Comprehensive_IArrayOps2 : public IInspectable
 {
 public:
@@ -572,7 +572,7 @@ public:
 
 EXTERN_C const IID IID___x_TestApp_Comprehensive_INullableOps2;
 
-MIDL_INTERFACE("e8a215a6-236e-715b-8366-3ea4de195e03")
+MIDL_INTERFACE("dfd74208-41ae-5e7a-9032-9fefe41b6cec")
 __x_TestApp_Comprehensive_INullableOps2 : public IInspectable
 {
 public:

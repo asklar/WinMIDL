@@ -297,7 +297,7 @@ public class HeaderEmitter
     private static void EmitDelegate(StringBuilder sb, DelegateSymbol d)
     {
         var mangledName = MangleName(d.FullName);
-        var uuid = d.Uuid?.ToString("D") ?? GenerateUuid(d.FullName);
+        var uuid = AbiGuidComputer.ComputeGuid(d).ToString("D");
 
         sb.AppendLine($"EXTERN_C const IID IID_{mangledName};");
         sb.AppendLine();
@@ -318,7 +318,7 @@ public class HeaderEmitter
     private static void EmitInterface(StringBuilder sb, InterfaceSymbol iface)
     {
         var mangledName = MangleName(iface.FullName);
-        var uuid = iface.Uuid?.ToString("D") ?? GenerateUuid(iface.FullName);
+        var uuid = AbiGuidComputer.ComputeGuid(iface).ToString("D");
         var guard = $"____{mangledName.TrimStart('_')}_INTERFACE_DEFINED__";
 
         sb.AppendLine($"#ifndef {guard}");
@@ -505,31 +505,5 @@ public class HeaderEmitter
             }
         }
         return string.Join(", ", parts);
-    }
-
-    /// <summary>
-    /// Generates a deterministic UUID v5 from the fully-qualified type name.
-    /// </summary>
-    internal static string GenerateUuid(string fullName)
-    {
-        // Use a fixed namespace UUID for MIDL types
-        var namespaceId = new byte[]
-        {
-            0x6b, 0xa7, 0xb8, 0x10, 0x9d, 0xad, 0x11, 0xd1,
-            0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8
-        };
-        var nameBytes = Encoding.UTF8.GetBytes(fullName);
-        var input = new byte[namespaceId.Length + nameBytes.Length];
-        Array.Copy(namespaceId, 0, input, 0, namespaceId.Length);
-        Array.Copy(nameBytes, 0, input, namespaceId.Length, nameBytes.Length);
-
-        var hash = SHA1.HashData(input);
-
-        // Format as UUID v5
-        hash[6] = (byte)((hash[6] & 0x0F) | 0x50); // version 5
-        hash[8] = (byte)((hash[8] & 0x3F) | 0x80); // variant
-
-        var guid = new Guid(new ReadOnlySpan<byte>(hash, 0, 16));
-        return guid.ToString("D");
     }
 }
