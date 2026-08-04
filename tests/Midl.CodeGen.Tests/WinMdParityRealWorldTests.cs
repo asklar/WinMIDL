@@ -415,10 +415,10 @@ public class WinMdParityRealWorldTests : IDisposable
     // ────────── CLR projection of external TypeRefs ──────────
 
     [Fact]
-    public void EventRegistrationToken_IsProjectedToMscorlibSystemRuntimeInteropServices()
+    public void EventRegistrationToken_IsStoredAsWindowsFoundationRawType()
     {
         // Build a class that uses an event — this causes EventRegistrationToken to
-        // appear in add_/remove_ accessor signatures, which must be CLR-projected.
+        // appear in add_/remove_ accessor signatures.
         var bytes = CompileAndEmit("""
             namespace N
             {
@@ -429,20 +429,64 @@ public class WinMdParityRealWorldTests : IDisposable
                 };
             }
             """);
-        var reader = Read(bytes, out var pe); using var _ = pe;
+        // Read raw (no WinRT projection): cppwinrt/mdmerge consume the raw metadata, which
+        // must hold Windows.Foundation.EventRegistrationToken. Reading with projection on
+        // would rewrite it to the mscorlib name and hide a regression.
+        using var pe = new PEReader(ImmutableArray.Create(bytes));
+        var reader = pe.GetMetadataReader(MetadataReaderOptions.None);
 
-        // Scan TypeReferences for EventRegistrationToken — its namespace should
-        // be System.Runtime.InteropServices.WindowsRuntime, not Windows.Foundation.
         bool found = false;
         foreach (var h in reader.TypeReferences)
         {
             var tr = reader.GetTypeReference(h);
             if (reader.GetString(tr.Name) != "EventRegistrationToken") continue;
             found = true;
-            Assert.Equal("System.Runtime.InteropServices.WindowsRuntime",
-                reader.GetString(tr.Namespace));
+            Assert.Equal("Windows.Foundation", reader.GetString(tr.Namespace));
         }
         Assert.True(found, "EventRegistrationToken TypeRef should exist in metadata");
+    }
+
+    [Theory]
+    [InlineData("Windows.Foundation.DateTime", "Windows.Foundation.DateTime")]
+    [InlineData("Windows.Foundation.TimeSpan", "Windows.Foundation.TimeSpan")]
+    [InlineData("Windows.Foundation.Collections.IVector<Int32>", "Windows.Foundation.Collections.IVector`1")]
+    [InlineData("Windows.Foundation.Collections.IVectorView<Int32>", "Windows.Foundation.Collections.IVectorView`1")]
+    [InlineData("Windows.Foundation.Collections.IMap<String, Int32>", "Windows.Foundation.Collections.IMap`2")]
+    [InlineData("Windows.Foundation.Collections.IMapView<String, Int32>", "Windows.Foundation.Collections.IMapView`2")]
+    public void ProjectedTypes_AreStoredRawNotClrProjected(string idlType, string expectedRawFullName)
+    {
+        // Projected WinRT types (DateTime, IVector, IMap, ...) must be stored raw; the CLR
+        // projection is a read-time transform, never stored. Read raw so a regression that
+        // stores the projected form is not masked.
+        var bytes = CompileAndEmit($$"""
+            namespace N
+            {
+                runtimeclass C
+                {
+                    {{idlType}} Get();
+                };
+            }
+            """);
+        using var pe = new PEReader(ImmutableArray.Create(bytes));
+        var reader = pe.GetMetadataReader(MetadataReaderOptions.None);
+
+        var rawNames = reader.TypeReferences
+            .Select(reader.GetTypeReference)
+            .Select(tr =>
+            {
+                var ns = reader.GetString(tr.Namespace);
+                var nm = reader.GetString(tr.Name);
+                return string.IsNullOrEmpty(ns) ? nm : ns + "." + nm;
+            })
+            .ToList();
+
+        Assert.Contains(expectedRawFullName, rawNames);
+        // The CLR-projected forms must NOT appear in the raw metadata.
+        Assert.DoesNotContain("System.DateTimeOffset", rawNames);
+        Assert.DoesNotContain("System.Collections.Generic.IList`1", rawNames);
+        Assert.DoesNotContain("System.Collections.Generic.IReadOnlyList`1", rawNames);
+        Assert.DoesNotContain("System.Collections.Generic.IDictionary`2", rawNames);
+        Assert.DoesNotContain("System.Collections.Generic.IReadOnlyDictionary`2", rawNames);
     }
 
     // ────────── Helpers ──────────

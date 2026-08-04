@@ -156,10 +156,10 @@ public class WinMdEmitter
         SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
 
-        // EventRegistrationToken — midl.exe emits this CLR-projected, in mscorlib.
+        // Store the raw WinRT type; the CLR projection to mscorlib is applied by readers.
         EventRegistrationTokenRef = _metadata.AddTypeReference(
-            MscorlibRef,
-            _metadata.GetOrAddString("System.Runtime.InteropServices.WindowsRuntime"),
+            WfmRef,
+            _metadata.GetOrAddString(MetadataConstants.WindowsFoundationAssembly),
             _metadata.GetOrAddString("EventRegistrationToken"));
 
         // 5. <Module> type (required first row)
@@ -281,12 +281,10 @@ public class WinMdEmitter
     }
 
     /// <summary>
-    /// Creates a TypeRef pointing to an external assembly for an imported type.
-    /// Applies CLR projection so that WinRT names like Windows.Foundation.DateTime
-    /// become System.DateTimeOffset in the emitted metadata (matching midlrt behaviour).
-    /// Projected names always live in mscorlib; other Windows.* types use the
-    /// Windows.Foundation assembly ref; otherwise the first namespace segment names
-    /// the assembly.
+    /// Creates a TypeRef for an imported type, storing the raw WinRT name. The CLR
+    /// projection (e.g. DateTime -> System.DateTimeOffset, IVector -> IList) is applied
+    /// by readers on load, not stored. Windows.* types use the Windows.Foundation
+    /// assembly ref; otherwise the first namespace segment names the assembly.
     /// </summary>
     private TypeReferenceHandle GetExternalTypeRef(string fullName, int genericArity = 0)
     {
@@ -294,35 +292,8 @@ public class WinMdEmitter
         if (_localTypeRefs.TryGetValue(cacheKey, out var existing))
             return existing;
 
-        // Apply CLR projection (e.g. Windows.Foundation.DateTime -> System.DateTimeOffset).
-        // The projection map is keyed by the fully-qualified name including the generic
-        // arity suffix (e.g. IVector`1 -> IList`1), so compose that form before lookup.
-        var projectionKey = genericArity > 0 ? $"{fullName}`{genericArity}" : fullName;
-        var projected = ClrProjectionMap.ToClrName(projectionKey);
-        bool wasProjected = !ReferenceEquals(projected, projectionKey) && projected != projectionKey;
-
-        string emittedFull;
-        int emittedArity;
-        if (wasProjected)
-        {
-            // Split off the `N suffix added by the projection map.
-            var backtick = projected.IndexOf('`');
-            if (backtick >= 0)
-            {
-                emittedFull = projected[..backtick];
-                emittedArity = int.TryParse(projected[(backtick + 1)..], out var a) ? a : genericArity;
-            }
-            else
-            {
-                emittedFull = projected;
-                emittedArity = 0;
-            }
-        }
-        else
-        {
-            emittedFull = fullName;
-            emittedArity = genericArity;
-        }
+        var emittedFull = fullName;
+        var emittedArity = genericArity;
 
         var lastDot = emittedFull.LastIndexOf('.');
         var ns = lastDot >= 0 ? emittedFull[..lastDot] : "";
@@ -332,13 +303,7 @@ public class WinMdEmitter
             name = $"{name}`{emittedArity}";
 
         AssemblyReferenceHandle assemblyRef;
-        if (wasProjected)
-        {
-            // CLR-projected names live in mscorlib in classic WinMDs. This matches the
-            // assemblies that .NET's MetadataReader expects when resolving projected types.
-            assemblyRef = MscorlibRef;
-        }
-        else if (ns.StartsWith("Windows."))
+        if (ns.StartsWith("Windows."))
         {
             assemblyRef = WfmRef;
         }
@@ -552,10 +517,10 @@ public class WinMdEmitter
         SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
 
-        // EventRegistrationToken — midl.exe emits this CLR-projected, in mscorlib.
+        // Store the raw WinRT type; the CLR projection to mscorlib is applied by readers.
         EventRegistrationTokenRef = _metadata.AddTypeReference(
-            MscorlibRef,
-            _metadata.GetOrAddString("System.Runtime.InteropServices.WindowsRuntime"),
+            WfmRef,
+            _metadata.GetOrAddString(MetadataConstants.WindowsFoundationAssembly),
             _metadata.GetOrAddString("EventRegistrationToken"));
 
         // 5. <Module> type (required first row)
