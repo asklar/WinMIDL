@@ -551,4 +551,24 @@ public class AttributeValidationTests
 
         Assert.DoesNotContain(compilation.Diagnostics, d => d.Code == "MIDL1075");
     }
+
+    [Fact]
+    public void ZeroFieldAttribute_WithArguments_DoesNotCrash()
+    {
+        // A declared attribute with no fields, used with arguments, must not throw
+        // (ValidateCustomAttributeInstances indexed attrType.Fields by the argument
+        // count and crashed with IndexOutOfRange when Fields was empty).
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                attribute Marker { };
+
+                [Marker(5), default_interface]
+                runtimeclass C { }
+            }
+            """);
+
+        // Whatever diagnostics are produced, compilation must complete without an exception.
+        Assert.NotNull(compilation);
+    }
 }

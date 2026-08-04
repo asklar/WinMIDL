@@ -629,7 +629,7 @@ public partial class AttributeValidator
             else
             {
                 // Validate argument types and ranges (only when count matches)
-                for (int i = 0; i < attr.Arguments.Count; i++)
+                for (int i = 0; i < attr.Arguments.Count && i < attrType.Fields.Count; i++)
                 {
                     var arg = attr.Arguments[i];
                     var field = attrType.Fields[i];
