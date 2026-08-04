@@ -156,10 +156,14 @@ public class WinMdEmitter
         SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
 
-        // EventRegistrationToken — midl.exe emits this CLR-projected, in mscorlib.
+        // EventRegistrationToken — raw WinRT type Windows.Foundation.EventRegistrationToken
+        // (matches midlrt.exe and windows.winmd; cppwinrt resolves it from Windows.Foundation
+        // metadata, not mscorlib). Readers apply the CLR projection to
+        // System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken on load, so it
+        // must NOT be stored projected.
         EventRegistrationTokenRef = _metadata.AddTypeReference(
-            MscorlibRef,
-            _metadata.GetOrAddString("System.Runtime.InteropServices.WindowsRuntime"),
+            WfmRef,
+            _metadata.GetOrAddString(MetadataConstants.WindowsFoundationAssembly),
             _metadata.GetOrAddString("EventRegistrationToken"));
 
         // 5. <Module> type (required first row)
@@ -552,10 +556,14 @@ public class WinMdEmitter
         SystemAttributeRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemAttribute);
         SystemGuidRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, "Guid");
 
-        // EventRegistrationToken — midl.exe emits this CLR-projected, in mscorlib.
+        // EventRegistrationToken — raw WinRT type Windows.Foundation.EventRegistrationToken
+        // (matches midlrt.exe and windows.winmd; cppwinrt resolves it from Windows.Foundation
+        // metadata, not mscorlib). Readers apply the CLR projection to
+        // System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken on load, so it
+        // must NOT be stored projected.
         EventRegistrationTokenRef = _metadata.AddTypeReference(
-            MscorlibRef,
-            _metadata.GetOrAddString("System.Runtime.InteropServices.WindowsRuntime"),
+            WfmRef,
+            _metadata.GetOrAddString(MetadataConstants.WindowsFoundationAssembly),
             _metadata.GetOrAddString("EventRegistrationToken"));
 
         // 5. <Module> type (required first row)

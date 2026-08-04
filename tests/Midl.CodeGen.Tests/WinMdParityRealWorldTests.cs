@@ -415,10 +415,10 @@ public class WinMdParityRealWorldTests : IDisposable
     // ────────── CLR projection of external TypeRefs ──────────
 
     [Fact]
-    public void EventRegistrationToken_IsProjectedToMscorlibSystemRuntimeInteropServices()
+    public void EventRegistrationToken_IsStoredAsWindowsFoundationRawType()
     {
         // Build a class that uses an event — this causes EventRegistrationToken to
-        // appear in add_/remove_ accessor signatures, which must be CLR-projected.
+        // appear in add_/remove_ accessor signatures.
         var bytes = CompileAndEmit("""
             namespace N
             {
@@ -429,18 +429,21 @@ public class WinMdParityRealWorldTests : IDisposable
                 };
             }
             """);
-        var reader = Read(bytes, out var pe); using var _ = pe;
+        // Read WITHOUT WinRT projection — cppwinrt/mdmerge read the raw metadata, and the
+        // raw type must be Windows.Foundation.EventRegistrationToken (matching midlrt.exe and
+        // windows.winmd), not the mscorlib-projected name. Reading with projection would mask
+        // the difference because it rewrites Windows.Foundation.EventRegistrationToken to
+        // System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken on load.
+        using var pe = new PEReader(ImmutableArray.Create(bytes));
+        var reader = pe.GetMetadataReader(MetadataReaderOptions.None);
 
-        // Scan TypeReferences for EventRegistrationToken — its namespace should
-        // be System.Runtime.InteropServices.WindowsRuntime, not Windows.Foundation.
         bool found = false;
         foreach (var h in reader.TypeReferences)
         {
             var tr = reader.GetTypeReference(h);
             if (reader.GetString(tr.Name) != "EventRegistrationToken") continue;
             found = true;
-            Assert.Equal("System.Runtime.InteropServices.WindowsRuntime",
-                reader.GetString(tr.Namespace));
+            Assert.Equal("Windows.Foundation", reader.GetString(tr.Namespace));
         }
         Assert.True(found, "EventRegistrationToken TypeRef should exist in metadata");
     }
