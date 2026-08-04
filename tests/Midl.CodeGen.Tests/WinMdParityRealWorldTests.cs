@@ -448,6 +448,52 @@ public class WinMdParityRealWorldTests : IDisposable
         Assert.True(found, "EventRegistrationToken TypeRef should exist in metadata");
     }
 
+    [Theory]
+    [InlineData("Windows.Foundation.DateTime", "Windows.Foundation.DateTime")]
+    [InlineData("Windows.Foundation.TimeSpan", "Windows.Foundation.TimeSpan")]
+    [InlineData("Windows.Foundation.Collections.IVector<Int32>", "Windows.Foundation.Collections.IVector`1")]
+    [InlineData("Windows.Foundation.Collections.IVectorView<Int32>", "Windows.Foundation.Collections.IVectorView`1")]
+    [InlineData("Windows.Foundation.Collections.IMap<String, Int32>", "Windows.Foundation.Collections.IMap`2")]
+    [InlineData("Windows.Foundation.Collections.IMapView<String, Int32>", "Windows.Foundation.Collections.IMapView`2")]
+    public void ProjectedTypes_AreStoredRawNotClrProjected(string idlType, string expectedRawFullName)
+    {
+        // WinRT types that have a CLR projection (DateTime->System.DateTimeOffset,
+        // IVector->IList, IMap->IDictionary, etc.) must be stored in the winmd with their
+        // RAW WinRT name, matching midlrt.exe and windows.winmd. cppwinrt and mdmerge read
+        // winmd raw and require the WinRT names; the CLR projection is a read-time transform
+        // applied by .NET's MetadataReader, never stored. Reading with projection ON would
+        // mask a regression because it rewrites the raw name to the projected one on load.
+        var bytes = CompileAndEmit($$"""
+            namespace N
+            {
+                runtimeclass C
+                {
+                    {{idlType}} Get();
+                };
+            }
+            """);
+        using var pe = new PEReader(ImmutableArray.Create(bytes));
+        var reader = pe.GetMetadataReader(MetadataReaderOptions.None);
+
+        var rawNames = reader.TypeReferences
+            .Select(reader.GetTypeReference)
+            .Select(tr =>
+            {
+                var ns = reader.GetString(tr.Namespace);
+                var nm = reader.GetString(tr.Name);
+                return string.IsNullOrEmpty(ns) ? nm : ns + "." + nm;
+            })
+            .ToList();
+
+        Assert.Contains(expectedRawFullName, rawNames);
+        // The CLR-projected forms must NOT appear in the raw metadata.
+        Assert.DoesNotContain("System.DateTimeOffset", rawNames);
+        Assert.DoesNotContain("System.Collections.Generic.IList`1", rawNames);
+        Assert.DoesNotContain("System.Collections.Generic.IReadOnlyList`1", rawNames);
+        Assert.DoesNotContain("System.Collections.Generic.IDictionary`2", rawNames);
+        Assert.DoesNotContain("System.Collections.Generic.IReadOnlyDictionary`2", rawNames);
+    }
+
     // ────────── Helpers ──────────
 
     private sealed class FqSignatureProvider : ISignatureTypeProvider<string, object?>
