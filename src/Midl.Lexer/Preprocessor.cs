@@ -455,10 +455,13 @@ public class Preprocessor
             InactiveRegions.Add((inactiveRegionStart, rawLineOffsets[rawLines.Count]));
         }
 
-        // Remove trailing newline added by final AppendLine
-        if (output.Length >= Environment.NewLine.Length)
+        // Remove the newline the final AppendLine added — but only the newline. The output
+        // can end with a lone "\n" (HandleInclude normalises included content that way), so
+        // subtracting Environment.NewLine.Length blindly would eat a real character: the
+        // closing brace of a file ending in an #include, leaving it unterminated.
+        if (output.Length > 0 && output[^1] == '\n')
         {
-            output.Length -= Environment.NewLine.Length;
+            output.Length -= (output.Length >= 2 && output[^2] == '\r') ? 2 : 1;
         }
 
         // Flush final segment
