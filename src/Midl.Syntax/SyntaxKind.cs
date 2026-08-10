@@ -63,6 +63,13 @@ public enum SyntaxKind : ushort
 
     // Tokens - Identifiers and keywords
     IdentifierToken,
+    /// <summary>
+    /// A classic MIDL2/C calling convention (<c>__stdcall</c>, <c>STDMETHODCALLTYPE</c>, ...)
+    /// appearing between a method's return type and its name. Kept as its own kind so the
+    /// binder can skip it when locating the method name, and strict mode can report it
+    /// structurally rather than by matching text in two places.
+    /// </summary>
+    CallingConventionToken,
     EndOfFileToken,
     ErrorToken,
 
