@@ -21,6 +21,7 @@ public class VersionPropagator
 
     public void Propagate(Compilation compilation)
     {
+        var unitSourceMaps = compilation.UnitSourceMaps;
         // Build a lookup of all ApiContract symbols (by simple name and full name)
         var contracts = new Dictionary<string, ApiContractSymbol>(StringComparer.OrdinalIgnoreCase);
         foreach (var type in compilation.GetAllTypes())
@@ -54,7 +55,7 @@ public class VersionPropagator
                     ValidateContractReference(iface.ContractName, iface.Attributes, contracts);
                     break;
             }
-            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile);
+            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile, unitSourceMaps);
         }
     }
 

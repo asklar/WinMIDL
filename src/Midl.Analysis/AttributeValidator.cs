@@ -15,6 +15,13 @@ public partial class AttributeValidator
 {
     private readonly List<Diagnostic> _diagnostics;
     private readonly Compilation _compilation;
+
+    /// <summary>
+    /// Source maps for every preprocessed file, so a diagnostic about a type declared in
+    /// an imported file resolves to that file's original text rather than to an offset in
+    /// its expanded form.
+    /// </summary>
+    private CompilationSourceMap? UnitSourceMaps => _compilation.UnitSourceMaps;
     private HashSet<string> _sdkResolvedAttrNames = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly HashSet<string> ValidThreadingModels =
@@ -250,7 +257,7 @@ public partial class AttributeValidator
                 case AttributeTypeSymbol:
                     break;
             }
-            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile);
+            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile, UnitSourceMaps);
         }
     }
 

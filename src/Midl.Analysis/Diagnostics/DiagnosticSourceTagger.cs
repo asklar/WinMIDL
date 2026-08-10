@@ -21,28 +21,36 @@ internal static class DiagnosticSourceTagger
 {
     /// <summary>
     /// Attributes diagnostics added to <paramref name="diagnostics"/> from
-    /// <paramref name="startIndex"/> onward to <paramref name="sourceFile"/>.
+    /// <paramref name="startIndex"/> onward to the file their position really refers to.
     ///
-    /// Setting <c>OriginalPosition</c> marks the position as already resolved so the
-    /// preprocessor SourceMap pass leaves it alone: that map only models <c>#include</c>,
-    /// and would otherwise reinterpret the offset as one into the main document.
+    /// <paramref name="unitPath"/> names the preprocessed unit the positions were produced
+    /// against. When <paramref name="sourceMaps"/> knows that unit, the position is
+    /// translated to the original file and offset — which may be a file the unit merely
+    /// <c>#include</c>d. Otherwise the unit is its own original.
     ///
-    /// A null <paramref name="sourceFile"/> means the main document, which the source-map
-    /// pass already handles. Diagnostics that already carry a SourceFile — for instance
-    /// from a nested import — keep it.
+    /// Setting <c>OriginalPosition</c> records the resolved offset and marks the position
+    /// as final, so the main document's source-map pass leaves it alone: that pass assumes
+    /// offsets belong to the main document and would reinterpret these.
+    ///
+    /// A null <paramref name="unitPath"/> means the main document, which the main
+    /// source-map pass already handles. Diagnostics that already carry a SourceFile — for
+    /// instance from a nested import — keep it.
     /// </summary>
-    public static void Tag(List<Diagnostic> diagnostics, int startIndex, string? sourceFile)
+    public static void Tag(List<Diagnostic> diagnostics, int startIndex, string? unitPath,
+        CompilationSourceMap? sourceMaps = null)
     {
-        if (sourceFile == null) return;
+        if (unitPath == null) return;
 
         for (int i = startIndex; i < diagnostics.Count; i++)
         {
             var d = diagnostics[i];
             if (d.SourceFile != null) continue;
+
+            var (file, offset) = sourceMaps?.Resolve(unitPath, d.Position) ?? (unitPath, d.Position);
             diagnostics[i] = d with
             {
-                SourceFile = sourceFile,
-                OriginalPosition = d.OriginalPosition ?? d.Position,
+                SourceFile = file,
+                OriginalPosition = offset,
             };
         }
     }

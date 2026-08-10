@@ -25,6 +25,12 @@ public partial class Binder
     private readonly bool _emitQualityHints;
     private bool _bindingImportedFile;
     private string? _currentImportedFilePath;
+    /// <summary>
+    /// Source maps for every preprocessed file in this compilation. A position produced
+    /// while binding an imported tree is an offset into that file's expanded text; this is
+    /// what turns it back into an original file and offset.
+    /// </summary>
+    private CompilationSourceMap? _unitSourceMaps;
     private TokenPositionMap _posMap = null!;
     private GreenNode _root = null!;
     private Dictionary<GreenNode, int>? _nodeOffsetMap;
@@ -51,18 +57,20 @@ public partial class Binder
     /// Diagnostics already carrying a SourceFile (e.g. from a nested import) keep it.
     /// </summary>
     private void TagDiagnosticsWithSourceFile(int startIndex, string filePath)
-        => DiagnosticSourceTagger.Tag(_diagnostics, startIndex, filePath);
+        => DiagnosticSourceTagger.Tag(_diagnostics, startIndex, filePath, _unitSourceMaps);
 
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
         IReadOnlyList<ISymbol>? externalTypes = null,
-        IReadOnlyList<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath)>? importedTrees = null,
+        IReadOnlyList<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath, SourceMap? Map)>? importedTrees = null,
         IReadOnlyList<LazyWinMdProvider>? lazyProviders = null,
-        IReadOnlyList<string>? refDirectories = null)
+        IReadOnlyList<string>? refDirectories = null,
+        CompilationSourceMap? unitSourceMaps = null)
     {
         MidlTrace.Binder("Binding compilation unit");
         _symbolTable = new SymbolTable(_globalNamespace);
         _posMap = new TokenPositionMap(tokens);
         _root = compilationUnit;
+        _unitSourceMaps = unitSourceMaps;
 
         // Register built-in WinRT types before any user code
         BuiltInTypes.Register(_symbolTable, _mode);
@@ -86,7 +94,7 @@ public partial class Binder
         if (importedTrees is { Count: > 0 })
         {
             _bindingImportedFile = true;
-            foreach (var (importedTree, importedTokens, importedFilePath) in importedTrees)
+            foreach (var (importedTree, importedTokens, importedFilePath, _) in importedTrees)
             {
                 var savedPosMap = _posMap;
                 var savedRoot = _root;
@@ -125,7 +133,7 @@ public partial class Binder
 
         // Pass 2: resolve type references
         var resolver = new TypeResolver(_symbolTable);
-        resolver.ResolveAll(_unresolvedRefs, _diagnostics);
+        resolver.ResolveAll(_unresolvedRefs, _diagnostics, _unitSourceMaps);
 
         // Pass 2.4: resolve required-interface TypeRefs on external interfaces so
         // that flattening external classes (Pass 3/emit) can traverse the transitive

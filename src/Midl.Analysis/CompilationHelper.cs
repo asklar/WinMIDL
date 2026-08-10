@@ -121,14 +121,7 @@ public static class CompilationHelper
         source = preprocessor.Process(source);
 
         // Build source map from preprocessor segment data
-        SourceMap? sourceMap = null;
-        if (preprocessor.SourceMapSegments.Count > 0)
-        {
-            sourceMap = new SourceMap();
-            foreach (var seg in preprocessor.SourceMapSegments)
-                sourceMap.AddSegment(seg.ExpandedStart, seg.ExpandedEnd, seg.FilePath, seg.OriginalStart);
-            sourceMap.SortSegments();
-        }
+        SourceMap? sourceMap = BuildSourceMap(preprocessor);
 
         // Collect preprocessor-level diagnostics
         var syntaxDiagnostics = new List<Midl.Analysis.Diagnostics.Diagnostic>(refDiagnostics);
@@ -178,7 +171,7 @@ public static class CompilationHelper
         var importResolver = new ImportResolver(includePaths, currentFilePath);
         if (currentFilePath != null)
             importResolver.MarkImported(Path.GetFullPath(currentFilePath));
-        var importedTrees = new List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath)>();
+        var importedTrees = new List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath, SourceMap? Map)>();
         CollectImportedTrees(tree, importResolver, importedTrees, syntaxDiagnostics,
             includePaths: includePaths,
             containingFilePath: currentFilePath
@@ -189,8 +182,18 @@ public static class CompilationHelper
 
         if (profile != null) { profile.ImportResolve = sw!.Elapsed; sw.Restart(); }
 
+        // One map spanning every file this compilation preprocessed. Each imported file has
+        // its own coordinate space, so a position is only resolvable if the unit it came
+        // from is known alongside that unit's map.
+        var unitSourceMaps = new CompilationSourceMap();
+        unitSourceMaps.Add(currentFilePath, sourceMap);
+        foreach (var imported in importedTrees)
+            unitSourceMaps.Add(imported.FilePath, imported.Map);
+
         var binder = new Binder(mode, emitQualityHints, arraysEnabled);
-        var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders, refDirectories);
+        var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders,
+            refDirectories, unitSourceMaps);
+        compilation.UnitSourceMaps = unitSourceMaps;
 
         if (profile != null) { profile.Bind = sw!.Elapsed; sw.Restart(); }
 
@@ -441,13 +444,28 @@ public static class CompilationHelper
     }
 
     /// <summary>
+    /// Builds a <see cref="SourceMap"/> from a preprocessor's segments, or null when the
+    /// file needed no translation (no directives, no macro expansion, no conditionals).
+    /// </summary>
+    private static SourceMap? BuildSourceMap(Midl.Lexer.Preprocessor preprocessor)
+    {
+        if (preprocessor.SourceMapSegments.Count == 0) return null;
+
+        var map = new SourceMap();
+        foreach (var seg in preprocessor.SourceMapSegments)
+            map.AddSegment(seg.ExpandedStart, seg.ExpandedEnd, seg.FilePath, seg.OriginalStart);
+        map.SortSegments();
+        return map;
+    }
+
+    /// <summary>
     /// Walks the syntax tree to find ImportDirective nodes, resolves them,
     /// parses the imported files, and collects the resulting trees.
     /// </summary>
     private static void CollectImportedTrees(
         GreenNode tree,
         ImportResolver importResolver,
-        List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath)> importedTrees,
+        List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath, SourceMap? Map)> importedTrees,
         List<Midl.Analysis.Diagnostics.Diagnostic> diagnostics,
         IReadOnlyList<string>? includePaths = null,
         string? containingFilePath = null
@@ -483,8 +501,11 @@ public static class CompilationHelper
             if (importResolver.IsAlreadyImported(resolved)) continue;
             importResolver.MarkImported(resolved);
 
-            // Preprocess imported file — try external cl.exe first, fall back to built-in
+            // Preprocess imported file — try external cl.exe first, fall back to built-in.
+            // Keep the segments the preprocessor produces: they are what makes a position
+            // in this file's expanded text resolvable back to an original file and offset.
             string importedSource;
+            SourceMap? importedMap = null;
 #if WITH_COMPAT
             if (cppCmd != null)
             {
@@ -495,6 +516,7 @@ public static class CompilationHelper
                 {
                     var pp = new Midl.Lexer.Preprocessor(null, includePaths, resolved);
                     importedSource = pp.Process(importedSource);
+                    importedMap = BuildSourceMap(pp);
                 }
             }
             else
@@ -503,6 +525,7 @@ public static class CompilationHelper
                 importedSource = File.ReadAllText(resolved);
                 var pp = new Midl.Lexer.Preprocessor(null, includePaths, resolved);
                 importedSource = pp.Process(importedSource);
+                importedMap = BuildSourceMap(pp);
             }
 
             var importedLexer = new Midl.Lexer.Lexer(importedSource);
@@ -510,7 +533,7 @@ public static class CompilationHelper
             var importedParser = new Midl.Parser.Parser(importedTokens);
             var importedTree = importedParser.Parse();
 
-            importedTrees.Add((importedTree, importedTokens, resolved));
+            importedTrees.Add((importedTree, importedTokens, resolved, importedMap));
 
             // Recursively collect transitive imports
             var childResolver = importResolver.CreateChildResolver(resolved);

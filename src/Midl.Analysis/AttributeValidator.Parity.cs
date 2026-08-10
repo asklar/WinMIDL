@@ -69,7 +69,7 @@ public partial class AttributeValidator
                     ValidateDeprecatedArgCount(st.Attributes);
                     break;
             }
-            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile);
+            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile, UnitSourceMaps);
         }
     }
 

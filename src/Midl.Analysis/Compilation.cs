@@ -16,6 +16,13 @@ public class Compilation
     public SymbolTable? SymbolTable { get; internal set; }
     public SourceMap? SourceMap { get; internal set; }
 
+    /// <summary>
+    /// Source maps for every file this compilation preprocessed, keyed by unit. Lets a
+    /// position produced while binding an imported tree be resolved back to the original
+    /// file and offset it came from.
+    /// </summary>
+    public CompilationSourceMap? UnitSourceMaps { get; internal set; }
+
     /// <summary>Inactive preprocessor regions in original source coordinates (for graying out).</summary>
     public IReadOnlyList<(int Start, int End)> InactiveRegions { get; internal set; } = [];
 
@@ -45,6 +52,8 @@ public class Compilation
         merged.AddRange(Diagnostics);
         var result = new Compilation(GlobalNamespace, merged, _lazyProviders);
         result.SourceMap = SourceMap;
+        result.UnitSourceMaps = UnitSourceMaps;
+        result.SymbolTable = SymbolTable;
 #if FEATURE_STAGING
         foreach (var kvp in FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
 #endif
