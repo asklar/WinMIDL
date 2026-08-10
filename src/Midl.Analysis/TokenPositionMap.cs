@@ -70,15 +70,30 @@ public sealed class TokenPositionMap
         return -1;
     }
 
-    /// <summary>Get absolute position of first token matching text.</summary>
-    public int GetPositionOf(string text, int startFromIndex = 0)
+    /// <summary>
+    /// Absolute position of the <b>first</b> token matching <paramref name="text"/>.
+    ///
+    /// <para><b>Prefer <c>Binder.GetNodePosition(node)</c>.</b> This is a text search over the
+    /// whole token stream, so for any text that can appear more than once — keywords such as
+    /// <c>cpp_quote</c>, <c>typedef</c>, <c>protected</c>, <c>void</c>, or a name reused across
+    /// declarations — every caller gets the position of the first occurrence. That collapses
+    /// N diagnostics onto one location and leaves the other N-1 sites unmarked.</para>
+    ///
+    /// <para>Only use this when no syntax node is available for the construct being reported,
+    /// and the text is known to be unique in the file.</para>
+    /// </summary>
+    public int GetPositionOfFirst(string text, int startFromIndex = 0)
     {
         int idx = FindToken(text, startFromIndex);
         return idx >= 0 ? EnsureBuilt()[idx] : 0;
     }
 
-    /// <summary>Get absolute position of first token of given kind.</summary>
-    public int GetPositionOfKind(SyntaxKind kind, int startFromIndex = 0)
+    /// <summary>
+    /// Absolute position of the <b>first</b> token of the given kind.
+    /// Carries the same first-occurrence caveat as <see cref="GetPositionOfFirst(string, int)"/>;
+    /// prefer <c>Binder.GetNodePosition(node)</c> when a node is available.
+    /// </summary>
+    public int GetPositionOfFirstKind(SyntaxKind kind, int startFromIndex = 0)
     {
         int idx = FindTokenByKind(kind, startFromIndex);
         return idx >= 0 ? EnsureBuilt()[idx] : 0;

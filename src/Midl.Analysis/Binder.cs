@@ -206,7 +206,7 @@ public partial class Binder
 
                 if (requiresNamespace)
                 {
-                    int pos = _posMap.GetPositionOf(typeName);
+                    int pos = _posMap.GetPositionOfFirst(typeName);
                     _diagnostics.Add(DiagnosticDescriptors.NamespaceRequired(typeName, pos));
                 }
             }
@@ -339,7 +339,7 @@ public partial class Binder
                 // Validate matching modifiers
                 if (existing.IsUnsealed != isUnsealed)
                 {
-                    int pos = nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name);
+                    int pos = nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOfFirst(name);
                     _diagnostics.Add(new Diagnostics.Diagnostic(
                         Diagnostics.DiagnosticSeverity.Error, "MIDL1031",
                         $"Partial runtimeclass '{name}' has conflicting modifiers (sealed vs unsealed)",
@@ -366,7 +366,7 @@ public partial class Binder
                         {
                             if (existing.BaseClass != null && existing.BaseClass.Name != typeRef.Name)
                             {
-                                int pos = nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name);
+                                int pos = nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOfFirst(name);
                                 _diagnostics.Add(new Diagnostics.Diagnostic(
                                     Diagnostics.DiagnosticSeverity.Error, "MIDL1032",
                                     $"Partial runtimeclass '{name}' has conflicting base class ('{existing.BaseClass.Name}' vs '{typeRef.Name}')",
@@ -472,7 +472,7 @@ public partial class Binder
             }
         }
 
-        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: isForwardDecl)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOfFirst(name), isForwardDeclaration: isForwardDecl)) return;
 
         var symbol = new RuntimeClassSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
@@ -571,7 +571,7 @@ public partial class Binder
                 {
                     var fieldName = FindNameIdentifier(child);
                     if (!string.IsNullOrEmpty(fieldName))
-                        _diagnostics.Add(DiagnosticDescriptors.FieldInRuntimeClass(fieldName, _posMap.GetPositionOf(fieldName)));
+                        _diagnostics.Add(DiagnosticDescriptors.FieldInRuntimeClass(fieldName, _posMap.GetPositionOfFirst(fieldName)));
                     break;
                 }
             }
@@ -656,7 +656,7 @@ public partial class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOfFirst(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new InterfaceSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
@@ -734,7 +734,7 @@ public partial class Binder
                     // MIDL1039: Constructors are not allowed in interfaces
                     var ctorName = FindNameIdentifier(child);
                     if (!string.IsNullOrEmpty(ctorName))
-                        _diagnostics.Add(DiagnosticDescriptors.ConstructorInInterface(ctorName, _posMap.GetPositionOf(ctorName)));
+                        _diagnostics.Add(DiagnosticDescriptors.ConstructorInInterface(ctorName, _posMap.GetPositionOfFirst(ctorName)));
                     break;
                 }
                 case SyntaxKind.MethodDeclaration:
@@ -806,7 +806,7 @@ public partial class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOfFirst(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new DelegateSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
@@ -854,7 +854,7 @@ public partial class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOfFirst(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new StructSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
@@ -890,13 +890,13 @@ public partial class Binder
             {
                 var propName = FindNameIdentifier(child);
                 if (!string.IsNullOrEmpty(propName))
-                    _diagnostics.Add(DiagnosticDescriptors.PropertyInStruct(propName, _posMap.GetPositionOf(propName)));
+                    _diagnostics.Add(DiagnosticDescriptors.PropertyInStruct(propName, _posMap.GetPositionOfFirst(propName)));
             }
             else if (child?.Kind == SyntaxKind.EventDeclaration)
             {
                 var evtName = FindNameIdentifier(child);
                 if (!string.IsNullOrEmpty(evtName))
-                    _diagnostics.Add(DiagnosticDescriptors.EventInStruct(evtName, _posMap.GetPositionOf(evtName)));
+                    _diagnostics.Add(DiagnosticDescriptors.EventInStruct(evtName, _posMap.GetPositionOfFirst(evtName)));
             }
         }
 
@@ -952,7 +952,7 @@ public partial class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOfFirst(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new AttributeTypeSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
@@ -1019,7 +1019,7 @@ public partial class Binder
         var name = nameToken?.Text ?? "";
         if (string.IsNullOrEmpty(name)) return;
 
-        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOfFirst(name), isForwardDeclaration: FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0)) return;
 
         var symbol = new EnumSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
@@ -1064,7 +1064,7 @@ public partial class Binder
                     // MIDL1046: Duplicate enum member
                     if (!enumMemberNames.Add(memberName))
                     {
-                        _diagnostics.Add(DiagnosticDescriptors.DuplicateEnumMember(memberName, _posMap.GetPositionOf(memberName)));
+                        _diagnostics.Add(DiagnosticDescriptors.DuplicateEnumMember(memberName, _posMap.GetPositionOfFirst(memberName)));
                     }
 
                     var member = new EnumMemberSymbol(memberName, symbol);
@@ -1107,7 +1107,7 @@ public partial class Binder
             if (firstToken?.Kind is SyntaxKind.FloatLiteralToken or SyntaxKind.StringLiteralToken)
             {
                 _diagnostics.Add(DiagnosticDescriptors.EnumValueNotInteger(
-                    member.Name, parentEnum.Name, firstToken.Text, _posMap.GetPositionOf(firstToken.Text)));
+                    member.Name, parentEnum.Name, firstToken.Text, _posMap.GetPositionOfFirst(firstToken.Text)));
                 break;
             }
 
@@ -1268,7 +1268,7 @@ public partial class Binder
         if (string.IsNullOrEmpty(name)) return;
 
         bool isForwardDecl = FindSlotIndex(node, SyntaxKind.OpenBraceToken) < 0;
-        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOf(name), isForwardDecl)) return;
+        if (!TryDefineType(ns, name, nameToken != null ? GetNodePosition(nameToken) : _posMap.GetPositionOfFirst(name), isForwardDecl)) return;
 
         var symbol = new ApiContractSymbol(name, ns);
         symbol.IsExternal = _bindingImportedFile || symbol.IsExternal;
@@ -1466,7 +1466,7 @@ public partial class Binder
                 }
                 else
                 {
-                    int pos = _posMap.GetPositionOf(stageToken.Text);
+                    int pos = _posMap.GetPositionOfFirst(stageToken.Text);
                     _diagnostics.Add(DiagnosticDescriptors.InvalidFeatureStage(
                         name, stageToken.Text, pos));
                 }
@@ -1619,20 +1619,20 @@ public partial class Binder
             // Check for protected get/set: ProtectedKeyword immediately before GetKeyword/SetKeyword
             for (int a = 0; a < accessors.SlotCount - 1; a++)
             {
-                if (accessors.GetSlot(a) is SyntaxToken { Kind: SyntaxKind.ProtectedKeyword })
+                if (accessors.GetSlot(a) is SyntaxToken { Kind: SyntaxKind.ProtectedKeyword } protectedToken)
                 {
                     var next = accessors.GetSlot(a + 1);
                     if (next is SyntaxToken { Kind: SyntaxKind.GetKeyword })
                     {
                         symbol.IsGetterProtected = true;
                         _diagnostics.Add(DiagnosticDescriptors.ProtectedAccessorNotValid(
-                            symbol.Name, "get", _posMap.GetPositionOf("protected")));
+                            symbol.Name, "get", GetNodePosition(protectedToken)));
                     }
                     else if (next is SyntaxToken { Kind: SyntaxKind.SetKeyword })
                     {
                         symbol.IsSetterProtected = true;
                         _diagnostics.Add(DiagnosticDescriptors.ProtectedAccessorNotValid(
-                            symbol.Name, "set", _posMap.GetPositionOf("protected")));
+                            symbol.Name, "set", GetNodePosition(protectedToken)));
                     }
                 }
             }
@@ -1777,7 +1777,8 @@ public partial class Binder
         // In strict mode: void as param type is always an error
         if (param.Type.Name is "void" or "Void" && _mode == CompilationMode.Strict)
         {
-            _diagnostics.Add(DiagnosticDescriptors.VoidParameterType(_posMap.GetPositionOf("void")));
+            _diagnostics.Add(DiagnosticDescriptors.VoidParameterType(
+                typeNode != null ? GetNodePosition(typeNode) : _posMap.GetPositionOfFirst("void")));
         }
 
         // MIDL1013: Reserved parameter names
@@ -1785,11 +1786,11 @@ public partial class Binder
         bool isConstructor = containingSymbol is ConstructorSymbol;
         if (!isConstructor && name is "result" or "operation")
         {
-            _diagnostics.Add(DiagnosticDescriptors.ReservedMethodParameterName(name, _posMap.GetPositionOf(name)));
+            _diagnostics.Add(DiagnosticDescriptors.ReservedMethodParameterName(name, _posMap.GetPositionOfFirst(name)));
         }
         else if (isConstructor && name is "value")
         {
-            _diagnostics.Add(DiagnosticDescriptors.ReservedConstructorParameterName(name, _posMap.GetPositionOf(name)));
+            _diagnostics.Add(DiagnosticDescriptors.ReservedConstructorParameterName(name, _posMap.GetPositionOfFirst(name)));
         }
 
         return param;
@@ -1927,12 +1928,12 @@ public partial class Binder
         }
         // Fallback to text-based lookup
         var token = FindFirstToken(node);
-        return token != null ? _posMap.GetPositionOf(token.Text) : 0;
+        return token != null ? _posMap.GetPositionOfFirst(token.Text) : 0;
     }
 
     /// <summary>Get the source position for a symbol, using its stored SourcePosition if available.</summary>
     private int GetSymbolPosition(ISymbol symbol) =>
-        symbol.SourcePosition >= 0 ? symbol.SourcePosition : _posMap.GetPositionOf(symbol.Name);
+        symbol.SourcePosition >= 0 ? symbol.SourcePosition : _posMap.GetPositionOfFirst(symbol.Name);
 
     /// <summary>Precompute offsets for all nodes in the tree in a single O(n) pass.</summary>
     private void BuildNodeOffsetMap(GreenNode node, int currentOffset)
@@ -2098,15 +2099,41 @@ public partial class Binder
     }
 #endif
 
+    /// <summary>
+    /// Absolute position of <paramref name="keywordKind"/> within <paramref name="node"/>.
+    ///
+    /// Uses the node offset map so each occurrence reports at its own location. A text
+    /// lookup would return the first token with that text anywhere in the file, which
+    /// collapsed every <c>cpp_quote</c>/<c>typedef</c> diagnostic onto the first one.
+    /// </summary>
     private int FindKeywordPosition(GreenNode node, SyntaxKind keywordKind)
     {
+        if (_nodeOffsetMap == null && _root != null)
+        {
+            _nodeOffsetMap = new Dictionary<GreenNode, int>(ReferenceEqualityComparer.Instance);
+            BuildNodeOffsetMap(_root, 0);
+        }
+
+        if (_nodeOffsetMap != null && _nodeOffsetMap.TryGetValue(node, out var nodeOffset))
+        {
+            int offset = nodeOffset;
+            for (int i = 0; i < node.SlotCount; i++)
+            {
+                var slot = node.GetSlot(i);
+                if (slot == null) continue;
+                if (slot is SyntaxToken t && t.Kind == keywordKind)
+                    return offset + SumTriviaWidth(t.LeadingTrivia);
+                offset += slot.FullWidth;
+            }
+        }
+
+        // Node isn't in the map (e.g. synthesized): fall back to a token-map lookup.
         for (int i = 0; i < node.SlotCount; i++)
         {
-            var slot = node.GetSlot(i);
-            if (slot is SyntaxToken t && t.Kind == keywordKind)
-                return _posMap.GetPositionOf(t.Text);
+            if (node.GetSlot(i) is SyntaxToken token && token.Kind == keywordKind)
+                return _posMap.GetPositionOfFirst(token.Text);
         }
-        return _posMap.GetPositionOfKind(keywordKind);
+        return _posMap.GetPositionOfFirstKind(keywordKind);
     }
 
     private void CheckStrictModeTokens(GreenNode node)
@@ -2304,7 +2331,7 @@ public partial class Binder
                 var name = nameNode is SyntaxToken t ? t.Text : ExtractDottedName(nameNode);
                 if (name != null && ClassicOnlyAttributes.Contains(name))
                 {
-                    _diagnostics.Add(DiagnosticDescriptors.ClassicAttribute(name, _posMap.GetPositionOf(name)));
+                    _diagnostics.Add(DiagnosticDescriptors.ClassicAttribute(name, _posMap.GetPositionOfFirst(name)));
                 }
             }
         }
@@ -2445,7 +2472,7 @@ public partial class Binder
     }
 
     private bool TryDefineType(NamespaceSymbol ns, string name, bool isForwardDeclaration = false) =>
-        TryDefineType(ns, name, _posMap.GetPositionOf(name), isForwardDeclaration);
+        TryDefineType(ns, name, _posMap.GetPositionOfFirst(name), isForwardDeclaration);
 
     private bool TryDefineType(NamespaceSymbol ns, string name, int namePosition, bool isForwardDeclaration = false)
     {
@@ -2617,7 +2644,7 @@ public partial class Binder
                     if (guidText != null && Guid.TryParse(guidText, out uuid))
                         return true;
                     if (guidText != null)
-                        _diagnostics.Add(DiagnosticDescriptors.UuidWrongFormat(guidText, _posMap.GetPositionOf(guidText)));
+                        _diagnostics.Add(DiagnosticDescriptors.UuidWrongFormat(guidText, _posMap.GetPositionOfFirst(guidText)));
                 }
             }
         }
@@ -2917,7 +2944,7 @@ public partial class Binder
             if (kind != null)
             {
                 _diagnostics.Add(DiagnosticDescriptors.MemberNameSameAsType(
-                    name, rc.Name, kind, _posMap.GetPositionOf(name)));
+                    name, rc.Name, kind, _posMap.GetPositionOfFirst(name)));
             }
         }
     }
@@ -2940,7 +2967,7 @@ public partial class Binder
             if (kind != null)
             {
                 _diagnostics.Add(DiagnosticDescriptors.MemberNameSameAsType(
-                    name, iface.Name, kind, _posMap.GetPositionOf(name)));
+                    name, iface.Name, kind, _posMap.GetPositionOfFirst(name)));
             }
         }
     }
@@ -3060,7 +3087,7 @@ public partial class Binder
             {
                 // Emit on the second method (first duplicate)
                 _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameWithoutOverload(
-                    name, _posMap.GetPositionOf(name)));
+                    name, _posMap.GetPositionOfFirst(name)));
             }
         }
     }
@@ -3208,7 +3235,7 @@ public partial class Binder
         if (refFeature != null && !string.Equals(ownerFeature, refFeature, StringComparison.OrdinalIgnoreCase))
         {
             _diagnostics.Add(DiagnosticDescriptors.FeatureGatedTypeReference(
-                ownerName, typeRef.Name, refFeature, _posMap.GetPositionOf(typeRef.Name)));
+                ownerName, typeRef.Name, refFeature, _posMap.GetPositionOfFirst(typeRef.Name)));
         }
         foreach (var arg in typeRef.TypeArguments)
             CheckFeatureTypeRef(ownerName, ownerFeature, arg);
@@ -3300,7 +3327,7 @@ public partial class Binder
         return typeRef.ResolvedSymbol is InterfaceSymbol iface
             && iface.FullName == "Windows.Foundation.IReference";
     }
-    private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; string methodName = ""; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; methodName = m.Name; } else if (member is ConstructorSymbol c) { p = c.Parameters; methodName = c.Name; } if (p != null) { foreach (var param in p) ValidateParameter(param); ValidateDuplicateParameterNames(p, methodName); } if (rt != null) { if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(rt); ValidateArrayReturnType(rt, _posMap.GetPositionOf(methodName)); } } }
+    private void ValidateMethodParameters(IReadOnlyList<ISymbol> members) { foreach (var member in members) { List<ParameterSymbol>? p = null; TypeRef? rt = null; string methodName = ""; if (member is MethodSymbol m) { p = m.Parameters; rt = m.ReturnType; methodName = m.Name; } else if (member is ConstructorSymbol c) { p = c.Parameters; methodName = c.Name; } if (p != null) { foreach (var param in p) ValidateParameter(param); ValidateDuplicateParameterNames(p, methodName); } if (rt != null) { if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(rt); ValidateArrayReturnType(rt, _posMap.GetPositionOfFirst(methodName)); } } }
     private void ValidateMethodParametersForDelegate(DelegateSymbol d) { foreach (var param in d.Parameters) ValidateParameter(param); if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(d.ReturnType); ValidateArrayReturnType(d.ReturnType, GetSymbolPosition(d)); }
     private void ValidateParameter(ParameterSymbol param) { if (param.Direction == ParameterDirection.Ref && !param.IsArray) _diagnostics.Add(DiagnosticDescriptors.NoBidirectionalParams(param.Name, GetSymbolPosition(param))); if (param.IsArray && param.Type.TypeArguments.Count > 0) { bool hasArrayArg = false; foreach (var a in param.Type.TypeArguments) { if (a.IsArray) { hasArrayArg = true; break; } } if (hasArrayArg) _diagnostics.Add(DiagnosticDescriptors.NoArrayOfArrays(param.Name, GetSymbolPosition(param))); } if (param.IsArray) { if (!_arraysEnabled) { _diagnostics.Add(DiagnosticDescriptors.ArraySyntaxNotEnabled(GetSymbolPosition(param))); } else { ValidateArrayElementType(param.Type, GetSymbolPosition(param)); } } if (_mode == CompilationMode.Strict) CheckWinRtTypeCompatibility(param.Type); }
     private void ValidateArrayElementType(TypeRef arrayType, int position)
@@ -3322,7 +3349,7 @@ public partial class Binder
     private void CheckWinRtTypeCompatibility(TypeRef typeRef) { if (typeRef == TypeRef.Void || typeRef == TypeRef.Unknown) return; if (COnlyTypes.Contains(typeRef.Name)) _diagnostics.Add(DiagnosticDescriptors.WinRtTypeNotAllowed(typeRef.Name, typeRef.Position)); }
     private void ValidateDelegateReturnType(DelegateSymbol d) { /* WinRT delegates can return any type */ }
     private void ValidateInterfaceMemberNameUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, ISymbol>(StringComparer.Ordinal); foreach (var member in iface.Members) { var name = member.Name; if (string.IsNullOrEmpty(name)) continue; if (member is MethodSymbol m && !string.IsNullOrEmpty(m.OverloadGroup)) continue; if (seen.TryGetValue(name, out var existing)) { if (existing is MethodSymbol em && !string.IsNullOrEmpty(em.OverloadGroup)) continue; _diagnostics.Add(DiagnosticDescriptors.InterfaceMemberNameCollision(name, iface.Name, GetSymbolPosition(member))); } else seen[name] = member; } }
-    private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int,string?,int?), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count, m.ContractName, m.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; int dc = 0; foreach (var m in ms) { if (m.IsDefaultOverload) dc++; } if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOf(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOf(k.Item1))); } }
+    private void ValidateDefaultOverloadExactlyOne(IReadOnlyList<ISymbol> members, string cn) { var g = new Dictionary<(string,int,string?,int?), List<MethodSymbol>>(); foreach (var member in members) if (member is MethodSymbol m && !string.IsNullOrEmpty(m.Name)) { var k = (m.Name, m.Parameters.Count, m.ContractName, m.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(m); } foreach (var (k, ms) in g) { if (ms.Count < 2) continue; int dc = 0; foreach (var m in ms) { if (m.IsDefaultOverload) dc++; } if (dc == 0) _diagnostics.Add(DiagnosticDescriptors.SameArityNeedsDefaultOverload(k.Item1, k.Item2, _posMap.GetPositionOfFirst(k.Item1))); else if (dc > 1) _diagnostics.Add(DiagnosticDescriptors.DefaultOverloadNotExactlyOne(k.Item1, k.Item2, dc, _posMap.GetPositionOfFirst(k.Item1))); } }
     private void ValidateDeprecatedInheritance(RuntimeClassSymbol rc) { if (rc.BaseClass?.ResolvedSymbol is not RuntimeClassSymbol baseRc) return; if (string.IsNullOrEmpty(baseRc.DeprecatedMessage)) return; if (!string.IsNullOrEmpty(rc.DeprecatedMessage)) return; _diagnostics.Add(DiagnosticDescriptors.DeprecatedBaseClassInheritance(rc.Name, baseRc.Name, GetSymbolPosition(rc))); }
     private void ValidateMethodNameOverrideUniqueness(InterfaceSymbol iface) { var seen = new Dictionary<string, string>(StringComparer.Ordinal); foreach (var member in iface.Members) { if (member is not MethodSymbol m || string.IsNullOrEmpty(m.MethodNameOverride)) continue; if (!seen.TryAdd(m.MethodNameOverride, m.Name)) _diagnostics.Add(DiagnosticDescriptors.DuplicateMethodNameOverride(m.MethodNameOverride, iface.Name, GetSymbolPosition(m))); } }
     private void ValidateConstructorArityPerVersion(RuntimeClassSymbol rc) { List<ConstructorSymbol>? ctors = null; foreach (var member in rc.Members) { if (member is ConstructorSymbol ctor) { ctors ??= new List<ConstructorSymbol>(); ctors.Add(ctor); } } if (ctors == null || ctors.Count < 2) return; var g = new Dictionary<(int,int?), List<ConstructorSymbol>>(); foreach (var ctor in ctors) { var k = (ctor.Parameters.Count, ctor.ContractVersion); if (!g.TryGetValue(k, out var l)) { l = []; g[k] = l; } l.Add(ctor); } foreach (var (k, l) in g) if (l.Count > 1) _diagnostics.Add(DiagnosticDescriptors.ConstructorArityConflict(rc.Name, k.Item1, GetSymbolPosition(rc))); }
@@ -3574,7 +3601,7 @@ public partial class Binder
             if (segment.Length > 0 && char.IsLower(segment[0]))
             {
                 _diagnostics.Add(DiagnosticDescriptors.NamespaceCasingConvention(
-                    segment, _posMap.GetPositionOf(segment)));
+                    segment, _posMap.GetPositionOfFirst(segment)));
             }
         }
     }
@@ -3647,7 +3674,7 @@ public partial class Binder
             if (memberName is { Length: > 0 } && char.IsLower(memberName[0]))
             {
                 _diagnostics.Add(DiagnosticDescriptors.MemberNamePascalCase(
-                    memberName, iface.Name, _posMap.GetPositionOf(memberName)));
+                    memberName, iface.Name, _posMap.GetPositionOfFirst(memberName)));
             }
         }
     }
@@ -3762,7 +3789,7 @@ public partial class Binder
             if (memberName is { Length: > 0 } && char.IsLower(memberName[0]))
             {
                 _diagnostics.Add(DiagnosticDescriptors.MemberNamePascalCase(
-                    memberName, rc.Name, _posMap.GetPositionOf(memberName)));
+                    memberName, rc.Name, _posMap.GetPositionOfFirst(memberName)));
             }
         }
 

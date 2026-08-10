@@ -171,15 +171,15 @@ public class PerformanceTests
         var posMap = new TokenPositionMap(tokens);
 
         // First access triggers lazy build
-        var pos = posMap.GetPositionOf("namespace");
+        var pos = posMap.GetPositionOfFirst("namespace");
         Assert.True(pos >= 0);
 
         // Subsequent access should return same value
-        var pos2 = posMap.GetPositionOf("namespace");
+        var pos2 = posMap.GetPositionOfFirst("namespace");
         Assert.Equal(pos, pos2);
 
         // Widget should be after namespace
-        var widgetPos = posMap.GetPositionOf("Widget");
+        var widgetPos = posMap.GetPositionOfFirst("Widget");
         Assert.True(widgetPos > pos);
     }
 
