@@ -632,7 +632,7 @@ public class Preprocessor
         if (resolved == null)
         {
             Errors.Add(($"#include file not found: '{path}'", originalPosition));
-            return "\n";
+            return Environment.NewLine;
         }
 
         var fullPath = Path.GetFullPath(resolved);
@@ -643,20 +643,24 @@ public class Preprocessor
 
         // Infinite recursion check
         if (_includeStack.Contains(fullPath))
-            return "\n";
+            return Environment.NewLine;
 
         _includeStack.Add(fullPath);
         try
         {
             var content = File.ReadAllText(resolved);
             var processed = ProcessInternal(content, resolved, baseOffset, isIncludedFile: true);
+            // Terminate with the same newline the rest of the output uses. Returning a
+            // lone "\n" here is what made the caller's fixed-length newline strip eat a
+            // real character; keeping the buffer internally consistent removes the trap
+            // rather than relying on every consumer to survive it.
             if (!processed.EndsWith('\n'))
-                return processed + "\n";
+                return processed + Environment.NewLine;
             return processed;
         }
         catch
         {
-            return "\n";
+            return Environment.NewLine;
         }
         finally
         {
