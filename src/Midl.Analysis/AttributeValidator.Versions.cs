@@ -19,6 +19,8 @@ public partial class AttributeValidator
     {
         foreach (var type in _compilation.GetAllTypes())
         {
+            // Types reached through an import report at offsets in their own file.
+            int diagStart = _diagnostics.Count;
             var attributes = type switch
             {
                 ApiContractSymbol ac => ac.Attributes,
@@ -44,6 +46,8 @@ public partial class AttributeValidator
                 foreach (var m in en2.EnumMembers)
                     ValidateVersionArgumentsOnAttributes(m.Attributes);
             }
+
+            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile);
         }
     }
 

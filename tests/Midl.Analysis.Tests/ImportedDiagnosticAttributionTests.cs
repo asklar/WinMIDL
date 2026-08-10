@@ -359,4 +359,151 @@ public class ImportedDiagnosticAttributionTests : IDisposable
             $"expected main.idl (or null), got {d.SourceFile}"));
         Assert.All(mine, d => Assert.Equal(main.IndexOf("MainOnlyBogusType", StringComparison.Ordinal), Painted(d)));
     }
+
+    /// <summary>
+    /// An import that trips as many passes as possible: strict-mode tokens, type
+    /// resolution, attribute validation, parity rules and version propagation.
+    /// </summary>
+    private const string KitchenSinkImport = """
+        apicontract RealContract { }
+        namespace Imported
+        {
+            [totally_unknown_attribute]
+            [threading(bogus_model)]
+            [contract(NoSuchContractXyz, 1)]
+            [version(NotANumber)]
+            runtimeclass Thing
+            {
+                Thing();
+                Int32 Value { get; };
+                void Takes(NoSuchTypeAtAll x);
+            }
+            [uuid(11111111-1111-1111-1111-111111111111)]
+            [uuid(22222222-2222-2222-2222-222222222222)]
+            [deprecated("msg")]
+            interface IClassicish
+            {
+                HRESULT DoIt([in] long value, [out] byte* result);
+            }
+            enum Colours
+            {
+                [contract(AlsoNoSuchContract, 1)]
+                Red,
+            }
+        }
+        """;
+
+    /// <summary>
+    /// The same invariant, for the validators that run over the symbol table after binding.
+    ///
+    /// <c>AttributeValidator</c> and <c>VersionPropagator</c> walk
+    /// <c>Compilation.GetAllTypes()</c>, which includes types declared in imported files,
+    /// and report at the offending attribute's position — an offset in whichever file
+    /// declared it. Running after the import loop, they had no ambient file to attribute
+    /// to, so every one of them landed on the importing document.
+    /// </summary>
+    [Fact]
+    public void AttributeDiagnosticsFromAnImport_AreAttributedToTheImportedFile()
+    {
+        var importedPath = Write("attrs.idl", """
+            namespace Imported
+            {
+                [totally_unknown_attribute]
+                [threading(bogus_model)]
+                runtimeclass Thing
+                {
+                    Thing();
+                    Int32 Value { get; };
+                }
+            }
+            """);
+
+        var comp = CompileMain("import \"attrs.idl\";\n\nnamespace Probe { struct S { Int32 A; }; }\n");
+        var mainPath = Path.Combine(_dir, "main.idl");
+
+        var attrDiags = comp.Diagnostics
+            .Where(d => d.Message.Contains("totally_unknown_attribute") || d.Message.Contains("bogus_model"))
+            .ToList();
+
+        Assert.NotEmpty(attrDiags);
+        Assert.All(attrDiags, d => Assert.Equal(importedPath, d.SourceFile));
+        Assert.DoesNotContain(attrDiags, d => d.SourceFile == null || d.SourceFile == mainPath);
+    }
+
+    /// <summary>
+    /// A backstop over every pass at once, independent of diagnostic kind.
+    ///
+    /// Whatever a diagnostic says, if it is attributed to the main document then its
+    /// position must be a real offset inside the main document. A position past the end
+    /// is proof that it came from somewhere else — and it is exactly what produced
+    /// squiggles on unrelated text.
+    /// </summary>
+    [Fact]
+    public void NoDiagnosticAttributedToTheMainFile_PointsOutsideIt()
+    {
+        Write("kitchen-sink.idl", KitchenSinkImport);
+
+        const string main = """
+            import "kitchen-sink.idl";
+
+            namespace Probe
+            {
+                struct S { Int32 A; };
+            }
+            """;
+
+        var comp = CompileMain(main);
+        var mainPath = Path.Combine(_dir, "main.idl");
+
+        var onMain = comp.Diagnostics
+            .Where(d => d.SourceFile == null || d.SourceFile == mainPath)
+            .ToList();
+
+        Assert.All(onMain, d => Assert.InRange(Painted(d), 0, main.Length));
+    }
+
+    /// <summary>
+    /// The strongest form of the invariant, and the one that does not depend on a leaked
+    /// position happening to fall outside the file: importing something may only <em>add</em>
+    /// diagnostics. Whatever the main file reports on its own, it must still report — and
+    /// nothing else — once an import that trips every validator is added.
+    ///
+    /// Any pass that attributes an imported type's diagnostic to the main document changes
+    /// this set, whatever the diagnostic says and wherever it happens to point.
+    /// </summary>
+    [Fact]
+    public void AnImportThatTripsEveryPass_AddsNothingToTheMainFilesOwnDiagnostics()
+    {
+        var body = """
+
+            namespace Probe
+            {
+                runtimeclass Widget
+                {
+                    void Go(long a, short b, float c);
+                }
+            }
+            """;
+
+        var solo = CompileMain(body, "solo.idl");
+        var soloPath = Path.Combine(_dir, "solo.idl");
+        var soloOwn = solo.Diagnostics
+            .Where(d => d.SourceFile == null || d.SourceFile == soloPath)
+            .Select(d => (d.Code, Position: Painted(d)))
+            .OrderBy(x => x.Position).ThenBy(x => x.Code).ToList();
+
+        Assert.NotEmpty(soloOwn);
+
+        Write("kitchen-sink.idl", KitchenSinkImport);
+
+        const string import = "import \"kitchen-sink.idl\";";
+        var withImport = CompileMain(import + body);
+        var mainPath = Path.Combine(_dir, "main.idl");
+        var mainOwn = withImport.Diagnostics
+            .Where(d => d.SourceFile == null || d.SourceFile == mainPath)
+            .Select(d => (d.Code, Position: Painted(d) - import.Length))
+            .OrderBy(x => x.Position).ThenBy(x => x.Code).ToList();
+
+        Assert.Equal(soloOwn, mainOwn);
+    }
 }

@@ -194,6 +194,8 @@ public partial class AttributeValidator
 
         foreach (var type in _compilation.GetAllTypes())
         {
+            // Types reached through an import report at offsets in their own file.
+            int diagStart = _diagnostics.Count;
             switch (type)
             {
                 case RuntimeClassSymbol rc:
@@ -248,6 +250,7 @@ public partial class AttributeValidator
                 case AttributeTypeSymbol:
                     break;
             }
+            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile);
         }
     }
 

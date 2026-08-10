@@ -61,7 +61,7 @@ public class TypeResolver
         {
             int start = diagnostics.Count;
             Resolve(typeRef, ns, diagnostics);
-            TagWithSourceFile(diagnostics, start, sourceFile);
+            DiagnosticSourceTagger.Tag(diagnostics, start, sourceFile);
         }
 
         // Validate that parameterized types have type arguments
@@ -74,33 +74,8 @@ public class TypeResolver
                 int start = diagnostics.Count;
                 diagnostics.Add(DiagnosticDescriptors.GenericTypeRequiresArguments(
                     typeRef.Name, typeRef.Position));
-                TagWithSourceFile(diagnostics, start, sourceFile);
+                DiagnosticSourceTagger.Tag(diagnostics, start, sourceFile);
             }
-        }
-    }
-
-    /// <summary>
-    /// Attributes diagnostics added from <paramref name="startIndex"/> onward to the file
-    /// the type reference came from.
-    ///
-    /// A TypeRef's Position is an offset into its own file, but resolution runs after every
-    /// tree has been bound, so there is no ambient "current file" left to infer it from.
-    /// Setting OriginalPosition marks the position as already resolved so the preprocessor
-    /// SourceMap pass — which only models <c>#include</c> — leaves it alone rather than
-    /// reinterpreting it as an offset into the main document.
-    ///
-    /// A null <paramref name="sourceFile"/> means the main document, which the existing
-    /// source-map pass already handles.
-    /// </summary>
-    private static void TagWithSourceFile(List<Diagnostic> diagnostics, int startIndex, string? sourceFile)
-    {
-        if (sourceFile == null) return;
-
-        for (int i = startIndex; i < diagnostics.Count; i++)
-        {
-            var d = diagnostics[i];
-            if (d.SourceFile != null) continue;
-            diagnostics[i] = d with { SourceFile = sourceFile, OriginalPosition = d.OriginalPosition ?? d.Position };
         }
     }
 
