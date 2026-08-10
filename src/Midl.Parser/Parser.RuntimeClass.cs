@@ -181,12 +181,14 @@ public sealed partial class Parser
             return returnType;
         }
 
+        var callingConvention = TryParseCallingConvention();
+
         var name = EatIdentifierOrKeyword();
 
         // Method: Name followed by (
         if (At(SyntaxKind.OpenParenToken))
         {
-            return ParseMethodDeclaration(attributes, modifiers, returnType, name);
+            return ParseMethodDeclaration(attributes, modifiers, returnType, name, callingConvention);
         }
 
         // Property: Name followed by ; or {
@@ -207,14 +209,16 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.ConstructorDeclaration, children);
     }
 
-    /// <summary>Parse: [attrs] [mods] ReturnType Name(params);</summary>
+    /// <summary>Parse: [attrs] [mods] ReturnType [callconv] Name(params);</summary>
     private GreenNode ParseMethodDeclaration(GreenNode? attributes, GreenNode? modifiers,
-        GreenNode returnType, SyntaxToken name)
+        GreenNode returnType, SyntaxToken name, GreenNode? callingConvention = null)
     {
         var children = RentChildren();
         if (attributes != null) children.Add(attributes);
         if (modifiers != null) children.Add(modifiers);
         children.Add(returnType);
+        // Kept in the tree so the width matches the source and strict mode can report it.
+        if (callingConvention != null) children.Add(callingConvention);
         children.Add(name);
         children.Add(ParseParameterList());
         children.Add(Eat(SyntaxKind.SemicolonToken));
@@ -308,7 +312,17 @@ public sealed partial class Parser
         return MakeNode(SyntaxKind.ParameterList, children);
     }
 
-    /// <summary>Parse a single parameter: [attrs] [out/ref/ref const] Type name</summary>
+    /// <summary>
+    /// Parse a single parameter: [attrs] [out | ref [const] | const] Type name
+    ///
+    /// Two unrelated uses of <c>const</c>:
+    ///   MIDL3  <c>ref const T p</c> — parameter direction modifier
+    ///   MIDL2  <c>const T p</c>     — C-style type qualifier
+    ///
+    /// Both are parsed here; the binder reports the classic form in strict mode. Parsing
+    /// it unconditionally keeps a single misplaced qualifier from cascading into dozens of
+    /// "Expected 'identifier'" errors that bury every real diagnostic in the file.
+    /// </summary>
     private GreenNode ParseParameter()
     {
         var children = RentChildren();
@@ -333,11 +347,44 @@ public sealed partial class Parser
                 children.Add(EatToken());
             }
         }
+        else if (At(SyntaxKind.ConstKeyword))
+        {
+            // Classic MIDL2 qualifier with no direction modifier in front of it.
+            children.Add(EatToken());
+        }
 
         children.Add(ParseTypeReference());
         children.Add(EatIdentifierOrKeyword());
 
         return MakeNode(SyntaxKind.Parameter, children);
+    }
+
+    /// <summary>
+    /// Classic MIDL2 / C calling-convention keywords that may appear between a method's
+    /// return type and its name (<c>error_status_t __stdcall logMessage(...)</c>).
+    /// MIDL3 has no such modifier; the binder reports it in strict mode.
+    /// </summary>
+    private static bool IsCallingConventionText(string text) => text is
+        "__stdcall" or "__cdecl" or "__fastcall" or "__thiscall" or "__vectorcall" or
+        "STDMETHODCALLTYPE" or "STDAPICALLTYPE" or "STDMETHODVCALLTYPE" or
+        "WINAPI" or "APIENTRY" or "CALLBACK";
+
+    /// <summary>
+    /// Consumes a calling-convention token when one sits between the return type and the
+    /// method name. Requires a following identifier so a method genuinely *named*
+    /// <c>__stdcall</c> still parses as a method name rather than a modifier.
+    /// </summary>
+    private GreenNode? TryParseCallingConvention()
+    {
+        if (!IsIdentifierOrKeyword(Current.Kind)) return null;
+        if (!IsCallingConventionText(Current.Text)) return null;
+        if (!IsIdentifierOrKeyword(Peek(1).Kind)) return null;
+
+        // Re-kind the token so downstream code recognizes it structurally. Text and
+        // trivia are carried over, so the tree's widths still match the source.
+        var token = EatToken();
+        return new SyntaxToken(SyntaxKind.CallingConventionToken, token.Text, token.Value,
+            token.LeadingTrivia, token.TrailingTrivia);
     }
 
     /// <summary>Check if kind is an identifier or keyword usable as a name.</summary>

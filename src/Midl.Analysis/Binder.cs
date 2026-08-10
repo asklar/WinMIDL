@@ -1549,6 +1549,20 @@ public partial class Binder
         symbol.ReturnType = ExtractTypeRef(returnTypeNode);
         TrackTypeRef(symbol.ReturnType, ns);
 
+        // MIDL3 has no explicit calling convention; the parser accepts one so classic
+        // files don't cascade into parse errors, and strict mode reports it here.
+        if (_mode == CompilationMode.Strict)
+        {
+            for (int i = 0; i < node.SlotCount; i++)
+            {
+                if (node.GetSlot(i) is SyntaxToken { Kind: SyntaxKind.CallingConventionToken } cc)
+                {
+                    _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct(cc.Text, GetNodePosition(cc)));
+                    break;
+                }
+            }
+        }
+
         // Extract all attributes
         var methodAttrList = FindChild(node, SyntaxKind.AttributeList);
         if (methodAttrList != null)
@@ -1741,7 +1755,16 @@ public partial class Binder
                     case SyntaxKind.ConstKeyword:
                         // ref const — upgrade Ref to RefConst
                         if (direction == ParameterDirection.Ref)
+                        {
                             direction = ParameterDirection.RefConst;
+                        }
+                        else if (_mode == CompilationMode.Strict)
+                        {
+                            // Bare 'const T p' is the classic MIDL2 type qualifier. MIDL3's
+                            // only use of const is the 'ref const' direction modifier above.
+                            _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct(
+                                "const", GetNodePosition(token)));
+                        }
                         break;
                     case SyntaxKind.IdentifierToken:
                     case var k when IsTypeKeywordOrNameable(k):
@@ -2012,9 +2035,12 @@ public partial class Binder
             if (IsTypeNode(slot.Kind))
             {
                 typeNode = slot;
-                // Next slot should be the name
-                var next = node.GetSlot(i + 1);
-                if (next is SyntaxToken nt)
+                // Next slot is the name, unless a classic calling convention sits between.
+                int nameIndex = i + 1;
+                if (node.GetSlot(nameIndex) is SyntaxToken { Kind: SyntaxKind.CallingConventionToken })
+                    nameIndex++;
+
+                if (node.GetSlot(nameIndex) is SyntaxToken nt)
                 {
                     name = nt.Text;
                     nameToken = nt;

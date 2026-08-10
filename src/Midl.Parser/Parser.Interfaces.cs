@@ -138,12 +138,16 @@ public sealed partial class Parser
     private GreenNode ParseInterfaceMethodOrProperty(GreenNode? attributes)
     {
         var returnType = ParseTypeReference();
+
+        // Classic MIDL2 may place a calling convention between the return type and the name.
+        var callingConvention = TryParseCallingConvention();
+
         var name = EatIdentifierOrKeyword();
 
         if (At(SyntaxKind.OpenParenToken))
         {
             // Method
-            return ParseMethodDeclaration(attributes, null, returnType, name);
+            return ParseMethodDeclaration(attributes, null, returnType, name, callingConvention);
         }
 
         // Property
