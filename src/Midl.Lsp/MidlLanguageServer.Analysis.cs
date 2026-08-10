@@ -187,12 +187,24 @@ public sealed partial class MidlLanguageServer
     }
 
     private bool IsUnderSystemIncludePath(string filePath)
+        => IsUnderSystemIncludePath(filePath, _sdkIncludePaths!);
+
+    /// <summary>
+    /// True when <paramref name="filePath"/> lives inside one of <paramref name="sdkPaths"/>.
+    ///
+    /// Compares fully-resolved paths and requires a directory boundary at the match, so a
+    /// sibling directory whose name merely starts with an SDK path (<c>...\Include10\um</c>
+    /// next to <c>...\Include</c>) is not treated as system content. Getting this wrong
+    /// silently hides the user's own diagnostics, so it is deliberately conservative:
+    /// anything unparseable is reported rather than suppressed.
+    /// </summary>
+    internal static bool IsUnderSystemIncludePath(string filePath, IReadOnlyList<string> sdkPaths)
     {
         string full;
         try { full = Path.GetFullPath(filePath); }
         catch { return false; }
 
-        foreach (var sdkPath in _sdkIncludePaths!)
+        foreach (var sdkPath in sdkPaths)
         {
             string sdkFull;
             try { sdkFull = Path.GetFullPath(sdkPath); }
