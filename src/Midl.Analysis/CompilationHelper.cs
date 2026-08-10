@@ -180,7 +180,8 @@ public static class CompilationHelper
             importResolver.MarkImported(Path.GetFullPath(currentFilePath));
         var importedTrees = new List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath)>();
         CollectImportedTrees(tree, importResolver, importedTrees, syntaxDiagnostics,
-            includePaths: includePaths
+            includePaths: includePaths,
+            containingFilePath: currentFilePath
 #if WITH_COMPAT
             , cppCmd: cppCmd
 #endif
@@ -448,16 +449,24 @@ public static class CompilationHelper
         ImportResolver importResolver,
         List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath)> importedTrees,
         List<Midl.Analysis.Diagnostics.Diagnostic> diagnostics,
-        IReadOnlyList<string>? includePaths = null
+        IReadOnlyList<string>? includePaths = null,
+        string? containingFilePath = null
 #if WITH_COMPAT
         , string? cppCmd = null
 #endif
         )
     {
+        // Green nodes carry widths, not absolute positions; accumulate as we walk so a
+        // failed import can point at its own path text rather than the start of the file.
+        int offset = 0;
         for (int i = 0; i < tree.SlotCount; i++)
         {
             var child = tree.GetSlot(i);
-            if (child == null || child.Kind != SyntaxKind.ImportDirective) continue;
+            if (child == null) continue;
+            if (child.Kind != SyntaxKind.ImportDirective) { offset += child.FullWidth; continue; }
+
+            var childOffset = offset;
+            offset += child.FullWidth;
 
             var pathToken = ExtractImportPath(child);
             if (pathToken == null) continue;
@@ -465,7 +474,9 @@ public static class CompilationHelper
             var resolved = importResolver.ResolveImportPath(pathToken);
             if (resolved == null)
             {
-                diagnostics.Add(DiagnosticDescriptors.ImportFileNotFound(pathToken, 0));
+                var pathPos = FindImportPathPosition(child, childOffset);
+                diagnostics.Add(DiagnosticDescriptors.ImportFileNotFound(pathToken, pathPos)
+                    with { SourceFile = containingFilePath, OriginalPosition = pathPos });
                 continue;
             }
 
@@ -504,7 +515,8 @@ public static class CompilationHelper
             // Recursively collect transitive imports
             var childResolver = importResolver.CreateChildResolver(resolved);
             CollectImportedTrees(importedTree, childResolver, importedTrees, diagnostics,
-                includePaths: includePaths
+                includePaths: includePaths,
+                containingFilePath: resolved
 #if WITH_COMPAT
                 , cppCmd: cppCmd
 #endif
@@ -528,5 +540,33 @@ public static class CompilationHelper
             }
         }
         return null;
+    }
+
+    /// <summary>
+    /// Absolute position of the path text inside an <c>import "..."</c> directive,
+    /// so a "file not found" squiggle covers the path rather than the start of the file.
+    /// Skips the token's leading trivia and the opening quote.
+    /// </summary>
+    private static int FindImportPathPosition(GreenNode importDirective, int directiveOffset)
+    {
+        int offset = directiveOffset;
+        for (int i = 0; i < importDirective.SlotCount; i++)
+        {
+            var slot = importDirective.GetSlot(i);
+            if (slot == null) continue;
+
+            if (slot is SyntaxToken { Kind: SyntaxKind.StringLiteralToken } token)
+            {
+                int pos = offset;
+                foreach (var trivia in token.LeadingTrivia)
+                    pos += trivia.FullWidth;
+                if (token.Text.Length >= 2 && token.Text[0] == '"')
+                    pos++;   // step past the opening quote onto the path text
+                return pos;
+            }
+
+            offset += slot.FullWidth;
+        }
+        return directiveOffset;
     }
 }
