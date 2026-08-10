@@ -118,6 +118,7 @@ export function startLanguageServer(serverPath: string, context: vscode.Extensio
             "midl.strictMode": config.get<boolean>('strictMode', true),
             "midl.codeQualityHints": config.get<boolean>('codeQualityHints', true),
             "midl.useWindowsSdk": config.get<boolean>('useWindowsSdk', true),
+            "midl.reportSystemImportDiagnostics": config.get<boolean>('reportSystemImportDiagnostics', false),
             "midl.windowsSdkVersion": config.get<string>('windowsSdkVersion', 'latest'),
             "midl.flatSdkTypeCompletions": config.get<boolean>('flatSdkTypeCompletions', false),
             "midl.arrays":config.get<boolean>('arrays', false),

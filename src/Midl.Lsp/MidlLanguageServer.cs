@@ -30,6 +30,12 @@ public sealed partial class MidlLanguageServer
     private bool _arraysEnabled;
     private List<string> _defines = new();
     private bool _useWindowsSdk = true;
+    /// <summary>
+    /// Report diagnostics for IDLs pulled in from Windows SDK include paths.
+    /// Off by default: those files are classic MIDL2 and produce thousands of
+    /// strict-mode errors the user cannot act on. midl.exe does not report them either.
+    /// </summary>
+    private bool _reportSystemImportDiagnostics;
     private bool _flatSdkTypeCompletions;
     private bool _clientSupportsMarkdown = true; // VS Code sends markdown; VS sends plaintext only
     private ProjectFile? _projectFile;
@@ -489,6 +495,12 @@ public sealed partial class MidlLanguageServer
             MidlTrace.Lsp($"  useWindowsSdk = {useSdk}");
         }
 
+        if (TryGetBool(settings, "midl.reportSystemImportDiagnostics", out var reportSys))
+        {
+            _reportSystemImportDiagnostics = reportSys;
+            MidlTrace.Lsp($"  reportSystemImportDiagnostics = {reportSys}");
+        }
+
         if (TryGetBool(settings, "midl.flatSdkTypeCompletions", out var flat))
         {
             _flatSdkTypeCompletions = flat;
@@ -627,6 +639,17 @@ public sealed partial class MidlLanguageServer
                              sdkProp2.ValueKind == JsonValueKind.False)
                     {
                         _useWindowsSdk = false;
+                    }
+
+                    if (initOpts.TryGetProperty("midl.reportSystemImportDiagnostics", out var sysProp) &&
+                        sysProp.ValueKind == JsonValueKind.True)
+                    {
+                        _reportSystemImportDiagnostics = true;
+                    }
+                    else if (initOpts.TryGetProperty("reportSystemImportDiagnostics", out var sysProp2) &&
+                             sysProp2.ValueKind == JsonValueKind.True)
+                    {
+                        _reportSystemImportDiagnostics = true;
                     }
 
                     if (initOpts.TryGetProperty("midl.flatSdkTypeCompletions", out var flatProp) &&

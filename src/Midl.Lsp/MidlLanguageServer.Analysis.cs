@@ -144,7 +144,12 @@ public sealed partial class MidlLanguageServer
 
             var memAfter = GC.GetTotalMemory(false) / (1024 * 1024);
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics, mem={memAfter}MB, providers={_winmdProviderCache.Count}");
-            await _diagnostics.PublishDiagnosticsAsync(uri, text, compilation.Diagnostics, compilation.InactiveRegions);
+
+            var reported = FilterSystemImportDiagnostics(compilation.Diagnostics);
+            if (reported.Count != compilation.Diagnostics.Count)
+                MidlTrace.Lsp($"Suppressed {compilation.Diagnostics.Count - reported.Count} diagnostics from SDK imports");
+
+            await _diagnostics.PublishDiagnosticsAsync(uri, text, reported, compilation.InactiveRegions);
             MidlTrace.Lsp($"Diagnostics published");
         }
         catch (Exception ex)
@@ -156,5 +161,52 @@ public sealed partial class MidlLanguageServer
                 0, 0);
             await _diagnostics.PublishDiagnosticsAsync(uri, text, [errorDiag]);
         }
+    }
+
+    /// <summary>
+    /// Drops diagnostics originating in IDLs resolved from Windows SDK include paths.
+    ///
+    /// Importing a classic system IDL (wtypes.idl, oaidl.idl, objidl.idl, ...) otherwise
+    /// yields thousands of strict-mode errors about the SDK's own headers — noise the user
+    /// cannot act on, and which midl.exe does not report either. Opt back in with
+    /// <c>midl.reportSystemImportDiagnostics</c>.
+    /// </summary>
+    private IReadOnlyList<Analysis.Diagnostics.Diagnostic> FilterSystemImportDiagnostics(
+        IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics)
+    {
+        if (_reportSystemImportDiagnostics || _sdkIncludePaths is not { Count: > 0 })
+            return diagnostics;
+
+        var kept = new List<Analysis.Diagnostics.Diagnostic>(diagnostics.Count);
+        foreach (var d in diagnostics)
+        {
+            if (d.SourceFile == null || !IsUnderSystemIncludePath(d.SourceFile))
+                kept.Add(d);
+        }
+        return kept;
+    }
+
+    private bool IsUnderSystemIncludePath(string filePath)
+    {
+        string full;
+        try { full = Path.GetFullPath(filePath); }
+        catch { return false; }
+
+        foreach (var sdkPath in _sdkIncludePaths!)
+        {
+            string sdkFull;
+            try { sdkFull = Path.GetFullPath(sdkPath); }
+            catch { continue; }
+
+            if (full.StartsWith(sdkFull, StringComparison.OrdinalIgnoreCase) &&
+                (full.Length == sdkFull.Length ||
+                 full[sdkFull.Length] == Path.DirectorySeparatorChar ||
+                 full[sdkFull.Length] == Path.AltDirectorySeparatorChar ||
+                 sdkFull.EndsWith(Path.DirectorySeparatorChar)))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

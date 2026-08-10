@@ -39,6 +39,27 @@ public partial class Binder
         _arraysEnabled = true; // Arrays always enabled — standard WinRT syntax
     }
 
+    /// <summary>
+    /// Attributes diagnostics produced from <paramref name="startIndex"/> onward to
+    /// <paramref name="filePath"/>.
+    ///
+    /// Setting <c>OriginalPosition</c> marks the position as already resolved, so the
+    /// preprocessor SourceMap pass leaves it alone. That matters because the source map
+    /// only models <c>#include</c>: it would otherwise reinterpret an imported file's
+    /// offset as an offset into the main document and attribute it there.
+    ///
+    /// Diagnostics already carrying a SourceFile (e.g. from a nested import) keep it.
+    /// </summary>
+    private void TagDiagnosticsWithSourceFile(int startIndex, string filePath)
+    {
+        for (int i = startIndex; i < _diagnostics.Count; i++)
+        {
+            var d = _diagnostics[i];
+            if (d.SourceFile != null) continue;
+            _diagnostics[i] = d with { SourceFile = filePath, OriginalPosition = d.OriginalPosition ?? d.Position };
+        }
+    }
+
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
         IReadOnlyList<ISymbol>? externalTypes = null,
         IReadOnlyList<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath)>? importedTrees = null,
@@ -81,7 +102,16 @@ public partial class Binder
                 _root = importedTree;
                 _nodeOffsetMap = null;
                 _currentImportedFilePath = importedFilePath;
+
+                // Diagnostics raised while binding this tree carry positions in the
+                // imported file's coordinates, not the main document's. Tag the range
+                // produced by this pass so they are attributed to the right file and
+                // skipped by the preprocessor SourceMap (which only knows #include).
+                int diagStart = _diagnostics.Count;
                 BindCompilationUnit(importedTree, _globalNamespace);
+                if (importedFilePath != null)
+                    TagDiagnosticsWithSourceFile(diagStart, importedFilePath);
+
                 _posMap = savedPosMap;
                 _root = savedRoot;
                 _nodeOffsetMap = savedOffsetMap;
@@ -2102,8 +2132,16 @@ public partial class Binder
 
                 // Find this token's position in the token stream and advance the index
                 int idx = _posMap.FindToken(token.Text, _strictTokenIndex);
-                int pos = idx >= 0 ? _posMap.GetPosition(idx) : 0;
-                if (idx >= 0) _strictTokenIndex = idx + 1;
+                if (idx < 0)
+                {
+                    // The token isn't in this file's token stream — it came from an
+                    // imported tree. Reporting it here would paint a squiggle at
+                    // offset 0 of the wrong document; the imported file's own pass
+                    // reports it with a position that is actually meaningful.
+                    continue;
+                }
+                int pos = _posMap.GetPosition(idx);
+                _strictTokenIndex = idx + 1;
                 CheckStrictModeToken(token, pos);
             }
             else

@@ -127,6 +127,12 @@
           "description": "Automatically reference Windows.winmd from the installed Windows SDK for type completion and F12 navigation.",
           "order": 3
         },
+        "midl.reportSystemImportDiagnostics": {
+          "type": "boolean",
+          "default": false,
+          "description": "Report diagnostics for IDL files imported from the Windows SDK. Those files are classic MIDL2 and produce thousands of strict-mode errors you cannot act on, so they are suppressed by default. Diagnostics for your own imported files are always reported.",
+          "order": 4
+        },
         "midl.windowsSdkVersion": {
           "type": "string",
           "default": "latest",

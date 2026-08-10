@@ -123,6 +123,20 @@ public sealed class DiagnosticsPublisher
             _previousDiagnosticUris.Add(u);
     }
 
+    /// <summary>
+    /// Character offset of the end of <paramref name="line"/> (excluding its newline),
+    /// used to clamp a diagnostic range that would otherwise span a line break.
+    /// </summary>
+    private static int EndOfLineChar(string sourceText, int[] lineStarts, int line)
+    {
+        if (line < 0 || line >= lineStarts.Length) return 0;
+        int start = lineStarts[line];
+        int end = line + 1 < lineStarts.Length ? lineStarts[line + 1] : sourceText.Length;
+        while (end > start && (sourceText[end - 1] == '\n' || sourceText[end - 1] == '\r'))
+            end--;
+        return end - start;
+    }
+
     private async Task PublishForFileAsync(string uri, string sourceText,
         IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics,
         IReadOnlyList<(int Start, int End)>? inactiveRegions = null)
@@ -134,6 +148,17 @@ public sealed class DiagnosticsPublisher
         {
             var (startLine, startChar) = PositionHelper.OffsetToLineChar(lineStarts, d.Position);
             var (endLine, endChar) = PositionHelper.OffsetToLineChar(lineStarts, d.Position + d.Length);
+
+            // Keep token-level squiggles on one line. A length that runs past the end of
+            // the line (stale/!zero position, or a token whose text is shorter than the
+            // reported length) otherwise produces a range spanning the newline, which
+            // renders as a sliver on the start line and is easy to miss entirely.
+            if (endLine != startLine)
+            {
+                endLine = startLine;
+                endChar = EndOfLineChar(sourceText, lineStarts, startLine);
+                if (endChar < startChar) endChar = startChar;
+            }
 
             if (d.Code == "MIDL3003")
                 MidlTrace.Write("PUB", $"MIDL3003 '{d.Message.Substring(0, Math.Min(30, d.Message.Length))}': pos={d.Position} origPos={d.OriginalPosition} → {startLine}:{startChar} (srcLen={sourceText.Length})");

@@ -353,6 +353,7 @@ export function activate(context: vscode.ExtensionContext) {
                                     'midl.strictMode': config.get<boolean>('strictMode', true),
                                     'midl.codeQualityHints': config.get<boolean>('codeQualityHints', true),
                                     'midl.useWindowsSdk': config.get<boolean>('useWindowsSdk', true),
+                                    'midl.reportSystemImportDiagnostics': config.get<boolean>('reportSystemImportDiagnostics', false),
                                     'midl.flatSdkTypeCompletions': config.get<boolean>('flatSdkTypeCompletions', false),
                                     'midl.arrays':config.get<boolean>('arrays', false),
                                     'midl.defines': config.get<string[]>('defines', []),
