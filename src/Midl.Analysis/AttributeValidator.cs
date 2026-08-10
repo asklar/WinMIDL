@@ -21,7 +21,7 @@ public partial class AttributeValidator
     /// an imported file resolves to that file's original text rather than to an offset in
     /// its expanded form.
     /// </summary>
-    private CompilationSourceMap? _unitSourceMaps => _compilation.UnitSourceMaps;
+    private CompilationSourceMap? UnitSourceMaps => _compilation.UnitSourceMaps;
     private HashSet<string> _sdkResolvedAttrNames = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly HashSet<string> ValidThreadingModels =
@@ -257,7 +257,7 @@ public partial class AttributeValidator
                 case AttributeTypeSymbol:
                     break;
             }
-            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile, _unitSourceMaps);
+            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile, UnitSourceMaps);
         }
     }
 

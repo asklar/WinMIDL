@@ -431,40 +431,7 @@ public class ImportedDiagnosticAttributionTests : IDisposable
     }
 
     /// <summary>
-    /// A backstop over every pass at once, independent of diagnostic kind.
-    ///
-    /// Whatever a diagnostic says, if it is attributed to the main document then its
-    /// position must be a real offset inside the main document. A position past the end
-    /// is proof that it came from somewhere else — and it is exactly what produced
-    /// squiggles on unrelated text.
-    /// </summary>
-    [Fact]
-    public void NoDiagnosticAttributedToTheMainFile_PointsOutsideIt()
-    {
-        Write("kitchen-sink.idl", KitchenSinkImport);
-
-        const string main = """
-            import "kitchen-sink.idl";
-
-            namespace Probe
-            {
-                struct S { Int32 A; };
-            }
-            """;
-
-        var comp = CompileMain(main);
-        var mainPath = Path.Combine(_dir, "main.idl");
-
-        var onMain = comp.Diagnostics
-            .Where(d => d.SourceFile == null || d.SourceFile == mainPath)
-            .ToList();
-
-        Assert.All(onMain, d => Assert.InRange(Painted(d), 0, main.Length));
-    }
-
-    /// <summary>
-    /// The strongest form of the invariant, and the one that does not depend on a leaked
-    /// position happening to fall outside the file: importing something may only <em>add</em>
+    /// The strongest form of the invariant: importing something may only <em>add</em>
     /// diagnostics. Whatever the main file reports on its own, it must still report — and
     /// nothing else — once an import that trips every validator is added.
     ///

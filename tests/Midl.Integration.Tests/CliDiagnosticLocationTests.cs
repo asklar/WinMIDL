@@ -164,4 +164,39 @@ public class CliDiagnosticLocationTests : IDisposable
         // "        void M(" is 15 characters, so 'long' starts at column 16 of line 5.
         Assert.Contains("rewritten.idl(5,16):", lowercase);
     }
+
+    /// <summary>
+    /// End-to-end, at the surface a user actually reads: a diagnostic about an imported
+    /// file must be reported with that file's name and the real line and column of the
+    /// offending construct <em>in that file</em>.
+    ///
+    /// This is the shape of the original report — <c>Undefined type 'ULONG'</c> attributed
+    /// to the importing document, on a line that never mentions the type. Everything below
+    /// the CLI can be correct while this is still wrong, so it is worth pinning here and
+    /// not only at the analysis layer.
+    /// </summary>
+    [Fact]
+    public void DiagnosticsFromAnImportedFile_ReportThatFileAndItsRealLineAndColumn()
+    {
+        // The macro expands to something longer, so every offset after it in the
+        // preprocessed text drifts. Line 5 column 20 is where 'NoSuchTypeXyz' really is.
+        var importedPath = WriteIdl(
+            "#define WIDGET_T ThisIsAVeryLongExpandedTypeNameXXXX\r\n" +
+            "namespace Imported\r\n" +
+            "{\r\n" +
+            "    struct Uses { WIDGET_T A; };\r\n" +
+            "    struct Later { NoSuchTypeXyz B; };\r\n" +
+            "}\r\n",
+            "imported.idl");
+
+        var main = WriteIdl("import \"imported.idl\";\r\nnamespace Probe { struct S { Int32 A; }; }\r\n", "main.idl");
+
+        var diags = DiagnosticLines(Run("/nologo", "/winrt", "/no_def_idir", "/I", _tempDir, main).StdErr);
+
+        var undefined = Assert.Single(diags, d => d.Contains("NoSuchTypeXyz"));
+
+        Assert.Contains(importedPath, undefined);
+        Assert.DoesNotContain("main.idl", undefined);
+        Assert.Contains("(5,20):", undefined);
+    }
 }
