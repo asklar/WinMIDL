@@ -14,7 +14,7 @@ public partial class Binder
 {
     private readonly List<Diagnostic> _diagnostics = [];
     private readonly NamespaceSymbol _globalNamespace = new("");
-    private readonly List<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace)> _unresolvedRefs = [];
+    private readonly List<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace, string? SourceFile)> _unresolvedRefs = [];
     private readonly HashSet<string> _definedTypes = new(StringComparer.Ordinal);
     private readonly HashSet<string> _forwardDeclaredTypes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _definedTypesCaseInsensitive = new(StringComparer.OrdinalIgnoreCase);
@@ -51,14 +51,7 @@ public partial class Binder
     /// Diagnostics already carrying a SourceFile (e.g. from a nested import) keep it.
     /// </summary>
     private void TagDiagnosticsWithSourceFile(int startIndex, string filePath)
-    {
-        for (int i = startIndex; i < _diagnostics.Count; i++)
-        {
-            var d = _diagnostics[i];
-            if (d.SourceFile != null) continue;
-            _diagnostics[i] = d with { SourceFile = filePath, OriginalPosition = d.OriginalPosition ?? d.Position };
-        }
-    }
+        => DiagnosticSourceTagger.Tag(_diagnostics, startIndex, filePath);
 
     public Compilation Bind(GreenNode compilationUnit, IReadOnlyList<SyntaxToken> tokens,
         IReadOnlyList<ISymbol>? externalTypes = null,
@@ -2496,7 +2489,10 @@ public partial class Binder
     {
         if (!typeRef.IsBuiltIn && typeRef.Name != "?")
         {
-            _unresolvedRefs.Add((typeRef, ns));
+            // Resolution is deferred until every tree is bound, by which point the
+            // importing loop's tagging is long finished. Record which file this
+            // reference — and therefore its Position — came from.
+            _unresolvedRefs.Add((typeRef, ns, _currentImportedFilePath));
         }
         foreach (var arg in typeRef.TypeArguments)
         {

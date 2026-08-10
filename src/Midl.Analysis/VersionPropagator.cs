@@ -34,6 +34,8 @@ public class VersionPropagator
 
         foreach (var type in compilation.GetAllTypes().ToList())
         {
+            // Types reached through an import report at offsets in their own file.
+            int diagStart = _diagnostics.Count;
             switch (type)
             {
                 case RuntimeClassSymbol rc:
@@ -52,6 +54,7 @@ public class VersionPropagator
                     ValidateContractReference(iface.ContractName, iface.Attributes, contracts);
                     break;
             }
+            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile);
         }
     }
 

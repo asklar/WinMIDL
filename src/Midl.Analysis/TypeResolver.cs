@@ -54,23 +54,27 @@ public class TypeResolver
     }
 
     public void ResolveAll(
-        IReadOnlyList<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace)> unresolvedRefs,
+        IReadOnlyList<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace, string? SourceFile)> unresolvedRefs,
         List<Diagnostic> diagnostics)
     {
-        foreach (var (typeRef, ns) in unresolvedRefs)
+        foreach (var (typeRef, ns, sourceFile) in unresolvedRefs)
         {
+            int start = diagnostics.Count;
             Resolve(typeRef, ns, diagnostics);
+            DiagnosticSourceTagger.Tag(diagnostics, start, sourceFile);
         }
 
         // Validate that parameterized types have type arguments
-        foreach (var (typeRef, _) in unresolvedRefs)
+        foreach (var (typeRef, _, sourceFile) in unresolvedRefs)
         {
             if (typeRef.ResolvedSymbol is { IsExternal: true } &&
                 typeRef.TypeArguments.Count == 0 &&
                 s_parameterizedTypeArity.ContainsKey(typeRef.ResolvedSymbol.FullName))
             {
+                int start = diagnostics.Count;
                 diagnostics.Add(DiagnosticDescriptors.GenericTypeRequiresArguments(
                     typeRef.Name, typeRef.Position));
+                DiagnosticSourceTagger.Tag(diagnostics, start, sourceFile);
             }
         }
     }
