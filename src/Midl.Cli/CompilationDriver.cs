@@ -274,22 +274,27 @@ public class CompilationDriver
             if (diag.Severity == DiagnosticSeverity.Warning && options.NoWarnings)
                 continue;
 
-            // Build location prefix: "file(line,col): " when SourceFile is available
+            // Build location prefix: "file(line,col): ".
+            // SourceFile is only set when the source was rewritten (preprocessor SourceMap,
+            // or the comment-stripping remap), so a file with no comments and no directives
+            // arrives with it null. That says nothing about where the diagnostic is — the
+            // input path is known either way, so fall back to it.
             string locationPrefix = "";
-            if (diag.SourceFile != null)
+            var locationFile = diag.SourceFile ?? options.InputFile;
+            if (locationFile != null)
             {
                 var pos = diag.OriginalPosition ?? diag.Position;
                 // Read the original file to compute line/col
                 try
                 {
-                    var fileText = File.ReadAllText(diag.SourceFile);
+                    var fileText = File.ReadAllText(locationFile);
                     var fileLineStarts = BuildLineStarts(fileText);
                     var (line, col) = OffsetToLineCol(fileLineStarts, pos);
-                    locationPrefix = $"{diag.SourceFile}({line + 1},{col + 1}): ";
+                    locationPrefix = $"{locationFile}({line + 1},{col + 1}): ";
                 }
                 catch
                 {
-                    locationPrefix = $"{diag.SourceFile}: ";
+                    locationPrefix = $"{locationFile}: ";
                 }
             }
 
