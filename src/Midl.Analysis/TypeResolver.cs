@@ -55,13 +55,14 @@ public class TypeResolver
 
     public void ResolveAll(
         IReadOnlyList<(TypeRef TypeRef, NamespaceSymbol ContainingNamespace, string? SourceFile)> unresolvedRefs,
-        List<Diagnostic> diagnostics)
+        List<Diagnostic> diagnostics,
+        CompilationSourceMap? unitSourceMaps = null)
     {
         foreach (var (typeRef, ns, sourceFile) in unresolvedRefs)
         {
             int start = diagnostics.Count;
             Resolve(typeRef, ns, diagnostics);
-            DiagnosticSourceTagger.Tag(diagnostics, start, sourceFile);
+            DiagnosticSourceTagger.Tag(diagnostics, start, sourceFile, unitSourceMaps);
         }
 
         // Validate that parameterized types have type arguments
@@ -74,7 +75,7 @@ public class TypeResolver
                 int start = diagnostics.Count;
                 diagnostics.Add(DiagnosticDescriptors.GenericTypeRequiresArguments(
                     typeRef.Name, typeRef.Position));
-                DiagnosticSourceTagger.Tag(diagnostics, start, sourceFile);
+                DiagnosticSourceTagger.Tag(diagnostics, start, sourceFile, unitSourceMaps);
             }
         }
     }

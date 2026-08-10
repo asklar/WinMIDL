@@ -47,7 +47,7 @@ public partial class AttributeValidator
                     ValidateVersionArgumentsOnAttributes(m.Attributes);
             }
 
-            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile);
+            DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile, _unitSourceMaps);
         }
     }
 
