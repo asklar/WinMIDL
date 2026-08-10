@@ -30,6 +30,14 @@ public class ImportedDiagnosticAttributionTests : IDisposable
         try { Directory.Delete(_dir, recursive: true); } catch { }
     }
 
+    /// <summary>
+    /// The offset the LSP actually paints. DiagnosticsPublisher prefers
+    /// <c>OriginalPosition</c> whenever it is set, so a test that asserts on
+    /// <c>Position</c> alone can pass while the squiggle lands somewhere else
+    /// (or fail while the squiggle is correct).
+    /// </summary>
+    private static int Painted(Diagnostic d) => d.OriginalPosition ?? d.Position;
+
     private string Write(string name, string content)
     {
         var p = Path.Combine(_dir, name);
@@ -172,5 +180,96 @@ public class ImportedDiagnosticAttributionTests : IDisposable
 
         Assert.NotNull(d);
         Assert.Equal(Path.GetFullPath(innerPath), Path.GetFullPath(d!));
+    }
+
+    /// <summary>
+    /// The importing document must keep reporting its <em>own</em> classic constructs,
+    /// at their real offsets, no matter how large the imported files are.
+    ///
+    /// <c>_strictTokenIndex</c> is a monotonic cursor into <c>_posMap</c>. Binding an
+    /// imported tree swaps <c>_posMap</c> but used to leave the cursor pointing at
+    /// whatever index the (much longer) imported token stream had reached. Every
+    /// subsequent <c>FindToken</c> against the main file's shorter stream then started
+    /// past the end and returned -1, so the main document's strict-mode diagnostics
+    /// were reported at offset 0 (a squiggle on unrelated text) or dropped outright.
+    /// </summary>
+    [Fact]
+    public void MainFileStrictDiagnostics_SurviveALargeImport()
+    {
+        // Long enough that the imported token cursor runs well past the main file's stream.
+        var big = string.Concat(Enumerable.Range(0, 40).Select(i =>
+            $"interface IBig{i} {{ HRESULT M{i}([in] long a{i}, [in] short b{i}); }}\n"));
+        Write("big.idl", big);
+
+        const string main = """
+            import "big.idl";
+
+            namespace Probe
+            {
+                runtimeclass Widget
+                {
+                    void Go(long mainLongToken);
+                }
+            }
+            """;
+
+        var comp = CompileMain(main);
+        var mainPath = Path.Combine(_dir, "main.idl");
+
+        var mine = comp.Diagnostics
+            .Where(d => d.SourceFile == null || d.SourceFile == mainPath)
+            .Where(d => d.Code == "MIDL2005" && d.Message.Contains("'long'"))
+            .ToList();
+
+        Assert.True(mine.Count > 0,
+            "The main file's own lowercase 'long' was dropped once a large file was imported. " +
+            $"({comp.Diagnostics.Count} diagnostics total, none attributed to main.idl.)");
+
+        // Assert the exact offset, not merely "non-zero": a position-0 fallback is a
+        // squiggle painted on text that is certainly wrong, which is worse than silence.
+        int expected = main.IndexOf("long mainLongToken", StringComparison.Ordinal);
+        Assert.All(mine, d => Assert.Equal(expected, Painted(d)));
+    }
+
+    /// <summary>
+    /// The same source must produce the same main-file diagnostics whether or not an
+    /// unrelated file is imported. Imports may only <em>add</em> diagnostics.
+    /// </summary>
+    [Fact]
+    public void ImportingAFile_DoesNotChangeTheMainFilesOwnDiagnostics()
+    {
+        var body = """
+
+            namespace Probe
+            {
+                runtimeclass Widget
+                {
+                    void Go(long a, short b, float c);
+                }
+            }
+            """;
+
+        var withoutImport = CompileMain(body, "solo.idl");
+        var soloPath = Path.Combine(_dir, "solo.idl");
+        var soloOwn = withoutImport.Diagnostics
+            .Where(d => d.SourceFile == null || d.SourceFile == soloPath)
+            .Select(d => (d.Code, Position: Painted(d)))
+            .OrderBy(x => x.Position).ThenBy(x => x.Code).ToList();
+
+        Assert.NotEmpty(soloOwn);
+
+        Write("big.idl", string.Concat(Enumerable.Range(0, 40).Select(i =>
+            $"interface IBig{i} {{ HRESULT M{i}([in] long a{i}, [in] short b{i}); }}\n")));
+
+        // Same body, byte for byte, so every offset in it is unchanged.
+        var withImport = CompileMain("import \"big.idl\";" + body);
+        var mainPath = Path.Combine(_dir, "main.idl");
+        int shift = "import \"big.idl\";".Length;
+        var mainOwn = withImport.Diagnostics
+            .Where(d => d.SourceFile == null || d.SourceFile == mainPath)
+            .Select(d => (d.Code, Position: Painted(d) - shift))
+            .OrderBy(x => x.Position).ThenBy(x => x.Code).ToList();
+
+        Assert.Equal(soloOwn, mainOwn);
     }
 }

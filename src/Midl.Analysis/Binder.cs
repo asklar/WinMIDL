@@ -98,9 +98,15 @@ public partial class Binder
                 var savedPosMap = _posMap;
                 var savedRoot = _root;
                 var savedOffsetMap = _nodeOffsetMap;
+                // _strictTokenIndex is a cursor into _posMap, so it has to travel with it.
+                // Leaving it stale made the main file's own strict-mode tokens unfindable
+                // (FindToken starts past the end of the shorter main token stream), silently
+                // dropping every classic-construct diagnostic in the importing document.
+                var savedStrictTokenIndex = _strictTokenIndex;
                 _posMap = new TokenPositionMap(importedTokens);
                 _root = importedTree;
                 _nodeOffsetMap = null;
+                _strictTokenIndex = 0;
                 _currentImportedFilePath = importedFilePath;
 
                 // Diagnostics raised while binding this tree carry positions in the
@@ -115,6 +121,7 @@ public partial class Binder
                 _posMap = savedPosMap;
                 _root = savedRoot;
                 _nodeOffsetMap = savedOffsetMap;
+                _strictTokenIndex = savedStrictTokenIndex;
             }
             _currentImportedFilePath = null;
             _bindingImportedFile = false;
