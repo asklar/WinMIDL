@@ -272,4 +272,91 @@ public class ImportedDiagnosticAttributionTests : IDisposable
 
         Assert.Equal(soloOwn, mainOwn);
     }
+
+    /// <summary>
+    /// Type resolution is a <em>deferred</em> pass: <c>TrackTypeRef</c> queues every
+    /// reference during binding and <c>TypeResolver.ResolveAll</c> runs after all trees
+    /// (including imported ones) have been bound.
+    ///
+    /// That put "undefined type" diagnostics outside the import loop's tagging range, so
+    /// they kept a null SourceFile and were attributed to the importing document — at an
+    /// offset that only means something in the imported file. Importing a classic system
+    /// IDL painted hundreds of these across unrelated text.
+    /// </summary>
+    [Fact]
+    public void UndefinedTypeDiagnostics_AreAttributedToTheFileThatUsesTheType()
+    {
+        var usesPath = Write("uses.idl",
+            "interface IUses { HRESULT M([in] NoSuchType_Xyz count); }\n");
+
+        // The main file never mentions the type.
+        const string main = """
+            import "uses.idl";
+
+            namespace Probe
+            {
+                runtimeclass Widget
+                {
+                    Int32 Value;
+                }
+            }
+            """;
+
+        var comp = CompileMain(main);
+        var mainPath = Path.Combine(_dir, "main.idl");
+
+        var undefined = comp.Diagnostics
+            .Where(d => d.Message.Contains("NoSuchType_Xyz"))
+            .ToList();
+
+        Assert.NotEmpty(undefined);
+        Assert.All(undefined, d => Assert.Equal(usesPath, d.SourceFile));
+        Assert.DoesNotContain(undefined, d => d.SourceFile == null || d.SourceFile == mainPath);
+    }
+
+    /// <summary>
+    /// And the offset must be meaningful in the file it is attributed to — pointing at the
+    /// type name itself, not at whatever text happens to sit at that offset elsewhere.
+    /// </summary>
+    [Fact]
+    public void UndefinedTypeDiagnostics_PointAtTheTypeInTheImportedFile()
+    {
+        const string usesSource = "interface IUses { HRESULT M([in] NoSuchType_Xyz count); }\n";
+        var usesPath = Write("uses.idl", usesSource);
+
+        var comp = CompileMain("import \"uses.idl\";\n\nnamespace Probe { struct S { Int32 A; }; }\n");
+
+        var d = comp.Diagnostics.First(x => x.Message.Contains("NoSuchType_Xyz"));
+
+        int expected = usesSource.IndexOf("NoSuchType_Xyz", StringComparison.Ordinal);
+        Assert.Equal(expected, Painted(d));
+    }
+
+    /// <summary>
+    /// The importing file's own undefined types must still be reported against it.
+    /// </summary>
+    [Fact]
+    public void UndefinedTypesInTheMainFile_AreStillReportedAgainstTheMainFile()
+    {
+        Write("uses.idl", "interface IUses { HRESULT M([in] NoSuchType_Xyz count); }\n");
+
+        const string main = """
+            import "uses.idl";
+
+            namespace Probe
+            {
+                struct S { MainOnlyBogusType A; };
+            }
+            """;
+
+        var comp = CompileMain(main);
+        var mainPath = Path.Combine(_dir, "main.idl");
+
+        var mine = comp.Diagnostics.Where(d => d.Message.Contains("MainOnlyBogusType")).ToList();
+
+        Assert.NotEmpty(mine);
+        Assert.All(mine, d => Assert.True(d.SourceFile == null || d.SourceFile == mainPath,
+            $"expected main.idl (or null), got {d.SourceFile}"));
+        Assert.All(mine, d => Assert.Equal(main.IndexOf("MainOnlyBogusType", StringComparison.Ordinal), Painted(d)));
+    }
 }
