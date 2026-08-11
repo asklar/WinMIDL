@@ -1865,6 +1865,23 @@ public partial class Binder
     /// <summary>Check if an attribute list node contains a specific attribute name.</summary>
     // Note: Uses existing HasAttribute method defined elsewhere in this class
 
+    /// <summary>
+    /// Spells a folded multi-word C type the way it was written: "unsigned long", not
+    /// "unsignedlong". Used for alias lookup and for the strict-mode diagnostic, so both see
+    /// the same name the author typed.
+    /// </summary>
+    internal static string JoinTypeWords(GreenNode node)
+    {
+        var sb = new System.Text.StringBuilder();
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            if (node.GetSlot(i) is not SyntaxToken t) continue;
+            if (sb.Length > 0) sb.Append(' ');
+            sb.Append(t.Text);
+        }
+        return sb.ToString();
+    }
+
     private TypeRef ExtractTypeRef(GreenNode? node)
     {
         if (node == null) return TypeRef.Unknown;
@@ -1875,7 +1892,13 @@ public partial class Binder
             {
                 var inner = node.GetSlot(0);
                 if (inner is SyntaxToken tok)
-                    return new TypeRef(tok.Text) { Position = GetNodePosition(node) };
+                {
+                    // A multi-word C integer type — "unsigned long", "long long" — is folded
+                    // into several token slots by the parser. Join them so the type is named
+                    // the way it was written, which is what the alias table and diagnostics use.
+                    var name = node.SlotCount > 1 ? JoinTypeWords(node) : tok.Text;
+                    return new TypeRef(name) { Position = GetNodePosition(node) };
+                }
                 if (inner != null)
                     return ExtractTypeRef(inner);
                 return TypeRef.Unknown;
@@ -2207,6 +2230,30 @@ public partial class Binder
             }
             else
             {
+                // A folded multi-word C type ("unsigned long") is one construct, so report it
+                // once, naming the whole spelling, rather than once per word. Same shape as the
+                // pointer case below.
+                if (slot.Kind == SyntaxKind.TypeReference && slot.SlotCount > 1 &&
+                    IsFoldedMultiWordType(slot))
+                {
+                    var spelling = JoinTypeWords(slot);
+                    int typePos = AttributeExtractor.FindNodeOffset(_root, slot) ?? 0;
+                    if (slot.GetSlot(0) is SyntaxToken firstWord)
+                        typePos += SumTriviaWidth(firstWord.LeadingTrivia);
+
+                    _diagnostics.Add(DiagnosticDescriptors.LowercaseType(
+                        spelling, SuggestWinRtTypeFor(spelling), typePos));
+
+                    // Advance past this construct's tokens so later lookups stay in step.
+                    for (int t = 0; t < slot.SlotCount; t++)
+                    {
+                        if (slot.GetSlot(t) is not SyntaxToken word) continue;
+                        int wi = _posMap.FindToken(word.Text, _strictTokenIndex);
+                        if (wi >= 0) _strictTokenIndex = wi + 1;
+                    }
+                    continue;
+                }
+
                 // Check pointer types — report once for the whole pointer chain, don't recurse
                 if (slot.Kind == SyntaxKind.PointerType)
                 {
@@ -2239,6 +2286,17 @@ public partial class Binder
             }
         }
     }
+
+    /// <summary>
+    /// True when a TypeReference holds a folded multi-word C type rather than, say, a
+    /// qualified name — recognised by the spelling the parser produced.
+    /// </summary>
+    private static bool IsFoldedMultiWordType(GreenNode node) =>
+        BuiltInTypes.MultiWordClassicTypes.ContainsKey(JoinTypeWords(node));
+
+    /// <summary>The WinRT type to suggest instead, from the same table compat mode resolves with.</summary>
+    private static string SuggestWinRtTypeFor(string spelling) =>
+        BuiltInTypes.MultiWordClassicTypes.TryGetValue(spelling, out var winrt) ? winrt : "Int32";
 
     private void CheckStrictModeToken(SyntaxToken token, int position)
     {

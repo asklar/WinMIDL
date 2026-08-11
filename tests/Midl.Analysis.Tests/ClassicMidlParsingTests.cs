@@ -66,11 +66,25 @@ public class ClassicMidlParsingTests
         AssertNoParseErrors(Compat("    " + member));
     }
 
-    [Fact(Skip = "Multi-word C integer types ('unsigned long', 'long long') are a separate "
-                 + "gap in ParseTypeReference — they fail with or without const.")]
+    [Fact]
     public void ConstParameter_MultiWordType_Parses()
     {
         AssertNoParseErrors(Compat("    error_status_t f([in] const unsigned long handle);"));
+    }
+
+    /// <summary>
+    /// The folded type keeps its spelling and the name stays the name — the shape that made
+    /// <c>const unsigned long windowHandle</c> report the parameter name as an undefined type.
+    /// </summary>
+    [Fact]
+    public void ConstParameter_MultiWordType_KeepsNameAndType()
+    {
+        var m = SingleMethod(Compat("    error_status_t f([in] const unsigned long windowHandle);"));
+
+        Assert.Equal("f", m.Name);
+        var p = Assert.Single(m.Parameters);
+        Assert.Equal("windowHandle", p.Name);
+        Assert.Equal("unsigned long", p.Type.Name);
     }
 
     [Fact]

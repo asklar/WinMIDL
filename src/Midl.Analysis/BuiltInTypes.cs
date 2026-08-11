@@ -21,6 +21,49 @@ public static class BuiltInTypes
     private static Dictionary<string, NamespaceSymbol>? _detachedNamespaces;
 
     /// <summary>
+    /// Multi-word C integer types and the WinRT type each corresponds to.
+    ///
+    /// Classic MIDL and C spell these with more than one word; MIDL3 has no such spelling.
+    /// The table therefore serves two purposes and must stay one table: compat mode registers
+    /// it as aliases so the types resolve, and strict mode reads it to say which WinRT type to
+    /// use instead. Two copies would eventually disagree, and the disagreement would surface
+    /// as a suggestion that does not match what the compiler actually accepts.
+    ///
+    /// <c>signed char</c> is an 8-bit signed integer, which WinRT has no type for; Int16 is the
+    /// narrowest that represents every value without truncating.
+    /// </summary>
+    internal static readonly Dictionary<string, string> MultiWordClassicTypes = new(StringComparer.Ordinal)
+    {
+        ["unsigned char"] = "UInt8",
+        ["unsigned small"] = "UInt8",
+        ["unsigned short"] = "UInt16",
+        ["unsigned int"] = "UInt32",
+        ["unsigned long"] = "UInt32",
+        ["unsigned hyper"] = "UInt64",
+        ["unsigned long long"] = "UInt64",
+        ["unsigned __int8"] = "UInt8",
+        ["unsigned __int16"] = "UInt16",
+        ["unsigned __int32"] = "UInt32",
+        ["unsigned __int64"] = "UInt64",
+        ["unsigned __int3264"] = "UInt32",
+
+        ["signed char"] = "Int16",
+        ["signed small"] = "Int16",
+        ["signed short"] = "Int16",
+        ["signed int"] = "Int32",
+        ["signed long"] = "Int32",
+        ["signed hyper"] = "Int64",
+        ["signed long long"] = "Int64",
+        ["signed __int8"] = "Int16",
+        ["signed __int16"] = "Int16",
+        ["signed __int32"] = "Int32",
+        ["signed __int64"] = "Int64",
+        ["signed __int3264"] = "Int32",
+
+        ["long long"] = "Int64",
+    };
+
+    /// <summary>
     /// Register all built-in WinRT types into the symbol table.
     /// Called once at compilation start, before user code binding.
     /// </summary>
@@ -170,6 +213,9 @@ public static class BuiltInTypes
             symbolTable.RegisterAlias("hyper", "Int64");
             symbolTable.RegisterAlias("small", "UInt8");
             symbolTable.RegisterAlias("unsigned", "UInt32");
+
+            foreach (var kv in MultiWordClassicTypes)
+                symbolTable.RegisterAlias(kv.Key, kv.Value);
         }
 #endif
 
