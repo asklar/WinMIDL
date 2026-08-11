@@ -6,19 +6,19 @@ using Midl.CodeGen.Decompiler;
 using Midl.CodeGen.WinMd;
 using Midl.Lsp;
 using Midl.Lsp.Handlers;
+using Midl.TestSupport;
 
 namespace Midl.Integration.Tests;
 
 /// <summary>Tests for F12 navigation within decompiled WinMD virtual documents.</summary>
 public partial class GotoDefinitionTests
 {
-    [Fact]
+    [WindowsSdkFact]
     public void F12InDecompiledView_ShortName_ResolvesInCurrentNamespace()
     {
         // In a decompiled view of Windows.Foundation, F12 on "IAsyncAction" (short name,
         // same namespace) should navigate within the same namespace view
-        var winmdPath = SdkWinMd.PathOrNull;
-        if (winmdPath is null) return;   // no Windows SDK installed; see SdkWinMd
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var decompiled = decompiler.Decompile(winmdPath, "Windows.Foundation");
@@ -39,13 +39,12 @@ public partial class GotoDefinitionTests
         Assert.Contains("Windows.Foundation", resultUri);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void F12InDecompiledView_CrossNamespace_NavigatesToOtherNamespace()
     {
         // In Windows.UI.Xaml.Controls view, F12 on "Windows.UI.Xaml.UIElement" (FQN, different ns)
         // should navigate to Windows.UI.Xaml namespace
-        var winmdPath = SdkWinMd.PathOrNull;
-        if (winmdPath is null) return;   // no Windows SDK installed; see SdkWinMd
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var decompiled = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
@@ -66,12 +65,11 @@ public partial class GotoDefinitionTests
         Assert.Contains("Windows.UI.Xaml", resultUri);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void F12InDecompiledView_EventDelegateType_HasType()
     {
         // Decompiled events should have delegate type, not empty
-        var winmdPath = SdkWinMd.PathOrNull;
-        if (winmdPath is null) return;   // no Windows SDK installed; see SdkWinMd
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");

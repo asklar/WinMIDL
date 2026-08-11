@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using Midl.TestSupport;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Midl.Analysis;
@@ -403,13 +404,12 @@ public partial class DecompilerTests
         Assert.Contains("static String DefaultName", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DecompileDelegate_GenericParamNames()
     {
         // Decompiling a WinMD with generic delegates should show named type params,
         // not !0/!1 or backtick notation
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return; // skip on machines without SDK
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
@@ -423,11 +423,10 @@ public partial class DecompilerTests
         Assert.DoesNotContain("`", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DecompileNamespaceFilter_OnlyShowsRequestedNamespace()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
@@ -440,11 +439,10 @@ public partial class DecompilerTests
         Assert.DoesNotContain("namespace Windows.Storage", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DecompileWindowsFoundation_IncludesTimeSpan()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
@@ -453,11 +451,10 @@ public partial class DecompilerTests
         Assert.Contains("Int64 Duration", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DecompileWindowsFoundation_IncludesDateTime()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
@@ -466,11 +463,10 @@ public partial class DecompilerTests
         Assert.Contains("Int64 UniversalTime", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DecompileWindowsFoundation_TypeRefsUseWinRTNames()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
@@ -519,11 +515,10 @@ public partial class DecompilerTests
         Assert.DoesNotContain("protected void DoWork", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_WindowsWinmd_OverridableMembers()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
         // ContentControl has overridable OnContentChanged
@@ -534,12 +529,11 @@ public partial class DecompilerTests
 
     #region Namespace-scoped type names
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_CrossNamespaceTypes_FullyQualified()
     {
         // Types from other namespaces should keep their fully qualified name
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
@@ -552,12 +546,11 @@ public partial class DecompilerTests
         Assert.Contains("Windows.Foundation.Collections.IVector", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_SameNamespaceTypes_ShortName()
     {
         // Types in the same namespace should use short names
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
@@ -568,12 +561,11 @@ public partial class DecompilerTests
         Assert.DoesNotContain("Windows.UI.Xaml.Controls.UIElementCollection", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_ProjectedCollectionTypes_FullyQualified()
     {
         // CLR-projected collection types should show WinRT names, fully qualified
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
@@ -583,12 +575,11 @@ public partial class DecompilerTests
         Assert.DoesNotContain("System.Collections.Generic.IReadOnlyList", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_GenericArgsAlsoFullyQualified()
     {
         // Generic type arguments from other namespaces should also be fully qualified
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
@@ -599,13 +590,12 @@ public partial class DecompilerTests
         Assert.DoesNotContain(" UIElement>", idl.Replace("Windows.UI.Xaml.UIElement>", ""));
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_SameNamespaceGenericArgs_Short()
     {
         // When decompiling Windows.Foundation, types like IAsyncOperation<IPropertyValue> 
         // should use short name for IPropertyValue (same namespace)
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
@@ -639,32 +629,29 @@ public partial class DecompilerTests
 
     #region Gap fixes: attributes, events, property shorthand
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_WebHostHidden_Shown()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
         Assert.Contains("[webhosthidden]", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_ContractOnClass_Shown()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
         // Classes should show [contract(...)] attribute
         Assert.Contains("[contract(", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_WindowsWinmd_ControlShowsBaseClass()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
         // ContentControl extends Control
@@ -675,11 +662,10 @@ public partial class DecompilerTests
 
     #region Version number decoding
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_VersionNumbers_Decoded()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
         // Should NOT contain raw encoded versions like 65536
@@ -758,11 +744,10 @@ public partial class DecompilerTests
         Assert.DoesNotMatch(@"\[contract\(.*MyContract.*, 1\)\]\s*\{", idl);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void Decompile_WindowsWinmd_HasVersionedBlocks()
     {
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
         var contractBlockPattern = System.Text.RegularExpressions.Regex.IsMatch(
