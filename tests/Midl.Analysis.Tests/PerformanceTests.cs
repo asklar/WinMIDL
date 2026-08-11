@@ -9,9 +9,18 @@ namespace Midl.Analysis.Tests;
 /// <summary>
 /// Performance regression tests for compilation pipeline hot paths.
 /// These verify optimizations don't regress and key operations stay fast.
+///
+/// Each timed region is preceded by a warm-up compile. The first compilation in a process
+/// pays to JIT the whole pipeline, which on a loaded CI runner dwarfs the work being
+/// measured — <c>FindClosestMatch_CachesCandidates_SecondCallFaster</c> has failed in CI on
+/// exactly that. The bounds are deliberately loose: they exist to catch a catastrophic
+/// regression such as an accidental quadratic, not to measure the runner.
 /// </summary>
 public class PerformanceTests
 {
+    /// <summary>Generous enough to be about the code rather than the machine.</summary>
+    private const int BudgetMs = 2000;
+
     [Fact]
     public void FindClosestMatch_CachesCandidates_SecondCallFaster()
     {
@@ -53,9 +62,9 @@ public class PerformanceTests
             .ToList();
         Assert.Equal(3, suggestions.Count);
 
-        // Verify it completes in reasonable time (< 500ms even on slow CI)
-        Assert.True(sw.ElapsedMilliseconds < 500,
-            $"Compilation with 5 type errors took {sw.ElapsedMilliseconds}ms, expected < 500ms");
+        // Verify it completes in reasonable time (see BudgetMs)
+        Assert.True(sw.ElapsedMilliseconds < BudgetMs,
+            $"Compilation with 5 type errors took {sw.ElapsedMilliseconds}ms, expected < {BudgetMs}ms");
     }
 
     [Fact]
@@ -68,14 +77,17 @@ public class PerformanceTests
         var source = "namespace TestApp\n{\n    runtimeclass BigWidget\n    {\n        BigWidget();\n        " +
             members + "\n    }\n}\n";
 
+        // Warm up so the measurement is of the parse, not of JITting the pipeline.
+        CompilationHelper.Compile(source);
+
         var sw = Stopwatch.StartNew();
         var compilation = CompilationHelper.Compile(source);
         sw.Stop();
 
         foreach (var d in compilation.Diagnostics)
             Assert.NotEqual(Diagnostics.DiagnosticSeverity.Error, d.Severity);
-        Assert.True(sw.ElapsedMilliseconds < 500,
-            $"Compilation of 50-member class took {sw.ElapsedMilliseconds}ms, expected < 500ms");
+        Assert.True(sw.ElapsedMilliseconds < BudgetMs,
+            $"Compilation of 50-member class took {sw.ElapsedMilliseconds}ms, expected < {BudgetMs}ms");
     }
 
     [Fact]

@@ -80,6 +80,13 @@ public class LazyWinMdProvider : IDisposable
     /// <summary>Number of types available (for diagnostics/logging).</summary>
     public int TypeCount => _typeIndex.Count;
 
+    /// <summary>
+    /// Number of types actually decoded so far. The whole point of this provider is that
+    /// constructing it indexes names without decoding any type, so tests assert on this
+    /// directly rather than timing the difference.
+    /// </summary>
+    internal int DecodedTypeCount => _cache.Count;
+
     /// <summary>Check if a type exists without fully loading it.</summary>
     public bool HasType(string fullName) => _typeIndex.ContainsKey(fullName);
 
