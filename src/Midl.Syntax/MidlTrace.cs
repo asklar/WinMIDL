@@ -29,7 +29,28 @@ public static class MidlTrace
             _enabled = true;
             if (logFilePath != null)
             {
-                var fileWriter = new StreamWriter(logFilePath, append: true) { AutoFlush = true };
+                // Another process may already hold the log — a second editor window, or a
+                // language server still running from a previous session. Tracing is a
+                // diagnostic aid, so share the file where possible and fall back to stderr
+                // rather than failing to start over it.
+                TextWriter fileWriter;
+                try
+                {
+                    var stream = new FileStream(logFilePath, FileMode.Append, FileAccess.Write,
+                        FileShare.ReadWrite | FileShare.Delete);
+                    fileWriter = new StreamWriter(stream) { AutoFlush = true };
+                }
+                catch (IOException)
+                {
+                    _writer = alsoWriteToStdErr ? Console.Error : TextWriter.Null;
+                    return;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    _writer = alsoWriteToStdErr ? Console.Error : TextWriter.Null;
+                    return;
+                }
+
                 _writer = alsoWriteToStdErr
                     ? new TeeWriter(fileWriter, Console.Error)
                     : fileWriter;

@@ -132,14 +132,11 @@ public class CompilationSourceMapTests : IDisposable
     }
 
     /// <summary>
-    /// Not yet supported: an imported file's own <c>#include</c>s.
-    ///
-    /// The text is preprocessed and parsed — the tree contains a NamespaceDeclaration for
-    /// the included content — but the binder never defines those types, so they vanish
-    /// silently. That is a binding defect rather than a positioning one, so it is tracked
-    /// separately; this test documents the intended behaviour.
+    /// An imported file may itself <c>#include</c> another. A diagnostic about text that
+    /// came from the included file must name that file, not the one that included it —
+    /// the position is only meaningful in the file the text actually lives in.
     /// </summary>
-    [Fact(Skip = "Included content inside an imported file is parsed but never bound — see issue #67")]
+    [Fact]
     public void DiagnosticsFromAFileIncludedByAnImport_NameTheIncludedFile()
     {
         const string inner = """

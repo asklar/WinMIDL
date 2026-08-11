@@ -164,8 +164,26 @@ public class Preprocessor
     }
 #endif
 
+    /// <summary>
+    /// The newline sequence a file uses.
+    ///
+    /// Positions map back to original offsets linearly within a source-map segment, so
+    /// re-emitting a file's lines with a different newline than it was written with shifts
+    /// every subsequent position by the difference — one character per line for LF source
+    /// on Windows.
+    /// </summary>
+    private static string DetectNewline(string text)
+    {
+        int lf = text.IndexOf('\n');
+        if (lf < 0) return Environment.NewLine;
+        return (lf > 0 && text[lf - 1] == '\r') ? "\r\n" : "\n";
+    }
+
     private string ProcessInternal(string source, string? filePath, int baseOffset = 0, bool isIncludedFile = false)
     {
+        // Re-emit this file's lines with the newline it actually uses, not the platform's.
+        string nl = DetectNewline(source);
+
         var rawLines = SplitLines(source);
 
         // Compute original character offsets for each raw line
@@ -236,43 +254,43 @@ public class Preprocessor
                     case "define":
                         if (IsActive(ifStack))
                             HandleDefine(directive.Body);
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     case "undef":
                         if (IsActive(ifStack))
                             HandleUndef(directive.Body);
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     case "ifdef":
                         HandleIfdef(ifStack, directive.Body, negate: false);
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     case "ifndef":
                         HandleIfdef(ifStack, directive.Body, negate: true);
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     case "if":
                         HandleIf(ifStack, directive.Body);
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     case "elif":
                         HandleElif(ifStack, directive.Body);
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     case "else":
                         HandleElse(ifStack);
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     case "endif":
                         HandleEndif(ifStack);
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     case "include":
@@ -297,7 +315,7 @@ public class Preprocessor
                                 flushed = true;
                             }
 
-                            var included = HandleInclude(directive.Body, filePath, expandedPos, rawLineOffsets[origIdx]);
+                            var included = HandleInclude(directive.Body, filePath, expandedPos, rawLineOffsets[origIdx], nl);
                             if (included != null)
                             {
                                 output.Append(included);
@@ -312,7 +330,7 @@ public class Preprocessor
                             }
                             else
                             {
-                                output.AppendLine();
+                                output.Append(nl);
                                 // Remove the prematurely flushed segment since nothing was included
                                 if (flushed)
                                 {
@@ -325,33 +343,33 @@ public class Preprocessor
                         }
                         else
                         {
-                            output.AppendLine();
+                            output.Append(nl);
                         }
                         break;
 
                     case "pragma":
                         if (IsActive(ifStack))
-                            HandlePragma(directive.Body, filePath, output);
+                            HandlePragma(directive.Body, filePath, output, nl);
                         else
-                            output.AppendLine();
+                            output.Append(nl);
                         break;
 
                     case "error":
                         if (IsActive(ifStack))
                             Errors.Add(($"#error {directive.Body.Trim()}", rawLineOffsets[origLineIndices[i]]));
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     case "warning":
                         // #warning is informational — just drop the line
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
 
                     default:
                         // Unknown directive — report error and drop
                         if (IsActive(ifStack))
                             Errors.Add(($"Unknown preprocessor directive: '#{directive.Name}'", rawLineOffsets[origLineIndices[i]]));
-                        output.AppendLine();
+                        output.Append(nl);
                         break;
                 }
 
@@ -379,7 +397,7 @@ public class Preprocessor
                             SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
 
                         // Emit the substituted line
-                        output.AppendLine(substituted);
+                        output.Append(substituted).Append(nl);
                         hasMacroDeltas = true;
 
                         // Start a new segment AFTER this line.
@@ -389,12 +407,12 @@ public class Preprocessor
                     }
                     else
                     {
-                        output.AppendLine(substituted);
+                        output.Append(substituted).Append(nl);
                     }
                 }
                 else
                 {
-                    output.AppendLine();
+                    output.Append(nl);
                 }
             }
 
@@ -405,7 +423,7 @@ public class Preprocessor
                 int rawEnd = (i + 1 < origLineIndices.Length) ? origLineIndices[i + 1] : rawLines.Count;
                 int extraLines = rawEnd - rawStart - 1;
                 for (int j = 0; j < extraLines; j++)
-                    output.AppendLine();
+                    output.Append(nl);
             }
 
             // Track active/inactive transitions for #ifdef gap source mapping
@@ -455,10 +473,13 @@ public class Preprocessor
             InactiveRegions.Add((inactiveRegionStart, rawLineOffsets[rawLines.Count]));
         }
 
-        // Remove trailing newline added by final AppendLine
-        if (output.Length >= Environment.NewLine.Length)
+        // Remove the newline the final AppendLine added — but only the newline. The output
+        // can end with a lone "\n" (HandleInclude normalises included content that way), so
+        // subtracting Environment.NewLine.Length blindly would eat a real character: the
+        // closing brace of a file ending in an #include, leaving it unterminated.
+        if (output.Length > 0 && output[^1] == '\n')
         {
-            output.Length -= Environment.NewLine.Length;
+            output.Length -= (output.Length >= 2 && output[^2] == '\r') ? 2 : 1;
         }
 
         // Flush final segment
@@ -618,7 +639,7 @@ public class Preprocessor
             ifStack.Pop();
     }
 
-    private string? HandleInclude(string rest, string? parentFilePath, int baseOffset = 0, int originalPosition = 0)
+    private string? HandleInclude(string rest, string? parentFilePath, int baseOffset, int originalPosition, string nl)
     {
         HasIncludeDirectives = true;
 
@@ -629,7 +650,7 @@ public class Preprocessor
         if (resolved == null)
         {
             Errors.Add(($"#include file not found: '{path}'", originalPosition));
-            return "\n";
+            return nl;
         }
 
         var fullPath = Path.GetFullPath(resolved);
@@ -640,20 +661,24 @@ public class Preprocessor
 
         // Infinite recursion check
         if (_includeStack.Contains(fullPath))
-            return "\n";
+            return nl;
 
         _includeStack.Add(fullPath);
         try
         {
             var content = File.ReadAllText(resolved);
             var processed = ProcessInternal(content, resolved, baseOffset, isIncludedFile: true);
+            // Terminate with the same newline the rest of the output uses. Returning a
+            // lone "\n" here is what made the caller's fixed-length newline strip eat a
+            // real character; keeping the buffer internally consistent removes the trap
+            // rather than relying on every consumer to survive it.
             if (!processed.EndsWith('\n'))
-                return processed + "\n";
+                return processed + nl;
             return processed;
         }
         catch
         {
-            return "\n";
+            return nl;
         }
         finally
         {
@@ -661,19 +686,19 @@ public class Preprocessor
         }
     }
 
-    private void HandlePragma(string rest, string? filePath, StringBuilder output)
+    private void HandlePragma(string rest, string? filePath, StringBuilder output, string nl)
     {
         var trimmed = rest.Trim();
         if (trimmed.Equals("once", StringComparison.OrdinalIgnoreCase))
         {
             if (filePath != null)
                 _pragmaOnceFiles.Add(Path.GetFullPath(filePath));
-            output.AppendLine();
+            output.Append(nl);
         }
         else
         {
             // Unknown pragma — drop the directive line
-            output.AppendLine();
+            output.Append(nl);
         }
     }
 
