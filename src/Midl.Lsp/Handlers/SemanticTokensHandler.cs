@@ -33,6 +33,7 @@ public static class SemanticTokensHandler
         "number",       // 12
         "struct",       // 13
         "decorator",    // 14
+        "macro",        // 15
     ];
 
     public static readonly string[] TokenModifiers = ["declaration", "static"];
@@ -52,6 +53,7 @@ public static class SemanticTokensHandler
     private const int TypeNumber = 12;
     private const int TypeStruct = 13;
     private const int TypeDecorator = 14;
+    private const int TypeMacro = 15;
 
     // Cache: avoid re-lexing/re-classifying when the document hasn't changed
     private static readonly ConcurrentDictionary<string, (int hash, int[] data)> _cache = new();
@@ -113,6 +115,7 @@ public static class SemanticTokensHandler
         }
 
         var allTypes = compilation?.GetAllTypes().ToList();
+        var macros = compilation?.Macros;
         var inactiveRegions = compilation?.InactiveRegions;
 
         var encodedTokens = new List<int>();
@@ -176,7 +179,7 @@ public static class SemanticTokensHandler
             int textStart = pos;
 
             // Classify the token itself
-            int tokenType = ClassifyToken(token, allTypes);
+            int tokenType = ClassifyToken(token, allTypes, macros);
             bool isInactive = inactiveRegions != null && token.Text.Length > 0 &&
                               IsInInactiveRegion(textStart, inactiveRegions);
 
@@ -222,7 +225,8 @@ public static class SemanticTokensHandler
         return false;
     }
 
-    private static int ClassifyToken(SyntaxToken token, List<ISymbol>? allTypes)
+    private static int ClassifyToken(SyntaxToken token, List<ISymbol>? allTypes,
+        IReadOnlyDictionary<string, Midl.Lexer.MacroInfo>? macros = null)
     {
         // Keywords
         if (IsKeyword(token.Kind))
@@ -235,6 +239,15 @@ public static class SemanticTokensHandler
         // Numeric and float literals
         if (token.Kind is SyntaxKind.NumericLiteralToken or SyntaxKind.FloatLiteralToken)
             return TypeNumber;
+
+        // A macro was substituted out before binding, so it can never match a symbol.
+        // Colouring it as an ordinary identifier is what made `Int32 FOO x;` look like a
+        // declaration of a type named FOO rather than a name the preprocessor deleted.
+        if (token.Kind == SyntaxKind.IdentifierToken &&
+            macros is not null && macros.ContainsKey(token.Text))
+        {
+            return TypeMacro;
+        }
 
         // Identifiers — resolve against symbols if available
         if (token.Kind == SyntaxKind.IdentifierToken && allTypes is not null)

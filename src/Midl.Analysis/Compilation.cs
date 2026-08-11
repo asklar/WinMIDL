@@ -26,6 +26,14 @@ public class Compilation
     /// <summary>Inactive preprocessor regions in original source coordinates (for graying out).</summary>
     public IReadOnlyList<(int Start, int End)> InactiveRegions { get; internal set; } = [];
 
+    /// <summary>
+    /// Macros defined while preprocessing, keyed by name. A macro is substituted out before
+    /// binding, so no symbol or syntax node records it — this is what lets the editor
+    /// explain a name the rest of the compilation never saw.
+    /// </summary>
+    public IReadOnlyDictionary<string, Midl.Lexer.MacroInfo> Macros { get; internal set; }
+        = new Dictionary<string, Midl.Lexer.MacroInfo>();
+
     private readonly IReadOnlyList<LazyWinMdProvider>? _lazyProviders;
 
     /// <summary>Get the lazy WinMD providers (for code lens type counts per reference).</summary>
@@ -51,13 +59,29 @@ public class Compilation
         merged.AddRange(additional);
         merged.AddRange(Diagnostics);
         var result = new Compilation(GlobalNamespace, merged, _lazyProviders);
-        result.SourceMap = SourceMap;
-        result.UnitSourceMaps = UnitSourceMaps;
-        result.SymbolTable = SymbolTable;
-#if FEATURE_STAGING
-        foreach (var kvp in FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
-#endif
+        CopyCarriedStateTo(result);
         return result;
+    }
+
+    /// <summary>
+    /// Copy the state that is attached to a compilation rather than derived from it —
+    /// source maps, the symbol table, macros, inactive regions.
+    ///
+    /// Rewriting diagnostics builds a new Compilation, and each rewrite site used to copy
+    /// its own ad-hoc subset of these. Anything omitted was silently dropped, which is
+    /// invisible until something downstream happens to read it. One helper means a property
+    /// added here cannot be forgotten at a rewrite site.
+    /// </summary>
+    internal void CopyCarriedStateTo(Compilation target)
+    {
+        target.SourceMap = SourceMap;
+        target.UnitSourceMaps = UnitSourceMaps;
+        target.SymbolTable = SymbolTable;
+        target.Macros = Macros;
+        target.InactiveRegions = InactiveRegions;
+#if FEATURE_STAGING
+        foreach (var kvp in FeatureNames) target.FeatureNames[kvp.Key] = kvp.Value;
+#endif
     }
 
     /// <summary>Lookup any type by fully qualified name.</summary>

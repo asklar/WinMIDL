@@ -149,4 +149,44 @@ public class SemanticTokensTests
         Assert.Equal(14, data[12]); // length
         Assert.Equal(stringIdx, data[13]);
     }
+
+    /// <summary>
+    /// A macro name should not be coloured as if it were an ordinary identifier. The
+    /// preprocessor removed it, so the reader needs to see that it is not part of the
+    /// declaration it appears to sit inside.
+    /// </summary>
+    [Fact]
+    public void MacroNamesAreClassifiedAsMacros()
+    {
+        var source = "#define FOO\n\nnamespace N\n{\n    runtimeclass C\n    {\n        Int32 FOO x;\n    }\n}\n";
+        var (data, tokenTypes, _) = SemanticTokensHandler.HandleCore(source);
+
+        int macroIdx = Array.IndexOf(tokenTypes, "macro");
+        Assert.True(macroIdx >= 0, "macro should be in the token types legend");
+
+        // Walk the delta encoding looking for a macro-typed token on the FOO use line.
+        bool found = false;
+        int line = 0, col = 0;
+        for (int i = 0; i + 4 < data.Length; i += 5)
+        {
+            if (data[i] > 0) { line += data[i]; col = data[i + 1]; }
+            else { col += data[i + 1]; }
+
+            if (data[i + 3] == macroIdx && line == 6 && data[i + 2] == 3)
+                found = true;
+        }
+
+        Assert.True(found, "FOO on line 6 should be classified as a macro");
+    }
+
+    [Fact]
+    public void OrdinaryIdentifiersAreNotClassifiedAsMacros()
+    {
+        var source = "namespace N\n{\n    runtimeclass C\n    {\n        Int32 x;\n    }\n}\n";
+        var (data, tokenTypes, _) = SemanticTokensHandler.HandleCore(source);
+
+        int macroIdx = Array.IndexOf(tokenTypes, "macro");
+        for (int i = 0; i + 4 < data.Length; i += 5)
+            Assert.NotEqual(macroIdx, data[i + 3]);
+    }
 }

@@ -194,6 +194,7 @@ public static class CompilationHelper
         var compilation = binder.Bind(tree, tokens, externalTypes: null, importedTrees, lazyProviders,
             refDirectories, unitSourceMaps);
         compilation.UnitSourceMaps = unitSourceMaps;
+        compilation.Macros = preprocessor.Macros;
 
         if (profile != null) { profile.Bind = sw!.Elapsed; sw.Restart(); }
 
@@ -291,11 +292,8 @@ public static class CompilationHelper
             return compilation;
 
         var result = new Compilation(compilation.GlobalNamespace, resolved, compilation.LazyProviders);
+        compilation.CopyCarriedStateTo(result);
         result.SourceMap = sourceMap;
-        result.SymbolTable = compilation.SymbolTable;
-#if FEATURE_STAGING
-        foreach (var kvp in compilation.FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
-#endif
         return result;
     }
 
@@ -408,11 +406,7 @@ public static class CompilationHelper
             return compilation;
 
         var result = new Compilation(compilation.GlobalNamespace, resolved, compilation.LazyProviders);
-        result.SourceMap = compilation.SourceMap;
-        result.SymbolTable = compilation.SymbolTable;
-#if FEATURE_STAGING
-        foreach (var kvp in compilation.FeatureNames) result.FeatureNames[kvp.Key] = kvp.Value;
-#endif
+        compilation.CopyCarriedStateTo(result);
         return result;
     }
 
