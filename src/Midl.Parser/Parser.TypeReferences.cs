@@ -45,6 +45,14 @@ public sealed partial class Parser
 
         var firstName = EatToken();
 
+        // Classic MIDL/C spells some integer types with more than one word: unsigned long,
+        // long long, unsigned __int64. Fold them into a single type reference in both modes.
+        // Parsing them is not accepting them — strict mode still reports the whole type as a
+        // classic construct — but leaving them unparsed turned one bad type into a cascade of
+        // errors that buried everything real in the file.
+        var folded = TryParseMultiWordCType(firstName);
+        if (folded != null) return folded;
+
         // Check for generic: Name<...>
         if (At(SyntaxKind.LessThanToken))
         {
@@ -60,6 +68,59 @@ public sealed partial class Parser
         // Simple type reference
         return MakeNode(SyntaxKind.TypeReference, firstName);
     }
+
+    /// <summary>
+    /// Folds a multi-word C integer type into one <see cref="SyntaxKind.TypeReference"/>, or
+    /// returns null when the tokens do not spell one.
+    ///
+    /// Only the words that genuinely form part of the type are consumed, so the parameter name
+    /// in <c>unsigned long windowHandle</c> stays a name.
+    /// </summary>
+    private GreenNode? TryParseMultiWordCType(SyntaxToken firstName)
+    {
+        // "unsigned"/"signed" followed by the integer type they qualify. Bare "unsigned" is a
+        // type on its own and is left to the normal path.
+        if (firstName.Kind is SyntaxKind.UnsignedKeyword or SyntaxKind.SignedKeyword
+            && IsCIntegerWord(Current))
+        {
+            var parts = RentChildren();
+            parts.Add(firstName);
+
+            bool wasLong = Current.Kind == SyntaxKind.LongKeyword;
+            parts.Add(EatToken());
+
+            // "unsigned long long"
+            if (wasLong && Current.Kind == SyntaxKind.LongKeyword)
+                parts.Add(EatToken());
+
+            return MakeNode(SyntaxKind.TypeReference, parts);
+        }
+
+        // "long long"
+        if (firstName.Kind == SyntaxKind.LongKeyword && Current.Kind == SyntaxKind.LongKeyword)
+        {
+            var parts = RentChildren();
+            parts.Add(firstName);
+            parts.Add(EatToken());
+            return MakeNode(SyntaxKind.TypeReference, parts);
+        }
+
+        return null;
+    }
+
+    /// <summary>The integer words that may follow <c>unsigned</c> or <c>signed</c>.</summary>
+    private static bool IsCIntegerWord(SyntaxToken token) =>
+        token.Kind is SyntaxKind.CharKeyword
+                   or SyntaxKind.ShortKeyword
+                   or SyntaxKind.IntKeyword
+                   or SyntaxKind.LongKeyword
+                   or SyntaxKind.HyperKeyword
+                   or SyntaxKind.SmallKeyword
+        || (token.Kind == SyntaxKind.IdentifierToken && IsIntNWord(token.Text));
+
+    /// <summary>The <c>__intN</c> family, which lexes as an identifier.</summary>
+    private static bool IsIntNWord(string text) =>
+        text is "__int8" or "__int16" or "__int32" or "__int64" or "__int3264";
 
     /// <summary>Parse a qualified type reference: A.B.C or A.B.C&lt;T&gt;</summary>
     private GreenNode ParseQualifiedTypeReference(SyntaxToken firstName)
