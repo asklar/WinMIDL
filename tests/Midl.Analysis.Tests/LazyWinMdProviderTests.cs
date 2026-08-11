@@ -261,20 +261,21 @@ public class LazyWinMdProviderTests
     }
 
     /// <summary>
-    /// The lazy provider indexes names without decoding types, so it should be materially
-    /// faster than a full read.
+    /// The lazy provider indexes names without decoding types — that is the whole reason it
+    /// is faster than a full read.
     ///
-    /// This used to compare a single wall-clock sample of each with no margin
-    /// (<c>lazyTime &lt; eagerTime</c>), which fails whenever the machine is busy — it has
-    /// been observed failing at 222.0ms vs 217.4ms, a 2% difference that says nothing.
-    /// Take the best of several samples, which removes most scheduling noise, and require a
-    /// margin large enough that only a real regression can breach it.
+    /// This was a wall-clock comparison, and it flaked twice: once locally at 222.0ms vs
+    /// 217.4ms, and once in CI at 105.2ms vs 198.3ms — a genuine 1.88x speedup that failed a
+    /// 2x threshold. Locally the same code measures 3.3x. The ratio is a property of the
+    /// machine, not of the code, so no threshold sits safely between them.
+    ///
+    /// So assert the mechanism instead. If construction ever starts decoding types, this
+    /// fails deterministically on any machine; if it does not, no amount of CI noise can
+    /// make it fail.
     /// </summary>
     [Fact]
-    public void LazyProviderIndexIsFasterThanEagerLoad()
+    public void LazyProviderIndexesWithoutDecodingTypes()
     {
-        // Enough types that index-only versus full decode is a structural difference rather
-        // than a handful of microseconds.
         var types = new System.Text.StringBuilder();
         types.AppendLine("namespace PerfTest {");
         for (int i = 0; i < 1000; i++)
@@ -283,57 +284,44 @@ public class LazyWinMdProviderTests
         }
         types.AppendLine("}");
 
-        var winmd = EmitWinMd(types.ToString());
-        var tempPath = Path.Combine(Path.GetTempPath(), $"perf_test_{Guid.NewGuid()}.winmd");
-        File.WriteAllBytes(tempPath, winmd);
+        using var provider = new LazyWinMdProvider(EmitWinMd(types.ToString()));
 
-        try
+        Assert.Equal(1000, provider.TypeCount);
+        Assert.Equal(0, provider.DecodedTypeCount);
+    }
+
+    [Fact]
+    public void ResolvingATypeDecodesOnlyThatType()
+    {
+        var types = new System.Text.StringBuilder();
+        types.AppendLine("namespace PerfTest {");
+        for (int i = 0; i < 1000; i++)
         {
-            // Warm up: JIT, file cache, and any one-time metadata setup.
-            for (int i = 0; i < 3; i++)
-            {
-                using (var p = new LazyWinMdProvider(tempPath)) { }
-                new WinMdReader().ReadTypes(tempPath);
-            }
-
-            const int samples = 5;
-            const int iterations = 20;
-
-            var lazyBest = TimeSpan.MaxValue;
-            var eagerBest = TimeSpan.MaxValue;
-
-            // Interleave the samples so a slow patch of machine time cannot land entirely on
-            // one of the two measurements.
-            for (int s = 0; s < samples; s++)
-            {
-                var sw = Stopwatch.StartNew();
-                for (int i = 0; i < iterations; i++)
-                {
-                    using var provider = new LazyWinMdProvider(tempPath);
-                    Assert.True(provider.TypeCount >= 1000);
-                }
-                var lazy = sw.Elapsed;
-                if (lazy < lazyBest) lazyBest = lazy;
-
-                sw.Restart();
-                for (int i = 0; i < iterations; i++)
-                {
-                    var reader = new WinMdReader();
-                    var all = reader.ReadTypes(tempPath);
-                    Assert.True(all.Count >= 1000);
-                }
-                var eager = sw.Elapsed;
-                if (eager < eagerBest) eagerBest = eager;
-            }
-
-            // A clear margin: indexing should not be within a whisker of full decoding.
-            Assert.True(lazyBest * 2 < eagerBest,
-                $"Lazy indexing ({lazyBest.TotalMilliseconds:F1}ms best of {samples}) should be " +
-                $"comfortably faster than eager loading ({eagerBest.TotalMilliseconds:F1}ms best of {samples})");
+            types.AppendLine($"    enum Type{i} {{ A, B, C }};");
         }
-        finally
-        {
-            File.Delete(tempPath);
-        }
+        types.AppendLine("}");
+
+        using var provider = new LazyWinMdProvider(EmitWinMd(types.ToString()));
+
+        Assert.NotNull(provider.TryResolve("PerfTest.Type500"));
+        Assert.Equal(1, provider.DecodedTypeCount);
+
+        // A second resolve of the same name is served from the cache, not decoded again.
+        Assert.NotNull(provider.TryResolve("PerfTest.Type500"));
+        Assert.Equal(1, provider.DecodedTypeCount);
+
+        Assert.NotNull(provider.TryResolve("PerfTest.Type501"));
+        Assert.Equal(2, provider.DecodedTypeCount);
+    }
+
+    [Fact]
+    public void CheckingForATypeDoesNotDecodeIt()
+    {
+        using var provider = new LazyWinMdProvider(
+            EmitWinMd("namespace PerfTest { enum Colour { Red, Green }; }"));
+
+        Assert.True(provider.HasType("PerfTest.Colour"));
+        Assert.Contains("PerfTest.Colour", provider.GetAllTypeNames());
+        Assert.Equal(0, provider.DecodedTypeCount);
     }
 }
