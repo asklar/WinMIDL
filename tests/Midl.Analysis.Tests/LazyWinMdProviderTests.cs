@@ -260,13 +260,24 @@ public class LazyWinMdProviderTests
         }
     }
 
+    /// <summary>
+    /// The lazy provider indexes names without decoding types, so it should be materially
+    /// faster than a full read.
+    ///
+    /// This used to compare a single wall-clock sample of each with no margin
+    /// (<c>lazyTime &lt; eagerTime</c>), which fails whenever the machine is busy — it has
+    /// been observed failing at 222.0ms vs 217.4ms, a 2% difference that says nothing.
+    /// Take the best of several samples, which removes most scheduling noise, and require a
+    /// margin large enough that only a real regression can breach it.
+    /// </summary>
     [Fact]
     public void LazyProviderIndexIsFasterThanEagerLoad()
     {
-        // Create a WinMD with many types to measure the difference
+        // Enough types that index-only versus full decode is a structural difference rather
+        // than a handful of microseconds.
         var types = new System.Text.StringBuilder();
         types.AppendLine("namespace PerfTest {");
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 1000; i++)
         {
             types.AppendLine($"    enum Type{i} {{ A, B, C }};");
         }
@@ -278,33 +289,47 @@ public class LazyWinMdProviderTests
 
         try
         {
-            // Warm up
-            using (var p = new LazyWinMdProvider(tempPath)) { }
-            new WinMdReader().ReadTypes(tempPath);
-
-            // Measure lazy index time (no type decoding)
-            var sw = Stopwatch.StartNew();
-            const int iterations = 50;
-            for (int i = 0; i < iterations; i++)
+            // Warm up: JIT, file cache, and any one-time metadata setup.
+            for (int i = 0; i < 3; i++)
             {
-                using var provider = new LazyWinMdProvider(tempPath);
-                Assert.True(provider.TypeCount >= 200);
+                using (var p = new LazyWinMdProvider(tempPath)) { }
+                new WinMdReader().ReadTypes(tempPath);
             }
-            var lazyTime = sw.Elapsed;
 
-            // Measure eager load time (full type decoding)
-            sw.Restart();
-            for (int i = 0; i < iterations; i++)
+            const int samples = 5;
+            const int iterations = 20;
+
+            var lazyBest = TimeSpan.MaxValue;
+            var eagerBest = TimeSpan.MaxValue;
+
+            // Interleave the samples so a slow patch of machine time cannot land entirely on
+            // one of the two measurements.
+            for (int s = 0; s < samples; s++)
             {
-                var reader = new WinMdReader();
-                var all = reader.ReadTypes(tempPath);
-                Assert.True(all.Count >= 200);
-            }
-            var eagerTime = sw.Elapsed;
+                var sw = Stopwatch.StartNew();
+                for (int i = 0; i < iterations; i++)
+                {
+                    using var provider = new LazyWinMdProvider(tempPath);
+                    Assert.True(provider.TypeCount >= 1000);
+                }
+                var lazy = sw.Elapsed;
+                if (lazy < lazyBest) lazyBest = lazy;
 
-            // Lazy should be faster (index-only vs full decoding)
-            Assert.True(lazyTime < eagerTime,
-                $"Lazy ({lazyTime.TotalMilliseconds:F1}ms) should be faster than eager ({eagerTime.TotalMilliseconds:F1}ms)");
+                sw.Restart();
+                for (int i = 0; i < iterations; i++)
+                {
+                    var reader = new WinMdReader();
+                    var all = reader.ReadTypes(tempPath);
+                    Assert.True(all.Count >= 1000);
+                }
+                var eager = sw.Elapsed;
+                if (eager < eagerBest) eagerBest = eager;
+            }
+
+            // A clear margin: indexing should not be within a whisker of full decoding.
+            Assert.True(lazyBest * 2 < eagerBest,
+                $"Lazy indexing ({lazyBest.TotalMilliseconds:F1}ms best of {samples}) should be " +
+                $"comfortably faster than eager loading ({eagerBest.TotalMilliseconds:F1}ms best of {samples})");
         }
         finally
         {
