@@ -735,18 +735,21 @@ public partial class Binder
             var child = node.GetSlot(i);
             if (child == null) continue;
 
+#if WITH_COMPAT
+            // Interface members do not go through BindDeclaration, so strict-mode checking
+            // has to be driven from here or classic constructs in member position are
+            // silently accepted. Doing it for every member — rather than case by case —
+            // means a construct added to the switch below cannot be forgotten here.
+            if (_mode == CompilationMode.Strict)
+                CheckStrictModeViolation(child);
+#endif
+
             switch (child.Kind)
             {
 #if WITH_COMPAT
                 case SyntaxKind.TypedefDeclaration:
                 case SyntaxKind.CppQuoteDirective:
-                    // Classic MIDL puts these among interface members. They are not MIDL3, so
-                    // strict mode must reject them here exactly as it does at top level —
-                    // interface members do not go through BindDeclaration, so the check has to
-                    // be made explicitly or the construct is silently accepted.
-                    if (_mode == CompilationMode.Strict)
-                        CheckStrictModeViolation(child);
-
+                    // Strict-mode rejection is handled by the blanket check above.
                     // The type belongs to the enclosing namespace, not to the interface — a
                     // typedef is not a member — so bind it there, or every use is undefined.
                     if (child.Kind == SyntaxKind.TypedefDeclaration)
@@ -2214,7 +2217,43 @@ public partial class Binder
             case SyntaxKind.UnionDeclaration:
                 _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("union", FindKeywordPosition(node, SyntaxKind.UnionKeyword)));
                 break;
+            case SyntaxKind.FunctionDeclaration:
+                // A free function at file scope — classic RPC. There is no leading keyword
+                // to point at, so the diagnostic goes on the function's own name.
+                _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("function", FindFunctionNamePosition(node)));
+                break;
+            case SyntaxKind.MethodDeclaration:
+                // A trailing `const` qualifier is C++ syntax the parser accepts in compat
+                // mode. `ref const` on a parameter is valid MIDL3 and lives on the
+                // parameter node, so it is not reached here.
+                if (HasDirectToken(node, SyntaxKind.ConstKeyword))
+                    _diagnostics.Add(DiagnosticDescriptors.ClassicConstruct("const", FindKeywordPosition(node, SyntaxKind.ConstKeyword)));
+                break;
         }
+    }
+
+    /// <summary>
+    /// Position of a file-scope function's name — the last identifier before its parameter
+    /// list, so the squiggle lands on the function rather than on its return type.
+    /// </summary>
+    private int FindFunctionNamePosition(GreenNode node)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+        {
+            if (node.GetSlot(i)?.Kind == SyntaxKind.ParameterList && i > 0 &&
+                node.GetSlot(i - 1) is SyntaxToken name)
+                return FindKeywordPosition(node, name.Kind);
+        }
+        return FindKeywordPosition(node, SyntaxKind.IdentifierToken);
+    }
+
+    /// <summary>True if <paramref name="node"/> has <paramref name="kind"/> as a direct token slot.</summary>
+    private static bool HasDirectToken(GreenNode node, SyntaxKind kind)
+    {
+        for (int i = 0; i < node.SlotCount; i++)
+            if (node.GetSlot(i) is SyntaxToken t && t.Kind == kind)
+                return true;
+        return false;
     }
 #endif
 
@@ -2453,7 +2492,7 @@ public partial class Binder
             "id", "in", "out", "retval", "optional", "defaultvalue",
             "size_is", "length_is", "max_is", "iid_is", "range",
             "call_as", "endpoint", "string", "unique", "ptr", "ref",
-            "context_handle", "v1_enum", "async_uuid",
+            "context_handle", "v1_enum", "async_uuid", "callback",
             "noncreatable", "aggregatable", "appobject",
             "entry", "dllname", "custom",
             "annotation", "async", "eventadd", "eventremove",

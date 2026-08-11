@@ -204,6 +204,23 @@ public sealed partial class Parser
     /// </summary>
     private void ParseTypedefDeclarators(List<GreenNode?> children)
     {
+#if WITH_COMPAT
+        // Function-pointer declarator: typedef RET (__stdcall *NAME)(params);
+        // The parameter list stays a node rather than loose tokens so the binder does not
+        // mistake parameter names for additional typedef declarators.
+        if (At(SyntaxKind.OpenParenToken) && IsFunctionPointerDeclarator())
+        {
+            children.Add(EatToken());                                   // (
+            if (IsCallingConventionHere()) children.Add(EatCallingConventionToken());
+            while (At(SyntaxKind.AsteriskToken)) children.Add(EatToken());
+            if (IsIdentifierOrKeyword(Current.Kind)) children.Add(EatIdentifierOrKeyword());
+            children.Add(Eat(SyntaxKind.CloseParenToken));
+            children.Add(ParseParameterList());
+            if (At(SyntaxKind.SemicolonToken)) children.Add(EatToken());
+            return;
+        }
+#endif
+
         while (true)
         {
             // Pointer declarator: *PName, **PPName
@@ -234,6 +251,41 @@ public sealed partial class Parser
     }
 
     /// <summary>Parse: cpp_quote("string")</summary>
+
+#if WITH_COMPAT
+    /// <summary>
+    /// Lookahead for <c>( callconv? *+ name )</c> — the declarator half of a function-pointer
+    /// typedef. Checked before consuming so an unrelated parenthesis is left to normal
+    /// recovery rather than being swallowed as a declarator.
+    /// </summary>
+    private bool IsFunctionPointerDeclarator()
+    {
+        int i = 1;
+        // The lexer emits calling conventions as plain identifiers; the parser re-kinds
+        // them, so the lookahead has to match on text.
+        if (IsIdentifierOrKeyword(Peek(i).Kind) && IsCallingConventionText(Peek(i).Text)) i++;
+        if (Peek(i).Kind != SyntaxKind.AsteriskToken) return false;
+        while (Peek(i).Kind == SyntaxKind.AsteriskToken) i++;
+        if (!IsIdentifierOrKeyword(Peek(i).Kind)) return false;
+        return Peek(i + 1).Kind == SyntaxKind.CloseParenToken;
+    }
+
+    private bool IsCallingConventionHere() =>
+        IsIdentifierOrKeyword(Current.Kind) && IsCallingConventionText(Current.Text);
+
+    /// <summary>
+    /// Consume a calling convention, re-kinding it so strict mode reports it structurally.
+    /// Separate from <see cref="TryParseCallingConvention"/>, which requires a following
+    /// identifier — in <c>(__stdcall *Name)</c> the next token is <c>*</c>.
+    /// </summary>
+    private SyntaxToken EatCallingConventionToken()
+    {
+        var token = EatToken();
+        return new SyntaxToken(SyntaxKind.CallingConventionToken, token.Text, token.Value,
+            token.LeadingTrivia, token.TrailingTrivia);
+    }
+#endif
+
     private GreenNode ParseCppQuoteDirective(GreenNode? attributes = null)
     {
         var children = RentChildren();

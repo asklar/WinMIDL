@@ -221,6 +221,11 @@ public sealed partial class Parser
         if (callingConvention != null) children.Add(callingConvention);
         children.Add(name);
         children.Add(ParseParameterList());
+#if WITH_COMPAT
+        // Classic C++-style trailing const: `int getLength([in] Handle h) const;`
+        // Kept in the tree so the width matches the source and strict mode can report it.
+        if (At(SyntaxKind.ConstKeyword)) children.Add(EatToken());
+#endif
         children.Add(Eat(SyntaxKind.SemicolonToken));
 
         return MakeNode(SyntaxKind.MethodDeclaration, children);
