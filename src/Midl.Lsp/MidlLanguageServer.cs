@@ -742,7 +742,13 @@ public sealed partial class MidlLanguageServer
                 }
                 catch { }
             }
-            var winmd = Handlers.WinMdNavigator.FindWindowsWinMd(sdkVersion);
+            // The host discovers the SDK at startup and configures us with it. Prefer that
+            // over guessing again — rediscovery can disagree with the compiler's own choice,
+            // which is how F12 ends up in a different SDK build than diagnostics used.
+            var configured = _referencePaths?.FirstOrDefault(p =>
+                p.EndsWith("Windows.winmd", StringComparison.OrdinalIgnoreCase));
+
+            var winmd = configured ?? Handlers.WinMdNavigator.FindWindowsWinMd(sdkVersion);
             if (winmd != null)
             {
                 _referencePaths ??= new List<string>();

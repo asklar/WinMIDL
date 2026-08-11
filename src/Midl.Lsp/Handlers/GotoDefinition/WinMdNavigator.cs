@@ -314,9 +314,14 @@ internal static class WinMdNavigator
 
     /// <summary>Find Windows.winmd from the SDK.</summary>
     /// <param name="preferredVersion">Specific SDK version like "10.0.26100.0", or null/empty/"latest" for newest.</param>
-    internal static string? FindWindowsWinMd(string? preferredVersion = null)
+    /// <param name="sdkRoot">
+    /// SDK root to search. Callers that already know where the SDK is — the host discovers it
+    /// at startup and configures the server — should pass it rather than letting this guess.
+    /// </param>
+    internal static string? FindWindowsWinMd(string? preferredVersion = null, string? sdkRoot = null)
     {
-        var sdkRoot = @"C:\Program Files (x86)\Windows Kits\10";
+        sdkRoot ??= DefaultSdkRoot();
+        if (sdkRoot == null) return null;
         var unionMeta = Path.Combine(sdkRoot, "UnionMetadata");
         if (!Directory.Exists(unionMeta)) return null;
 
@@ -330,26 +335,48 @@ internal static class WinMdNavigator
 
         // Look for versioned directories (10.0.XXXXX.0), skip Facade (it's a type-forwarder stub)
         return Directory.GetDirectories(unionMeta)
-            .Where(d => !Path.GetFileName(d).Equals("Facade", StringComparison.OrdinalIgnoreCase))
-            .Select(d => Path.Combine(d, "Windows.winmd"))
-            .Where(File.Exists)
-            .OrderByDescending(f => Path.GetFileName(Path.GetDirectoryName(f)))
-            .FirstOrDefault();
+            .Select(d => (Dir: d, Version: Version.TryParse(Path.GetFileName(d), out var v) ? v : null))
+            .Where(x => x.Version != null)
+            .OrderByDescending(x => x.Version)
+            .Select(x => Path.Combine(x.Dir, "Windows.winmd"))
+            .FirstOrDefault(File.Exists);
     }
 
     /// <summary>Get all available SDK versions that have Windows.winmd.</summary>
-    internal static List<string> GetAvailableSdkVersions()
+    internal static List<string> GetAvailableSdkVersions(string? sdkRoot = null)
     {
-        var sdkRoot = @"C:\Program Files (x86)\Windows Kits\10";
+        sdkRoot ??= DefaultSdkRoot();
+        if (sdkRoot == null) return new List<string>();
         var unionMeta = Path.Combine(sdkRoot, "UnionMetadata");
         if (!Directory.Exists(unionMeta)) return new List<string>();
 
         return Directory.GetDirectories(unionMeta)
-            .Where(d => !Path.GetFileName(d).Equals("Facade", StringComparison.OrdinalIgnoreCase))
-            .Where(d => File.Exists(Path.Combine(d, "Windows.winmd")))
-            .Select(d => Path.GetFileName(d)!)
-            .OrderByDescending(v => v)
+            .Select(d => (Dir: d, Version: Version.TryParse(Path.GetFileName(d), out var v) ? v : null))
+            .Where(x => x.Version != null)
+            .Where(x => File.Exists(Path.Combine(x.Dir, "Windows.winmd")))
+            .OrderByDescending(x => x.Version)
+            .Select(x => Path.GetFileName(x.Dir)!)
             .ToList();
+    }
+
+    /// <summary>
+    /// Last resort when no SDK root was supplied: the standard install location, then the
+    /// registry. Prefer passing the root the host already discovered.
+    /// </summary>
+    private static string? DefaultSdkRoot()
+    {
+        const string standardRoot = @"C:\Program Files (x86)\Windows Kits\10";
+        if (Directory.Exists(standardRoot)) return standardRoot;
+
+        if (!OperatingSystem.IsWindows()) return null;
+        try
+        {
+            using var hklm = Microsoft.Win32.RegistryKey.OpenBaseKey(
+                Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry32);
+            using var key = hklm.OpenSubKey(@"SOFTWARE\Microsoft\Windows Kits\Installed Roots");
+            return key?.GetValue("KitsRoot10") as string;
+        }
+        catch { return null; }
     }
 
     /// <summary>
