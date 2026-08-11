@@ -141,6 +141,15 @@ public static class HoverHandler
             {
                 var compilation = cachedCompilation ?? CompilationHelper.Compile(text);
 
+                // A macro is substituted out before binding, so it will never resolve to a
+                // symbol. Check it before the symbol lookup: if the name is a macro, that is
+                // what the compiler actually did with it here.
+                if (compilation.Macros.TryGetValue(tokenText, out var macro))
+                {
+                    return MakeHover(DescribeMacro(macro, text, lineStarts),
+                        tokenStart, token.Text.Length, lineStarts);
+                }
+
                 // Try extracting a full qualified name (e.g. hovering "Windows" in "Windows.UI.Xaml.Application")
                 var fqn = SymbolResolver.ExtractFullQualifiedNameAtCursor(text, tokenStart, tokenText);
                 var lookupName = fqn ?? tokenText;
@@ -340,6 +349,72 @@ public static class HoverHandler
                 .FirstOrDefault();
         }
         catch { return null; }
+    }
+
+    /// <summary>
+    /// Describe a preprocessor macro for hover.
+    ///
+    /// The expansion is the point: a macro that expands to nothing is why a line such as
+    /// <c>Int32 FOO x;</c> compiles as <c>Int32 x;</c>, and nothing else in the editor says
+    /// so. An empty code block would read as a rendering glitch, so that case is spelled out
+    /// in words instead.
+    /// </summary>
+    private static string DescribeMacro(Midl.Lexer.MacroInfo macro, string text, int[] lineStarts)
+    {
+        var signature = macro.IsFunctionLike
+            ? $"{macro.Name}({string.Join(", ", macro.Parameters!)}{(macro.IsVariadic ? ", ..." : "")})"
+            : macro.Name;
+
+        var sb = new System.Text.StringBuilder();
+        sb.Append("**macro** `").Append(signature).Append("`\n\n");
+
+        if (string.IsNullOrEmpty(macro.Body))
+            sb.Append("Expands to nothing — the name is removed from the code.\n");
+        else
+            sb.Append("Expands to:\n```\n").Append(macro.Body).Append("\n```\n");
+
+        if (macro.IsBuiltIn)
+        {
+            sb.Append("\nPredefined by the compiler.");
+        }
+        else if (TryFindDefineLine(text, lineStarts, macro, out int line))
+        {
+            sb.Append("\nDefined on line ").Append(line + 1).Append('.');
+        }
+        else if (macro.FilePath != null)
+        {
+            sb.Append("\nDefined in ").Append(Path.GetFileName(macro.FilePath)).Append('.');
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Confirm that the macro's recorded offset really is its <c>#define</c> in <em>this</em>
+    /// document before reporting a line number.
+    ///
+    /// Offsets are recorded per file, so a macro from an #include carries an offset into that
+    /// file — meaningless against this document's line starts, and confidently wrong if
+    /// printed. Checking the line says what it claims to say costs one string comparison.
+    /// </summary>
+    private static bool TryFindDefineLine(string text, int[] lineStarts, Midl.Lexer.MacroInfo macro, out int line)
+    {
+        line = 0;
+        if (macro.Position < 0 || macro.Position >= text.Length) return false;
+
+        (line, _) = PositionHelper.OffsetToLineChar(lineStarts, macro.Position);
+        int start = lineStarts[line];
+        int end = line + 1 < lineStarts.Length ? lineStarts[line + 1] : text.Length;
+
+        var lineText = text[start..end];
+        int hash = lineText.IndexOf('#');
+        if (hash < 0) return false;
+
+        var afterHash = lineText[(hash + 1)..].TrimStart();
+        if (!afterHash.StartsWith("define", StringComparison.Ordinal)) return false;
+
+        var afterDefine = afterHash["define".Length..].TrimStart();
+        return afterDefine.StartsWith(macro.Name, StringComparison.Ordinal);
     }
 
     private static HoverResult MakeHover(string markdown, int tokenStart, int tokenLength, int[] lineStarts)

@@ -40,6 +40,15 @@ public class Preprocessor
     /// <summary>Ranges of inactive preprocessor regions in the original source (start offset, end offset).</summary>
     public List<(int Start, int End)> InactiveRegions { get; } = new();
 
+    /// <summary>
+    /// Every macro that was defined, by name. A macro is substituted out during
+    /// preprocessing, so this is the only record that the name ever existed — editors need
+    /// it to explain an identifier the binder never saw.
+    /// </summary>
+    public IReadOnlyDictionary<string, MacroInfo> Macros => _macros;
+
+    private readonly Dictionary<string, MacroInfo> _macros = new(StringComparer.Ordinal);
+
     private record FunctionMacro(string[] Params, string Body, bool IsVariadic = false);
 
     public Preprocessor(IReadOnlyList<string>? defines = null,
@@ -85,6 +94,11 @@ public class Preprocessor
                 }
             }
         }
+
+        // Everything defined so far came from the compiler or the command line, so it has
+        // no definition site in source.
+        foreach (var (name, value) in _defines)
+            _macros[name] = new MacroInfo(name, null, value, false, null, 0, IsBuiltIn: true);
     }
 
     public string Process(string source)
@@ -253,7 +267,7 @@ public class Preprocessor
                 {
                     case "define":
                         if (IsActive(ifStack))
-                            HandleDefine(directive.Body);
+                            HandleDefine(directive.Body, filePath, rawLineOffsets[origLineIndices[i]]);
                         output.Append(nl);
                         break;
 
@@ -499,7 +513,7 @@ public class Preprocessor
         return output.ToString();
     }
 
-    private void HandleDefine(string rest)
+    private void HandleDefine(string rest, string? filePath = null, int position = 0)
     {
         if (string.IsNullOrWhiteSpace(rest)) return;
 
@@ -529,6 +543,7 @@ public class Preprocessor
                     parameters = parameters[..^1];
                 }
                 _functionMacros[name] = new FunctionMacro(parameters, body, isVariadic);
+                _macros[name] = new MacroInfo(name, parameters, body, isVariadic, filePath, position);
                 return;
             }
         }
@@ -539,6 +554,7 @@ public class Preprocessor
             // #define FOO (no value) — expands to empty string in code,
             // but #ifdef FOO / defined(FOO) still returns true (ContainsKey).
             _defines[rest.Trim()] = "";
+            _macros[rest.Trim()] = new MacroInfo(rest.Trim(), null, "", false, filePath, position);
         }
         else
         {
@@ -552,6 +568,7 @@ public class Preprocessor
             if (lineCommentIdx >= 0)
                 value = value[..lineCommentIdx].Trim();
             _defines[name] = value;
+            _macros[name] = new MacroInfo(name, null, value, false, filePath, position);
         }
     }
 
@@ -562,6 +579,7 @@ public class Preprocessor
         {
             _defines.Remove(name);
             _functionMacros.Remove(name);
+            _macros.Remove(name);
         }
     }
 
