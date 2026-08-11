@@ -11,10 +11,20 @@ on:
 permissions:
   contents: read
   security-events: write
+  # Required in private repositories: the analyze step calls
+  # GET /repos/{owner}/{repo}/actions/runs/{run_id} when attaching results.
+  # Without this the run fails with "Resource not accessible by integration".
+  actions: read
 
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
+    # Code scanning requires GitHub Advanced Security on private repositories.
+    # This repo is currently private and personally owned, so GHAS is not
+    # available ("Advanced security has not been purchased") and every run fails
+    # at the upload step. Skip until the repo is public or lives in an org with
+    # GHAS — at which point this re-enables itself with no further edits.
+    if: github.event.repository.visibility == 'public' || github.repository_owner == 'microsoft'
     runs-on: windows-latest
     strategy:
       fail-fast: false
