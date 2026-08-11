@@ -104,7 +104,8 @@ internal static class WinMdNavigator
     /// Handles F12 within a decompiled WinMD virtual document.
     /// Finds the identifier under cursor and navigates to the type's namespace decompilation.
     /// </summary>
-    internal static object? HandleWinMdView(string sourceText, string uri, int line, int character, int[] lineStarts)
+    internal static object? HandleWinMdView(string sourceText, string uri, int line, int character, int[] lineStarts,
+        IReadOnlyList<string>? referencePaths = null)
     {
         int offset = PositionHelper.LineCharToOffset(lineStarts, line, character);
         var lexer = new Lexer.Lexer(sourceText);
@@ -145,57 +146,55 @@ internal static class WinMdNavigator
 
         try
         {
-            using var fs = File.OpenRead(winmdPath);
-            using var peReader = new System.Reflection.PortableExecutable.PEReader(fs);
-            var reader = peReader.GetMetadataReader();
+            // The type may not live in the WinMD being viewed. Nearly every real WinMD
+            // refers to types from others — SDK types above all — so when the current file
+            // does not define it, look through the WinMDs this compilation references.
+            var searchOrder = new List<string> { winmdPath };
+            if (referencePaths != null)
+            {
+                foreach (var reference in referencePaths)
+                {
+                    if (string.IsNullOrEmpty(reference)) continue;
+                    if (!reference.EndsWith(".winmd", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (searchOrder.Any(p => string.Equals(p, reference, StringComparison.OrdinalIgnoreCase))) continue;
+                    if (File.Exists(reference)) searchOrder.Add(reference);
+                }
+            }
 
-            // First pass: prefer FQN or namespace-qualified match
             string? matchedName = null;
             string? matchedNs = null;
-            foreach (var handle in reader.TypeDefinitions)
-            {
-                var td = reader.GetTypeDefinition(handle);
-                var typeName = reader.GetString(td.Name);
-                var typeNs = reader.GetString(td.Namespace);
-                var backtick = typeName.IndexOf('`');
-                var cleanName = backtick >= 0 ? typeName[..backtick] : typeName;
-                var typeFullName = string.IsNullOrEmpty(typeNs) ? cleanName : $"{typeNs}.{cleanName}";
+            string? matchedWinMd = null;
 
-                // Check FQN and namespace-qualified candidates (not bare simple name)
-                for (int ci = 0; ci < candidates.Count - 1; ci++)
+            foreach (var candidateWinMd in searchOrder)
+            {
+                if (TryFindType(candidateWinMd, candidates, name, out var foundName, out var foundNs))
                 {
-                    if (typeFullName.Equals(candidates[ci], StringComparison.Ordinal))
-                    { matchedName = cleanName; matchedNs = typeNs; goto found; }
+                    matchedName = foundName;
+                    matchedNs = foundNs;
+                    matchedWinMd = candidateWinMd;
+                    break;
                 }
             }
 
-            // Second pass: bare simple name (last candidate)
-            foreach (var handle in reader.TypeDefinitions)
+            if (matchedWinMd == null)
             {
-                var td = reader.GetTypeDefinition(handle);
-                var typeName = reader.GetString(td.Name);
-                var backtick = typeName.IndexOf('`');
-                var cleanName = backtick >= 0 ? typeName[..backtick] : typeName;
-                if (cleanName.Equals(name, StringComparison.Ordinal))
-                { matchedName = cleanName; matchedNs = reader.GetString(td.Namespace); goto found; }
-            }
-
-            // Check CLR-projected types
-            foreach (var c in candidates)
-            {
-                var projected = Analysis.ClrProjectionMap.ToWinRTName(c);
-                if (projected != c)
+                // Check CLR-projected types
+                foreach (var c in candidates)
                 {
-                    var lastDot = projected.LastIndexOf('.');
-                    var projNs = lastDot >= 0 ? projected[..lastDot] : "";
-                    return GotoDefinitionHandler.MakeLocation("midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + projNs, 0, 0, 0, 0);
+                    var projected = Analysis.ClrProjectionMap.ToWinRTName(c);
+                    if (projected != c)
+                    {
+                        var lastDot = projected.LastIndexOf('.');
+                        var projNs = lastDot >= 0 ? projected[..lastDot] : "";
+                        return GotoDefinitionHandler.MakeLocation("midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + projNs, 0, 0, 0, 0);
+                    }
                 }
+                return null;
             }
-            return null;
 
-        found:
-            // Same namespace as current view? Just search in the existing sourceText
-            if (matchedNs == currentNs)
+            // Same file and namespace as the current view? Navigate within this document.
+            if (matchedNs == currentNs &&
+                string.Equals(matchedWinMd, winmdPath, StringComparison.OrdinalIgnoreCase))
             {
                 foreach (var kw in new[] { "runtimeclass", "interface", "struct", "enum", "delegate" })
                 {
@@ -211,9 +210,9 @@ internal static class WinMdNavigator
                 }
             }
 
-            // Different namespace — decompile and navigate
+            // Different namespace or a different WinMD — decompile that view and navigate.
             var decompiler = new WinMdDecompiler();
-            var decompiled = decompiler.Decompile(winmdPath, matchedNs);
+            var decompiled = decompiler.Decompile(matchedWinMd, matchedNs);
             int defOffset = -1;
             foreach (var kw in new[] { "runtimeclass", "interface", "struct", "enum", "delegate" })
             {
@@ -225,11 +224,69 @@ internal static class WinMdNavigator
             var decompLineStarts = PositionHelper.BuildLineStarts(decompiled);
             var (dLine2, dChar2) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset);
             var (dEndLine2, dEndChar2) = PositionHelper.OffsetToLineChar(decompLineStarts, defOffset + matchedName!.Length);
-            return GotoDefinitionHandler.MakeLocation("midl-winmd:///" + winmdPath.Replace('\\', '/') + "/" + matchedNs, dLine2, dChar2, dEndLine2, dEndChar2);
+            return GotoDefinitionHandler.MakeLocation("midl-winmd:///" + matchedWinMd.Replace('\\', '/') + "/" + matchedNs, dLine2, dChar2, dEndLine2, dEndChar2);
         }
         catch { }
 
         return null;
+    }
+
+    /// <summary>
+    /// Looks for a type in one WinMD, preferring a fully-qualified or namespace-qualified
+    /// match over a bare simple name.
+    /// </summary>
+    private static bool TryFindType(string winmdPath, List<string> candidates, string simpleName,
+        out string? matchedName, out string? matchedNs)
+    {
+        matchedName = null;
+        matchedNs = null;
+
+        try
+        {
+            using var fs = File.OpenRead(winmdPath);
+            using var peReader = new System.Reflection.PortableExecutable.PEReader(fs);
+            var reader = peReader.GetMetadataReader();
+
+            // First pass: prefer FQN or namespace-qualified match
+            foreach (var handle in reader.TypeDefinitions)
+            {
+                var td = reader.GetTypeDefinition(handle);
+                var typeName = reader.GetString(td.Name);
+                var typeNs = reader.GetString(td.Namespace);
+                var backtick = typeName.IndexOf('`');
+                var cleanName = backtick >= 0 ? typeName[..backtick] : typeName;
+                var typeFullName = string.IsNullOrEmpty(typeNs) ? cleanName : $"{typeNs}.{cleanName}";
+
+                // Check FQN and namespace-qualified candidates (not bare simple name)
+                for (int ci = 0; ci < candidates.Count - 1; ci++)
+                {
+                    if (typeFullName.Equals(candidates[ci], StringComparison.Ordinal))
+                    {
+                        matchedName = cleanName;
+                        matchedNs = typeNs;
+                        return true;
+                    }
+                }
+            }
+
+            // Second pass: bare simple name (last candidate)
+            foreach (var handle in reader.TypeDefinitions)
+            {
+                var td = reader.GetTypeDefinition(handle);
+                var typeName = reader.GetString(td.Name);
+                var backtick = typeName.IndexOf('`');
+                var cleanName = backtick >= 0 ? typeName[..backtick] : typeName;
+                if (cleanName.Equals(simpleName, StringComparison.Ordinal))
+                {
+                    matchedName = cleanName;
+                    matchedNs = reader.GetString(td.Namespace);
+                    return true;
+                }
+            }
+        }
+        catch { }
+
+        return false;
     }
 
     /// <summary>

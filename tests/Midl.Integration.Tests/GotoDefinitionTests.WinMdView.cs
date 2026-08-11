@@ -17,8 +17,8 @@ public partial class GotoDefinitionTests
     {
         // In a decompiled view of Windows.Foundation, F12 on "IAsyncAction" (short name,
         // same namespace) should navigate within the same namespace view
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.PathOrNull;
+        if (winmdPath is null) return;   // no Windows SDK installed; see SdkWinMd
 
         var decompiler = new WinMdDecompiler();
         var decompiled = decompiler.Decompile(winmdPath, "Windows.Foundation");
@@ -44,8 +44,8 @@ public partial class GotoDefinitionTests
     {
         // In Windows.UI.Xaml.Controls view, F12 on "Windows.UI.Xaml.UIElement" (FQN, different ns)
         // should navigate to Windows.UI.Xaml namespace
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.PathOrNull;
+        if (winmdPath is null) return;   // no Windows SDK installed; see SdkWinMd
 
         var decompiler = new WinMdDecompiler();
         var decompiled = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
@@ -70,8 +70,8 @@ public partial class GotoDefinitionTests
     public void F12InDecompiledView_EventDelegateType_HasType()
     {
         // Decompiled events should have delegate type, not empty
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.PathOrNull;
+        if (winmdPath is null) return;   // no Windows SDK installed; see SdkWinMd
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");
