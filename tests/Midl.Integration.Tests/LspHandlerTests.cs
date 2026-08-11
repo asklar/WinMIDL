@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using Midl.TestSupport;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Analysis.Diagnostics;
@@ -786,7 +787,7 @@ public class LspHandlerTests
         Assert.Contains("Widget", json);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DotCompletion_SdkNamespace_MidTyping_WithCachedCompilation()
     {
         var uri = "file:///test.midl";
@@ -794,8 +795,7 @@ public class LspHandlerTests
         var dm = CreateDocManager(uri, source);
 
         // Cached compilation WITH SDK refs
-        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
-        if (winmd == null) return; // skip on machines without SDK
+        var winmd = SdkWinMd.Path;
         var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
 
         // Cursor at end of "Windows.F" — line 2 col 17
@@ -807,15 +807,14 @@ public class LspHandlerTests
         Assert.Contains("Foundation", json);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DotCompletion_CaseInsensitive_LowercasePrefix()
     {
         var uri = "file:///test.midl";
         var source = "namespace X {\n    runtimeclass F {\n        windows.\n    }\n}";
         var dm = CreateDocManager(uri, source);
 
-        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
-        if (winmd == null) return;
+        var winmd = SdkWinMd.Path;
         var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
 
         // Cursor after "windows." — line 2, col 16
@@ -828,15 +827,14 @@ public class LspHandlerTests
         Assert.Contains("UI", json);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DotCompletion_InsertText_HasCanonicalCasing()
     {
         var uri = "file:///test.midl";
         var source = "namespace X {\n    runtimeclass F {\n        windows.\n    }\n}";
         var dm = CreateDocManager(uri, source);
 
-        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
-        if (winmd == null) return;
+        var winmd = SdkWinMd.Path;
         var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
 
         var result = CompletionHandler.Handle(
@@ -848,15 +846,14 @@ public class LspHandlerTests
         Assert.DoesNotContain("\"newText\":\"windows.", json);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DotCompletion_MultiLevelSdk_ShowsTypesAndSubNamespaces()
     {
         var uri = "file:///test.midl";
         var source = "namespace X {\n    runtimeclass F {\n        Windows.Foundation.\n    }\n}";
         var dm = CreateDocManager(uri, source);
 
-        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
-        if (winmd == null) return;
+        var winmd = SdkWinMd.Path;
         var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
 
         // Cursor after "Windows.Foundation." — line 2, col 27
@@ -870,15 +867,14 @@ public class LspHandlerTests
         Assert.Contains("Uri", json);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void Completion_RootLevel_ShowsSdkNamespaces()
     {
         var uri = "file:///test.midl";
         var source = "namespace X {\n    runtimeclass F {\n        \n    }\n}";
         var dm = CreateDocManager(uri, source);
 
-        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
-        if (winmd == null) return;
+        var winmd = SdkWinMd.Path;
         var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
 
         // Cursor on blank line in runtimeclass body
@@ -910,15 +906,14 @@ public class LspHandlerTests
         Assert.DoesNotContain("SDK namespace", json);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void DotCompletion_AfterSdkType_ReturnsEmpty()
     {
         var uri = "file:///test.midl";
         var source = "namespace X {\n    runtimeclass F {\n        Windows.Foundation.Uri.\n    }\n}";
         var dm = CreateDocManager(uri, source);
 
-        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
-        if (winmd == null) return;
+        var winmd = SdkWinMd.Path;
         var compilation = CompilationHelper.Compile(source, new List<string> { winmd }, CompilationMode.Strict);
 
         // Cursor after "Windows.Foundation.Uri." — line 2, col 31
@@ -2236,7 +2231,7 @@ public class LspHandlerTests
         Assert.NotNull(result);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void CodeLens_NonEmptyRef_UntitledFile_DoesNotCrash()
     {
         // Regression: untitled file with // @ref: D:\OSClient\ crashed the server
@@ -2245,7 +2240,7 @@ public class LspHandlerTests
         var dm = CreateDocManager(uri, source);
 
         // Compile with SDK refs to ensure LazyProviders exist
-        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        var winmd = SdkWinMd.Path;
         var refs = winmd != null ? new List<string> { winmd } : null;
         var compilation = CompilationHelper.Compile(source, refs, CompilationMode.Strict);
 
@@ -2253,7 +2248,7 @@ public class LspHandlerTests
         Assert.NotNull(result);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void AllHandlers_UntitledFile_WithRefDirective_DoNotCrash()
     {
         // Comprehensive test: exercise all handlers that process @ref on untitled files
@@ -2261,7 +2256,7 @@ public class LspHandlerTests
         var source = "// @ref: D:\\OSClient\\\nnamespace Foo {\n    runtimeclass Bar { }\n}";
         var dm = CreateDocManager(uri, source);
 
-        var winmd = Midl.Lsp.Handlers.WinMdNavigator.FindWindowsWinMd();
+        var winmd = SdkWinMd.Path;
         var refs = winmd != null ? new List<string> { winmd } : null;
         var compilation = CompilationHelper.Compile(source, refs, CompilationMode.Strict);
 

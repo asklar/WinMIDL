@@ -50,9 +50,11 @@ public partial class GotoDefinitionTests
         var decompiled = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
         var uri = "midl-winmd:///" + winmdPath.Replace('\\', '/') + "/Windows.UI.Xaml.Controls";
 
-        // Find "UIElement" in decompiled text (appears as Windows.UI.Xaml.UIElement)
+        // Asserted rather than guarded with `if (idx < 0) return;`. Windows.UI.Xaml is the OS
+        // XAML API and ships in every Windows.winmd, so its absence is a failure worth
+        // hearing about — not a reason to pass quietly.
         int idx = decompiled.IndexOf("UIElement", StringComparison.Ordinal);
-        if (idx < 0) return; // may not be present in all SDK versions
+        Assert.True(idx >= 0, "expected UIElement in the decompiled Windows.UI.Xaml.Controls");
 
         var lineStarts = PositionHelper.BuildLineStarts(decompiled);
         var (line, ch) = PositionHelper.OffsetToLineChar(lineStarts, idx);
