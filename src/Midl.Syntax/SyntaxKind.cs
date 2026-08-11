@@ -166,6 +166,8 @@ public enum SyntaxKind : ushort
     AttributeDeclaration,
     CoclassDeclaration,
     DispinterfaceDeclaration,
+    /// <summary>A classic RPC free function declared at file scope, outside any interface.</summary>
+    FunctionDeclaration,
     LibraryDeclaration,
     ModuleDeclaration,
     TypedefDeclaration,

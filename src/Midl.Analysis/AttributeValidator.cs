@@ -103,7 +103,7 @@ public partial class AttributeValidator
             "id", "in", "out", "retval", "optional", "defaultvalue",
             "size_is", "length_is", "max_is", "iid_is", "range",
             "call_as", "endpoint", "string", "unique", "ptr", "ref",
-            "context_handle", "v1_enum", "async_uuid",
+            "context_handle", "v1_enum", "async_uuid", "callback",
             "noncreatable", "aggregatable", "appobject",
             "entry", "dllname", "custom",
             "annotation", "async", "eventadd", "eventremove",

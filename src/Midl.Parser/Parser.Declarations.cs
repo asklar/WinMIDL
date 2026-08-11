@@ -102,6 +102,7 @@ public sealed partial class Parser
             SyntaxKind.CppQuoteKeyword => ParseCppQuoteDirective(attrNode),
             SyntaxKind.UnionKeyword => ParseUnionDeclaration(attrNode),
             SyntaxKind.DispinterfaceKeyword => ParseDispinterfaceDeclaration(attrNode),
+            _ when IsTopLevelFunctionDeclaration() => ParseTopLevelFunctionDeclaration(attrNode),
 #if FEATURE_STAGING
             // feature_name is a Feature staging declaration (not a keyword)
             _ when Current.Kind == SyntaxKind.IdentifierToken && Current.Text == "feature_name"
@@ -111,6 +112,50 @@ public sealed partial class Parser
             _ => HandleUnexpectedDeclaration(attrNode, modNode)
         };
     }
+
+    /// <summary>Handle tokens that don't start a recognized declaration.</summary>
+
+#if WITH_COMPAT
+    /// <summary>
+    /// Lookahead for a classic RPC free function at file scope:
+    /// <c>error_status_t __stdcall setCallback(Type p);</c>. Requires at least two words
+    /// (a return type and a name) immediately followed by <c>(</c>, so a one-word
+    /// identifier or a keyword-led declaration is not mistaken for one.
+    /// </summary>
+    private bool IsTopLevelFunctionDeclaration()
+    {
+        int i = 0, words = 0;
+        while (true)
+        {
+            if (IsIdentifierOrKeyword(Peek(i).Kind)) { words++; i++; }
+            else if (Peek(i).Kind == SyntaxKind.AsteriskToken) i++;
+            else break;
+        }
+        return words >= 2 && Peek(i).Kind == SyntaxKind.OpenParenToken;
+    }
+
+    /// <summary>
+    /// Parse a file-scope function. MIDL3 has no such declaration, so it is not bound into
+    /// a type — it is parsed only so one classic line costs one message instead of
+    /// derailing every declaration that follows it.
+    /// </summary>
+    private GreenNode ParseTopLevelFunctionDeclaration(GreenNode? attributes)
+    {
+        var children = RentChildren();
+        if (attributes != null) children.Add(attributes);
+        children.Add(ParseTypeReference());
+
+        var callingConvention = TryParseCallingConvention();
+        if (callingConvention != null) children.Add(callingConvention);
+
+        children.Add(EatIdentifierOrKeyword());
+        children.Add(ParseParameterList());
+        if (At(SyntaxKind.ConstKeyword)) children.Add(EatToken());
+        children.Add(Eat(SyntaxKind.SemicolonToken));
+
+        return MakeNode(SyntaxKind.FunctionDeclaration, children);
+    }
+#endif
 
     /// <summary>Handle tokens that don't start a recognized declaration.</summary>
     private GreenNode? HandleUnexpectedDeclaration(GreenNode? attrNode, GreenNode? modNode)
