@@ -305,4 +305,44 @@ public class ClassicCallbackAndFunctionPointerTests
         Assert.True(d.Position == expected,
             $"expected position {expected} (the trailing 'const'), got {d.Position}");
     }
+
+    // ---------------------------------------------------------------------
+    // Guards on the blanket strict-mode check for interface members. Driving
+    // the check for every member rather than case by case is the kind of
+    // change that silently starts reporting a construct twice.
+    // ---------------------------------------------------------------------
+
+    private const string ClassicMembers = """
+        interface IFoo
+        {
+            typedef long MyLong;
+            cpp_quote("// hi")
+            long f([in] long a) const;
+        }
+
+        long __stdcall topLevel(long a) const;
+        """;
+
+    [Theory]
+    [InlineData("typedef")]
+    [InlineData("cpp_quote")]
+    [InlineData("const")]
+    [InlineData("function")]
+    public void EachClassicConstructIsReportedExactlyOnce(string construct)
+    {
+        var c = Compile(ClassicMembers, CompilationMode.Strict);
+
+        Assert.Single(c.Diagnostics, d => d.Code == "MIDL2001" && d.Message.Contains($"'{construct}'"));
+    }
+
+    [Fact]
+    public void ATopLevelFunctionMayCarryTrailingConst()
+    {
+        // Both classic constructs on one declaration — the const must be consumed by the
+        // file-scope function parser, not left to derail the declaration.
+        var c = Compile(ClassicMembers, CompilationMode.Compat);
+
+        Assert.True(ParseErrors(c) == 0, Errors(c));
+        Assert.DoesNotContain(c.Diagnostics, d => d.Code == "MIDL2001");
+    }
 }

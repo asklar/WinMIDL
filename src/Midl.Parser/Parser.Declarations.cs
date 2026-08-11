@@ -102,12 +102,14 @@ public sealed partial class Parser
             SyntaxKind.CppQuoteKeyword => ParseCppQuoteDirective(attrNode),
             SyntaxKind.UnionKeyword => ParseUnionDeclaration(attrNode),
             SyntaxKind.DispinterfaceKeyword => ParseDispinterfaceDeclaration(attrNode),
-            _ when IsTopLevelFunctionDeclaration() => ParseTopLevelFunctionDeclaration(attrNode),
 #if FEATURE_STAGING
             // feature_name is a Feature staging declaration (not a keyword)
             _ when Current.Kind == SyntaxKind.IdentifierToken && Current.Text == "feature_name"
                 => ParseFeatureNameDeclaration(),
 #endif
+            // Last, because it is the only arm that matches on shape rather than on a
+            // leading keyword — a more specific declaration must get first refusal.
+            _ when IsTopLevelFunctionDeclaration() => ParseTopLevelFunctionDeclaration(attrNode),
 #endif
             _ => HandleUnexpectedDeclaration(attrNode, modNode)
         };
