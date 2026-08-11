@@ -737,6 +737,22 @@ public partial class Binder
 
             switch (child.Kind)
             {
+#if WITH_COMPAT
+                case SyntaxKind.TypedefDeclaration:
+                case SyntaxKind.CppQuoteDirective:
+                    // Classic MIDL puts these among interface members. They are not MIDL3, so
+                    // strict mode must reject them here exactly as it does at top level —
+                    // interface members do not go through BindDeclaration, so the check has to
+                    // be made explicitly or the construct is silently accepted.
+                    if (_mode == CompilationMode.Strict)
+                        CheckStrictModeViolation(child);
+
+                    // The type belongs to the enclosing namespace, not to the interface — a
+                    // typedef is not a member — so bind it there, or every use is undefined.
+                    if (child.Kind == SyntaxKind.TypedefDeclaration)
+                        BindTypedefDeclaration(child, ns);
+                    break;
+#endif
                 case SyntaxKind.ConstructorDeclaration:
                 {
                     // MIDL1039: Constructors are not allowed in interfaces
@@ -1309,12 +1325,25 @@ public partial class Binder
         // typedef [attrs] enum Name { members } AliasName;
         // typedef [attrs] struct Name { fields } AliasName;
         // typedef enum Name AliasName;  (forward decl)
+        // typedef struct { fields } AliasName;  (anonymous — the alias is the only name)
+        // typedef long AliasName, *PAliasName;  (simple alias, several declarators)
 
         string? typeName = null;
-        string? aliasName = null;
         bool hasBody = false;
         bool seenCloseBrace = false;
+        bool seenTypeReference = false;
+        GreenNode? typeRefNode = null;
         SyntaxKind typeKind = SyntaxKind.None;
+
+        // Every name declared after the type part. Classic MIDL declares several at once and
+        // decorates each independently, so "typedef long A, *PA;" introduces both.
+        var declarators = new List<string>();
+
+        // A classic struct/union body is consumed as raw tokens, so the field names land in
+        // this same child list. Only identifiers outside the braces are declarators —
+        // otherwise "typedef union { long a; short b; } U;" names the type after its last
+        // field instead of after the alias.
+        int braceDepth = 0;
 
         for (int i = 0; i < node.SlotCount; i++)
         {
@@ -1326,20 +1355,22 @@ public partial class Binder
                 if (tok.Kind is SyntaxKind.EnumKeyword or SyntaxKind.StructKeyword or SyntaxKind.UnionKeyword)
                     typeKind = tok.Kind;
                 else if (tok.Kind == SyntaxKind.OpenBraceToken)
-                    hasBody = true;
-                else if (tok.Kind == SyntaxKind.CloseBraceToken)
-                    seenCloseBrace = true;
-                else if (tok.Kind == SyntaxKind.IdentifierToken && typeKind != SyntaxKind.None)
                 {
-                    if (typeName == null && !seenCloseBrace)
-                        typeName = tok.Text;
-                    else if (seenCloseBrace && aliasName == null)
-                        aliasName = tok.Text;
-                    else if (typeName != null && !hasBody && aliasName == null)
-                    {
-                        // Forward decl: `typedef struct TagName AliasName;`
-                        aliasName = tok.Text;
-                    }
+                    hasBody = true;
+                    braceDepth++;
+                }
+                else if (tok.Kind == SyntaxKind.CloseBraceToken)
+                {
+                    braceDepth--;
+                    if (braceDepth <= 0) seenCloseBrace = true;
+                }
+                else if (tok.Kind == SyntaxKind.IdentifierToken && braceDepth == 0)
+                {
+                    bool afterTypePart = seenCloseBrace || seenTypeReference || hasBody;
+                    if (typeKind != SyntaxKind.None && !afterTypePart && typeName == null)
+                        typeName = tok.Text;   // the tag, as in "struct tagPoint"
+                    else
+                        declarators.Add(tok.Text);
                 }
             }
             // Also check for inner EnumDeclaration/StructDeclaration nodes (from old parser path)
@@ -1353,9 +1384,36 @@ public partial class Binder
                 BindStructDeclaration(child, ns);
                 return;
             }
+            else if (child.Kind is SyntaxKind.TypeReference or SyntaxKind.PointerType or SyntaxKind.ArrayType)
+            {
+                typeRefNode = child;
+                seenTypeReference = true;
+            }
         }
 
-        if (typeName == null) return;
+        if (typeKind == SyntaxKind.None)
+        {
+            // Simple alias: "typedef long MyLong;" — every declarator names the same type.
+            if (typeRefNode == null) return;
+            var underlying = ExtractTypeRef(typeRefNode).Name;
+            if (string.IsNullOrEmpty(underlying)) return;
+
+            // The underlying spelling may itself be an alias — "typedef unsigned long DWORD;"
+            // where "unsigned long" already maps to UInt32. Point at the end of the chain, so
+            // DWORD resolves in one hop rather than to a name that is not a symbol.
+            var target = _symbolTable.ResolveAlias(underlying) ?? underlying;
+
+            foreach (var name in declarators)
+            {
+                if (name != target) _symbolTable.RegisterAlias(name, target);
+            }
+            return;
+        }
+
+        // An anonymous struct/enum/union has no tag, so the first declarator is its name —
+        // otherwise the type has no name at all and every reference to it is undefined.
+        typeName ??= declarators.FirstOrDefault();
+        if (string.IsNullOrEmpty(typeName)) return;
 
         // Register the type
         bool isForwardDecl = !hasBody;
@@ -1387,8 +1445,11 @@ public partial class Binder
                 }
             }
         }
-        else if (typeKind == SyntaxKind.StructKeyword)
+        else if (typeKind is SyntaxKind.StructKeyword or SyntaxKind.UnionKeyword)
         {
+            // A union is modelled as a struct: MIDL3 has no union, and compat mode only needs
+            // the name to resolve so the rest of the file makes sense. Strict mode rejects the
+            // typedef regardless.
             var symbol = new StructSymbol(typeName, ns);
             if (_bindingImportedFile) symbol.IsExternal = true;
             if (_currentImportedFilePath != null) symbol.SourceFile = _currentImportedFilePath;
@@ -1396,11 +1457,12 @@ public partial class Binder
             _symbolTable.Define(symbol);
         }
 
-        // Register the alias name (e.g. `Xxx` in `typedef struct tagXxx { ... } Xxx;`)
-        // as a simple alias so both forms resolve to the same type.
-        if (!string.IsNullOrEmpty(aliasName) && aliasName != typeName)
+        // Register the alias names (e.g. `Xxx` in `typedef struct tagXxx { ... } Xxx;`)
+        // as simple aliases so every spelling resolves to the same type.
+        foreach (var alias in declarators)
         {
-            _symbolTable.RegisterAlias(aliasName, typeName);
+            if (!string.IsNullOrEmpty(alias) && alias != typeName)
+                _symbolTable.RegisterAlias(alias, typeName);
         }
     }
 

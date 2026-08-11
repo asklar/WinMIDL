@@ -131,17 +131,24 @@ public sealed partial class Parser
         // Check for struct/union/enum inline definitions
         // For typedef: the inner type may be a forward declaration OR a full definition,
         // followed by an alias name and semicolon.
-        if (At(SyntaxKind.StructKeyword) || At(SyntaxKind.EnumKeyword) || At(SyntaxKind.UnionKeyword))
+        if (At(SyntaxKind.StructKeyword) || At(SyntaxKind.EnumKeyword) || At(SyntaxKind.UnionKeyword)
+            || At(SyntaxKind.InterfaceKeyword))
         {
             // Peek ahead to determine the pattern:
             // typedef enum Name { ... } AliasName;  → full definition + alias
             // typedef enum Name AliasName;           → forward decl + alias (no body)
             // typedef struct Name AliasName;          → forward decl + alias
-            var keyword = EatToken(); // enum/struct/union keyword
+            // typedef struct { ... } AliasName;       → anonymous; the alias is the only name
+            var keyword = EatToken(); // enum/struct/union/interface keyword
             children.Add(keyword);
-            
-            var typeName = EatIdentifierOrKeyword(); // the type name
-            children.Add(typeName);
+
+            // The tag is optional. "typedef struct {" is anonymous, and eating the brace as a
+            // name is what turned one declaration into a cascade of recovery errors.
+            if (!At(SyntaxKind.OpenBraceToken) && IsIdentifierOrKeyword(Current.Kind))
+            {
+                var typeName = EatIdentifierOrKeyword(); // the type name
+                children.Add(typeName);
+            }
 
             if (At(SyntaxKind.OpenBraceToken))
             {
@@ -172,11 +179,7 @@ public sealed partial class Parser
             }
             // else: forward declaration — no body, just the type name
 
-            // Now eat the alias name and semicolon
-            if (At(SyntaxKind.IdentifierToken) || IsIdentifierOrKeyword(Current.Kind))
-                children.Add(EatIdentifierOrKeyword());
-            if (At(SyntaxKind.SemicolonToken))
-                children.Add(EatToken());
+            ParseTypedefDeclarators(children);
 
             return MakeNode(SyntaxKind.TypedefDeclaration, children);
         }
@@ -186,15 +189,48 @@ public sealed partial class Parser
             children.Add(ParseTypeReference());
         }
 
-        // The alias name + semicolon
-        if (At(SyntaxKind.IdentifierToken) || IsIdentifierOrKeyword(Current.Kind))
-        {
-            children.Add(EatIdentifierOrKeyword());
-            if (At(SyntaxKind.SemicolonToken))
-                children.Add(EatToken());
-        }
+        ParseTypedefDeclarators(children);
 
         return MakeNode(SyntaxKind.TypedefDeclaration, children);
+    }
+
+    /// <summary>
+    /// Parse the declarator list that closes a typedef, and the semicolon.
+    ///
+    /// Classic MIDL declares several names at once and decorates each independently:
+    /// <c>typedef long MyLong, *PMyLong;</c> and <c>typedef long Row[10];</c>. Stopping after
+    /// the first bare name left the comma or bracket unexpected, and the parser did not
+    /// recover — one declaration cost the rest of the file.
+    /// </summary>
+    private void ParseTypedefDeclarators(List<GreenNode?> children)
+    {
+        while (true)
+        {
+            // Pointer declarator: *PName, **PPName
+            while (At(SyntaxKind.AsteriskToken))
+                children.Add(EatToken());
+
+            if (!IsIdentifierOrKeyword(Current.Kind)) break;
+            children.Add(EatIdentifierOrKeyword());
+
+            // Array declarator: [10], [], [SIZE]
+            while (At(SyntaxKind.OpenBracketToken))
+            {
+                children.Add(EatToken());
+                while (!At(SyntaxKind.CloseBracketToken) && !At(SyntaxKind.SemicolonToken)
+                       && !At(SyntaxKind.EndOfFileToken))
+                {
+                    children.Add(EatToken());
+                }
+                if (At(SyntaxKind.CloseBracketToken)) children.Add(EatToken());
+            }
+
+            if (!At(SyntaxKind.CommaToken)) break;
+            children.Add(EatToken());
+        }
+
+        if (At(SyntaxKind.SemicolonToken))
+            children.Add(EatToken());
     }
 
     /// <summary>Parse: cpp_quote("string")</summary>

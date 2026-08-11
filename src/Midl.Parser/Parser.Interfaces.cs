@@ -99,6 +99,22 @@ public sealed partial class Parser
             ? MakeNode(SyntaxKind.AttributeList, attributes)
             : null;
 
+#if WITH_COMPAT
+        // Classic MIDL declares types and emits C++ passthrough inside the interface body:
+        //     interface INvda { typedef [context_handle] void* Handle; cpp_quote("...") ... }
+        // Parsed in both modes so one classic declaration does not cost the rest of the
+        // interface; strict mode still reports each as a classic construct.
+        if (At(SyntaxKind.TypedefKeyword))
+        {
+            return ParseTypedefDeclaration(attrNode);
+        }
+
+        if (At(SyntaxKind.CppQuoteKeyword))
+        {
+            return ParseCppQuoteDirective(attrNode);
+        }
+#endif
+
         // Event
         if (At(SyntaxKind.EventKeyword))
         {
