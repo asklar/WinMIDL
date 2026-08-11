@@ -86,21 +86,29 @@ public static class WindowsSdkLocator
         var unionPath = Path.Combine(sdkRoot, "UnionMetadata", version, "Windows.winmd");
         if (File.Exists(unionPath)) return unionPath;
 
-        // Fall back to older version
-        var unionDir = Path.Combine(sdkRoot, "UnionMetadata");
-        if (Directory.Exists(unionDir))
-        {
-            var latest = Directory.GetDirectories(unionDir)
-                .OrderByDescending(d => Path.GetFileName(d))
-                .FirstOrDefault();
-            if (latest != null)
-            {
-                var path = Path.Combine(latest, "Windows.winmd");
-                if (File.Exists(path)) return path;
-            }
-        }
+        // Fall back to the newest installed version.
+        return FindNewestUnionMetadata(sdkRoot);
+    }
 
-        return null;
+    /// <summary>
+    /// The newest version-numbered Windows.winmd under UnionMetadata, or null.
+    ///
+    /// UnionMetadata also contains a "Facade" directory whose Windows.winmd is a
+    /// type-forwarding stub rather than real union metadata — and "Facade" sorts above the
+    /// version numbers, so an ordinary newest-first pick chooses it. Versions are compared
+    /// as versions, not as strings, so 10.0.9 does not outrank 10.0.10.
+    /// </summary>
+    public static string? FindNewestUnionMetadata(string sdkRoot)
+    {
+        var unionDir = Path.Combine(sdkRoot, "UnionMetadata");
+        if (!Directory.Exists(unionDir)) return null;
+
+        return Directory.GetDirectories(unionDir)
+            .Select(d => (Dir: d, Version: Version.TryParse(Path.GetFileName(d), out var v) ? v : null))
+            .Where(x => x.Version != null)
+            .OrderByDescending(x => x.Version)
+            .Select(x => Path.Combine(x.Dir, "Windows.winmd"))
+            .FirstOrDefault(File.Exists);
     }
 
     /// <summary>

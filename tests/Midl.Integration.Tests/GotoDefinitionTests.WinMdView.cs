@@ -6,19 +6,19 @@ using Midl.CodeGen.Decompiler;
 using Midl.CodeGen.WinMd;
 using Midl.Lsp;
 using Midl.Lsp.Handlers;
+using Midl.TestSupport;
 
 namespace Midl.Integration.Tests;
 
 /// <summary>Tests for F12 navigation within decompiled WinMD virtual documents.</summary>
 public partial class GotoDefinitionTests
 {
-    [Fact]
+    [WindowsSdkFact]
     public void F12InDecompiledView_ShortName_ResolvesInCurrentNamespace()
     {
         // In a decompiled view of Windows.Foundation, F12 on "IAsyncAction" (short name,
         // same namespace) should navigate within the same namespace view
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var decompiled = decompiler.Decompile(winmdPath, "Windows.Foundation");
@@ -39,21 +39,22 @@ public partial class GotoDefinitionTests
         Assert.Contains("Windows.Foundation", resultUri);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void F12InDecompiledView_CrossNamespace_NavigatesToOtherNamespace()
     {
         // In Windows.UI.Xaml.Controls view, F12 on "Windows.UI.Xaml.UIElement" (FQN, different ns)
         // should navigate to Windows.UI.Xaml namespace
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var decompiled = decompiler.Decompile(winmdPath, "Windows.UI.Xaml.Controls");
         var uri = "midl-winmd:///" + winmdPath.Replace('\\', '/') + "/Windows.UI.Xaml.Controls";
 
-        // Find "UIElement" in decompiled text (appears as Windows.UI.Xaml.UIElement)
+        // Asserted rather than guarded with `if (idx < 0) return;`. Windows.UI.Xaml is the OS
+        // XAML API and ships in every Windows.winmd, so its absence is a failure worth
+        // hearing about — not a reason to pass quietly.
         int idx = decompiled.IndexOf("UIElement", StringComparison.Ordinal);
-        if (idx < 0) return; // may not be present in all SDK versions
+        Assert.True(idx >= 0, "expected UIElement in the decompiled Windows.UI.Xaml.Controls");
 
         var lineStarts = PositionHelper.BuildLineStarts(decompiled);
         var (line, ch) = PositionHelper.OffsetToLineChar(lineStarts, idx);
@@ -66,12 +67,11 @@ public partial class GotoDefinitionTests
         Assert.Contains("Windows.UI.Xaml", resultUri);
     }
 
-    [Fact]
+    [WindowsSdkFact]
     public void F12InDecompiledView_EventDelegateType_HasType()
     {
         // Decompiled events should have delegate type, not empty
-        var winmdPath = @"C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.26100.0\Windows.winmd";
-        if (!File.Exists(winmdPath)) return;
+        var winmdPath = SdkWinMd.Path;
 
         var decompiler = new WinMdDecompiler();
         var idl = decompiler.Decompile(winmdPath, "Windows.Foundation");

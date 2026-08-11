@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Midl.CodeGen\Midl.CodeGen.csproj" />
     <ProjectReference Include="..\..\src\Midl.Analysis\Midl.Analysis.csproj" />
+    <ProjectReference Include="..\Midl.TestSupport\Midl.TestSupport.csproj" />
   </ItemGroup>
 
 </Project>

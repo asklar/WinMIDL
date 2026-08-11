@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using Midl.TestSupport;
 using System.Text.Json;
 using Midl.Analysis;
 using Midl.Analysis.Symbols;
@@ -467,7 +468,7 @@ public partial class GotoDefinitionTests
 
     #region Namespace segment F12
 
-    [Fact]
+    [WindowsSdkFact]
     public void GotoDefinition_NamespaceSegment_ResolvesFullType()
     {
         // F12 on "Foundation" in "Windows.Foundation.TypedEventHandler" should resolve to TypedEventHandler
@@ -482,15 +483,17 @@ public partial class GotoDefinitionTests
         var lineStarts = PositionHelper.BuildLineStarts(source);
         var (line, ch) = PositionHelper.OffsetToLineChar(lineStarts, foundationIdx);
 
-        var result = GotoDefinitionHandler.HandleCore(source, uri, line, ch);
+        // The SDK reference has to be supplied, or there is nothing to resolve Windows.* against.
+        var result = GotoDefinitionHandler.HandleCore(source, uri, line, ch,
+            referencePaths: new[] { SdkWinMd.Path });
 
-        // Should find something (not null) — on machines with Windows SDK
-        var winmdExists = Directory.Exists(@"C:\Program Files (x86)\Windows Kits\10\UnionMetadata");
-        if (winmdExists && result is Dictionary<string, object?> dict)
-        {
-            var resultUri = dict["uri"]!.ToString()!;
-            Assert.Contains("midl-winmd://", resultUri);
-        }
+        // Asserted unconditionally. This used to be wrapped in
+        //     if (winmdExists && result is Dictionary<...> dict) { ... }
+        // which skipped the assertion whenever the result was null — that is, precisely when
+        // the behaviour was broken. The test could not fail even with the SDK installed.
+        var dict = Assert.IsType<Dictionary<string, object?>>(result);
+        var resultUri = dict["uri"]!.ToString()!;
+        Assert.Contains("midl-winmd://", resultUri);
     }
 
     [Fact]

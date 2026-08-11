@@ -50,7 +50,7 @@ public static partial class GotoDefinitionHandler
 
         // For decompiled WinMD views: look up the type in the WinMD and navigate to its namespace
         if (uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase))
-            return WinMdNavigator.HandleWinMdView(sourceText, uri, line, character, lineStarts);
+            return WinMdNavigator.HandleWinMdView(sourceText, uri, line, character, lineStarts, referencePaths);
 
         // Check if cursor is on a // @ref: line → navigate to the referenced file/folder
         var refTarget = RefDirectiveNavigator.TryGetRefDirectiveTarget(sourceText, lineStarts, line);
