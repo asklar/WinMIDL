@@ -13,6 +13,7 @@ namespace Midl.E2E.Tests;
 /// All logic runs in C# — no PowerShell scripts are spawned.
 /// </summary>
 [SupportedOSPlatform("windows")]
+[Collection(E2ESerialCollection.Name)]
 public class E2EInProcMarshalTests
 {
     private readonly ITestOutputHelper _output;
