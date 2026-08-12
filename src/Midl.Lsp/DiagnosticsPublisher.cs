@@ -14,10 +14,16 @@ public sealed class DiagnosticsPublisher
     private readonly JsonRpcWriter _writer;
 
     /// <summary>
-    /// Tracks URIs that had diagnostics published in the previous cycle,
-    /// so we can clear them if they no longer have errors.
+    /// URIs reported on by the previous analysis of each document, so stale diagnostics can
+    /// be cleared when they are fixed.
+    ///
+    /// Keyed by the document that was analysed. A single shared set meant that publishing
+    /// for one document cleared every URI absent from *that* document's result, so with
+    /// several .idl files open the last one analysed kept its squiggles and the rest were
+    /// wiped — which reads as "no errors on open, errors once I type".
     /// </summary>
-    private readonly HashSet<string> _previousDiagnosticUris = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, HashSet<string>> _previousDiagnosticUris =
+        new(StringComparer.OrdinalIgnoreCase);
 
     public DiagnosticsPublisher(JsonRpcWriter writer)
     {
@@ -109,18 +115,19 @@ public sealed class DiagnosticsPublisher
             await PublishForFileAsync(fileUri, fileText, fileDiags);
         }
 
-        // Clear diagnostics from files that previously had errors but no longer do
-        foreach (var prevUri in _previousDiagnosticUris)
+        // Clear diagnostics from files this document previously reported on but no longer does
+        if (_previousDiagnosticUris.TryGetValue(uri, out var previous))
         {
-            if (!currentUris.Contains(prevUri))
+            foreach (var prevUri in previous)
             {
-                await PublishForFileAsync(prevUri, "", []);
+                if (!currentUris.Contains(prevUri))
+                {
+                    await PublishForFileAsync(prevUri, "", []);
+                }
             }
         }
 
-        _previousDiagnosticUris.Clear();
-        foreach (var u in currentUris)
-            _previousDiagnosticUris.Add(u);
+        _previousDiagnosticUris[uri] = new HashSet<string>(currentUris, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
