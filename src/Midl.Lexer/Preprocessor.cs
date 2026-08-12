@@ -591,6 +591,11 @@ public class Preprocessor
     {
         if (string.IsNullOrWhiteSpace(rest)) return;
 
+        // Defend against a caller handing over leading whitespace. A name parsed out of it
+        // would be the empty string, which matches at every position and turns substitution
+        // into an unbounded loop.
+        rest = rest.TrimStart();
+
         // Check for function-like macro: NAME(param1, param2) body
         var parenIdx = rest.IndexOf('(');
         var spaceIdx = rest.IndexOfAny([' ', '\t']);
@@ -627,12 +632,15 @@ public class Preprocessor
         {
             // #define FOO (no value) — expands to empty string in code,
             // but #ifdef FOO / defined(FOO) still returns true (ContainsKey).
-            _defines[rest.Trim()] = "";
-            _macros[rest.Trim()] = new MacroInfo(rest.Trim(), null, "", false, filePath, position);
+            var bare = rest.Trim();
+            if (bare.Length == 0) return;
+            _defines[bare] = "";
+            _macros[bare] = new MacroInfo(bare, null, "", false, filePath, position);
         }
         else
         {
             var name = rest[..spaceIdx].Trim();
+            if (name.Length == 0) return;
             var value = rest[(spaceIdx + 1)..].Trim();
             // Strip inline comments: 100 /* comment */ → 100
             var commentIdx = value.IndexOf("/*");
@@ -837,6 +845,11 @@ public class Preprocessor
 
     private static string ReplaceWholeWord(string text, string word, string replacement)
     {
+        // An empty word matches at every position without consuming anything, so the cursor
+        // below never advances and the builder grows until the process dies. A malformed
+        // #define used to reach here; refuse it outright rather than rely on callers.
+        if (string.IsNullOrEmpty(word)) return text;
+
         var sb = new StringBuilder(text.Length);
         int i = 0;
         while (i < text.Length)
@@ -1552,7 +1565,10 @@ public class Preprocessor
         var spaceIdx = afterHash.IndexOfAny([' ', '\t']);
         if (spaceIdx < 0)
             return (afterHash.Trim(), string.Empty);
-        return (afterHash[..spaceIdx], afterHash[(spaceIdx + 1)..]);
+        // TrimStart, not skip-one-character: `#define  FOO 1` is ordinary aligned
+        // formatting, and leaving the extra space on the body made HandleDefine read the
+        // macro name as the empty string.
+        return (afterHash[..spaceIdx], afterHash[spaceIdx..].TrimStart());
     }
 
     private class IfState
