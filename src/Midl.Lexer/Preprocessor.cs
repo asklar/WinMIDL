@@ -250,16 +250,18 @@ public class Preprocessor
                 var directive = ParseDirective(trimmed);
                 bool isInclude = directive.Name.Equals("include", StringComparison.OrdinalIgnoreCase);
 
+                // Where this directive's own output begins, captured before it emits anything.
+                int directiveExpandedStart = baseOffset + output.Length;
+
                 // Directive lines produce an empty AppendLine() in expanded text but have
                 // content in the original (e.g. "#define FOO bar"), breaking the source map's
                 // linear mapping within a segment. Flush a segment boundary before the directive.
                 // #include has its own segment handling inside its case.
                 if (!isInclude && filePath != null && wasActive)
                 {
-                    int expandedPos = baseOffset + output.Length;
-                    if (expandedPos > segExpandedStart)
+                    if (directiveExpandedStart > segExpandedStart)
                     {
-                        SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart, false));
+                        SourceMapSegments.Add((segExpandedStart, directiveExpandedStart, filePath, segOriginalStart, false));
                     }
                 }
 
@@ -390,7 +392,18 @@ public class Preprocessor
                 // Start new segment after directive line, pointing to next original line
                 if (!isInclude && filePath != null && wasActive)
                 {
-                    segExpandedStart = baseOffset + output.Length;
+                    int afterDirective = baseOffset + output.Length;
+
+                    // The newline a directive emits stands in for the whole directive line.
+                    // Leaving it unmapped puts a hole in the map, and anything resolving into
+                    // a hole loses its position entirely.
+                    if (afterDirective > directiveExpandedStart)
+                    {
+                        SourceMapSegments.Add((directiveExpandedStart, afterDirective, filePath,
+                            rawLineOffsets[origLineIndices[i]], true));
+                    }
+
+                    segExpandedStart = afterDirective;
                     int nextRaw = (i + 1 < origLineIndices.Length) ? origLineIndices[i + 1] : rawLines.Count;
                     segOriginalStart = rawLineOffsets[Math.Min(nextRaw, rawLines.Count)];
                     hasDirectiveGaps = true;

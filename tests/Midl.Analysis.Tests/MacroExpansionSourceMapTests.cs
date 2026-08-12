@@ -130,6 +130,49 @@ public class MacroExpansionSourceMapTests
     }
 
     /// <summary>
+    /// A macro body is usually longer than the macro name, so mapping the expanded run
+    /// linearly walks the position off the end of the invocation. With a 60-character
+    /// expansion of a 3-character name, a linear mapping lands well past the end of a
+    /// 12-character line; the run has to resolve to the invocation site instead.
+    /// </summary>
+    [Fact]
+    public void ALongExpansionStillResolvesInsideTheOriginalLine()
+    {
+        var dir = TempDir();
+        try
+        {
+            WriteHeader(dir, "helper.h", "#define UNUSED_THING 1\n");
+            var mainPath = Path.Combine(dir, "main.idl");
+
+            var body = new string('z', 60);
+            var source = $"#define BIG {body}\n#include \"helper.h\"\n\nInt32 BIG y;\n";
+
+            var pp = new Preprocessor(null, new[] { dir }, mainPath);
+            var expanded = pp.Process(source);
+
+            var map = new SourceMap();
+            foreach (var s in pp.SourceMapSegments)
+                map.AddSegment(s.ExpandedStart, s.ExpandedEnd, s.FilePath, s.OriginalStart, s.IsConstant);
+            map.SortSegments();
+
+            // A position near the end of the expanded macro text.
+            int expandedZ = expanded.LastIndexOf(new string('z', 5), StringComparison.Ordinal) + 4;
+            var resolved = map.Resolve(expandedZ);
+
+            Assert.True(resolved.HasValue);
+
+            int macroUse = source.LastIndexOf("BIG", StringComparison.Ordinal);
+            int lineStart = source.LastIndexOf('\n', macroUse) + 1;
+            int lineEnd = source.IndexOf('\n', macroUse);
+
+            Assert.True(resolved!.Value.originalOffset >= lineStart && resolved.Value.originalOffset <= lineEnd,
+                $"offset {resolved.Value.originalOffset} escaped the macro line [{lineStart}..{lineEnd}]");
+            Assert.Equal(macroUse, resolved.Value.originalOffset);
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    /// <summary>
     /// The reported case, end to end: two macros on one line, one expanding to nothing and
     /// one to an identifier, producing a duplicate name that the parser must reject.
     /// </summary>
