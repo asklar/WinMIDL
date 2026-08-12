@@ -26,15 +26,26 @@ public class CrossDocumentDiagnosticClearingTests
 
     private static List<Published> Drain(MemoryStream stream)
     {
-        stream.Position = 0;
-        var content = new StreamReader(stream, Encoding.UTF8).ReadToEnd();
+        // Parse Content-Length framing rather than splitting on newlines: consecutive
+        // notifications run together, so a line-based reader silently drops all but the
+        // first and the test then reports a missing publish that did happen.
+        var content = Encoding.UTF8.GetString(stream.ToArray());
         var result = new List<Published>();
-        foreach (var line in content.Split('\n'))
+        int i = 0;
+        while (true)
         {
-            var trimmed = line.Trim();
-            if (!trimmed.StartsWith('{')) continue;
+            int header = content.IndexOf("Content-Length:", i, StringComparison.Ordinal);
+            if (header < 0) break;
+            int eol = content.IndexOf("\r\n\r\n", header, StringComparison.Ordinal);
+            if (eol < 0) break;
+            int len = int.Parse(content[(header + "Content-Length:".Length)..eol].Trim());
+            int bodyStart = eol + 4;
+            if (bodyStart + len > content.Length) break;
+            var body = content.Substring(bodyStart, len);
+            i = bodyStart + len;
+
             JsonDocument doc;
-            try { doc = JsonDocument.Parse(trimmed); } catch { continue; }
+            try { doc = JsonDocument.Parse(body); } catch { continue; }
             using (doc)
             {
                 if (!doc.RootElement.TryGetProperty("method", out var m) ||
