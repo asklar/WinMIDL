@@ -656,7 +656,7 @@ public class Preprocessor
 
     private void HandleUndef(string rest)
     {
-        var name = rest.Trim();
+        var name = FirstToken(rest);
         if (!string.IsNullOrEmpty(name))
         {
             _defines.Remove(name);
@@ -668,7 +668,7 @@ public class Preprocessor
     private void HandleIfdef(Stack<IfState> ifStack, string rest, bool negate)
     {
         var parentActive = IsActive(ifStack);
-        var name = rest.Trim();
+        var name = FirstToken(rest);
         var defined = _defines.ContainsKey(name);
         var condition = negate ? !defined : defined;
         ifStack.Push(new IfState
@@ -1562,13 +1562,35 @@ public class Preprocessor
     {
         // trimmedLine starts with '#'
         var afterHash = trimmedLine[1..].TrimStart();
-        var spaceIdx = afterHash.IndexOfAny([' ', '\t']);
-        if (spaceIdx < 0)
-            return (afterHash.Trim(), string.Empty);
-        // TrimStart, not skip-one-character: `#define  FOO 1` is ordinary aligned
-        // formatting, and leaving the extra space on the body made HandleDefine read the
-        // macro name as the empty string.
-        return (afterHash[..spaceIdx], afterHash[spaceIdx..].TrimStart());
+
+        // A directive name is an identifier, so it ends at the first character that cannot
+        // be part of one. Splitting on whitespace instead mis-parsed two real forms found
+        // throughout the Windows SDK: `#endif//_WINERROR_`, where a comment abuts the name,
+        // and `#if(NTDDI_VERSION >= NTDDI_WIN8)`, where a parenthesis does. Both produced an
+        // unknown directive, and a lost #endif leaves its conditional open — swallowing the
+        // rest of the file.
+        int nameEnd = 0;
+        while (nameEnd < afterHash.Length && IsIdentChar(afterHash[nameEnd]))
+            nameEnd++;
+
+        // TrimStart on the body, not skip-one-character: `#define  FOO 1` is ordinary
+        // aligned formatting, and leaving the extra space on the body made HandleDefine
+        // read the macro name as the empty string.
+        return (afterHash[..nameEnd], afterHash[nameEnd..].TrimStart());
+    }
+
+    /// <summary>
+    /// The leading identifier of a directive body, for directives that take a single macro
+    /// name. Stops at anything that cannot be part of an identifier, so
+    /// <c>#ifdef GATE//why</c> tests GATE.
+    /// </summary>
+    private static string FirstToken(string body)
+    {
+        var s = body.AsSpan().TrimStart();
+        int end = 0;
+        while (end < s.Length && IsIdentChar(s[end]))
+            end++;
+        return s[..end].ToString();
     }
 
     private class IfState
