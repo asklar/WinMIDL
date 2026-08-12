@@ -29,7 +29,7 @@ public class Preprocessor
     /// Raw source-map segment data produced during preprocessing.
     /// Each tuple: (expandedStart, expandedEnd, filePath, originalStart).
     /// </summary>
-    public List<(int ExpandedStart, int ExpandedEnd, string FilePath, int OriginalStart)> SourceMapSegments { get; } = new();
+    public List<(int ExpandedStart, int ExpandedEnd, string FilePath, int OriginalStart, bool IsConstant)> SourceMapSegments { get; } = new();
 
     /// <summary>Errors from preprocessing (#error, unresolved includes, etc.).</summary>
     public List<(string Message, int Position)> Errors { get; } = new();
@@ -250,16 +250,18 @@ public class Preprocessor
                 var directive = ParseDirective(trimmed);
                 bool isInclude = directive.Name.Equals("include", StringComparison.OrdinalIgnoreCase);
 
+                // Where this directive's own output begins, captured before it emits anything.
+                int directiveExpandedStart = baseOffset + output.Length;
+
                 // Directive lines produce an empty AppendLine() in expanded text but have
                 // content in the original (e.g. "#define FOO bar"), breaking the source map's
                 // linear mapping within a segment. Flush a segment boundary before the directive.
                 // #include has its own segment handling inside its case.
                 if (!isInclude && filePath != null && wasActive)
                 {
-                    int expandedPos = baseOffset + output.Length;
-                    if (expandedPos > segExpandedStart)
+                    if (directiveExpandedStart > segExpandedStart)
                     {
-                        SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+                        SourceMapSegments.Add((segExpandedStart, directiveExpandedStart, filePath, segOriginalStart, false));
                     }
                 }
 
@@ -325,7 +327,7 @@ public class Preprocessor
                             bool flushed = false;
                             if (expandedPos > segExpandedStart && filePath != null)
                             {
-                                SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+                                SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart, false));
                                 flushed = true;
                             }
 
@@ -390,7 +392,18 @@ public class Preprocessor
                 // Start new segment after directive line, pointing to next original line
                 if (!isInclude && filePath != null && wasActive)
                 {
-                    segExpandedStart = baseOffset + output.Length;
+                    int afterDirective = baseOffset + output.Length;
+
+                    // The newline a directive emits stands in for the whole directive line.
+                    // Leaving it unmapped puts a hole in the map, and anything resolving into
+                    // a hole loses its position entirely.
+                    if (afterDirective > directiveExpandedStart)
+                    {
+                        SourceMapSegments.Add((directiveExpandedStart, afterDirective, filePath,
+                            rawLineOffsets[origLineIndices[i]], true));
+                    }
+
+                    segExpandedStart = afterDirective;
                     int nextRaw = (i + 1 < origLineIndices.Length) ? origLineIndices[i + 1] : rawLines.Count;
                     segOriginalStart = rawLineOffsets[Math.Min(nextRaw, rawLines.Count)];
                     hasDirectiveGaps = true;
@@ -404,15 +417,20 @@ public class Preprocessor
                     int lenDiff = line.Length - substituted.Length;
                     if (lenDiff != 0 && filePath != null)
                     {
-                        // Macro substitution changed the line length.
-                        // Flush the current segment up to this point (may be empty after #ifdef transition).
+                        // Macro substitution changed the line length, so offsets within the
+                        // line no longer correspond. Flush the segment ending before it.
                         int expandedPos = baseOffset + output.Length;
                         if (expandedPos > segExpandedStart)
-                            SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+                            SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart, false));
 
-                        // Emit the substituted line
+                        int lineOriginalStart = rawLineOffsets[origLineIndices[i]];
                         output.Append(substituted).Append(nl);
                         hasMacroDeltas = true;
+
+                        // The line itself used to be left out of the map, which made every
+                        // diagnostic on it unresolvable. Map it instead.
+                        AddSubstitutedLineSegments(expandedPos, line, substituted, nl.Length,
+                            filePath, lineOriginalStart);
 
                         // Start a new segment AFTER this line.
                         segExpandedStart = baseOffset + output.Length;
@@ -454,7 +472,7 @@ public class Preprocessor
                     int expandedPos = baseOffset + output.Length;
                     if (expandedPos > segExpandedStart)
                     {
-                        SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart));
+                        SourceMapSegments.Add((segExpandedStart, expandedPos, filePath, segOriginalStart, false));
                         hasIfdefGaps = true;
                     }
                 }
@@ -506,11 +524,67 @@ public class Preprocessor
             int finalExpandedPos = baseOffset + output.Length;
             if (finalExpandedPos > segExpandedStart)
             {
-                SourceMapSegments.Add((segExpandedStart, finalExpandedPos, filePath, segOriginalStart));
+                SourceMapSegments.Add((segExpandedStart, finalExpandedPos, filePath, segOriginalStart, false));
             }
         }
 
         return output.ToString();
+    }
+
+    /// <summary>
+    /// Map a macro-expanded line back to the original line it came from.
+    ///
+    /// Text on either side of the expansion is untouched, so it maps character for
+    /// character; only the region that actually changed has no correspondence. Comparing a
+    /// common prefix and suffix isolates that region, giving three runs:
+    ///
+    ///   <c>Int32 FOO BAR x;</c> → <c>Int32  x x;</c>
+    ///   [Int32 ][ x][ x;]        exact, expanded, exact
+    ///
+    /// so a complaint about the trailing <c>x</c> lands on the trailing <c>x</c>, not on the
+    /// start of the line. The middle run is marked constant and resolves to the first
+    /// character that differs — the macro invocation. With several macros on one line the
+    /// middle spans them all and collapses to the first, which is imprecise but stays on the
+    /// right line; before this it produced no position at all.
+    /// </summary>
+    private void AddSubstitutedLineSegments(int expandedLineStart, string original, string substituted,
+        int newlineLength, string filePath, int originalLineStart)
+    {
+        int max = Math.Min(original.Length, substituted.Length);
+
+        int prefix = 0;
+        while (prefix < max && original[prefix] == substituted[prefix]) prefix++;
+
+        // Suffix must not overlap the prefix on either side.
+        int suffix = 0;
+        while (suffix < max - prefix &&
+               original[original.Length - 1 - suffix] == substituted[substituted.Length - 1 - suffix])
+        {
+            suffix++;
+        }
+
+        if (prefix > 0)
+        {
+            SourceMapSegments.Add((expandedLineStart, expandedLineStart + prefix,
+                filePath, originalLineStart, false));
+        }
+
+        int middleStart = expandedLineStart + prefix;
+        int middleEnd = expandedLineStart + substituted.Length - suffix;
+        if (middleEnd > middleStart)
+        {
+            SourceMapSegments.Add((middleStart, middleEnd, filePath, originalLineStart + prefix, true));
+        }
+
+        // The trailing run, plus the newline, maps to the tail of the original line so that
+        // a position after the expansion still points at the right character.
+        int tailStart = Math.Max(middleEnd, middleStart);
+        int tailEnd = expandedLineStart + substituted.Length + newlineLength;
+        if (tailEnd > tailStart)
+        {
+            SourceMapSegments.Add((tailStart, tailEnd,
+                filePath, originalLineStart + original.Length - suffix, false));
+        }
     }
 
     private void HandleDefine(string rest, string? filePath = null, int position = 0)

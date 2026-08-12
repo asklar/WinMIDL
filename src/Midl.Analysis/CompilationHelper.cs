@@ -447,7 +447,7 @@ public static class CompilationHelper
 
         var map = new SourceMap();
         foreach (var seg in preprocessor.SourceMapSegments)
-            map.AddSegment(seg.ExpandedStart, seg.ExpandedEnd, seg.FilePath, seg.OriginalStart);
+            map.AddSegment(seg.ExpandedStart, seg.ExpandedEnd, seg.FilePath, seg.OriginalStart, seg.IsConstant);
         map.SortSegments();
         return map;
     }
