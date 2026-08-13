@@ -53,10 +53,23 @@ if (-not $msbuild) {
 }
 Write-Host "MSBuild: $msbuild" -ForegroundColor DarkGray
 
+# Resolve the version before building: it is stamped into the server binary as well as
+# the manifest, and the two must not disagree.
+if (-not $Version) {
+    $latestTag = git describe --tags --abbrev=0 2>$null
+    if ($latestTag -match '^v?(\d+\.\d+\.\d+)') {
+        $Version = $Matches[1]
+        Write-Host "Inferred version $Version from git tag $latestTag" -ForegroundColor Cyan
+    } else {
+        $Version = "0.1.0"
+        Write-Host "No git tag found, using default version $Version" -ForegroundColor Yellow
+    }
+}
+
 # Step 1: Build NativeAOT server binary
 if (-not $SkipBuild) {
     Write-Host "Building NativeAOT server binary..." -ForegroundColor Cyan
-    & "$PSScriptRoot\publish-optimized.ps1" -SkipTests -Runtime win-x64
+    & "$PSScriptRoot\publish-optimized.ps1" -SkipTests -Runtime win-x64 -Version $Version
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Server build failed."
         exit 1
@@ -95,17 +108,7 @@ if (Test-Path $arm64Exe) {
     Write-Host "  ARM64 binary not found — x64 only" -ForegroundColor Yellow
 }
 
-# Step 3: Infer version from git tag if not specified
-if (-not $Version) {
-    $latestTag = git describe --tags --abbrev=0 2>$null
-    if ($latestTag -match '^v?(\d+\.\d+\.\d+)') {
-        $Version = $Matches[1]
-        Write-Host "Inferred version $Version from git tag $latestTag" -ForegroundColor Cyan
-    } else {
-        $Version = "0.1.0"
-        Write-Host "No git tag found, using default version $Version" -ForegroundColor Yellow
-    }
-}
+# Step 3: version already resolved before the server build (see above)
 
 # Step 4: Update version in manifest (only the Identity element)
 $manifestPath = Join-Path $vsExtDir "source.extension.vsixmanifest"
