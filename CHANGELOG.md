@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.1.18 (2026-08-13)
+
+### Bug Fixes
+- **Compiler hang on `#define  NAME value`**: two or more spaces after `#define` caused the compiler and language server to loop forever, consuming several GB and pinning a core. `ParseDirective` skipped only one whitespace character, so the macro name was parsed as the empty string; an empty name matches at every position, and `ReplaceWholeWord` never advanced its cursor. Aligned `#define` columns are ordinary formatting, so this was reachable from stock Windows SDK headers — `xmldsodid.h`, and through it `xmldso.idl`, `msxml.idl`, `urlmon.idl`, `ocidl.idl`, `activscp.idl`, `dbgprop.idl` and `activdbg.idl`. `activdbg.idl` went from 1,137 seconds (killed, not completed) to 1.4 seconds
+- **Preprocessor directive names** are now parsed as identifiers rather than "everything up to the first space". `#endif//_WINERROR_` (winerror.h, ws2def.h) and `#if(NTDDI_VERSION >= NTDDI_WIN8)` were reported as unknown directives; a dropped `#endif` also left its conditional open, swallowing the rest of the file. `#ifdef`, `#ifndef` and `#undef` likewise take the leading identifier, so `#ifdef GATE//why` no longer looks up a macro named `GATE//why`
+- **Diagnostics on macro-expanded lines are no longer discarded**: a line containing a macro was deliberately left out of the source map, so any diagnostic on it resolved to nothing and the raw expanded offset leaked out — reported as line 16, column 87743 of a 15-line file, which the editor drops. Expanded lines now map back to source by comparing a common prefix and suffix, with the changed region resolving to the macro invocation
+- **Diagnostics no longer disappear when another file is analysed**: the language server tracked reported-on files in a single shared set, so analysing one document cleared every other document's diagnostics. With several `.idl` files open, only the last one analysed kept its squiggles — which looked like "no errors until I type"
+- **Imported-file diagnostics** are attributed to the file they come from, in every post-binding pass, resolved through a compilation-wide source map
+- CLI diagnostics always report `file(line,col)`; previously the location was dropped for CRLF files with no comments or directives
+- **F12 in a decompiled WinMD** now finds types defined in other WinMDs, using the SDK version the compiler was configured with rather than a hardcoded path
+- WinRT metadata fixes: `HASTHIS` on interface method signatures, the WinRT ABI GUID algorithm for header IIDs, the correct metadata version string, unquoted `[uuid(...)]`, `IsStatic` for event accessors, and CLR-projected types stored under their raw name
+
+### Features
+- **Preprocessor macros are explained in the editor**: hovering a macro shows its expansion and where it was defined, and macro names are coloured with the standard LSP `macro` token type instead of appearing as ordinary identifiers. `#define FOO` followed by `Int32 FOO x;` now says the name expands to nothing
+- **Classic MIDL2 parsing** (parsed in both modes so one classic declaration costs one diagnostic instead of derailing the file, and still rejected in strict mode):
+  - `const` parameters and calling conventions (`__stdcall`, `WINAPI`, `STDMETHODCALLTYPE`, ...)
+  - multi-word C integer types (`unsigned long`, `long long`, ...), folded into a single diagnostic per type
+  - `typedef` in all its forms — anonymous struct/enum/union, declarator lists, array aliases, and as an interface member
+  - file-scope functions, function-pointer typedefs, C++ trailing `const` on methods, and the `[callback]` attribute
+- `/deterministic` switch for reproducible `.winmd` output
+
+### Tests
+- ~3,015 unit tests, up from ~2,500
+- E2E tests are serialised: they register COM classes machine-wide and previously raced, producing CI failures that looked like real regressions
+- Wall-clock assertions replaced with deterministic ones — a lazy-vs-eager speed ratio measured 1.88x in CI and 3.3x locally, so no threshold was safe; it now asserts that indexing decodes no types
+- Windows SDK IDL sweep: 55 files compile in 39 seconds with no unknown directives and one remaining out-of-bounds diagnostic position
 ## v0.1.17 (2026-05-16)
 
 ### Bug Fixes
