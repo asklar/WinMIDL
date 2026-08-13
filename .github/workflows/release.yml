@@ -170,8 +170,64 @@ jobs:
           path: publish/midl-language.vsix
 
       - name: Publish to VS Code Marketplace
+        # Non-fatal: this needs an Entra credential the runner may not have, and a
+        # marketplace auth failure previously took the whole release down with it —
+        # create-release depends on this job, so v0.1.18 produced no GitHub release at all.
+        # The VSIX is uploaded as an artifact above and attached to the release either way.
+        continue-on-error: true
         working-directory: editors/vscode
         run: npx @vscode/vsce publish --azure-credential
+
+  nuget:
+    # Publishes the dotnet tool package with Trusted Publishing: the job's OIDC token is
+    # exchanged for a short-lived, single-use nuget.org key, so no API key is stored.
+    # Requires a Trusted Publishing policy on nuget.org for this repository and workflow
+    # file, and the nuget.org profile name in the NUGET_USER secret.
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write
+    needs: publish
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Extract version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $ver = "${{ github.ref_name }}" -replace '^v', ''
+          echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
+
+      - name: Pack
+        run: >
+          dotnet pack src/Midl.Cli/Midl.Cli.csproj
+          -c Release
+          -p:Version=${{ steps.version.outputs.VERSION }}
+          -o publish/nuget
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: nuget-package
+          path: publish/nuget/*.nupkg
+
+      # Requested immediately before the push: the key expires in about an hour.
+      - name: NuGet login (OIDC to temporary API key)
+        uses: NuGet/login@ebc737b6fc418a6ca0073cf116ec8dc156d8b81e # v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push to nuget.org
+        run: >
+          dotnet nuget push publish/nuget/WinMIDL.${{ steps.version.outputs.VERSION }}.nupkg
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
 
   create-release:
     # GitHub-hosted runner (public-repo safety). NOTE: MSVC/Windows SDK discovery may need adjustment on first hosted run.
