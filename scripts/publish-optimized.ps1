@@ -20,6 +20,11 @@
 
 .PARAMETER SkipTests
     Skip running tests before publishing
+
+.PARAMETER Version
+    Version stamped into the binary (e.g. 0.1.18). Defaults to the version in the
+    project, which is 0.1.0-dev — matching what CI passes keeps a locally packaged
+    binary from reporting a different version than the released one.
 #>
 
 [CmdletBinding()]
@@ -28,11 +33,23 @@ param(
     [string]$Runtime = "win-x64",
     [string]$OutputDir = "publish",
     [switch]$SkipTests,
-    [switch]$Native
+    [switch]$Native,
+    [string]$Version
 )
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path $PSScriptRoot -Parent
+
+# Version arguments, mirroring .github/workflows/release.yml so a local package and a
+# tag-built one stamp the binary identically. AssemblyVersion/FileVersion must be numeric,
+# so any pre-release suffix is dropped and a fourth component added.
+$versionArgs = @()
+if ($Version) {
+    $asmVer = ($Version -replace '-.*$', '')
+    if ($asmVer -notmatch '^\d+\.\d+\.\d+$') { $asmVer = '0.0.0' }
+    $asmVer = "$asmVer.0"
+    $versionArgs = @("-p:Version=$Version", "-p:AssemblyVersion=$asmVer", "-p:FileVersion=$asmVer")
+}
 
 # Clear LIB to avoid stale paths from previous runs or dev cmd
 $env:LIB = ""
@@ -41,6 +58,7 @@ Write-Host "Building optimized WinMIDL binary" -ForegroundColor Cyan
 Write-Host "  Configuration: $Configuration"
 Write-Host "  Runtime: $Runtime"
 Write-Host "  Output: $OutputDir/"
+if ($Version) { Write-Host "  Version: $Version" }
 Write-Host ""
 
 # Step 1: Run tests first (unless skipped)
@@ -158,6 +176,7 @@ if ($sdkVersion -and $sdkRoot) {
 }
 # Tell ILC to use our LIB/PATH instead of its own discovery
 $aotArgs += "/p:IlcUseEnvironmentalTools=true"
+$aotArgs += $versionArgs
 
 $aotResult = & dotnet @aotArgs 2>&1
 $aotExitCode = $LASTEXITCODE
@@ -181,7 +200,8 @@ if ($aotExitCode -eq 0) {
         "/p:EnableCompressionInSingleFile=true"
         "/p:IncludeNativeLibrariesForSelfExtract=true"
     )
-    
+    $sfArgs += $versionArgs
+
     & dotnet @sfArgs 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Both NativeAOT and single-file publish failed."

@@ -36,13 +36,24 @@ $repoRoot = Split-Path $PSScriptRoot -Parent
 $extensionDir = Join-Path $repoRoot "editors" "vscode"
 $publishDir = Join-Path $repoRoot "publish"
 
+# Resolve the version before building, not just before packaging: it has to be stamped
+# into the server binary too, or the extension reports one version and the compiler it
+# ships reports another.
+if (-not $Version) {
+    $latestTag = git describe --tags --abbrev=0 2>$null
+    if ($latestTag -match '^v?(\d+\.\d+\.\d+)') {
+        $Version = $Matches[1]
+        Write-Host "Inferred version $Version from git tag $latestTag" -ForegroundColor Cyan
+    }
+}
+
 # Step 1: Build server binaries (unless skipped)
 if (-not $SkipBuild) {
     Write-Host "Building server binaries..." -ForegroundColor Cyan
 
     # Build x64
     Write-Host "  Building win-x64..." -ForegroundColor Yellow
-    & "$PSScriptRoot\publish-optimized.ps1" -SkipTests -Runtime win-x64
+    & "$PSScriptRoot\publish-optimized.ps1" -SkipTests -Runtime win-x64 -Version $Version
     if ($LASTEXITCODE -ne 0) {
         Write-Error "x64 build failed."
         exit 1
@@ -50,7 +61,7 @@ if (-not $SkipBuild) {
 
     # Cross-compile ARM64
     Write-Host "  Building win-arm64 (cross-compile)..." -ForegroundColor Yellow
-    & "$PSScriptRoot\publish-optimized.ps1" -SkipTests -Runtime win-arm64
+    & "$PSScriptRoot\publish-optimized.ps1" -SkipTests -Runtime win-arm64 -Version $Version
     if ($LASTEXITCODE -ne 0) {
         Write-Host "  ARM64 build failed — VSIX will be x64-only" -ForegroundColor Yellow
     }
@@ -66,15 +77,7 @@ if (-not (Test-Path $serverExe)) {
 $sizeMB = [math]::Round((Get-Item $serverExe).Length / 1MB, 1)
 Write-Host "Server binary (x64): $serverExe ($sizeMB MB)" -ForegroundColor Green
 
-# Step 3: Set version — from parameter, git tag, or package.json
-if (-not $Version) {
-    # Infer from latest git tag (e.g. v0.1.5 → 0.1.5)
-    $latestTag = git describe --tags --abbrev=0 2>$null
-    if ($latestTag -match '^v?(\d+\.\d+\.\d+)') {
-        $Version = $Matches[1]
-        Write-Host "Inferred version $Version from git tag $latestTag" -ForegroundColor Cyan
-    }
-}
+# Step 3: Set the extension version (already resolved above, before the server build)
 if ($Version) {
     Write-Host ""
     Write-Host "Setting extension version to $Version..." -ForegroundColor Cyan
