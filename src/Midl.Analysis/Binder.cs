@@ -2558,6 +2558,7 @@ public partial class Binder
                 case "version":
                     if (symbol is RuntimeClassSymbol rc2) rc2.Version = (int?)attr.GetVersion(0);
                     if (symbol is InterfaceSymbol intf2) intf2.Version = (int?)attr.GetVersion(0);
+                    if (symbol is EnumSymbol enV) enV.Version = (int?)attr.GetVersion(0);
                     break;
                 case "threading":
                     if (symbol is RuntimeClassSymbol rc3) rc3.ThreadingModel = attr.GetIdentifier(0);

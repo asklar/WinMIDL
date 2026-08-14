@@ -225,8 +225,14 @@ internal class TypeDefEmitter
             EmitRemainingAttributes(fieldHandle, member.Attributes);
         }
 
-        // VersionAttribute before FlagsAttribute (matches original midl ordering)
-        _attrs.AddVersionAttribute(typeDef);
+        // VersionAttribute / ContractVersionAttribute before FlagsAttribute (matches original midl)
+        bool enumHasContract = symbol.ContractName != null && symbol.ContractVersion != null;
+        if (symbol.Version != null)
+            _attrs.AddVersionAttribute(typeDef, (uint)symbol.Version.Value);
+        else if (!enumHasContract)
+            _attrs.AddVersionAttribute(typeDef);
+        if (enumHasContract)
+            _attrs.AddContractVersionAttribute(typeDef, symbol.ContractName!, (uint)symbol.ContractVersion!.Value);
 
         if (isFlags)
             _attrs.AddFlagsAttribute(typeDef);
