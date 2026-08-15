@@ -825,4 +825,69 @@ public class WinMdCustomAttributeEmissionTests
                 "Custom attribute should be emitted on parameter 'value'");
         }
     }
+
+    [Fact]
+    public void Emit_ContractEnum_HasContractVersionNotVersion()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract MyContract {}
+
+                [contract(MyContract, 1)]
+                enum Color
+                {
+                    Red,
+                    Green
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var enumHandle = FindTypeDef(reader, "Color");
+            Assert.True(HasCustomAttribute(reader, enumHandle,
+                "Windows.Foundation.Metadata.ContractVersionAttribute"),
+                "ContractVersionAttribute should be emitted on a [contract] enum");
+            Assert.False(HasCustomAttribute(reader, enumHandle,
+                "Windows.Foundation.Metadata.VersionAttribute"),
+                "VersionAttribute should not be emitted on a [contract]-only enum");
+        }
+    }
+
+    [Fact]
+    public void Emit_VersionAndContractEnum_HasBoth()
+    {
+        // Ground truth from midl.exe: an enum with both [version] and [contract]
+        // emits BOTH [Version] and [ContractVersion].
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                [contractversion(1)]
+                apicontract MyContract {}
+
+                [version(5)]
+                [contract(MyContract, 1)]
+                enum Color
+                {
+                    Red,
+                    Green
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var enumHandle = FindTypeDef(reader, "Color");
+            Assert.True(HasCustomAttribute(reader, enumHandle,
+                "Windows.Foundation.Metadata.ContractVersionAttribute"),
+                "ContractVersionAttribute should be emitted on a [version]+[contract] enum");
+            Assert.True(HasCustomAttribute(reader, enumHandle,
+                "Windows.Foundation.Metadata.VersionAttribute"),
+                "VersionAttribute should also be emitted on a [version]+[contract] enum");
+        }
+    }
 }

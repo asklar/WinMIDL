@@ -27,6 +27,7 @@ public class EnumSymbol : ISymbol
 
     // Extracted attribute data
     public List<AttributeData> Attributes { get; } = new();
+    public int? Version { get; set; }
     public string? ContractName { get; set; }
     public int? ContractVersion { get; set; }
     public bool IsExperimental { get; set; }
