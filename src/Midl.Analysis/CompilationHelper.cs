@@ -495,6 +495,14 @@ public static class CompilationHelper
             if (importResolver.IsAlreadyImported(resolved)) continue;
             importResolver.MarkImported(resolved);
 
+            // Classic COM/OLE system IDLs (oaidl/objidl/wtypes/unknwn/...) use the classic
+            // RPC grammar (encapsulated unions, wire types) that WinMIDL does not parse. The
+            // WinRT types that transitively pull them in (IUnknown, IInspectable, the
+            // Windows.Foundation types) are provided as built-ins or via referenced winmds,
+            // so there is nothing to gain from textually compiling these files. Skip them
+            // rather than failing the whole compilation.
+            if (IsSkippableSystemImport(resolved)) continue;
+
             // Preprocess imported file — try external cl.exe first, fall back to built-in.
             // Keep the segments the preprocessor produces: they are what makes a position
             // in this file's expanded text resolvable back to an original file and offset.
@@ -558,6 +566,23 @@ public static class CompilationHelper
         }
         return null;
     }
+
+    /// <summary>
+    /// Classic COM/OLE system IDLs whose types are provided as WinMIDL built-ins or via
+    /// referenced winmds. They use the classic RPC grammar WinMIDL does not parse, so they
+    /// are skipped rather than textually compiled. Matched on file name only.
+    /// </summary>
+    private static readonly HashSet<string> SkippableSystemImports = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "oaidl.idl", "objidl.idl", "objidlbase.idl", "wtypes.idl", "wtypesbase.idl",
+        "unknwn.idl", "unknwnbase.idl", "oleidl.idl", "servprov.idl", "propidl.idl",
+        "propidlbase.idl", "ocidl.idl", "urlmon.idl", "msxml.idl", "comip.idl",
+        "oaidl_.idl", "objidl_.idl",
+    };
+
+    /// <summary>Returns true if the resolved import is a classic system IDL that should be skipped.</summary>
+    private static bool IsSkippableSystemImport(string resolvedPath)
+        => SkippableSystemImports.Contains(Path.GetFileName(resolvedPath));
 
     /// <summary>
     /// Absolute position of the path text inside an <c>import "..."</c> directive,
