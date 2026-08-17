@@ -224,10 +224,6 @@ public class ParserCompletenessTests
     [Fact]
     public void ParseDeclareBlock_ParametricInterfaceSpecializations()
     {
-        // declare { interface IVector<IFoo*>; interface IMap<Key, Value*>; }
-        // Parametric collection specialization forward-declarations must parse cleanly: the
-        // name and its type-argument list fold into a GenericName so the ';' terminates the
-        // forward declaration without "Expected '{'" (MIDL1102) or "Unexpected code" errors.
         var tokens = new TokenBuilder()
             .Keyword(SyntaxKind.DeclareKeyword)
             .OpenBrace
