@@ -17,11 +17,6 @@ public sealed partial class Parser
 
         children.Add(Eat(SyntaxKind.InterfaceKeyword));
 
-        // Parametric interface specialization forward-declaration (classic collections hint):
-        //   declare { interface IVector<IFoo*>; interface IMap<K, V*>; }
-        // Fold the name and its type-argument list into a GenericName so the ';' forward
-        // declaration below terminates cleanly. The binder synthesizes generic instances
-        // at their use sites, so the specialization hint needs no separate binding.
         var interfaceName = EatIdentifierOrKeyword();
         if (At(SyntaxKind.LessThanToken))
             children.Add(ParseGenericName(interfaceName));
