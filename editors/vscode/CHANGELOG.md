@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.19 (2026-09-04)
+
+### Bug Fixes
+- **Contract-versioned enums now emit `ContractVersionAttribute`** instead of a plain `VersionAttribute`, so `mdmerge -contracts` can place them in their API contract and resolve WinMDs that reference them. Enums with both `[version]` and `[contract]` emit both metadata attributes, matching `midl.exe`
+
 ## v0.1.18 (2026-08-13)
 
 ### Bug Fixes
