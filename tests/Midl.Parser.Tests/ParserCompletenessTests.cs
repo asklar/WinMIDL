@@ -221,6 +221,50 @@ public class ParserCompletenessTests
         Assert.NotNull(declareBlock);
     }
 
+    [Fact]
+    public void ParseDeclareBlock_ParametricInterfaceSpecializations()
+    {
+        var tokens = new TokenBuilder()
+            .Keyword(SyntaxKind.DeclareKeyword)
+            .OpenBrace
+            .Keyword(SyntaxKind.InterfaceKeyword)
+            .Identifier("IVector")
+            .LessThan
+            .Identifier("IFoo")
+            .Token(SyntaxKind.AsteriskToken, "*")
+            .GreaterThan
+            .Semicolon
+            .Keyword(SyntaxKind.InterfaceKeyword)
+            .Identifier("IMap")
+            .LessThan
+            .Identifier("Key")
+            .Comma
+            .Identifier("Value")
+            .Token(SyntaxKind.AsteriskToken, "*")
+            .GreaterThan
+            .Semicolon
+            .CloseBrace
+            .EOF
+            .Build();
+
+        var tree = Parse(tokens);
+
+        var declareBlock = FindChild(tree, SyntaxKind.DeclareBlock);
+        Assert.NotNull(declareBlock);
+
+        var generics = new List<GreenNode>();
+        CollectNodesOfKind(tree, SyntaxKind.GenericName, generics);
+        Assert.True(generics.Count >= 2, $"Expected parametric names to fold into GenericName nodes, got {generics.Count}");
+
+        var missing = new List<GreenNode>();
+        CollectNodesOfKind(tree, SyntaxKind.MissingToken, missing);
+        Assert.Empty(missing);
+
+        var skipped = new List<GreenNode>();
+        CollectNodesOfKind(tree, SyntaxKind.SkippedTokens, skipped);
+        Assert.Empty(skipped);
+    }
+
     // --- Test 6: ParseAttributeDefinition ---
 
     [Fact]

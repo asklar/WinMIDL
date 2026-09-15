@@ -16,7 +16,12 @@ public sealed partial class Parser
         if (attributes != null) children.Add(attributes);
 
         children.Add(Eat(SyntaxKind.InterfaceKeyword));
-        children.Add(EatIdentifierOrKeyword());
+
+        var interfaceName = EatIdentifierOrKeyword();
+        if (At(SyntaxKind.LessThanToken))
+            children.Add(ParseGenericName(interfaceName));
+        else
+            children.Add(interfaceName);
 
         // Optional requires clause
         if (At(SyntaxKind.RequiresKeyword) || AtContextual("requires"))
