@@ -22,40 +22,99 @@ public class VersionPropagator
     public void Propagate(Compilation compilation)
     {
         var unitSourceMaps = compilation.UnitSourceMaps;
-        // Build a lookup of all ApiContract symbols (by simple name and full name)
+        // Build a lookup by full name and by simple name only when unambiguous.
         var contracts = new Dictionary<string, ApiContractSymbol>(StringComparer.OrdinalIgnoreCase);
-        foreach (var type in compilation.GetAllTypes())
+        var contractSymbols = compilation.GetAllTypes().OfType<ApiContractSymbol>().ToList();
+        foreach (var contract in contractSymbols)
         {
-            if (type is ApiContractSymbol ac)
-            {
-                contracts[ac.Name] = ac;
-                contracts[ac.FullName] = ac;
-            }
+            contracts[contract.FullName] = contract;
+        }
+        foreach (var group in contractSymbols.GroupBy(
+            contract => contract.Name,
+            StringComparer.OrdinalIgnoreCase))
+        {
+            if (group.Count() == 1)
+                contracts[group.Key] = group.Single();
         }
 
         foreach (var type in compilation.GetAllTypes().ToList())
         {
             // Types reached through an import report at offsets in their own file.
             int diagStart = _diagnostics.Count;
+            NormalizeContractMetadata(type, contracts);
             switch (type)
             {
                 case RuntimeClassSymbol rc:
-                    ValidateContractReference(rc.ContractName, rc.Attributes, contracts);
+                    ValidateContractReference(rc, rc.ContractName, rc.Attributes, contracts);
                     PropagateToSynthesizedInterfaces(rc);
                     PropagateToMembers(rc);
                     ValidateRuntimeClassInterfaces(rc, contracts);
                     break;
 
                 case EnumSymbol es:
-                    ValidateContractReference(es.ContractName, es.Attributes, contracts);
+                    ValidateContractReference(es, es.ContractName, es.Attributes, contracts);
                     ValidateEnumMemberVersions(es, contracts);
                     break;
 
+                case StructSymbol st:
+                    ValidateContractReference(st, st.ContractName, st.Attributes, contracts);
+                    break;
+
+                case DelegateSymbol del:
+                    ValidateContractReference(del, del.ContractName, del.Attributes, contracts);
+                    break;
+
                 case InterfaceSymbol iface when !iface.IsSynthesized:
-                    ValidateContractReference(iface.ContractName, iface.Attributes, contracts);
+                    ValidateContractReference(iface, iface.ContractName, iface.Attributes, contracts);
                     break;
             }
             DiagnosticSourceTagger.Tag(_diagnostics, diagStart, type.SourceFile, unitSourceMaps);
+        }
+    }
+
+    private static void NormalizeContractMetadata(
+        ISymbol symbol,
+        Dictionary<string, ApiContractSymbol> contracts)
+    {
+        switch (symbol)
+        {
+            case RuntimeClassSymbol rc:
+                PropagateInternalContractVisibility(rc, rc.ContractName, rc.Attributes, contracts);
+                break;
+            case EnumSymbol es:
+                PropagateInternalContractVisibility(es, es.ContractName, es.Attributes, contracts);
+                break;
+            case StructSymbol st:
+                PropagateInternalContractVisibility(st, st.ContractName, st.Attributes, contracts);
+                break;
+            case DelegateSymbol del:
+                PropagateInternalContractVisibility(del, del.ContractName, del.Attributes, contracts);
+                break;
+            case InterfaceSymbol iface:
+                PropagateInternalContractVisibility(iface, iface.ContractName, iface.Attributes, contracts);
+                break;
+        }
+    }
+
+    private static void PropagateInternalContractVisibility(
+        ISymbol symbol,
+        string? contractName,
+        List<AttributeData> attributes,
+        Dictionary<string, ApiContractSymbol> contracts)
+    {
+        if (contractName == null || !TryResolveContract(symbol, contractName, contracts, out var contract))
+            return;
+
+        var internalAttribute = contract.Attributes.FirstOrDefault(
+            attribute => attribute.Name.Equals("internal", StringComparison.OrdinalIgnoreCase));
+        if (internalAttribute != null && !attributes.Any(
+            attribute => attribute.Name.Equals("internal", StringComparison.OrdinalIgnoreCase)))
+        {
+            attributes.Add(new AttributeData
+            {
+                Name = internalAttribute.Name,
+                Position = internalAttribute.Position,
+            });
         }
     }
 
@@ -64,11 +123,13 @@ public class VersionPropagator
     /// Only validates contracts that could be locally defined (not fully-qualified external references).
     /// </summary>
     private void ValidateContractReference(
-        string? contractName, List<AttributeData> attributes,
+        ISymbol symbol,
+        string? contractName,
+        List<AttributeData> attributes,
         Dictionary<string, ApiContractSymbol> contracts)
     {
         if (contractName == null) return;
-        if (contracts.ContainsKey(contractName)) return;
+        if (TryResolveContract(symbol, contractName, contracts, out _)) return;
 
         // Fully-qualified contract names (containing '.') typically refer to external
         // contracts from .winmd references — skip validation for those.
@@ -80,6 +141,33 @@ public class VersionPropagator
         int position = contractAttr?.Position ?? 0;
 
         _diagnostics.Add(DiagnosticDescriptors.UndefinedContract(contractName, position));
+    }
+
+    private static bool TryResolveContract(
+        ISymbol symbol,
+        string contractName,
+        Dictionary<string, ApiContractSymbol> contracts,
+        out ApiContractSymbol contract)
+    {
+        if (!contractName.Contains('.'))
+        {
+            var ns = GetNamespace(symbol);
+            if (ns.Length > 0 && contracts.TryGetValue($"{ns}.{contractName}", out contract!))
+                return true;
+        }
+
+        return contracts.TryGetValue(contractName, out contract!);
+    }
+
+    private static string GetNamespace(ISymbol symbol)
+    {
+        for (var current = symbol.ContainingSymbol; current != null; current = current.ContainingSymbol)
+        {
+            if (current is NamespaceSymbol ns && ns.FullName.Length > 0)
+                return ns.FullName;
+        }
+
+        return "";
     }
 
     /// <summary>
@@ -140,41 +228,63 @@ public class VersionPropagator
 
         // Collect all contracts the class uses (from its own attributes)
         var classContracts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        classContracts.Add(rc.ContractName);
+        var runtimeClassContract = GetContractIdentity(rc, rc.ContractName, contracts);
+        classContracts.Add(runtimeClassContract);
         foreach (var attr in rc.Attributes)
         {
             if (attr.Name.Equals("contract", StringComparison.OrdinalIgnoreCase))
             {
                 var name = attr.GetTypeName(0) ?? attr.GetIdentifier(0);
-                if (name != null) classContracts.Add(name);
+                if (name != null)
+                    classContracts.Add(GetContractIdentity(rc, name, contracts));
             }
         }
 
         // Check synthesized interfaces
         foreach (var iface in rc.ImplementedInterfaces)
         {
-            ValidateInterfaceForClass(iface, rc, classContracts);
+            ValidateInterfaceForClass(
+                iface,
+                rc,
+                runtimeClassContract,
+                classContracts,
+                contracts);
         }
 
         // Check declared interfaces from the base list
         if (rc.BaseClass?.ResolvedSymbol is InterfaceSymbol baseIface)
         {
-            ValidateInterfaceForClass(baseIface, rc, classContracts);
+            ValidateInterfaceForClass(
+                baseIface,
+                rc,
+                runtimeClassContract,
+                classContracts,
+                contracts);
         }
 
         foreach (var typeRef in rc.Interfaces)
         {
             if (typeRef.ResolvedSymbol is InterfaceSymbol declaredIface)
             {
-                ValidateInterfaceForClass(declaredIface, rc, classContracts);
+                ValidateInterfaceForClass(
+                    declaredIface,
+                    rc,
+                    runtimeClassContract,
+                    classContracts,
+                    contracts);
             }
         }
     }
 
     private void ValidateInterfaceForClass(
-        InterfaceSymbol iface, RuntimeClassSymbol rc, HashSet<string> classContracts)
+        InterfaceSymbol iface,
+        RuntimeClassSymbol rc,
+        string runtimeClassContract,
+        HashSet<string> classContracts,
+        Dictionary<string, ApiContractSymbol> contracts)
     {
         if (iface.ContractName == null) return;
+        var interfaceContract = GetContractIdentity(iface, iface.ContractName, contracts);
 
         int ifacePosition = 0;
         var ifaceContractAttr = iface.Attributes.FirstOrDefault(
@@ -183,7 +293,7 @@ public class VersionPropagator
             ifacePosition = ifaceContractAttr.Position;
 
         // Rule 5: Interface version >= class version (same contract family)
-        if (iface.ContractName.Equals(rc.ContractName, StringComparison.OrdinalIgnoreCase)
+        if (interfaceContract.Equals(runtimeClassContract, StringComparison.OrdinalIgnoreCase)
             && iface.ContractVersion.HasValue && rc.ContractVersion.HasValue
             && iface.ContractVersion.Value < rc.ContractVersion.Value)
         {
@@ -192,11 +302,21 @@ public class VersionPropagator
         }
 
         // Rule 6: Contract family consistency
-        if (!classContracts.Contains(iface.ContractName))
+        if (!classContracts.Contains(interfaceContract))
         {
             _diagnostics.Add(DiagnosticDescriptors.ContractFamilyMismatch(
                 iface.Name, iface.ContractName, rc.Name, ifacePosition));
         }
+    }
+
+    private static string GetContractIdentity(
+        ISymbol symbol,
+        string contractName,
+        Dictionary<string, ApiContractSymbol> contracts)
+    {
+        return TryResolveContract(symbol, contractName, contracts, out var contract)
+            ? contract.FullName
+            : contractName;
     }
 
     /// <summary>
@@ -209,7 +329,7 @@ public class VersionPropagator
 
         foreach (var member in es.EnumMembers)
         {
-            ValidateContractReference(member.ContractName, member.Attributes, contracts);
+            ValidateContractReference(member, member.ContractName, member.Attributes, contracts);
 
             if (member.ContractVersion.HasValue
                 && member.ContractVersion.Value < es.ContractVersion.Value)

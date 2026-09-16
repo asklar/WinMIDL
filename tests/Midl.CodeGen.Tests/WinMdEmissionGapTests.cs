@@ -221,6 +221,7 @@ public class WinMdEmissionGapTests
             var baseRef = reader.GetTypeReference((TypeReferenceHandle)td.BaseType);
             Assert.Equal("ValueType", reader.GetString(baseRef.Name));
             Assert.Equal("System", reader.GetString(baseRef.Namespace));
+            Assert.True(td.Attributes.HasFlag(TypeAttributes.SequentialLayout));
         }
     }
 

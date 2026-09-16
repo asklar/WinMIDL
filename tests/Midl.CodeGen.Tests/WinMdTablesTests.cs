@@ -127,6 +127,7 @@ public class WinMdTablesTests
                     Widget();
                     void DoWork();
                     String Name { get; };
+                    static void StaticMethod();
                 }
             }
             """);
@@ -137,19 +138,69 @@ public class WinMdTablesTests
             var classHandle = FindTypeDef(reader, "Widget");
 
             // Collect all MethodImpl rows for the runtimeclass
-            var methodImpls = new List<(string body, string decl)>();
+            var methodImpls = new List<(string body, string decl, HandleKind declKind)>();
             foreach (var implHandle in reader.GetTypeDefinition(classHandle).GetMethodImplementations())
             {
                 var impl = reader.GetMethodImplementation(implHandle);
 
                 string bodyName = GetMethodName(reader, impl.MethodBody);
                 string declName = GetMethodName(reader, impl.MethodDeclaration);
-                methodImpls.Add((bodyName, declName));
+                methodImpls.Add((bodyName, declName, impl.MethodDeclaration.Kind));
             }
 
             // Should have MethodImpl for DoWork, get_Name
             Assert.Contains(methodImpls, m => m.body == "DoWork" && m.decl == "DoWork");
             Assert.Contains(methodImpls, m => m.body == "get_Name" && m.decl == "get_Name");
+            Assert.DoesNotContain(methodImpls, m => m.decl == "StaticMethod");
+            Assert.All(methodImpls, m => Assert.Equal(HandleKind.MemberReference, m.declKind));
+        }
+    }
+
+    [Fact]
+    public void MethodImplOverloadsMatchDeclarationSignatures()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [contractversion(2)]
+                apicontract CalculatorContract {}
+
+                [contract(CalculatorContract, 1)]
+                runtimeclass Calculator
+                {
+                    Int32 Add(Int32 left, Int32 right);
+
+                    [contract(CalculatorContract, 2)]
+                    {
+                        [overload("AddDoubles")]
+                        [default_overload]
+                        Double Add(Double left, Double right);
+                    }
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var classHandle = FindTypeDef(reader, "Calculator");
+            var overloads = reader.GetTypeDefinition(classHandle).GetMethodImplementations()
+                .Select(reader.GetMethodImplementation)
+                .Where(implementation =>
+                    GetMethodName(reader, implementation.MethodBody) is "Add" or "AddDoubles")
+                .ToList();
+
+            Assert.Equal(2, overloads.Count);
+            foreach (var implementation in overloads)
+            {
+                var body = reader.GetMethodDefinition(
+                    (MethodDefinitionHandle)implementation.MethodBody);
+                var declaration = reader.GetMemberReference(
+                    (MemberReferenceHandle)implementation.MethodDeclaration);
+                Assert.Equal(
+                    reader.GetBlobBytes(body.Signature),
+                    reader.GetBlobBytes(declaration.Signature));
+            }
         }
     }
 

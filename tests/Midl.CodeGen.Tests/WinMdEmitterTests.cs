@@ -309,6 +309,40 @@ public class WinMdEmitterTests
     }
 
     [Fact]
+    public void StandardAssemblyReferencesMatchWinRtMetadataIdentity()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                struct Payload
+                {
+                    Int32 Value;
+                }
+            }
+            """);
+
+        using var pe = new PEReader(new MemoryStream(bytes));
+        var reader = pe.GetMetadataReader(MetadataReaderOptions.None);
+        {
+            Assert.Equal((AssemblyHashAlgorithm)0x8004,
+                reader.GetAssemblyDefinition().HashAlgorithm);
+
+            var references = reader.AssemblyReferences
+                .Select(reader.GetAssemblyReference)
+                .ToDictionary(reference => reader.GetString(reference.Name));
+
+            var mscorlib = references["mscorlib"];
+            Assert.Equal(new Version(255, 255, 255, 255), mscorlib.Version);
+            Assert.Equal(
+                new byte[] { 0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89 },
+                reader.GetBlobBytes(mscorlib.PublicKeyOrToken));
+
+            var windowsFoundation = references["Windows.Foundation"];
+            Assert.True((windowsFoundation.Flags & (AssemblyFlags)0x0200) != 0);
+        }
+    }
+
+    [Fact]
     public void EmitDelegate()
     {
         var bytes = CompileAndEmit("""

@@ -34,9 +34,12 @@ public partial class RuntimeClassSymbol : ISymbol
 
     public InterfaceSymbol? DefaultInterface { get; set; }
     public InterfaceSymbol? FactoryInterface { get; set; }
+    public List<InterfaceSymbol> FactoryInterfaces { get; } = new();
     public List<InterfaceSymbol> StaticsInterfaces { get; } = new();
     public InterfaceSymbol? ProtectedInterface { get; set; }
+    public List<InterfaceSymbol> ProtectedInterfaces { get; } = new();
     public InterfaceSymbol? OverridesInterface { get; set; }
+    public List<InterfaceSymbol> OverridesInterfaces { get; } = new();
     public bool HasDefaultActivation { get; set; }
     public List<InterfaceSymbol> ImplementedInterfaces { get; } = new();
 

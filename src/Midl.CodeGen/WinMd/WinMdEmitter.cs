@@ -21,6 +21,7 @@ public class WinMdEmitter
     private BlobBuilder _ilStream = null!;
 
     private readonly bool _deterministic;
+    internal bool EnableTrueAsync { get; }
 
     /// <summary>
     /// Reserved slot for the module MVID in deterministic mode. The slot is serialized
@@ -29,9 +30,10 @@ public class WinMdEmitter
     private ReservedBlob<GuidHandle> _mvidFixup;
     private bool _hasMvidFixup;
 
-    public WinMdEmitter(bool deterministic = false)
+    public WinMdEmitter(bool deterministic = false, bool enableTrueAsync = false)
     {
         _deterministic = deterministic;
+        EnableTrueAsync = enableTrueAsync;
     }
 
     // Assembly references
@@ -135,18 +137,10 @@ public class WinMdEmitter
             new Version(255, 255, 255, 255),
             default, default,
             (AssemblyFlags)0x0200, // WindowsRuntime
-            default);
+            (AssemblyHashAlgorithm)0x8004);
 
         // 3. Assembly references
-        MscorlibRef = _metadata.AddAssemblyReference(
-            _metadata.GetOrAddString(MetadataConstants.MscorlibAssembly),
-            new Version(255, 255, 255, 255),
-            default, default, default, default);
-
-        WfmRef = _metadata.AddAssemblyReference(
-            _metadata.GetOrAddString(MetadataConstants.WindowsFoundationAssembly),
-            new Version(255, 255, 255, 255),
-            default, default, default, default);
+        AddStandardAssemblyReferences();
 
         // 4. TypeRefs for base types
         SystemObjectRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemObject);
@@ -175,18 +169,14 @@ public class WinMdEmitter
         var allTypes = compilation.GetAllTypes().Where(t => !t.IsExternal).ToList();
         int typeRow = 2; // row 1 is <Module>
 
-        // Collect ALL synthesized interfaces (default, protected, overridable) to skip from allTypes
+        // Collect all synthesized interfaces to skip from allTypes.
         var synthInterfaces = new HashSet<ISymbol>();
         foreach (var type in allTypes)
         {
             if (type is RuntimeClassSymbol rc)
             {
-                if (rc.DefaultInterface is { IsSynthesized: true })
-                    synthInterfaces.Add(rc.DefaultInterface);
-                if (rc.ProtectedInterface is { IsSynthesized: true })
-                    synthInterfaces.Add(rc.ProtectedInterface);
-                if (rc.OverridesInterface is { IsSynthesized: true })
-                    synthInterfaces.Add(rc.OverridesInterface);
+                foreach (var iface in GetSynthesizedInterfaces(rc))
+                    synthInterfaces.Add(iface);
             }
         }
 
@@ -199,12 +189,8 @@ public class WinMdEmitter
             // Reserve TypeDef handles for synthesized interfaces before the runtime class
             if (type is RuntimeClassSymbol rc)
             {
-                if (rc.DefaultInterface is { IsSynthesized: true })
-                    _synthInterfaceHandles[rc.DefaultInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
-                if (rc.ProtectedInterface is { IsSynthesized: true } && rc.ProtectedInterface != rc.DefaultInterface)
-                    _synthInterfaceHandles[rc.ProtectedInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
-                if (rc.OverridesInterface is { IsSynthesized: true } && rc.OverridesInterface != rc.DefaultInterface)
-                    _synthInterfaceHandles[rc.OverridesInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+                foreach (var iface in GetSynthesizedInterfaces(rc))
+                    _synthInterfaceHandles[iface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
             }
             _typeDefHandles[type.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
         }
@@ -222,12 +208,8 @@ public class WinMdEmitter
             // Emit synthesized interfaces before the runtime class
             if (type is RuntimeClassSymbol rc)
             {
-                if (rc.DefaultInterface is { IsSynthesized: true })
-                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.DefaultInterface, rc.FullName);
-                if (rc.ProtectedInterface is { IsSynthesized: true } && rc.ProtectedInterface != rc.DefaultInterface)
-                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.ProtectedInterface, rc.FullName);
-                if (rc.OverridesInterface is { IsSynthesized: true } && rc.OverridesInterface != rc.DefaultInterface)
-                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.OverridesInterface, rc.FullName);
+                foreach (var iface in GetSynthesizedInterfaces(rc))
+                    typeDefEmitter.EmitSynthesizedInterface(rc, iface, rc.FullName);
             }
             typeDefEmitter.Emit(type);
         }
@@ -496,18 +478,10 @@ public class WinMdEmitter
             new Version(255, 255, 255, 255),
             default, default,
             (AssemblyFlags)0x0200, // WindowsRuntime
-            default);
+            (AssemblyHashAlgorithm)0x8004);
 
         // 3. Assembly references
-        MscorlibRef = _metadata.AddAssemblyReference(
-            _metadata.GetOrAddString(MetadataConstants.MscorlibAssembly),
-            new Version(255, 255, 255, 255),
-            default, default, default, default);
-
-        WfmRef = _metadata.AddAssemblyReference(
-            _metadata.GetOrAddString(MetadataConstants.WindowsFoundationAssembly),
-            new Version(255, 255, 255, 255),
-            default, default, default, default);
+        AddStandardAssemblyReferences();
 
         // 4. TypeRefs for base types
         SystemObjectRef = AddMscorlibTypeRef(MetadataConstants.SystemNamespace, MetadataConstants.SystemObject);
@@ -538,12 +512,8 @@ public class WinMdEmitter
         {
             if (type is RuntimeClassSymbol rc)
             {
-                if (rc.DefaultInterface is { IsSynthesized: true })
-                    synthInterfaces2.Add(rc.DefaultInterface);
-                if (rc.ProtectedInterface is { IsSynthesized: true })
-                    synthInterfaces2.Add(rc.ProtectedInterface);
-                if (rc.OverridesInterface is { IsSynthesized: true })
-                    synthInterfaces2.Add(rc.OverridesInterface);
+                foreach (var iface in GetSynthesizedInterfaces(rc))
+                    synthInterfaces2.Add(iface);
             }
         }
 
@@ -554,12 +524,8 @@ public class WinMdEmitter
                 continue;
             if (type is RuntimeClassSymbol rc)
             {
-                if (rc.DefaultInterface is { IsSynthesized: true })
-                    _synthInterfaceHandles[rc.DefaultInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
-                if (rc.ProtectedInterface is { IsSynthesized: true } && rc.ProtectedInterface != rc.DefaultInterface)
-                    _synthInterfaceHandles[rc.ProtectedInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
-                if (rc.OverridesInterface is { IsSynthesized: true } && rc.OverridesInterface != rc.DefaultInterface)
-                    _synthInterfaceHandles[rc.OverridesInterface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
+                foreach (var iface in GetSynthesizedInterfaces(rc))
+                    _synthInterfaceHandles[iface.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
             }
             _typeDefHandles[type.FullName] = MetadataTokens.TypeDefinitionHandle(typeRow++);
         }
@@ -574,18 +540,79 @@ public class WinMdEmitter
                 continue;
             if (type is RuntimeClassSymbol rc)
             {
-                if (rc.DefaultInterface is { IsSynthesized: true })
-                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.DefaultInterface, rc.FullName);
-                if (rc.ProtectedInterface is { IsSynthesized: true } && rc.ProtectedInterface != rc.DefaultInterface)
-                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.ProtectedInterface, rc.FullName);
-                if (rc.OverridesInterface is { IsSynthesized: true } && rc.OverridesInterface != rc.DefaultInterface)
-                    typeDefEmitter.EmitSynthesizedInterface(rc, rc.OverridesInterface, rc.FullName);
+                foreach (var iface in GetSynthesizedInterfaces(rc))
+                    typeDefEmitter.EmitSynthesizedInterface(rc, iface, rc.FullName);
             }
             typeDefEmitter.Emit(type);
         }
 
         // 8. Serialize PE
         return SerializePE();
+    }
+
+    private static IReadOnlyList<InterfaceSymbol> GetSynthesizedInterfaces(RuntimeClassSymbol runtimeClass)
+    {
+        var interfaces = new List<InterfaceSymbol>();
+        var names = new HashSet<string>(StringComparer.Ordinal);
+
+        void Add(InterfaceSymbol? iface)
+        {
+            if (iface is { IsSynthesized: true } && names.Add(iface.FullName))
+                interfaces.Add(iface);
+        }
+
+        Add(runtimeClass.DefaultInterface);
+        foreach (var iface in runtimeClass.ImplementedInterfaces)
+        {
+            if (!runtimeClass.FactoryInterfaces.Contains(iface)
+                && !runtimeClass.StaticsInterfaces.Contains(iface)
+                && !runtimeClass.ProtectedInterfaces.Contains(iface)
+                && !runtimeClass.OverridesInterfaces.Contains(iface))
+            {
+                Add(iface);
+            }
+        }
+        foreach (var iface in runtimeClass.StaticsInterfaces)
+            Add(iface);
+        foreach (var iface in runtimeClass.FactoryInterfaces)
+            Add(iface);
+        if (runtimeClass.FactoryInterfaces.Count == 0)
+            Add(runtimeClass.FactoryInterface);
+        foreach (var iface in runtimeClass.ProtectedInterfaces)
+            Add(iface);
+        if (runtimeClass.ProtectedInterfaces.Count == 0)
+            Add(runtimeClass.ProtectedInterface);
+        foreach (var iface in runtimeClass.OverridesInterfaces)
+            Add(iface);
+        if (runtimeClass.OverridesInterfaces.Count == 0)
+            Add(runtimeClass.OverridesInterface);
+
+        return interfaces;
+    }
+
+    private void AddStandardAssemblyReferences()
+    {
+        var mscorlibToken = new BlobBuilder();
+        mscorlibToken.WriteBytes(new byte[]
+        {
+            0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89,
+        });
+
+        MscorlibRef = _metadata.AddAssemblyReference(
+            _metadata.GetOrAddString(MetadataConstants.MscorlibAssembly),
+            new Version(255, 255, 255, 255),
+            default,
+            _metadata.GetOrAddBlob(mscorlibToken),
+            default,
+            default);
+
+        WfmRef = _metadata.AddAssemblyReference(
+            _metadata.GetOrAddString(MetadataConstants.WindowsFoundationAssembly),
+            new Version(255, 255, 255, 255),
+            default,
+            default,
+            (AssemblyFlags)0x0200,
+            default);
     }
 
     private static string GetRootNamespace(Compilation compilation)

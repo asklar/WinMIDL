@@ -62,6 +62,46 @@ public class VersionPropagationTests
     }
 
     [Fact]
+    public void InternalContractVisibilityResolvesRelativeNamespace()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace Review.A
+            {
+                [internal, contractversion(1)]
+                apicontract C {}
+
+                [contract(C, 1)]
+                struct PayloadA
+                {
+                    Int32 Value;
+                }
+            }
+
+            namespace Review.B
+            {
+                [contractversion(1)]
+                apicontract C {}
+
+                [contract(C, 1)]
+                struct PayloadB
+                {
+                    Int32 Value;
+                }
+            }
+            """);
+
+        Assert.Empty(compilation.Diagnostics);
+        var review = compilation.GlobalNamespace.ChildNamespaces["Review"];
+        var payloadA = review.ChildNamespaces["A"].Members.OfType<StructSymbol>().Single();
+        var payloadB = review.ChildNamespaces["B"].Members.OfType<StructSymbol>().Single();
+
+        Assert.Contains(payloadA.Attributes,
+            attribute => attribute.Name.Equals("internal", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(payloadB.Attributes,
+            attribute => attribute.Name.Equals("internal", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void VersionedBlockOverridesClassContract()
     {
         var compilation = CompilationHelper.Compile("""

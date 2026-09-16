@@ -72,6 +72,18 @@ public class CommandLineParserTests
         Assert.Equal("b.winmd", options.References[1]);
     }
 
+    [Theory]
+    [InlineData("true", true)]
+    [InlineData("false", false)]
+    public void ParseEnableTrueAsync(string value, bool expected)
+    {
+        var options = CommandLineParser.Parse(
+            new[] { "/enable_true_async", value, "input.idl" });
+
+        Assert.Equal(expected, options.EnableTrueAsync);
+        Assert.Empty(options.Errors);
+    }
+
     [Fact]
     public void HelpFlag()
     {
@@ -121,4 +133,3 @@ namespace TestApp
         Assert.Empty(options.Errors);
     }
 }
-

@@ -400,6 +400,7 @@ public class WinMdParityGap2Tests
                 runtimeclass Widget
                 {
                     Widget();
+                    Widget(Int32 initialValue);
                     void DoWork();
                     static String GetVersion();
                 }
@@ -410,8 +411,20 @@ public class WinMdParityGap2Tests
         using (pe)
         {
             // Both should exist
-            Assert.NotNull(TryFindTypeDef(reader, "IWidget"));
-            Assert.NotNull(TryFindTypeDef(reader, "IWidgetStatics"));
+            var defaultHandle = TryFindTypeDef(reader, "IWidget");
+            var staticsTypeHandle = TryFindTypeDef(reader, "IWidgetStatics");
+            var factoryHandle = TryFindTypeDef(reader, "IWidgetFactory");
+            Assert.NotNull(defaultHandle);
+            Assert.NotNull(staticsTypeHandle);
+            Assert.NotNull(factoryHandle);
+
+            var classHandle = FindTypeDef(reader, "Widget");
+            Assert.True(MetadataTokens.GetRowNumber(defaultHandle.Value)
+                < MetadataTokens.GetRowNumber(staticsTypeHandle.Value));
+            Assert.True(MetadataTokens.GetRowNumber(staticsTypeHandle.Value)
+                < MetadataTokens.GetRowNumber(factoryHandle.Value));
+            Assert.True(MetadataTokens.GetRowNumber(factoryHandle.Value)
+                < MetadataTokens.GetRowNumber(classHandle));
 
             // IWidget should only have instance members
             var iwidgetHandle = FindTypeDef(reader, "IWidget");

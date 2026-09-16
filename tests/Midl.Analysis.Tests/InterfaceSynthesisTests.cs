@@ -65,6 +65,136 @@ public class InterfaceSynthesisTests
     }
 
     [Fact]
+    public void SynthesizeVersionedInterfaces()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(3)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                runtimeclass Service
+                {
+                    void V1();
+
+                    [contract(TestContract, 2)]
+                    {
+                        void V2();
+                    }
+
+                    [contract(TestContract, 3)]
+                    {
+                        void V3();
+                        static void S3();
+                    }
+                }
+            }
+            """);
+
+        Assert.Empty(compilation.Diagnostics);
+        var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
+        var runtimeClass = ns.Members.OfType<RuntimeClassSymbol>().Single();
+        var instanceInterfaces = runtimeClass.ImplementedInterfaces
+            .Where(iface => !runtimeClass.StaticsInterfaces.Contains(iface))
+            .ToList();
+
+        Assert.Equal(new[] { "IService", "IService2", "IService3" },
+            instanceInterfaces.Select(iface => iface.Name));
+        Assert.Equal(new[] { "V1", "V2", "V3" },
+            instanceInterfaces.SelectMany(iface => iface.Members).Select(member => member.Name));
+        Assert.Equal(new int?[] { 1 << 16, 2 << 16, 3 << 16 },
+            instanceInterfaces.Select(iface => iface.ContractVersion));
+
+        var statics = Assert.Single(runtimeClass.StaticsInterfaces);
+        Assert.Equal("IServiceStatics", statics.Name);
+        Assert.Equal(3 << 16, statics.ContractVersion);
+        Assert.Equal("S3", Assert.Single(statics.Members).Name);
+    }
+
+    [Fact]
+    public void SynthesizeVersionedModifierInterfaces()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace TestApp
+            {
+                [contractversion(2)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                unsealed runtimeclass Widget
+                {
+                    void InstanceV1();
+                    overridable void OverrideV1();
+
+                    [contract(TestContract, 2)]
+                    {
+                        protected void ProtectedV2();
+                        overridable void OverrideV2();
+                    }
+                }
+            }
+            """);
+
+        Assert.Empty(compilation.Diagnostics);
+        var ns = compilation.GlobalNamespace.ChildNamespaces["TestApp"];
+        var runtimeClass = ns.Members.OfType<RuntimeClassSymbol>().Single();
+
+        Assert.Equal(new[] { "IWidgetProtected" },
+            runtimeClass.ProtectedInterfaces.Select(iface => iface.Name));
+        Assert.Equal(2 << 16,
+            Assert.Single(runtimeClass.ProtectedInterfaces).ContractVersion);
+        Assert.Equal("ProtectedV2",
+            Assert.Single(Assert.Single(runtimeClass.ProtectedInterfaces).Members).Name);
+
+        Assert.Equal(new[] { "IWidgetOverrides", "IWidgetOverrides2" },
+            runtimeClass.OverridesInterfaces.Select(iface => iface.Name));
+        Assert.Equal(new int?[] { 1 << 16, 2 << 16 },
+            runtimeClass.OverridesInterfaces.Select(iface => iface.ContractVersion));
+        Assert.Equal(new[] { "OverrideV1", "OverrideV2" },
+            runtimeClass.OverridesInterfaces.SelectMany(iface => iface.Members).Select(member => member.Name));
+    }
+
+    [Theory]
+    [InlineData("C", "Review.C")]
+    [InlineData("Review.C", "C")]
+    public void EquivalentContractNamesShareInterface(
+        string classContract,
+        string memberContract)
+    {
+        var compilation = CompilationHelper.Compile($$"""
+            namespace Review
+            {
+                [contractversion(1)]
+                apicontract C {}
+
+                [contract({{classContract}}, 1)]
+                runtimeclass Widget
+                {
+                    void A();
+                    [contract({{memberContract}}, 1)]
+                    {
+                        void B();
+                    }
+                }
+            }
+            """);
+
+        Assert.Empty(compilation.Diagnostics);
+        var ns = compilation.GlobalNamespace.ChildNamespaces["Review"];
+        var runtimeClass = ns.Members.OfType<RuntimeClassSymbol>().Single();
+        var instanceInterfaces = runtimeClass.ImplementedInterfaces
+            .Where(iface => !runtimeClass.FactoryInterfaces.Contains(iface)
+                && !runtimeClass.StaticsInterfaces.Contains(iface)
+                && !runtimeClass.ProtectedInterfaces.Contains(iface)
+                && !runtimeClass.OverridesInterfaces.Contains(iface))
+            .ToList();
+
+        var iface = Assert.Single(instanceInterfaces);
+        Assert.Equal(new[] { "A", "B" }, iface.Members.Select(member => member.Name));
+    }
+
+    [Fact]
     public void SynthesizeFactoryInterface()
     {
         var compilation = CompilationHelper.Compile("""

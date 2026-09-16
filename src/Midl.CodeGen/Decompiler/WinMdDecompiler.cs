@@ -146,7 +146,7 @@ public class WinMdDecompiler
                 if (IsApiContract(reader, td, handle))
                     DecompileApiContract(reader, td, handle, name, sb, indent);
                 else
-                    DecompileStruct(reader, td, name, sb, indent);
+                    DecompileStruct(reader, td, handle, name, sb, indent);
                 break;
             case "System.MulticastDelegate":
                 DecompileDelegate(reader, td, handle, name, sb, indent);
@@ -254,6 +254,8 @@ public class WinMdDecompiler
     private void DecompileEnum(MetadataReader reader, TypeDefinition td, TypeDefinitionHandle handle,
         string name, StringBuilder sb, string indent)
     {
+        EmitAttributes(reader, handle, sb, indent);
+
         bool isFlags = HasCustomAttribute(reader, handle, "System", "FlagsAttribute");
         if (isFlags)
             sb.AppendLine($"{indent}[flags]");
@@ -265,6 +267,20 @@ public class WinMdDecompiler
         var members = fields.Where(f => reader.GetString(f.Name) != "value__").ToList();
         for (int i = 0; i < members.Count; i++)
         {
+            foreach (var attrHandle in members[i].GetCustomAttributes())
+            {
+                var attr = reader.GetCustomAttribute(attrHandle);
+                if (GetAttributeTypeName(reader, attr.Constructor) == "ContractVersionAttribute")
+                {
+                    EmitContractVersionAttribute(
+                        reader,
+                        attr,
+                        sb,
+                        $"{indent}    ",
+                        reader.GetString(td.Namespace));
+                }
+            }
+
             var fieldName = reader.GetString(members[i].Name);
             var comma = i < members.Count - 1 ? "," : ",";
             sb.AppendLine($"{indent}    {fieldName}{comma}");
@@ -278,8 +294,9 @@ public class WinMdDecompiler
     #region Struct
 
     private void DecompileStruct(MetadataReader reader, TypeDefinition td,
-        string name, StringBuilder sb, string indent)
+        TypeDefinitionHandle handle, string name, StringBuilder sb, string indent)
     {
+        EmitAttributes(reader, handle, sb, indent);
         sb.AppendLine($"{indent}struct {name}");
         sb.AppendLine($"{indent}{{");
 
@@ -572,7 +589,7 @@ public class WinMdDecompiler
         }
 
         // Collect all members with their version and formatted text
-        var members = new List<(uint? Version, string Text)>();
+        var members = new List<(uint? Version, string Text, string Name)>();
 
         // Build set of method names with DefaultOverloadAttribute from interfaces
         var defaultOverloadMethods = GetDefaultOverloadMethodNames(reader, td);
@@ -593,7 +610,7 @@ public class WinMdDecompiler
             var methodText = $"{returnType} {methodName}({parameters});";
             if (defaultOverloadMethods.Contains(methodName))
                 methodText = $"[default_overload]\n{indent}    {methodText}";
-            members.Add((methodVersions.GetValueOrDefault(methodName), methodText));
+            members.Add((methodVersions.GetValueOrDefault(methodName), methodText, methodName));
         }
 
         // Properties (idiomatic MIDL3 syntax)
@@ -606,17 +623,27 @@ public class WinMdDecompiler
                 text = $"{propType} {propName} {{ get; }};";
             else
                 text = $"{propType} {propName} {{ set; }};";
-            members.Add((ver, text));
+            members.Add((ver, text, propName));
         }
 
         // Events (idiomatic MIDL3 syntax)
         foreach (var (evtName, (delegateType, ver)) in events)
         {
-            members.Add((ver, $"event {delegateType} {evtName};"));
+            members.Add((ver, $"event {delegateType} {evtName};", evtName));
         }
 
+        var defaultInterfaceOrder = GetRuntimeClassMemberOrder(reader, td);
+        members = members
+            .OrderBy(member => defaultInterfaceOrder.GetValueOrDefault(member.Name, int.MaxValue))
+            .ToList();
+
         // Group members by version and emit
-        EmitVersionedMembers(members, contractName, baseVersion, sb, indent);
+        EmitVersionedMembers(
+            members.Select(member => (member.Version, member.Text)).ToList(),
+            contractName,
+            baseVersion,
+            sb,
+            indent);
 
         // Emit static members from [static()] interfaces
         EmitStaticMembers(reader, handle, sb, indent);
@@ -689,7 +716,7 @@ public class WinMdDecompiler
     }
 
     /// <summary>
-    /// Reads the VersionAttribute from a method or property to determine its version.
+    /// Reads the VersionAttribute or ContractVersionAttribute from a method.
     /// </summary>
     private static uint? GetMemberVersion(MetadataReader reader, MethodDefinitionHandle methodHandle)
     {
@@ -698,11 +725,21 @@ public class WinMdDecompiler
         {
             var attr = reader.GetCustomAttribute(attrHandle);
             var attrName = GetAttributeTypeName(reader, attr.Constructor);
-            if (attrName != "VersionAttribute") continue;
             var blob = reader.GetBlobReader(attr.Value);
-            if (blob.Length < 6) continue;
+            if (blob.Length < 6)
+                continue;
+
             blob.ReadUInt16(); // prolog
-            return blob.ReadUInt32();
+            if (attrName == "VersionAttribute")
+                return blob.ReadUInt32();
+
+            if (attrName == "ContractVersionAttribute")
+            {
+                if (GetCtorParameterCount(reader, attr.Constructor) >= 2)
+                    ReadSerializedString(ref blob);
+                if (blob.RemainingBytes >= 4)
+                    return blob.ReadUInt32();
+            }
         }
         return null;
     }
@@ -785,6 +822,34 @@ public class WinMdDecompiler
         }
 
         return result;
+    }
+
+    private static Dictionary<string, int> GetRuntimeClassMemberOrder(
+        MetadataReader reader,
+        TypeDefinition runtimeClass)
+    {
+        var order = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var methodHandle in runtimeClass.GetMethods())
+        {
+            var method = reader.GetMethodDefinition(methodHandle);
+            if (method.Attributes.HasFlag(MethodAttributes.Static))
+                continue;
+
+            var methodName = reader.GetString(method.Name);
+            if (methodName == ".ctor")
+                continue;
+
+            var memberName = methodName.StartsWith("get_", StringComparison.Ordinal)
+                || methodName.StartsWith("put_", StringComparison.Ordinal)
+                || methodName.StartsWith("add_", StringComparison.Ordinal)
+                ? methodName[4..]
+                : methodName.StartsWith("remove_", StringComparison.Ordinal)
+                    ? methodName[7..]
+                    : methodName;
+            order.TryAdd(memberName, order.Count);
+        }
+
+        return order;
     }
 
     /// <summary>
@@ -1140,6 +1205,9 @@ public class WinMdDecompiler
                 case "StaticAttribute":
                     // Suppressed — static methods already carry the 'static' keyword
                     break;
+                case "FlagsAttribute":
+                    // Emitted explicitly by DecompileEnum.
+                    break;
                 case "DeprecatedAttribute":
                     EmitDeprecatedAttribute(reader, attr, sb, indent);
                     break;
@@ -1155,6 +1223,9 @@ public class WinMdDecompiler
                 case "AllowForWebAttribute":
                     sb.AppendLine($"{indent}[allowforweb]");
                     break;
+                case "InternalAttribute":
+                    sb.AppendLine($"{indent}[internal]");
+                    break;
                 case "ContentPropertyAttribute":
                     EmitContentPropertyAttribute(reader, attr, sb, indent);
                     break;
@@ -1162,7 +1233,8 @@ public class WinMdDecompiler
                     EmitVersionAttribute(reader, attr, sb, indent);
                     break;
                 case "ContractVersionAttribute":
-                    EmitContractVersionAttribute(reader, attr, sb, indent);
+                    EmitContractVersionAttribute(reader, attr, sb, indent,
+                        reader.GetString(reader.GetTypeDefinition(handle).Namespace));
                     break;
                 default:
                     EmitGenericAttribute(reader, attr, attrName, sb, indent);
@@ -1376,7 +1448,12 @@ public class WinMdDecompiler
         }
     }
 
-    private void EmitContractVersionAttribute(MetadataReader reader, CustomAttribute attr, StringBuilder sb, string indent)
+    private void EmitContractVersionAttribute(
+        MetadataReader reader,
+        CustomAttribute attr,
+        StringBuilder sb,
+        string indent,
+        string declaringNamespace)
     {
         try
         {
@@ -1391,6 +1468,12 @@ public class WinMdDecompiler
                 var contractName = ReadSerializedString(ref blob);
                 if (contractName != null && blob.RemainingBytes >= 4)
                 {
+                    var namespacePrefix = $"{declaringNamespace}.";
+                    if (declaringNamespace.Length > 0
+                        && contractName.StartsWith(namespacePrefix, StringComparison.Ordinal))
+                    {
+                        contractName = contractName[namespacePrefix.Length..];
+                    }
                     var version = blob.ReadUInt32();
                     var display = Midl.Analysis.VersionEncoding.Display(version);
                     sb.AppendLine($"{indent}[contract({contractName}, {display})]");
