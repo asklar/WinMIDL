@@ -535,6 +535,54 @@ public class WinMdCustomAttributeEmissionTests
     }
 
     [Fact]
+    public void Emit_RemoteAsync_WhenTrueAsyncEnabled()
+    {
+        var compilation = CompilationHelper.Compile("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    Windows.Foundation.IAsyncOperation<Int32> ComputeAsync();
+                }
+            }
+            """);
+        Assert.Empty(compilation.Diagnostics);
+        var bytes = new WinMdEmitter(enableTrueAsync: true).EmitToBytes(compilation);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "ComputeAsync");
+            Assert.True(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.RemoteAsyncAttribute"));
+        }
+    }
+
+    [Fact]
+    public void Emit_AsyncReturnWithoutTrueAsync_DoesNotEmitRemoteAsync()
+    {
+        var bytes = CompileAndEmit("""
+            namespace N
+            {
+                interface IWidget
+                {
+                    Windows.Foundation.IAsyncOperation<Int32> ComputeAsync();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var ifaceHandle = FindTypeDef(reader, "IWidget");
+            var methodHandle = FindMethod(reader, ifaceHandle, "ComputeAsync");
+            Assert.False(HasCustomAttribute(reader, methodHandle,
+                "Windows.Foundation.Metadata.RemoteAsyncAttribute"));
+        }
+    }
+
+    [Fact]
     public void Emit_MultipleAttributes_OnSingleMethod()
     {
         var bytes = CompileAndEmit("""

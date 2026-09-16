@@ -24,6 +24,8 @@ public class DelegateSymbol : ISymbol
 
     public Guid? Uuid { get; set; }
     public int? Version { get; set; }
+    public string? ContractName { get; set; }
+    public int? ContractVersion { get; set; }
     public string? DeprecatedMessage { get; set; }
     public bool IsExperimental { get; set; }
 #if FEATURE_STAGING

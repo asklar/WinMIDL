@@ -333,6 +333,62 @@ public partial class DecompilerTests
     }
 
     [Fact]
+    public void DecompilePreservesInternalContractMetadata()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [internal, contractversion(2)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                enum Choice
+                {
+                    First,
+                    [contract(TestContract, 2)]
+                    Second,
+                }
+
+                [contract(TestContract, 1)]
+                struct Payload
+                {
+                    Int32 Value;
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Equal(3, idl.Split("[internal]").Length - 1);
+        Assert.Equal(2, idl.Split("[contract(TestContract, 1)]").Length - 1);
+        Assert.Contains("enum Choice", idl);
+        Assert.Contains("[contract(TestContract, 2)]\r\n        Second", idl);
+        Assert.Contains("struct Payload", idl);
+    }
+
+    [Fact]
+    public void DecompileFlagsEnumEmitsSingleAttribute()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [flags]
+                enum Options
+                {
+                    None,
+                    First,
+                }
+            }
+            """);
+
+        var decompiler = new WinMdDecompiler();
+        var idl = decompiler.Decompile(bytes);
+
+        Assert.Equal(1, idl.Split("[flags]").Length - 1);
+    }
+
+    [Fact]
     public void DecompileApiContract()
     {
         var bytes = CompileAndEmit("""

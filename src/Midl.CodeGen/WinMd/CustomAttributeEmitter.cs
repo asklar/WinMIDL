@@ -21,13 +21,17 @@ internal class CustomAttributeEmitter
     // Lazy-initialized attribute constructor MemberRefs
     private MemberReferenceHandle? _flagsCtorRef;
     private MemberReferenceHandle? _activatableCtorRef;
+    private MemberReferenceHandle? _activatableContractCtorRef;
     private MemberReferenceHandle? _defaultCtorRef;
     private MemberReferenceHandle? _guidCtorRef;
     private MemberReferenceHandle? _versionCtorRef;
     private MemberReferenceHandle? _contractVersionCtorRef;
+    private MemberReferenceHandle? _contractVersionStringCtorRef;
     private MemberReferenceHandle? _exclusiveToCtorRef;
     private MemberReferenceHandle? _activatableFactoryCtorRef;
+    private MemberReferenceHandle? _activatableFactoryContractCtorRef;
     private MemberReferenceHandle? _staticCtorRef;
+    private MemberReferenceHandle? _staticContractCtorRef;
     private MemberReferenceHandle? _composableCtorRef;
     private MemberReferenceHandle? _threadingCtorRef;
     private MemberReferenceHandle? _marshalingCtorRef;
@@ -45,6 +49,8 @@ internal class CustomAttributeEmitter
     private MemberReferenceHandle? _attributeUsageCtorRef;
     private MemberReferenceHandle? _apiContractCtorRef;
     private TypeReferenceHandle? _systemTypeRef;
+    private readonly Dictionary<(AssemblyReferenceHandle Assembly, string Namespace, string Name), TypeReferenceHandle>
+        _typeReferences = new();
 
     public CustomAttributeEmitter(WinMdEmitter emitter)
     {
@@ -58,16 +64,32 @@ internal class CustomAttributeEmitter
         Metadata.AddCustomAttribute(parent, _flagsCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
 
-    public void AddActivatableAttribute(EntityHandle parent, uint version = 1)
+    public void AddActivatableAttribute(
+        EntityHandle parent,
+        uint version = 1,
+        string? contractName = null)
     {
-        _activatableCtorRef ??= CreateWfmCtorRef("ActivatableAttribute",
-            new Action<SignatureTypeEncoder>[] { e => e.UInt32() });
+        MemberReferenceHandle constructor;
+        if (contractName == null)
+        {
+            _activatableCtorRef ??= CreateWfmCtorRef("ActivatableAttribute",
+                new Action<SignatureTypeEncoder>[] { e => e.UInt32() });
+            constructor = _activatableCtorRef.Value;
+        }
+        else
+        {
+            _activatableContractCtorRef ??= CreateWfmCtorRef("ActivatableAttribute",
+                new Action<SignatureTypeEncoder>[] { e => e.UInt32(), e => e.String() });
+            constructor = _activatableContractCtorRef.Value;
+        }
 
         var blob = new BlobBuilder();
         blob.WriteUInt16(0x0001); // prolog
         blob.WriteUInt32(version);
+        if (contractName != null)
+            blob.WriteSerializedString(contractName);
         blob.WriteUInt16(0x0000); // named args
-        Metadata.AddCustomAttribute(parent, _activatableCtorRef.Value, Metadata.GetOrAddBlob(blob));
+        Metadata.AddCustomAttribute(parent, constructor, Metadata.GetOrAddBlob(blob));
     }
 
     public void AddDefaultAttribute(EntityHandle parent)
@@ -125,7 +147,11 @@ internal class CustomAttributeEmitter
     public void AddContractVersionAttribute(EntityHandle parent, string contractName, uint version)
     {
         _contractVersionNamedCtorRef ??= CreateWfmCtorRef("ContractVersionAttribute",
-            new Action<SignatureTypeEncoder>[] { e => e.String(), e => e.UInt32() });
+            new Action<SignatureTypeEncoder>[]
+            {
+                e => e.Type(GetSystemTypeRef(), isValueType: false),
+                e => e.UInt32()
+            });
 
         var blob = new BlobBuilder();
         blob.WriteUInt16(0x0001); // prolog
@@ -133,6 +159,19 @@ internal class CustomAttributeEmitter
         blob.WriteUInt32(version);
         blob.WriteUInt16(0x0000); // named args
         Metadata.AddCustomAttribute(parent, _contractVersionNamedCtorRef.Value, Metadata.GetOrAddBlob(blob));
+    }
+
+    public void AddContractVersionAttributeByName(EntityHandle parent, string contractName, uint version)
+    {
+        _contractVersionStringCtorRef ??= CreateWfmCtorRef("ContractVersionAttribute",
+            new Action<SignatureTypeEncoder>[] { e => e.String(), e => e.UInt32() });
+
+        var blob = new BlobBuilder();
+        blob.WriteUInt16(0x0001); // prolog
+        blob.WriteSerializedString(contractName);
+        blob.WriteUInt32(version);
+        blob.WriteUInt16(0x0000); // named args
+        Metadata.AddCustomAttribute(parent, _contractVersionStringCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
 
     public void AddExclusiveToAttribute(EntityHandle parent, string runtimeClassName)
@@ -147,38 +186,82 @@ internal class CustomAttributeEmitter
         Metadata.AddCustomAttribute(parent, _exclusiveToCtorRef.Value, Metadata.GetOrAddBlob(blob));
     }
 
-    public void AddActivatableAttribute(EntityHandle parent, string factoryTypeName, uint version)
+    public void AddActivatableAttribute(
+        EntityHandle parent,
+        string factoryTypeName,
+        uint version,
+        string? contractName = null)
     {
-        _activatableFactoryCtorRef ??= CreateWfmCtorRef("ActivatableAttribute",
-            new Action<SignatureTypeEncoder>[]
-            {
-                e => e.Type(GetSystemTypeRef(), isValueType: false),
-                e => e.UInt32()
-            });
+        MemberReferenceHandle constructor;
+        if (contractName == null)
+        {
+            _activatableFactoryCtorRef ??= CreateWfmCtorRef("ActivatableAttribute",
+                new Action<SignatureTypeEncoder>[]
+                {
+                    e => e.Type(GetSystemTypeRef(), isValueType: false),
+                    e => e.UInt32()
+                });
+            constructor = _activatableFactoryCtorRef.Value;
+        }
+        else
+        {
+            _activatableFactoryContractCtorRef ??= CreateWfmCtorRef("ActivatableAttribute",
+                new Action<SignatureTypeEncoder>[]
+                {
+                    e => e.Type(GetSystemTypeRef(), isValueType: false),
+                    e => e.UInt32(),
+                    e => e.String()
+                });
+            constructor = _activatableFactoryContractCtorRef.Value;
+        }
 
         var blob = new BlobBuilder();
         blob.WriteUInt16(0x0001); // prolog
         blob.WriteSerializedString(factoryTypeName);
         blob.WriteUInt32(version);
+        if (contractName != null)
+            blob.WriteSerializedString(contractName);
         blob.WriteUInt16(0x0000); // named args
-        Metadata.AddCustomAttribute(parent, _activatableFactoryCtorRef.Value, Metadata.GetOrAddBlob(blob));
+        Metadata.AddCustomAttribute(parent, constructor, Metadata.GetOrAddBlob(blob));
     }
 
-    public void AddStaticAttribute(EntityHandle parent, string staticTypeName, uint version)
+    public void AddStaticAttribute(
+        EntityHandle parent,
+        string staticTypeName,
+        uint version,
+        string? contractName = null)
     {
-        _staticCtorRef ??= CreateWfmCtorRef("StaticAttribute",
-            new Action<SignatureTypeEncoder>[]
-            {
-                e => e.Type(GetSystemTypeRef(), isValueType: false),
-                e => e.UInt32()
-            });
+        MemberReferenceHandle constructor;
+        if (contractName == null)
+        {
+            _staticCtorRef ??= CreateWfmCtorRef("StaticAttribute",
+                new Action<SignatureTypeEncoder>[]
+                {
+                    e => e.Type(GetSystemTypeRef(), isValueType: false),
+                    e => e.UInt32()
+                });
+            constructor = _staticCtorRef.Value;
+        }
+        else
+        {
+            _staticContractCtorRef ??= CreateWfmCtorRef("StaticAttribute",
+                new Action<SignatureTypeEncoder>[]
+                {
+                    e => e.Type(GetSystemTypeRef(), isValueType: false),
+                    e => e.UInt32(),
+                    e => e.String()
+                });
+            constructor = _staticContractCtorRef.Value;
+        }
 
         var blob = new BlobBuilder();
         blob.WriteUInt16(0x0001); // prolog
         blob.WriteSerializedString(staticTypeName);
         blob.WriteUInt32(version);
+        if (contractName != null)
+            blob.WriteSerializedString(contractName);
         blob.WriteUInt16(0x0000); // named args
-        Metadata.AddCustomAttribute(parent, _staticCtorRef.Value, Metadata.GetOrAddBlob(blob));
+        Metadata.AddCustomAttribute(parent, constructor, Metadata.GetOrAddBlob(blob));
     }
 
     public void AddComposableAttribute(EntityHandle parent, string factoryTypeName, int access, uint version)
@@ -204,8 +287,15 @@ internal class CustomAttributeEmitter
 
     public void AddThreadingAttribute(EntityHandle parent, int threadingModel)
     {
+        var threadingModelType = GetOrAddTypeReference(
+            _emitter.WfmRef,
+            MetadataConstants.WindowsFoundationMetadataNamespace,
+            "ThreadingModel");
         _threadingCtorRef ??= CreateWfmCtorRef("ThreadingAttribute",
-            new Action<SignatureTypeEncoder>[] { e => e.Int32() });
+            new Action<SignatureTypeEncoder>[]
+            {
+                e => e.Type(threadingModelType, isValueType: true)
+            });
 
         var blob = new BlobBuilder();
         blob.WriteUInt16(0x0001); // prolog
@@ -216,8 +306,15 @@ internal class CustomAttributeEmitter
 
     public void AddMarshalingBehaviorAttribute(EntityHandle parent, int marshalingType)
     {
+        var marshalingTypeRef = GetOrAddTypeReference(
+            _emitter.WfmRef,
+            MetadataConstants.WindowsFoundationMetadataNamespace,
+            "MarshalingType");
         _marshalingCtorRef ??= CreateWfmCtorRef("MarshalingBehaviorAttribute",
-            new Action<SignatureTypeEncoder>[] { e => e.Int32() });
+            new Action<SignatureTypeEncoder>[]
+            {
+                e => e.Type(marshalingTypeRef, isValueType: true)
+            });
 
         var blob = new BlobBuilder();
         blob.WriteUInt16(0x0001); // prolog
@@ -481,31 +578,43 @@ internal class CustomAttributeEmitter
 
     private TypeReferenceHandle GetSystemTypeRef()
     {
-        _systemTypeRef ??= Metadata.AddTypeReference(
-            _emitter.MscorlibRef,
-            Metadata.GetOrAddString("System"),
-            Metadata.GetOrAddString("Type"));
+        _systemTypeRef ??= GetOrAddTypeReference(_emitter.MscorlibRef, "System", "Type");
         return _systemTypeRef.Value;
     }
 
     private MemberReferenceHandle CreateMscorlibCtorRef(
         string ns, string typeName, Action<SignatureTypeEncoder>[] paramEncoders)
     {
-        var typeRef = Metadata.AddTypeReference(
-            _emitter.MscorlibRef,
-            Metadata.GetOrAddString(ns),
-            Metadata.GetOrAddString(typeName));
+        var typeRef = GetOrAddTypeReference(_emitter.MscorlibRef, ns, typeName);
         return CreateCtorMemberRef(typeRef, paramEncoders);
     }
 
     private MemberReferenceHandle CreateWfmCtorRef(
         string typeName, Action<SignatureTypeEncoder>[] paramEncoders)
     {
-        var typeRef = Metadata.AddTypeReference(
+        var typeRef = GetOrAddTypeReference(
             _emitter.WfmRef,
-            Metadata.GetOrAddString(MetadataConstants.WindowsFoundationMetadataNamespace),
-            Metadata.GetOrAddString(typeName));
+            MetadataConstants.WindowsFoundationMetadataNamespace,
+            typeName);
         return CreateCtorMemberRef(typeRef, paramEncoders);
+    }
+
+    private TypeReferenceHandle GetOrAddTypeReference(
+        AssemblyReferenceHandle assembly,
+        string ns,
+        string name)
+    {
+        var key = (assembly, ns, name);
+        if (!_typeReferences.TryGetValue(key, out var typeRef))
+        {
+            typeRef = Metadata.AddTypeReference(
+                assembly,
+                Metadata.GetOrAddString(ns),
+                Metadata.GetOrAddString(name));
+            _typeReferences[key] = typeRef;
+        }
+
+        return typeRef;
     }
 
     private MemberReferenceHandle CreateCtorMemberRef(

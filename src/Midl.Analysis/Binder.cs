@@ -2546,6 +2546,8 @@ public partial class Binder
                     if (symbol is RuntimeClassSymbol rc) { rc.ContractName = contractName; rc.ContractVersion = contractVersion; }
                     if (symbol is InterfaceSymbol intf) { intf.ContractName = contractName; intf.ContractVersion = contractVersion; }
                     if (symbol is EnumSymbol en) { en.ContractName = contractName; en.ContractVersion = contractVersion; }
+                    if (symbol is StructSymbol st) { st.ContractName = contractName; st.ContractVersion = contractVersion; }
+                    if (symbol is DelegateSymbol del) { del.ContractName = contractName; del.ContractVersion = contractVersion; }
                     if (symbol is EnumMemberSymbol em) { em.ContractName = contractName; em.ContractVersion = contractVersion; }
                     if (symbol is MethodSymbol cm) { cm.ContractName = contractName; cm.ContractVersion = contractVersion; }
                     if (symbol is PropertySymbol cp) { cp.ContractName = contractName; cp.ContractVersion = contractVersion; }
@@ -2559,6 +2561,8 @@ public partial class Binder
                     if (symbol is RuntimeClassSymbol rc2) rc2.Version = (int?)attr.GetVersion(0);
                     if (symbol is InterfaceSymbol intf2) intf2.Version = (int?)attr.GetVersion(0);
                     if (symbol is EnumSymbol enV) enV.Version = (int?)attr.GetVersion(0);
+                    if (symbol is StructSymbol stV) stV.Version = (int?)attr.GetVersion(0);
+                    if (symbol is DelegateSymbol delV) delV.Version = (int?)attr.GetVersion(0);
                     break;
                 case "threading":
                     if (symbol is RuntimeClassSymbol rc3) rc3.ThreadingModel = attr.GetIdentifier(0);

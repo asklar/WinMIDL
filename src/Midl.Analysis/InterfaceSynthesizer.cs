@@ -80,40 +80,66 @@ public partial class InterfaceSynthesizer
             }
         }
 
-        // Rule A: Instance member interface
-        if (instanceMembers.Count > 0)
+        // Rule A: Instance member interfaces, partitioned by contract version.
+        var instanceGroups = GroupMembersByContract(instanceMembers, rc);
+        for (int groupIndex = 0; groupIndex < instanceGroups.Count; groupIndex++)
         {
-            var ifaceName = rc.DefaultInterfaceName != null
+            var baseName = rc.DefaultInterfaceName != null
                 ? ExtractSimpleName(rc.DefaultInterfaceName)
-                : GetUniqueName($"I{rc.Name}", ns);
-            var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, instanceMembers);
-            if (rc.DefaultInterfaceGuid != null)
+                : $"I{rc.Name}";
+            var ifaceName = GetUniqueName(
+                groupIndex == 0 ? baseName : $"{baseName}{groupIndex + 1}",
+                ns);
+            var group = instanceGroups[groupIndex];
+            var iface = CreateExclusiveInterface(
+                ifaceName,
+                ns,
+                rc.Name,
+                group.Members,
+                group.ContractName,
+                group.ContractVersion);
+            if (groupIndex == 0 && rc.DefaultInterfaceGuid != null)
                 iface.Uuid = rc.DefaultInterfaceGuid;
-            rc.DefaultInterface = iface;
+            if (groupIndex == 0)
+                rc.DefaultInterface = iface;
             rc.ImplementedInterfaces.Add(iface);
         }
 
-        // Rule B: Factory interface (parameterized constructors)
-        if (parameterizedCtors.Count > 0)
+        // Rule B: Factory interfaces (parameterized constructors), partitioned by contract version.
+        var factoryGroups = GroupMembersByContract(parameterizedCtors.Cast<ISymbol>().ToList(), rc);
+        for (int groupIndex = 0; groupIndex < factoryGroups.Count; groupIndex++)
         {
-            var ifaceName = rc.FactoryInterfaceName != null
+            var baseName = rc.FactoryInterfaceName != null
                 ? ExtractSimpleName(rc.FactoryInterfaceName)
-                : GetUniqueName($"I{rc.Name}Factory", ns);
+                : $"I{rc.Name}Factory";
+            var ifaceName = GetUniqueName(
+                groupIndex == 0 ? baseName : $"{baseName}{groupIndex + 1}",
+                ns);
+            var group = factoryGroups[groupIndex];
             var factoryMembers = new List<ISymbol>();
-            foreach (var ctor in parameterizedCtors)
+            foreach (var ctor in group.Members.Cast<ConstructorSymbol>())
             {
-                // Convert constructor to a factory method named CreateInstance
-                var factoryMethod = new MethodSymbol(
-                    ctor.Parameters.Count == 1 ? "CreateInstance" : $"CreateInstance",
-                    null);
-                factoryMethod.ReturnType = new TypeRef(rc.Name) { ResolvedSymbol = rc };
+                var factoryMethod = new MethodSymbol("CreateInstance", null)
+                {
+                    ReturnType = new TypeRef(rc.Name) { ResolvedSymbol = rc },
+                    ContractName = group.ContractName,
+                    ContractVersion = group.ContractVersion,
+                };
                 factoryMethod.Parameters.AddRange(ctor.Parameters);
                 factoryMembers.Add(factoryMethod);
             }
-            var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, factoryMembers);
-            if (rc.FactoryInterfaceGuid != null)
+            var iface = CreateExclusiveInterface(
+                ifaceName,
+                ns,
+                rc.Name,
+                factoryMembers,
+                group.ContractName,
+                group.ContractVersion);
+            if (groupIndex == 0 && rc.FactoryInterfaceGuid != null)
                 iface.Uuid = rc.FactoryInterfaceGuid;
-            rc.FactoryInterface = iface;
+            if (groupIndex == 0)
+                rc.FactoryInterface = iface;
+            rc.FactoryInterfaces.Add(iface);
             rc.ImplementedInterfaces.Add(iface);
         }
 
@@ -123,36 +149,71 @@ public partial class InterfaceSynthesizer
             rc.HasDefaultActivation = true;
         }
 
-        // Rule D: Static interface(s)
-        if (staticMembers.Count > 0)
+        // Rule D: Static interfaces, partitioned by contract version.
+        var staticGroups = GroupMembersByContract(staticMembers, rc);
+        for (int groupIndex = 0; groupIndex < staticGroups.Count; groupIndex++)
         {
-            var ifaceName = rc.StaticsInterfaceName != null
+            var baseName = rc.StaticsInterfaceName != null
                 ? ExtractSimpleName(rc.StaticsInterfaceName)
-                : GetUniqueName($"I{rc.Name}Statics", ns);
-            var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, staticMembers);
-            if (rc.StaticsInterfaceGuid != null)
+                : $"I{rc.Name}Statics";
+            var ifaceName = GetUniqueName(
+                groupIndex == 0 ? baseName : $"{baseName}{groupIndex + 1}",
+                ns);
+            var group = staticGroups[groupIndex];
+            var iface = CreateExclusiveInterface(
+                ifaceName,
+                ns,
+                rc.Name,
+                group.Members,
+                group.ContractName,
+                group.ContractVersion);
+            if (groupIndex == 0 && rc.StaticsInterfaceGuid != null)
                 iface.Uuid = rc.StaticsInterfaceGuid;
             rc.StaticsInterfaces.Add(iface);
             rc.ImplementedInterfaces.Add(iface);
         }
 
-        // Rule E: Protected interface
-        // Original midl emits IClassProtected with ProtectedAttribute even on sealed classes
-        if (protectedMembers.Count > 0)
+        // Rule E: Protected interfaces, partitioned by contract version.
+        var protectedGroups = GroupMembersByContract(protectedMembers, rc);
+        for (int groupIndex = 0; groupIndex < protectedGroups.Count; groupIndex++)
         {
-            var ifaceName = GetUniqueName($"I{rc.Name}Protected", ns);
-            var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, protectedMembers);
-            rc.ProtectedInterface = iface;
+            var baseName = $"I{rc.Name}Protected";
+            var ifaceName = GetUniqueName(
+                groupIndex == 0 ? baseName : $"{baseName}{groupIndex + 1}",
+                ns);
+            var group = protectedGroups[groupIndex];
+            var iface = CreateExclusiveInterface(
+                ifaceName,
+                ns,
+                rc.Name,
+                group.Members,
+                group.ContractName,
+                group.ContractVersion);
+            if (groupIndex == 0)
+                rc.ProtectedInterface = iface;
+            rc.ProtectedInterfaces.Add(iface);
             rc.ImplementedInterfaces.Add(iface);
         }
 
-        // Rule F: Overridable interface
-        // Original midl emits IClassOverrides with OverridableAttribute even on sealed classes
-        if (overridableMembers.Count > 0)
+        // Rule F: Overridable interfaces, partitioned by contract version.
+        var overridesGroups = GroupMembersByContract(overridableMembers, rc);
+        for (int groupIndex = 0; groupIndex < overridesGroups.Count; groupIndex++)
         {
-            var ifaceName = GetUniqueName($"I{rc.Name}Overrides", ns);
-            var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, overridableMembers);
-            rc.OverridesInterface = iface;
+            var baseName = $"I{rc.Name}Overrides";
+            var ifaceName = GetUniqueName(
+                groupIndex == 0 ? baseName : $"{baseName}{groupIndex + 1}",
+                ns);
+            var group = overridesGroups[groupIndex];
+            var iface = CreateExclusiveInterface(
+                ifaceName,
+                ns,
+                rc.Name,
+                group.Members,
+                group.ContractName,
+                group.ContractVersion);
+            if (groupIndex == 0)
+                rc.OverridesInterface = iface;
+            rc.OverridesInterfaces.Add(iface);
             rc.ImplementedInterfaces.Add(iface);
         }
 
@@ -161,24 +222,39 @@ public partial class InterfaceSynthesizer
         {
             // Find the first non-factory, non-statics interface
             rc.DefaultInterface = rc.ImplementedInterfaces.FirstOrDefault(
-                i => i != rc.FactoryInterface && !rc.StaticsInterfaces.Contains(i));
+                i => !rc.FactoryInterfaces.Contains(i) && !rc.StaticsInterfaces.Contains(i));
         }
 
         // Rule H-ext: Handle [default_interface] attribute on empty classes
         if (rc.IsDefaultInterface && rc.DefaultInterface == null)
         {
             var ifaceName = GetUniqueName($"I{rc.Name}", ns);
-            var iface = CreateExclusiveInterface(ifaceName, ns, rc.Name, new List<ISymbol>());
+            var iface = CreateExclusiveInterface(
+                ifaceName,
+                ns,
+                rc.Name,
+                new List<ISymbol>(),
+                rc.ContractName,
+                rc.ContractVersion);
             rc.DefaultInterface = iface;
             rc.ImplementedInterfaces.Add(iface);
         }
     }
 
     private static InterfaceSymbol CreateExclusiveInterface(
-        string name, NamespaceSymbol? ns, string className, List<ISymbol> members)
+        string name,
+        NamespaceSymbol? ns,
+        string className,
+        List<ISymbol> members,
+        string? contractName,
+        int? contractVersion)
     {
-        var iface = new InterfaceSymbol(name, ns);
-        iface.IsExclusive = true;
+        var iface = new InterfaceSymbol(name, ns)
+        {
+            IsExclusive = true,
+            ContractName = contractName,
+            ContractVersion = contractVersion,
+        };
         // Store the FQN for ExclusiveTo attribute (original midl uses FQN)
         var fqn = ns != null && ns.FullName.Length > 0 ? $"{ns.FullName}.{className}" : className;
         iface.ExclusiveToClass = fqn;
@@ -193,6 +269,69 @@ public partial class InterfaceSynthesizer
         ns?.AddMember(iface);
 
         return iface;
+    }
+
+    private static List<(
+        string? ContractName,
+        string? ContractIdentity,
+        int? ContractVersion,
+        List<ISymbol> Members)>
+        GroupMembersByContract(List<ISymbol> members, RuntimeClassSymbol runtimeClass)
+    {
+        var groups = new List<(
+            string? ContractName,
+            string? ContractIdentity,
+            int? ContractVersion,
+            List<ISymbol> Members)>();
+        foreach (var member in members)
+        {
+            var (contractName, contractVersion) = GetMemberContract(member);
+            contractName ??= runtimeClass.ContractName;
+            contractVersion ??= runtimeClass.ContractVersion;
+            var contractIdentity = GetContractIdentity(contractName, runtimeClass);
+
+            var groupIndex = groups.FindIndex(group =>
+                string.Equals(group.ContractIdentity, contractIdentity, StringComparison.OrdinalIgnoreCase)
+                && group.ContractVersion == contractVersion);
+            if (groupIndex < 0)
+            {
+                groups.Add((
+                    contractName,
+                    contractIdentity,
+                    contractVersion,
+                    new List<ISymbol> { member }));
+            }
+            else
+            {
+                groups[groupIndex].Members.Add(member);
+            }
+        }
+
+        return groups;
+    }
+
+    private static string? GetContractIdentity(
+        string? contractName,
+        RuntimeClassSymbol runtimeClass)
+    {
+        if (contractName == null || contractName.Contains('.'))
+            return contractName;
+
+        return runtimeClass.ContainingSymbol is NamespaceSymbol { FullName.Length: > 0 } ns
+            ? $"{ns.FullName}.{contractName}"
+            : contractName;
+    }
+
+    private static (string? ContractName, int? ContractVersion) GetMemberContract(ISymbol member)
+    {
+        return member switch
+        {
+            MethodSymbol method => (method.ContractName, method.ContractVersion),
+            PropertySymbol property => (property.ContractName, property.ContractVersion),
+            EventSymbol evt => (evt.ContractName, evt.ContractVersion),
+            ConstructorSymbol constructor => (constructor.ContractName, constructor.ContractVersion),
+            _ => (null, null),
+        };
     }
 
     /// <summary>

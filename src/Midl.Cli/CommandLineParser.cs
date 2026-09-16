@@ -46,6 +46,7 @@ public class CommandLineOptions
     public string? MetadataDir { get; set; }           // /metadata_dir
     public bool NoMidl { get; set; }                   // /nomidl
     public bool Deterministic { get; set; }            // /deterministic
+    public bool EnableTrueAsync { get; set; }          // /enable_true_async true|false
     public Midl.Analysis.CompilationMode Mode { get; set; } = Midl.Analysis.CompilationMode.Strict;
     public bool AnalyzeMode { get; set; }              // --analyze (rich console output)
     public bool DecompileMode { get; set; }             // --decompile (WinMD to IDL)
@@ -391,6 +392,18 @@ public static class CommandLineParser
             case "deterministic":
                 options.Deterministic = true;
                 i++;
+                return true;
+
+            case "enable_true_async":
+                if (TryConsumeValue(args, ref i, out var enableTrueAsync)
+                    && bool.TryParse(enableTrueAsync, out var enabled))
+                {
+                    options.EnableTrueAsync = enabled;
+                }
+                else
+                {
+                    options.Errors.Add("Invalid or missing value for /enable_true_async");
+                }
                 return true;
 
             case "strict":

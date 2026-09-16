@@ -65,6 +65,55 @@ public class WinMdAttributeEmissionTests
         return false;
     }
 
+    private static string? ReadNamedContractVersionName(MetadataReader reader, EntityHandle parent)
+    {
+        foreach (var attrHandle in reader.GetCustomAttributes(parent))
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            if (attr.Constructor.Kind != HandleKind.MemberReference)
+                continue;
+
+            var memberRef = reader.GetMemberReference((MemberReferenceHandle)attr.Constructor);
+            if (memberRef.Parent.Kind != HandleKind.TypeReference)
+                continue;
+
+            var typeRef = reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+            if (reader.GetString(typeRef.Name) != "ContractVersionAttribute")
+                continue;
+
+            var blob = reader.GetBlobReader(attr.Value);
+            blob.ReadUInt16();
+            return blob.ReadSerializedString();
+        }
+
+        return null;
+    }
+
+    private static uint? ReadNamedContractVersionValue(MetadataReader reader, EntityHandle parent)
+    {
+        foreach (var attrHandle in reader.GetCustomAttributes(parent))
+        {
+            var attr = reader.GetCustomAttribute(attrHandle);
+            if (attr.Constructor.Kind != HandleKind.MemberReference)
+                continue;
+
+            var memberRef = reader.GetMemberReference((MemberReferenceHandle)attr.Constructor);
+            if (memberRef.Parent.Kind != HandleKind.TypeReference)
+                continue;
+
+            var typeRef = reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+            if (reader.GetString(typeRef.Name) != "ContractVersionAttribute")
+                continue;
+
+            var blob = reader.GetBlobReader(attr.Value);
+            blob.ReadUInt16();
+            blob.ReadSerializedString();
+            return blob.ReadUInt32();
+        }
+
+        return null;
+    }
+
     private static int CountCustomAttributes(MetadataReader reader, EntityHandle parent, string attributeTypeName)
     {
         int count = 0;
@@ -329,10 +378,24 @@ public class WinMdAttributeEmissionTests
         {
             // The overload attribute should be on the synthesized interface method
             var ifaceHandle = FindTypeDef(reader, "IWidget");
-            var methodHandle = FindMethod(reader, ifaceHandle, "DoWork");
+            var methodHandle = FindMethod(reader, ifaceHandle, "DoWorkFast");
 
             Assert.True(HasCustomAttribute(reader, methodHandle,
                 "Windows.Foundation.Metadata.OverloadAttribute"));
+
+            var overloadAttribute = reader.GetMethodDefinition(methodHandle).GetCustomAttributes()
+                .Select(reader.GetCustomAttribute)
+                .Single(attribute =>
+                {
+                    var memberRef = reader.GetMemberReference(
+                        (MemberReferenceHandle)attribute.Constructor);
+                    var typeRef = reader.GetTypeReference(
+                        (TypeReferenceHandle)memberRef.Parent);
+                    return reader.GetString(typeRef.Name) == "OverloadAttribute";
+                });
+            var blob = reader.GetBlobReader(overloadAttribute.Value);
+            blob.ReadUInt16();
+            Assert.Equal("DoWork", blob.ReadSerializedString());
         }
     }
 
@@ -396,6 +459,330 @@ public class WinMdAttributeEmissionTests
             var classHandle = FindTypeDef(reader, "Calculator");
             Assert.Equal(2, CountCustomAttributes(reader, classHandle,
                 "Windows.Foundation.Metadata.StaticAttribute"));
+        }
+    }
+
+    [Fact]
+    public void ContractVersionAttributeOnStruct()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [contractversion(1)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                struct Payload
+                {
+                    Int32 Value;
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var structHandle = FindTypeDef(reader, "Payload");
+            Assert.True(HasCustomAttribute(reader, structHandle,
+                "Windows.Foundation.Metadata.ContractVersionAttribute"));
+            Assert.False(HasCustomAttribute(reader, structHandle,
+                "Windows.Foundation.Metadata.VersionAttribute"));
+        }
+    }
+
+    [Fact]
+    public void ContractVersionAttributeOnEnumMember()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [contractversion(2)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                enum Choice
+                {
+                    First,
+                    [contract(TestContract, 2)]
+                    Second,
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var enumHandle = FindTypeDef(reader, "Choice");
+            var second = reader.GetTypeDefinition(enumHandle).GetFields()
+                .Select(handle => (Handle: handle, Definition: reader.GetFieldDefinition(handle)))
+                .Single(field => reader.GetString(field.Definition.Name) == "Second");
+            Assert.Equal("Test.TestContract",
+                ReadNamedContractVersionName(reader, second.Handle));
+
+            var attribute = second.Definition.GetCustomAttributes()
+                .Select(reader.GetCustomAttribute)
+                .Single();
+            var constructor = reader.GetMemberReference(
+                (MemberReferenceHandle)attribute.Constructor);
+            Assert.Equal("2002010E09",
+                Convert.ToHexString(reader.GetBlobBytes(constructor.Signature)));
+        }
+    }
+
+    [Fact]
+    public void ContractVersionAttributeOnSynthesizedInterfaces()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [contractversion(1)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                unsealed runtimeclass Widget
+                {
+                    Widget(Int32 initialValue);
+                    void InstanceMethod();
+                    static void StaticMethod();
+                    protected void ProtectedMethod();
+                    overridable void OverridableMethod();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            foreach (var interfaceName in new[]
+            {
+                "IWidget",
+                "IWidgetFactory",
+                "IWidgetStatics",
+                "IWidgetProtected",
+                "IWidgetOverrides",
+            })
+            {
+                var interfaceHandle = FindTypeDef(reader, interfaceName);
+                Assert.True(HasCustomAttribute(reader, interfaceHandle,
+                    "Windows.Foundation.Metadata.ContractVersionAttribute"),
+                    $"{interfaceName} must inherit the runtimeclass contract.");
+                Assert.False(HasCustomAttribute(reader, interfaceHandle,
+                    "Windows.Foundation.Metadata.VersionAttribute"),
+                    $"{interfaceName} must not use VersionAttribute when it has a contract.");
+            }
+        }
+    }
+
+    [Fact]
+    public void InternalContractMetadataMatchesMidl()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test.Internal
+            {
+                [internal, contractversion(1)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                enum Choice
+                {
+                    First,
+                }
+
+                [contract(TestContract, 1)]
+                struct Payload
+                {
+                    Int32 Value;
+                }
+
+                [contract(TestContract, 1)]
+                delegate void Callback(String value);
+
+                [contract(TestContract, 1)]
+                runtimeclass Widget
+                {
+                    void InstanceMethod();
+                    static void StaticMethod();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            foreach (var typeName in new[]
+            {
+                "TestContract",
+                "Choice",
+                "Payload",
+                "Callback",
+                "Widget",
+                "IWidget",
+                "IWidgetStatics",
+            })
+            {
+                var typeHandle = FindTypeDef(reader, typeName);
+                Assert.True(HasCustomAttribute(reader, typeHandle,
+                    "Windows.Foundation.Metadata.InternalAttribute"),
+                    $"{typeName} must inherit the internal contract visibility.");
+            }
+
+            foreach (var typeName in new[]
+            {
+                "Choice",
+                "Payload",
+                "Callback",
+                "Widget",
+                "IWidget",
+                "IWidgetStatics",
+            })
+            {
+                var typeHandle = FindTypeDef(reader, typeName);
+                Assert.Equal("Test.Internal.TestContract",
+                    ReadNamedContractVersionName(reader, typeHandle));
+            }
+
+            Assert.Single(reader.TypeReferences.Select(reader.GetTypeReference),
+                typeRef => reader.GetString(typeRef.Name) == "ContractVersionAttribute");
+        }
+    }
+
+    [Fact]
+    public void ContractVersionAttributeOnRuntimeClassMembers()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [contractversion(1)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                runtimeclass Widget
+                {
+                    Widget();
+                    void DoWork();
+                    Int32 Value { get; };
+                    static void StaticMethod();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var classHandle = FindTypeDef(reader, "Widget");
+            var classDefinition = reader.GetTypeDefinition(classHandle);
+            foreach (var methodHandle in classDefinition.GetMethods())
+            {
+                Assert.True(HasCustomAttribute(reader, methodHandle,
+                    "Windows.Foundation.Metadata.ContractVersionAttribute"));
+                Assert.False(HasCustomAttribute(reader, methodHandle,
+                    "Windows.Foundation.Metadata.VersionAttribute"));
+            }
+
+            var propertyHandle = Assert.Single(classDefinition.GetProperties());
+            Assert.True(HasCustomAttribute(reader, propertyHandle,
+                "Windows.Foundation.Metadata.ContractVersionAttribute"));
+        }
+    }
+
+    [Fact]
+    public void VersionedRuntimeClassInterfacesMatchMidl()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [contractversion(3)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                runtimeclass Service
+                {
+                    void V1();
+
+                    [contract(TestContract, 2)]
+                    {
+                        void V2();
+                    }
+
+                    [contract(TestContract, 3)]
+                    {
+                        void V3();
+                        static void S3();
+                    }
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            Assert.Equal(1u << 16,
+                ReadNamedContractVersionValue(reader, FindTypeDef(reader, "IService")));
+            Assert.Equal(2u << 16,
+                ReadNamedContractVersionValue(reader, FindTypeDef(reader, "IService2")));
+            Assert.Equal(3u << 16,
+                ReadNamedContractVersionValue(reader, FindTypeDef(reader, "IService3")));
+            Assert.Equal(3u << 16,
+                ReadNamedContractVersionValue(reader, FindTypeDef(reader, "IServiceStatics")));
+
+            var classDefinition = reader.GetTypeDefinition(FindTypeDef(reader, "Service"));
+            var implementationHandles = classDefinition.GetInterfaceImplementations().ToList();
+            Assert.Equal(3, implementationHandles.Count);
+            Assert.Null(ReadNamedContractVersionValue(reader, implementationHandles[0]));
+            Assert.Equal(2u << 16,
+                ReadNamedContractVersionValue(reader, implementationHandles[1]));
+            Assert.Equal(3u << 16,
+                ReadNamedContractVersionValue(reader, implementationHandles[2]));
+        }
+    }
+
+    [Fact]
+    public void VersionedModifierInterfaceImplsMatchMidl()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                [contractversion(2)]
+                apicontract TestContract {}
+
+                [contract(TestContract, 1)]
+                unsealed runtimeclass Widget
+                {
+                    void InstanceV1();
+                    overridable void OverrideV1();
+
+                    [contract(TestContract, 2)]
+                    {
+                        protected void ProtectedV2();
+                        overridable void OverrideV2();
+                    }
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            Assert.Equal(2u << 16,
+                ReadNamedContractVersionValue(reader, FindTypeDef(reader, "IWidgetProtected")));
+            Assert.Equal(1u << 16,
+                ReadNamedContractVersionValue(reader, FindTypeDef(reader, "IWidgetOverrides")));
+            Assert.Equal(2u << 16,
+                ReadNamedContractVersionValue(reader, FindTypeDef(reader, "IWidgetOverrides2")));
+
+            var classDefinition = reader.GetTypeDefinition(FindTypeDef(reader, "Widget"));
+            var modifierImplementations = classDefinition.GetInterfaceImplementations()
+                .Select(handle => (Handle: handle, Definition: reader.GetInterfaceImplementation(handle)))
+                .Where(implementation =>
+                    HasCustomAttribute(reader, implementation.Handle,
+                        "Windows.Foundation.Metadata.ProtectedAttribute")
+                    || HasCustomAttribute(reader, implementation.Handle,
+                        "Windows.Foundation.Metadata.OverridableAttribute"))
+                .ToList();
+
+            Assert.Equal(3, modifierImplementations.Count);
+            Assert.Equal(2, modifierImplementations.Count(implementation =>
+                ReadNamedContractVersionValue(reader, implementation.Handle) == 2u << 16));
         }
     }
 

@@ -373,7 +373,7 @@ public class CompilationDriver
 
         if (options.WinRtMode)
         {
-            var winmdEmitter = new WinMdEmitter(options.Deterministic);
+            var winmdEmitter = new WinMdEmitter(options.Deterministic, options.EnableTrueAsync);
 
             if (options.WinMdFile != null)
             {

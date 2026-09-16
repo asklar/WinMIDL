@@ -335,6 +335,27 @@ public class WinMdParityFixTests
     }
 
     [Fact]
+    public void RuntimeClass_WithoutActivationOrStatics_OmitsThreading()
+    {
+        var bytes = CompileAndEmit("""
+            namespace Test
+            {
+                runtimeclass Widget
+                {
+                    void DoWork();
+                }
+            }
+            """);
+
+        var reader = CreateReader(bytes, out var pe);
+        using (pe)
+        {
+            var classHandle = FindTypeDef(reader, "Widget");
+            Assert.False(HasCustomAttribute(reader, classHandle, "ThreadingAttribute"));
+        }
+    }
+
+    [Fact]
     public void RuntimeClass_NoExplicitMarshaling_EmitsMarshalingAgile()
     {
         var bytes = CompileAndEmit("""

@@ -182,6 +182,7 @@ public class WinMdEncodingFixTests
             var retvalParam = reader.GetParameter(parameters[0]);
             Assert.Equal(0, retvalParam.SequenceNumber);
             Assert.Equal("result", reader.GetString(retvalParam.Name));
+            Assert.Equal(ParameterAttributes.None, retvalParam.Attributes);
         }
     }
 
@@ -241,6 +242,7 @@ public class WinMdEncodingFixTests
             var retvalParam = reader.GetParameter(parameters[0]);
             Assert.Equal(0, retvalParam.SequenceNumber);
             Assert.Equal("operation", reader.GetString(retvalParam.Name));
+            Assert.Equal(ParameterAttributes.None, retvalParam.Attributes);
         }
     }
 }

@@ -19,7 +19,7 @@ internal class TypeDefEmitter
     private MetadataBuilder M => _emitter.Metadata;
 
     // Tracks synthesized interface method handles keyed by runtimeclass FullName → member name → MethodDef handle
-    private readonly Dictionary<string, List<(string memberName, MethodDefinitionHandle handle)>> _synthMethodHandles = new();
+    private readonly Dictionary<string, List<(string memberName, MemberReferenceHandle handle)>> _synthMethodHandles = new();
 
     public TypeDefEmitter(WinMdEmitter emitter, CustomAttributeEmitter attrs)
     {
@@ -113,21 +113,28 @@ internal class TypeDefEmitter
         var guid = GenerateDeterministicGuid($"{ns}.{ifaceName}", members);
         _attrs.AddGuidAttribute(typeDef, guid);
         _attrs.AddExclusiveToAttribute(typeDef, rc.FullName);
+        var ifaceRef = _emitter.ResolveSynthInterfaceHandle(iface.FullName);
+        var trackMethodImpls = rc.ImplementedInterfaces.Contains(iface)
+            && !rc.FactoryInterfaces.Contains(iface)
+            && !rc.StaticsInterfaces.Contains(iface);
 
-        // VersionAttribute — match original midl which adds [Version(N)] to synthesized interfaces
-        // Use contract version when available
-        bool rcHasContract = rc.ContractName != null && rc.ContractVersion != null;
-        uint attrVersion = rcHasContract
-            ? (uint)rc.ContractVersion!.Value
-            : (rc.Version != null ? (uint)rc.Version.Value : 1u);
-        _attrs.AddVersionAttribute(typeDef, attrVersion);
+        bool hasContract = iface.ContractName != null && iface.ContractVersion != null;
+        var version = iface.Version ?? rc.Version;
+        if (version != null)
+            _attrs.AddVersionAttribute(typeDef, (uint)version.Value);
+        else if (!hasContract)
+            _attrs.AddVersionAttribute(typeDef);
+        if (hasContract)
+            _attrs.AddContractVersionAttribute(typeDef,
+                GetQualifiedContractName(iface, iface.ContractName!),
+                (uint)iface.ContractVersion!.Value);
 
         // Track properties and events for map tables
         var properties = new List<(PropertySymbol prop, MethodDefinitionHandle getter, MethodDefinitionHandle? setter)>();
         var events = new List<(EventSymbol evt, MethodDefinitionHandle adder, MethodDefinitionHandle remover)>();
 
         // Track interface method handles for MethodImpl table
-        var ifaceMethodHandles = new List<(string memberName, MethodDefinitionHandle handle)>();
+        var ifaceMethodHandles = new List<(string memberName, MemberReferenceHandle handle)>();
 
         foreach (var member in iface.Members)
         {
@@ -135,40 +142,91 @@ internal class TypeDefEmitter
             {
                 case MethodSymbol method:
                 {
-                    var methodHandle = EmitInterfaceMethod(method);
-                    ifaceMethodHandles.Add((method.Name, methodHandle));
+                    EmitInterfaceMethod(method);
+                    if (trackMethodImpls)
+                    {
+                        ifaceMethodHandles.Add((
+                            MethodSignatureKey(method),
+                            AddInterfaceMemberReference(
+                                ifaceRef,
+                                GetMetadataMethodName(method),
+                                EncodeMethodSig(method.ReturnType, method.Parameters, hasThis: true))));
+                    }
                     break;
                 }
                 case PropertySymbol prop:
                 {
                     var getter = EmitPropertyGetter(prop);
-                    ifaceMethodHandles.Add(($"get_{prop.Name}", getter));
+                    if (trackMethodImpls)
+                    {
+                        ifaceMethodHandles.Add((
+                            $"get_{prop.Name}",
+                            AddInterfaceMemberReference(
+                                ifaceRef,
+                                $"get_{prop.Name}",
+                                EncodeMethodSig(prop.Type, Array.Empty<ParameterSymbol>(), hasThis: true))));
+                    }
                     MethodDefinitionHandle? setter = prop.HasSetter ? EmitPropertySetter(prop) : null;
-                    if (setter.HasValue)
-                        ifaceMethodHandles.Add(($"put_{prop.Name}", setter.Value));
+                    if (trackMethodImpls && setter.HasValue)
+                    {
+                        ifaceMethodHandles.Add((
+                            $"put_{prop.Name}",
+                            AddInterfaceMemberReference(
+                                ifaceRef,
+                                $"put_{prop.Name}",
+                                EncodeSetterSig(prop.Type))));
+                    }
                     properties.Add((prop, getter, setter));
                     break;
                 }
                 case EventSymbol evt:
                 {
                     var (adder, remover) = EmitEventAccessors(evt);
-                    ifaceMethodHandles.Add(($"add_{evt.Name}", adder));
-                    ifaceMethodHandles.Add(($"remove_{evt.Name}", remover));
+                    if (trackMethodImpls)
+                    {
+                        ifaceMethodHandles.Add((
+                            $"add_{evt.Name}",
+                            AddInterfaceMemberReference(
+                                ifaceRef,
+                                $"add_{evt.Name}",
+                                EncodeEventAccessorSig(evt, isAdd: true))));
+                        ifaceMethodHandles.Add((
+                            $"remove_{evt.Name}",
+                            AddInterfaceMemberReference(
+                                ifaceRef,
+                                $"remove_{evt.Name}",
+                                EncodeEventAccessorSig(evt, isAdd: false))));
+                    }
                     events.Add((evt, adder, remover));
                     break;
                 }
             }
         }
 
-        if (!_synthMethodHandles.ContainsKey(trackMethodHandles))
-            _synthMethodHandles[trackMethodHandles] = ifaceMethodHandles;
-        else
-            _synthMethodHandles[trackMethodHandles].AddRange(ifaceMethodHandles);
+        if (trackMethodImpls)
+        {
+            if (!_synthMethodHandles.ContainsKey(trackMethodHandles))
+                _synthMethodHandles[trackMethodHandles] = ifaceMethodHandles;
+            else
+                _synthMethodHandles[trackMethodHandles].AddRange(ifaceMethodHandles);
+        }
 
         EmitPropertyTable(typeDef, properties);
         EmitEventTable(typeDef, events);
+        EmitRemainingAttributes(typeDef, iface.Attributes);
 
         return typeDef;
+    }
+
+    private MemberReferenceHandle AddInterfaceMemberReference(
+        EntityHandle interfaceType,
+        string methodName,
+        BlobBuilder signature)
+    {
+        return M.AddMemberReference(
+            interfaceType,
+            M.GetOrAddString(methodName),
+            M.GetOrAddBlob(signature));
     }
 
     #region Enum
@@ -222,6 +280,13 @@ internal class TypeDefEmitter
             if (memberDeprecatedAttr != null)
                 _attrs.AddDeprecatedAttribute(fieldHandle, memberDeprecatedAttr.GetString(0) ?? "", 0, (uint)(member.ContractVersion ?? 0x00010000));
 
+            if (member.ContractName != null && member.ContractVersion != null)
+            {
+                _attrs.AddContractVersionAttributeByName(
+                    fieldHandle,
+                    GetQualifiedContractName(member, member.ContractName),
+                    (uint)member.ContractVersion.Value);
+            }
             EmitRemainingAttributes(fieldHandle, member.Attributes);
         }
 
@@ -232,7 +297,9 @@ internal class TypeDefEmitter
         else if (!enumHasContract)
             _attrs.AddVersionAttribute(typeDef);
         if (enumHasContract)
-            _attrs.AddContractVersionAttribute(typeDef, symbol.ContractName!, (uint)symbol.ContractVersion!.Value);
+            _attrs.AddContractVersionAttribute(typeDef,
+                GetQualifiedContractName(symbol, symbol.ContractName!),
+                (uint)symbol.ContractVersion!.Value);
 
         if (isFlags)
             _attrs.AddFlagsAttribute(typeDef);
@@ -297,7 +364,15 @@ internal class TypeDefEmitter
             _attrs.AddFeatureAttribute(typeDef, (int)structFInfo.Stage, structFInfo.ValidInAllBranches);
 #endif
 
-        _attrs.AddVersionAttribute(typeDef);
+        bool structHasContract = symbol.ContractName != null && symbol.ContractVersion != null;
+        if (symbol.Version != null)
+            _attrs.AddVersionAttribute(typeDef, (uint)symbol.Version.Value);
+        else if (!structHasContract)
+            _attrs.AddVersionAttribute(typeDef);
+        if (structHasContract)
+            _attrs.AddContractVersionAttribute(typeDef,
+                GetQualifiedContractName(symbol, symbol.ContractName!),
+                (uint)symbol.ContractVersion!.Value);
 
         EmitRemainingAttributes(typeDef, symbol.Attributes);
     }
@@ -362,11 +437,16 @@ internal class TypeDefEmitter
                 M.AddInterfaceImplementation(typeDef, handle);
         }
 
-        // Emit version attribute before GUID (matches original midl ordering)
+        // Emit version/contract attribute before GUID (matches original midl ordering)
+        bool interfaceHasContract = symbol.ContractName != null && symbol.ContractVersion != null;
         if (symbol.Version.HasValue)
             _attrs.AddVersionAttribute(typeDef, (uint)symbol.Version.Value);
-        else
+        else if (!interfaceHasContract)
             _attrs.AddVersionAttribute(typeDef);
+        if (interfaceHasContract)
+            _attrs.AddContractVersionAttribute(typeDef,
+                GetQualifiedContractName(symbol, symbol.ContractName!),
+                (uint)symbol.ContractVersion!.Value);
 
         // Emit [Guid] if the interface has a UUID
         if (symbol.Uuid.HasValue)
@@ -435,7 +515,18 @@ internal class TypeDefEmitter
             _attrs.AddFeatureAttribute(typeDef, (int)delFInfo.Stage, delFInfo.ValidInAllBranches);
 #endif
 
-        _attrs.AddVersionAttribute(typeDef);
+        bool delegateHasContract = symbol.ContractName != null && symbol.ContractVersion != null;
+        if (symbol.Version != null)
+            _attrs.AddVersionAttribute(typeDef, (uint)symbol.Version.Value);
+        else if (!delegateHasContract)
+            _attrs.AddVersionAttribute(typeDef);
+        if (delegateHasContract)
+        {
+            _attrs.AddContractVersionAttribute(
+                typeDef,
+                GetQualifiedContractName(symbol, symbol.ContractName!),
+                (uint)symbol.ContractVersion!.Value);
+        }
 
         EmitRemainingAttributes(typeDef, symbol.Attributes);
     }
@@ -582,9 +673,12 @@ internal class TypeDefEmitter
                     var sigKey = MethodSignatureKey(method);
                     if (!emittedMethodNames.Add(sigKey)) return;
                     var stubHandle = EmitRuntimeMethodStub(method);
-                    classMethodStubs.Add((method.Name, stubHandle));
-                    if (method.ContractVersion is int cv)
-                        _attrs.AddVersionAttribute(stubHandle, (uint)cv);
+                    classMethodStubs.Add((sigKey, stubHandle));
+                    EmitContractVersionAttribute(
+                        stubHandle,
+                        method,
+                        method.ContractName,
+                        method.ContractVersion);
                     break;
                 }
                 case PropertySymbol prop:
@@ -592,11 +686,18 @@ internal class TypeDefEmitter
                     if (!emittedPropertyNames.Add(prop.Name)) return;
                     var (getterStub, setterStub) = EmitRuntimePropertyStubs(prop);
                     classProperties.Add((prop, getterStub, setterStub));
-                    if (prop.ContractVersion is int pcv)
-                    {
-                        if (!getterStub.IsNil) _attrs.AddVersionAttribute(getterStub, (uint)pcv);
-                        if (setterStub.HasValue) _attrs.AddVersionAttribute(setterStub.Value, (uint)pcv);
-                    }
+                    if (!getterStub.IsNil)
+                        EmitContractVersionAttribute(
+                            getterStub,
+                            prop,
+                            prop.ContractName,
+                            prop.ContractVersion);
+                    if (setterStub.HasValue)
+                        EmitContractVersionAttribute(
+                            setterStub.Value,
+                            prop,
+                            prop.ContractName,
+                            prop.ContractVersion);
                     if (!getterStub.IsNil) classMethodStubs.Add(($"get_{prop.Name}", getterStub));
                     if (setterStub.HasValue) classMethodStubs.Add(($"put_{prop.Name}", setterStub.Value));
                     break;
@@ -608,11 +709,16 @@ internal class TypeDefEmitter
                     classMethodStubs.Add(($"add_{evt.Name}", adderStub));
                     classMethodStubs.Add(($"remove_{evt.Name}", removerStub));
                     classEvents.Add((evt, adderStub, removerStub));
-                    if (evt.ContractVersion is int ecv)
-                    {
-                        _attrs.AddVersionAttribute(adderStub, (uint)ecv);
-                        _attrs.AddVersionAttribute(removerStub, (uint)ecv);
-                    }
+                    EmitContractVersionAttribute(
+                        adderStub,
+                        evt,
+                        evt.ContractName,
+                        evt.ContractVersion);
+                    EmitContractVersionAttribute(
+                        removerStub,
+                        evt,
+                        evt.ContractName,
+                        evt.ContractVersion);
                     break;
                 }
             }
@@ -645,8 +751,8 @@ internal class TypeDefEmitter
         }
 
         // Emit Property/Event map tables on the runtimeclass TypeDef (single batch).
-        EmitPropertyTable(typeDef, classProperties);
-        EmitEventTable(typeDef, classEvents);
+        EmitPropertyTable(typeDef, classProperties, emitContractAttributes: true);
+        EmitEventTable(typeDef, classEvents, emitContractAttributes: true);
 
         // InterfaceImpl for synthesized default interface
         if (symbol.DefaultInterface is { IsSynthesized: true })
@@ -657,8 +763,38 @@ internal class TypeDefEmitter
                 var ifaceImpl = M.AddInterfaceImplementation(typeDef, synthRef);
                 _attrs.AddDefaultAttribute(ifaceImpl);
                 // Also add Protected if the default IS the protected interface
-                if (symbol.DefaultInterface == symbol.ProtectedInterface)
+                if (symbol.ProtectedInterfaces.Contains(symbol.DefaultInterface))
                     _attrs.AddProtectedAttribute(ifaceImpl);
+                if (symbol.OverridesInterfaces.Contains(symbol.DefaultInterface))
+                    _attrs.AddOverridableAttribute(ifaceImpl);
+                EmitLaterInterfaceContract(ifaceImpl, symbol, symbol.DefaultInterface);
+            }
+        }
+
+        // InterfaceImpl for later-version synthesized instance interfaces.
+        foreach (var iface in symbol.ImplementedInterfaces)
+        {
+            if (!iface.IsSynthesized
+                || iface == symbol.DefaultInterface
+                || symbol.FactoryInterfaces.Contains(iface)
+                || symbol.StaticsInterfaces.Contains(iface)
+                || symbol.ProtectedInterfaces.Contains(iface)
+                || symbol.OverridesInterfaces.Contains(iface))
+            {
+                continue;
+            }
+
+            var handle = _emitter.ResolveSynthInterfaceHandle(iface.FullName);
+            if (!handle.IsNil)
+            {
+                var interfaceImpl = M.AddInterfaceImplementation(typeDef, handle);
+                if (iface.ContractName != null && iface.ContractVersion != null)
+                {
+                    _attrs.AddContractVersionAttributeByName(
+                        interfaceImpl,
+                        GetQualifiedContractName(iface, iface.ContractName),
+                        (uint)iface.ContractVersion.Value);
+                }
             }
         }
 
@@ -683,25 +819,43 @@ internal class TypeDefEmitter
             }
         }
 
-        // InterfaceImpl for protected interface (if separate from default)
-        if (symbol.ProtectedInterface != null && symbol.ProtectedInterface != symbol.DefaultInterface)
+        // InterfaceImpls for protected interfaces.
+        var protectedInterfaces = symbol.ProtectedInterfaces.Count > 0
+            ? symbol.ProtectedInterfaces
+            : symbol.ProtectedInterface != null
+                ? new List<InterfaceSymbol> { symbol.ProtectedInterface }
+                : new List<InterfaceSymbol>();
+        foreach (var protectedInterface in protectedInterfaces)
         {
-            var h = _emitter.ResolveSynthInterfaceHandle(symbol.ProtectedInterface.FullName);
+            if (protectedInterface == symbol.DefaultInterface)
+                continue;
+
+            var h = _emitter.ResolveSynthInterfaceHandle(protectedInterface.FullName);
             if (!h.IsNil)
             {
                 var ifaceImpl = M.AddInterfaceImplementation(typeDef, h);
                 _attrs.AddProtectedAttribute(ifaceImpl);
+                EmitLaterInterfaceContract(ifaceImpl, symbol, protectedInterface);
             }
         }
 
-        // InterfaceImpl for overridable interface
-        if (symbol.OverridesInterface != null && symbol.OverridesInterface != symbol.DefaultInterface)
+        // InterfaceImpls for overridable interfaces.
+        var overridesInterfaces = symbol.OverridesInterfaces.Count > 0
+            ? symbol.OverridesInterfaces
+            : symbol.OverridesInterface != null
+                ? new List<InterfaceSymbol> { symbol.OverridesInterface }
+                : new List<InterfaceSymbol>();
+        foreach (var overridesInterface in overridesInterfaces)
         {
-            var h = _emitter.ResolveSynthInterfaceHandle(symbol.OverridesInterface.FullName);
+            if (overridesInterface == symbol.DefaultInterface)
+                continue;
+
+            var h = _emitter.ResolveSynthInterfaceHandle(overridesInterface.FullName);
             if (!h.IsNil)
             {
                 var ifaceImpl = M.AddInterfaceImplementation(typeDef, h);
                 _attrs.AddOverridableAttribute(ifaceImpl);
+                EmitLaterInterfaceContract(ifaceImpl, symbol, overridesInterface);
             }
         }
 
@@ -738,9 +892,11 @@ internal class TypeDefEmitter
             };
             _attrs.AddThreadingAttribute(typeDef, threadingValue);
         }
-        else
+        else if (symbol.HasDefaultActivation
+            || symbol.FactoryInterface != null
+            || symbol.StaticsInterfaces.Count > 0)
         {
-            _attrs.AddThreadingAttribute(typeDef, 3); // Default: Both
+            _attrs.AddThreadingAttribute(typeDef, 3);
         }
 
         // MarshalingBehaviorAttribute
@@ -768,14 +924,32 @@ internal class TypeDefEmitter
             _attrs.AddVersionAttribute(typeDef, 1u);
 
         // ActivatableAttribute — uses contract version when available
-        if (symbol.FactoryInterface != null)
-            _attrs.AddActivatableAttribute(typeDef, symbol.FactoryInterface.FullName, activatableVersion);
+        var factoryInterfaces = symbol.FactoryInterfaces.Count > 0
+            ? symbol.FactoryInterfaces
+            : symbol.FactoryInterface != null
+                ? new List<InterfaceSymbol> { symbol.FactoryInterface }
+                : new List<InterfaceSymbol>();
+        foreach (var factoryInterface in factoryInterfaces)
+        {
+            _attrs.AddActivatableAttribute(
+                typeDef,
+                factoryInterface.FullName,
+                (uint)(factoryInterface.ContractVersion ?? symbol.ContractVersion ?? symbol.Version ?? 1),
+                factoryInterface.ContractName != null
+                    ? GetQualifiedContractName(factoryInterface, factoryInterface.ContractName)
+                    : null);
+        }
 
         // Default activation ([Activatable(version)] short form) only when the class has a
         // zero-arg constructor. Parameterized constructors are covered by the factory-interface
         // long form above; emitting both would produce duplicate [Activatable] attributes.
         if (symbol.HasDefaultActivation)
-            _attrs.AddActivatableAttribute(typeDef, activatableVersion);
+        {
+            _attrs.AddActivatableAttribute(
+                typeDef,
+                activatableVersion,
+                hasContract ? GetQualifiedContractName(symbol, symbol.ContractName!) : null);
+        }
 
         // ComposableAttribute
         foreach (var attr in symbol.Attributes)
@@ -807,7 +981,11 @@ internal class TypeDefEmitter
                 var classNs = GetNamespace(symbol);
                 var fullIfaceName = string.IsNullOrEmpty(classNs) ? ifaceName : $"{classNs}.{ifaceName}";
                 var version = attr.GetVersion(2) ?? attr.GetVersion(1) ?? activatableVersion;
-                _attrs.AddStaticAttribute(typeDef, fullIfaceName, version);
+                _attrs.AddStaticAttribute(
+                    typeDef,
+                    fullIfaceName,
+                    version,
+                    hasContract ? GetQualifiedContractName(symbol, symbol.ContractName!) : null);
             }
         }
 
@@ -815,7 +993,13 @@ internal class TypeDefEmitter
         {
             foreach (var iface in symbol.StaticsInterfaces)
             {
-                _attrs.AddStaticAttribute(typeDef, iface.FullName, activatableVersion);
+                _attrs.AddStaticAttribute(
+                    typeDef,
+                    iface.FullName,
+                    (uint)(iface.ContractVersion ?? symbol.ContractVersion ?? symbol.Version ?? 1),
+                    iface.ContractName != null
+                        ? GetQualifiedContractName(iface, iface.ContractName)
+                        : null);
             }
         }
 
@@ -835,7 +1019,9 @@ internal class TypeDefEmitter
 
         // ContractVersionAttribute
         if (symbol.ContractName != null && symbol.ContractVersion != null)
-            _attrs.AddContractVersionAttribute(typeDef, symbol.ContractName, (uint)symbol.ContractVersion.Value);
+            _attrs.AddContractVersionAttribute(typeDef,
+                GetQualifiedContractName(symbol, symbol.ContractName),
+                (uint)symbol.ContractVersion.Value);
 
         EmitRemainingAttributes(typeDef, symbol.Attributes);
     }
@@ -877,7 +1063,7 @@ internal class TypeDefEmitter
     private static string MethodSignatureKey(MethodSymbol m)
     {
         var sb = new System.Text.StringBuilder();
-        sb.Append(m.Name).Append('(');
+        sb.Append(GetMetadataMethodName(m)).Append('(');
         for (int i = 0; i < m.Parameters.Count; i++)
         {
             if (i > 0) sb.Append(',');
@@ -887,6 +1073,9 @@ internal class TypeDefEmitter
         AppendTypeRefKey(sb, m.ReturnType);
         return sb.ToString();
     }
+
+    private static string GetMetadataMethodName(MethodSymbol method) =>
+        method.OverloadGroup ?? method.Name;
 
     private static void AppendTypeRefKey(System.Text.StringBuilder sb, TypeRef? t)
     {
@@ -927,7 +1116,7 @@ internal class TypeDefEmitter
                 });
 
         var paramList = _emitter.NextParamHandle;
-        M.AddMethodDefinition(
+        var constructorHandle = M.AddMethodDefinition(
             MethodAttributes.Public | MethodAttributes.HideBySig
                 | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
             MethodImplAttributes.Runtime,
@@ -945,6 +1134,12 @@ internal class TypeDefEmitter
             _emitter.IncrementParamRow();
             EmitRemainingAttributes(paramHandle, ctorParams[i].Attributes);
         }
+
+        EmitContractVersionAttribute(
+            constructorHandle,
+            ctor,
+            ctor.ContractName,
+            ctor.ContractVersion);
     }
 
     private MethodDefinitionHandle EmitRuntimeMethodStub(MethodSymbol method)
@@ -968,7 +1163,7 @@ internal class TypeDefEmitter
         var handle = M.AddMethodDefinition(
             methodFlags,
             MethodImplAttributes.Runtime,
-            M.GetOrAddString(method.Name),
+            M.GetOrAddString(GetMetadataMethodName(method)),
             M.GetOrAddBlob(sig),
             -1,
             paramList);
@@ -978,7 +1173,7 @@ internal class TypeDefEmitter
         var retvalName = GetRetvalParamName(method);
         if (retvalName != null)
         {
-            M.AddParameter(ParameterAttributes.Out, M.GetOrAddString(retvalName), 0);
+            M.AddParameter(ParameterAttributes.None, M.GetOrAddString(retvalName), 0);
             _emitter.IncrementParamRow();
         }
 
@@ -991,6 +1186,14 @@ internal class TypeDefEmitter
             EmitRemainingAttributes(paramHandle, method.Parameters[i].Attributes);
             EmitArrayParamAttribute(paramHandle, method.Parameters[i]);
         }
+
+        if (method.OverloadGroup != null)
+            _attrs.AddOverloadAttribute(handle, method.Name);
+        if (method.IsDefaultOverload)
+            _attrs.AddDefaultOverloadAttribute(handle);
+
+        if (method.IsRemoteAsync || (_emitter.EnableTrueAsync && IsAsyncReturnType(method.ReturnType)))
+            _attrs.AddRemoteAsyncAttribute(handle);
 
         return handle;
     }
@@ -1113,7 +1316,7 @@ internal class TypeDefEmitter
         var methodList = _emitter.NextMethodHandle;
 
         var typeDef = M.AddTypeDefinition(
-            (TypeAttributes)(TypeAttributes.Public | TypeAttributes.Sealed
+            (TypeAttributes)(TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.SequentialLayout
                 | (TypeAttributes)MetadataConstants.TdWindowsRuntime),
             M.GetOrAddString(ns),
             M.GetOrAddString(symbol.Name),
@@ -1123,6 +1326,7 @@ internal class TypeDefEmitter
 
         _attrs.AddApiContractAttribute(typeDef);
         _attrs.AddContractVersionAttribute(typeDef, (uint)(symbol.ContractVersion ?? 0x00010000));
+        EmitRemainingAttributes(typeDef, symbol.Attributes);
     }
 
     #endregion
@@ -1190,7 +1394,9 @@ internal class TypeDefEmitter
             var contractName = contractAttr.GetTypeName(0) ?? contractAttr.GetIdentifier(0);
             var version = contractAttr.GetVersion(1) ?? 0x00010000u;
             if (contractName != null)
-                _attrs.AddContractVersionAttribute(typeDef, contractName, version);
+                _attrs.AddContractVersionAttribute(typeDef,
+                    GetQualifiedContractName(symbol, contractName),
+                    version);
             else
                 _attrs.AddContractVersionAttribute(typeDef, version);
         }
@@ -1216,7 +1422,7 @@ internal class TypeDefEmitter
             MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Abstract
                 | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
             MethodImplAttributes.IL,
-            M.GetOrAddString(method.Name),
+            M.GetOrAddString(GetMetadataMethodName(method)),
             M.GetOrAddBlob(sig),
             -1,
             paramList);
@@ -1226,7 +1432,7 @@ internal class TypeDefEmitter
         var retvalName = GetRetvalParamName(method);
         if (retvalName != null)
         {
-            M.AddParameter(ParameterAttributes.Out, M.GetOrAddString(retvalName), 0);
+            M.AddParameter(ParameterAttributes.None, M.GetOrAddString(retvalName), 0);
             _emitter.IncrementParamRow();
         }
 
@@ -1241,7 +1447,7 @@ internal class TypeDefEmitter
         }
 
         if (method.OverloadGroup != null)
-            _attrs.AddOverloadAttribute(methodDef, method.OverloadGroup);
+            _attrs.AddOverloadAttribute(methodDef, method.Name);
         if (method.IsDefaultOverload)
             _attrs.AddDefaultOverloadAttribute(methodDef);
 
@@ -1258,7 +1464,7 @@ internal class TypeDefEmitter
             _attrs.AddNoExceptionAttribute(methodDef);
 
         // RemoteAsyncAttribute
-        if (method.IsRemoteAsync)
+        if (method.IsRemoteAsync || (_emitter.EnableTrueAsync && IsAsyncReturnType(method.ReturnType)))
             _attrs.AddRemoteAsyncAttribute(methodDef);
 
         // DeprecatedAttribute on method
@@ -1363,7 +1569,8 @@ internal class TypeDefEmitter
 
     private void EmitPropertyTable(
         TypeDefinitionHandle typeDef,
-        List<(PropertySymbol prop, MethodDefinitionHandle getter, MethodDefinitionHandle? setter)> properties)
+        List<(PropertySymbol prop, MethodDefinitionHandle getter, MethodDefinitionHandle? setter)> properties,
+        bool emitContractAttributes = false)
     {
         if (properties.Count == 0) return;
 
@@ -1375,6 +1582,14 @@ internal class TypeDefEmitter
                 PropertyAttributes.None,
                 M.GetOrAddString(prop.Name),
                 M.GetOrAddBlob(propSig));
+            if (emitContractAttributes)
+            {
+                EmitContractVersionAttribute(
+                    propHandle,
+                    prop,
+                    prop.ContractName,
+                    prop.ContractVersion);
+            }
 
             if (first)
             {
@@ -1390,7 +1605,8 @@ internal class TypeDefEmitter
 
     private void EmitEventTable(
         TypeDefinitionHandle typeDef,
-        List<(EventSymbol evt, MethodDefinitionHandle adder, MethodDefinitionHandle remover)> events)
+        List<(EventSymbol evt, MethodDefinitionHandle adder, MethodDefinitionHandle remover)> events,
+        bool emitContractAttributes = false)
     {
         if (events.Count == 0) return;
 
@@ -1407,6 +1623,14 @@ internal class TypeDefEmitter
                 EventAttributes.None,
                 M.GetOrAddString(evt.Name),
                 eventType.IsNil ? _emitter.SystemObjectRef : eventType);
+            if (emitContractAttributes)
+            {
+                EmitContractVersionAttribute(
+                    eventHandle,
+                    evt,
+                    evt.ContractName,
+                    evt.ContractVersion);
+            }
 
             if (first)
             {
@@ -1601,23 +1825,80 @@ internal class TypeDefEmitter
     /// </summary>
     private static string? GetRetvalParamName(MethodSymbol method)
     {
-        var returnTypeName = method.ReturnType.Name;
-        if (returnTypeName == "void")
+        if (method.ReturnType.Name == "void")
             return null;
 
-        if (returnTypeName is "IAsyncAction" or "IAsyncOperation"
-            || returnTypeName.StartsWith("IAsyncOperation<")
-            || returnTypeName.StartsWith("IAsyncAction<"))
-            return "operation";
+        return IsAsyncReturnType(method.ReturnType) ? "operation" : "result";
+    }
 
-        return "result";
+    private static bool IsAsyncReturnType(TypeRef returnType)
+    {
+        var name = returnType.Name;
+        var separator = name.LastIndexOf('.');
+        if (separator >= 0)
+            name = name[(separator + 1)..];
+
+        return name is "IAsyncAction"
+            or "IAsyncOperation"
+            or "IAsyncActionWithProgress"
+            or "IAsyncOperationWithProgress";
     }
 
     private static string GetNamespace(ISymbol symbol)
     {
-        if (symbol.ContainingSymbol is NamespaceSymbol ns && ns.FullName.Length > 0)
-            return ns.FullName;
+        for (var current = symbol.ContainingSymbol; current != null; current = current.ContainingSymbol)
+        {
+            if (current is NamespaceSymbol ns && ns.FullName.Length > 0)
+                return ns.FullName;
+        }
+
         return "";
+    }
+
+    private void EmitContractVersionAttribute(
+        EntityHandle parent,
+        ISymbol symbol,
+        string? contractName,
+        int? contractVersion)
+    {
+        if (contractName != null && contractVersion != null)
+        {
+            _attrs.AddContractVersionAttribute(
+                parent,
+                GetQualifiedContractName(symbol, contractName),
+                (uint)contractVersion.Value);
+        }
+    }
+
+    private void EmitLaterInterfaceContract(
+        EntityHandle interfaceImpl,
+        RuntimeClassSymbol runtimeClass,
+        InterfaceSymbol iface)
+    {
+        if (iface.ContractName == null
+            || iface.ContractVersion == null
+            || (string.Equals(
+                    iface.ContractName,
+                    runtimeClass.ContractName,
+                    StringComparison.OrdinalIgnoreCase)
+                && iface.ContractVersion == runtimeClass.ContractVersion))
+        {
+            return;
+        }
+
+        _attrs.AddContractVersionAttributeByName(
+            interfaceImpl,
+            GetQualifiedContractName(iface, iface.ContractName),
+            (uint)iface.ContractVersion.Value);
+    }
+
+    private static string GetQualifiedContractName(ISymbol symbol, string contractName)
+    {
+        if (contractName.Contains('.'))
+            return contractName;
+
+        var ns = GetNamespace(symbol);
+        return ns.Length == 0 ? contractName : $"{ns}.{contractName}";
     }
 
     internal static bool HasDirectMembers(RuntimeClassSymbol rc)
