@@ -12,19 +12,44 @@ public class ImportResolver
     private readonly IReadOnlyList<string>? _includePaths;
     private readonly string? _currentFileDirectory;
     private readonly HashSet<string> _importedFiles;
+    private readonly Func<string, string?>? _importContentProvider;
 
     public ImportResolver(IReadOnlyList<string>? includePaths, string? currentFilePath)
-        : this(includePaths, currentFilePath, new HashSet<string>(StringComparer.OrdinalIgnoreCase))
+        : this(
+            includePaths,
+            currentFilePath,
+            importContentProvider: null,
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase))
+    {
+    }
+
+    /// <summary>
+    /// Initializes an import resolver that can obtain synchronized content before falling back to disk.
+    /// </summary>
+    /// <param name="includePaths">Directories searched after the importing file's directory, or <see langword="null"/> for none.</param>
+    /// <param name="currentFilePath">Path of the importing file, or <see langword="null"/> when relative imports cannot be resolved.</param>
+    /// <param name="importContentProvider">Provider returning synchronized content for a resolved full path, or <see langword="null"/> to read it from disk.</param>
+    internal ImportResolver(
+        IReadOnlyList<string>? includePaths,
+        string? currentFilePath,
+        Func<string, string?> importContentProvider)
+        : this(
+            includePaths,
+            currentFilePath,
+            importContentProvider,
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase))
     {
     }
 
     private ImportResolver(IReadOnlyList<string>? includePaths, string? currentFilePath,
+                           Func<string, string?>? importContentProvider,
                            HashSet<string> sharedImportedFiles)
     {
         _includePaths = includePaths;
         _currentFileDirectory = currentFilePath != null
             ? Path.GetDirectoryName(Path.GetFullPath(currentFilePath))
             : null;
+        _importContentProvider = importContentProvider;
         _importedFiles = sharedImportedFiles;
     }
 
@@ -34,7 +59,26 @@ public class ImportResolver
     /// </summary>
     internal ImportResolver CreateChildResolver(string childFilePath)
     {
-        return new ImportResolver(_includePaths, childFilePath, _importedFiles);
+        return new ImportResolver(
+            _includePaths,
+            childFilePath,
+            _importContentProvider,
+            _importedFiles);
+    }
+
+    /// <summary>
+    /// Reads an imported file from synchronized content when available, otherwise from disk.
+    /// </summary>
+    /// <param name="resolvedPath">Resolved full path of the imported file.</param>
+    /// <returns>The imported source text.</returns>
+    internal string ReadImportContent(string resolvedPath)
+    {
+        string fullPath = Path.GetFullPath(resolvedPath);
+        string? synchronizedContent = _importContentProvider?.Invoke(fullPath);
+        if (synchronizedContent is not null)
+            return synchronizedContent;
+
+        return File.ReadAllText(fullPath);
     }
 
     /// <summary>

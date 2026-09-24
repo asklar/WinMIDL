@@ -1,139 +1,267 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System.Text.Json;
 using Midl.Syntax;
 
 namespace Midl.Lsp;
 
 /// <summary>
-/// Converts Midl.Analysis diagnostics to LSP diagnostic notifications and writes them to the output.
+/// Converts analysis diagnostics to LSP diagnostic notifications and writes them to the output.
 /// </summary>
 public sealed class DiagnosticsPublisher
 {
     private readonly JsonRpcWriter _writer;
+    private readonly DocumentManager? _documentManager;
+    private readonly SemaphoreSlim _publishGate = new(1, 1);
+    private readonly Dictionary<string, Dictionary<string, IReadOnlyList<PublishedDiagnostic>>> _snapshotsByOwner =
+        new(LspUri.UriComparer);
+    private readonly Dictionary<string, string> _preferredUris = new(LspUri.UriComparer);
 
     /// <summary>
-    /// URIs reported on by the previous analysis of each document, so stale diagnostics can
-    /// be cleared when they are fixed.
-    ///
-    /// Keyed by the document that was analysed. A single shared set meant that publishing
-    /// for one document cleared every URI absent from *that* document's result, so with
-    /// several .idl files open the last one analysed kept its squiggles and the rest were
-    /// wiped — which reads as "no errors on open, errors once I type".
+    /// Initializes a new instance of the <see cref="DiagnosticsPublisher"/> class.
     /// </summary>
-    private readonly Dictionary<string, HashSet<string>> _previousDiagnosticUris =
-        new(StringComparer.OrdinalIgnoreCase);
-
+    /// <param name="writer">Writer used to send LSP notifications.</param>
     public DiagnosticsPublisher(JsonRpcWriter writer)
     {
         _writer = writer;
     }
 
-    public async Task PublishDiagnosticsAsync(string uri, string sourceText,
-        IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics,
-        IReadOnlyList<(int Start, int End)>? inactiveRegions = null)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DiagnosticsPublisher"/> class with access to synchronized documents.
+    /// </summary>
+    /// <param name="writer">Writer used to send LSP notifications.</param>
+    /// <param name="documentManager">Manager used to resolve current open-document text.</param>
+    internal DiagnosticsPublisher(JsonRpcWriter writer, DocumentManager documentManager)
     {
-        // Group diagnostics by source file
-        var mainFileDiags = new List<Analysis.Diagnostics.Diagnostic>();
-        var fileGroups = new Dictionary<string, List<Analysis.Diagnostics.Diagnostic>>(StringComparer.OrdinalIgnoreCase);
-
-        // Determine the main file path from the URI for matching SourceFile values
-        string? mainFilePath = null;
-        try
-        {
-            var uriObj = new Uri(uri);
-            if (uriObj.IsFile)
-            {
-                mainFilePath = uriObj.LocalPath;
-                // On Windows, Uri.LocalPath for file:///c%3A/... gives "/c:/..." — strip leading /
-                if (mainFilePath.Length > 2 && mainFilePath[0] == '/' && mainFilePath[2] == ':')
-                    mainFilePath = mainFilePath[1..];
-            }
-        }
-        catch { }
-
-        foreach (var d in diagnostics)
-        {
-            // If the diagnostic has OriginalPosition, always use it (regardless of SourceFile)
-            var adjusted = d;
-            if (d.OriginalPosition.HasValue)
-                adjusted = d with { Position = d.OriginalPosition.Value };
-
-            bool isMainFile = d.SourceFile == null ||
-                (mainFilePath != null && string.Equals(
-                    Path.GetFullPath(d.SourceFile), Path.GetFullPath(mainFilePath),
-                    StringComparison.OrdinalIgnoreCase));
-
-            if (!isMainFile)
-            {
-                // Diagnostic from a different file (e.g., #include)
-                if (!fileGroups.TryGetValue(d.SourceFile!, out var list))
-                {
-                    list = new List<Analysis.Diagnostics.Diagnostic>();
-                    fileGroups[d.SourceFile!] = list;
-                }
-                list.Add(adjusted);
-            }
-            else if (adjusted.Position >= sourceText.Length)
-            {
-                // Position is past the user's source — this diagnostic leaked from
-                // included content without SourceFile metadata. Don't show it in
-                // the user's file.
-            }
-            else
-            {
-                // Diagnostic from the main file (or same file after SourceMap resolution)
-                mainFileDiags.Add(adjusted);
-            }
-        }
-
-        var currentUris = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { uri };
-
-        // Publish main file diagnostics using original source text positions
-        await PublishForFileAsync(uri, sourceText, mainFileDiags, inactiveRegions);
-
-        // Publish diagnostics for included files using their original text and positions
-        foreach (var (filePath, fileDiags) in fileGroups)
-        {
-            var fileUri = PathToUri(filePath);
-            currentUris.Add(fileUri);
-
-            string fileText;
-            try
-            {
-                fileText = File.ReadAllText(filePath);
-            }
-            catch
-            {
-                // Can't read file — fall back to publishing to main URI
-                mainFileDiags.AddRange(fileDiags);
-                await PublishForFileAsync(uri, sourceText, mainFileDiags);
-                continue;
-            }
-
-            await PublishForFileAsync(fileUri, fileText, fileDiags);
-        }
-
-        // Clear diagnostics from files this document previously reported on but no longer does
-        if (_previousDiagnosticUris.TryGetValue(uri, out var previous))
-        {
-            foreach (var prevUri in previous)
-            {
-                if (!currentUris.Contains(prevUri))
-                {
-                    await PublishForFileAsync(prevUri, "", []);
-                }
-            }
-        }
-
-        _previousDiagnosticUris[uri] = new HashSet<string>(currentUris, StringComparer.OrdinalIgnoreCase);
+        _writer = writer;
+        _documentManager = documentManager;
     }
 
     /// <summary>
-    /// Character offset of the end of <paramref name="line"/> (excluding its newline),
-    /// used to clamp a diagnostic range that would otherwise span a line break.
+    /// Replaces one analysis owner's diagnostic snapshot and publishes complete diagnostic sets for every affected file.
     /// </summary>
+    /// <param name="uri">URI of the document that owns this analysis.</param>
+    /// <param name="sourceText">Current source text of the owning document.</param>
+    /// <param name="diagnostics">Diagnostics produced by the analysis.</param>
+    /// <param name="inactiveRegions">Inactive preprocessor regions, or <see langword="null"/> when none were computed.</param>
+    /// <param name="preferInputUri">Whether future publications for the owner should use the exact URI spelling supplied in <paramref name="uri"/>.</param>
+    public async Task PublishDiagnosticsAsync(
+        string uri,
+        string sourceText,
+        IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics,
+        IReadOnlyList<(int Start, int End)>? inactiveRegions = null,
+        bool preferInputUri = false)
+    {
+        string ownerUri = LspUri.Normalize(uri);
+        string? mainFilePath = LspUri.GetFilePath(ownerUri);
+        List<Analysis.Diagnostics.Diagnostic> mainFileDiagnostics = [];
+        Dictionary<string, List<Analysis.Diagnostics.Diagnostic>> diagnosticsByFile =
+            new(LspUri.FilePathComparer);
+
+        foreach (Analysis.Diagnostics.Diagnostic diagnostic in diagnostics)
+        {
+            Analysis.Diagnostics.Diagnostic adjustedDiagnostic = diagnostic.OriginalPosition.HasValue
+                ? diagnostic with { Position = diagnostic.OriginalPosition.Value }
+                : diagnostic;
+
+            bool isMainFile = diagnostic.SourceFile is null ||
+                (mainFilePath is not null && PathsEqual(diagnostic.SourceFile, mainFilePath));
+
+            if (!isMainFile)
+            {
+                if (!diagnosticsByFile.TryGetValue(
+                    diagnostic.SourceFile!,
+                    out List<Analysis.Diagnostics.Diagnostic>? fileDiagnostics))
+                {
+                    fileDiagnostics = [];
+                    diagnosticsByFile[diagnostic.SourceFile!] = fileDiagnostics;
+                }
+
+                fileDiagnostics.Add(adjustedDiagnostic);
+            }
+            else if (adjustedDiagnostic.Position < sourceText.Length)
+            {
+                mainFileDiagnostics.Add(adjustedDiagnostic);
+            }
+        }
+
+        Dictionary<string, IReadOnlyList<PublishedDiagnostic>> snapshot =
+            new(LspUri.UriComparer);
+
+        foreach ((string filePath, List<Analysis.Diagnostics.Diagnostic> fileDiagnostics) in diagnosticsByFile)
+        {
+            string targetUri = LspUri.FromPath(filePath);
+            if (LspUri.UriComparer.Equals(targetUri, ownerUri))
+            {
+                mainFileDiagnostics.AddRange(fileDiagnostics);
+                continue;
+            }
+
+            string? fileText = _documentManager?.GetDocumentText(targetUri);
+            if (fileText is null)
+            {
+                try
+                {
+                    fileText = File.ReadAllText(filePath);
+                }
+                catch (IOException)
+                {
+                    mainFileDiagnostics.AddRange(fileDiagnostics);
+                    continue;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    mainFileDiagnostics.AddRange(fileDiagnostics);
+                    continue;
+                }
+            }
+
+            IReadOnlyList<PublishedDiagnostic> publishedDiagnostics =
+                BuildPublishedDiagnostics(fileText, fileDiagnostics);
+
+            if (snapshot.TryGetValue(targetUri, out IReadOnlyList<PublishedDiagnostic>? existingDiagnostics))
+                snapshot[targetUri] = [.. existingDiagnostics, .. publishedDiagnostics];
+            else
+                snapshot[targetUri] = publishedDiagnostics;
+        }
+
+        snapshot[ownerUri] = BuildPublishedDiagnostics(sourceText, mainFileDiagnostics, inactiveRegions);
+
+        await ReplaceSnapshotAndPublishAsync(ownerUri, uri, preferInputUri, snapshot);
+    }
+
+    private async Task ReplaceSnapshotAndPublishAsync(
+        string ownerUri,
+        string preferredUri,
+        bool preferInputUri,
+        Dictionary<string, IReadOnlyList<PublishedDiagnostic>> snapshot)
+    {
+        await _publishGate.WaitAsync();
+        try
+        {
+            HashSet<string> affectedUris = new(LspUri.UriComparer);
+            if (_snapshotsByOwner.TryGetValue(
+                ownerUri,
+                out Dictionary<string, IReadOnlyList<PublishedDiagnostic>>? previousSnapshot))
+            {
+                affectedUris.UnionWith(previousSnapshot.Keys);
+            }
+
+            affectedUris.UnionWith(snapshot.Keys);
+            if (preferInputUri || !_preferredUris.ContainsKey(ownerUri))
+                _preferredUris[ownerUri] = preferredUri;
+
+            _snapshotsByOwner[ownerUri] = snapshot;
+
+            foreach (string affectedUri in affectedUris)
+                await PublishMergedDiagnosticsAsync(affectedUri);
+        }
+        finally
+        {
+            _publishGate.Release();
+        }
+    }
+
+    private async Task PublishMergedDiagnosticsAsync(string targetUri)
+    {
+        List<PublishedDiagnostic> mergedDiagnostics = [];
+        HashSet<PublishedDiagnostic> uniqueDiagnostics = [];
+
+        foreach (Dictionary<string, IReadOnlyList<PublishedDiagnostic>> snapshot in _snapshotsByOwner.Values)
+        {
+            if (!snapshot.TryGetValue(targetUri, out IReadOnlyList<PublishedDiagnostic>? ownerDiagnostics))
+                continue;
+
+            foreach (PublishedDiagnostic diagnostic in ownerDiagnostics)
+            {
+                if (uniqueDiagnostics.Add(diagnostic))
+                    mergedDiagnostics.Add(diagnostic);
+            }
+        }
+
+        string publishUri = _preferredUris.TryGetValue(targetUri, out string? preferredUri)
+            ? preferredUri
+            : targetUri;
+
+        List<object> protocolDiagnostics =
+            mergedDiagnostics.Select(diagnostic => (object)ToProtocolDiagnostic(diagnostic)).ToList();
+
+        await _writer.SendNotificationAsync("textDocument/publishDiagnostics", new Dictionary<string, object?>
+        {
+            ["uri"] = publishUri,
+            ["diagnostics"] = protocolDiagnostics,
+        });
+    }
+
+    private static IReadOnlyList<PublishedDiagnostic> BuildPublishedDiagnostics(
+        string sourceText,
+        IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics,
+        IReadOnlyList<(int Start, int End)>? inactiveRegions = null)
+    {
+        int[] lineStarts = PositionHelper.BuildLineStarts(sourceText);
+        List<PublishedDiagnostic> publishedDiagnostics = [];
+
+        foreach (Analysis.Diagnostics.Diagnostic diagnostic in diagnostics)
+        {
+            (int startLine, int startCharacter) =
+                PositionHelper.OffsetToLineChar(lineStarts, diagnostic.Position);
+            (int endLine, int endCharacter) =
+                PositionHelper.OffsetToLineChar(lineStarts, diagnostic.Position + diagnostic.Length);
+
+            if (endLine != startLine)
+            {
+                endLine = startLine;
+                endCharacter = Math.Max(
+                    startCharacter,
+                    EndOfLineChar(sourceText, lineStarts, startLine));
+            }
+
+            if (diagnostic.Code == "MIDL3003")
+                MidlTrace.Write("PUB", $"MIDL3003 '{diagnostic.Message.Substring(0, Math.Min(30, diagnostic.Message.Length))}': pos={diagnostic.Position} origPos={diagnostic.OriginalPosition} → {startLine}:{startCharacter} (srcLen={sourceText.Length})");
+
+            PublishedDiagnostic publishedDiagnostic = new(
+                startLine,
+                startCharacter,
+                endLine,
+                endCharacter,
+                MapSeverity(diagnostic.Severity),
+                diagnostic.Code,
+                diagnostic.Message,
+                diagnostic.HelpUri,
+                IsUnnecessary: false);
+            publishedDiagnostics.Add(publishedDiagnostic);
+        }
+
+        if (inactiveRegions is not null)
+        {
+            foreach ((int start, int end) in inactiveRegions)
+            {
+                if (start >= sourceText.Length)
+                    continue;
+
+                int clampedEnd = Math.Min(end, sourceText.Length);
+                (int startLine, int startCharacter) =
+                    PositionHelper.OffsetToLineChar(lineStarts, start);
+                (int endLine, int endCharacter) =
+                    PositionHelper.OffsetToLineChar(lineStarts, clampedEnd);
+
+                PublishedDiagnostic publishedDiagnostic = new(
+                    startLine,
+                    startCharacter,
+                    endLine,
+                    endCharacter,
+                    Severity: 4,
+                    Code: null,
+                    Message: "Inactive preprocessor block",
+                    HelpUri: null,
+                    IsUnnecessary: true);
+                publishedDiagnostics.Add(publishedDiagnostic);
+            }
+        }
+
+        return publishedDiagnostics;
+    }
+
     private static int EndOfLineChar(string sourceText, int[] lineStarts, int line)
     {
         if (line < 0 || line >= lineStarts.Length) return 0;
@@ -144,90 +272,55 @@ public sealed class DiagnosticsPublisher
         return end - start;
     }
 
-    private async Task PublishForFileAsync(string uri, string sourceText,
-        IReadOnlyList<Analysis.Diagnostics.Diagnostic> diagnostics,
-        IReadOnlyList<(int Start, int End)>? inactiveRegions = null)
+    private static Dictionary<string, object?> ToProtocolDiagnostic(PublishedDiagnostic diagnostic)
     {
-        var lineStarts = PositionHelper.BuildLineStarts(sourceText);
-        var lspDiags = new List<object>();
-
-        foreach (var d in diagnostics)
+        Dictionary<string, object?> start = new()
         {
-            var (startLine, startChar) = PositionHelper.OffsetToLineChar(lineStarts, d.Position);
-            var (endLine, endChar) = PositionHelper.OffsetToLineChar(lineStarts, d.Position + d.Length);
+            ["line"] = diagnostic.StartLine,
+            ["character"] = diagnostic.StartCharacter,
+        };
+        Dictionary<string, object?> end = new()
+        {
+            ["line"] = diagnostic.EndLine,
+            ["character"] = diagnostic.EndCharacter,
+        };
+        Dictionary<string, object?> range = new()
+        {
+            ["start"] = start,
+            ["end"] = end,
+        };
+        Dictionary<string, object?> protocolDiagnostic = new()
+        {
+            ["range"] = range,
+            ["severity"] = diagnostic.Severity,
+            ["source"] = "midl",
+            ["message"] = diagnostic.Message,
+        };
 
-            // Keep token-level squiggles on one line. A length that runs past the end of
-            // the line (stale/!zero position, or a token whose text is shorter than the
-            // reported length) otherwise produces a range spanning the newline, which
-            // renders as a sliver on the start line and is easy to miss entirely.
-            if (endLine != startLine)
+        if (diagnostic.Code is not null)
+            protocolDiagnostic["code"] = diagnostic.Code;
+
+        if (diagnostic.HelpUri is not null)
+        {
+            Dictionary<string, object?> codeDescription = new()
             {
-                endLine = startLine;
-                endChar = EndOfLineChar(sourceText, lineStarts, startLine);
-                if (endChar < startChar) endChar = startChar;
-            }
-
-            if (d.Code == "MIDL3003")
-                MidlTrace.Write("PUB", $"MIDL3003 '{d.Message.Substring(0, Math.Min(30, d.Message.Length))}': pos={d.Position} origPos={d.OriginalPosition} → {startLine}:{startChar} (srcLen={sourceText.Length})");
-
-            var diag = new Dictionary<string, object?>
-            {
-                ["range"] = new Dictionary<string, object?>
-                {
-                    ["start"] = new Dictionary<string, object?> { ["line"] = startLine, ["character"] = startChar },
-                    ["end"] = new Dictionary<string, object?> { ["line"] = endLine, ["character"] = endChar }
-                },
-                ["severity"] = MapSeverity(d.Severity),
-                ["code"] = d.Code,
-                ["source"] = "midl",
-                ["message"] = d.Message
+                ["href"] = diagnostic.HelpUri,
             };
-            if (d.HelpUri != null)
-            {
-                diag["codeDescription"] = new Dictionary<string, object?> { ["href"] = d.HelpUri };
-            }
-            lspDiags.Add(diag);
+            protocolDiagnostic["codeDescription"] = codeDescription;
         }
 
-        // Emit "unnecessary" hint diagnostics for inactive preprocessor regions
-        // VS Code renders these with reduced opacity (grays out all content including brackets)
-        if (inactiveRegions != null)
-        {
-            foreach (var (start, end) in inactiveRegions)
-            {
-                // Skip regions from included content (positions past the original source)
-                if (start >= sourceText.Length) continue;
+        if (diagnostic.IsUnnecessary)
+            protocolDiagnostic["tags"] = new[] { 1 };
 
-                var clampedEnd = Math.Min(end, sourceText.Length);
-                var (sLine, sChar) = PositionHelper.OffsetToLineChar(lineStarts, start);
-                var (eLine, eChar) = PositionHelper.OffsetToLineChar(lineStarts, clampedEnd);
-                lspDiags.Add(new Dictionary<string, object?>
-                {
-                    ["range"] = new Dictionary<string, object?>
-                    {
-                        ["start"] = new Dictionary<string, object?> { ["line"] = sLine, ["character"] = sChar },
-                        ["end"] = new Dictionary<string, object?> { ["line"] = eLine, ["character"] = eChar }
-                    },
-                    ["severity"] = 4, // Hint
-                    ["tags"] = new[] { 1 }, // 1 = Unnecessary
-                    ["source"] = "midl",
-                    ["message"] = "Inactive preprocessor block"
-                });
-            }
-        }
-
-        await _writer.SendNotificationAsync("textDocument/publishDiagnostics", new Dictionary<string, object?>
-        {
-            ["uri"] = uri,
-            ["diagnostics"] = lspDiags
-        });
+        return protocolDiagnostic;
     }
 
-    private static string PathToUri(string filePath)
+    private static bool PathsEqual(string firstPath, string secondPath)
     {
-        var fullPath = Path.GetFullPath(filePath);
-        // Convert to file:/// URI format
-        return "file:///" + fullPath.Replace('\\', '/');
+        string firstFullPath = Path.GetFullPath(firstPath);
+        string secondFullPath = Path.GetFullPath(secondPath);
+
+        return LspUri.FilePathComparer.Equals(firstFullPath, secondFullPath);
     }
 
     private static int MapSeverity(Analysis.Diagnostics.DiagnosticSeverity severity) => severity switch
@@ -235,6 +328,17 @@ public sealed class DiagnosticsPublisher
         Analysis.Diagnostics.DiagnosticSeverity.Error => 1,
         Analysis.Diagnostics.DiagnosticSeverity.Warning => 2,
         Analysis.Diagnostics.DiagnosticSeverity.Info => 3,
-        _ => 4 // Hint
+        _ => 4,
     };
+
+    private sealed record PublishedDiagnostic(
+        int StartLine,
+        int StartCharacter,
+        int EndLine,
+        int EndCharacter,
+        int Severity,
+        string? Code,
+        string Message,
+        string? HelpUri,
+        bool IsUnnecessary);
 }

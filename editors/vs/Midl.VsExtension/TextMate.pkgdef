@@ -1,0 +1,14 @@
+// TextMate grammar and language configuration registration for MIDL
+
+// Register the extension's root directory as a TextMate grammar repository
+// so VS discovers midl.tmLanguage.json and applies syntax highlighting.
+[$RootKey$\TextMate\Repositories]
+"WinMIDL"="$PackageFolder$"
+
+// Map the grammar scope name to the language configuration file.
+[$RootKey$\TextMate\LanguageConfiguration\GrammarMapping]
+"source.midl"="$PackageFolder$\language-configuration.json"
+
+// Map the content type name to the language configuration file.
+[$RootKey$\TextMate\LanguageConfiguration\ContentTypeMapping]
+"midl"="$PackageFolder$\language-configuration.json"

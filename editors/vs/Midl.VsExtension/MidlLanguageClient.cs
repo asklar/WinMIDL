@@ -15,14 +15,33 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
+using Newtonsoft.Json.Linq;
+using StreamJsonRpc;
 
 namespace Midl.VsExtension
 {
     [ContentType("midl")]
     [Export(typeof(ILanguageClient))]
-    public class MidlLanguageClient : ILanguageClient
+    public class MidlLanguageClient : ILanguageClient, ILanguageClientCustomMessage2
     {
-        public string Name => "MIDL Language Server";
+        /// <summary>
+        /// The display name of the MIDL language server, used to route custom LSP requests to this client.
+        /// </summary>
+        internal const string LanguageServerName = "MIDL Language Server";
+
+        private readonly HoverDocsMiddleLayer middleLayer = new();
+
+        /// <summary>
+        /// Gets the middle layer that enriches MIDL hovers with Microsoft Learn descriptions.
+        /// </summary>
+        public object? MiddleLayer => this.middleLayer;
+
+        /// <summary>
+        /// Gets the custom message target. MIDL does not receive custom messages, so this is <see langword="null"/>.
+        /// </summary>
+        public object? CustomMessageTarget => null;
+
+        public string Name => LanguageServerName;
 
         public IEnumerable<string> ConfigurationSections => null;
 
@@ -55,8 +74,20 @@ namespace Midl.VsExtension
         public event AsyncEventHandler<EventArgs> StopAsync;
 
         private Process serverProcess;
+        private JsonRpc? rpc;
         private IVsOutputWindowPane outputPane;
-        private static MidlLanguageClient _instance;
+        private static MidlLanguageClient? _instance;
+
+        internal static MidlLanguageClient? ActiveInstance
+        {
+            get
+            {
+                MidlLanguageClient? instance = _instance;
+                return instance?.rpc is not null && instance.serverProcess is { HasExited: false }
+                    ? instance
+                    : null;
+            }
+        }
 
         internal static Guid OutputPaneGuid = new Guid("A1B2C3D4-E5F6-7890-ABCD-EF1234567890");
 
@@ -146,6 +177,29 @@ namespace Midl.VsExtension
             }
         }
 
+        /// <summary>
+        /// Retains the VS-managed JSON-RPC connection for extension commands that query the language server.
+        /// </summary>
+        /// <param name="rpc">The RPC connection to the language server.</param>
+        /// <returns>A completed task.</returns>
+        public Task AttachForCustomMessageAsync(JsonRpc rpc)
+        {
+            this.rpc = rpc;
+            return Task.CompletedTask;
+        }
+
+        internal Task<JToken> RequestAsync(string method, object parameters, CancellationToken cancellationToken)
+        {
+            JsonRpc connection = this.rpc
+                ?? throw new InvalidOperationException("MIDL language server is not running.");
+            if (this.serverProcess is not { HasExited: false })
+            {
+                throw new InvalidOperationException("MIDL language server is not running.");
+            }
+
+            return connection.InvokeWithParameterObjectAsync<JToken>(method, parameters, cancellationToken);
+        }
+
         public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationInfo)
         {
             OutputLog($"Server initialization failed: {initializationInfo?.StatusMessage}");
@@ -163,6 +217,7 @@ namespace Midl.VsExtension
         /// </summary>
         internal async Task RestartAsync()
         {
+            rpc = null;
             if (StopAsync != null)
             {
                 await StopAsync.InvokeAsync(this, EventArgs.Empty);
@@ -192,6 +247,14 @@ namespace Midl.VsExtension
         private void OutputLog(string message)
         {
             outputPane?.OutputStringThreadSafe($"[MIDL] {message}\n");
+        }
+
+        internal static void LogWarning(string message)
+        {
+            if (_instance is not null)
+                _instance.OutputLog($"WARNING: {message}");
+            else
+                Trace.TraceWarning(message);
         }
 
         private static MidlOptionsPage GetOptionsPage()

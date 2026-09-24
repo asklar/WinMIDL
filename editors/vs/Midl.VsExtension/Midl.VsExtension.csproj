@@ -52,8 +52,15 @@
     <Compile Include="MidlLanguageClient.cs" />
     <Compile Include="MidlContentTypeDefinitions.cs" />
     <Compile Include="MidlSmartIndent.cs" />
-    <Compile Include="MidlOptionsPage.cs" />
+    <Compile Include="MidlOptionsPage.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="MidlCommands.cs" />
+    <Compile Include="HoverDocsMiddleLayer.cs" />
+    <Compile Include="ClassDiagramHtml.cs" />
+    <Compile Include="ClassDiagramEditorFactory.cs" />
+    <Compile Include="ClassDiagramEditorPane.cs" />
+    <Compile Include="DiagnosticReportFormatter.cs" />
     <Compile Include="ServerDiscovery.cs" />
     <Compile Include="WinMdDecompiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -73,6 +80,14 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="language-configuration.json">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TextMate.pkgdef">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="icon.png">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -81,10 +96,8 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="server\win-x64\Midl.Cli.exe" Condition="Exists('server\win-x64\Midl.Cli.exe')">
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <!-- The win-x64 server binary is registered dynamically by the BundleServerBinary target below so it
+         is included even on a clean build (see that target for why a static item is unreliable here). -->
     <Content Include="server\win-arm64\Midl.Cli.exe" Condition="Exists('server\win-arm64\Midl.Cli.exe')">
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -94,20 +107,39 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Design" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" NoWarn="NU1604" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2120" NoWarn="NU1604" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.6.8" NoWarn="NU1604" />
+    <PackageReference Include="StreamJsonRpc" Version="2.15.29" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
-
-  <!-- Copy server binary into project tree before build so it's included in VSIX -->
-  <Target Name="BundleServerBinary" BeforeTargets="Build" Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\publish\win-x64\Midl.Cli.exe')">
+  <!-- Stage the published server binary into the project tree and include it in the VSIX and build
+       output. The Content item is registered inside this target (rather than as a static item) so it is
+       present even on a clean build: a static item's Exists condition is evaluated before this target
+       copies the file, which previously left Midl.Cli.exe out of experimental deployments. Always is used
+       so a freshly published binary is redeployed every build. -->
+  <Target Name="BundleServerBinary"
+          BeforeTargets="AssignTargetPaths;GetVsixSourceItems"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\publish\win-x64\Midl.Cli.exe')">
     <MakeDir Directories="$(MSBuildThisFileDirectory)server\win-x64" />
     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\..\..\publish\win-x64\Midl.Cli.exe"
           DestinationFolder="$(MSBuildThisFileDirectory)server\win-x64"
-          SkipUnchangedFiles="true" />
+          SkipUnchangedFiles="false"
+          OverwriteReadOnlyFiles="true" />
+    <ItemGroup>
+      <Content Include="server\win-x64\Midl.Cli.exe">
+        <IncludeInVSIX>true</IncludeInVSIX>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
   </Target>
 </Project>

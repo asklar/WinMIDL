@@ -28,20 +28,10 @@ public class DiagnosticPublisherPositionTests
         await publisher.PublishDiagnosticsAsync(uri, editorText, diagnostics);
 
         output.Position = 0;
-        var reader = new StreamReader(output, Encoding.UTF8);
-        var content = await reader.ReadToEndAsync();
-
-        // Parse JSON-RPC messages (skip Content-Length headers)
+        var reader = new JsonRpcReader(output);
         var docs = new List<JsonDocument>();
-        foreach (var line in content.Split('\n'))
-        {
-            var trimmed = line.Trim();
-            if (trimmed.StartsWith('{'))
-            {
-                try { docs.Add(JsonDocument.Parse(trimmed)); }
-                catch { }
-            }
-        }
+        while (await reader.ReadMessageAsync() is { } doc)
+            docs.Add(doc);
         return docs;
     }
 

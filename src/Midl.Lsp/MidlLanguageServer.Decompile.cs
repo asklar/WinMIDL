@@ -84,4 +84,38 @@ public sealed partial class MidlLanguageServer
 
         return null;
     }
+
+    /// <summary>
+    /// Handles workspace/textDocumentContent — returns the decompiled IDL text for a midl-winmd virtual document URI.
+    /// </summary>
+    /// <param name="params">The request parameters, expected to contain the virtual document <c>uri</c>.</param>
+    /// <returns>An object exposing a <c>text</c> property with the decompiled IDL.</returns>
+    private object HandleTextDocumentContent(JsonElement? @params)
+    {
+        if (@params is null)
+            throw new ArgumentException("A WinMD document URI is required.", nameof(@params));
+
+        string? uri = @params.Value.TryGetProperty("uri", out var uriProp) ? uriProp.GetString() : null;
+        if (string.IsNullOrEmpty(uri) || !uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Expected a midl-winmd document URI.", nameof(@params));
+
+        // URI format: midl-winmd:///path/to/file.winmd/Namespace
+        string rawPath = Uri.UnescapeDataString(uri["midl-winmd:".Length..].TrimStart('/'));
+        int winmdIdx = rawPath.IndexOf(".winmd", StringComparison.OrdinalIgnoreCase);
+        if (winmdIdx < 0)
+            throw new ArgumentException("The URI must contain a .winmd path.", nameof(@params));
+
+        string winmdPath = rawPath[..(winmdIdx + 6)];
+        string? nsFilter = null;
+        string remainder = rawPath[(winmdIdx + 6)..];
+        if (remainder.StartsWith('/') && remainder.Length > 1)
+            nsFilter = remainder[1..];
+
+        Midl.CodeGen.Decompiler.WinMdDecompiler decompiler = new();
+        string decompiled = decompiler.Decompile(winmdPath, nsFilter);
+        return new Dictionary<string, object?>
+        {
+            ["text"] = decompiled,
+        };
+    }
 }

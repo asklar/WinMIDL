@@ -107,7 +107,7 @@ public sealed partial class MidlLanguageServer
                     break;
                 }
 
-                var uri = "file:///" + Uri.EscapeDataString(filePath.Replace('\\', '/')).Replace("%2F", "/");
+                string uri = LspUri.FromPath(filePath);
                 // Skip files already open in the editor
                 if (_docManager.GetDocumentText(uri) != null)
                     continue;
@@ -241,6 +241,7 @@ public sealed partial class MidlLanguageServer
             var uri = change.GetProperty("uri").GetString();
             var type = change.GetProperty("type").GetInt32();
             if (uri is null) continue;
+            string canonicalUri = LspUri.Normalize(uri);
 
             // Only handle .idl files
             if (!uri.EndsWith(".idl", StringComparison.OrdinalIgnoreCase))
@@ -254,22 +255,20 @@ public sealed partial class MidlLanguageServer
             {
                 // Clear diagnostics for deleted file
                 await _diagnostics.PublishDiagnosticsAsync(uri, "", []);
-                _lastAnalyzedHash.TryRemove(uri, out _);
-                _lastCompilation.TryRemove(uri, out _);
+                _lastAnalyzedHash.TryRemove(canonicalUri, out _);
+                _lastCompilation.TryRemove(canonicalUri, out _);
             }
             else // Created (1) or Changed (2)
             {
                 // Read file from disk and analyze
-                string? filePath = null;
-                if (uri.StartsWith("file:///"))
-                    filePath = Uri.UnescapeDataString(uri[8..]);
+                string? filePath = LspUri.GetFilePath(uri);
 
                 if (filePath != null && File.Exists(filePath))
                 {
                     try
                     {
                         // Force re-analysis by clearing cached hash
-                        _lastAnalyzedHash.TryRemove(uri, out _);
+                        _lastAnalyzedHash.TryRemove(canonicalUri, out _);
                         var text = await File.ReadAllTextAsync(filePath);
                         await AnalyzeAndPublishAsync(uri, text);
                     }

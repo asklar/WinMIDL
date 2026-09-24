@@ -38,21 +38,25 @@ public sealed partial class MidlLanguageServer
     private bool _reportSystemImportDiagnostics;
     private bool _flatSdkTypeCompletions;
     private bool _clientSupportsMarkdown = true; // VS Code sends markdown; VS sends plaintext only
+    private bool _clientSupportsTextDocumentContent; // VS advertises workspace/textDocumentContent (LSP 3.18); VS Code uses its own content provider
     private ProjectFile? _projectFile;
     private string? _workspaceRoot;
 
     // Debounce: delay analysis after last edit to avoid recompiling on every keystroke
-    private readonly ConcurrentDictionary<string, CancellationTokenSource> _debounceTokens = new();
+    private readonly ConcurrentDictionary<string, CancellationTokenSource> _debounceTokens =
+        new(LspUri.UriComparer);
     private const int DebounceDelayMs = 300;
 
     // Content cache: skip recompilation if text hasn't changed
-    private readonly ConcurrentDictionary<string, int> _lastAnalyzedHash = new();
+    private readonly ConcurrentDictionary<string, int> _lastAnalyzedHash =
+        new(LspUri.UriComparer);
 
     // WinMD provider cache: reuse providers across compilations to avoid re-reading .winmd files
     private readonly ConcurrentDictionary<string, LazyWinMdProvider> _winmdProviderCache = new();
 
     // Compilation cache: reuse last compilation result for code actions / completions
-    private readonly ConcurrentDictionary<string, Compilation> _lastCompilation = new();
+    private readonly ConcurrentDictionary<string, Compilation> _lastCompilation =
+        new(LspUri.UriComparer);
 
     // Diagnostic event log — flight recorder for self-diagnostics
     // Persists to ~/.midl/server.log so the extension can read it even after a crash
@@ -68,7 +72,7 @@ public sealed partial class MidlLanguageServer
     {
         _reader = new JsonRpcReader(input);
         _writer = new JsonRpcWriter(output);
-        _diagnostics = new DiagnosticsPublisher(_writer);
+        _diagnostics = new DiagnosticsPublisher(_writer, _docManager);
 
         // Enable trace logging to file for diagnostics (no stderr tee — avoids console noise in tests)
         if (!MidlTrace.IsEnabled)
@@ -78,6 +82,16 @@ public sealed partial class MidlLanguageServer
             MidlTrace.Enable(logPath, alsoWriteToStdErr: false);
             MidlTrace.Lsp($"Server started, logging to {logPath}");
         }
+    }
+
+    private Compilation? GetCachedCompilation(string? uri)
+    {
+        if (uri is null)
+            return null;
+
+        _lastCompilation.TryGetValue(LspUri.Normalize(uri), out Compilation? compilation);
+
+        return compilation;
     }
 
     public async Task RunAsync(CancellationToken ct = default)
@@ -133,6 +147,13 @@ public sealed partial class MidlLanguageServer
                 bool allowed = method is "textDocument/didOpen" or "textDocument/didChange" or "textDocument/didClose"
                     or "textDocument/semanticTokens/full" or "textDocument/hover"
                     or "textDocument/documentSymbol" or "textDocument/foldingRange";
+
+                // Only answer textDocument/definition inside decompiled views for LSP 3.18 clients (VS).
+                // VS Code both forwards these docs to us AND registers its own midl-winmd definition
+                // provider, so answering unconditionally would double-navigate there. Clean fix: drop
+                // VS Code's client-side provider (+ midl/decompileDefinition) and remove this gate.
+                if (method == "textDocument/definition" && _clientSupportsTextDocumentContent)
+                    allowed = true;
                 if (!allowed)
                 {
                     if (id != null)
@@ -190,8 +211,7 @@ public sealed partial class MidlLanguageServer
             case "textDocument/completion":
                 {
                     var compUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? cachedComp = null;
-                    if (compUri != null) _lastCompilation.TryGetValue(compUri, out cachedComp);
+                    Compilation? cachedComp = GetCachedCompilation(compUri);
                     await _writer.SendResponseAsync(id, CompletionHandler.Handle(@params, _docManager, _sdkIncludePaths, _projectFile, cachedComp, _flatSdkTypeCompletions));
                 }
                 break;
@@ -199,8 +219,7 @@ public sealed partial class MidlLanguageServer
             case "textDocument/hover":
                 {
                     var hoverUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? hoverComp = null;
-                    if (hoverUri != null) _lastCompilation.TryGetValue(hoverUri, out hoverComp);
+                    Compilation? hoverComp = GetCachedCompilation(hoverUri);
                     var hoverResult = HoverHandler.Handle(@params, _docManager, hoverComp);
                     // Strip markdown for clients that only support plaintext (e.g. VS)
                     if (!_clientSupportsMarkdown && hoverResult is HoverResult hr)
@@ -215,8 +234,7 @@ public sealed partial class MidlLanguageServer
             case "textDocument/documentSymbol":
                 {
                     var dsUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? dsComp = null;
-                    if (dsUri != null) _lastCompilation.TryGetValue(dsUri, out dsComp);
+                    Compilation? dsComp = GetCachedCompilation(dsUri);
                     await _writer.SendResponseAsync(id, DocumentSymbolHandler.Handle(@params, _docManager, dsComp));
                 }
                 break;
@@ -224,10 +242,9 @@ public sealed partial class MidlLanguageServer
             case "textDocument/definition":
                 {
                     var defUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? defCompilation = null;
-                    if (defUri != null) _lastCompilation.TryGetValue(defUri, out defCompilation);
+                    Compilation? defCompilation = GetCachedCompilation(defUri);
                     var defRefs = defUri != null ? GetReferencePaths(defUri) : _referencePaths;
-                    string? defFilePath = defUri?.StartsWith("file:///") == true ? Uri.UnescapeDataString(defUri[8..]) : null;
+                    string? defFilePath = defUri is not null ? LspUri.GetFilePath(defUri) : null;
                     var defIncludes = GetIncludePaths(defFilePath);
                     var defResult = GotoDefinitionHandler.Handle(@params, _docManager, defIncludes, defRefs, defCompilation);
                     await _writer.SendResponseAsync(id, defResult);
@@ -243,13 +260,17 @@ public sealed partial class MidlLanguageServer
                 await _writer.SendResponseAsync(id, decompResult);
                 break;
 
+            case "workspace/textDocumentContent":
+                await _writer.SendResponseAsync(id, HandleTextDocumentContent(@params));
+                break;
+
             case "midl/classDiagram":
                 {
                     var diagUri = @params?.GetProperty("uri").GetString();
                     var diagText = diagUri != null ? _docManager.GetDocumentText(diagUri) : null;
                     if (diagText != null)
                     {
-                        var comp = _lastCompilation.TryGetValue(diagUri!, out var c) ? c : CompilationHelper.Compile(diagText);
+                        Compilation comp = GetCachedCompilation(diagUri) ?? CompilationHelper.Compile(diagText);
                         var showRefs = @params?.TryGetProperty("showReferences", out var sr) == true && sr.GetBoolean();
                         var dot = ClassDiagramHandler.GenerateDot(comp, showReferences: showRefs);
                         await _writer.SendResponseAsync(id, new Dictionary<string, object?> { ["dot"] = dot });
@@ -264,8 +285,7 @@ public sealed partial class MidlLanguageServer
             case "textDocument/references":
                 {
                     var refUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? refComp = null;
-                    if (refUri != null) _lastCompilation.TryGetValue(refUri, out refComp);
+                    Compilation? refComp = GetCachedCompilation(refUri);
                     await _writer.SendResponseAsync(id, FindReferencesHandler.Handle(@params, _docManager, refComp));
                 }
                 break;
@@ -273,8 +293,7 @@ public sealed partial class MidlLanguageServer
             case "textDocument/signatureHelp":
                 {
                     var shUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? shComp = null;
-                    if (shUri != null) _lastCompilation.TryGetValue(shUri, out shComp);
+                    Compilation? shComp = GetCachedCompilation(shUri);
                     await _writer.SendResponseAsync(id, SignatureHelpHandler.Handle(@params, _docManager, shComp));
                     break;
                 }
@@ -282,8 +301,7 @@ public sealed partial class MidlLanguageServer
             case "textDocument/semanticTokens/full":
                 {
                     var stUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? stComp = null;
-                    if (stUri != null) _lastCompilation.TryGetValue(stUri, out stComp);
+                    Compilation? stComp = GetCachedCompilation(stUri);
                     await _writer.SendResponseAsync(id, SemanticTokensHandler.Handle(@params, _docManager, stComp));
                 }
                 break;
@@ -299,8 +317,7 @@ public sealed partial class MidlLanguageServer
             case "textDocument/rename":
                 {
                     var renUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? renComp = null;
-                    if (renUri != null) _lastCompilation.TryGetValue(renUri, out renComp);
+                    Compilation? renComp = GetCachedCompilation(renUri);
                     await _writer.SendResponseAsync(id, RenameHandler.Handle(@params, _docManager, renComp));
                 }
                 break;
@@ -308,8 +325,7 @@ public sealed partial class MidlLanguageServer
             case "textDocument/prepareRename":
                 {
                     var prUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? prComp = null;
-                    if (prUri != null) _lastCompilation.TryGetValue(prUri, out prComp);
+                    Compilation? prComp = GetCachedCompilation(prUri);
                     await _writer.SendResponseAsync(id, RenameHandler.HandlePrepare(@params, _docManager, prComp));
                 }
                 break;
@@ -322,13 +338,11 @@ public sealed partial class MidlLanguageServer
                 {
                     var caTd = @params.Value.GetProperty("textDocument");
                     caUri = caTd.GetProperty("uri").GetString()!;
-                    if (caUri.StartsWith("file:///"))
-                        caFilePath = Uri.UnescapeDataString(caUri[8..]);
+                    caFilePath = LspUri.GetFilePath(caUri);
                 }
                 var caRefs = caFilePath != null ? GetReferencePaths(@params!.Value.GetProperty("textDocument").GetProperty("uri").GetString()!) : _referencePaths;
                 var caIncludes = GetIncludePaths(caFilePath);
-                Compilation? caComp = null;
-                if (caUri != null) _lastCompilation.TryGetValue(caUri, out caComp);
+                Compilation? caComp = GetCachedCompilation(caUri);
                 await _writer.SendResponseAsync(id, CodeActionHandler.Handle(@params, _docManager, caRefs, caIncludes, caFilePath, caComp));
                 break;
             }
@@ -336,8 +350,7 @@ public sealed partial class MidlLanguageServer
             case "textDocument/codeLens":
                 {
                     var clUri = @params?.GetProperty("textDocument").GetProperty("uri").GetString();
-                    Compilation? clComp = null;
-                    if (clUri != null) _lastCompilation.TryGetValue(clUri, out clComp);
+                    Compilation? clComp = GetCachedCompilation(clUri);
                     await _writer.SendResponseAsync(id, CodeLensHandler.Handle(@params, _docManager, clComp));
                 }
                 break;
@@ -447,6 +460,12 @@ public sealed partial class MidlLanguageServer
                         if (closeParen > closeBracket + 1)
                         {
                             sb.Append(trimmed, i + 1, closeBracket - i - 1);
+                            string? learnUrl = TryGetLearnUrl(trimmed[(closeBracket + 2)..closeParen]);
+                            if (learnUrl is not null)
+                            {
+                                sb.Append(": ");
+                                sb.Append(learnUrl);
+                            }
                             i = closeParen + 1;
                             continue;
                         }
@@ -463,6 +482,35 @@ public sealed partial class MidlLanguageServer
             foreach (var c in s)
                 if (c != '-') return false;
             return true;
+        }
+    }
+
+    private static string? TryGetLearnUrl(string target)
+    {
+        const string prefix = "command:midl.openDocs?";
+        if (!target.StartsWith(prefix, StringComparison.Ordinal))
+            return null;
+
+        try
+        {
+            using JsonDocument args = JsonDocument.Parse(Uri.UnescapeDataString(target[prefix.Length..]));
+            if (args.RootElement.ValueKind != JsonValueKind.Array ||
+                args.RootElement.GetArrayLength() != 1 ||
+                args.RootElement[0].ValueKind != JsonValueKind.String)
+            {
+                return null;
+            }
+
+            string? url = args.RootElement[0].GetString();
+            return Uri.TryCreate(url, UriKind.Absolute, out Uri? uri) &&
+                uri.Scheme == Uri.UriSchemeHttps &&
+                uri.Host.Equals("learn.microsoft.com", StringComparison.OrdinalIgnoreCase)
+                    ? uri.AbsoluteUri
+                    : null;
+        }
+        catch (JsonException)
+        {
+            return null;
         }
     }
 
@@ -591,6 +639,17 @@ public sealed partial class MidlLanguageServer
                         }
                     }
                     MidlTrace.Lsp($"Client hover markdown support: {_clientSupportsMarkdown}");
+                }
+
+                // LSP 3.18 client capability gate: a client that advertises workspace/textDocumentContent
+                // drives decompiled-WinMD navigation via standard textDocument/definition; VS Code does not
+                // advertise it and keeps using its own content provider + midl/decompileDefinition.
+                if (@params.Value.TryGetProperty("capabilities", out var wsCaps) &&
+                    wsCaps.TryGetProperty("workspace", out var wsWorkspace) &&
+                    wsWorkspace.TryGetProperty("textDocumentContent", out _))
+                {
+                    _clientSupportsTextDocumentContent = true;
+                    MidlTrace.Lsp("Client supports workspace/textDocumentContent");
                 }
             }
             catch { }
@@ -825,6 +884,17 @@ public sealed partial class MidlLanguageServer
                 ["version"] = "0.1.0"
             }
         };
+
+        if (_clientSupportsTextDocumentContent &&
+            capabilities["capabilities"] is Dictionary<string, object?> serverCaps &&
+            serverCaps["workspace"] is Dictionary<string, object?> workspaceCaps)
+        {
+            workspaceCaps["textDocumentContent"] = new Dictionary<string, object?>
+            {
+                ["schemes"] = new[] { "midl-winmd" },
+            };
+        }
+
         await _writer.SendResponseAsync(id, capabilities);
     }
 

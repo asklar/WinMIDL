@@ -1,7 +1,5 @@
 # VS Extension ↔ VS Code Extension Parity
 
-Last updated from audit on `feature/vs-parity` branch.
-
 ## ✅ At Parity
 
 | Feature | VS | VS Code | Notes |
@@ -23,7 +21,10 @@ Last updated from audit on `feature/vs-parity` branch.
 | Server discovery | Bundled → repo → fallback | Bundled → repo → workspace | Same search order |
 | Smart indent | Brace-based (4-space) | Deferred to LSP/editor | VS has custom `ISmartIndent` |
 | Code actions | Via LSP server | Via LSP server | No custom client handling needed |
-| WinMD decompiler | `WinMdDecompiler.cs` | N/A | VS-only feature |
+| WinMD definition navigation | Decompiled `.idlrt` file from `workspace/textDocumentContent` | `midl-winmd` virtual document | VS 17 uses the existing LSP connection and a local temporary file; LSP 3.18 clients can use virtual content directly |
+| Class diagrams | Tools menu → WebView2 document | Command palette → webview | Both request `midl/classDiagram`; rendering needs access to jsDelivr |
+| Report Issue | Tools menu → prefilled GitHub issue | Command palette → prefilled GitHub issue | VS asks before including IDL source text |
+| Microsoft Learn hover descriptions | Plaintext hover middle layer | VS Code hover middleware | Both fetch descriptions on demand; VS displays the URL as text |
 
 ## ⚠️ Known Gaps (Platform Limitations)
 
@@ -53,9 +54,9 @@ setting controls whether hover tooltips fetch docs from Learn, which works in bo
 **VS Code**: Hover middleware enables trusted command links (e.g., `midl.openDocs`) in
 markdown hover content. Clicking a link in the hover opens documentation.
 
-**VS**: VS's LSP hover rendering supports basic markdown but not trusted command URIs.
-Hover content displays correctly but doc links are not clickable. This is a VS platform
-limitation — the VS LSP client does not support `command:` URIs in hover markdown.
+**VS**: VS renders plaintext hover and does not support trusted `command:` links.
+The server leaves the Microsoft Learn URL visible and the VS hover middle layer adds
+the page description when available; the command link itself is not clickable.
 
 ### 4. First-line language detection
 
