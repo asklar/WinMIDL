@@ -14,9 +14,10 @@ The following direct package dependencies were found in project files at the tim
 |---|---:|---|
 | coverlet.collector | 6.0.0, 6.0.4 | Test coverage collection |
 | Microsoft.NET.Test.Sdk | 17.8.0, 17.14.1 | .NET test infrastructure |
-| Microsoft.VisualStudio.LanguageServer.Client | 17.6.8 | Visual Studio extension language client |
-| Microsoft.VisualStudio.SDK | 17.0.32112.339 | Visual Studio extension SDK |
+| Microsoft.VisualStudio.LanguageServer.Client | 17.14.60 | Visual Studio extension language client |
+| Microsoft.VisualStudio.SDK | 17.14.40265 | Visual Studio extension SDK |
 | Microsoft.VSSDK.BuildTools | 17.14.2120 | Visual Studio extension build tooling |
+| StreamJsonRpc | 2.22.11 | Visual Studio language client dependency |
 | Verify.Xunit | * | Snapshot verification tests |
 | xunit | 2.5.3, 2.9.3 | Test framework |
 | Xunit.SkippableFact | 1.* | Conditional xUnit tests |

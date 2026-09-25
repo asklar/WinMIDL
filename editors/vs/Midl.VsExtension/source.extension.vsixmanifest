@@ -36,6 +36,7 @@
   </Prerequisites>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Midl.VsExtension.pkgdef" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="TextMate.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Midl.VsExtension.dll" />
   </Assets>
 </PackageManifest>

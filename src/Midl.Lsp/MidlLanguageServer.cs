@@ -37,7 +37,7 @@ public sealed partial class MidlLanguageServer
     /// </summary>
     private bool _reportSystemImportDiagnostics;
     private bool _flatSdkTypeCompletions;
-    private bool _clientSupportsMarkdown = true; // VS Code sends markdown; VS sends plaintext only
+    private bool _clientSupportsMarkdown = true;
     private ProjectFile? _projectFile;
     private string? _workspaceRoot;
 
@@ -241,6 +241,10 @@ public sealed partial class MidlLanguageServer
             case "midl/decompileDefinition":
                 var decompResult = HandleDecompileDefinition(@params);
                 await _writer.SendResponseAsync(id, decompResult);
+                break;
+
+            case "workspace/textDocumentContent":
+                await _writer.SendResponseAsync(id, HandleTextDocumentContent(@params));
                 break;
 
             case "midl/classDiagram":
@@ -817,6 +821,10 @@ public sealed partial class MidlLanguageServer
                     {
                         ["supported"] = true,
                     },
+                    ["textDocumentContent"] = new Dictionary<string, object?>
+                    {
+                        ["schemes"] = new[] { "midl-winmd" },
+                    },
                 }
             },
             ["serverInfo"] = new Dictionary<string, object?>
@@ -825,6 +833,7 @@ public sealed partial class MidlLanguageServer
                 ["version"] = "0.1.0"
             }
         };
+
         await _writer.SendResponseAsync(id, capabilities);
     }
 

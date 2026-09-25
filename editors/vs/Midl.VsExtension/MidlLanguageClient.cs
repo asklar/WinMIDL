@@ -15,13 +15,20 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
+using StreamJsonRpc;
 
 namespace Midl.VsExtension
 {
     [ContentType("midl")]
     [Export(typeof(ILanguageClient))]
-    public class MidlLanguageClient : ILanguageClient
+    public class MidlLanguageClient : ILanguageClient, ILanguageClientCustomMessage2
     {
+        private readonly HoverDocsMiddleLayer middleLayer = new();
+
+        public object MiddleLayer => middleLayer;
+
+        public object? CustomMessageTarget => null;
+
         public string Name => "MIDL Language Server";
 
         public IEnumerable<string> ConfigurationSections => null;
@@ -146,6 +153,8 @@ namespace Midl.VsExtension
             }
         }
 
+        public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
+
         public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationInfo)
         {
             OutputLog($"Server initialization failed: {initializationInfo?.StatusMessage}");
@@ -192,6 +201,14 @@ namespace Midl.VsExtension
         private void OutputLog(string message)
         {
             outputPane?.OutputStringThreadSafe($"[MIDL] {message}\n");
+        }
+
+        internal static void LogWarning(string message)
+        {
+            if (_instance != null)
+                _instance.OutputLog($"WARNING: {message}");
+            else
+                Trace.TraceWarning(message);
         }
 
         private static MidlOptionsPage GetOptionsPage()
