@@ -22,11 +22,9 @@
 | Smart indent | Brace-based (4-space) | Deferred to LSP/editor | VS has custom `ISmartIndent` |
 | Code actions | Via LSP server | Via LSP server | No custom client handling needed |
 | WinMD definition navigation | Decompiled `.idlrt` file from `workspace/textDocumentContent` | `midl-winmd` virtual document | VS 17 uses the existing LSP connection and a local temporary file; LSP 3.18 clients can use virtual content directly |
-| Class diagrams | Tools menu → WebView2 document | Command palette → webview | Both request `midl/classDiagram`; rendering needs access to jsDelivr |
-| Report Issue | Tools menu → prefilled GitHub issue | Command palette → prefilled GitHub issue | VS asks before including IDL source text |
 | Microsoft Learn hover descriptions | Plaintext hover middle layer | VS Code hover middleware | Both fetch descriptions on demand; VS displays the URL as text |
 
-## ⚠️ Known Gaps (Platform Limitations)
+## ⚠️ Known Gaps
 
 ### 1. Snippets — Bundled but not active in VS
 
@@ -65,6 +63,12 @@ to detect MIDL files without an extension.
 
 **VS**: Relies solely on file extensions (`.idl`, `.idlrt`). VS does not support first-line
 language detection through the content type system.
+
+### 5. Class diagrams and Report Issue
+
+**VS Code**: Provides class diagrams and prefilled GitHub issue reports.
+
+**VS**: Does not provide either command or a class diagram editor.
 
 ## Settings Mapping
 

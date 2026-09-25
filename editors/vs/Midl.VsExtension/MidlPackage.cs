@@ -15,8 +15,6 @@ namespace Midl.VsExtension
     [ProvideAutoLoad(UIContextGuids80.NoSolution, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideEditorFactory(typeof(ClassDiagramEditorFactory), 300, TrustLevel = __VSEDITORTRUSTLEVEL.ETL_AlwaysTrusted)]
-    [ProvideEditorExtension(typeof(ClassDiagramEditorFactory), ".midlclassdiagram", 50)]
     [ProvideOptionPage(typeof(MidlOptionsPage), "MIDL", "General", 0, 0, true)]
     [Guid(PackageGuidString)]
     public sealed class MidlPackage : AsyncPackage
@@ -31,7 +29,6 @@ namespace Midl.VsExtension
         {
             Instance = this;
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            this.RegisterEditorFactory(new ClassDiagramEditorFactory());
             await MidlCommands.InitializeAsync(this);
         }
 
