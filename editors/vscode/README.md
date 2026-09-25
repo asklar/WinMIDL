@@ -204,10 +204,11 @@ Comment toggling, bracket matching, auto-closing pairs, smart indentation, and d
 | `midl.useWindowsSdk` | `boolean` | `true` | Automatically reference Windows.winmd from the installed Windows SDK for type completion and F12 navigation. |
 | `midl.windowsSdkVersion` | `string` | `"latest"` | Windows SDK version to use. Use the **MIDL: Select Windows SDK Version** command to pick from installed versions. |
 | `midl.flatSdkTypeCompletions` | `boolean` | `false` | Show all SDK types by short name in completions (e.g. `Button`, `Control`). When off, only namespace names appear and you drill in with dot notation. |
-| `midl.fetchSdkDocs` | `boolean` | `true` | Fetch type descriptions from Microsoft Learn on hover. Requires internet access. |
 | `midl.inlineDocsBrowser` | `boolean` | `true` | Open Microsoft Learn documentation in a VS Code side panel instead of the external browser. |
 | `midl.defines` | `array` | `[]` | Preprocessor defines for inactive region detection (e.g., `["FEATURE_X", "DEBUG"]`). |
 | `midl.serverPath` | `string` | `"midl"` | Path to the MIDL CLI executable. The extension ships its own copy — you shouldn't need to change this unless using a custom build. |
+
+Hover descriptions for SDK types are fetched from Microsoft Learn when a hover includes a Learn link. This requires internet access.
 
 ---
 

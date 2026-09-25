@@ -22,11 +22,7 @@ public sealed partial class MidlLanguageServer
         // Skip analysis for virtual documents (decompiled WinMD views)
         if (uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase)) return;
 
-        await AnalyzeAndPublishAsync(
-            uri,
-            text,
-            forceAnalysis: true,
-            preferInputUri: true);
+        await AnalyzeAndPublishAsync(uri, text);
     }
 
     private async Task HandleDidChangeAsync(JsonElement? @params)
@@ -35,7 +31,6 @@ public sealed partial class MidlLanguageServer
 
         var td = @params.Value.GetProperty("textDocument");
         var uri = td.GetProperty("uri").GetString()!;
-        string canonicalUri = LspUri.Normalize(uri);
 
         // Skip analysis for virtual documents
         if (uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase))
@@ -54,21 +49,17 @@ public sealed partial class MidlLanguageServer
             MidlTrace.Lsp($"didChange: {uri} ({text.Length} chars)");
 
             // Debounce: cancel any pending analysis for this URI, schedule a new one
-            if (_debounceTokens.TryRemove(canonicalUri, out var oldCts))
+            if (_debounceTokens.TryRemove(uri, out var oldCts))
                 oldCts.Cancel();
 
             var cts = new CancellationTokenSource();
-            _debounceTokens[canonicalUri] = cts;
+            _debounceTokens[uri] = cts;
 
             try
             {
                 await Task.Delay(DebounceDelayMs, cts.Token);
-                _debounceTokens.TryRemove(canonicalUri, out _);
-                await AnalyzeAndPublishAsync(
-                    uri,
-                    text,
-                    preferInputUri: true,
-                    reanalyzeDependents: true);
+                _debounceTokens.TryRemove(uri, out _);
+                await AnalyzeAndPublishAsync(uri, text);
             }
             catch (TaskCanceledException)
             {
@@ -83,31 +74,21 @@ public sealed partial class MidlLanguageServer
 
         var td = @params.Value.GetProperty("textDocument");
         var uri = td.GetProperty("uri").GetString()!;
-        string canonicalUri = LspUri.Normalize(uri);
         _docManager.CloseDocument(uri);
-        _lastAnalyzedHash.TryRemove(canonicalUri, out _);
-        _lastCompilation.TryRemove(canonicalUri, out _);
-        if (_debounceTokens.TryRemove(canonicalUri, out var cts))
+        _lastAnalyzedHash.TryRemove(uri, out _);
+        _lastCompilation.TryRemove(uri, out _);
+        if (_debounceTokens.TryRemove(uri, out var cts))
             cts.Cancel();
     }
 
-    private async Task AnalyzeAndPublishAsync(
-        string uri,
-        string text,
-        bool forceAnalysis = false,
-        bool preferInputUri = false,
-        bool reanalyzeDependents = false)
+    private async Task AnalyzeAndPublishAsync(string uri, string text)
     {
         // Never analyze virtual documents (decompiled WinMD views)
         if (uri.StartsWith("midl-winmd:", StringComparison.OrdinalIgnoreCase)) return;
 
-        string publishUri = uri;
-        uri = LspUri.Normalize(uri);
-
         // Skip recompilation if the text hasn't changed since last analysis
         var hash = text.GetHashCode();
-        bool hasLastHash = _lastAnalyzedHash.TryGetValue(uri, out int lastHash);
-        if (!forceAnalysis && hasLastHash && lastHash == hash)
+        if (_lastAnalyzedHash.TryGetValue(uri, out var lastHash) && lastHash == hash)
         {
             MidlTrace.Lsp($"Skipping analysis for {uri} (unchanged, hash={hash})");
             return;
@@ -121,7 +102,9 @@ public sealed partial class MidlLanguageServer
             _lastAnalyzedHash[uri] = hash;
 
             // Resolve the file path for cross-file context
-            string? filePath = LspUri.GetFilePath(uri);
+            string? filePath = null;
+            if (uri.StartsWith("file:///"))
+                filePath = Uri.UnescapeDataString(uri[8..]);
 
             var references = GetReferencePaths(uri);
             var includePaths = GetIncludePaths(filePath);
@@ -133,39 +116,41 @@ public sealed partial class MidlLanguageServer
                 merged.AddRange(_defines);
                 defines = merged;
             }
-            List<LazyWinMdProvider>? cachedProviders = GetCachedProviders(references);
-            Func<string, string?> importContentProvider = GetOpenImportContent;
-            Compilation compilation = CompilationHelper.CompileWithImportContent(
-                text,
-                cachedProviders,
-                importContentProvider,
-                _compilationMode,
-                includePaths,
-                filePath,
-                defines: defines,
-                emitQualityHints: _enableQualityHints,
-                refDirectories: _refDirectories,
-                arraysEnabled: _arraysEnabled);
+            var cachedProviders = GetCachedProviders(references);
+
+            // Use cached providers when available to skip disk I/O
+            Compilation compilation;
+            if (cachedProviders != null)
+            {
+                compilation = CompilationHelper.Compile(text, cachedProviders, _compilationMode,
+                    includePaths, filePath,
+                    defines: defines,
+                    emitQualityHints: _enableQualityHints,
+                    refDirectories: _refDirectories,
+                    arraysEnabled: _arraysEnabled);
+            }
+            else
+            {
+                compilation = CompilationHelper.Compile(text, references, _compilationMode,
+                    includePaths, filePath,
+                    defines: defines,
+                    emitQualityHints: _enableQualityHints,
+                    refDirectories: _refDirectories,
+                    arraysEnabled: _arraysEnabled);
+            }
 
             // Cache compilation for reuse by code action / completion handlers
             _lastCompilation[uri] = compilation;
 
             var memAfter = GC.GetTotalMemory(false) / (1024 * 1024);
             MidlTrace.Lsp($"Analysis done: {compilation.Diagnostics.Count} diagnostics, mem={memAfter}MB, providers={_winmdProviderCache.Count}");
+
             var reported = FilterSystemImportDiagnostics(compilation.Diagnostics);
             if (reported.Count != compilation.Diagnostics.Count)
                 MidlTrace.Lsp($"Suppressed {compilation.Diagnostics.Count - reported.Count} diagnostics from SDK imports");
 
-            await _diagnostics.PublishDiagnosticsAsync(
-                publishUri,
-                text,
-                reported,
-                compilation.InactiveRegions,
-                preferInputUri);
+            await _diagnostics.PublishDiagnosticsAsync(uri, text, reported, compilation.InactiveRegions);
             MidlTrace.Lsp($"Diagnostics published");
-
-            if (reanalyzeDependents && filePath is not null)
-                await ReanalyzeOpenDependentsAsync(uri, filePath);
         }
         catch (Exception ex)
         {
@@ -174,57 +159,7 @@ public sealed partial class MidlLanguageServer
                 "MIDL0000",
                 $"Internal compiler error: {ex.Message}",
                 0, 0);
-            await _diagnostics.PublishDiagnosticsAsync(
-                publishUri,
-                text,
-                [errorDiag],
-                preferInputUri: preferInputUri);
-        }
-    }
-
-    private string? GetOpenImportContent(string filePath)
-    {
-        return _docManager.GetDocumentText(LspUri.FromPath(filePath));
-    }
-
-    private async Task ReanalyzeOpenDependentsAsync(string changedUri, string changedFilePath)
-    {
-        string fullChangedPath = Path.GetFullPath(changedFilePath);
-        string[] openUris = _docManager.GetOpenDocumentUris().ToArray();
-        List<string> dependentUris = [];
-
-        foreach (string openUri in openUris)
-        {
-            if (LspUri.UriComparer.Equals(openUri, changedUri) ||
-                !_lastCompilation.TryGetValue(openUri, out Compilation? compilation))
-            {
-                continue;
-            }
-
-            foreach (string importedFilePath in compilation.ImportedFilePaths)
-            {
-                if (LspUri.FilePathComparer.Equals(
-                    Path.GetFullPath(importedFilePath),
-                    fullChangedPath))
-                {
-                    dependentUris.Add(openUri);
-                    break;
-                }
-            }
-        }
-
-        foreach (string dependentUri in dependentUris)
-        {
-            string? dependentText = _docManager.GetDocumentText(dependentUri);
-            if (dependentText is null)
-                continue;
-
-            await AnalyzeAndPublishAsync(
-                dependentUri,
-                dependentText,
-                forceAnalysis: true,
-                preferInputUri: false,
-                reanalyzeDependents: false);
+            await _diagnostics.PublishDiagnosticsAsync(uri, text, [errorDiag]);
         }
     }
 

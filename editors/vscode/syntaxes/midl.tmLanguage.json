@@ -2,6 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "MIDL",
   "scopeName": "source.midl",
+  "fileTypes": ["idl", "idlrt"],
   "patterns": [
     { "include": "#directives" },
     { "include": "#comments" },

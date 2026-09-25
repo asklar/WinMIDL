@@ -4,7 +4,8 @@
 
 | Feature | VS | VS Code | Notes |
 |---------|-----|---------|-------|
-| TextMate grammar | `midl.tmLanguage.json` | `syntaxes/midl.tmLanguage.json` | Identical files (same hash) |
+| TextMate grammar | VSIX root | `syntaxes/midl.tmLanguage.json` | VSIX packages the VS Code source, including `.idl`/`.idlrt` file types |
+| Language configuration | VSIX root | `language-configuration.json` | VSIX packages the VS Code source |
 | File associations | `.idl`, `.idlrt` | `.idl`, `.idlrt` | Both via content type definitions |
 | Toggle Strict Mode | Tools menu command | Command palette | Both persist and notify server |
 | Restart Server | Tools menu command | Command palette | |
@@ -15,14 +16,14 @@
 | Use Windows SDK | Tools → Options → MIDL | `midl.useWindowsSdk` | |
 | Windows SDK Version | Tools → Options → MIDL | `midl.windowsSdkVersion` | |
 | Flat SDK Completions | Tools → Options → MIDL | `midl.flatSdkTypeCompletions` | |
-| Fetch SDK Docs | Tools → Options → MIDL | `midl.fetchSdkDocs` | |
 | Server Path override | Tools → Options → MIDL | `midl.serverPath` | |
 | `didChangeConfiguration` | Sent on Options Apply | Sent on settings change | VS includes all 6 LSP settings |
 | Server discovery | Bundled → repo → fallback | Bundled → repo → workspace | Same search order |
 | Smart indent | Brace-based (4-space) | Deferred to LSP/editor | VS has custom `ISmartIndent` |
 | Code actions | Via LSP server | Via LSP server | No custom client handling needed |
-| WinMD definition navigation | Decompiled `.idlrt` file from `workspace/textDocumentContent` | `midl-winmd` virtual document | VS 17 uses the existing LSP connection and a local temporary file; LSP 3.18 clients can use virtual content directly |
-| Microsoft Learn hover descriptions | Plaintext hover middle layer | VS Code hover middleware | Both fetch descriptions on demand; VS displays the URL as text |
+| WinMD decompiler | `WinMdDecompiler.cs` | N/A | VS-only feature |
+| WinMD definition navigation | `midl-winmd` virtual documents | `midl-winmd` virtual documents | VS 18.12+ supports LSP `workspace/textDocumentContent`; earlier versions may not resolve these locations |
+| Microsoft Learn hover descriptions | Markdown hover middle layer | VS Code hover middleware | Both fetch descriptions on demand |
 
 ## ⚠️ Known Gaps
 
@@ -44,17 +45,16 @@ The snippet definitions are identical between both extensions (same file content
 
 **VS Code**: Opens Microsoft Learn documentation in a side panel (`SimpleBrowser.Show`).
 
-**VS**: Not applicable — VS has its own integrated documentation browser. The `fetchSdkDocs`
-setting controls whether hover tooltips fetch docs from Learn, which works in both editors.
+**VS**: Not applicable — VS has its own integrated documentation browser. Both hover middle
+layers fetch descriptions from Learn when an SDK hover includes a Learn link.
 
 ### 3. Hover markdown with trusted commands
 
 **VS Code**: Hover middleware enables trusted command links (e.g., `midl.openDocs`) in
 markdown hover content. Clicking a link in the hover opens documentation.
 
-**VS**: VS renders plaintext hover and does not support trusted `command:` links.
-The server leaves the Microsoft Learn URL visible and the VS hover middle layer adds
-the page description when available; the command link itself is not clickable.
+**VS**: The hover middle layer replaces the `command:` link with a Microsoft Learn HTTPS
+link and adds the page description when available.
 
 ### 4. First-line language detection
 
@@ -63,12 +63,6 @@ to detect MIDL files without an extension.
 
 **VS**: Relies solely on file extensions (`.idl`, `.idlrt`). VS does not support first-line
 language detection through the content type system.
-
-### 5. Class diagrams and Report Issue
-
-**VS Code**: Provides class diagrams and prefilled GitHub issue reports.
-
-**VS**: Does not provide either command or a class diagram editor.
 
 ## Settings Mapping
 
@@ -80,5 +74,4 @@ language detection through the content type system.
 | `midl.useWindowsSdk` | `UseWindowsSdk` | Yes | |
 | `midl.windowsSdkVersion` | `WindowsSdkVersion` | Yes | |
 | `midl.flatSdkTypeCompletions` | `FlatSdkTypeCompletions` | Yes | |
-| `midl.fetchSdkDocs` | `FetchSdkDocs` | Yes | |
 | `midl.inlineDocsBrowser` | — | No | VS Code-only (SimpleBrowser) |

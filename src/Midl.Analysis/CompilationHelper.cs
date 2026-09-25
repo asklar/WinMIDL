@@ -46,59 +46,7 @@ public static class CompilationHelper
                                        )
     {
         return CompileCore(source, lazyProviders, mode, includePaths, currentFilePath,
-            null, defines, emitQualityHints, refDirectories,
-            profile: null, arraysEnabled: arraysEnabled
-#if WITH_COMPAT
-            , cppCmd
-#endif
-            );
-    }
-
-    /// <summary>
-    /// Compiles source while resolving imported files from synchronized content before disk.
-    /// </summary>
-    /// <param name="source">Source text of the owning document.</param>
-    /// <param name="lazyProviders">Pre-built WinMD providers, or <see langword="null"/> when no references are configured.</param>
-    /// <param name="importContentProvider">Provider returning synchronized content for a resolved full path, or <see langword="null"/> to use disk content.</param>
-    /// <param name="mode">Compilation mode controlling language validation.</param>
-    /// <param name="includePaths">Directories searched for imported files, or <see langword="null"/> for none.</param>
-    /// <param name="currentFilePath">Path of the owning document, or <see langword="null"/> when it has no file-system path.</param>
-    /// <param name="defines">Preprocessor symbols, or <see langword="null"/> for none.</param>
-    /// <param name="emitQualityHints">Whether to emit code-quality diagnostics.</param>
-    /// <param name="refDirectories">Directories used for lazy reference resolution, or <see langword="null"/> for none.</param>
-    /// <param name="arraysEnabled">Whether array syntax is enabled.</param>
-#if WITH_COMPAT
-    /// <param name="cppCmd">External preprocessor command, or <see langword="null"/> to use the built-in preprocessor.</param>
-#endif
-    /// <returns>The completed semantic compilation.</returns>
-    internal static Compilation CompileWithImportContent(
-        string source,
-        IReadOnlyList<LazyWinMdProvider>? lazyProviders,
-        Func<string, string?> importContentProvider,
-        CompilationMode mode = CompilationMode.Strict,
-        IReadOnlyList<string>? includePaths = null,
-        string? currentFilePath = null,
-        IReadOnlyList<string>? defines = null,
-        bool emitQualityHints = false,
-        IReadOnlyList<string>? refDirectories = null,
-        bool arraysEnabled = false
-#if WITH_COMPAT
-        , string? cppCmd = null
-#endif
-        )
-    {
-        return CompileCore(
-            source,
-            lazyProviders,
-            mode,
-            includePaths,
-            currentFilePath,
-            importContentProvider,
-            defines,
-            emitQualityHints,
-            refDirectories,
-            profile: null,
-            arraysEnabled: arraysEnabled
+            defines, emitQualityHints, refDirectories, profile: null, arraysEnabled: arraysEnabled
 #if WITH_COMPAT
             , cppCmd
 #endif
@@ -136,8 +84,7 @@ public static class CompilationHelper
         }
 
         return CompileCore(source, lazyProviders, mode, includePaths, currentFilePath,
-            null, defines, emitQualityHints, refDirectories,
-            profile, arraysEnabled: arraysEnabled
+            defines, emitQualityHints, refDirectories, profile, arraysEnabled: arraysEnabled
 #if WITH_COMPAT
             , cppCmd
 #endif
@@ -148,7 +95,6 @@ public static class CompilationHelper
                                        CompilationMode mode,
                                        IReadOnlyList<string>? includePaths,
                                        string? currentFilePath,
-                                       Func<string, string?>? importContentProvider,
                                        IReadOnlyList<string>? defines = null,
                                         bool emitQualityHints = false,
                                         IReadOnlyList<string>? refDirectories = null,
@@ -222,9 +168,7 @@ public static class CompilationHelper
         if (profile != null) { profile.SyntaxErrors = sw!.Elapsed; sw.Restart(); }
 
         // Process import directives before binding
-        ImportResolver importResolver = importContentProvider is null
-            ? new ImportResolver(includePaths, currentFilePath)
-            : new ImportResolver(includePaths, currentFilePath, importContentProvider);
+        var importResolver = new ImportResolver(includePaths, currentFilePath);
         if (currentFilePath != null)
             importResolver.MarkImported(Path.GetFullPath(currentFilePath));
         var importedTrees = new List<(GreenNode Tree, IReadOnlyList<SyntaxToken> Tokens, string? FilePath, SourceMap? Map)>();
@@ -304,15 +248,6 @@ public static class CompilationHelper
         // Attach inactive regions for editor graying
         if (preprocessor.InactiveRegions.Count > 0)
             compilation.InactiveRegions = preprocessor.InactiveRegions;
-
-        List<string> importedFilePaths = [];
-        foreach (var importedTree in importedTrees)
-        {
-            if (importedTree.FilePath is not null)
-                importedFilePaths.Add(Path.GetFullPath(importedTree.FilePath));
-        }
-
-        compilation.ImportedFilePaths = importedFilePaths.ToArray();
 
         return compilation;
     }
@@ -570,7 +505,7 @@ public static class CompilationHelper
             {
                 var externalResult = Midl.Lexer.Preprocessor.ProcessWithExternalCpp(
                     resolved, includePaths, null, cppCmd);
-                importedSource = externalResult ?? importResolver.ReadImportContent(resolved);
+                importedSource = externalResult ?? File.ReadAllText(resolved);
                 if (externalResult == null)
                 {
                     var pp = new Midl.Lexer.Preprocessor(null, includePaths, resolved);
@@ -581,7 +516,7 @@ public static class CompilationHelper
             else
 #endif
             {
-                importedSource = importResolver.ReadImportContent(resolved);
+                importedSource = File.ReadAllText(resolved);
                 var pp = new Midl.Lexer.Preprocessor(null, includePaths, resolved);
                 importedSource = pp.Process(importedSource);
                 importedMap = BuildSourceMap(pp);

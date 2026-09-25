@@ -34,9 +34,6 @@ public class Compilation
     public IReadOnlyDictionary<string, Midl.Lexer.MacroInfo> Macros { get; internal set; }
         = new Dictionary<string, Midl.Lexer.MacroInfo>();
 
-    /// <summary>Gets the full paths of files imported directly or transitively by this compilation.</summary>
-    internal IReadOnlyList<string> ImportedFilePaths { get; set; } = Array.Empty<string>();
-
     private readonly IReadOnlyList<LazyWinMdProvider>? _lazyProviders;
 
     /// <summary>Get the lazy WinMD providers (for code lens type counts per reference).</summary>
@@ -82,7 +79,6 @@ public class Compilation
         target.SymbolTable = SymbolTable;
         target.Macros = Macros;
         target.InactiveRegions = InactiveRegions;
-        target.ImportedFilePaths = ImportedFilePaths;
 #if FEATURE_STAGING
         foreach (var kvp in FeatureNames) target.FeatureNames[kvp.Key] = kvp.Value;
 #endif

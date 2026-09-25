@@ -16,7 +16,6 @@
     <InternalsVisibleTo Include="Midl.Analysis.Tests" />
     <InternalsVisibleTo Include="Midl.CodeGen" />
     <InternalsVisibleTo Include="Midl.CodeGen.Tests" />
-    <InternalsVisibleTo Include="Midl.Lsp" />
   </ItemGroup>
 
 </Project>
